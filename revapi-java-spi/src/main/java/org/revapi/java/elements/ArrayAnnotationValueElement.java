@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.SortedSet;
 
 import org.revapi.Element;
+import org.revapi.java.util.ClassUtil;
 import org.revapi.java.util.InsertionOrderSortedSet;
 
 /**
@@ -41,11 +42,20 @@ public final class ArrayAnnotationValueElement extends AnnotationAttributeValueE
         return searchChildren(AnnotationAttributeValueElement.class, false, null).size();
     }
 
-    @SuppressWarnings("unchecked")
     public AnnotationAttributeValueElement<?> get(int index) {
-        return searchChildren(
-            (Class<AnnotationAttributeValueElement<?>>) (Class<?>) AnnotationAttributeValueElement.class, false, null)
-            .get(index);
+        Iterator<AnnotationAttributeValueElement<?>> it = this.iterateOverChildren(
+            ClassUtil.<AnnotationAttributeValueElement<?>>generify(AnnotationAttributeValueElement.class), false, null);
+
+        int i = 0;
+        for (; i < index && it.hasNext(); ++i) {
+            it.next();
+        }
+
+        if (it.hasNext()) {
+            return it.next();
+        } else {
+            throw new IndexOutOfBoundsException("Index " + index + " is out of bounds of " + i);
+        }
     }
 
     @Override

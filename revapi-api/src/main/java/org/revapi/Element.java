@@ -16,6 +16,7 @@
 
 package org.revapi;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 
@@ -63,4 +64,16 @@ public interface Element extends Comparable<Element> {
      */
     <T extends Element> void searchChildren(List<T> results, Class<T> resultType, boolean recurse,
         Filter<? super T> filter);
+
+    /**
+     * Similar to search methods but avoids the traversal over the whole tree. Instead the traversal is incremental
+     * and governed by the returned iterator.
+     *
+     * @param recurse if true, the iterator traverses the element tree using depth first search
+     *
+     * @return the iterator that will iterate over the results
+     *
+     * @see #searchChildren(Class, boolean, org.revapi.query.Filter)
+     */
+    <T extends Element> Iterator<T> iterateOverChildren(Class<T> resultType, boolean recurse, Filter<? super T> filter);
 }

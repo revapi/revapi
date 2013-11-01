@@ -21,11 +21,14 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.revapi.Element;
+import org.revapi.query.DFSFilteringIterator;
 import org.revapi.query.Filter;
+import org.revapi.query.FilteringIterator;
 
 /**
  * @author Lukas Krejci
@@ -34,6 +37,24 @@ import org.revapi.query.Filter;
 public abstract class SimpleElement<Lang> implements Element {
     private Element parent;
     private SortedSet<Element> children;
+
+    private static class EmptyIterator<E> implements Iterator<E> {
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public E next() {
+            throw new NoSuchElementException();
+        }
+
+        @Override
+        public void remove() {
+            throw new IllegalStateException();
+        }
+    }
 
     private class ParentPreservingSet implements SortedSet<Element> {
         private final SortedSet<Element> set;
@@ -249,6 +270,18 @@ public abstract class SimpleElement<Lang> implements Element {
                 e.searchChildren(results, resultType, recurse, filter);
             }
         }
+    }
+
+    @Override
+    public <T extends Element> Iterator<T> iterateOverChildren(Class<T> resultType, boolean recurse,
+        Filter<? super T> filter) {
+
+        if (children == null) {
+            return new EmptyIterator<>();
+        }
+
+        return recurse ? new DFSFilteringIterator<>(getChildren().iterator(), resultType, filter) :
+            new FilteringIterator<>(getChildren().iterator(), resultType, filter);
     }
 
     protected <T extends Element> List<T> getDirectChildrenOfType(Class<T> type) {

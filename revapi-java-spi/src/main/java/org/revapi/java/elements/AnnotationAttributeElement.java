@@ -16,9 +16,11 @@
 
 package org.revapi.java.elements;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.revapi.Element;
+import org.revapi.java.util.ClassUtil;
 
 /**
  * @author Lukas Krejci
@@ -37,13 +39,9 @@ public final class AnnotationAttributeElement extends AbstractJavaElement<Annota
     }
 
     public <T extends Element> T getValue(Class<T> valueType) {
-        List<T> vals = searchChildren(valueType, false, null);
+        Iterator<T> it = this.iterateOverChildren(valueType, false, null);
 
-        if (vals.isEmpty()) {
-            return null;
-        } else {
-            return vals.get(0);
-        }
+        return it.hasNext() ? it.next() : null;
     }
 
     @Override
@@ -64,7 +62,6 @@ public final class AnnotationAttributeElement extends AbstractJavaElement<Annota
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     protected int doCompare(AnnotationAttributeElement that) {
         //int comp = name == null ? (that.name == null ? 0 : -1) : name.compareTo(that.name);
         int comp = name.compareTo(that.name);
@@ -73,9 +70,10 @@ public final class AnnotationAttributeElement extends AbstractJavaElement<Annota
         }
 
         //we need to compare based on value
-        List<AnnotationAttributeValueElement> vals = getDirectChildrenOfType(AnnotationAttributeValueElement.class);
-        List<AnnotationAttributeValueElement> thatVals = that.getDirectChildrenOfType(
-            AnnotationAttributeValueElement.class);
+        List<AnnotationAttributeValueElement<?>> vals = getDirectChildrenOfType(
+            ClassUtil.<AnnotationAttributeValueElement<?>>generify(AnnotationAttributeValueElement.class));
+        List<AnnotationAttributeValueElement<?>> thatVals = that.getDirectChildrenOfType(
+            ClassUtil.<AnnotationAttributeValueElement<?>>generify(AnnotationAttributeValueElement.class));
 
         comp = vals.size() - thatVals.size();
         if (comp != 0 || vals.isEmpty()) {

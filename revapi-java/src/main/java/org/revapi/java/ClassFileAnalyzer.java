@@ -28,6 +28,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.signature.SignatureVisitor;
 
 import org.revapi.Archive;
 import org.revapi.Element;
@@ -238,6 +239,111 @@ public class ClassFileAnalyzer extends SimpleArchiveAnalyzer<Java, ClassTree> {
 
                 parsed.add(attr);
             }
+        }
+    }
+
+    private static class GenericSignatureVisitor extends SignatureVisitor {
+        final Element parent;
+
+        public GenericSignatureVisitor(Element parent) {
+            super(Opcodes.ASM4);
+            this.parent = parent;
+        }
+
+        @Override
+        public SignatureVisitor visitArrayType() {
+            //TODO implement
+            return super.visitArrayType();
+        }
+
+        @Override
+        public void visitBaseType(char descriptor) {
+            //TODO implement
+            super.visitBaseType(descriptor);
+        }
+
+        @Override
+        public SignatureVisitor visitClassBound() {
+            //TODO implement
+            return super.visitClassBound();
+        }
+
+        @Override
+        public void visitClassType(String name) {
+            //TODO implement
+            super.visitClassType(name);
+        }
+
+        @Override
+        public void visitEnd() {
+            //TODO implement
+            super.visitEnd();
+        }
+
+        @Override
+        public SignatureVisitor visitExceptionType() {
+            //TODO implement
+            return super.visitExceptionType();
+        }
+
+        @Override
+        public void visitFormalTypeParameter(String name) {
+            //TODO implement
+            super.visitFormalTypeParameter(name);
+        }
+
+        @Override
+        public void visitInnerClassType(String name) {
+            //TODO implement
+            super.visitInnerClassType(name);
+        }
+
+        @Override
+        public SignatureVisitor visitInterface() {
+            //TODO implement
+            return super.visitInterface();
+        }
+
+        @Override
+        public SignatureVisitor visitInterfaceBound() {
+            //TODO implement
+            return super.visitInterfaceBound();
+        }
+
+        @Override
+        public SignatureVisitor visitParameterType() {
+            //TODO implement
+            return super.visitParameterType();
+        }
+
+        @Override
+        public SignatureVisitor visitReturnType() {
+            //TODO implement
+            return super.visitReturnType();
+        }
+
+        @Override
+        public SignatureVisitor visitSuperclass() {
+            //TODO implement
+            return super.visitSuperclass();
+        }
+
+        @Override
+        public void visitTypeArgument() {
+            //TODO implement
+            super.visitTypeArgument();
+        }
+
+        @Override
+        public SignatureVisitor visitTypeArgument(char wildcard) {
+            //TODO implement
+            return super.visitTypeArgument(wildcard);
+        }
+
+        @Override
+        public void visitTypeVariable(String name) {
+            //TODO implement
+            super.visitTypeVariable(name);
         }
     }
 

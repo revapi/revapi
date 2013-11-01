@@ -123,13 +123,11 @@ public final class MethodElement extends AccessibleElement<MethodElement> {
     }
 
     public AnnotationAttributeValueElement<?> getAnnotationMethodDefaultValue() {
-        List<AnnotationAttributeElement> vals = searchChildren(AnnotationAttributeElement.class, false, null);
-        if (vals.isEmpty()) {
-            return null;
-        } else {
-            return vals.get(0).getValue(
-                ClassUtil.<AnnotationAttributeValueElement<?>>generify(AnnotationAttributeValueElement.class));
-        }
+        Iterator<AnnotationAttributeElement> it = iterateOverChildren(AnnotationAttributeElement.class, false, null);
+
+        return it.hasNext() ? it.next()
+            .getValue(ClassUtil.<AnnotationAttributeValueElement<?>>generify(AnnotationAttributeValueElement.class)) :
+            null;
     }
 
     @Override
