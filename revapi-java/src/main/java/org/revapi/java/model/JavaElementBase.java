@@ -29,7 +29,7 @@ import org.revapi.simple.SimpleElement;
  * @author Lukas Krejci
  * @since 1.0
  */
-abstract class JavaElementBase<T extends Element> extends SimpleElement implements JavaElement<T> {
+abstract class JavaElementBase<T extends Element> extends SimpleElement implements JavaElement {
 
     protected final ProbingEnvironment environment;
     protected T element;
@@ -53,7 +53,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         SortedSet<org.revapi.Element> set = super.newChildrenInstance();
 
         for (Element e : getModelElement().getEnclosedElements()) {
-            JavaElement<?> child = JavaElementFactory.elementFor(e, environment);
+            JavaElement child = JavaElementFactory.elementFor(e, environment);
             if (child != null) {
                 child.setParent(this);
 

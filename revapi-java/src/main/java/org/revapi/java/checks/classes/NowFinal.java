@@ -27,7 +27,7 @@ import org.revapi.java.checks.Code;
  */
 public final class NowFinal extends ModifierAdded {
 
-    protected NowFinal() {
+    public NowFinal() {
         super(Code.CLASS_NOW_FINAL, Modifier.FINAL, MismatchSeverity.ERROR, MismatchSeverity.ERROR);
     }
 }

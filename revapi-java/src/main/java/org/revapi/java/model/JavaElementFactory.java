@@ -33,17 +33,17 @@ class JavaElementFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Element> JavaElement<T> elementFor(T modelElement, ProbingEnvironment env) {
+    public static JavaElement elementFor(Element modelElement, ProbingEnvironment env) {
         if (modelElement instanceof javax.lang.model.element.TypeElement) {
-            return (JavaElement<T>) new TypeElement(env, (javax.lang.model.element.TypeElement) modelElement);
+            return new TypeElement(env, (javax.lang.model.element.TypeElement) modelElement);
         } else if (modelElement instanceof VariableElement &&
             modelElement.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
-            return (JavaElement<T>) new FieldElement(env, (VariableElement) modelElement);
+            return new FieldElement(env, (VariableElement) modelElement);
         } else if (modelElement instanceof VariableElement &&
             modelElement.getEnclosingElement() instanceof ExecutableElement) {
-            return (JavaElement<T>) new MethodParameterElement(env, (VariableElement) modelElement);
+            return new MethodParameterElement(env, (VariableElement) modelElement);
         } else if (modelElement instanceof ExecutableElement) {
-            return (JavaElement<T>) new MethodElement(env, (ExecutableElement) modelElement);
+            return new MethodElement(env, (ExecutableElement) modelElement);
         } else {
             //TODO uncomment once all implemented
             //throw new IllegalArgumentException("Unsupported model element: " + modelElement.getClass());

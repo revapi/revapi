@@ -117,8 +117,8 @@ public final class Revapi {
         initAnalyzers();
         initProblemFilters();
 
-        for (ApiAnalyzer lang : availableApiAnalyzers) {
-            analyzeWith(lang);
+        for (ApiAnalyzer analyzer : availableApiAnalyzers) {
+            analyzeWith(analyzer);
         }
     }
 

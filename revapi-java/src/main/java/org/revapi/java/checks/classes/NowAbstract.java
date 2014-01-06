@@ -26,7 +26,7 @@ import org.revapi.java.checks.Code;
  * @since 1.0
  */
 public final class NowAbstract extends ModifierAdded {
-    protected NowAbstract() {
+    public NowAbstract() {
         super(Code.CLASS_NOW_ABSTRACT, Modifier.ABSTRACT, MismatchSeverity.ERROR, MismatchSeverity.ERROR);
     }
 }

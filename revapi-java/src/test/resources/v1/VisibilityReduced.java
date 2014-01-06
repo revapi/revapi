@@ -14,13 +14,11 @@
  * limitations under the License
  */
 
-package v1;
-
 /**
  * @author Lukas Krejci
  * @since 1.0
  */
-public class VisibilityDecreased {
+public class VisibilityReduced {
     public static class TestClass {
     }
 }

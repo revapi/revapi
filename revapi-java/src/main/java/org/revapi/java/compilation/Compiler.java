@@ -89,6 +89,8 @@ public final class Compiler {
             @Override
             public Boolean call() throws Exception {
                 return task.call();
+                //TODO cleanup of the compiler output (possibly wait until after analysis? How does javac load
+                //model classes?
             }
         });
     }

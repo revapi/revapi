@@ -24,12 +24,12 @@ import org.revapi.java.checks.Code;
  * @since 1.0
  */
 public final class VisibilityReduced extends VisibilityChanged {
-    protected VisibilityReduced() {
+    public VisibilityReduced() {
         super(Code.CLASS_VISIBILITY_REDUCED, MismatchSeverity.ERROR, MismatchSeverity.ERROR);
     }
 
     @Override
     protected boolean isProblem(int oldVisibilityRank, int newVisibilityRank) {
-        return oldVisibilityRank > newVisibilityRank;
+        return oldVisibilityRank < newVisibilityRank;
     }
 }

@@ -48,7 +48,12 @@ abstract class ModifierRemoved extends AbstractJavaCheck {
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
         if (oldType != null && newType != null && newType.getKind() == oldType.getKind()) {
-            pushActive(oldType, newType);
+            boolean oldTypeContains = oldType.getModifiers().contains(modifier);
+            boolean newTypeContains = newType.getModifiers().contains(modifier);
+
+            if (oldTypeContains && !newTypeContains) {
+                pushActive(oldType, newType);
+            }
         }
     }
 

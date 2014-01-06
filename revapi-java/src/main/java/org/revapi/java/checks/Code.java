@@ -37,6 +37,16 @@ public enum Code {
     CLASS_NO_LONGER_ABSTRACT(6),
     CLASS_NOW_ABSTRACT(7),;
 
+    public static Code fromCode(String code) {
+        for (Code c : Code.values()) {
+            if (c.code.equals(code)) {
+                return c;
+            }
+        }
+
+        return null;
+    }
+
     private final String code;
 
     private Code(int number) {
@@ -47,6 +57,17 @@ public enum Code {
         return code;
     }
 
+    public MatchReport.Problem.Builder initializeNewProblem(Locale locale) {
+        Message message = getMessages(locale).get(code);
+        return MatchReport.Problem.create().withCode(code).withName(message.name).withDescription(message.description);
+    }
+
+    public MatchReport.Problem.Builder initializeNewProblem(Locale locale, Object... params) {
+        Message message = getMessages(locale).get(code);
+        String description = MessageFormat.format(message.description, params);
+        return MatchReport.Problem.create().withCode(code).withName(message.name).withDescription(description);
+    }
+
     private static String format(int number) {
         return String.format("JAVA-%1$04d", number);
     }
@@ -55,7 +76,7 @@ public enum Code {
         final String name;
         final String description;
 
-        private Message(String description, String name) {
+        private Message(String name, String description) {
             this.description = description;
             this.name = name;
         }
@@ -88,16 +109,5 @@ public enum Code {
         }
 
         return messageRef.get();
-    }
-
-    public MatchReport.Problem.Builder initializeNewProblem(Locale locale) {
-        Message message = getMessages(locale).get(code);
-        return MatchReport.Problem.create().withCode(code).withName(message.name).withDescription(message.description);
-    }
-
-    public MatchReport.Problem.Builder initializeNewProblem(Locale locale, Object... params) {
-        Message message = getMessages(locale).get(code);
-        String description = MessageFormat.format(message.description, params);
-        return MatchReport.Problem.create().withCode(code).withName(message.name).withDescription(description);
     }
 }

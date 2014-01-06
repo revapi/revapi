@@ -17,6 +17,8 @@
 package org.revapi;
 
 import java.io.PrintStream;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Lukas Krejci
@@ -25,15 +27,12 @@ import java.io.PrintStream;
 public class TextReporter implements Reporter {
 
     private boolean reportMatches;
-    private int indentationStep;
 
     @Override
-    public void initialize(Configuration properties) {
-        String reportMatches = properties.get("TextReporter.reportMatches");
-        String indentationStep = properties.get("TextReporter.indentationStep");
+    public void initialize(Configuration config) {
+        String reportMatches = config.getProperties().get("TextReporter.reportMatches");
 
         this.reportMatches = reportMatches != null && Boolean.valueOf(reportMatches);
-        this.indentationStep = indentationStep == null ? 4 : Integer.parseInt(indentationStep);
     }
 
     @Override
@@ -52,9 +51,24 @@ public class TextReporter implements Reporter {
         if (!matchReport.getProblems().isEmpty()) {
             output.append(":");
             for (MatchReport.Problem p : matchReport.getProblems()) {
-                output.append(p.code).append(p.severity.name()).append(" (").append(p.compatibility.name())
-                    .append("): ").append(p.description).append("\n");
+                output.append(p.name).append(" (").append(p.code).append(")");
+                reportClassification(output, p);
+                output.append("): ").append(p.description).append("\n");
             }
+        }
+    }
+
+    private void reportClassification(PrintStream output, MatchReport.Problem problem) {
+        Iterator<Map.Entry<CompatibilityType, MismatchSeverity>> it = problem.classification.entrySet().iterator();
+
+        if (it.hasNext()) {
+            Map.Entry<CompatibilityType, MismatchSeverity> e = it.next();
+            output.append(" ").append(e.getKey().toString()).append(": ").append(e.getValue().toString());
+        }
+
+        while (it.hasNext()) {
+            Map.Entry<CompatibilityType, MismatchSeverity> e = it.next();
+            output.append(", ").append(e.getKey().toString()).append(": ").append(e.getValue().toString());
         }
     }
 }
