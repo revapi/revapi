@@ -37,6 +37,7 @@ public final class FieldElement extends JavaElementBase<VariableElement> {
             return -1;
         }
 
-        return element.getSimpleName().toString().compareTo(((FieldElement) o).getElement().getSimpleName().toString());
+        return element.getSimpleName().toString()
+            .compareTo(((FieldElement) o).getModelElement().getSimpleName().toString());
     }
 }

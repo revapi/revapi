@@ -21,6 +21,7 @@ import java.util.SortedSet;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
+import org.revapi.java.JavaElement;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.simple.SimpleElement;
 
@@ -38,20 +39,20 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         this.element = element;
     }
 
-    public T getElement() {
+    public T getModelElement() {
         return element;
     }
 
     @Override
     public String toString() {
-        return getElement().toString();
+        return getModelElement().toString();
     }
 
     @Override
     protected SortedSet<org.revapi.Element> newChildrenInstance() {
         SortedSet<org.revapi.Element> set = super.newChildrenInstance();
 
-        for (Element e : getElement().getEnclosedElements()) {
+        for (Element e : getModelElement().getEnclosedElements()) {
             JavaElement<?> child = JavaElementFactory.elementFor(e, environment);
             if (child != null) {
                 child.setParent(this);
@@ -60,7 +61,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
             }
         }
 
-        for (AnnotationMirror m : getElement().getAnnotationMirrors()) {
+        for (AnnotationMirror m : getModelElement().getAnnotationMirrors()) {
             set.add(new AnnotationElement(environment, m));
         }
 

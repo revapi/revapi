@@ -20,6 +20,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
+import org.revapi.java.JavaElement;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**

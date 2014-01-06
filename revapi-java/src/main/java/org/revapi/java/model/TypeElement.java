@@ -36,7 +36,7 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
     }
 
     @Override
-    public javax.lang.model.element.TypeElement getElement() {
+    public javax.lang.model.element.TypeElement getModelElement() {
         if (element == null) {
             element = environment.getElementUtils().getTypeElement(className);
         }

@@ -40,15 +40,15 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> {
             return 1;
         }
 
-        return getElement().getSimpleName().toString()
-            .compareTo(((MethodElement) o).getElement().getSimpleName().toString());
+        return getModelElement().getSimpleName().toString()
+            .compareTo(((MethodElement) o).getModelElement().getSimpleName().toString());
     }
 
     @Override
     protected SortedSet<Element> newChildrenInstance() {
         SortedSet<Element> ret = super.newChildrenInstance();
 
-        for (VariableElement v : getElement().getParameters()) {
+        for (VariableElement v : getModelElement().getParameters()) {
             MethodParameterElement p = new MethodParameterElement(environment, v);
             p.setParent(this);
             ret.add(p);

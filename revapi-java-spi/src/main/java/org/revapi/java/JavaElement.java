@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi.java.model;
+package org.revapi.java;
 
 import javax.lang.model.element.Element;
 
@@ -22,7 +22,7 @@ import javax.lang.model.element.Element;
  * @author Lukas Krejci
  * @since 1.0
  */
-public interface JavaElement<T extends Element> extends org.revapi.Element {
+public interface JavaElement extends org.revapi.Element {
 
-    Element getElement();
+    Element getModelElement();
 }

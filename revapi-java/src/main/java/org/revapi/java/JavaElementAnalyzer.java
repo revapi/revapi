@@ -63,7 +63,8 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
     public void beginAnalysis(Element oldElement, Element newElement) {
         if (oldElement instanceof TypeElement && newElement instanceof TypeElement) {
             for (Check c : checks) {
-                c.visitClass(((TypeElement) oldElement).getElement(), ((TypeElement) newElement).getElement());
+                c.visitClass(((TypeElement) oldElement).getModelElement(),
+                    ((TypeElement) newElement).getModelElement());
             }
         } else if (oldElement instanceof AnnotationElement && newElement instanceof AnnotationElement) {
             //annotation are always terminal elements, so treat them a bit differently
@@ -78,18 +79,18 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
             }
         } else if (oldElement instanceof FieldElement && newElement instanceof FieldElement) {
             for (Check c : checks) {
-                c.visitField(((FieldElement) oldElement).getElement(),
-                    ((FieldElement) newElement).getElement());
+                c.visitField(((FieldElement) oldElement).getModelElement(),
+                    ((FieldElement) newElement).getModelElement());
             }
         } else if (oldElement instanceof MethodElement && newElement instanceof MethodElement) {
             for (Check c : checks) {
-                c.visitMethod(((MethodElement) oldElement).getElement(),
-                    ((MethodElement) newElement).getElement());
+                c.visitMethod(((MethodElement) oldElement).getModelElement(),
+                    ((MethodElement) newElement).getModelElement());
             }
         } else if (oldElement instanceof MethodParameterElement && newElement instanceof MethodParameterElement) {
             for (Check c : checks) {
-                c.visitMethodParameter(((MethodParameterElement) oldElement).getElement(),
-                    ((MethodParameterElement) newElement).getElement());
+                c.visitMethodParameter(((MethodParameterElement) oldElement).getModelElement(),
+                    ((MethodParameterElement) newElement).getModelElement());
             }
         }
     }
