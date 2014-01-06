@@ -31,7 +31,4 @@ public interface TypeEnvironment {
     Elements getElementUtils();
 
     Types getTypeUtils();
-
-    //TODO shall we support this way of reporting stuff?
-    //Messager getMessager();
 }

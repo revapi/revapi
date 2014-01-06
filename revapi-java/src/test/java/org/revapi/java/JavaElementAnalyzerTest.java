@@ -199,4 +199,6 @@ public class JavaElementAnalyzerTest {
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_VISIBILITY_INCREASED.code()));
     }
+
+    //TODO add tests for the rest of the checks
 }

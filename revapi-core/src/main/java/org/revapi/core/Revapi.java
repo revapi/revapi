@@ -79,7 +79,6 @@ public final class Revapi {
             configurationProperties);
     }
 
-    @SuppressWarnings("unchecked")
     public Revapi(Iterable<Archive> oldArchives, Iterable<Archive> newArchives, PrintStream output,
         ClassLoader classLoader, Locale locale,
         Map<String, String> configurationProperties) {
