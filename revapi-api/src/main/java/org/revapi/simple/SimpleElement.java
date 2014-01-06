@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.revapi.query.FilteringIterator;
  * @author Lukas Krejci
  * @since 1.0
  */
-public abstract class SimpleElement<Lang> implements Element {
+public abstract class SimpleElement implements Element {
     private Element parent;
     private SortedSet<Element> children;
 

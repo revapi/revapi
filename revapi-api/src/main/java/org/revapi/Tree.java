@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.SortedSet;
 import org.revapi.query.Filter;
 
 /**
- * A representation of some "unit" of given language. Typically an abstract syntax tree of a language.
+ * A representation of some "unit" understood by an API analyzer. Typically an abstract syntax tree of a language.
  *
  * @author Lukas Krejci
  * @since 1.0

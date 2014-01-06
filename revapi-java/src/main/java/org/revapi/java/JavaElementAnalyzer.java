@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,60 +16,99 @@
 
 package org.revapi.java;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
-import java.util.Set;
 
+import org.revapi.Configuration;
 import org.revapi.Element;
 import org.revapi.ElementAnalyzer;
 import org.revapi.MatchReport;
-import org.revapi.java.elements.ClassElement;
-import org.revapi.java.elements.FieldElement;
-import org.revapi.java.elements.MethodElement;
+import org.revapi.java.model.AnnotationElement;
+import org.revapi.java.model.FieldElement;
+import org.revapi.java.model.MethodElement;
+import org.revapi.java.model.MethodParameterElement;
+import org.revapi.java.model.TypeElement;
 
 /**
  * @author Lukas Krejci
  * @since 1.0
  */
-public class JavaElementAnalyzer implements ElementAnalyzer {
-    private final Set<Check> checks;
+public final class JavaElementAnalyzer implements ElementAnalyzer {
+    private final Iterable<Check> checks;
+    private final TypeEnvironment oldClasses;
+    private final TypeEnvironment newClasses;
+    private final Configuration configuration;
+    private List<MatchReport.Problem> lastAnnotationResults;
 
-    public JavaElementAnalyzer() {
-        this(new HashSet<Check>());
-
-        for (Check c : ServiceLoader.load(Check.class, getClass().getClassLoader())) {
-            checks.add(c);
-        }
+    public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, TypeEnvironment newClasses) {
+        this(configuration, oldClasses, newClasses,
+            ServiceLoader.load(Check.class, JavaElementAnalyzer.class.getClassLoader()));
     }
 
-    public JavaElementAnalyzer(Set<Check> checks) {
+    public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, TypeEnvironment newClasses,
+        Iterable<Check> checks) {
+        this.configuration = configuration;
+        this.oldClasses = oldClasses;
+        this.newClasses = newClasses;
         this.checks = checks;
+        for (Check c : checks) {
+            c.initialize(configuration);
+            c.setOldTypeEnvironment(oldClasses);
+            c.setNewTypeEnvironment(newClasses);
+        }
     }
 
     @Override
     public void beginAnalysis(Element oldElement, Element newElement) {
-        if (oldElement instanceof ClassElement) {
+        if (oldElement instanceof TypeElement && newElement instanceof TypeElement) {
             for (Check c : checks) {
-                c.beginCheckClasses((ClassElement) oldElement, (ClassElement) newElement);
+                c.visitClass(((TypeElement) oldElement).getElement(), ((TypeElement) newElement).getElement());
             }
-        } else if (oldElement instanceof MethodElement) {
-            for (Check c : checks) {
-                c.beginCheckMethods((MethodElement) oldElement, (MethodElement) newElement);
+        } else if (oldElement instanceof AnnotationElement && newElement instanceof AnnotationElement) {
+            //annotation are always terminal elements, so treat them a bit differently
+            if (lastAnnotationResults == null) {
+                lastAnnotationResults = new ArrayList<>();
             }
-        } else if (oldElement instanceof FieldElement) {
+            lastAnnotationResults.clear();
             for (Check c : checks) {
-                c.beginCheckFields((FieldElement) oldElement, (FieldElement) newElement);
+                List<MatchReport.Problem> cps = c.visitAnnotation(((AnnotationElement) oldElement).getAnnotation(),
+                    ((AnnotationElement) newElement).getAnnotation());
+                lastAnnotationResults.addAll(cps);
             }
-        } else {
+        } else if (oldElement instanceof FieldElement && newElement instanceof FieldElement) {
             for (Check c : checks) {
-                c.beginCheckUnknown(oldElement, newElement);
+                c.visitField(((FieldElement) oldElement).getElement(),
+                    ((FieldElement) newElement).getElement());
+            }
+        } else if (oldElement instanceof MethodElement && newElement instanceof MethodElement) {
+            for (Check c : checks) {
+                c.visitMethod(((MethodElement) oldElement).getElement(),
+                    ((MethodElement) newElement).getElement());
+            }
+        } else if (oldElement instanceof MethodParameterElement && newElement instanceof MethodParameterElement) {
+            for (Check c : checks) {
+                c.visitMethodParameter(((MethodParameterElement) oldElement).getElement(),
+                    ((MethodParameterElement) newElement).getElement());
             }
         }
-        //TODO implement
     }
 
     @Override
     public MatchReport endAnalysis(Element oldElement, Element newElement) {
-        return null;  //TODO implement
+        if ((oldElement == null || oldElement instanceof AnnotationElement) &&
+            (newElement == null || newElement instanceof AnnotationElement)) {
+            return new MatchReport(lastAnnotationResults, oldElement, newElement);
+        }
+
+        List<MatchReport.Problem> problems = new ArrayList<>();
+        for (Check c : checks) {
+            List<MatchReport.Problem> p = c.visitEnd();
+            if (p != null) {
+                problems.addAll(p);
+            }
+        }
+
+        return new MatchReport(problems, oldElement, newElement);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 package org.revapi;
 
-import java.io.Closeable;
-
 /**
  * @author Lukas Krejci
  * @since 1.0
  */
-public interface ArchiveAnalyzer extends Closeable {
+public interface ArchiveAnalyzer {
 
     Tree analyze();
 }

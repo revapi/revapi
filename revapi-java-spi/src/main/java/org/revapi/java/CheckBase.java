@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,58 +16,131 @@
 
 package org.revapi.java;
 
-import org.revapi.Element;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+
+import org.revapi.Configuration;
 import org.revapi.MatchReport;
-import org.revapi.java.elements.ClassElement;
-import org.revapi.java.elements.FieldElement;
-import org.revapi.java.elements.MethodElement;
 
 /**
- * An "empty" implementation of the {@link Check} interface to ease the implementation of this large interface.
+ * An empty implementation of the {@link Check} interface.
  *
  * @author Lukas Krejci
  * @since 1.0
  */
-public class CheckBase implements Check {
+public abstract class CheckBase implements Check {
+    protected static class ActiveElements<T extends Element> {
+        public final T oldElement;
+        public final T newElement;
+        private final int depth;
 
-    protected CheckBase() {
+        private ActiveElements(int depth, T oldElement, T newElement) {
+            this.depth = depth;
+            this.oldElement = oldElement;
+            this.newElement = newElement;
+        }
+    }
 
+    protected TypeEnvironment oldTypeEnvironment;
+    protected TypeEnvironment newTypeEnvironment;
+    private int depth;
+    private final Deque<ActiveElements> activations = new ArrayDeque<>();
+    protected Configuration configuration;
+
+    @Override
+    public void initialize(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     @Override
-    public void beginCheckClasses(ClassElement a, ClassElement b) {
-
+    public void setOldTypeEnvironment(TypeEnvironment env) {
+        oldTypeEnvironment = env;
     }
 
     @Override
-    public MatchReport endCheckClasses(ClassElement a, ClassElement b) {
+    public void setNewTypeEnvironment(TypeEnvironment env) {
+        newTypeEnvironment = env;
+    }
+
+    @Override
+    public final List<MatchReport.Problem> visitEnd() {
+        depth--;
+        return doEnd();
+    }
+
+    protected List<MatchReport.Problem> doEnd() {
         return null;
     }
 
     @Override
-    public void beginCheckFields(FieldElement a, FieldElement b) {
+    public final void visitClass(TypeElement oldType, TypeElement newType) {
+        depth++;
+        doVisitClass(oldType, newType);
+    }
+
+    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
     }
 
     @Override
-    public MatchReport endCheckFields(FieldElement a, FieldElement b) {
+    public final void visitMethod(ExecutableElement oldMethod, ExecutableElement newMethod) {
+        depth++;
+        doVisitMethod(oldMethod, newMethod);
+    }
+
+    protected void doVisitMethod(ExecutableElement oldMethod, ExecutableElement newMethod) {
+    }
+
+    @Override
+    public final void visitMethodParameter(VariableElement oldParameter, VariableElement newParameter) {
+        depth++;
+        doVisitMethodParameter(oldParameter, newParameter);
+    }
+
+    protected void doVisitMethodParameter(VariableElement oldParameter, VariableElement newParameter) {
+    }
+
+    @Override
+    public final void visitField(VariableElement oldField, VariableElement newField) {
+        depth++;
+        doVisitField(oldField, newField);
+    }
+
+    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+    }
+
+    @Override
+    public final List<MatchReport.Problem> visitAnnotation(AnnotationMirror oldAnnotation,
+        AnnotationMirror newAnnotation) {
+        depth++;
+        List<MatchReport.Problem> ret = doVisitAnnotation(oldAnnotation, newAnnotation);
+        depth--;
+        return ret;
+    }
+
+    protected List<MatchReport.Problem> doVisitAnnotation(AnnotationMirror oldAnnotation,
+        AnnotationMirror newAnnotation) {
         return null;
     }
 
-    @Override
-    public void beginCheckMethods(MethodElement a, MethodElement b) {
+    protected final <T extends Element> void pushActive(T oldElement, T newElement) {
+        ActiveElements<T> r = new ActiveElements<>(depth, oldElement, newElement);
+        activations.push(r);
     }
 
-    @Override
-    public MatchReport endCheckMethods(MethodElement a, MethodElement b) {
-        return null;
+    @SuppressWarnings("unchecked")
+    protected <T extends Element> ActiveElements<T> popIfActive() {
+        return !activations.isEmpty() && activations.peek().depth == depth ? activations.pop() : null;
     }
 
-    @Override
-    public void beginCheckUnknown(Element a, Element b) {
-    }
-
-    @Override
-    public MatchReport endCheckUnknown(Element a, Element b) {
-        return null;
+    @SuppressWarnings("unchecked")
+    protected <T extends Element> ActiveElements<T> peekLastActive() {
+        return activations.peek();
     }
 }

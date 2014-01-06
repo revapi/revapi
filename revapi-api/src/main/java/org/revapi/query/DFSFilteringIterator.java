@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
      */
     @Override
     public void remove() {
-        //XXX is this worth implementing?
+        //is this worth implementing?
         throw new UnsupportedOperationException();
     }
 }

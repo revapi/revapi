@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.revapi.Archive;
 
 /**
  * @author Lukas Krejci
- * @since 0.1
+ * @since 1.0
  */
 final class FileArchive implements Archive {
 

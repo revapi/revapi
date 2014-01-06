@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,23 @@ package org.revapi;
  */
 public interface ElementAnalyzer {
 
+    /**
+     * Called when the analysis of the two corresponding elements begins. If those elements contain children, all the
+     * children will be analyzed before the {@link #endAnalysis(Element, Element)} method will be called for these
+     * two elements.
+     *
+     * @param oldElement the element from the old archives
+     * @param newElement the element from the new archives
+     */
     void beginAnalysis(Element oldElement, Element newElement);
 
+    /**
+     * Called when the analysis of the two elements ends (i.e. all the children have been visited).
+     *
+     * @param oldElement the element from the old archives
+     * @param newElement the element from the new archives
+     *
+     * @return a report detailing the difference found between these two elements
+     */
     MatchReport endAnalysis(Element oldElement, Element newElement);
 }

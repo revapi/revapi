@@ -1,1 +1,7 @@
-org.revapi.java.checks.iface.MethodAdded
+org.revapi.java.checks.classes.VisibilityIncreased
+org.revapi.java.checks.classes.VisibilityReduced
+org.revapi.java.checks.classes.KindChanged
+org.revapi.java.checks.classes.NoLongerFinal
+org.revapi.java.checks.classes.NowFinal
+org.revapi.java.checks.classes.NoLongerAbstract
+org.revapi.java.checks.classes.NowAbstract

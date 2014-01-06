@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,89 @@
 
 package org.revapi.java;
 
-import org.revapi.Element;
+import java.util.List;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+
+import org.revapi.Configuration;
 import org.revapi.MatchReport;
-import org.revapi.java.elements.ClassElement;
-import org.revapi.java.elements.FieldElement;
-import org.revapi.java.elements.MethodElement;
 
 /**
+ * An interface that java API checkers need to implement.
+ * <p/>
+ * The methods on this interface are called in the following order:
+ * <pre><code>
+ * initialize
+ * setOldTypeEnvironment
+ * setNewTypeEnvironment
+ * (visitClass
+ *     visitAnnotation*
+ *     (visitField
+ *         visitAnnotation*
+ *      visitEnd)*
+ *     (visitMethod
+ *         visitAnnotation*
+ *         (visitMethodParameter
+ *             visitAnnotation*
+ *          visitEnd)*
+ *      visitEnd)*
+ *     (visitClass ... visitEnd)* //inner classes
+ *  visitEnd)*
+ * </code></pre>
+ *
  * @author Lukas Krejci
  * @since 1.0
  */
 public interface Check {
 
-    //TODO add begin/end pairs for all java element types. Also create a "Simple" or "Base" impl of this iface that would
-    //do nothing in all methods to ease the impl for the subclasses.
+    void initialize(Configuration configuration);
 
-    void beginCheckClasses(ClassElement a, ClassElement b);
+    /**
+     * The environment containing the old version of the classes. This can be used to reason about the
+     * classes when doing the checks.
+     * <p/>
+     * Called once after the check has been instantiated.
+     *
+     * @param env the environment to obtain the helper objects using which one can navigate and examine types
+     */
+    void setOldTypeEnvironment(TypeEnvironment env);
 
-    MatchReport endCheckClasses(ClassElement a, ClassElement b);
+    /**
+     * The environment containing the new version of the classes. This can be used to reason about the
+     * classes when doing the checks.
+     * <p/>
+     * Called once after the check has been instantiated.
+     *
+     * @param env the environment to obtain the helper objects using which one can navigate and examine types
+     */
+    void setNewTypeEnvironment(TypeEnvironment env);
 
-    void beginCheckFields(FieldElement a, FieldElement b);
+    /**
+     * Each of the other visit* calls is followed by a corresponding call to this method in a stack-like
+     * manner.
+     * <p/>
+     * I.e. a series of calls might look like this:<br/>
+     * <pre><code>
+     * visitType();
+     * visitMethod();
+     * visitEnd();
+     * visitMethod();
+     * visitEnd();
+     * visitEnd(); //"ends" the visitType()
+     * </code></pre>
+     */
+    List<MatchReport.Problem> visitEnd();
 
-    MatchReport endCheckFields(FieldElement a, FieldElement b);
+    void visitClass(TypeElement oldType, TypeElement newType);
 
-    void beginCheckMethods(MethodElement a, MethodElement b);
+    void visitMethod(ExecutableElement oldMethod, ExecutableElement newMethod);
 
-    MatchReport endCheckMethods(MethodElement a, MethodElement b);
+    void visitMethodParameter(VariableElement oldParameter, VariableElement newParameter);
 
-    void beginCheckUnknown(Element a, Element b);
+    void visitField(VariableElement oldField, VariableElement newField);
 
-    MatchReport endCheckUnknown(Element a, Element b);
+    List<MatchReport.Problem> visitAnnotation(AnnotationMirror oldAnnotation, AnnotationMirror newAnnotation);
 }

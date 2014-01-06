@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,11 @@ import org.revapi.query.Filter;
  * @author Lukas Krejci
  * @since 1.0
  */
-public class SimpleTree<Lang> implements Tree {
-    private SortedSet<? extends SimpleElement<Lang>> roots;
+public class SimpleTree implements Tree {
+    private SortedSet<? extends SimpleElement> roots;
 
     @Override
-    public SortedSet<? extends SimpleElement<Lang>> getRoots() {
+    public SortedSet<? extends SimpleElement> getRoots() {
         if (roots == null) {
             roots = new TreeSet<>();
         }
@@ -63,6 +63,24 @@ public class SimpleTree<Lang> implements Tree {
             if (recurse && (filter == null || filter.shouldDescendInto(e))) {
                 search(results, resultType, e.getChildren(), recurse, filter);
             }
+        }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder bld = new StringBuilder(getClass().getSimpleName());
+
+        addToString(bld, 1, getRoots());
+
+        return bld.toString();
+    }
+
+    private void addToString(StringBuilder bld, int indent, SortedSet<? extends Element> elements) {
+        for (Element e : elements) {
+            bld.append("\n");
+            for (int i = 0; i < indent; ++i) bld.append("    ");
+            bld.append(e.toString());
+            addToString(bld, indent + 1, e.getChildren());
         }
     }
 }

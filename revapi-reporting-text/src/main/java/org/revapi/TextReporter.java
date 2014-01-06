@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,6 @@
 package org.revapi;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Lukas Krejci
@@ -32,7 +28,7 @@ public class TextReporter implements Reporter {
     private int indentationStep;
 
     @Override
-    public void initialize(Map<String, String> properties) {
+    public void initialize(Configuration properties) {
         String reportMatches = properties.get("TextReporter.reportMatches");
         String indentationStep = properties.get("TextReporter.indentationStep");
 
@@ -42,51 +38,23 @@ public class TextReporter implements Reporter {
 
     @Override
     public void report(MatchReport matchReport, PrintStream output) {
-        switch (matchReport.getMismatchSeverity()) {
-        case NONE:
-            if (!reportMatches) {
-                return;
-            } else {
-                output.print("MATCH: ");
-            }
-            break;
-        default:
-            output.append(matchReport.getCode()).append(": ").append(matchReport.getMismatchSeverity().name())
-                .append(": ");
+        if (!reportMatches && matchReport.getProblems().isEmpty()) {
+            return;
         }
 
-        output.println(matchReport.getOldElement());
-        output.print("with: ");
+        if (matchReport.getProblems().isEmpty()) {
+            output.print("MATCH: ");
+        }
+
+        output.print(matchReport.getOldElement());
+        output.print(" with ");
         output.println(matchReport.getNewElement());
-        output.println("Description: ");
-        printIndented(output, matchReport.getDescription(), 0);
-    }
-
-    private void printIndented(PrintStream output, MatchReport.StructuredDescription descr, int indentation) {
-        List<String> keys = new ArrayList<>(descr.keySet());
-        Collections.sort(keys);
-
-        for (String key : keys) {
-            indent(output, indentation);
-            output.append(key).append(": ");
-            MatchReport.StructuredDescription subDesc = descr.get(key);
-            if (subDesc == null) {
-                output.println("<no-value>");
-            } else if (subDesc.getSimpleText() != null) {
-                output.println(subDesc.getSimpleText());
-            } else if (subDesc.size() == 0) {
-                output.println("<no-value>");
-            } else {
-                output.println();
-                printIndented(output, subDesc, indentation + indentationStep);
+        if (!matchReport.getProblems().isEmpty()) {
+            output.append(":");
+            for (MatchReport.Problem p : matchReport.getProblems()) {
+                output.append(p.code).append(p.severity.name()).append(" (").append(p.compatibility.name())
+                    .append("): ").append(p.description).append("\n");
             }
         }
     }
-
-    private void indent(PrintStream output, int indentation) {
-        for (int i = 0; i < indentation; ++i) {
-            output.append(" ");
-        }
-    }
-
 }
