@@ -24,7 +24,7 @@ import javax.lang.model.util.Types;
  * serves the same purpose. To give a context to the API checking classes.
  *
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public interface TypeEnvironment {
 

@@ -24,7 +24,7 @@ import java.util.Map;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public final class MatchReport {
     public static final class Problem {

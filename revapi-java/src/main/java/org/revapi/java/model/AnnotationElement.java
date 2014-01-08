@@ -26,7 +26,7 @@ import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public final class AnnotationElement extends SimpleElement {
     private final AnnotationMirror annotation;

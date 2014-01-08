@@ -26,7 +26,7 @@ import org.revapi.MatchReport;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public enum Code {
     CLASS_VISIBILITY_INCREASED(1),

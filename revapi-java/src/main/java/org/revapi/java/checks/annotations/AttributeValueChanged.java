@@ -18,7 +18,7 @@ package org.revapi.java.checks.annotations;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public class AttributeValueChanged {
     //TODO implement

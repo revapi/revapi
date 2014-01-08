@@ -49,8 +49,6 @@ public final class Revapi {
     private final Set<ProblemTransform> availableProblemTransforms;
     private final Configuration configuration;
     private final PrintStream output;
-    private final Iterable<Archive> oldArchives;
-    private final Iterable<Archive> newArchives;
 
     private static void usage() {
         System.out.println("Revapi <oldArchive> <newArchive>");
@@ -65,41 +63,38 @@ public final class Revapi {
         String oldArchiveName = args[0];
         String newArchiveName = args[1];
 
-        @SuppressWarnings("unchecked") Revapi revapi = new Revapi(
-            Arrays.<Archive>asList(new FileArchive(new File(oldArchiveName))),
-            Arrays.<Archive>asList(new FileArchive(new File(newArchiveName))), System.out, Locale.getDefault(),
+        @SuppressWarnings("unchecked") Revapi revapi = new Revapi(System.out, Locale.getDefault(),
             (Map<String, String>) (Map<?, ?>) System.getProperties());
 
-        revapi.analyze();
+        revapi.analyze(
+            Arrays.<Archive>asList(new FileArchive(new File(oldArchiveName))),
+            Arrays.<Archive>asList(new FileArchive(new File(newArchiveName))));
     }
 
-    public Revapi(Iterable<Archive> oldArchives, Iterable<Archive> newArchives, PrintStream output,
+    public Revapi(PrintStream output,
         Locale locale, Map<String, String> configurationProperties) {
-        this(oldArchives, newArchives, output, Thread.currentThread().getContextClassLoader(), locale,
+        this(output, Thread.currentThread().getContextClassLoader(), locale,
             configurationProperties);
     }
 
-    public Revapi(Iterable<Archive> oldArchives, Iterable<Archive> newArchives, PrintStream output,
+    @SuppressWarnings("unchecked")
+    public Revapi(PrintStream output,
         ClassLoader classLoader, Locale locale,
         Map<String, String> configurationProperties) {
 
         this(loadServices(classLoader, ApiAnalyzer.class), loadServices(classLoader, Reporter.class),
-            loadServices(classLoader, ProblemTransform.class), locale, configurationProperties, output, oldArchives,
-            newArchives);
+            loadServices(classLoader, ProblemTransform.class), locale, configurationProperties, output);
     }
 
     public Revapi(Set<ApiAnalyzer> availableApiAnalyzers, Set<Reporter> availableReporters,
         Set<ProblemTransform> availableProblemTransforms, Locale locale,
-        Map<String, String> configurationProperties, PrintStream output,
-        Iterable<Archive> oldArchives, Iterable<Archive> newArchives) {
+        Map<String, String> configurationProperties, PrintStream output) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
         this.availableReporters = availableReporters;
         this.availableProblemTransforms = availableProblemTransforms;
         this.configuration = new Configuration(locale, configurationProperties);
         this.output = output;
-        this.oldArchives = oldArchives;
-        this.newArchives = newArchives;
     }
 
     private static <T> Set<T> loadServices(ClassLoader classLoader, Class<T> serviceClass) {
@@ -111,13 +106,13 @@ public final class Revapi {
         return services;
     }
 
-    public void analyze() throws IOException {
+    public void analyze(Iterable<Archive> oldArchives, Iterable<Archive> newArchives) throws IOException {
         initReporters();
         initAnalyzers();
         initProblemFilters();
 
         for (ApiAnalyzer analyzer : availableApiAnalyzers) {
-            analyzeWith(analyzer);
+            analyzeWith(analyzer, oldArchives, newArchives);
         }
     }
 
@@ -139,7 +134,8 @@ public final class Revapi {
         }
     }
 
-    private void analyzeWith(ApiAnalyzer apiAnalyzer) throws IOException {
+    private void analyzeWith(ApiAnalyzer apiAnalyzer, Iterable<Archive> oldArchives, Iterable<Archive> newArchives)
+        throws IOException {
         ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldArchives);
         ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newArchives);
 

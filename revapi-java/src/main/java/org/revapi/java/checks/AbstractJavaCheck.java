@@ -23,7 +23,7 @@ import org.revapi.java.CheckBase;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public abstract class AbstractJavaCheck extends CheckBase {
 

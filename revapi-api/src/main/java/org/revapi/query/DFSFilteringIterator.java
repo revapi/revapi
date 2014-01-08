@@ -25,7 +25,7 @@ import org.revapi.Element;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
     private final Class<E> resultClass;

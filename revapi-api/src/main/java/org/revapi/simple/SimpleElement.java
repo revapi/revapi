@@ -32,7 +32,7 @@ import org.revapi.query.FilteringIterator;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public abstract class SimpleElement implements Element {
     private Element parent;

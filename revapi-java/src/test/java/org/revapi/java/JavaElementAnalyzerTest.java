@@ -55,7 +55,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public class JavaElementAnalyzerTest {
     private static class SourceInClassLoader extends SimpleJavaFileObject {
@@ -170,24 +170,25 @@ public class JavaElementAnalyzerTest {
         return archive;
     }
 
-    private Revapi getRevapi(Reporter testReporter, String v1Source, String v2Source) throws Exception {
+    private void runAnalysis(Reporter testReporter, String v1Source, String v2Source) throws Exception {
         JavaArchive v1Archive = createCompiledJar("v1", v1Source);
         JavaArchive v2Archive = createCompiledJar("v2", v2Source);
-        return new Revapi(Collections.<ApiAnalyzer>singleton(new JavaApiAnalyzer()),
-            Collections.singleton(testReporter),
-            Collections.<ProblemTransform>emptySet(),
-            Locale.getDefault(),
-            Collections.<String, String>emptyMap(),
-            new PrintStream(System.err),
-            Arrays.<Archive>asList(new ShrinkwrapArchive(v1Archive)),
-            Arrays.<Archive>asList(new ShrinkwrapArchive(v2Archive))
-        );
+        Revapi revapi =
+            new Revapi(Collections.<ApiAnalyzer>singleton(new JavaApiAnalyzer()),
+                Collections.singleton(testReporter),
+                Collections.<ProblemTransform>emptySet(),
+                Locale.getDefault(),
+                Collections.<String, String>emptyMap(),
+                new PrintStream(System.err));
+
+        revapi.analyze(Arrays.<Archive>asList(new ShrinkwrapArchive(v1Archive)),
+            Arrays.<Archive>asList(new ShrinkwrapArchive(v2Archive)));
     }
 
     @Test
     public void testVisibilityReduced() throws Exception {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        getRevapi(reporter, "v1/VisibilityReduced.java", "v2/VisibilityReduced.java").analyze();
+        runAnalysis(reporter, "v1/VisibilityReduced.java", "v2/VisibilityReduced.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_VISIBILITY_REDUCED.code()));
     }
@@ -195,7 +196,7 @@ public class JavaElementAnalyzerTest {
     @Test
     public void testVisibilityIncreased() throws Exception {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        getRevapi(reporter, "v2/VisibilityReduced.java", "v1/VisibilityReduced.java").analyze();
+        runAnalysis(reporter, "v2/VisibilityReduced.java", "v1/VisibilityReduced.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_VISIBILITY_INCREASED.code()));
     }

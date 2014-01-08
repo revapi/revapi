@@ -18,7 +18,7 @@ package org.revapi.java.checks.classes;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public class NoLongerImplementsInterface {
     //TODO implement

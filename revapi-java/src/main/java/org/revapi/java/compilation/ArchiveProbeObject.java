@@ -45,7 +45,7 @@ import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public final class ArchiveProbeObject extends SimpleJavaFileObject {
     public static final String CLASS_NAME = "Probe";

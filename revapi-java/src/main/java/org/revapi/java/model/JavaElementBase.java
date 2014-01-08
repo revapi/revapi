@@ -27,7 +27,7 @@ import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 abstract class JavaElementBase<T extends Element> extends SimpleElement implements JavaElement {
 

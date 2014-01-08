@@ -18,7 +18,7 @@ package org.revapi.java.checks.fields;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public class TypeChanged {
     //TODO implement

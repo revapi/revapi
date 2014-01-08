@@ -18,7 +18,7 @@ package org.revapi.java.classes.misc;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public interface I {
 }

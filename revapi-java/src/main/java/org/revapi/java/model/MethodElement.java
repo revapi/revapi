@@ -26,7 +26,7 @@ import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public final class MethodElement extends JavaElementBase<ExecutableElement> {
 

@@ -25,7 +25,7 @@ import org.revapi.query.Filter;
  * A representation of some "unit" understood by an API analyzer. Typically an abstract syntax tree of a language.
  *
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public interface Tree {
 

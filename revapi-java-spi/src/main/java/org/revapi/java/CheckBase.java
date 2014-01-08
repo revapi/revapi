@@ -33,7 +33,7 @@ import org.revapi.MatchReport;
  * An empty implementation of the {@link Check} interface.
  *
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public abstract class CheckBase implements Check {
     protected static class ActiveElements<T extends Element> {

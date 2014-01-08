@@ -21,7 +21,7 @@ package org.revapi;
  * the two API versions being compared.
  *
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public interface ElementAnalyzer {
 

@@ -27,7 +27,7 @@ import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public class SimpleTree implements Tree {
     private SortedSet<? extends SimpleElement> roots;

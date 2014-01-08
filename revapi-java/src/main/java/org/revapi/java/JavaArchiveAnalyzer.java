@@ -34,7 +34,7 @@ import org.revapi.java.model.JavaTree;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final Iterable<Archive> archives;

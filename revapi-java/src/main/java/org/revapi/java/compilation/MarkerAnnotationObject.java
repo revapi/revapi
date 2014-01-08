@@ -29,7 +29,7 @@ import javax.tools.SimpleJavaFileObject;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public final class MarkerAnnotationObject extends SimpleJavaFileObject {
     public static final String CLASS_NAME = "__RevapiMarkerAnnotation";

@@ -28,7 +28,7 @@ import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public final class KindChanged extends AbstractJavaCheck {
     @Override

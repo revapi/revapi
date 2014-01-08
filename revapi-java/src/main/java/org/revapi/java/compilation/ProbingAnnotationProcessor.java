@@ -30,7 +30,7 @@ import javax.lang.model.element.TypeElement;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedAnnotationTypes(MarkerAnnotationObject.CLASS_NAME)

@@ -27,7 +27,7 @@ import org.revapi.simple.SimpleTree;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 public final class JavaTree extends SimpleTree {
 
