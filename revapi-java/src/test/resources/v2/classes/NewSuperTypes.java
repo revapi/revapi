@@ -14,11 +14,20 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.classes;
+public class NewSuperTypes {
+    public class A {
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public class InheritanceChainDecreased {
+    }
+
+    public class B extends A {
+
+    }
+
+    public class BB extends B {
+
+    }
+
+    public class C extends BB {
+
+    }
 }

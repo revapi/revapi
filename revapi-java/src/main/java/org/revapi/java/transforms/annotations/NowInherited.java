@@ -14,34 +14,12 @@
  * limitations under the License
  */
 
-package org.revapi.core;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.revapi.Archive;
+package org.revapi.java.transforms.annotations;
 
 /**
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
-final class FileArchive implements Archive {
-
-    private final File file;
-
-    public FileArchive(File f) {
-        file = f;
-    }
-
-    @Override
-    public String getName() {
-        return file.getName();
-    }
-
-    @Override
-    public InputStream openStream() throws IOException {
-        return new FileInputStream(file);
-    }
+public class NowInherited {
+    //TODO implement
 }

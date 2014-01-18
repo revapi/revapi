@@ -14,12 +14,6 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.annotations;
+public class Abstract {
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public class DefaultValueChanged {
-    //TODO implement
 }

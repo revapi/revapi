@@ -14,12 +14,9 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.annotations;
+import java.lang.Deprecated;
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public class NowInherited {
-    //TODO implement
+@Deprecated
+public class Added {
+
 }

@@ -38,17 +38,21 @@ import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.revapi.ApiAnalyzer;
+import org.revapi.Revapi;
 import org.revapi.Archive;
 import org.revapi.Configuration;
+import org.revapi.Element;
 import org.revapi.MatchReport;
 import org.revapi.ProblemTransform;
 import org.revapi.Reporter;
-import org.revapi.core.Revapi;
-import org.revapi.java.checks.Code;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -57,7 +61,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class JavaElementAnalyzerTest {
+public abstract class AbstractJavaElementAnalyzerTest {
     private static class SourceInClassLoader extends SimpleJavaFileObject {
         URL url;
 
@@ -120,10 +124,12 @@ public class JavaElementAnalyzerTest {
         }
     }
 
-    private static class ProblemOccurrenceReporter implements Reporter {
+    protected static class ProblemOccurrenceReporter implements Reporter {
+        private static final Logger LOG = LoggerFactory.getLogger("Problem");
+
         private final Map<String, Integer> problemCounters;
 
-        private ProblemOccurrenceReporter() {
+        public ProblemOccurrenceReporter() {
             this.problemCounters = new HashMap<>();
         }
 
@@ -141,6 +147,13 @@ public class JavaElementAnalyzerTest {
                     cnt += 1;
                 }
                 problemCounters.put(p.code, cnt);
+
+                Element e = matchReport.getNewElement();
+                if (e == null) {
+                    e = matchReport.getOldElement();
+                }
+
+                LOG.info(e + ": " + p.name + " (" + p.code + "): " + p.classification + ", " + p.description);
             }
         }
 
@@ -148,6 +161,21 @@ public class JavaElementAnalyzerTest {
             return problemCounters;
         }
     }
+
+    private static final Logger LOG = LoggerFactory.getLogger("TestWatch");
+
+    @Rule
+    public final TestRule watcher = new TestWatcher() {
+        @Override
+        protected void starting(Description description) {
+            LOG.info(description.getDisplayName() + " starts");
+        }
+
+        @Override
+        protected void finished(Description description) {
+            LOG.info(description.getDisplayName() + " finished");
+        }
+    };
 
     private JavaArchive createCompiledJar(String jarName, String... sourceFiles) throws Exception {
         File targetPath = Files.createTempDirectory("element-analyzer-test").toAbsolutePath().toFile();
@@ -170,7 +198,11 @@ public class JavaElementAnalyzerTest {
         return archive;
     }
 
-    private void runAnalysis(Reporter testReporter, String v1Source, String v2Source) throws Exception {
+    protected void runAnalysis(Reporter testReporter, String v1Source, String v2Source) throws Exception {
+        runAnalysis(testReporter, new String[]{v1Source}, new String[]{v2Source});
+    }
+
+    protected void runAnalysis(Reporter testReporter, String[] v1Source, String[] v2Source) throws Exception {
         JavaArchive v1Archive = createCompiledJar("v1", v1Source);
         JavaArchive v2Archive = createCompiledJar("v2", v2Source);
         Revapi revapi =
@@ -184,22 +216,4 @@ public class JavaElementAnalyzerTest {
         revapi.analyze(Arrays.<Archive>asList(new ShrinkwrapArchive(v1Archive)),
             Arrays.<Archive>asList(new ShrinkwrapArchive(v2Archive)));
     }
-
-    @Test
-    public void testVisibilityReduced() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/VisibilityReduced.java", "v2/VisibilityReduced.java");
-
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_VISIBILITY_REDUCED.code()));
-    }
-
-    @Test
-    public void testVisibilityIncreased() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v2/VisibilityReduced.java", "v1/VisibilityReduced.java");
-
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_VISIBILITY_INCREASED.code()));
-    }
-
-    //TODO add tests for the rest of the checks
 }

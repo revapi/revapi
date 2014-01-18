@@ -29,13 +29,27 @@ import org.revapi.MatchReport;
  * @since 0.1
  */
 public enum Code {
-    CLASS_VISIBILITY_INCREASED(1),
-    CLASS_VISIBILITY_REDUCED(2),
-    CLASS_KIND_CHANGED(3),
-    CLASS_NO_LONGER_FINAL(4),
-    CLASS_NOW_FINAL(5),
-    CLASS_NO_LONGER_ABSTRACT(6),
-    CLASS_NOW_ABSTRACT(7),;
+    CLASS_VISIBILITY_INCREASED("java.class.visibilityIncreased"),
+    CLASS_VISIBILITY_REDUCED("java.class.visibilityReduced"),
+    CLASS_KIND_CHANGED("java.class.kindChanged"),
+    CLASS_NO_LONGER_FINAL("java.class.noLongerFinal"),
+    CLASS_NOW_FINAL("java.class.nowFinal"),
+    CLASS_NO_LONGER_ABSTRACT("java.class.noLongerAbstract"),
+    CLASS_NOW_ABSTRACT("java.class.nowAbstract"),
+    CLASS_ADDED("java.class.added"),
+    CLASS_REMOVED("java.class.removed"),
+    CLASS_NO_LONGER_IMPLEMENTS_INTERFACE("java.class.noLongerImplementsInterface"),
+    CLASS_NOW_IMPLEMENTS_INTERFACE("java.class.nowImplementsInterface"),
+    CLASS_INHERITS_FROM_NEW_CLASS("java.class.inheritsFromNewClass"),
+    CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass"),
+
+    ANNOTATION_ADDED("java.annotation.added"),
+    ANNOTATION_REMOVED("java.annotation.removed"),
+    ANNOTATION_ATTRIBUTE_VALUE_CHANGED("java.annotation.attributeValueChanged"),
+    ANNOTATION_ATTRIBUTE_ADDED("java.annotation.attributeAdded"),
+    ANNOTATION_ATTRIBUTE_REMOVED("java.annotation.attributeRemoved"),
+
+    METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged");
 
     public static Code fromCode(String code) {
         for (Code c : Code.values()) {
@@ -49,8 +63,8 @@ public enum Code {
 
     private final String code;
 
-    private Code(int number) {
-        code = format(number);
+    private Code(String code) {
+        this.code = code;
     }
 
     public String code() {
@@ -62,14 +76,11 @@ public enum Code {
         return MatchReport.Problem.create().withCode(code).withName(message.name).withDescription(message.description);
     }
 
-    public MatchReport.Problem.Builder initializeNewProblem(Locale locale, Object... params) {
+    public MatchReport.Problem.Builder initializeNewProblem(Locale locale, Object[] params, Object... attachments) {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, params);
-        return MatchReport.Problem.create().withCode(code).withName(message.name).withDescription(description);
-    }
-
-    private static String format(int number) {
-        return String.format("JAVA-%1$04d", number);
+        return MatchReport.Problem.create().withCode(code).withName(message.name).withDescription(description)
+            .addAttachments(attachments);
     }
 
     private static class Message {

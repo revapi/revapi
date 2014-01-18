@@ -14,14 +14,20 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.generics;
+public class NewSuperTypes {
+    public class A {
 
-import org.revapi.java.CheckBase;
+    }
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public final class ReturnTypeParametersChanged extends CheckBase {
-    //TODO implement
+    public class B extends A {
+
+    }
+
+    public class C extends B {
+
+    }
+
+    public class BB extends B {
+
+    }
 }

@@ -14,12 +14,26 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.annotations;
+package org.revapi.java.transforms.annotations;
+
+import org.revapi.Configuration;
+import org.revapi.Element;
+import org.revapi.MatchReport;
+import org.revapi.ProblemTransform;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NoLongerInherited {
+public class NoLongerInherited implements ProblemTransform {
+    @Override
+    public void initialize(Configuration configuration) {
+        //TODO implement
+    }
+
+    @Override
+    public MatchReport.Problem transform(Element oldElement, Element newElement, MatchReport.Problem problem) {
+        return null;  //TODO implement
+    }
     //TODO implement
 }

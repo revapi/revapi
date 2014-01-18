@@ -47,7 +47,7 @@ public final class KindChanged extends AbstractJavaCheck {
 
             if (o.getKind() != n.getKind()) {
                 MatchReport.Problem p = createProblem(Code.CLASS_KIND_CHANGED, MismatchSeverity.ERROR,
-                    MismatchSeverity.ERROR, kind(o), kind(n));
+                    MismatchSeverity.ERROR, new String[]{kind(o), kind(n)}, o, n);
 
                 return Collections.singletonList(p);
             }

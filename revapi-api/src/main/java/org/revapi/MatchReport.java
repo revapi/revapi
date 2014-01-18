@@ -16,7 +16,9 @@
 
 package org.revapi;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +36,7 @@ public final class MatchReport {
             private String name;
             private String description;
             private Map<CompatibilityType, MismatchSeverity> classification = new HashMap<>();
+            private List<Object> attachments = new ArrayList<>();
 
             private Builder(MatchReport.Builder reportBuilder) {
                 this.reportBuilder = reportBuilder;
@@ -59,6 +62,22 @@ public final class MatchReport {
                 return this;
             }
 
+            public Builder addAttachment(Object attachment) {
+                attachments.add(attachment);
+                return this;
+            }
+
+            public Builder addAttachments(Iterable<?> attachments) {
+                for (Object a : attachments) {
+                    this.attachments.add(a);
+                }
+                return this;
+            }
+
+            public Builder addAttachments(Object... attachments) {
+                return addAttachments(Arrays.asList(attachments));
+            }
+
             public MatchReport.Builder done() {
                 Problem p = build();
                 reportBuilder.problems.add(p);
@@ -66,7 +85,7 @@ public final class MatchReport {
             }
 
             public Problem build() {
-                return new Problem(code, name, description, classification);
+                return new Problem(code, name, description, classification, attachments);
             }
         }
 
@@ -90,21 +109,22 @@ public final class MatchReport {
         public final String description;
         public final Map<CompatibilityType, MismatchSeverity> classification;
 
+        public final List<Object> attachments;
+
         public Problem(String code, String name, String description, CompatibilityType compatibility,
-            MismatchSeverity severity) {
-            this.code = code;
-            this.name = name;
-            this.description = description;
-            classification = Collections.singletonMap(compatibility, severity);
+            MismatchSeverity severity, List<Serializable> attachments) {
+            this(code, name, description, Collections.singletonMap(compatibility, severity), attachments);
         }
 
         public Problem(String code, String name, String description,
-            Map<CompatibilityType, MismatchSeverity> classification) {
+            Map<CompatibilityType, MismatchSeverity> classification, List<?> attachments) {
             this.code = code;
             this.name = name;
             this.description = description;
             HashMap<CompatibilityType, MismatchSeverity> tmp = new HashMap<>(classification);
             this.classification = Collections.unmodifiableMap(tmp);
+            List<?> tmp2 = new ArrayList<>(attachments);
+            this.attachments = Collections.unmodifiableList(tmp2);
         }
     }
 

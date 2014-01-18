@@ -30,7 +30,13 @@ public abstract class AbstractJavaCheck extends CheckBase {
     protected MatchReport.Problem createProblem(Code code, MismatchSeverity binarySeverity,
         MismatchSeverity sourceSeverity, Object... params) {
 
-        MatchReport.Problem.Builder bld = code.initializeNewProblem(configuration.getLocale(), params);
+        return createProblem(code, binarySeverity, sourceSeverity, params, params);
+    }
+
+    protected MatchReport.Problem createProblem(Code code, MismatchSeverity binarySeverity,
+        MismatchSeverity sourceSeverity, Object[] params, Object... attachments) {
+
+        MatchReport.Problem.Builder bld = code.initializeNewProblem(configuration.getLocale(), params, attachments);
         if (binarySeverity != null) {
             bld.addClassification(CompatibilityType.BINARY, binarySeverity);
         }
@@ -41,5 +47,4 @@ public abstract class AbstractJavaCheck extends CheckBase {
 
         return bld.build();
     }
-
 }

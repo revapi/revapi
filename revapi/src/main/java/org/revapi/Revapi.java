@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi.core;
+package org.revapi;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,17 +27,6 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.SortedSet;
-
-import org.revapi.ApiAnalyzer;
-import org.revapi.Archive;
-import org.revapi.ArchiveAnalyzer;
-import org.revapi.Configuration;
-import org.revapi.Element;
-import org.revapi.ElementAnalyzer;
-import org.revapi.MatchReport;
-import org.revapi.ProblemTransform;
-import org.revapi.Reporter;
-import org.revapi.Tree;
 
 /**
  * @author Lukas Krejci

@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi.core;
+package org.revapi;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -56,8 +56,6 @@ final class CoIterator<E extends Comparable<? super E>> {
     private E currentRight;
     private E reportedLeft;
     private E reportedRight;
-    private boolean moveLeft;
-    private boolean moveRight;
 
     /**
      * The iterators must iterate over sorted collections otherwise this instance might not
@@ -72,43 +70,48 @@ final class CoIterator<E extends Comparable<? super E>> {
     public CoIterator(Iterator<? extends E> left, Iterator<? extends E> right) {
         this.left = left;
         this.right = right;
-        this.moveLeft = true;
-        this.moveRight = true;
+        if (left.hasNext()) {
+            currentLeft = left.next();
+        }
+        if (right.hasNext()) {
+            currentRight = right.next();
+        }
     }
 
     public boolean hasNext() {
-        return left.hasNext() || right.hasNext();
+        return currentLeft != null || currentRight != null;
     }
 
     public void next() {
-        if (!(left.hasNext() && left.hasNext())) {
+        boolean hasLeft = currentLeft != null;
+        boolean hasRight = currentRight != null;
+
+        if (!hasLeft && !hasRight) {
             throw new NoSuchElementException();
         }
 
-        if (moveLeft) {
-            currentLeft = left.next();
+        int order;
+        if (hasLeft && !hasRight) {
+            order = -1;
+        } else if (!hasLeft) {
+            order = 1;
+        } else {
+            order = currentLeft.compareTo(currentRight);
         }
-
-        if (moveRight) {
-            currentRight = right.next();
-        }
-
-        int order = currentLeft.compareTo(currentRight);
 
         if (order < 0) {
             reportedLeft = currentLeft;
+            currentLeft = nextOrNull(left);
             reportedRight = null;
-            moveLeft = true;
-            moveRight = false;
         } else if (order > 0) {
             reportedLeft = null;
             reportedRight = currentRight;
-            moveLeft = false;
-            moveRight = true;
+            currentRight = nextOrNull(right);
         } else {
-            moveLeft = moveRight = true;
             reportedLeft = currentLeft;
             reportedRight = currentRight;
+            currentLeft = nextOrNull(left);
+            currentRight = nextOrNull(right);
         }
     }
 
@@ -118,5 +121,9 @@ final class CoIterator<E extends Comparable<? super E>> {
 
     public E getRight() {
         return reportedRight;
+    }
+
+    private E nextOrNull(Iterator<? extends E> it) {
+        return it.hasNext() ? it.next() : null;
     }
 }

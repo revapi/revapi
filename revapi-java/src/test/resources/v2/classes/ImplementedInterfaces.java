@@ -14,14 +14,13 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.generics;
+public class ImplementedInterfaces {
 
-import org.revapi.java.CheckBase;
+    public class A implements java.io.Serializable, Cloneable {
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public final class ReturnTypeParametersChanged extends CheckBase {
-    //TODO implement
+    }
+
+    public class B implements java.io.Serializable {
+
+    }
 }

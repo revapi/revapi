@@ -14,11 +14,6 @@
  * limitations under the License
  */
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public class VisibilityReduced {
-    public static class TestClass {
-    }
+public abstract class Abstract {
+
 }

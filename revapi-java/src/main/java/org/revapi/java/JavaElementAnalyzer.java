@@ -17,6 +17,7 @@
 package org.revapi.java;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -39,6 +40,11 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
     private final TypeEnvironment oldClasses;
     private final TypeEnvironment newClasses;
     private final Configuration configuration;
+
+    //NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
+    //are always sorted as last amongst sibling model elements.
+    //So, when reported for their parent element, we can be sure that there are no more children
+    //coming for given parent.
     private List<MatchReport.Problem> lastAnnotationResults;
 
     public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, TypeEnvironment newClasses) {
@@ -61,36 +67,40 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
 
     @Override
     public void beginAnalysis(Element oldElement, Element newElement) {
-        if (oldElement instanceof TypeElement && newElement instanceof TypeElement) {
+        if (conforms(oldElement, newElement, TypeElement.class)) {
             for (Check c : checks) {
-                c.visitClass(((TypeElement) oldElement).getModelElement(),
-                    ((TypeElement) newElement).getModelElement());
+                c.visitClass(oldElement == null ? null : ((TypeElement) oldElement).getModelElement(),
+                    newElement == null ? null : ((TypeElement) newElement).getModelElement());
             }
-        } else if (oldElement instanceof AnnotationElement && newElement instanceof AnnotationElement) {
+        } else if (conforms(oldElement, newElement, AnnotationElement.class)) {
             //annotation are always terminal elements, so treat them a bit differently
             if (lastAnnotationResults == null) {
                 lastAnnotationResults = new ArrayList<>();
             }
             lastAnnotationResults.clear();
             for (Check c : checks) {
-                List<MatchReport.Problem> cps = c.visitAnnotation(((AnnotationElement) oldElement).getAnnotation(),
-                    ((AnnotationElement) newElement).getAnnotation());
-                lastAnnotationResults.addAll(cps);
+                List<MatchReport.Problem> cps = c
+                    .visitAnnotation(oldElement == null ? null : ((AnnotationElement) oldElement).getAnnotation(),
+                        newElement == null ? null : ((AnnotationElement) newElement).getAnnotation());
+                if (cps != null) {
+                    lastAnnotationResults.addAll(cps);
+                }
             }
-        } else if (oldElement instanceof FieldElement && newElement instanceof FieldElement) {
+        } else if (conforms(oldElement, newElement, FieldElement.class)) {
             for (Check c : checks) {
-                c.visitField(((FieldElement) oldElement).getModelElement(),
-                    ((FieldElement) newElement).getModelElement());
+                c.visitField(oldElement == null ? null : ((FieldElement) oldElement).getModelElement(),
+                    newElement == null ? null : ((FieldElement) newElement).getModelElement());
             }
-        } else if (oldElement instanceof MethodElement && newElement instanceof MethodElement) {
+        } else if (conforms(oldElement, newElement, MethodElement.class)) {
             for (Check c : checks) {
-                c.visitMethod(((MethodElement) oldElement).getModelElement(),
-                    ((MethodElement) newElement).getModelElement());
+                c.visitMethod(oldElement == null ? null : ((MethodElement) oldElement).getModelElement(),
+                    newElement == null ? null : ((MethodElement) newElement).getModelElement());
             }
-        } else if (oldElement instanceof MethodParameterElement && newElement instanceof MethodParameterElement) {
+        } else if (conforms(oldElement, newElement, MethodParameterElement.class)) {
             for (Check c : checks) {
-                c.visitMethodParameter(((MethodParameterElement) oldElement).getModelElement(),
-                    ((MethodParameterElement) newElement).getModelElement());
+                c.visitMethodParameter(
+                    oldElement == null ? null : ((MethodParameterElement) oldElement).getModelElement(),
+                    newElement == null ? null : ((MethodParameterElement) newElement).getModelElement());
             }
         }
     }
@@ -99,7 +109,9 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
     public MatchReport endAnalysis(Element oldElement, Element newElement) {
         if ((oldElement == null || oldElement instanceof AnnotationElement) &&
             (newElement == null || newElement instanceof AnnotationElement)) {
-            return new MatchReport(lastAnnotationResults, oldElement, newElement);
+
+            //the annotations are always reported at the parent element
+            return new MatchReport(Collections.<MatchReport.Problem>emptyList(), oldElement, newElement);
         }
 
         List<MatchReport.Problem> problems = new ArrayList<>();
@@ -110,6 +122,18 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
             }
         }
 
+        if (lastAnnotationResults != null && !lastAnnotationResults.isEmpty()) {
+            problems.addAll(lastAnnotationResults);
+            lastAnnotationResults.clear();
+        }
+
         return new MatchReport(problems, oldElement, newElement);
+    }
+
+    private <T> boolean conforms(Object a, Object b, Class<T> cls) {
+        boolean ca = a == null || cls.isAssignableFrom(a.getClass());
+        boolean cb = b == null || cls.isAssignableFrom(b.getClass());
+
+        return ca && cb;
     }
 }

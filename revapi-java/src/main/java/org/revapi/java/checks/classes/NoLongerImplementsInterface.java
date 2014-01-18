@@ -16,10 +16,59 @@
 
 package org.revapi.java.checks.classes;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+
+import org.revapi.MatchReport;
+import org.revapi.MismatchSeverity;
+import org.revapi.java.Util;
+import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NoLongerImplementsInterface {
-    //TODO implement
+public final class NoLongerImplementsInterface extends AbstractJavaCheck {
+
+    @Override
+    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
+        if (oldType == null || newType == null) {
+            return;
+        }
+
+        List<? extends TypeMirror> newInterfaces = newType.getInterfaces();
+
+        for (TypeMirror oldIface : oldType.getInterfaces()) {
+            if (!Util.isSubtype(oldIface, newInterfaces, oldTypeEnvironment.getTypeUtils())) {
+                pushActive(oldType, newType);
+                break;
+            }
+        }
+    }
+
+    @Override
+    protected List<MatchReport.Problem> doEnd() {
+        ActiveElements<TypeElement> types = popIfActive();
+        if (types == null) {
+            return null;
+        }
+
+        List<MatchReport.Problem> result = new ArrayList<>();
+
+        List<? extends TypeMirror> newInterfaces = types.newElement.getInterfaces();
+
+        for (TypeMirror oldIface : types.oldElement.getInterfaces()) {
+            if (!Util.isSubtype(oldIface, newInterfaces, oldTypeEnvironment.getTypeUtils())) {
+                result.add(createProblem(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE, MismatchSeverity.ERROR,
+                    MismatchSeverity.ERROR, new String[]{
+                    Util.toHumanReadableString(oldIface)}, oldIface));
+            }
+        }
+
+        return result;
+    }
 }

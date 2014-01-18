@@ -14,14 +14,13 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.generics;
+public class KindChanged {
 
-import org.revapi.java.CheckBase;
+    public class Class {}
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public final class ReturnTypeParametersChanged extends CheckBase {
-    //TODO implement
+    public interface Interface {}
+
+    public enum Enum {}
+
+    public @interface Annotation {}
 }

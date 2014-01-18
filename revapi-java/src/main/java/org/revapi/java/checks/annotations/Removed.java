@@ -16,10 +16,32 @@
 
 package org.revapi.java.checks.annotations;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.lang.model.element.AnnotationMirror;
+
+import org.revapi.MatchReport;
+import org.revapi.MismatchSeverity;
+import org.revapi.java.Util;
+import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class Removed {
-    //TODO implement
+public final class Removed extends AbstractJavaCheck {
+    @Override
+    protected List<MatchReport.Problem> doVisitAnnotation(AnnotationMirror oldAnnotation,
+        AnnotationMirror newAnnotation) {
+
+        if (oldAnnotation != null && newAnnotation == null) {
+            return Collections.singletonList(
+                createProblem(Code.ANNOTATION_REMOVED, MismatchSeverity.NOTICE, MismatchSeverity.NOTICE, new String[]{
+                    Util.toHumanReadableString(oldAnnotation.getAnnotationType())}, oldAnnotation));
+        }
+
+        return null;
+    }
 }

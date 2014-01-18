@@ -14,16 +14,15 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.annotations;
+package org.revapi.java.checks.classes;
 
 import java.util.Collections;
 import java.util.List;
 
-import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.TypeElement;
 
 import org.revapi.MatchReport;
 import org.revapi.MismatchSeverity;
-import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -31,15 +30,23 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class Added extends AbstractJavaCheck {
-    @Override
-    protected List<MatchReport.Problem> doVisitAnnotation(AnnotationMirror oldAnnotation,
-        AnnotationMirror newAnnotation) {
+public final class Removed extends AbstractJavaCheck {
 
-        if (oldAnnotation == null && newAnnotation != null) {
-            return Collections.singletonList(
-                createProblem(Code.ANNOTATION_ADDED, MismatchSeverity.NOTICE, MismatchSeverity.NOTICE, new String[]{
-                    Util.toHumanReadableString(newAnnotation.getAnnotationType())}, newAnnotation));
+    @Override
+    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
+        if (oldType != null && newType == null) {
+            pushActive(oldType, null);
+        }
+    }
+
+    @Override
+    protected List<MatchReport.Problem> doEnd() {
+        ActiveElements<TypeElement> types = popIfActive();
+        if (types != null) {
+            MatchReport.Problem problem = createProblem(Code.CLASS_REMOVED, MismatchSeverity.ERROR,
+                MismatchSeverity.ERROR);
+
+            return Collections.singletonList(problem);
         }
 
         return null;

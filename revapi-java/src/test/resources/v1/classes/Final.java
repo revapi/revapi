@@ -14,12 +14,6 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.classes;
+public class Final {
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public class InheritanceChainIncreased {
-    //TODO implement
 }

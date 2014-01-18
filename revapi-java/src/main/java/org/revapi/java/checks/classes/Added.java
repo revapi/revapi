@@ -16,23 +16,26 @@
 
 package org.revapi.java.checks.classes;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.MatchReport;
+import org.revapi.MismatchSeverity;
 import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class Added extends AbstractJavaCheck {
+public final class Added extends AbstractJavaCheck {
     @Override
     protected List<MatchReport.Problem> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types != null) {
-            //TODO implement
+            return Collections.singletonList(createProblem(Code.CLASS_ADDED, null, MismatchSeverity.NOTICE));
         }
 
         return null;
@@ -41,7 +44,7 @@ public class Added extends AbstractJavaCheck {
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
         if (oldType == null && newType != null) {
-            pushActive(oldType, newType);
+            pushActive(null, newType);
         }
     }
 }

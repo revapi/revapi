@@ -14,14 +14,32 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.generics;
+package org.revapi;
 
-import org.revapi.java.CheckBase;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author Lukas Krejci
- * @since 0.1
+ * @since 1.0
  */
-public final class ReturnTypeParametersChanged extends CheckBase {
-    //TODO implement
+final class FileArchive implements Archive {
+
+    private final File file;
+
+    public FileArchive(File f) {
+        file = f;
+    }
+
+    @Override
+    public String getName() {
+        return file.getName();
+    }
+
+    @Override
+    public InputStream openStream() throws IOException {
+        return new FileInputStream(file);
+    }
 }

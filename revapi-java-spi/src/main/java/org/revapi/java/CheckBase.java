@@ -39,12 +39,14 @@ public abstract class CheckBase implements Check {
     protected static class ActiveElements<T extends Element> {
         public final T oldElement;
         public final T newElement;
+        public final Object[] context;
         private final int depth;
 
-        private ActiveElements(int depth, T oldElement, T newElement) {
+        private ActiveElements(int depth, T oldElement, T newElement, Object... context) {
             this.depth = depth;
             this.oldElement = oldElement;
             this.newElement = newElement;
+            this.context = context;
         }
     }
 
@@ -71,8 +73,11 @@ public abstract class CheckBase implements Check {
 
     @Override
     public final List<MatchReport.Problem> visitEnd() {
-        depth--;
-        return doEnd();
+        try {
+            return doEnd();
+        } finally {
+            depth--;
+        }
     }
 
     protected List<MatchReport.Problem> doEnd() {
@@ -129,8 +134,8 @@ public abstract class CheckBase implements Check {
         return null;
     }
 
-    protected final <T extends Element> void pushActive(T oldElement, T newElement) {
-        ActiveElements<T> r = new ActiveElements<>(depth, oldElement, newElement);
+    protected final <T extends Element> void pushActive(T oldElement, T newElement, Object... context) {
+        ActiveElements<T> r = new ActiveElements<>(depth, oldElement, newElement, context);
         activations.push(r);
     }
 

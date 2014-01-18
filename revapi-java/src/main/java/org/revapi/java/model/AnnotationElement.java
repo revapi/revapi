@@ -44,7 +44,7 @@ public final class AnnotationElement extends SimpleElement {
     @Override
     public int compareTo(Element o) {
         if (!(o instanceof AnnotationElement)) {
-            return -1;
+            return 1;
         }
 
         return toString().compareTo(o.toString());

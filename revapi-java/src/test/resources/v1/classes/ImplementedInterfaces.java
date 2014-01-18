@@ -14,11 +14,15 @@
  * limitations under the License
  */
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public class VisibilityReduced {
-    static class TestClass {
+import java.lang.Cloneable;
+
+public class ImplementedInterfaces {
+
+    public class A implements java.io.Serializable {
+
+    }
+
+    public class B implements java.io.Serializable, Cloneable {
+
     }
 }

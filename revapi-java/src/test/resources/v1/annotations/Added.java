@@ -14,14 +14,6 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.generics;
+public class Added {
 
-import org.revapi.java.CheckBase;
-
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public final class ReturnTypeParametersChanged extends CheckBase {
-    //TODO implement
 }
