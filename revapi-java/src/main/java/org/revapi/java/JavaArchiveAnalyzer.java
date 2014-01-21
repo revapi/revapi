@@ -28,6 +28,7 @@ import java.util.concurrent.TimeoutException;
 import org.revapi.Archive;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Configuration;
+import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.Compiler;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaTree;
@@ -40,6 +41,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final Iterable<Archive> archives;
     private final ExecutorService executor;
     private final ProbingEnvironment probingEnvironment;
+    private CompilationValve compilationValve;
 
     public JavaArchiveAnalyzer(Configuration configuration, Iterable<Archive> archives,
         ExecutorService compilationExecutor) {
@@ -53,9 +55,10 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         Writer output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, archives);
         try {
-            Future<Boolean> compilation = compiler.compile(probingEnvironment);
+            compilationValve = compiler.compile(probingEnvironment);
 
-            probingEnvironment.getTree().setCompilationFuture(new CompilationFuture(compilation, output));
+            probingEnvironment.getTree()
+                .setCompilationFuture(new CompilationFuture(compilationValve.getCompilationResult(), output));
 
             return probingEnvironment.getTree();
         } catch (Exception e) {
@@ -65,6 +68,10 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
 
     public ProbingEnvironment getProbingEnvironment() {
         return probingEnvironment;
+    }
+
+    public CompilationValve getCompilationValve() {
+        return compilationValve;
     }
 
     private String archivesToString() {

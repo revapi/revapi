@@ -25,6 +25,7 @@ import org.revapi.Configuration;
 import org.revapi.Element;
 import org.revapi.ElementAnalyzer;
 import org.revapi.MatchReport;
+import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.model.FieldElement;
 import org.revapi.java.model.MethodElement;
@@ -37,9 +38,8 @@ import org.revapi.java.model.TypeElement;
  */
 public final class JavaElementAnalyzer implements ElementAnalyzer {
     private final Iterable<Check> checks;
-    private final TypeEnvironment oldClasses;
-    private final TypeEnvironment newClasses;
-    private final Configuration configuration;
+    private final CompilationValve oldCompilationValve;
+    private final CompilationValve newCompilationValve;
 
     //NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
     //are always sorted as last amongst sibling model elements.
@@ -47,22 +47,32 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
     //coming for given parent.
     private List<MatchReport.Problem> lastAnnotationResults;
 
-    public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, TypeEnvironment newClasses) {
-        this(configuration, oldClasses, newClasses,
+    public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, CompilationValve oldValve,
+        TypeEnvironment newClasses, CompilationValve newValve) {
+        this(configuration, oldClasses, oldValve, newClasses, newValve,
             ServiceLoader.load(Check.class, JavaElementAnalyzer.class.getClassLoader()));
     }
 
-    public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, TypeEnvironment newClasses,
-        Iterable<Check> checks) {
-        this.configuration = configuration;
-        this.oldClasses = oldClasses;
-        this.newClasses = newClasses;
+    public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, CompilationValve oldValve,
+        TypeEnvironment newClasses, CompilationValve newValve, Iterable<Check> checks) {
+        this.oldCompilationValve = oldValve;
+        this.newCompilationValve = newValve;
         this.checks = checks;
         for (Check c : checks) {
             c.initialize(configuration);
             c.setOldTypeEnvironment(oldClasses);
             c.setNewTypeEnvironment(newClasses);
         }
+    }
+
+    @Override
+    public void setup() {
+    }
+
+    @Override
+    public void tearDown() {
+        oldCompilationValve.removeCompiledResults();
+        newCompilationValve.removeCompiledResults();
     }
 
     @Override

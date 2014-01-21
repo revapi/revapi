@@ -139,6 +139,9 @@ public final class Revapi {
         SortedSet<? extends Element> as, SortedSet<? extends Element> bs) {
 
         CoIterator<Element> it = new CoIterator<>(as.iterator(), bs.iterator());
+
+        elementAnalyzer.setup();
+
         while (it.hasNext()) {
             it.next();
 
@@ -153,6 +156,8 @@ public final class Revapi {
 
             report(elementAnalyzer.endAnalysis(a, b));
         }
+
+        elementAnalyzer.tearDown();
     }
 
     private void report(MatchReport matchReport) {

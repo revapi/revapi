@@ -25,7 +25,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -56,7 +55,7 @@ public final class Compiler {
         this.classPath = classPath;
     }
 
-    public Future<Boolean> compile(ProbingEnvironment environment) throws Exception {
+    public CompilationValve compile(ProbingEnvironment environment) throws Exception {
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
 
         File sourceDir = new File(targetPath, "sources");
@@ -85,14 +84,9 @@ public final class Compiler {
 
         task.setProcessors(Arrays.asList(processor));
 
-        return processor.waitForProcessingAndExecute(executor, new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                return task.call();
-                //TODO cleanup of the compiler output (possibly wait until after analysis? How does javac load
-                //model classes?
-            }
-        });
+        Future<Boolean> future = processor.waitForProcessingAndExecute(executor, task);
+
+        return new CompilationValve(future, targetPath);
     }
 
     private String composeClassPath(File classPathDir) {

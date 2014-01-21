@@ -26,6 +26,17 @@ package org.revapi;
 public interface ElementAnalyzer {
 
     /**
+     * Called right before the analysis starts. Can be used to "warm up" the analyzer.
+     */
+    void setup();
+
+    /**
+     * Called right after the analysis ended. Can be used to tear down the analyzer and release
+     * any resources it may hold.
+     */
+    void tearDown();
+
+    /**
      * Called when the analysis of the two corresponding elements begins. If those elements contain children, all the
      * children will be analyzed before the {@link #endAnalysis(Element, Element)} method will be called for these
      * two elements.

@@ -24,6 +24,7 @@ import org.revapi.Archive;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Configuration;
 import org.revapi.ElementAnalyzer;
+import org.revapi.java.compilation.CompilationValve;
 
 /**
  * @author Lukas Krejci
@@ -46,7 +47,14 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
 
     @Override
     public ElementAnalyzer getElementAnalyzer(ArchiveAnalyzer oldArchive, ArchiveAnalyzer newArchive) {
-        return new JavaElementAnalyzer(configuration, ((JavaArchiveAnalyzer) oldArchive).getProbingEnvironment(),
-            ((JavaArchiveAnalyzer) newArchive).getProbingEnvironment());
+        JavaArchiveAnalyzer oldA = (JavaArchiveAnalyzer) oldArchive;
+        JavaArchiveAnalyzer newA = (JavaArchiveAnalyzer) newArchive;
+
+        TypeEnvironment oldEnvironment = oldA.getProbingEnvironment();
+        TypeEnvironment newEnvironment = newA.getProbingEnvironment();
+        CompilationValve oldValve = oldA.getCompilationValve();
+        CompilationValve newValve = newA.getCompilationValve();
+
+        return new JavaElementAnalyzer(configuration, oldEnvironment, oldValve, newEnvironment, newValve);
     }
 }
