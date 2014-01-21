@@ -29,9 +29,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.Set;
 
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
@@ -205,10 +208,16 @@ public abstract class AbstractJavaElementAnalyzerTest {
     protected void runAnalysis(Reporter testReporter, String[] v1Source, String[] v2Source) throws Exception {
         JavaArchive v1Archive = createCompiledJar("v1", v1Source);
         JavaArchive v2Archive = createCompiledJar("v2", v2Source);
+
+        Set<ProblemTransform> transforms = new HashSet<>();
+        for (ProblemTransform pt : ServiceLoader.load(ProblemTransform.class)) {
+            transforms.add(pt);
+        }
+
         Revapi revapi =
             new Revapi(Collections.<ApiAnalyzer>singleton(new JavaApiAnalyzer()),
                 Collections.singleton(testReporter),
-                Collections.<ProblemTransform>emptySet(),
+                transforms,
                 Locale.getDefault(),
                 Collections.<String, String>emptyMap(),
                 new PrintStream(System.err));

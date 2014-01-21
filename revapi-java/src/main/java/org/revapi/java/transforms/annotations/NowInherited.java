@@ -16,10 +16,25 @@
 
 package org.revapi.java.transforms.annotations;
 
+import org.revapi.CompatibilityType;
+import org.revapi.MatchReport;
+import org.revapi.MismatchSeverity;
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NowInherited {
-    //TODO implement
+public final class NowInherited extends AbstractInheritedCheck {
+    @Override
+    protected MatchReport.Problem createProblem() {
+        return Code.ANNOTATION_NOW_INHERITED
+            .initializeNewProblem(configuration.getLocale())
+            .addClassification(CompatibilityType.METADATA, MismatchSeverity.WARNING).build();
+    }
+
+    @Override
+    protected Code getCodeToTransform() {
+        return Code.ANNOTATION_ADDED;
+    }
 }

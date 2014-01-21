@@ -38,7 +38,7 @@ public final class Added extends AbstractJavaCheck {
 
         if (oldAnnotation == null && newAnnotation != null) {
             return Collections.singletonList(
-                createProblem(Code.ANNOTATION_ADDED, MismatchSeverity.NOTICE, MismatchSeverity.NOTICE, new String[]{
+                createProblem(Code.ANNOTATION_ADDED, null, null, MismatchSeverity.WARNING, new String[]{
                     Util.toHumanReadableString(newAnnotation.getAnnotationType())}, newAnnotation));
         }
 

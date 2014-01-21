@@ -38,7 +38,7 @@ public final class Removed extends AbstractJavaCheck {
 
         if (oldAnnotation != null && newAnnotation == null) {
             return Collections.singletonList(
-                createProblem(Code.ANNOTATION_REMOVED, MismatchSeverity.NOTICE, MismatchSeverity.NOTICE, new String[]{
+                createProblem(Code.ANNOTATION_REMOVED, null, null, MismatchSeverity.WARNING, new String[]{
                     Util.toHumanReadableString(oldAnnotation.getAnnotationType())}, oldAnnotation));
         }
 

@@ -55,12 +55,11 @@ public class AttributeValueChanged extends AbstractJavaCheck {
             //TODO should be probably passing the ExecutableElement instead of name as the attachment...
             if (newValue == null) {
                 result.add(
-                    createProblem(Code.ANNOTATION_ATTRIBUTE_REMOVED, MismatchSeverity.NOTICE, MismatchSeverity.NOTICE,
+                    createProblem(Code.ANNOTATION_ATTRIBUTE_REMOVED, null, null, MismatchSeverity.WARNING,
                         new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType())}, name,
                         oldAnnotation));
             } else if (!Util.isEqual(oldValue, newValue)) {
-                result.add(createProblem(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED, MismatchSeverity.NOTICE,
-                    MismatchSeverity.NOTICE,
+                result.add(createProblem(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED, null, null, MismatchSeverity.WARNING,
                     new String[]{name, Util.toHumanReadableString(oldValue), Util.toHumanReadableString(newValue)},
                     name, oldValue, newValue));
             }

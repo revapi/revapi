@@ -20,8 +20,10 @@ import java.util.SortedSet;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 
-import org.revapi.java.JavaElement;
+import org.revapi.java.JavaModelElement;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.simple.SimpleElement;
 
@@ -29,7 +31,7 @@ import org.revapi.simple.SimpleElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-abstract class JavaElementBase<T extends Element> extends SimpleElement implements JavaElement {
+abstract class JavaElementBase<T extends Element> extends SimpleElement implements JavaModelElement {
 
     protected final ProbingEnvironment environment;
     protected T element;
@@ -37,6 +39,16 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     public JavaElementBase(ProbingEnvironment env, T element) {
         this.environment = env;
         this.element = element;
+    }
+
+    @Override
+    public Types getTypeUtils() {
+        return environment.getTypeUtils();
+    }
+
+    @Override
+    public Elements getElementUtils() {
+        return environment.getElementUtils();
     }
 
     public T getModelElement() {
@@ -53,7 +65,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         SortedSet<org.revapi.Element> set = super.newChildrenInstance();
 
         for (Element e : getModelElement().getEnclosedElements()) {
-            JavaElement child = JavaElementFactory.elementFor(e, environment);
+            JavaModelElement child = JavaElementFactory.elementFor(e, environment);
             if (child != null) {
                 child.setParent(this);
 

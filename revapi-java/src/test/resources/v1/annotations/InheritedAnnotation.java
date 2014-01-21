@@ -14,23 +14,6 @@
  * limitations under the License
  */
 
-package org.revapi.java;
+public @interface InheritedAnnotation {
 
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
-
-import org.revapi.Element;
-
-/**
- * Basic interface that all Revapi elements modelling the Java AST satisfy.
- * The methods on this interface are provided so that it is possible to write {@link org.revapi.ProblemTransform
- * problem transforms} without needing to somehow initialize the environment the java element is present in.
- *
- * @author Lukas Krejci
- * @since 0.1
- */
-interface JavaElement extends Element {
-    Types getTypeUtils();
-
-    Elements getElementUtils();
 }

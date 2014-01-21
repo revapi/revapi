@@ -48,6 +48,8 @@ public enum Code {
     ANNOTATION_ATTRIBUTE_VALUE_CHANGED("java.annotation.attributeValueChanged"),
     ANNOTATION_ATTRIBUTE_ADDED("java.annotation.attributeAdded"),
     ANNOTATION_ATTRIBUTE_REMOVED("java.annotation.attributeRemoved"),
+    ANNOTATION_NO_LONGER_INHERITED("java.annotation.noLongerInherited"),
+    ANNOTATION_NOW_INHERITED("java.annotation.nowInherited"),
 
     METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged");
 

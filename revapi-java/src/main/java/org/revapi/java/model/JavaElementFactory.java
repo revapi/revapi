@@ -20,7 +20,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.java.JavaElement;
+import org.revapi.java.JavaModelElement;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -33,7 +33,7 @@ class JavaElementFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static JavaElement elementFor(Element modelElement, ProbingEnvironment env) {
+    public static JavaModelElement elementFor(Element modelElement, ProbingEnvironment env) {
         if (modelElement instanceof javax.lang.model.element.TypeElement) {
             return new TypeElement(env, (javax.lang.model.element.TypeElement) modelElement);
         } else if (modelElement instanceof VariableElement &&

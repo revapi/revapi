@@ -30,11 +30,17 @@ public abstract class AbstractJavaCheck extends CheckBase {
     protected MatchReport.Problem createProblem(Code code, MismatchSeverity binarySeverity,
         MismatchSeverity sourceSeverity, Object... params) {
 
-        return createProblem(code, binarySeverity, sourceSeverity, params, params);
+        return createProblem(code, binarySeverity, sourceSeverity, null, params, params);
     }
 
     protected MatchReport.Problem createProblem(Code code, MismatchSeverity binarySeverity,
         MismatchSeverity sourceSeverity, Object[] params, Object... attachments) {
+
+        return createProblem(code, binarySeverity, sourceSeverity, null, params, attachments);
+    }
+
+    protected MatchReport.Problem createProblem(Code code, MismatchSeverity binarySeverity,
+        MismatchSeverity sourceSeverity, MismatchSeverity metadataSeverity, Object[] params, Object... attachments) {
 
         MatchReport.Problem.Builder bld = code.initializeNewProblem(configuration.getLocale(), params, attachments);
         if (binarySeverity != null) {
@@ -43,6 +49,10 @@ public abstract class AbstractJavaCheck extends CheckBase {
 
         if (sourceSeverity != null) {
             bld.addClassification(CompatibilityType.SOURCE, sourceSeverity);
+        }
+
+        if (metadataSeverity != null) {
+            bld.addClassification(CompatibilityType.METADATA, metadataSeverity);
         }
 
         return bld.build();

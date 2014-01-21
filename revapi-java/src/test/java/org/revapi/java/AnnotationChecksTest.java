@@ -42,4 +42,22 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_REMOVED.code()));
     }
+
+    @Test
+    public void testAnnotationNewlyInherited() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/annotations/InheritedAnnotation.java", "v2/annotations/InheritedAnnotation.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_NOW_INHERITED.code()));
+    }
+
+    @Test
+    public void testAnnotationNoLongerInherited() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v2/annotations/InheritedAnnotation.java", "v1/annotations/InheritedAnnotation.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_NO_LONGER_INHERITED.code()));
+    }
+
+    //TODO also check for situation where the annotation used is not on the classpath - wonder how that behaves
 }

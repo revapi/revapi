@@ -161,12 +161,11 @@ public final class MatchReport {
     private final Element newElement;
 
     public MatchReport(Iterable<Problem> problems, Element oldElement, Element newElement) {
-        ArrayList<Problem> tmp = new ArrayList<>();
+        this.problems = new ArrayList<>();
         for (Problem p : problems) {
-            tmp.add(p);
+            this.problems.add(p);
         }
 
-        this.problems = Collections.unmodifiableList(tmp);
         this.oldElement = oldElement;
         this.newElement = newElement;
     }

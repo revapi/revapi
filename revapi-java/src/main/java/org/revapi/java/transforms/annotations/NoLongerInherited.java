@@ -16,24 +16,24 @@
 
 package org.revapi.java.transforms.annotations;
 
-import org.revapi.Configuration;
-import org.revapi.Element;
+import org.revapi.CompatibilityType;
 import org.revapi.MatchReport;
-import org.revapi.ProblemTransform;
+import org.revapi.MismatchSeverity;
+import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NoLongerInherited implements ProblemTransform {
-    @Override
-    public void initialize(Configuration configuration) {
-        //TODO implement
+public final class NoLongerInherited extends AbstractInheritedCheck {
+
+    protected MatchReport.Problem createProblem() {
+        return Code.ANNOTATION_NO_LONGER_INHERITED
+            .initializeNewProblem(configuration.getLocale())
+            .addClassification(CompatibilityType.METADATA, MismatchSeverity.WARNING).build();
     }
 
-    @Override
-    public MatchReport.Problem transform(Element oldElement, Element newElement, MatchReport.Problem problem) {
-        return null;  //TODO implement
+    protected Code getCodeToTransform() {
+        return Code.ANNOTATION_REMOVED;
     }
-    //TODO implement
 }
