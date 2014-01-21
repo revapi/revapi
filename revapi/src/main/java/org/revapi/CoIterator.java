@@ -40,12 +40,12 @@ import java.util.NoSuchElementException;
  * instantiating an object to represent the pair for each step of the
  * iterator which would not be efficient.
  * <p/>
- * Note also that elements from the sets are always returned in the order
- * defined by the provided comparator.
+ * Note also that elements from the sets are always returned in the
+ * iteration order.
  *
  * @author Simon Kitching
  * @author Lukas Krejci
- * @since 1.0
+ * @since 0.1
  */
 final class CoIterator<E extends Comparable<? super E>> {
 

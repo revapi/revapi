@@ -22,6 +22,6 @@ import org.revapi.java.CheckBase;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class ReturnTypeParametersChanged extends CheckBase {
+public class ReturnTypeParametersChanged extends CheckBase {
     //TODO implement
 }

@@ -20,6 +20,6 @@ package org.revapi.java.checks.generics;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class FormalTypeParameterChanged extends AbstractFormalTypeParameterCheck {
+public class FormalTypeParameterChanged extends AbstractFormalTypeParameterCheck {
     //TODO implement
 }

@@ -27,7 +27,7 @@ import org.revapi.java.compilation.ProbingEnvironment;
  * @author Lukas Krejci
  * @since 0.1
  */
-class JavaElementFactory {
+final class JavaElementFactory {
     private JavaElementFactory() {
 
     }

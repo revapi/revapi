@@ -22,6 +22,6 @@ import org.revapi.java.CheckBase;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class SuperTypeParametersChanged extends CheckBase {
+public class SuperTypeParametersChanged extends CheckBase {
     //TODO implement
 }

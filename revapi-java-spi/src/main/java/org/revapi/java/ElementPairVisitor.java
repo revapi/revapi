@@ -17,12 +17,12 @@
 package org.revapi.java;
 
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.SimpleElementVisitor7;
 
 /**
  * Can be used by various checks and problem transformations to work with two elements of the same type.
@@ -31,9 +31,9 @@ import javax.lang.model.element.VariableElement;
  * <pre><code>
  *     javax.lang.model.element.Element e1 = ...;
  *     javax.lang.model.element.Element e2 = ...;
- * <p/>
+ *
  *     e1.accept(new ElementPairVisitor&lt;Void&gt;() {
- * <p/>
+ *
  *         public Void visitType(TypeElement e1, TypeElement e2) {
  *             ...
  *         }
@@ -43,7 +43,7 @@ import javax.lang.model.element.VariableElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class ElementPairVisitor<R> implements ElementVisitor<R, Element> {
+public class ElementPairVisitor<R> extends SimpleElementVisitor7<R, Element> {
 
     @SuppressWarnings("UnusedParameters")
     protected R unmatchedAction(Element element, Element otherElement) {
@@ -52,16 +52,6 @@ public class ElementPairVisitor<R> implements ElementVisitor<R, Element> {
 
     protected R defaultMatchAction(Element element, Element otherElement) {
         return unmatchedAction(element, otherElement);
-    }
-
-    @Override
-    public final R visit(Element element, Element otherElement) {
-        return element.accept(this, otherElement);
-    }
-
-    @Override
-    public final R visit(Element e) {
-        return unmatchedAction(e, null);
     }
 
     @Override
