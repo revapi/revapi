@@ -76,9 +76,10 @@
     <modules>
         <module>revapi-api</module>
         <module>revapi</module>
-        <module>revapi-reporting-text</module>
         <module>revapi-java</module>
         <module>revapi-java-spi</module>
+        <module>revapi-maven-plugin</module>
+        <module>revapi-reporting-text</module>
     </modules>
 
     <build>
