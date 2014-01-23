@@ -27,7 +27,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.revapi.Archive;
 import org.revapi.ArchiveAnalyzer;
-import org.revapi.Configuration;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.Compiler;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -38,14 +37,16 @@ import org.revapi.java.model.JavaTree;
  * @since 0.1
  */
 public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
-    private final Iterable<Archive> archives;
+    private final Iterable<? extends Archive> archives;
+    private final Iterable<? extends Archive> additionalClassPath;
     private final ExecutorService executor;
     private final ProbingEnvironment probingEnvironment;
     private CompilationValve compilationValve;
 
-    public JavaArchiveAnalyzer(Configuration configuration, Iterable<Archive> archives,
-        ExecutorService compilationExecutor) {
+    public JavaArchiveAnalyzer(Iterable<? extends Archive> archives,
+        Iterable<? extends Archive> additionalClassPath, ExecutorService compilationExecutor) {
         this.archives = archives;
+        this.additionalClassPath = additionalClassPath;
         this.executor = compilationExecutor;
         this.probingEnvironment = new ProbingEnvironment();
     }
@@ -53,7 +54,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     @Override
     public JavaTree analyze() {
         Writer output = new StringWriter();
-        Compiler compiler = new Compiler(executor, output, archives);
+        Compiler compiler = new Compiler(executor, output, archives, additionalClassPath);
         try {
             compilationValve = compiler.compile(probingEnvironment);
 
@@ -75,7 +76,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     }
 
     private String archivesToString() {
-        Iterator<Archive> it = archives.iterator();
+        Iterator<? extends Archive> it = archives.iterator();
         StringBuilder bld = new StringBuilder("{");
 
         if (it.hasNext()) {

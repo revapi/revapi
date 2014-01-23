@@ -20,11 +20,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -141,7 +144,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
 
         @Override
-        public void report(MatchReport matchReport, PrintStream output) {
+        public void report(MatchReport matchReport) {
             for (MatchReport.Problem p : matchReport.getProblems()) {
                 Integer cnt = problemCounters.get(p.code);
                 if (cnt == null) {
@@ -165,6 +168,16 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
     }
 
+    private static class ArchiveAndCompilationPath {
+        final JavaArchive archive;
+        final Path compilationPath;
+
+        private ArchiveAndCompilationPath(JavaArchive archive, Path compilationPath) {
+            this.archive = archive;
+            this.compilationPath = compilationPath;
+        }
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger("TestWatch");
 
     @Rule
@@ -180,8 +193,9 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
     };
 
-    private JavaArchive createCompiledJar(String jarName, String... sourceFiles) throws Exception {
-        File targetPath = Files.createTempDirectory("element-analyzer-test").toAbsolutePath().toFile();
+    private ArchiveAndCompilationPath createCompiledJar(String jarName, String... sourceFiles) throws Exception {
+        File targetPath = Files.createTempDirectory("element-analyzer-test-" + jarName + ".jar-").toAbsolutePath()
+            .toFile();
 
         List<String> options = Arrays.asList("-d", targetPath.getAbsolutePath());
         List<JavaFileObject> sources = new ArrayList<>();
@@ -198,7 +212,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
             archive.addAsResource(f);
         }
 
-        return archive;
+        return new ArchiveAndCompilationPath(archive, targetPath.toPath());
     }
 
     protected void runAnalysis(Reporter testReporter, String v1Source, String v2Source) throws Exception {
@@ -206,8 +220,8 @@ public abstract class AbstractJavaElementAnalyzerTest {
     }
 
     protected void runAnalysis(Reporter testReporter, String[] v1Source, String[] v2Source) throws Exception {
-        JavaArchive v1Archive = createCompiledJar("v1", v1Source);
-        JavaArchive v2Archive = createCompiledJar("v2", v2Source);
+        ArchiveAndCompilationPath v1Archive = createCompiledJar("v1", v1Source);
+        ArchiveAndCompilationPath v2Archive = createCompiledJar("v2", v2Source);
 
         Set<ProblemTransform> transforms = new HashSet<>();
         for (ProblemTransform pt : ServiceLoader.load(ProblemTransform.class)) {
@@ -219,10 +233,46 @@ public abstract class AbstractJavaElementAnalyzerTest {
                 Collections.singleton(testReporter),
                 transforms,
                 Locale.getDefault(),
-                Collections.<String, String>emptyMap(),
-                new PrintStream(System.err));
+                Collections.<String, String>emptyMap()
+            );
 
-        revapi.analyze(Arrays.<Archive>asList(new ShrinkwrapArchive(v1Archive)),
-            Arrays.<Archive>asList(new ShrinkwrapArchive(v2Archive)));
+        revapi.analyze(Arrays.asList(new ShrinkwrapArchive(v1Archive.archive)), null,
+            Arrays.asList(new ShrinkwrapArchive(v2Archive.archive)), null);
+
+        deleteDir(v1Archive.compilationPath);
+        deleteDir(v2Archive.compilationPath);
+    }
+
+    private void deleteDir(final Path path) throws IOException {
+        try {
+            Files.walkFileTree(path, new FileVisitor<Path>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    if (path.equals(file)) {
+                        return FileVisitResult.CONTINUE;
+                    }
+                    throw new IOException("Failed to delete file '" + file + "'.", exc);
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to remove compiled results", e);
+        }
     }
 }

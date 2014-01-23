@@ -41,8 +41,10 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     }
 
     @Override
-    public ArchiveAnalyzer getArchiveAnalyzer(Iterable<Archive> archives) {
-        return new JavaArchiveAnalyzer(configuration, archives, compilationExecutor);
+    public ArchiveAnalyzer getArchiveAnalyzer(Iterable<? extends Archive> archives,
+        Iterable<? extends Archive> supplementaryArchives) {
+
+        return new JavaArchiveAnalyzer(archives, supplementaryArchives, compilationExecutor);
     }
 
     @Override

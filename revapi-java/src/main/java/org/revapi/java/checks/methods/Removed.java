@@ -14,15 +14,11 @@
  * limitations under the License
  */
 
-package org.revapi;
+package org.revapi.java.checks.methods;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface Reporter {
-
-    void initialize(Configuration properties);
-
-    void report(MatchReport matchReport);
+public class Removed {
 }

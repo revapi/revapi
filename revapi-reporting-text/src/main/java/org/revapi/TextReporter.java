@@ -16,7 +16,7 @@
 
 package org.revapi;
 
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -27,16 +27,19 @@ import java.util.Map;
 public class TextReporter implements Reporter {
 
     private boolean reportMatches;
+    private PrintWriter output;
 
     @Override
     public void initialize(Configuration config) {
         String reportMatches = config.getProperties().get("TextReporter.reportMatches");
 
         this.reportMatches = reportMatches != null && Boolean.valueOf(reportMatches);
+        //TODO make this configurable - file, cout, cerr
+        output = new PrintWriter(System.out);
     }
 
     @Override
-    public void report(MatchReport matchReport, PrintStream output) {
+    public void report(MatchReport matchReport) {
         if (!reportMatches && matchReport.getProblems().isEmpty()) {
             return;
         }
@@ -58,7 +61,7 @@ public class TextReporter implements Reporter {
         }
     }
 
-    private void reportClassification(PrintStream output, MatchReport.Problem problem) {
+    private void reportClassification(PrintWriter output, MatchReport.Problem problem) {
         Iterator<Map.Entry<CompatibilityType, MismatchSeverity>> it = problem.classification.entrySet().iterator();
 
         if (it.hasNext()) {

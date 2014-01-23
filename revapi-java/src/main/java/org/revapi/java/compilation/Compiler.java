@@ -41,10 +41,13 @@ import org.revapi.Archive;
 public final class Compiler {
     private final JavaCompiler compiler;
     private final Writer output;
-    private final Iterable<Archive> classPath;
+    private final Iterable<? extends Archive> classPath;
+    private final Iterable<? extends Archive> additionalClassPath;
     private final ExecutorService executor;
 
-    public Compiler(ExecutorService executor, Writer reportingOutput, Iterable<Archive> classPath) {
+    public Compiler(ExecutorService executor, Writer reportingOutput, Iterable<? extends Archive> classPath,
+        Iterable<? extends Archive> additionalClassPath) {
+
         compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
             throw new AssertionError("Could not obtain the system compiler. Is tools.jar on the classpath?");
@@ -53,6 +56,7 @@ public final class Compiler {
         this.executor = executor;
         this.output = reportingOutput;
         this.classPath = classPath;
+        this.additionalClassPath = additionalClassPath;
     }
 
     public CompilationValve compile(ProbingEnvironment environment) throws Exception {
@@ -64,7 +68,8 @@ public final class Compiler {
         File lib = new File(targetPath, "lib");
         lib.mkdir();
 
-        copyClassPathTo(lib);
+        copyArchives(classPath, lib);
+        copyArchives(additionalClassPath, lib);
 
         List<String> options = Arrays.asList(
             "-d", sourceDir.toString(),
@@ -73,7 +78,7 @@ public final class Compiler {
 
         List<JavaFileObject> sources = Arrays.<JavaFileObject>asList(
             new MarkerAnnotationObject(),
-            new ArchiveProbeObject(classPath, environment)
+            new ArchiveProbeObject(classPath, additionalClassPath, environment)
         );
 
         final JavaCompiler.CompilationTask task = compiler
@@ -92,7 +97,7 @@ public final class Compiler {
     private String composeClassPath(File classPathDir) {
         StringBuilder bld = new StringBuilder();
 
-        Iterator<Archive> it = classPath.iterator();
+        Iterator<? extends Archive> it = classPath.iterator();
 
         if (!it.hasNext()) {
             return "";
@@ -107,8 +112,12 @@ public final class Compiler {
         return bld.toString();
     }
 
-    private void copyClassPathTo(File parentDir) {
-        for (Archive a : classPath) {
+    private void copyArchives(Iterable<? extends Archive> archives, File parentDir) {
+        if (archives == null) {
+            return;
+        }
+
+        for (Archive a : archives) {
             Path target = new File(parentDir, a.getName()).toPath();
 
             try (InputStream data = a.openStream()) {

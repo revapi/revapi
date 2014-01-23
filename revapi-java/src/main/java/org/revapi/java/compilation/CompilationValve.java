@@ -30,7 +30,7 @@ import java.util.concurrent.Future;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class CompilationValve {
+public final class CompilationValve {
     private final Future<Boolean> compilationResult;
     private final File dirToCleanup;
 
@@ -71,6 +71,9 @@ public class CompilationValve {
 
                 @Override
                 public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    if (dirToCleanup.toPath().equals(file)) {
+                        return FileVisitResult.CONTINUE;
+                    }
                     throw new IOException("Failed to delete file '" + file + "'.", exc);
                 }
 

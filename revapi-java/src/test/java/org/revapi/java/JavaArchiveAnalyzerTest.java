@@ -19,15 +19,12 @@ package org.revapi.java;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Locale;
 import java.util.concurrent.Executors;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import org.revapi.Archive;
-import org.revapi.Configuration;
 import org.revapi.java.classes.misc.A;
 import org.revapi.java.model.JavaTree;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -63,9 +60,8 @@ public class JavaArchiveAnalyzerTest {
     public void test() throws Exception {
         JavaArchive archive = ShrinkWrap.create(JavaArchive.class, "test.jar").addPackage(A.class.getPackage());
 
-        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new Configuration(Locale.getDefault(),
-            Collections.<String, String>emptyMap()),
-            Arrays.<Archive>asList(new ShrinkwrapArchive(archive)), Executors.newSingleThreadExecutor());
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(Arrays.<Archive>asList(new ShrinkwrapArchive(archive)),
+            null, Executors.newSingleThreadExecutor());
 
         JavaTree tree = analyzer.analyze();
 

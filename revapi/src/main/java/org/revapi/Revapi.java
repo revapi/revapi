@@ -18,7 +18,6 @@ package org.revapi;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.ListIterator;
@@ -37,13 +36,13 @@ public final class Revapi {
     private final Set<Reporter> availableReporters;
     private final Set<ProblemTransform> availableProblemTransforms;
     private final Configuration configuration;
-    private final PrintStream output;
 
     private static void usage() {
         System.out.println("Revapi <oldArchive> <newArchive>");
     }
 
     public static void main(String[] args) throws Exception {
+        //TODO beef this up
         if (args == null || args.length != 2) {
             usage();
             return;
@@ -52,38 +51,36 @@ public final class Revapi {
         String oldArchiveName = args[0];
         String newArchiveName = args[1];
 
-        @SuppressWarnings("unchecked") Revapi revapi = new Revapi(System.out, Locale.getDefault(),
+        @SuppressWarnings("unchecked")
+        Revapi revapi = new Revapi(Locale.getDefault(),
             (Map<String, String>) (Map<?, ?>) System.getProperties());
 
         revapi.analyze(
-            Arrays.<Archive>asList(new FileArchive(new File(oldArchiveName))),
-            Arrays.<Archive>asList(new FileArchive(new File(newArchiveName))));
+            Arrays.<Archive>asList(new FileArchive(new File(oldArchiveName))), null,
+            Arrays.<Archive>asList(new FileArchive(new File(newArchiveName))), null);
     }
 
-    public Revapi(PrintStream output,
-        Locale locale, Map<String, String> configurationProperties) {
-        this(output, Thread.currentThread().getContextClassLoader(), locale,
+    public Revapi(Locale locale, Map<String, String> configurationProperties) {
+        this(Thread.currentThread().getContextClassLoader(), locale,
             configurationProperties);
     }
 
     @SuppressWarnings("unchecked")
-    public Revapi(PrintStream output,
-        ClassLoader classLoader, Locale locale,
+    public Revapi(ClassLoader classLoader, Locale locale,
         Map<String, String> configurationProperties) {
 
         this(loadServices(classLoader, ApiAnalyzer.class), loadServices(classLoader, Reporter.class),
-            loadServices(classLoader, ProblemTransform.class), locale, configurationProperties, output);
+            loadServices(classLoader, ProblemTransform.class), locale, configurationProperties);
     }
 
     public Revapi(Set<ApiAnalyzer> availableApiAnalyzers, Set<Reporter> availableReporters,
         Set<ProblemTransform> availableProblemTransforms, Locale locale,
-        Map<String, String> configurationProperties, PrintStream output) {
+        Map<String, String> configurationProperties) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
         this.availableReporters = availableReporters;
         this.availableProblemTransforms = availableProblemTransforms;
         this.configuration = new Configuration(locale, configurationProperties);
-        this.output = output;
     }
 
     private static <T> Set<T> loadServices(ClassLoader classLoader, Class<T> serviceClass) {
@@ -95,13 +92,15 @@ public final class Revapi {
         return services;
     }
 
-    public void analyze(Iterable<Archive> oldArchives, Iterable<Archive> newArchives) throws IOException {
+    public void analyze(Iterable<? extends Archive> oldArchives, Iterable<? extends Archive> oldSupplementaryArchives,
+        Iterable<? extends Archive> newArchives, Iterable<? extends Archive> newSupplementaryArchives)
+        throws IOException {
         initReporters();
         initAnalyzers();
         initProblemFilters();
 
         for (ApiAnalyzer analyzer : availableApiAnalyzers) {
-            analyzeWith(analyzer, oldArchives, newArchives);
+            analyzeWith(analyzer, oldArchives, oldSupplementaryArchives, newArchives, newSupplementaryArchives);
         }
     }
 
@@ -123,10 +122,12 @@ public final class Revapi {
         }
     }
 
-    private void analyzeWith(ApiAnalyzer apiAnalyzer, Iterable<Archive> oldArchives, Iterable<Archive> newArchives)
-        throws IOException {
-        ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldArchives);
-        ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newArchives);
+    private void analyzeWith(ApiAnalyzer apiAnalyzer, Iterable<? extends Archive> oldArchives,
+        Iterable<? extends Archive> oldSupplementaryArchives, Iterable<? extends Archive> newArchives,
+        Iterable<? extends Archive> newSupplementaryArchives)
+    throws IOException {
+        ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldArchives, oldSupplementaryArchives);
+        ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newArchives, newSupplementaryArchives);
 
         Tree oldTree = oldAnalyzer.analyze();
         Tree newTree = newAnalyzer.analyze();
@@ -179,7 +180,7 @@ public final class Revapi {
         }
 
         for (Reporter reporter : availableReporters) {
-            reporter.report(matchReport, output);
+            reporter.report(matchReport);
         }
     }
 }
