@@ -32,6 +32,13 @@ import org.revapi.simple.SimpleTree;
 public final class JavaTree extends SimpleTree {
 
     private Future<?> compilation;
+    private static final ThreadLocal<Boolean> UNSAFE_MODE = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
+    };
+
 
     public JavaTree() {
     }
@@ -49,7 +56,13 @@ public final class JavaTree extends SimpleTree {
 
     @SuppressWarnings("unchecked")
     public SortedSet<TypeElement> getRootsUnsafe() {
-        return (SortedSet<TypeElement>) super.getRoots();
+        boolean wasUnsafe = UNSAFE_MODE.get();
+        try {
+            UNSAFE_MODE.set(true);
+            return (SortedSet<TypeElement>) super.getRoots();
+        } finally {
+            UNSAFE_MODE.set(wasUnsafe);
+        }
     }
 
     @Override
@@ -66,9 +79,20 @@ public final class JavaTree extends SimpleTree {
         return super.search(resultType, recurse, filter, root);
     }
 
+    public <T extends Element> List<T> searchUnsafe(Class<T> resultType, boolean recurse, Filter<? super T> filter,
+        Element root) {
+        boolean wasUnsafe = UNSAFE_MODE.get();
+        try {
+            UNSAFE_MODE.set(true);
+            return super.search(resultType, recurse, filter, root);
+        } finally {
+            UNSAFE_MODE.set(wasUnsafe);
+        }
+    }
+
     private void waitForCompilation() {
         try {
-            if (compilation != null) {
+            if (compilation != null && !UNSAFE_MODE.get()) {
                 compilation.get();
             }
         } catch (InterruptedException e) {

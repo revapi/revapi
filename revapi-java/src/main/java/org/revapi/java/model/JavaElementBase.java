@@ -64,6 +64,10 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     protected SortedSet<org.revapi.Element> newChildrenInstance() {
         SortedSet<org.revapi.Element> set = super.newChildrenInstance();
 
+        if (getModelElement() == null) {
+            return set;
+        }
+
         for (Element e : getModelElement().getEnclosedElements()) {
             JavaModelElement child = JavaElementFactory.elementFor(e, environment);
             if (child != null) {

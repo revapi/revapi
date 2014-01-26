@@ -226,7 +226,7 @@ public abstract class SimpleElement implements Element {
         }
     }
 
-    public SortedSet<Element> getChildren() {
+    public SortedSet<? extends Element> getChildren() {
         if (children == null) {
             children = new ParentPreservingSet(newChildrenInstance());
         }

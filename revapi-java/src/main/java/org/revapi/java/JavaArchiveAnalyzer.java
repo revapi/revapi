@@ -17,7 +17,6 @@
 package org.revapi.java;
 
 import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -48,18 +47,18 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         this.archives = archives;
         this.additionalClassPath = additionalClassPath;
         this.executor = compilationExecutor;
-        this.probingEnvironment = new ProbingEnvironment();
+        this.probingEnvironment = new ProbingEnvironment(archivesToString());
     }
 
     @Override
     public JavaTree analyze() {
-        Writer output = new StringWriter();
+        StringWriter output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, archives, additionalClassPath);
         try {
             compilationValve = compiler.compile(probingEnvironment);
 
             probingEnvironment.getTree()
-                .setCompilationFuture(new CompilationFuture(compilationValve.getCompilationResult(), output));
+                .setCompilationFuture(new CompilationFuture(probingEnvironment, output));
 
             return probingEnvironment.getTree();
         } catch (Exception e) {
@@ -80,11 +79,11 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         StringBuilder bld = new StringBuilder("{");
 
         if (it.hasNext()) {
-            bld.append(it.next());
+            bld.append(it.next().getName());
         }
 
         while (it.hasNext()) {
-            bld.append(", ").append(it.next());
+            bld.append(", ").append(it.next().getName());
         }
 
         bld.append("}");
@@ -93,33 +92,35 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     }
 
     private static class CompilationFuture implements Future<Void> {
-        private final Future<Boolean> compilation;
-        private final Writer output;
+        private final ProbingEnvironment env;
+        private final StringWriter output;
 
-        private CompilationFuture(Future<Boolean> compilation, Writer output) {
-            this.compilation = compilation;
+        private CompilationFuture(ProbingEnvironment env, StringWriter output) {
+            this.env = env;
             this.output = output;
         }
 
         @Override
         public boolean cancel(boolean mayInterruptIfRunning) {
-            return compilation.cancel(mayInterruptIfRunning);
+            return false;
         }
 
         @Override
         public boolean isCancelled() {
-            return compilation.isCancelled();
+            return false;
         }
 
         @Override
         public boolean isDone() {
-            return compilation.isDone();
+            return env.getCompilationProgressLatch().getCount() == 0;
         }
 
         @Override
         public Void get() throws InterruptedException, ExecutionException {
-            if (!compilation.get()) {
-                throw new ExecutionException(new Exception("Compilation failed:\n" + output.toString()));
+            env.getCompilationProgressLatch().await();
+            if (output.getBuffer().length() > 0) {
+                throw new ExecutionException(
+                    new Exception("Compilation failed while analyzing " + env.getName() + ":\n" + output.toString()));
             }
             return null;
         }
@@ -127,8 +128,14 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         @Override
         public Void get(long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
-            if (!compilation.get(timeout, unit)) {
-                throw new ExecutionException(new Exception("Compilation failed:\n" + output.toString()));
+
+            if (!env.getCompilationProgressLatch().await(timeout, unit)) {
+                throw new TimeoutException();
+            }
+
+            if (output.getBuffer().length() > 0) {
+                throw new ExecutionException(
+                    new Exception("Compilation failed while analyzing " + env.getName() + ":\n" + output.toString()));
             }
 
             return null;

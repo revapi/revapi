@@ -27,11 +27,11 @@ import org.revapi.Element;
  */
 public class FilteringIterator<E extends Element> implements Iterator<E> {
     private final Class<E> resultType;
-    private final Iterator<Element> wrapped;
+    private final Iterator<? extends Element> wrapped;
     private final Filter<? super E> filter;
     private E current;
 
-    public FilteringIterator(Iterator<Element> iterator, Class<E> resultType, Filter<? super E> filter) {
+    public FilteringIterator(Iterator<? extends Element> iterator, Class<E> resultType, Filter<? super E> filter) {
         this.wrapped = iterator;
         this.filter = filter;
         this.resultType = resultType;

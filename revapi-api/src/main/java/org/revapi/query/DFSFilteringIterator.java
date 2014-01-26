@@ -29,11 +29,12 @@ import org.revapi.Element;
  */
 public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
     private final Class<E> resultClass;
-    private final Deque<Iterator<Element>> dfsStack = new LinkedList<>();
+    private final Deque<Iterator<? extends Element>> dfsStack = new LinkedList<>();
     private final Filter<? super E> filter;
     private E current;
 
-    public DFSFilteringIterator(Iterator<Element> rootIterator, Class<E> resultClass, Filter<? super E> filter) {
+    public DFSFilteringIterator(Iterator<? extends Element> rootIterator, Class<E> resultClass,
+        Filter<? super E> filter) {
         dfsStack.push(rootIterator);
         this.resultClass = resultClass;
         this.filter = filter;
@@ -53,7 +54,7 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
                     return false;
                 }
 
-                Iterator<Element> currentIterator = dfsStack.peek();
+                Iterator<? extends Element> currentIterator = dfsStack.peek();
 
                 while (currentIterator.hasNext()) {
                     Element next = currentIterator.next();
@@ -75,7 +76,7 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
                         current = cur;
 
                         //we're doing DFS, so once we report this element, we want to start reporting its children
-                        Iterator<Element> childIterator = cur.getChildren().iterator();
+                        Iterator<? extends Element> childIterator = cur.getChildren().iterator();
                         if (childIterator.hasNext()) {
                             dfsStack.push(childIterator);
                         }

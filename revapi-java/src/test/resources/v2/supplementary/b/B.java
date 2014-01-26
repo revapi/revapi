@@ -14,23 +14,17 @@
  * limitations under the License
  */
 
-package org.revapi.java;
+public class B {
+    /** this change should be ignored, because it is not "visible" from the API defined by A. */
+    public static interface T$1 {
+        public static class TT$1 {
+        }
+    };
 
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
+    /**
+     * this change though, should be detected, because T2 is technically part of the API, because it is leaked into
+     * the API as a type of public field in class A.
+     */
+    public static final class T$2 {};
 
-import org.revapi.Element;
-
-/**
- * Basic interface that all Revapi elements modelling the Java AST satisfy.
- * The methods on this interface are provided so that it is possible to write {@link org.revapi.ProblemTransform
- * problem transforms} without needing to somehow initialize the environment the java element is present in.
- *
- * @author Lukas Krejci
- * @since 0.1
- */
-public interface JavaElement extends Element {
-    Types getTypeUtils();
-
-    Elements getElementUtils();
 }

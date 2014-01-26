@@ -26,24 +26,33 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public final class CompilationValve {
+    private static final Logger LOG = LoggerFactory.getLogger(CompilationValve.class);
+
     private final Future<Boolean> compilationResult;
     private final File dirToCleanup;
+    private final ProbingEnvironment environment;
 
-    /* package private */ CompilationValve(Future<Boolean> results, File dirToCleanup) {
+    /* package private */ CompilationValve(Future<Boolean> results, File dirToCleanup, ProbingEnvironment env) {
         this.compilationResult = results;
         this.dirToCleanup = dirToCleanup;
-    }
-
-    public Future<Boolean> getCompilationResult() {
-        return compilationResult;
+        this.environment = env;
     }
 
     public void removeCompiledResults() {
+
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Releasing compilation environment for " + environment.getName());
+        }
+        environment.getCompilationTeardownLatch().countDown();
+
         if (!compilationResult.isDone()) {
             try {
                 compilationResult.get();

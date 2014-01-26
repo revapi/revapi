@@ -14,23 +14,12 @@
  * limitations under the License
  */
 
-package org.revapi.java;
+public class B {
 
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
+    public static class T$1 {
+        public static class TT$1 {
+        }
+    };
 
-import org.revapi.Element;
-
-/**
- * Basic interface that all Revapi elements modelling the Java AST satisfy.
- * The methods on this interface are provided so that it is possible to write {@link org.revapi.ProblemTransform
- * problem transforms} without needing to somehow initialize the environment the java element is present in.
- *
- * @author Lukas Krejci
- * @since 0.1
- */
-public interface JavaElement extends Element {
-    Types getTypeUtils();
-
-    Elements getElementUtils();
+    public static class T$2 {};
 }

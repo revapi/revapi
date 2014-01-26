@@ -112,10 +112,10 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
     }
 
-    private static class ShrinkwrapArchive implements Archive {
+    protected final static class ShrinkwrapArchive implements Archive {
         private final JavaArchive archive;
 
-        private ShrinkwrapArchive(JavaArchive archive) {
+        protected ShrinkwrapArchive(JavaArchive archive) {
             this.archive = archive;
         }
 
@@ -168,7 +168,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
     }
 
-    private static class ArchiveAndCompilationPath {
+    protected final static class ArchiveAndCompilationPath {
         final JavaArchive archive;
         final Path compilationPath;
 
@@ -193,7 +193,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
     };
 
-    private ArchiveAndCompilationPath createCompiledJar(String jarName, String... sourceFiles) throws Exception {
+    protected ArchiveAndCompilationPath createCompiledJar(String jarName, String... sourceFiles) throws Exception {
         File targetPath = Files.createTempDirectory("element-analyzer-test-" + jarName + ".jar-").toAbsolutePath()
             .toFile();
 
@@ -215,6 +215,20 @@ public abstract class AbstractJavaElementAnalyzerTest {
         return new ArchiveAndCompilationPath(archive, targetPath.toPath());
     }
 
+    protected Revapi createRevapi(Reporter testReporter) {
+        Set<ProblemTransform> transforms = new HashSet<>();
+        for (ProblemTransform pt : ServiceLoader.load(ProblemTransform.class)) {
+            transforms.add(pt);
+        }
+
+        return new Revapi(Collections.<ApiAnalyzer>singleton(new JavaApiAnalyzer()),
+            Collections.singleton(testReporter),
+                transforms,
+                Locale.getDefault(),
+                Collections.<String, String>emptyMap()
+            );
+    }
+
     protected void runAnalysis(Reporter testReporter, String v1Source, String v2Source) throws Exception {
         runAnalysis(testReporter, new String[]{v1Source}, new String[]{v2Source});
     }
@@ -223,18 +237,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         ArchiveAndCompilationPath v1Archive = createCompiledJar("v1", v1Source);
         ArchiveAndCompilationPath v2Archive = createCompiledJar("v2", v2Source);
 
-        Set<ProblemTransform> transforms = new HashSet<>();
-        for (ProblemTransform pt : ServiceLoader.load(ProblemTransform.class)) {
-            transforms.add(pt);
-        }
-
-        Revapi revapi =
-            new Revapi(Collections.<ApiAnalyzer>singleton(new JavaApiAnalyzer()),
-                Collections.singleton(testReporter),
-                transforms,
-                Locale.getDefault(),
-                Collections.<String, String>emptyMap()
-            );
+        Revapi revapi = createRevapi(testReporter);
 
         revapi.analyze(Arrays.asList(new ShrinkwrapArchive(v1Archive.archive)), null,
             Arrays.asList(new ShrinkwrapArchive(v2Archive.archive)), null);
@@ -243,7 +246,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         deleteDir(v2Archive.compilationPath);
     }
 
-    private void deleteDir(final Path path) throws IOException {
+    protected void deleteDir(final Path path) throws IOException {
         try {
             Files.walkFileTree(path, new FileVisitor<Path>() {
                 @Override

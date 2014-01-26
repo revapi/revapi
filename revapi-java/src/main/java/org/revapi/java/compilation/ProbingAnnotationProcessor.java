@@ -28,6 +28,9 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
@@ -35,8 +38,8 @@ import javax.lang.model.element.TypeElement;
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedAnnotationTypes(MarkerAnnotationObject.CLASS_NAME)
 public final class ProbingAnnotationProcessor extends AbstractProcessor {
-    private final Object lock = new Object();
-    private volatile boolean locked;
+    private static final Logger LOG = LoggerFactory.getLogger(ProbingAnnotationProcessor.class);
+
     private final ProbingEnvironment environment;
 
     public ProbingAnnotationProcessor(ProbingEnvironment env) {
@@ -47,7 +50,15 @@ public final class ProbingAnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) {
             environment.setProcessingEnvironment(processingEnv);
-            unlock();
+
+            releaseCompilationProgress();
+
+            try {
+                environment.getCompilationTeardownLatch().await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
             return true;
         }
 
@@ -55,31 +66,27 @@ public final class ProbingAnnotationProcessor extends AbstractProcessor {
     }
 
     public <T> Future<T> waitForProcessingAndExecute(ExecutorService executor, final Callable<T> task)
-        throws InterruptedException {
+        throws Exception {
 
-        synchronized (lock) {
-            if (locked) {
-                lock.wait();
-            }
-
-            Future<T> ret = executor.submit(new Callable<T>() {
-                @Override
-                public T call() throws Exception {
+        Future<T> ret = executor.submit(new Callable<T>() {
+            @Override
+            public T call() throws Exception {
+                try {
                     T ret = task.call();
-                    unlock();
                     return ret;
+                } finally {
+                    releaseCompilationProgress();
                 }
-            });
+            }
+        });
 
-            lock.wait();
-            return ret;
-        }
+        return ret;
     }
 
-    private void unlock() {
-        synchronized (lock) {
-            locked = false;
-            lock.notifyAll();
+    private void releaseCompilationProgress() {
+        if (LOG.isTraceEnabled() && environment.getCompilationProgressLatch().getCount() > 0) {
+            LOG.trace("Releasing compilation progress for " + environment.getName());
         }
+        environment.getCompilationProgressLatch().countDown();
     }
 }

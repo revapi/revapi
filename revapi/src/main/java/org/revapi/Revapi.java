@@ -133,15 +133,19 @@ public final class Revapi {
         Tree newTree = newAnalyzer.analyze();
 
         ElementAnalyzer elementAnalyzer = apiAnalyzer.getElementAnalyzer(oldAnalyzer, newAnalyzer);
-        analyze(elementAnalyzer, oldTree.getRoots(), newTree.getRoots());
+
+        SortedSet<? extends Element> as = oldTree.getRoots();
+        SortedSet<? extends Element> bs = newTree.getRoots();
+
+        elementAnalyzer.setup();
+        analyze(elementAnalyzer, as, bs);
+        elementAnalyzer.tearDown();
     }
 
     private void analyze(ElementAnalyzer elementAnalyzer,
         SortedSet<? extends Element> as, SortedSet<? extends Element> bs) {
 
         CoIterator<Element> it = new CoIterator<>(as.iterator(), bs.iterator());
-
-        elementAnalyzer.setup();
 
         while (it.hasNext()) {
             it.next();
@@ -157,8 +161,6 @@ public final class Revapi {
 
             report(elementAnalyzer.endAnalysis(a, b));
         }
-
-        elementAnalyzer.tearDown();
     }
 
     private void report(MatchReport matchReport) {

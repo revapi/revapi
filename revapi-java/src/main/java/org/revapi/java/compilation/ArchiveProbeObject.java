@@ -128,7 +128,6 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
             while (it.hasNext()) {
                 String typeDescriptor = it.next();
                 if (comesFromRtJar(typeDescriptor)) {
-                    addConditionally(Type.getType(typeDescriptor));
                     it.remove();
                 }
             }
@@ -181,23 +180,18 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
 
             private String mainName;
             private int mainAccess;
-            private boolean isInner;
             private boolean isPublicAPI;
+            private StringBuilder canonicalName = new StringBuilder();
+            private boolean useCanonical;
 
             @Override
             public void visit(int version, int access, String name, String signature, String superName,
                 String[] interfaces) {
 
+                canonicalName.setLength(0);
                 mainName = name;
                 mainAccess = access;
                 isPublicAPI = (mainAccess & Opcodes.ACC_PUBLIC) != 0 || (mainAccess & Opcodes.ACC_PROTECTED) != 0;
-            }
-
-            @Override
-            public void visitInnerClass(String name, String outerName, String innerName, int access) {
-                if (name.equals(mainName)) {
-                    isInner = true;
-                }
             }
 
             @Override
@@ -207,6 +201,18 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
                     addToAdditionalClasses(Type.getType(desc));
                 }
                 return null;
+            }
+
+            @Override
+            public void visitInnerClass(String name, String outerName, String innerName, int access) {
+                if (canonicalName.length() == 0 || canonicalName.toString().replace('.', '$').equals(outerName)) {
+                    if (canonicalName.length() == 0) {
+                        canonicalName.append(outerName);
+                    }
+                    canonicalName.append('.').append(innerName);
+                }
+
+                useCanonical = mainName.equals(name);
             }
 
             @Override
@@ -225,13 +231,17 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
 
             @Override
             public void visitEnd() {
-                Type t = Type.getObjectType(mainName);
-                if (!isInner && isPublicAPI) {
+                if (isPublicAPI) {
+                    Type t = Type.getObjectType(mainName);
                     if (!onlyAddAdditional || additionalClasses.contains(t.getDescriptor())) {
-                        addConditionally(t);
+                        String cn = mainName;
+                        if (useCanonical && canonicalName.length() != 0) {
+                            cn = canonicalName.toString();
+                        }
+                        addConditionally(t, cn);
                     }
+                    additionalClasses.remove(t.getDescriptor());
                 }
-                additionalClasses.remove(t.getDescriptor());
             }
 
             private void addToAdditionalClasses(Type t) {
@@ -240,7 +250,7 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
                     return;
                 }
 
-                if (findByClassName(t.getClassName()) == null) {
+                if (findByType(t) == null) {
 
                     switch (t.getSort()) {
                     case Type.OBJECT:
@@ -293,14 +303,14 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
         }
     }
 
-    private void addConditionally(Type t) {
+    private void addConditionally(Type t, String canonicalName) {
         boolean add = false;
-        String className = t.getClassName();
 
-        TypeElement type = findByClassName(className);
+        TypeElement type = findByType(t);
         if (type == null) {
+            String binaryName = t.getClassName();
             add = true;
-            type = new TypeElement(environment, className);
+            type = new TypeElement(environment, binaryName, canonicalName);
         }
 
         if (add) {
@@ -308,12 +318,12 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
         }
     }
 
-    private TypeElement findByClassName(final String className) {
-        List<TypeElement> found = environment.getTree().search(TypeElement.class, true,
+    private TypeElement findByType(final Type t) {
+        List<TypeElement> found = environment.getTree().searchUnsafe(TypeElement.class, true,
             new Filter<TypeElement>() {
                 @Override
                 public boolean applies(TypeElement object) {
-                    return className.equals(object.getExplicitClassName());
+                    return t.getClassName().equals(object.getBinaryName());
                 }
 
                 @Override

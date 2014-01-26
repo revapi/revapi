@@ -23,7 +23,6 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -91,22 +90,22 @@ public final class Compiler {
 
         Future<Boolean> future = processor.waitForProcessingAndExecute(executor, task);
 
-        return new CompilationValve(future, targetPath);
+        return new CompilationValve(future, targetPath, environment);
     }
 
     private String composeClassPath(File classPathDir) {
         StringBuilder bld = new StringBuilder();
 
-        Iterator<? extends Archive> it = classPath.iterator();
+        File[] jars = classPathDir.listFiles();
 
-        if (!it.hasNext()) {
+        if (jars.length == 0) {
             return "";
+
         }
 
-        bld.append(new File(classPathDir, it.next().getName()).getAbsolutePath());
-
-        while (it.hasNext()) {
-            bld.append(File.pathSeparator).append(new File(classPathDir, it.next().getName()).getAbsolutePath());
+        bld.append(jars[0].getAbsolutePath());
+        for (int i = 1; i < jars.length; ++i) {
+            bld.append(File.pathSeparator).append(jars[i].getAbsolutePath());
         }
 
         return bld.toString();

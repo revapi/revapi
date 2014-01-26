@@ -38,7 +38,7 @@ public interface Element extends Comparable<Element> {
 
     void setParent(Element parent);
 
-    SortedSet<Element> getChildren();
+    SortedSet<? extends Element> getChildren();
 
     /**
      * This method is functionally equivalent to {@link #searchChildren(java.util.List, java.lang.Class, boolean,

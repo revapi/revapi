@@ -23,28 +23,41 @@ import org.revapi.java.compilation.ProbingEnvironment;
  * @since 0.1
  */
 public final class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement> {
-    private final String className;
+    private final String binaryName;
+    private final String canonicalName;
 
-    public TypeElement(ProbingEnvironment env, String className) {
+    /**
+     * This is a helper constructor used only during probing the class files. All these fields are here to gather
+     * information needed to generate a meaningful probe class.
+     *
+     * @param env probing environment
+     */
+    public TypeElement(ProbingEnvironment env, String binaryName, String canonicalName) {
         super(env, null);
-        this.className = className;
+        this.binaryName = binaryName;
+        this.canonicalName = canonicalName;
     }
 
     public TypeElement(ProbingEnvironment env, javax.lang.model.element.TypeElement element) {
         super(env, element);
-        this.className = element.getQualifiedName().toString();
+        binaryName = env.getElementUtils().getBinaryName(element).toString();
+        canonicalName = element.getQualifiedName().toString();
     }
 
     @Override
     public javax.lang.model.element.TypeElement getModelElement() {
         if (element == null) {
-            element = environment.getElementUtils().getTypeElement(className);
+            element = environment.getElementUtils().getTypeElement(canonicalName);
         }
         return element;
     }
 
-    public String getExplicitClassName() {
-        return className;
+    public String getBinaryName() {
+        return binaryName;
+    }
+
+    public String getCanonicalName() {
+        return canonicalName;
     }
 
     @Override
@@ -53,11 +66,11 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
             return 1;
         }
 
-        return className.compareTo(((TypeElement) o).className);
+        return binaryName.compareTo(((TypeElement) o).binaryName);
     }
 
     @Override
     public String toString() {
-        return className;
+        return binaryName;
     }
 }
