@@ -30,14 +30,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.ServiceLoader;
-import java.util.Set;
 
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
@@ -51,13 +46,11 @@ import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.revapi.ApiAnalyzer;
 import org.revapi.Revapi;
 import org.revapi.Archive;
 import org.revapi.Configuration;
 import org.revapi.Element;
 import org.revapi.MatchReport;
-import org.revapi.ProblemTransform;
 import org.revapi.Reporter;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -216,17 +209,8 @@ public abstract class AbstractJavaElementAnalyzerTest {
     }
 
     protected Revapi createRevapi(Reporter testReporter) {
-        Set<ProblemTransform> transforms = new HashSet<>();
-        for (ProblemTransform pt : ServiceLoader.load(ProblemTransform.class)) {
-            transforms.add(pt);
-        }
-
-        return new Revapi(Collections.<ApiAnalyzer>singleton(new JavaApiAnalyzer()),
-            Collections.singleton(testReporter),
-                transforms,
-                Locale.getDefault(),
-                Collections.<String, String>emptyMap()
-            );
+        return Revapi.builder().withAnalyzers(new JavaApiAnalyzer()).withReporters(testReporter)
+            .withTransformsOnClassPath().withFiltersOnClassPath().build();
     }
 
     protected void runAnalysis(Reporter testReporter, String v1Source, String v2Source) throws Exception {

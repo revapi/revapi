@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.apache.maven.artifact.Artifact;
@@ -92,18 +91,14 @@ public class CheckMojo extends AbstractMojo {
             return;
         }
 
-        Locale locale = Locale.getDefault();
-
-        Revapi revapi = new Revapi(locale, analysisConfiguration);
-
-        List<FileArchive> oldArchives = null;
+        List<FileArchive> oldArchives;
         try {
             oldArchives = resolveArtifact(oldArtifacts);
         } catch (ArtifactResolutionException e) {
             throw new MojoExecutionException("Failed to resolve old artifacts", e);
         }
 
-        List<FileArchive> newArchives = null;
+        List<FileArchive> newArchives;
         try {
             newArchives = resolveArtifact(newArtifacts);
         } catch (ArtifactResolutionException e) {
@@ -111,6 +106,9 @@ public class CheckMojo extends AbstractMojo {
         }
 
         try {
+            Revapi revapi = Revapi.builder().withAllExtensionsOnClassPath().withConfiguration(analysisConfiguration)
+                .build();
+
             //TODO transitive deps as supplementary archives
             revapi.analyze(oldArchives, null, newArchives, null);
         } catch (IOException e) {
