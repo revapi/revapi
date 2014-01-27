@@ -43,7 +43,7 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
     @Override
     public boolean hasNext() {
         if (current != null) {
-            return dfsStack.peek().hasNext();
+            return true;
         } else {
             while (true) {
                 while (!dfsStack.isEmpty() && !dfsStack.peek().hasNext()) {
@@ -66,22 +66,34 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
                         break;
                     }
 
-                    if (!resultClass.isAssignableFrom(next.getClass())) {
-                        continue;
+                    boolean found = false;
+                    if (resultClass.isAssignableFrom(next.getClass())) {
+                        E cur = resultClass.cast(next);
+
+                        if (filter == null || filter.applies(cur)) {
+                            current = cur;
+                            found = true;
+                        }
                     }
 
-                    E cur = resultClass.cast(next);
-
-                    if (filter == null || filter.applies(cur)) {
-                        current = cur;
-
-                        //we're doing DFS, so once we report this element, we want to start reporting its children
-                        Iterator<? extends Element> childIterator = cur.getChildren().iterator();
+                    // we're doing DFS, so once we report this element, we want to start reporting its children
+                    // even if we don't report the current element, we might report one of its children so we base
+                    // our decision on whether to descend or not regardless of whether we're reporting the current
+                    // element or not
+                    boolean descend = filter == null || filter.shouldDescendInto(next);
+                    if (descend) {
+                        Iterator<? extends Element> childIterator = next.getChildren().iterator();
                         if (childIterator.hasNext()) {
                             dfsStack.push(childIterator);
                         }
+                    }
 
+                    if (found) {
                         return true;
+                    }
+
+                    if (descend) {
+                        break;
                     }
                 }
             }
@@ -101,6 +113,7 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
     }
 
     /**
+     * Always throws {@link java.lang.UnsupportedOperationException}
      * @throws UnsupportedOperationException
      */
     @Override
