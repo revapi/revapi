@@ -19,19 +19,17 @@ package org.revapi.query;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.revapi.Element;
-
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class FilteringIterator<E extends Element> implements Iterator<E> {
+public class FilteringIterator<E> implements Iterator<E> {
     private final Class<E> resultType;
-    private final Iterator<? extends Element> wrapped;
+    private final Iterator<? extends E> wrapped;
     private final Filter<? super E> filter;
     private E current;
 
-    public FilteringIterator(Iterator<? extends Element> iterator, Class<E> resultType, Filter<? super E> filter) {
+    public FilteringIterator(Iterator<? extends E> iterator, Class<E> resultType, Filter<? super E> filter) {
         this.wrapped = iterator;
         this.filter = filter;
         this.resultType = resultType;
@@ -43,7 +41,7 @@ public class FilteringIterator<E extends Element> implements Iterator<E> {
             return wrapped.hasNext();
         } else {
             while (wrapped.hasNext()) {
-                Element next = wrapped.next();
+                E next = wrapped.next();
                 if (next == null || !resultType.isAssignableFrom(next.getClass())) {
                     continue;
                 }

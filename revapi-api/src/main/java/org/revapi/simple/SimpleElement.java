@@ -273,6 +273,7 @@ public abstract class SimpleElement implements Element {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends Element> Iterator<T> iterateOverChildren(Class<T> resultType, boolean recurse,
         Filter<? super T> filter) {
 
@@ -281,7 +282,7 @@ public abstract class SimpleElement implements Element {
         }
 
         return recurse ? new DFSFilteringIterator<>(getChildren().iterator(), resultType, filter) :
-            new FilteringIterator<>(getChildren().iterator(), resultType, filter);
+            new FilteringIterator<>((Iterator<T>) getChildren().iterator(), resultType, filter);
     }
 
     protected <T extends Element> List<T> getDirectChildrenOfType(Class<T> type) {

@@ -17,12 +17,32 @@
 package org.revapi.query;
 
 /**
+ * A basic filter designed to work with element {@link org.revapi.Tree trees}.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
 public interface Filter<T> {
 
-    boolean applies(T object);
+    /**
+     * If an element in a tree is of compatible type, does the filter apply to it?
+     *
+     * @param element the element in the tree
+     *
+     * @return true if the filter applies, false otherwise
+     */
+    boolean applies(T element);
 
-    boolean shouldDescendInto(Object object);
+    /**
+     * Should the tree traversal descend into the provided element? It is not guaranteed that the element is
+     * of the type required by this parameter, but its children might be.
+     * <p/>
+     * Therefore the filter is given a chance to influence the decision even for elements of types that it is not
+     * declared to filter.
+     *
+     * @param element the element to be descended into
+     *
+     * @return true if tree traversal should descend into the element, false otherwise
+     */
+    boolean shouldDescendInto(Object element);
 }
