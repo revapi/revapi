@@ -59,5 +59,29 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_NO_LONGER_INHERITED.code()));
     }
 
+    @Test
+    public void testAnnotationAttributeAdded() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ATTRIBUTE_ADDED.code()));
+    }
+
+    @Test
+    public void testAnnotationAttributeRemoved() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v2/annotations/Attributes.java", "v1/annotations/Attributes.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ATTRIBUTE_REMOVED.code()));
+    }
+
+    @Test
+    public void testAnnotationAttributeChanged() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED.code()));
+    }
+
     //TODO also check for situation where the annotation used is not on the classpath - wonder how that behaves
 }

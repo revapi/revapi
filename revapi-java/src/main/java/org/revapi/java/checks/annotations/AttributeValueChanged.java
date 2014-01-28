@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
 
 import org.revapi.MatchReport;
 import org.revapi.MismatchSeverity;
@@ -33,7 +34,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class AttributeValueChanged extends AbstractJavaCheck {
+public final class AttributeValueChanged extends AbstractJavaCheck {
     @Override
     protected List<MatchReport.Problem> doVisitAnnotation(AnnotationMirror oldAnnotation,
         AnnotationMirror newAnnotation) {
@@ -44,43 +45,49 @@ public class AttributeValueChanged extends AbstractJavaCheck {
 
         List<MatchReport.Problem> result = new ArrayList<>();
 
-        Map<String, AnnotationValue> oldAttrs = Util.convert(oldAnnotation.getElementValues());
-        Map<String, AnnotationValue> newAttrs = Util.convert(newAnnotation.getElementValues());
+        Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> oldAttrs = Util
+            .keyAnnotationAttributesByName(oldAnnotation.getElementValues());
+        Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> newAttrs = Util
+            .keyAnnotationAttributesByName(newAnnotation.getElementValues());
 
-        for (Map.Entry<String, AnnotationValue> oldE : oldAttrs.entrySet()) {
+        for (Map.Entry<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> oldE : oldAttrs
+            .entrySet()) {
+
             String name = oldE.getKey();
-            AnnotationValue oldValue = oldE.getValue();
-            AnnotationValue newValue = newAttrs.get(name);
+            Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> oldValue = oldE.getValue();
+            Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> newValue = newAttrs.get(name);
 
-            //TODO should be probably passing the ExecutableElement instead of name as the attachment...
             if (newValue == null) {
                 result.add(
                     createProblem(Code.ANNOTATION_ATTRIBUTE_REMOVED, null, null, MismatchSeverity.WARNING,
-                        new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType())}, name,
-                        oldAnnotation));
-            } else if (!Util.isEqual(oldValue, newValue)) {
+                        new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType())},
+                        oldValue.getKey(), oldAnnotation));
+            } else if (!Util.isEqual(oldValue.getValue(), newValue.getValue())) {
                 result.add(createProblem(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED, null, null, MismatchSeverity.WARNING,
-                    new String[]{name, Util.toHumanReadableString(oldValue), Util.toHumanReadableString(newValue)},
-                    name, oldValue, newValue));
+                    new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType()),
+                        Util.toHumanReadableString(oldValue.getValue()),
+                        Util.toHumanReadableString(newValue.getValue())},
+                    oldValue.getKey(), oldAnnotation, oldValue.getValue(), newValue.getValue()));
             }
+
+            newAttrs.remove(name);
         }
 
-        for (Map.Entry<String, AnnotationValue> newE : newAttrs.entrySet()) {
+        for (Map.Entry<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> newE : newAttrs
+            .entrySet()) {
             String name = newE.getKey();
-            AnnotationValue oldValue = oldAttrs.get(name);
+            Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> newValue = newE.getValue();
+            Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> oldValue = oldAttrs.get(name);
 
             if (oldValue == null) {
-                //TODO should be probably passing the ExecutableElement instead of name as the attachment...
                 result.add(
-                    createProblem(Code.ANNOTATION_ATTRIBUTE_ADDED, MismatchSeverity.NOTICE, MismatchSeverity.NOTICE,
-                        new String[]{name, Util.toHumanReadableString(newAnnotation.getAnnotationType())}, name,
+                    createProblem(Code.ANNOTATION_ATTRIBUTE_ADDED, null, null, MismatchSeverity.WARNING,
+                        new String[]{name, Util.toHumanReadableString(newAnnotation.getAnnotationType())},
+                        newValue.getKey(),
                         newAnnotation));
             }
         }
 
-        //TODO implement
-        return super.doVisitAnnotation(oldAnnotation, newAnnotation);
+        return result.isEmpty() ? null : result;
     }
-
-    //TODO implement
 }

@@ -359,13 +359,59 @@ public class Util {
     }
 
     public static String toUniqueString(AnnotationValue v) {
-        //TODO implement
-        return null;
+        return toHumanReadableString(v);
     }
 
     public static String toHumanReadableString(AnnotationValue v) {
-        //TODO implement
-        return null;
+        return v.accept(new SimpleAnnotationValueVisitor7<String, Void>() {
+
+            @Override
+            protected String defaultAction(Object o, Void ignored) {
+                return o.toString();
+            }
+
+            @Override
+            public String visitType(TypeMirror t, Void ignored) {
+                return toHumanReadableString(t);
+            }
+
+            @Override
+            public String visitEnumConstant(VariableElement c, Void ignored) {
+                return toHumanReadableString(c.asType()) + "." + c.getSimpleName().toString();
+            }
+
+            @Override
+            public String visitAnnotation(AnnotationMirror a, Void ignored) {
+                StringBuilder bld = new StringBuilder("@").append(toHumanReadableString(a.getAnnotationType()));
+
+                if (!a.getElementValues().isEmpty()) {
+                    bld.append("(");
+                    for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> e : a.getElementValues()
+                        .entrySet()) {
+
+                        bld.append(e.getKey().getSimpleName().toString()).append(" = ");
+                        bld.append(e.getValue().accept(this, null));
+                        bld.append(", ");
+                    }
+                    bld.replace(bld.length() - 2, bld.length(), "");
+                    bld.append(")");
+                }
+                return bld.toString();
+            }
+
+            @Override
+            public String visitArray(List<? extends AnnotationValue> vals, Void ignored) {
+                StringBuilder bld = new StringBuilder("[");
+
+                for (AnnotationValue v : vals) {
+                    bld.append(v.accept(this, null));
+                }
+
+                bld.append("]");
+
+                return bld.toString();
+            }
+        }, null);
     }
 
     public static List<TypeMirror> getAllSuperClasses(Types types, TypeMirror type) {
@@ -427,11 +473,11 @@ public class Util {
         return false;
     }
 
-    public static Map<String, AnnotationValue> convert(
+    public static Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> keyAnnotationAttributesByName(
         Map<? extends ExecutableElement, ? extends AnnotationValue> attributes) {
-        Map<String, AnnotationValue> result = new LinkedHashMap<>();
+        Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> result = new LinkedHashMap<>();
         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> e : attributes.entrySet()) {
-            result.put(e.getKey().getSimpleName().toString(), e.getValue());
+            result.put(e.getKey().getSimpleName().toString(), e);
         }
 
         return result;
@@ -463,7 +509,7 @@ public class Util {
                     return false;
                 }
 
-                return c.getSimpleName().equals(((VariableElement) o).getSimpleName());
+                return c.getSimpleName().toString().equals(((VariableElement) o).getSimpleName().toString());
             }
 
             @Override
@@ -472,16 +518,43 @@ public class Util {
                     return false;
                 }
 
+                AnnotationMirror oa = (AnnotationMirror) o;
+
                 String ot = toUniqueString(a.getAnnotationType());
-                String nt = toUniqueString(((AnnotationMirror) o).getAnnotationType());
+                String nt = toUniqueString(oa.getAnnotationType());
 
                 if (!ot.equals(nt)) {
                     return false;
                 }
 
-                //TODO match attributes by name and compare values
+                if (a.getElementValues().size() != oa.getElementValues().size()) {
+                    return false;
+                }
 
-                return super.visitAnnotation(a, o);
+                Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> aVals = keyAnnotationAttributesByName(
+                    a.getElementValues());
+                Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> oVals = keyAnnotationAttributesByName(
+                    oa.getElementValues());
+
+                for (Map.Entry<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> aVal : aVals
+                    .entrySet()) {
+                    String name = aVal.getKey();
+                    Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> aAttr = aVal.getValue();
+                    Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> oAttr = oVals.get(name);
+
+                    if (oAttr == null) {
+                        return false;
+                    }
+
+                    String as = toUniqueString(aAttr.getValue());
+                    String os = toUniqueString(oAttr.getValue());
+
+                    if (!as.equals(os)) {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             @Override
@@ -498,7 +571,7 @@ public class Util {
                 }
 
                 for (int i = 0; i < vals.size(); ++i) {
-                    if (!vals.get(i).accept(this, ovals.get(i))) {
+                    if (!vals.get(i).accept(this, ovals.get(i).getValue())) {
                         return false;
                     }
                 }
