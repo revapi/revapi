@@ -16,8 +16,6 @@
 
 package org.revapi.java.model;
 
-import java.util.SortedSet;
-
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -62,12 +60,6 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
         }
 
         return toString().compareTo(o.toString());
-    }
-
-    @Override
-    protected SortedSet<Element> newChildrenInstance() {
-        //TODO init the values
-        return super.newChildrenInstance();
     }
 
     @Override
