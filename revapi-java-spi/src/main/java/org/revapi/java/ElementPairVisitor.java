@@ -34,7 +34,7 @@ import javax.lang.model.util.SimpleElementVisitor7;
  *
  *     e1.accept(new ElementPairVisitor&lt;Void&gt;() {
  *
- *         public Void visitType(TypeElement e1, TypeElement e2) {
+ *         protected Void visitType(TypeElement e1, TypeElement e2) {
  *             ...
  *         }
  *     }, e2);
