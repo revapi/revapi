@@ -45,9 +45,10 @@ final class JavaElementFactory {
         } else if (modelElement instanceof ExecutableElement) {
             return new MethodElement(env, (ExecutableElement) modelElement);
         } else {
-            //TODO uncomment once all implemented
-            //throw new IllegalArgumentException("Unsupported model element: " + modelElement.getClass());
-            return null;
+            throw new IllegalArgumentException("Unsupported model element: " + modelElement.getClass());
         }
+
+        //TODO we're missing wrappers for TypeParameterElement and PackageElement.
+        //I could see use for PackageElement, because packages can have annotations on them
     }
 }
