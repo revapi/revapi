@@ -24,8 +24,8 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 
+import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
-import org.revapi.MismatchSeverity;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -59,11 +59,12 @@ public final class AttributeValueChanged extends AbstractJavaCheck {
 
             if (newValue == null) {
                 result.add(
-                    createProblem(Code.ANNOTATION_ATTRIBUTE_REMOVED, null, null, MismatchSeverity.WARNING,
+                    createProblem(Code.ANNOTATION_ATTRIBUTE_REMOVED, null, null, ChangeSeverity.POTENTIALLY_BREAKING,
                         new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType())},
                         oldValue.getKey(), oldAnnotation));
             } else if (!Util.isEqual(oldValue.getValue(), newValue.getValue())) {
-                result.add(createProblem(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED, null, null, MismatchSeverity.WARNING,
+                result.add(createProblem(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED, null, null,
+                    ChangeSeverity.POTENTIALLY_BREAKING,
                     new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType()),
                         Util.toHumanReadableString(oldValue.getValue()),
                         Util.toHumanReadableString(newValue.getValue())},
@@ -81,7 +82,7 @@ public final class AttributeValueChanged extends AbstractJavaCheck {
 
             if (oldValue == null) {
                 result.add(
-                    createProblem(Code.ANNOTATION_ATTRIBUTE_ADDED, null, null, MismatchSeverity.WARNING,
+                    createProblem(Code.ANNOTATION_ATTRIBUTE_ADDED, null, null, ChangeSeverity.POTENTIALLY_BREAKING,
                         new String[]{name, Util.toHumanReadableString(newAnnotation.getAnnotationType())},
                         newValue.getKey(),
                         newAnnotation));

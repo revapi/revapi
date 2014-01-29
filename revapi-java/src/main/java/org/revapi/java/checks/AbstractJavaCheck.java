@@ -16,9 +16,9 @@
 
 package org.revapi.java.checks;
 
+import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
 import org.revapi.MatchReport;
-import org.revapi.MismatchSeverity;
 import org.revapi.java.CheckBase;
 
 /**
@@ -27,20 +27,20 @@ import org.revapi.java.CheckBase;
  */
 public abstract class AbstractJavaCheck extends CheckBase {
 
-    protected MatchReport.Problem createProblem(Code code, MismatchSeverity binarySeverity,
-        MismatchSeverity sourceSeverity, Object... params) {
+    protected MatchReport.Problem createProblem(Code code, ChangeSeverity binarySeverity,
+        ChangeSeverity sourceSeverity, Object... params) {
 
         return createProblem(code, binarySeverity, sourceSeverity, null, params, params);
     }
 
-    protected MatchReport.Problem createProblem(Code code, MismatchSeverity binarySeverity,
-        MismatchSeverity sourceSeverity, Object[] params, Object... attachments) {
+    protected MatchReport.Problem createProblem(Code code, ChangeSeverity binarySeverity,
+        ChangeSeverity sourceSeverity, Object[] params, Object... attachments) {
 
         return createProblem(code, binarySeverity, sourceSeverity, null, params, attachments);
     }
 
-    protected MatchReport.Problem createProblem(Code code, MismatchSeverity binarySeverity,
-        MismatchSeverity sourceSeverity, MismatchSeverity metadataSeverity, Object[] params, Object... attachments) {
+    protected MatchReport.Problem createProblem(Code code, ChangeSeverity binarySeverity,
+        ChangeSeverity sourceSeverity, ChangeSeverity metadataSeverity, Object[] params, Object... attachments) {
 
         MatchReport.Problem.Builder bld = code.initializeNewProblem(configuration.getLocale(), params, attachments);
         if (binarySeverity != null) {

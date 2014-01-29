@@ -62,15 +62,15 @@ public class TextReporter implements Reporter {
     }
 
     private void reportClassification(PrintWriter output, MatchReport.Problem problem) {
-        Iterator<Map.Entry<CompatibilityType, MismatchSeverity>> it = problem.classification.entrySet().iterator();
+        Iterator<Map.Entry<CompatibilityType, ChangeSeverity>> it = problem.classification.entrySet().iterator();
 
         if (it.hasNext()) {
-            Map.Entry<CompatibilityType, MismatchSeverity> e = it.next();
+            Map.Entry<CompatibilityType, ChangeSeverity> e = it.next();
             output.append(" ").append(e.getKey().toString()).append(": ").append(e.getValue().toString());
         }
 
         while (it.hasNext()) {
-            Map.Entry<CompatibilityType, MismatchSeverity> e = it.next();
+            Map.Entry<CompatibilityType, ChangeSeverity> e = it.next();
             output.append(", ").append(e.getKey().toString()).append(": ").append(e.getValue().toString());
         }
     }

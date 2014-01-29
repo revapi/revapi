@@ -181,14 +181,12 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
             private String mainName;
             private int mainAccess;
             private boolean isPublicAPI;
-            private StringBuilder canonicalName = new StringBuilder();
-            private boolean useCanonical;
+            private boolean isInnerClass;
 
             @Override
             public void visit(int version, int access, String name, String signature, String superName,
                 String[] interfaces) {
 
-                canonicalName.setLength(0);
                 mainName = name;
                 mainAccess = access;
                 isPublicAPI = (mainAccess & Opcodes.ACC_PUBLIC) != 0 || (mainAccess & Opcodes.ACC_PROTECTED) != 0;
@@ -205,14 +203,7 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
 
             @Override
             public void visitInnerClass(String name, String outerName, String innerName, int access) {
-                if (canonicalName.length() == 0 || canonicalName.toString().replace('.', '$').equals(outerName)) {
-                    if (canonicalName.length() == 0) {
-                        canonicalName.append(outerName);
-                    }
-                    canonicalName.append('.').append(innerName);
-                }
-
-                useCanonical = mainName.equals(name);
+                isInnerClass = mainName.equals(name);
             }
 
             @Override
@@ -234,11 +225,10 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
                 if (isPublicAPI) {
                     Type t = Type.getObjectType(mainName);
                     if (!onlyAddAdditional || additionalClasses.contains(t.getDescriptor())) {
-                        String cn = mainName;
-                        if (useCanonical && canonicalName.length() != 0) {
-                            cn = canonicalName.toString();
+                        //ignore inner classes here, they are added from within the model once it is initialized
+                        if (!isInnerClass) {
+                            addConditionally(t, mainName);
                         }
-                        addConditionally(t, cn);
                     }
                     additionalClasses.remove(t.getDescriptor());
                 }

@@ -18,10 +18,10 @@ package org.revapi.maven;
 
 import org.apache.maven.plugin.logging.Log;
 
+import org.revapi.ChangeSeverity;
 import org.revapi.Configuration;
 import org.revapi.Element;
 import org.revapi.MatchReport;
-import org.revapi.MismatchSeverity;
 import org.revapi.Reporter;
 
 /**
@@ -52,24 +52,21 @@ public class MavenReporter implements Reporter {
 
             message.append(": ").append(p.name).append(" (").append(p.code).append(")");
 
-            MismatchSeverity maxSeverity = MismatchSeverity.NONE;
-            for (MismatchSeverity s : p.classification.values()) {
+            ChangeSeverity maxSeverity = ChangeSeverity.NON_BREAKING;
+            for (ChangeSeverity s : p.classification.values()) {
                 if (maxSeverity.compareTo(s) > 0) {
                     maxSeverity = s;
                 }
             }
 
             switch (maxSeverity) {
-            case NOTICE:
+            case NON_BREAKING:
                 log.info(message);
                 break;
-            case INFO:
-                log.info(message);
-                break;
-            case WARNING:
+            case POTENTIALLY_BREAKING:
                 log.warn(message);
                 break;
-            case ERROR:
+            case BREAKING:
                 log.error(message);
                 break;
             }

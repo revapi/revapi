@@ -35,7 +35,7 @@ public final class MatchReport {
             private String code;
             private String name;
             private String description;
-            private Map<CompatibilityType, MismatchSeverity> classification = new HashMap<>();
+            private Map<CompatibilityType, ChangeSeverity> classification = new HashMap<>();
             private List<Object> attachments = new ArrayList<>();
 
             private Builder(MatchReport.Builder reportBuilder) {
@@ -57,7 +57,7 @@ public final class MatchReport {
                 return this;
             }
 
-            public Builder addClassification(CompatibilityType compat, MismatchSeverity severity) {
+            public Builder addClassification(CompatibilityType compat, ChangeSeverity severity) {
                 classification.put(compat, severity);
                 return this;
             }
@@ -107,21 +107,21 @@ public final class MatchReport {
          * Detailed description of the problem
          */
         public final String description;
-        public final Map<CompatibilityType, MismatchSeverity> classification;
+        public final Map<CompatibilityType, ChangeSeverity> classification;
 
         public final List<Object> attachments;
 
         public Problem(String code, String name, String description, CompatibilityType compatibility,
-            MismatchSeverity severity, List<Serializable> attachments) {
+            ChangeSeverity severity, List<Serializable> attachments) {
             this(code, name, description, Collections.singletonMap(compatibility, severity), attachments);
         }
 
         public Problem(String code, String name, String description,
-            Map<CompatibilityType, MismatchSeverity> classification, List<?> attachments) {
+            Map<CompatibilityType, ChangeSeverity> classification, List<?> attachments) {
             this.code = code;
             this.name = name;
             this.description = description;
-            HashMap<CompatibilityType, MismatchSeverity> tmp = new HashMap<>(classification);
+            HashMap<CompatibilityType, ChangeSeverity> tmp = new HashMap<>(classification);
             this.classification = Collections.unmodifiableMap(tmp);
             List<?> tmp2 = new ArrayList<>(attachments);
             this.attachments = Collections.unmodifiableList(tmp2);

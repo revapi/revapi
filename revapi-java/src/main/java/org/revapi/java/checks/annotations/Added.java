@@ -21,8 +21,8 @@ import java.util.List;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
-import org.revapi.MismatchSeverity;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -38,7 +38,7 @@ public final class Added extends AbstractJavaCheck {
 
         if (oldAnnotation == null && newAnnotation != null) {
             return Collections.singletonList(
-                createProblem(Code.ANNOTATION_ADDED, null, null, MismatchSeverity.WARNING, new String[]{
+                createProblem(Code.ANNOTATION_ADDED, null, null, ChangeSeverity.POTENTIALLY_BREAKING, new String[]{
                     Util.toHumanReadableString(newAnnotation.getAnnotationType())}, newAnnotation));
         }
 

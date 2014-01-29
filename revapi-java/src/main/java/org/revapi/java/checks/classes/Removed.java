@@ -21,8 +21,8 @@ import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 
+import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
-import org.revapi.MismatchSeverity;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -43,8 +43,8 @@ public final class Removed extends AbstractJavaCheck {
     protected List<MatchReport.Problem> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types != null) {
-            MatchReport.Problem problem = createProblem(Code.CLASS_REMOVED, MismatchSeverity.ERROR,
-                MismatchSeverity.ERROR);
+            MatchReport.Problem problem = createProblem(Code.CLASS_REMOVED, ChangeSeverity.BREAKING,
+                ChangeSeverity.BREAKING);
 
             return Collections.singletonList(problem);
         }

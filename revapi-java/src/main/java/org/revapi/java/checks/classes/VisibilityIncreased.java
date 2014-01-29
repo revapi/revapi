@@ -16,7 +16,7 @@
 
 package org.revapi.java.checks.classes;
 
-import org.revapi.MismatchSeverity;
+import org.revapi.ChangeSeverity;
 import org.revapi.java.checks.Code;
 
 /**
@@ -25,7 +25,7 @@ import org.revapi.java.checks.Code;
  */
 public final class VisibilityIncreased extends VisibilityChanged {
     public VisibilityIncreased() {
-        super(Code.CLASS_VISIBILITY_INCREASED, null, MismatchSeverity.NOTICE);
+        super(Code.CLASS_VISIBILITY_INCREASED, null, ChangeSeverity.NON_BREAKING);
     }
 
     @Override

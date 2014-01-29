@@ -16,9 +16,9 @@
 
 package org.revapi.java.transforms.annotations;
 
+import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
 import org.revapi.MatchReport;
-import org.revapi.MismatchSeverity;
 import org.revapi.java.checks.Code;
 
 /**
@@ -30,7 +30,7 @@ public final class NoLongerInherited extends AbstractInheritedCheck {
     protected MatchReport.Problem createProblem() {
         return Code.ANNOTATION_NO_LONGER_INHERITED
             .initializeNewProblem(configuration.getLocale())
-            .addClassification(CompatibilityType.METADATA, MismatchSeverity.WARNING).build();
+            .addClassification(CompatibilityType.METADATA, ChangeSeverity.POTENTIALLY_BREAKING).build();
     }
 
     protected Code getCodeToTransform() {

@@ -14,4 +14,6 @@
  * limitations under the License
  */
 
-public class ClassAdded {}
+public class ClassAdded {
+    private static class ShouldNotBeReported {}
+}

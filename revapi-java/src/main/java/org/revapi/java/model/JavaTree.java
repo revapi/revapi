@@ -90,6 +90,17 @@ public final class JavaTree extends SimpleTree {
         }
     }
 
+    @Override
+    public String toString() {
+        boolean unsafe = UNSAFE_MODE.get();
+        try {
+            UNSAFE_MODE.set(true);
+            return super.toString();
+        } finally {
+            UNSAFE_MODE.set(unsafe);
+        }
+    }
+
     private void waitForCompilation() {
         try {
             if (compilation != null && !UNSAFE_MODE.get()) {

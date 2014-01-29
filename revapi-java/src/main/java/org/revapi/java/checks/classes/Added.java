@@ -19,10 +19,11 @@ package org.revapi.java.checks.classes;
 import java.util.Collections;
 import java.util.List;
 
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
+import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
-import org.revapi.MismatchSeverity;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -35,7 +36,7 @@ public final class Added extends AbstractJavaCheck {
     protected List<MatchReport.Problem> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types != null) {
-            return Collections.singletonList(createProblem(Code.CLASS_ADDED, null, MismatchSeverity.NOTICE));
+            return Collections.singletonList(createProblem(Code.CLASS_ADDED, null, ChangeSeverity.NON_BREAKING));
         }
 
         return null;
@@ -43,7 +44,8 @@ public final class Added extends AbstractJavaCheck {
 
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType == null && newType != null) {
+        if (oldType == null && newType != null &&
+            (newType.getModifiers().contains(Modifier.PUBLIC) || newType.getModifiers().contains(Modifier.PROTECTED))) {
             pushActive(null, newType);
         }
     }

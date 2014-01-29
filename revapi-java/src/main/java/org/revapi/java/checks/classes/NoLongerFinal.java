@@ -18,7 +18,7 @@ package org.revapi.java.checks.classes;
 
 import javax.lang.model.element.Modifier;
 
-import org.revapi.MismatchSeverity;
+import org.revapi.ChangeSeverity;
 import org.revapi.java.checks.Code;
 
 /**
@@ -28,6 +28,6 @@ import org.revapi.java.checks.Code;
 public final class NoLongerFinal extends ModifierRemoved {
 
     public NoLongerFinal() {
-        super(Code.CLASS_NO_LONGER_FINAL, Modifier.FINAL, null, MismatchSeverity.NOTICE);
+        super(Code.CLASS_NO_LONGER_FINAL, Modifier.FINAL, null, ChangeSeverity.NON_BREAKING);
     }
 }

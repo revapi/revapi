@@ -51,6 +51,8 @@ public enum Code {
     ANNOTATION_NO_LONGER_INHERITED("java.annotation.noLongerInherited"),
     ANNOTATION_NOW_INHERITED("java.annotation.nowInherited"),
 
+    FIELD_ADDED("java.field.added"),
+
     METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged");
 
     public static Code fromCode(String code) {

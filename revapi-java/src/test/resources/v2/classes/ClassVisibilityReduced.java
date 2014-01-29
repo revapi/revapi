@@ -21,4 +21,7 @@
 public class ClassVisibilityReduced {
     static class TestClass {
     }
+
+    //ignored because not part of public API
+    private static class Ignored {}
 }

@@ -18,7 +18,7 @@ package org.revapi.java.checks.classes;
 
 import javax.lang.model.element.Modifier;
 
-import org.revapi.MismatchSeverity;
+import org.revapi.ChangeSeverity;
 import org.revapi.java.checks.Code;
 
 /**
@@ -27,6 +27,6 @@ import org.revapi.java.checks.Code;
  */
 public final class NowAbstract extends ModifierAdded {
     public NowAbstract() {
-        super(Code.CLASS_NOW_ABSTRACT, Modifier.ABSTRACT, MismatchSeverity.ERROR, MismatchSeverity.ERROR);
+        super(Code.CLASS_NOW_ABSTRACT, Modifier.ABSTRACT, ChangeSeverity.BREAKING, ChangeSeverity.BREAKING);
     }
 }

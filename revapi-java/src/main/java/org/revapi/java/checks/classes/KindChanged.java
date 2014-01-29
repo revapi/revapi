@@ -21,8 +21,8 @@ import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 
+import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
-import org.revapi.MismatchSeverity;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -46,8 +46,8 @@ public final class KindChanged extends AbstractJavaCheck {
             TypeElement n = types.newElement;
 
             if (o.getKind() != n.getKind()) {
-                MatchReport.Problem p = createProblem(Code.CLASS_KIND_CHANGED, MismatchSeverity.ERROR,
-                    MismatchSeverity.ERROR, new String[]{kind(o), kind(n)}, o, n);
+                MatchReport.Problem p = createProblem(Code.CLASS_KIND_CHANGED, ChangeSeverity.BREAKING,
+                    ChangeSeverity.BREAKING, new String[]{kind(o), kind(n)}, o, n);
 
                 return Collections.singletonList(p);
             }

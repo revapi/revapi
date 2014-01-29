@@ -56,6 +56,12 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public SortedSet<JavaModelElement> getChildren() {
+        return (SortedSet<JavaModelElement>) super.getChildren();
+    }
+
+    @Override
     public String toString() {
         return getModelElement().toString();
     }
