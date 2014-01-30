@@ -52,6 +52,8 @@ public enum Code {
     ANNOTATION_NOW_INHERITED("java.annotation.nowInherited"),
 
     FIELD_ADDED("java.field.added"),
+    FIELD_REMOVED("java.field.removed"),
+    FIELD_CONSTANT_VALUE_CHANGED("java.field.constantValueChanged"),
 
     METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged");
 

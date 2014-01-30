@@ -16,10 +16,47 @@
 
 package org.revapi.java.checks.fields;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.VariableElement;
+
+import org.revapi.ChangeSeverity;
+import org.revapi.MatchReport;
+import org.revapi.java.CheckBase;
+import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class Removed {
-    //TODO implement
+public final class Removed extends AbstractJavaCheck {
+
+    @Override
+    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+        if (oldField != null && newField == null) {
+
+            boolean add = oldField.getModifiers().contains(Modifier.PUBLIC) ||
+                oldField.getModifiers().contains(Modifier.PROTECTED);
+
+            if (add) {
+                pushActive(oldField, null);
+            }
+        }
+    }
+
+    @Override
+    protected List<MatchReport.Problem> doEnd() {
+        CheckBase.ActiveElements<VariableElement> fields = popIfActive();
+
+        if (fields == null) {
+            return null;
+        }
+
+        return Collections.singletonList(
+            createProblem(Code.FIELD_REMOVED, ChangeSeverity.BREAKING, ChangeSeverity.BREAKING, new String[0],
+                fields.oldElement));
+    }
 }

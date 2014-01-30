@@ -62,6 +62,7 @@ public final class Added extends AbstractJavaCheck {
             fieldInFinalClass ? ChangeSeverity.NON_BREAKING : ChangeSeverity.POTENTIALLY_BREAKING;
 
         return Collections
-            .singletonList(createProblem(Code.FIELD_ADDED, binarySeverity, sourceSeverity));
+            .singletonList(
+                createProblem(Code.FIELD_ADDED, binarySeverity, sourceSeverity, new String[0], fields.newElement));
     }
 }
