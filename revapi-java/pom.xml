@@ -29,6 +29,7 @@
 
     <properties>
         <slf4j.version>1.7.5</slf4j.version>
+        <logback.version>0.9.29</logback.version>
     </properties>
 
     <dependencyManagement>
@@ -46,11 +47,10 @@
             </dependency>
 
             <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-jdk14</artifactId>
-                <version>${slf4j.version}</version>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.jboss.shrinkwrap</groupId>
                 <artifactId>shrinkwrap-bom</artifactId>
@@ -84,8 +84,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -107,19 +107,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <systemProperties>
-                        <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties
-                        </java.util.logging.config.file>
-                    </systemProperties>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>
