@@ -28,7 +28,10 @@ public class A implements I {
 
     public class AAA {
         public class AAAA {
-
+            private void m() {
+                Object o = new Object() {
+                };
+            }
         }
     }
 }

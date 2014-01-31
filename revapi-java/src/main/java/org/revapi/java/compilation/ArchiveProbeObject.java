@@ -41,6 +41,8 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.revapi.Archive;
 import org.revapi.java.model.TypeElement;
@@ -51,6 +53,8 @@ import org.revapi.query.Filter;
  * @since 0.1
  */
 public final class ArchiveProbeObject extends SimpleJavaFileObject {
+    private static final Logger LOG = LoggerFactory.getLogger(ArchiveProbeObject.class);
+
     public static final String CLASS_NAME = "Probe";
 
     private final Iterable<? extends Archive> archives;
@@ -104,6 +108,8 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
             return;
         }
 
+        LOG.trace("Generating probe source code and prefilling the class tree");
+
         //notice that we don't actually need to generate any complicated code. Having the classes on the classpath
         //is enough for them to be present in the model captured during the annotation processing.
         //what we have to do though is to go through all the archives and pick the classes that we will then want to
@@ -114,16 +120,22 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
         Set<String> additionalClasses = new HashSet<>();
 
         for (Archive a : archives) {
+            LOG.trace("Processing archive {}", a.getName());
             processArchive(a, additionalClasses, false);
         }
 
+        LOG.trace("Identified additional API classes to be found in classpath: {}", additionalClasses);
+
         if (supplementaryArchives != null) {
             for (Archive a : supplementaryArchives) {
+                LOG.trace("Processing archive {}", a.getName());
                 processArchive(a, additionalClasses, true);
             }
         }
 
         if (!additionalClasses.isEmpty()) {
+            LOG.trace("Identified additional classes contributing to API not on classpath (maybe in rt.jar): {}",
+                additionalClasses);
             Iterator<String> it = additionalClasses.iterator();
             while (it.hasNext()) {
                 String typeDescriptor = it.next();
@@ -181,7 +193,9 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
             private String mainName;
             private int mainAccess;
             private boolean isPublicAPI;
-            private boolean isInnerClass;
+            private boolean processingInnerClass;
+            private StringBuilder innerClassCanonicalName = null;
+            private boolean maybeInner;
 
             @Override
             public void visit(int version, int access, String name, String signature, String superName,
@@ -190,6 +204,7 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
                 mainName = name;
                 mainAccess = access;
                 isPublicAPI = (mainAccess & Opcodes.ACC_PUBLIC) != 0 || (mainAccess & Opcodes.ACC_PROTECTED) != 0;
+                maybeInner = name.indexOf('$') >= 0;
             }
 
             @Override
@@ -203,7 +218,19 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
 
             @Override
             public void visitInnerClass(String name, String outerName, String innerName, int access) {
-                isInnerClass = mainName.equals(name);
+                if (maybeInner) {
+                    if (innerClassCanonicalName == null) {
+                        if (outerName != null) {
+                            String base = Type.getObjectType(outerName).getClassName();
+                            innerClassCanonicalName = new StringBuilder(base);
+                            innerClassCanonicalName.append(".").append(innerName);
+                        }
+                    } else {
+                        innerClassCanonicalName.append(".").append(innerName);
+                    }
+
+                    processingInnerClass = processingInnerClass || mainName.equals(name);
+                }
             }
 
             @Override
@@ -222,12 +249,23 @@ public final class ArchiveProbeObject extends SimpleJavaFileObject {
 
             @Override
             public void visitEnd() {
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Visited {}, isAPI={}, isInner={}, onlyAdditional={}, innerCanonical={}", mainName,
+                        isPublicAPI,
+                        processingInnerClass, onlyAddAdditional, innerClassCanonicalName);
+                }
                 if (isPublicAPI) {
                     Type t = Type.getObjectType(mainName);
                     if (!onlyAddAdditional || additionalClasses.contains(t.getDescriptor())) {
+                        if (onlyAddAdditional) {
+                            LOG.trace("Found in additional API classes");
+                        }
                         //ignore inner classes here, they are added from within the model once it is initialized
-                        if (!isInnerClass) {
-                            addConditionally(t, mainName);
+                        //but DO add the class if it was found in additional classes and we're processing supplementary
+                        //archives
+                        if (onlyAddAdditional || !processingInnerClass) {
+                            addConditionally(t,
+                                innerClassCanonicalName == null ? mainName : innerClassCanonicalName.toString());
                         }
                     }
                     additionalClasses.remove(t.getDescriptor());

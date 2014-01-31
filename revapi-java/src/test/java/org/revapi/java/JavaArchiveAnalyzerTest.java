@@ -65,8 +65,6 @@ public class JavaArchiveAnalyzerTest {
 
         JavaTree tree = analyzer.analyze();
 
-        Assert.assertEquals(6, tree.getRoots().size());
-
-        System.out.println(tree);
+        Assert.assertEquals(5, tree.getRoots().size());
     }
 }

@@ -18,7 +18,7 @@ package org.revapi.java.classes.misc;
 
 /**
  * @author Lukas Krejci
- * @since $MODULE_VERSION
+ * @since 0.1
  */
 public class C {
 }
