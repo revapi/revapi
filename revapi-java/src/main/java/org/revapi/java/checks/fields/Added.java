@@ -22,7 +22,6 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -57,12 +56,9 @@ public final class Added extends AbstractJavaCheck {
         //do not bother with this on final classes - a new field on a final class cannot
         //cause any problem
         boolean fieldInFinalClass = fields.newElement.getEnclosingElement().getModifiers().contains(Modifier.FINAL);
-        ChangeSeverity binarySeverity = fieldInFinalClass ? null : ChangeSeverity.POTENTIALLY_BREAKING;
-        ChangeSeverity sourceSeverity =
-            fieldInFinalClass ? ChangeSeverity.NON_BREAKING : ChangeSeverity.POTENTIALLY_BREAKING;
 
         return Collections
-            .singletonList(
-                createProblem(Code.FIELD_ADDED, binarySeverity, sourceSeverity, new String[0], fields.newElement));
+            .singletonList(fieldInFinalClass ? createProblem(Code.FIELD_ADDED_IN_FINAL_CLASS)
+                : createProblem(Code.FIELD_ADDED_IN_NON_FINAL_CLASS));
     }
 }

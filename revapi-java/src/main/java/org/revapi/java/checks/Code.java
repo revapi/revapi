@@ -16,12 +16,23 @@
 
 package org.revapi.java.checks;
 
+import static org.revapi.ChangeSeverity.BREAKING;
+import static org.revapi.ChangeSeverity.NON_BREAKING;
+import static org.revapi.ChangeSeverity.POTENTIALLY_BREAKING;
+import static org.revapi.CompatibilityType.BINARY;
+import static org.revapi.CompatibilityType.SEMANTIC;
+import static org.revapi.CompatibilityType.SOURCE;
+
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
+import java.util.EnumMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.WeakHashMap;
 
+import org.revapi.ChangeSeverity;
+import org.revapi.CompatibilityType;
 import org.revapi.MatchReport;
 
 /**
@@ -29,33 +40,57 @@ import org.revapi.MatchReport;
  * @since 0.1
  */
 public enum Code {
-    CLASS_VISIBILITY_INCREASED("java.class.visibilityIncreased"),
-    CLASS_VISIBILITY_REDUCED("java.class.visibilityReduced"),
-    CLASS_KIND_CHANGED("java.class.kindChanged"),
-    CLASS_NO_LONGER_FINAL("java.class.noLongerFinal"),
-    CLASS_NOW_FINAL("java.class.nowFinal"),
-    CLASS_NO_LONGER_ABSTRACT("java.class.noLongerAbstract"),
-    CLASS_NOW_ABSTRACT("java.class.nowAbstract"),
-    CLASS_ADDED("java.class.added"),
-    CLASS_REMOVED("java.class.removed"),
-    CLASS_NO_LONGER_IMPLEMENTS_INTERFACE("java.class.noLongerImplementsInterface"),
-    CLASS_NOW_IMPLEMENTS_INTERFACE("java.class.nowImplementsInterface"),
-    CLASS_INHERITS_FROM_NEW_CLASS("java.class.inheritsFromNewClass"),
-    CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass"),
+    CLASS_VISIBILITY_INCREASED("java.class.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
+    CLASS_VISIBILITY_REDUCED("java.class.visibilityReduced", BREAKING, BREAKING, null),
+    CLASS_KIND_CHANGED("java.class.kindChanged", BREAKING, BREAKING, null),
+    CLASS_NO_LONGER_FINAL("java.class.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
+    CLASS_NOW_FINAL("java.class.nowFinal", BREAKING, BREAKING, null),
+    CLASS_NO_LONGER_ABSTRACT("java.class.noLongerAbstract", NON_BREAKING, NON_BREAKING, null),
+    CLASS_NOW_ABSTRACT("java.class.nowAbstract", BREAKING, BREAKING, null),
+    CLASS_ADDED("java.class.added", NON_BREAKING, NON_BREAKING, null),
+    CLASS_REMOVED("java.class.removed", BREAKING, BREAKING, null),
+    CLASS_NO_LONGER_IMPLEMENTS_INTERFACE("java.class.noLongerImplementsInterface", BREAKING, BREAKING, null),
+    CLASS_NOW_IMPLEMENTS_INTERFACE("java.class.nowImplementsInterface", NON_BREAKING, NON_BREAKING, null),
+    @Deprecated
+    CLASS_INHERITS_FROM_NEW_CLASS("java.class.inheritsFromNewClass", NON_BREAKING, NON_BREAKING, null),
+    CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS("java.class.finalClassInheritsFromNewClass", NON_BREAKING, NON_BREAKING,
+        null), //TODO implement
+    CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS("java.class.nonFinalClassInheritsFromNewClass", POTENTIALLY_BREAKING,
+        POTENTIALLY_BREAKING, POTENTIALLY_BREAKING), //TODO implement
+    CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null), //TODO implement
+    CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass", BREAKING, BREAKING, null),
 
-    ANNOTATION_ADDED("java.annotation.added"),
-    ANNOTATION_REMOVED("java.annotation.removed"),
-    ANNOTATION_ATTRIBUTE_VALUE_CHANGED("java.annotation.attributeValueChanged"),
-    ANNOTATION_ATTRIBUTE_ADDED("java.annotation.attributeAdded"),
-    ANNOTATION_ATTRIBUTE_REMOVED("java.annotation.attributeRemoved"),
-    ANNOTATION_NO_LONGER_INHERITED("java.annotation.noLongerInherited"),
-    ANNOTATION_NOW_INHERITED("java.annotation.nowInherited"),
+    ANNOTATION_ADDED("java.annotation.added", null, null, POTENTIALLY_BREAKING),
+    ANNOTATION_REMOVED("java.annotation.removed", null, null, POTENTIALLY_BREAKING),
+    ANNOTATION_ATTRIBUTE_VALUE_CHANGED("java.annotation.attributeValueChanged", null, null, POTENTIALLY_BREAKING),
+    ANNOTATION_ATTRIBUTE_ADDED("java.annotation.attributeAdded", null, null, POTENTIALLY_BREAKING),
+    ANNOTATION_ATTRIBUTE_REMOVED("java.annotation.attributeRemoved", null, null, POTENTIALLY_BREAKING),
+    ANNOTATION_NO_LONGER_INHERITED("java.annotation.noLongerInherited", null, null, POTENTIALLY_BREAKING),
+    ANNOTATION_NOW_INHERITED("java.annotation.nowInherited", null, null, POTENTIALLY_BREAKING),
 
-    FIELD_ADDED("java.field.added"),
-    FIELD_REMOVED("java.field.removed"),
-    FIELD_CONSTANT_VALUE_CHANGED("java.field.constantValueChanged"),
+    FIELD_ADDED_IN_FINAL_CLASS("java.field.addedInFinalClass", NON_BREAKING, NON_BREAKING, null),
 
-    METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged");
+    //TODO can this really break a caller that calls a subclass through the super-class variable?
+    FIELD_ADDED_IN_NON_FINAL_CLASS("java.field.addedInNonFinalClass", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+
+    FIELD_REMOVED("java.field.removed", BREAKING, BREAKING, null),
+    FIELD_CONSTANT_VALUE_CHANGED("java.field.constantValueChanged", NON_BREAKING, NON_BREAKING, BREAKING),
+    FIELD_NOW_CONSTANT("java.field.nowConstant", NON_BREAKING, NON_BREAKING, null),
+    FIELD_NO_LONGER_CONSTANT("java.field.noLongerConstant", NON_BREAKING, NON_BREAKING, BREAKING),
+
+    METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", null, null, POTENTIALLY_BREAKING);
+
+    private final String code;
+    private final EnumMap<CompatibilityType, ChangeSeverity> classification;
+
+    private Code(String code, ChangeSeverity sourceSeverity, ChangeSeverity binarySeverity,
+        ChangeSeverity semanticSeverity) {
+        this.code = code;
+        classification = new EnumMap<>(CompatibilityType.class);
+        addClassification(SOURCE, sourceSeverity);
+        addClassification(BINARY, binarySeverity);
+        addClassification(SEMANTIC, semanticSeverity);
+    }
 
     public static Code fromCode(String code) {
         for (Code c : Code.values()) {
@@ -67,26 +102,33 @@ public enum Code {
         return null;
     }
 
-    private final String code;
-
-    private Code(String code) {
-        this.code = code;
-    }
-
     public String code() {
         return code;
     }
 
-    public MatchReport.Problem.Builder initializeNewProblem(Locale locale) {
+    public MatchReport.Problem createProblem(Locale locale) {
         Message message = getMessages(locale).get(code);
-        return MatchReport.Problem.create().withCode(code).withName(message.name).withDescription(message.description);
+        MatchReport.Problem.Builder bld = MatchReport.Problem.create().withCode(code).withName(message.name)
+            .withDescription(message.description);
+        for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {
+            bld.addClassification(e.getKey(), e.getValue());
+        }
+
+        return bld.build();
     }
 
-    public MatchReport.Problem.Builder initializeNewProblem(Locale locale, Object[] params, Object... attachments) {
+    public MatchReport.Problem createProblem(Locale locale, Object[] params, Object... attachments) {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, params);
-        return MatchReport.Problem.create().withCode(code).withName(message.name).withDescription(description)
-            .addAttachments(attachments);
+        MatchReport.Problem.Builder bld = MatchReport.Problem.create().withCode(code).withName(message.name)
+            .withDescription(description).addAttachments(attachments);
+
+        for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {
+            bld.addClassification(e.getKey(), e.getValue());
+        }
+
+        return bld.build();
+
     }
 
     private static class Message {
@@ -126,5 +168,11 @@ public enum Code {
         }
 
         return messageRef.get();
+    }
+
+    private void addClassification(CompatibilityType compatibilityType, ChangeSeverity severity) {
+        if (severity != null) {
+            classification.put(compatibilityType, severity);
+        }
     }
 }

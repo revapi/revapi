@@ -20,6 +20,6 @@ package org.revapi.java.checks.fields;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NoLongerCompileTimeConstant {
+public class NoLongerConstant {
     //TODO implement
 }

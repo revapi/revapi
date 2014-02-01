@@ -97,7 +97,7 @@ abstract class VisibilityChanged extends AbstractJavaCheck {
     }
 
     private MatchReport.Problem report(Modifier oldVisibility, Modifier newVisibility) {
-        return createProblem(code, binarySeverity, sourceSeverity,
+        return createProblem(code,
             new String[]{modifier(oldVisibility), modifier(newVisibility)}, oldVisibility, newVisibility);
     }
 

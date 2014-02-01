@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -55,8 +54,8 @@ public final class ConstantValueChanged extends AbstractJavaCheck {
         }
 
         return Collections.singletonList(
-            createProblem(Code.FIELD_CONSTANT_VALUE_CHANGED, ChangeSeverity.POTENTIALLY_BREAKING,
-                ChangeSeverity.NON_BREAKING, fields.oldElement.getConstantValue().toString(),
+            createProblem(Code.FIELD_CONSTANT_VALUE_CHANGED,
+                fields.oldElement.getConstantValue().toString(),
                 fields.newElement.getConstantValue().toString()));
     }
 }

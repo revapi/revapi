@@ -22,7 +22,6 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
 import org.revapi.java.CheckBase;
 import org.revapi.java.checks.AbstractJavaCheck;
@@ -55,8 +54,6 @@ public final class Removed extends AbstractJavaCheck {
             return null;
         }
 
-        return Collections.singletonList(
-            createProblem(Code.FIELD_REMOVED, ChangeSeverity.BREAKING, ChangeSeverity.BREAKING, new String[0],
-                fields.oldElement));
+        return Collections.singletonList(createProblem(Code.FIELD_REMOVED));
     }
 }

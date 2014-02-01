@@ -21,5 +21,5 @@ package org.revapi;
  * @since 0.1
  */
 public enum CompatibilityType {
-    SOURCE, BINARY, METADATA, OTHER
+    SOURCE, BINARY, SEMANTIC, OTHER
 }

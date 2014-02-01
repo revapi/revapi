@@ -22,7 +22,6 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
-import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
 import org.revapi.java.CheckBase;
 import org.revapi.java.Util;
@@ -67,7 +66,7 @@ public final class NowImplementsInterface extends AbstractJavaCheck {
         for (TypeMirror newIface : newInterfaces) {
             if (!Util.isSubtype(newIface, oldInterfaces, newTypeEnvironment.getTypeUtils())) {
                 result.add(
-                    createProblem(Code.CLASS_NOW_IMPLEMENTS_INTERFACE, ChangeSeverity.BREAKING, ChangeSeverity.BREAKING,
+                    createProblem(Code.CLASS_NOW_IMPLEMENTS_INTERFACE,
                         new String[]{
                             Util.toHumanReadableString(newIface)}, newIface));
             }

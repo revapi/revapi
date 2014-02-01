@@ -16,8 +16,6 @@
 
 package org.revapi.java.transforms.annotations;
 
-import org.revapi.ChangeSeverity;
-import org.revapi.CompatibilityType;
 import org.revapi.MatchReport;
 import org.revapi.java.checks.Code;
 
@@ -28,9 +26,7 @@ import org.revapi.java.checks.Code;
 public final class NowInherited extends AbstractInheritedCheck {
     @Override
     protected MatchReport.Problem createProblem() {
-        return Code.ANNOTATION_NOW_INHERITED
-            .initializeNewProblem(configuration.getLocale())
-            .addClassification(CompatibilityType.METADATA, ChangeSeverity.POTENTIALLY_BREAKING).build();
+        return Code.ANNOTATION_NOW_INHERITED.createProblem(configuration.getLocale());
     }
 
     @Override

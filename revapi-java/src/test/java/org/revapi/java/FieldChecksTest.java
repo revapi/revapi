@@ -32,7 +32,7 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v1/fields/Added.java", "v2/fields/Added.java");
 
-        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_ADDED.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_ADDED_IN_NON_FINAL_CLASS.code()));
     }
 
     @Test

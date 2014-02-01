@@ -14,15 +14,14 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.annotations;
+package org.revapi.java.checks.fields;
 
 import java.util.Collections;
 import java.util.List;
 
-import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.VariableElement;
 
 import org.revapi.MatchReport;
-import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -30,17 +29,28 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class Removed extends AbstractJavaCheck {
+public class IsNowConstant extends AbstractJavaCheck {
     @Override
-    protected List<MatchReport.Problem> doVisitAnnotation(AnnotationMirror oldAnnotation,
-        AnnotationMirror newAnnotation) {
-
-        if (oldAnnotation != null && newAnnotation == null) {
-            return Collections.singletonList(
-                createProblem(Code.ANNOTATION_REMOVED, new String[]{
-                    Util.toHumanReadableString(oldAnnotation.getAnnotationType())}, oldAnnotation));
+    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+        if (oldField == null || newField == null) {
+            return;
         }
 
-        return null;
+        if (oldField.getConstantValue() == null && newField.getConstantValue() != null) {
+            pushActive(oldField, newField);
+        }
     }
+
+    @Override
+    protected List<MatchReport.Problem> doEnd() {
+        ActiveElements<VariableElement> fields = popIfActive();
+        if (fields == null) {
+            return null;
+        }
+
+        return Collections.singletonList(
+            createProblem(Code.FIELD_NOW_CONSTANT));
+    }
+
+    //TODO implement
 }

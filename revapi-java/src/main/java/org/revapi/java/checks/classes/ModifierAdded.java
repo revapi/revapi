@@ -22,7 +22,6 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -34,15 +33,10 @@ import org.revapi.java.checks.Code;
 abstract class ModifierAdded extends AbstractJavaCheck {
     private final Modifier modifier;
     private final Code code;
-    private final ChangeSeverity binarySeverity;
-    private final ChangeSeverity sourceSeverity;
 
-    protected ModifierAdded(Code code, Modifier modifier, ChangeSeverity binarySeverity,
-        ChangeSeverity sourceSeverity) {
-        this.binarySeverity = binarySeverity;
+    protected ModifierAdded(Code code, Modifier modifier) {
         this.modifier = modifier;
         this.code = code;
-        this.sourceSeverity = sourceSeverity;
     }
 
     @Override
@@ -60,7 +54,7 @@ abstract class ModifierAdded extends AbstractJavaCheck {
                 types.newElement.getModifiers().contains(modifier)) {
 
                 return Collections.singletonList(
-                    createProblem(code, binarySeverity, sourceSeverity));
+                    createProblem(code));
             }
         }
 

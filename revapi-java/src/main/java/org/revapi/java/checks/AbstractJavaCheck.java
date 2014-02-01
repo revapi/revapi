@@ -16,8 +16,6 @@
 
 package org.revapi.java.checks;
 
-import org.revapi.ChangeSeverity;
-import org.revapi.CompatibilityType;
 import org.revapi.MatchReport;
 import org.revapi.java.CheckBase;
 
@@ -27,34 +25,13 @@ import org.revapi.java.CheckBase;
  */
 public abstract class AbstractJavaCheck extends CheckBase {
 
-    protected MatchReport.Problem createProblem(Code code, ChangeSeverity binarySeverity,
-        ChangeSeverity sourceSeverity, Object... params) {
+    protected MatchReport.Problem createProblem(Code code,
+        Object... params) {
 
-        return createProblem(code, binarySeverity, sourceSeverity, null, params, params);
+        return createProblem(code, params, params);
     }
 
-    protected MatchReport.Problem createProblem(Code code, ChangeSeverity binarySeverity,
-        ChangeSeverity sourceSeverity, Object[] params, Object... attachments) {
-
-        return createProblem(code, binarySeverity, sourceSeverity, null, params, attachments);
-    }
-
-    protected MatchReport.Problem createProblem(Code code, ChangeSeverity binarySeverity,
-        ChangeSeverity sourceSeverity, ChangeSeverity metadataSeverity, Object[] params, Object... attachments) {
-
-        MatchReport.Problem.Builder bld = code.initializeNewProblem(configuration.getLocale(), params, attachments);
-        if (binarySeverity != null) {
-            bld.addClassification(CompatibilityType.BINARY, binarySeverity);
-        }
-
-        if (sourceSeverity != null) {
-            bld.addClassification(CompatibilityType.SOURCE, sourceSeverity);
-        }
-
-        if (metadataSeverity != null) {
-            bld.addClassification(CompatibilityType.METADATA, metadataSeverity);
-        }
-
-        return bld.build();
+    protected MatchReport.Problem createProblem(Code code, Object[] params, Object... attachments) {
+        return code.createProblem(configuration.getLocale(), params, attachments);
     }
 }

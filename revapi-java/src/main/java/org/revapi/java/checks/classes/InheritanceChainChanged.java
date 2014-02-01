@@ -22,7 +22,6 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
-import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
@@ -55,8 +54,8 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
                 }
 
                 if (!found) {
-                    ret.add(createProblem(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS, ChangeSeverity.BREAKING,
-                        ChangeSeverity.BREAKING, new String[]{Util.toHumanReadableString(ot)}, ot));
+                    ret.add(createProblem(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS,
+                        new String[]{Util.toHumanReadableString(ot)}, ot));
                 }
             }
 
@@ -70,8 +69,8 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
                 }
 
                 if (!found) {
-                    ret.add(createProblem(Code.CLASS_INHERITS_FROM_NEW_CLASS, ChangeSeverity.NON_BREAKING,
-                        ChangeSeverity.NON_BREAKING, new String[]{Util.toHumanReadableString(nt)}, nt));
+                    ret.add(createProblem(Code.CLASS_INHERITS_FROM_NEW_CLASS,
+                        new String[]{Util.toHumanReadableString(nt)}, nt));
                 }
             }
 
