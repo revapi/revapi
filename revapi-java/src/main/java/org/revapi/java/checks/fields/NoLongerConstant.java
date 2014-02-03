@@ -16,10 +16,39 @@
 
 package org.revapi.java.checks.fields;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.lang.model.element.VariableElement;
+
+import org.revapi.MatchReport;
+import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NoLongerConstant {
-    //TODO implement
+public final class NoLongerConstant extends AbstractJavaCheck {
+    @Override
+    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+        if (oldField == null || newField == null) {
+            return;
+        }
+
+        if (oldField.getConstantValue() != null && newField.getConstantValue() == null) {
+            pushActive(oldField, newField);
+        }
+    }
+
+    @Override
+    protected List<MatchReport.Problem> doEnd() {
+        ActiveElements<VariableElement> fields = popIfActive();
+        if (fields == null) {
+            return null;
+        }
+
+        return Collections.singletonList(
+            createProblem(Code.FIELD_NO_LONGER_CONSTANT, fields.oldElement.getConstantValue()));
+    }
 }

@@ -59,6 +59,15 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_NOW_CONSTANT.code()));
     }
 
+
+    @Test
+    public void testNoLongerConstant() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v2/fields/Constants.java", "v1/fields/Constants.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_NO_LONGER_CONSTANT.code()));
+    }
+
     @Test
     public void testFieldWithConstantValueRemoved() throws Exception {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
