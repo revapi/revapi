@@ -22,7 +22,6 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.ChangeSeverity;
 import org.revapi.MatchReport;
 import org.revapi.java.CheckBase;
 import org.revapi.java.checks.AbstractJavaCheck;
@@ -34,13 +33,9 @@ import org.revapi.java.checks.Code;
  */
 abstract class VisibilityChanged extends AbstractJavaCheck {
     private final Code code;
-    private final ChangeSeverity sourceSeverity;
-    private final ChangeSeverity binarySeverity;
 
-    protected VisibilityChanged(Code code, ChangeSeverity binarySeverity, ChangeSeverity sourceSeverity) {
+    protected VisibilityChanged(Code code) {
         this.code = code;
-        this.sourceSeverity = sourceSeverity;
-        this.binarySeverity = binarySeverity;
     }
 
     @Override

@@ -16,7 +16,6 @@
 
 package org.revapi.java.checks.classes;
 
-import org.revapi.ChangeSeverity;
 import org.revapi.java.checks.Code;
 
 /**
@@ -25,7 +24,7 @@ import org.revapi.java.checks.Code;
  */
 public final class VisibilityReduced extends VisibilityChanged {
     public VisibilityReduced() {
-        super(Code.CLASS_VISIBILITY_REDUCED, ChangeSeverity.BREAKING, ChangeSeverity.BREAKING);
+        super(Code.CLASS_VISIBILITY_REDUCED);
     }
 
     @Override
