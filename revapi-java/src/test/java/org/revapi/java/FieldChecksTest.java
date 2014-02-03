@@ -106,4 +106,12 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_NO_LONGER_STATIC.code()));
     }
+
+    @Test
+    public void testTypeChanged() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/fields/Type.java", "v2/fields/Type.java");
+
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_TYPE_CHANGED.code()));
+    }
 }

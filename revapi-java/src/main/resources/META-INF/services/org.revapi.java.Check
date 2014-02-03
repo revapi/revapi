@@ -56,6 +56,7 @@ org.revapi.java.checks.fields.NoLongerStatic
 org.revapi.java.checks.fields.NowConstant
 org.revapi.java.checks.fields.NowFinal
 org.revapi.java.checks.fields.NowStatic
+org.revapi.java.checks.fields.TypeChanged
 
 #org.revapi.java.checks.methods.DefaultValueChanged
 

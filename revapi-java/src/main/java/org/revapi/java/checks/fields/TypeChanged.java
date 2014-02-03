@@ -16,10 +16,48 @@
 
 package org.revapi.java.checks.fields;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.lang.model.element.VariableElement;
+
+import org.revapi.MatchReport;
+import org.revapi.java.Util;
+import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class TypeChanged {
+public final class TypeChanged extends AbstractJavaCheck {
+    @Override
+    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+        if (oldField == null || newField == null) {
+            return;
+        }
+
+        String oldType = Util.toUniqueString(oldField.asType());
+        String newType = Util.toUniqueString(newField.asType());
+
+        if (!oldType.equals(newType)) {
+            pushActive(oldField, newField);
+        }
+    }
+
+    @Override
+    protected List<MatchReport.Problem> doEnd() {
+        ActiveElements<VariableElement> fields = popIfActive();
+        if (fields == null) {
+            return null;
+        }
+
+        String oldType = Util.toHumanReadableString(fields.oldElement.asType());
+        String newType = Util.toHumanReadableString(fields.newElement.asType());
+
+        return Collections.singletonList(
+            createProblem(Code.FIELD_TYPE_CHANGED, new String[]{oldType, newType}, fields.oldElement.asType(),
+                fields.newElement.asType()));
+    }
     //TODO implement
 }
