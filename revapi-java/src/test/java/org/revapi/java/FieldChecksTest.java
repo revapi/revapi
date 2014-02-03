@@ -52,13 +52,20 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
     }
 
     @Test
-    public void testBecameConstant() throws Exception {
+    public void testNowConstant() throws Exception {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v1/fields/Constants.java", "v2/fields/Constants.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_NOW_CONSTANT.code()));
     }
 
+    @Test
+    public void testFieldWithConstantValueRemoved() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/fields/Constants.java", "v2/fields/Constants.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_CONSTANT_REMOVED.code()));
+    }
 
     @Test
     public void testNoLongerConstant() throws Exception {
@@ -69,10 +76,34 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
     }
 
     @Test
-    public void testFieldWithConstantValueRemoved() throws Exception {
+    public void testNowFinal() throws Exception {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/fields/Constants.java", "v2/fields/Constants.java");
+        runAnalysis(reporter, "v1/fields/Final.java", "v2/fields/Final.java");
 
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_CONSTANT_REMOVED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_NOW_FINAL.code()));
+    }
+
+    @Test
+    public void testNoLongerFinal() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v2/fields/Final.java", "v1/fields/Final.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_NO_LONGER_FINAL.code()));
+    }
+
+    @Test
+    public void testNowStatic() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/fields/Static.java", "v2/fields/Static.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_NOW_STATIC.code()));
+    }
+
+    @Test
+    public void testNoLongerStatic() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v2/fields/Static.java", "v1/fields/Static.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_NO_LONGER_STATIC.code()));
     }
 }

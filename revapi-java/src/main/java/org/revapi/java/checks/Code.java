@@ -78,6 +78,10 @@ public enum Code {
     FIELD_CONSTANT_VALUE_CHANGED("java.field.constantValueChanged", NON_BREAKING, NON_BREAKING, BREAKING),
     FIELD_NOW_CONSTANT("java.field.nowConstant", NON_BREAKING, NON_BREAKING, null),
     FIELD_NO_LONGER_CONSTANT("java.field.noLongerConstant", NON_BREAKING, NON_BREAKING, BREAKING),
+    FIELD_NOW_FINAL("java.field.nowFinal", BREAKING, BREAKING, null),
+    FIELD_NO_LONGER_FINAL("java.field.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
+    FIELD_NO_LONGER_STATIC("java.field.noLongerStatic", BREAKING, BREAKING, null),
+    FIELD_NOW_STATIC("java.field.nowStatic", BREAKING, BREAKING, null),
 
     METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", null, null, POTENTIALLY_BREAKING);
 

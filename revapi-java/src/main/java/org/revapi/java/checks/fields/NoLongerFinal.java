@@ -16,9 +16,16 @@
 
 package org.revapi.java.checks.fields;
 
+import javax.lang.model.element.Modifier;
+
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NoLongerFinal {
+public final class NoLongerFinal extends ModifierChanged {
+    public NoLongerFinal() {
+        super(false, Code.FIELD_NO_LONGER_FINAL, Modifier.FINAL);
+    }
 }

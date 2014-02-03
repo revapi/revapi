@@ -16,10 +16,16 @@
 
 package org.revapi.java.checks.fields;
 
+import javax.lang.model.element.Modifier;
+
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NoLongerStatic {
-    //TODO implement
+public final class NoLongerStatic extends ModifierChanged {
+    public NoLongerStatic() {
+        super(false, Code.FIELD_NO_LONGER_STATIC, Modifier.STATIC);
+    }
 }

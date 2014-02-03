@@ -14,19 +14,6 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.fields;
-
-import javax.lang.model.element.Modifier;
-
-import org.revapi.java.checks.Code;
-
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public final class NowFinal extends ModifierChanged {
-
-    public NowFinal() {
-        super(true, Code.FIELD_NOW_FINAL, Modifier.FINAL);
-    }
+public class Static {
+    public int f;
 }

@@ -16,10 +16,16 @@
 
 package org.revapi.java.checks.fields;
 
+import javax.lang.model.element.Modifier;
+
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NowStatic {
-    //TODO implement
+public final class NowStatic extends ModifierChanged {
+    public NowStatic() {
+        super(true, Code.FIELD_NOW_STATIC, Modifier.STATIC);
+    }
 }
