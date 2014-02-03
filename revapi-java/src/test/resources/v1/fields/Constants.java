@@ -17,4 +17,6 @@
 public class Constants {
     public static final int c1 = 1;
     public static final int c2 = 2;
+    public static final int c3 = new Integer(3);
+    public static final int removed = 4;
 }

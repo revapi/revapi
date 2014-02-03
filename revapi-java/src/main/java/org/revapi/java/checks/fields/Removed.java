@@ -54,6 +54,8 @@ public final class Removed extends AbstractJavaCheck {
             return null;
         }
 
-        return Collections.singletonList(createProblem(Code.FIELD_REMOVED));
+        boolean isConstant = fields.oldElement.getConstantValue() != null;
+
+        return Collections.singletonList(createProblem(isConstant ? Code.FIELD_CONSTANT_REMOVED : Code.FIELD_REMOVED));
     }
 }

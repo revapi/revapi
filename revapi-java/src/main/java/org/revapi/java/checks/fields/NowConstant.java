@@ -29,7 +29,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class IsNowConstant extends AbstractJavaCheck {
+public final class NowConstant extends AbstractJavaCheck {
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
         if (oldField == null || newField == null) {
@@ -49,8 +49,6 @@ public class IsNowConstant extends AbstractJavaCheck {
         }
 
         return Collections.singletonList(
-            createProblem(Code.FIELD_NOW_CONSTANT));
+            createProblem(Code.FIELD_NOW_CONSTANT, fields.newElement.getConstantValue()));
     }
-
-    //TODO implement
 }
