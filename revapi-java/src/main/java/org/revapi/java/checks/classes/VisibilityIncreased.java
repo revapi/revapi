@@ -16,7 +16,10 @@
 
 package org.revapi.java.checks.classes;
 
+import javax.lang.model.element.TypeElement;
+
 import org.revapi.java.checks.Code;
+import org.revapi.java.checks.common.VisibilityChanged;
 
 /**
  * @author Lukas Krejci
@@ -24,11 +27,11 @@ import org.revapi.java.checks.Code;
  */
 public final class VisibilityIncreased extends VisibilityChanged {
     public VisibilityIncreased() {
-        super(Code.CLASS_VISIBILITY_INCREASED);
+        super(Code.CLASS_VISIBILITY_INCREASED, true);
     }
 
     @Override
-    protected boolean isProblem(int oldVisibilityRank, int newVisibilityRank) {
-        return oldVisibilityRank > newVisibilityRank;
+    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
+        super.doVisit(oldType, newType);
     }
 }

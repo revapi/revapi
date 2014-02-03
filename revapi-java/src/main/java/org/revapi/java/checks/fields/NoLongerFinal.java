@@ -17,8 +17,10 @@
 package org.revapi.java.checks.fields;
 
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.VariableElement;
 
 import org.revapi.java.checks.Code;
+import org.revapi.java.checks.common.ModifierChanged;
 
 /**
  * @author Lukas Krejci
@@ -27,5 +29,10 @@ import org.revapi.java.checks.Code;
 public final class NoLongerFinal extends ModifierChanged {
     public NoLongerFinal() {
         super(false, Code.FIELD_NO_LONGER_FINAL, Modifier.FINAL);
+    }
+
+    @Override
+    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+        super.doVisit(oldField, newField);
     }
 }

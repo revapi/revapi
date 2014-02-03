@@ -14,26 +14,6 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.fields;
-
-import javax.lang.model.element.VariableElement;
-
-import org.revapi.java.checks.Code;
-import org.revapi.java.checks.common.VisibilityChanged;
-
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public final class VisibilityIncreased extends VisibilityChanged {
-    public VisibilityIncreased() {
-        super(Code.FIELD_VISIBILITY_INCREASED, true);
-    }
-
-    @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        super.doVisit(oldField, newField);
-    }
-
-    //TODO implement
+public class Visibility {
+    public int f;
 }

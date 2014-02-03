@@ -14,13 +14,13 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.classes;
+package org.revapi.java.checks.common;
 
 import java.util.Collections;
 import java.util.List;
 
+import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
 
 import org.revapi.MatchReport;
 import org.revapi.java.CheckBase;
@@ -31,26 +31,27 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-abstract class VisibilityChanged extends AbstractJavaCheck {
+public abstract class VisibilityChanged extends AbstractJavaCheck {
     private final Code code;
+    private final boolean reportIncrease;
 
-    protected VisibilityChanged(Code code) {
+    protected VisibilityChanged(Code code, boolean reportIncrease) {
         this.code = code;
+        this.reportIncrease = reportIncrease;
     }
 
-    @Override
-    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType != null && newType != null) {
-            pushActive(oldType, newType);
+    protected final void doVisit(Element oldElement, Element newElement) {
+        if (oldElement != null && newElement != null) {
+            pushActive(oldElement, newElement);
         }
     }
 
     @Override
-    protected List<MatchReport.Problem> doEnd() {
-        CheckBase.ActiveElements<TypeElement> types = popIfActive();
-        if (types != null) {
-            Modifier oldVisibility = getVisibility(types.oldElement);
-            Modifier newVisibility = getVisibility(types.newElement);
+    protected final List<MatchReport.Problem> doEnd() {
+        CheckBase.ActiveElements<Element> elements = popIfActive();
+        if (elements != null) {
+            Modifier oldVisibility = getVisibility(elements.oldElement);
+            Modifier newVisibility = getVisibility(elements.newElement);
 
             //public == 0, private == 3
             if (isProblem(getModifierRank(oldVisibility), getModifierRank(newVisibility))) {
@@ -61,9 +62,12 @@ abstract class VisibilityChanged extends AbstractJavaCheck {
         return null;
     }
 
-    protected abstract boolean isProblem(int oldVisibilityRank, int newVisibilityRank);
+    private boolean isProblem(int oldVisibilityRank, int newVisibilityRank) {
+        return (reportIncrease && oldVisibilityRank > newVisibilityRank) ||
+            (!reportIncrease && oldVisibilityRank < newVisibilityRank);
+    }
 
-    private Modifier getVisibility(TypeElement t) {
+    private Modifier getVisibility(Element t) {
         for (Modifier m : t.getModifiers()) {
             if (m == Modifier.PUBLIC || m == Modifier.PROTECTED || m == Modifier.PRIVATE) {
                 return m;

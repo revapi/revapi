@@ -14,12 +14,6 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.fields;
-
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public class VisibilityDecreased {
-    //TODO implement
+public class Visibility {
+    protected int f;
 }

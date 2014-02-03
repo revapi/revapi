@@ -83,6 +83,8 @@ public enum Code {
     FIELD_NO_LONGER_STATIC("java.field.noLongerStatic", BREAKING, BREAKING, null),
     FIELD_NOW_STATIC("java.field.nowStatic", BREAKING, BREAKING, null),
     FIELD_TYPE_CHANGED("java.field.typeChanged", BREAKING, BREAKING, null),
+    FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
+    FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null),
 
     METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", null, null, POTENTIALLY_BREAKING);
 

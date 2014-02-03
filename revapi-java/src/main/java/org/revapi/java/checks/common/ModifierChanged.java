@@ -14,13 +14,13 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.fields;
+package org.revapi.java.checks.common;
 
 import java.util.Collections;
 import java.util.List;
 
+import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.VariableElement;
 
 import org.revapi.MatchReport;
 import org.revapi.java.checks.AbstractJavaCheck;
@@ -30,7 +30,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-abstract class ModifierChanged extends AbstractJavaCheck {
+public abstract class ModifierChanged extends AbstractJavaCheck {
     private final boolean added;
     private final Code code;
     private final Modifier modifier;
@@ -41,27 +41,27 @@ abstract class ModifierChanged extends AbstractJavaCheck {
         this.modifier = modifier;
     }
 
-    @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null || newField == null) {
+    protected final void doVisit(Element oldElement, Element newElement) {
+        if (oldElement == null || newElement == null) {
             return;
         }
 
-        boolean oldHas = oldField.getModifiers().contains(modifier);
-        boolean newHas = newField.getModifiers().contains(modifier);
+        boolean oldHas = oldElement.getModifiers().contains(modifier);
+        boolean newHas = newElement.getModifiers().contains(modifier);
 
         if ((added && !oldHas && newHas) || (!added && oldHas && !newHas)) {
-            pushActive(oldField, newField);
+            pushActive(oldElement, newElement);
         }
     }
 
     @Override
-    protected List<MatchReport.Problem> doEnd() {
-        ActiveElements<VariableElement> fields = popIfActive();
-        if (fields == null) {
+    protected final List<MatchReport.Problem> doEnd() {
+        ActiveElements<Element> elements = popIfActive();
+        if (elements == null) {
             return null;
         }
 
         return Collections.singletonList(createProblem(code));
     }
+
 }

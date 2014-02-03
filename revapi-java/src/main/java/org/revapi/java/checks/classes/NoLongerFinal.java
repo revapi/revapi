@@ -17,16 +17,23 @@
 package org.revapi.java.checks.classes;
 
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 
 import org.revapi.java.checks.Code;
+import org.revapi.java.checks.common.ModifierChanged;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class NoLongerFinal extends ModifierRemoved {
+public final class NoLongerFinal extends ModifierChanged {
 
     public NoLongerFinal() {
-        super(Code.CLASS_NO_LONGER_FINAL, Modifier.FINAL);
+        super(false, Code.CLASS_NO_LONGER_FINAL, Modifier.FINAL);
+    }
+
+    @Override
+    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
+        super.doVisit(oldType, newType);
     }
 }

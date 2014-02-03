@@ -25,15 +25,13 @@ import org.revapi.java.checks.common.VisibilityChanged;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class VisibilityIncreased extends VisibilityChanged {
-    public VisibilityIncreased() {
-        super(Code.FIELD_VISIBILITY_INCREASED, true);
+public final class VisibilityReduced extends VisibilityChanged {
+    public VisibilityReduced() {
+        super(Code.FIELD_VISIBILITY_REDUCED, false);
     }
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
         super.doVisit(oldField, newField);
     }
-
-    //TODO implement
 }
