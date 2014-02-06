@@ -48,9 +48,9 @@ public class TextReporter implements Reporter {
             output.print("MATCH: ");
         }
 
-        output.print(matchReport.getOldElement());
+        output.print(matchReport.getOldElement().getFullHumanReadableString());
         output.print(" with ");
-        output.println(matchReport.getNewElement());
+        output.println(matchReport.getNewElement().getFullHumanReadableString());
         if (!matchReport.getProblems().isEmpty()) {
             output.append(":");
             for (MatchReport.Problem p : matchReport.getProblems()) {

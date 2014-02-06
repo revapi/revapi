@@ -26,5 +26,5 @@ public abstract class Attributes {
     }
 
     @Anno(b = 1)
-    public abstract void m();
+    public abstract void m(int i);
 }

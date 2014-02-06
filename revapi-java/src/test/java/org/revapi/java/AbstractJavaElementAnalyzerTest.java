@@ -152,7 +152,9 @@ public abstract class AbstractJavaElementAnalyzerTest {
                     e = matchReport.getOldElement();
                 }
 
-                LOG.info(e + ": " + p.name + " (" + p.code + "): " + p.classification + ", " + p.description);
+                LOG.info(
+                    e.getFullHumanReadableString() + ": " + p.name + " (" + p.code + "): " + p.classification + ", " +
+                        p.description);
             }
         }
 

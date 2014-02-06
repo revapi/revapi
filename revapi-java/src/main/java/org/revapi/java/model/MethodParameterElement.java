@@ -38,9 +38,4 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
         return toString().compareTo(o.toString());
     }
-
-    @Override
-    public String toString() {
-        return getModelElement().getSimpleName().toString();
-    }
 }

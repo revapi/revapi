@@ -24,6 +24,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import org.revapi.java.JavaModelElement;
+import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.simple.SimpleElement;
 
@@ -62,8 +63,8 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     }
 
     @Override
-    public String toString() {
-        return getModelElement().toString();
+    public final String toString() {
+        return Util.toHumanReadableString(getModelElement());
     }
 
     @Override

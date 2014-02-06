@@ -22,6 +22,7 @@ import javax.lang.model.util.Types;
 
 import org.revapi.Element;
 import org.revapi.java.JavaAnnotationElement;
+import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.simple.SimpleElement;
 
@@ -64,6 +65,6 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
 
     @Override
     public String toString() {
-        return annotation.getAnnotationType().asElement().getSimpleName().toString();
+        return Util.toHumanReadableString(annotation.getAnnotationType());
     }
 }

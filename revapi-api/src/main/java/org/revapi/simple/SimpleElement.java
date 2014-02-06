@@ -272,6 +272,16 @@ public abstract class SimpleElement implements Element {
         }
     }
 
+    /**
+     * Assumes that {@code toString()} can do the job.
+     *
+     * @see org.revapi.Element#getFullHumanReadableString()
+     */
+    @Override
+    public String getFullHumanReadableString() {
+        return toString();
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Element> Iterator<T> iterateOverChildren(Class<T> resultType, boolean recurse,

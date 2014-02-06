@@ -41,6 +41,12 @@ public interface Element extends Comparable<Element> {
     SortedSet<? extends Element> getChildren();
 
     /**
+     * Provides the full "path" to the element in the tree in a human readable way.
+     * This method is meant to be used by the reporters to identify the element in the reports.
+     */
+    String getFullHumanReadableString();
+
+    /**
      * This method is functionally equivalent to {@link #searchChildren(java.util.List, java.lang.Class, boolean,
      * org.revapi.query.Filter)} but returns the result in a newly allocated list instance. This is basically
      * a convenience method to enable a more succinct expressions.

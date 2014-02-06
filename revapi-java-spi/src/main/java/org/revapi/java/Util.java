@@ -24,8 +24,11 @@ import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
@@ -37,6 +40,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
+import javax.lang.model.util.SimpleElementVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
 
@@ -321,6 +325,156 @@ public class Util {
         }
     };
 
+    private static SimpleElementVisitor7<Void, StringBuilder> toHumanReadableStringElementVisitor = new SimpleElementVisitor7<Void, StringBuilder>() {
+        private ThreadLocal<Boolean> visitingMethod = new ThreadLocal<Boolean>() {
+            @Override
+            protected Boolean initialValue() {
+                return false;
+            }
+        };
+
+        @Override
+        public Void visitVariable(VariableElement e, StringBuilder stringBuilder) {
+            Element enclosing = e.getEnclosingElement();
+            if (enclosing instanceof TypeElement) {
+                enclosing.accept(this, stringBuilder);
+                stringBuilder.append(".").append(e.getSimpleName());
+            } else if (enclosing instanceof ExecutableElement) {
+                if (visitingMethod.get()) {
+                    //we're visiting a method, so we need to output the in a simple way
+                    e.asType().accept(toHumanReadableStringVisitor, stringBuilder);
+                    //NOTE the names of method params seem not to be available
+                    //stringBuilder.append(" ").append(e.getSimpleName());
+                } else {
+                    //this means someone asked to directly output a string representation of a method parameter
+                    //in this case, we need to identify the parameter inside the full method signature so that
+                    //the full location is available.
+                    int paramIdx = ((ExecutableElement) enclosing).getParameters().indexOf(e);
+                    enclosing.accept(this, stringBuilder);
+                    int openPar = stringBuilder.indexOf("(");
+                    int closePar = stringBuilder.indexOf(")", openPar);
+
+                    int paramStart = openPar + 1;
+                    int curParIdx = -1;
+                    for (int i = openPar + 1; i < closePar; ++i) {
+                        if (stringBuilder.charAt(i) == ',') {
+                            curParIdx++;
+                            if (curParIdx == paramIdx) {
+                                String par = stringBuilder.substring(paramStart, i);
+                                stringBuilder.replace(paramStart, i - 1, "%%" + par + "%%");
+                            } else {
+                                paramStart = i + 1;
+                            }
+                        }
+                    }
+                }
+            } else {
+                stringBuilder.append(e.getSimpleName());
+            }
+
+            return null;
+        }
+
+        @Override
+        public Void visitPackage(PackageElement e, StringBuilder stringBuilder) {
+            stringBuilder.append(e.getQualifiedName());
+            return null;
+        }
+
+        @Override
+        public Void visitType(TypeElement e, StringBuilder stringBuilder) {
+            stringBuilder.append(e.getQualifiedName());
+
+            List<? extends TypeParameterElement> typePars = e.getTypeParameters();
+            if (typePars.size() > 0) {
+                stringBuilder.append("<");
+
+                typePars.get(0).accept(this, stringBuilder);
+                for (int i = 1; i < typePars.size(); ++i) {
+                    stringBuilder.append(", ");
+                    typePars.get(i).accept(this, stringBuilder);
+                }
+                stringBuilder.append(">");
+            }
+
+            return null;
+        }
+
+        @Override
+        public Void visitExecutable(ExecutableElement e, StringBuilder stringBuilder) {
+            visitingMethod.set(true);
+
+            try {
+                List<? extends TypeParameterElement> typePars = e.getTypeParameters();
+                if (typePars.size() > 0) {
+                    stringBuilder.append("<");
+
+                    typePars.get(0).accept(this, stringBuilder);
+                    for (int i = 1; i < typePars.size(); ++i) {
+                        stringBuilder.append(", ");
+                        typePars.get(i).accept(this, stringBuilder);
+                    }
+                    stringBuilder.append("> ");
+                }
+
+                e.getReturnType().accept(toHumanReadableStringVisitor, stringBuilder);
+                stringBuilder.append(" ");
+                e.getEnclosingElement().accept(this, stringBuilder);
+                stringBuilder.append(".").append(e.getSimpleName()).append("(");
+
+                List<? extends VariableElement> pars = e.getParameters();
+                if (pars.size() > 0) {
+                    pars.get(0).accept(this, stringBuilder);
+                    for (int i = 1; i < pars.size(); ++i) {
+                        stringBuilder.append(", ");
+                        pars.get(i).accept(this, stringBuilder);
+                    }
+                }
+
+                stringBuilder.append(")");
+
+                List<? extends TypeMirror> thrownTypes = e.getThrownTypes();
+
+                if (thrownTypes.size() > 0) {
+                    stringBuilder.append(" throws ");
+                    thrownTypes.get(0).accept(toHumanReadableStringVisitor, stringBuilder);
+                    for (int i = 1; i < thrownTypes.size(); ++i) {
+                        stringBuilder.append(", ");
+                        thrownTypes.get(i).accept(toHumanReadableStringVisitor, stringBuilder);
+                    }
+                }
+
+                return null;
+            } finally {
+                visitingMethod.set(false);
+            }
+        }
+
+        @Override
+        public Void visitTypeParameter(TypeParameterElement e, StringBuilder stringBuilder) {
+            stringBuilder.append(e.getSimpleName());
+            List<? extends TypeMirror> bounds = e.getBounds();
+            if (bounds.size() > 0) {
+                if (bounds.size() == 1) {
+                    TypeMirror firstBound = bounds.get(0);
+                    String bs = toHumanReadableString(firstBound);
+                    if (!"java.lang.Object".equals(bs)) {
+                        stringBuilder.append(" extends ").append(bs);
+                    }
+                } else {
+                    stringBuilder.append(" extends ");
+                    bounds.get(0).accept(toHumanReadableStringVisitor, stringBuilder);
+                    for (int i = 1; i < bounds.size(); ++i) {
+                        stringBuilder.append(", ");
+                        bounds.get(i).accept(toHumanReadableStringVisitor, stringBuilder);
+                    }
+                }
+            }
+
+            return null;
+        }
+    };
+
     private Util() {
 
     }
@@ -339,6 +493,12 @@ public class Util {
         String t2Name = toUniqueString(t2);
 
         return t1Name.equals(t2Name);
+    }
+
+    public static String toHumanReadableString(Element element) {
+        StringBuilder bld = new StringBuilder();
+        element.accept(toHumanReadableStringElementVisitor, bld);
+        return bld.toString();
     }
 
     /**

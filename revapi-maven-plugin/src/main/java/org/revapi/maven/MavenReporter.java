@@ -48,7 +48,7 @@ public class MavenReporter implements Reporter {
         }
 
         for (MatchReport.Problem p : matchReport.getProblems()) {
-            StringBuilder message = new StringBuilder(element.toString());
+            StringBuilder message = new StringBuilder(element.getFullHumanReadableString());
 
             message.append(": ").append(p.name).append(" (").append(p.code).append(")");
 

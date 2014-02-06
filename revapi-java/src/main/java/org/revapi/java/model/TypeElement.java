@@ -68,9 +68,4 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
 
         return binaryName.compareTo(((TypeElement) o).binaryName);
     }
-
-    @Override
-    public String toString() {
-        return binaryName;
-    }
 }
