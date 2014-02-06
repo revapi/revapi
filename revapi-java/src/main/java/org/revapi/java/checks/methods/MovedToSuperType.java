@@ -20,5 +20,6 @@ package org.revapi.java.checks.methods;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class ParametersChanged {
+public class MovedToSuperType {
+    //TODO implement
 }
