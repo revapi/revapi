@@ -50,7 +50,7 @@ import org.revapi.ProblemTransform;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class IgnoreProblemTransform implements ProblemTransform {
+public class IgnoreProblemTransform implements ProblemTransform {
     private static final Logger LOG = LoggerFactory.getLogger(IgnoreProblemTransform.class);
 
     public static final String CONFIG_PROPERTY_PREFIX = "revapi.ignore.";

@@ -14,15 +14,12 @@
  * limitations under the License
  */
 
-package org.revapi;
-
-import org.revapi.query.Filter;
+package org.revapi.basic;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ElementFilter extends Filter<Element> {
-
-    void initialize(Configuration configuration);
+public class ConfigurableElementFilterTest {
+    //TODO add tests
 }
