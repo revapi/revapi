@@ -63,7 +63,7 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
     @Override
     public int compareTo(org.revapi.Element o) {
         if (!(o instanceof TypeElement)) {
-            return 1;
+            return JavaElementFactory.compareByType(this, o);
         }
 
         return binaryName.compareTo(((TypeElement) o).binaryName);

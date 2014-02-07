@@ -40,6 +40,9 @@ import org.revapi.MatchReport;
  * @since 0.1
  */
 public enum Code {
+    ELEMENT_NO_LONGER_DEPRECATED("java.element.noLongerDeprecated", NON_BREAKING, NON_BREAKING, null),
+    ELEMENT_NOW_DEPRECATED("java.element.nowDeprecated", NON_BREAKING, NON_BREAKING, null),
+
     CLASS_VISIBILITY_INCREASED("java.class.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
     CLASS_VISIBILITY_REDUCED("java.class.visibilityReduced", BREAKING, BREAKING, null),
     CLASS_KIND_CHANGED("java.class.kindChanged", BREAKING, BREAKING, null),
@@ -60,13 +63,15 @@ public enum Code {
     CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null), //TODO implement
     CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass", BREAKING, BREAKING, null),
 
-    ANNOTATION_ADDED("java.annotation.added", null, null, POTENTIALLY_BREAKING),
-    ANNOTATION_REMOVED("java.annotation.removed", null, null, POTENTIALLY_BREAKING),
-    ANNOTATION_ATTRIBUTE_VALUE_CHANGED("java.annotation.attributeValueChanged", null, null, POTENTIALLY_BREAKING),
-    ANNOTATION_ATTRIBUTE_ADDED("java.annotation.attributeAdded", null, null, POTENTIALLY_BREAKING),
-    ANNOTATION_ATTRIBUTE_REMOVED("java.annotation.attributeRemoved", null, null, POTENTIALLY_BREAKING),
-    ANNOTATION_NO_LONGER_INHERITED("java.annotation.noLongerInherited", null, null, POTENTIALLY_BREAKING),
-    ANNOTATION_NOW_INHERITED("java.annotation.nowInherited", null, null, POTENTIALLY_BREAKING),
+    ANNOTATION_ADDED("java.annotation.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    ANNOTATION_REMOVED("java.annotation.removed", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    ANNOTATION_ATTRIBUTE_VALUE_CHANGED("java.annotation.attributeValueChanged", NON_BREAKING, NON_BREAKING,
+        POTENTIALLY_BREAKING),
+    ANNOTATION_ATTRIBUTE_ADDED("java.annotation.attributeAdded", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    ANNOTATION_ATTRIBUTE_REMOVED("java.annotation.attributeRemoved", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    ANNOTATION_NO_LONGER_INHERITED("java.annotation.noLongerInherited", NON_BREAKING, NON_BREAKING,
+        POTENTIALLY_BREAKING),
+    ANNOTATION_NOW_INHERITED("java.annotation.nowInherited", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
 
     FIELD_ADDED_IN_FINAL_CLASS("java.field.addedInFinalClass", NON_BREAKING, NON_BREAKING, null),
 
@@ -86,7 +91,7 @@ public enum Code {
     FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
     FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null),
 
-    METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", null, null, POTENTIALLY_BREAKING);
+    METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING);
 
     private final String code;
     private final EnumMap<CompatibilityType, ChangeSeverity> classification;

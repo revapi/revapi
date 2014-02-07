@@ -37,7 +37,7 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> {
     @Override
     public int compareTo(Element o) {
         if (!(o instanceof MethodElement)) {
-            return 1;
+            return JavaElementFactory.compareByType(this, o);
         }
 
         return getModelElement().getSimpleName().toString()

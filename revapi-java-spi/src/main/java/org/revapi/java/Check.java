@@ -35,17 +35,17 @@ import org.revapi.MatchReport;
  * setOldTypeEnvironment
  * setNewTypeEnvironment
  * (visitClass
- *     visitAnnotation*
+ *     (visitClass ... visitEnd)* //inner classes
  *     (visitField
  *         visitAnnotation*
  *      visitEnd)*
  *     (visitMethod
- *         visitAnnotation*
  *         (visitMethodParameter
  *             visitAnnotation*
  *          visitEnd)*
+ *         visitAnnotation*
  *      visitEnd)*
- *     (visitClass ... visitEnd)* //inner classes
+ *     visitAnnotation*
  *  visitEnd)*
  * </code></pre>
  *

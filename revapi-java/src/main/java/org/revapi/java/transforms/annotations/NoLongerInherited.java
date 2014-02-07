@@ -16,20 +16,15 @@
 
 package org.revapi.java.transforms.annotations;
 
-import org.revapi.MatchReport;
 import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class NoLongerInherited extends AbstractInheritedCheck {
+public final class NoLongerInherited extends AbstractAnnotationPresenceCheck {
 
-    protected MatchReport.Problem createProblem() {
-        return Code.ANNOTATION_NO_LONGER_INHERITED.createProblem(configuration.getLocale());
-    }
-
-    protected Code getCodeToTransform() {
-        return Code.ANNOTATION_REMOVED;
+    public NoLongerInherited() {
+        super("java.lang.annotation.Inherited", Code.ANNOTATION_REMOVED, Code.ANNOTATION_NO_LONGER_INHERITED);
     }
 }

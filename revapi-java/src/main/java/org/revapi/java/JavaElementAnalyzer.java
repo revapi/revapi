@@ -41,10 +41,10 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
     private final CompilationValve oldCompilationValve;
     private final CompilationValve newCompilationValve;
 
-    //NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
-    //are always sorted as last amongst sibling model elements.
-    //So, when reported for their parent element, we can be sure that there are no more children
-    //coming for given parent.
+    // NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
+    // are always sorted as last amongst sibling model elements.
+    // So, when reported for their parent element, we can be sure that there are no more children
+    // coming for given parent.
     private List<MatchReport.Problem> lastAnnotationResults;
 
     public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, CompilationValve oldValve,
@@ -83,11 +83,11 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
                     newElement == null ? null : ((TypeElement) newElement).getModelElement());
             }
         } else if (conforms(oldElement, newElement, AnnotationElement.class)) {
-            //annotation are always terminal elements, so treat them a bit differently
+            // annotation are always terminal elements and they also always sort as last elements amongst siblings, so
+            // treat them a bit differently
             if (lastAnnotationResults == null) {
                 lastAnnotationResults = new ArrayList<>();
             }
-            lastAnnotationResults.clear();
             for (Check c : checks) {
                 List<MatchReport.Problem> cps = c
                     .visitAnnotation(oldElement == null ? null : ((AnnotationElement) oldElement).getAnnotation(),

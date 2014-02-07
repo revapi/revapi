@@ -199,7 +199,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
 
         if (!ToolProvider.getSystemJavaCompiler().getTask(null, null, null, options, null, sources).call()) {
-            throw new IllegalStateException("Failed to compile source files: " + sourceFiles);
+            throw new IllegalStateException("Failed to compile source files: " + Arrays.asList(sourceFiles));
         }
 
         JavaArchive archive = ShrinkWrap.create(JavaArchive.class, jarName + ".jar");

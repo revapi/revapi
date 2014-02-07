@@ -16,21 +16,15 @@
 
 package org.revapi.java.transforms.annotations;
 
-import org.revapi.MatchReport;
 import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class NowInherited extends AbstractInheritedCheck {
-    @Override
-    protected MatchReport.Problem createProblem() {
-        return Code.ANNOTATION_NOW_INHERITED.createProblem(configuration.getLocale());
-    }
+public final class NowInherited extends AbstractAnnotationPresenceCheck {
 
-    @Override
-    protected Code getCodeToTransform() {
-        return Code.ANNOTATION_ADDED;
+    public NowInherited() {
+        super("java.lang.annotation.Inherited", Code.ANNOTATION_ADDED, Code.ANNOTATION_NOW_INHERITED);
     }
 }

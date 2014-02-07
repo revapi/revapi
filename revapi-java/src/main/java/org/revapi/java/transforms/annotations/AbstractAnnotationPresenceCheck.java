@@ -17,8 +17,10 @@
 package org.revapi.java.transforms.annotations;
 
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.SimpleElementVisitor7;
 
 import org.revapi.Configuration;
@@ -33,8 +35,18 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-abstract class AbstractInheritedCheck implements ProblemTransform {
+abstract class AbstractAnnotationPresenceCheck implements ProblemTransform {
     protected Configuration configuration;
+    private final String annotationQualifiedName;
+    private final Code annotationCheckCode;
+    private final Code transformedCode;
+
+    protected AbstractAnnotationPresenceCheck(String annotationQualifiedName, Code annotationCheckCode,
+        Code transformedCode) {
+        this.annotationQualifiedName = annotationQualifiedName;
+        this.annotationCheckCode = annotationCheckCode;
+        this.transformedCode = transformedCode;
+    }
 
     @Override
     public void initialize(Configuration configuration) {
@@ -44,13 +56,13 @@ abstract class AbstractInheritedCheck implements ProblemTransform {
     @Override
     public MatchReport.Problem transform(final Element oldElement, final Element newElement,
         final MatchReport.Problem problem) {
-        if (Code.fromCode(problem.code) != getCodeToTransform()) {
+        if (Code.fromCode(problem.code) != annotationCheckCode) {
             return problem;
         }
 
-        AnnotationMirror removedAnnotation = (AnnotationMirror) problem.attachments.get(0);
+        AnnotationMirror affectedAnnotation = (AnnotationMirror) problem.attachments.get(0);
 
-        return removedAnnotation.getAnnotationType().asElement()
+        return affectedAnnotation.getAnnotationType().asElement()
             .accept(new SimpleElementVisitor7<MatchReport.Problem, Void>() {
                 @Override
                 protected MatchReport.Problem defaultAction(javax.lang.model.element.Element e, Void ignored) {
@@ -59,7 +71,7 @@ abstract class AbstractInheritedCheck implements ProblemTransform {
 
                 @Override
                 public MatchReport.Problem visitType(TypeElement e, Void ignored) {
-                    if (!"java.lang.annotation.Inherited".equals(e.getQualifiedName().toString())) {
+                    if (!annotationQualifiedName.equals(e.getQualifiedName().toString())) {
                         return problem;
                     }
 
@@ -75,20 +87,28 @@ abstract class AbstractInheritedCheck implements ProblemTransform {
 
                         @Override
                         protected MatchReport.Problem visitType(TypeElement oldElement, TypeElement newElement) {
-                            if (oldElement.getKind() != ElementKind.ANNOTATION_TYPE ||
-                                newElement.getKind() != ElementKind.ANNOTATION_TYPE) {
+                            return transformedCode.createProblem(configuration.getLocale());
+                        }
 
-                                return problem;
-                            } else {
-                                return createProblem();
-                            }
+                        @Override
+                        protected MatchReport.Problem visitPackage(PackageElement element,
+                            PackageElement otherElement) {
+                            return transformedCode.createProblem(configuration.getLocale());
+                        }
+
+                        @Override
+                        protected MatchReport.Problem visitVariable(VariableElement element,
+                            VariableElement otherElement) {
+                            return transformedCode.createProblem(configuration.getLocale());
+                        }
+
+                        @Override
+                        protected MatchReport.Problem visitExecutable(ExecutableElement element,
+                            ExecutableElement otherElement) {
+                            return transformedCode.createProblem(configuration.getLocale());
                         }
                     }, newE.getModelElement());
                 }
             }, null);
     }
-
-    protected abstract MatchReport.Problem createProblem();
-
-    protected abstract Code getCodeToTransform();
 }

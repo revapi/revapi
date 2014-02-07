@@ -30,7 +30,8 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testAnnotationAdded() throws Exception {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/annotations/Added.java", "v2/annotations/Added.java");
+        runAnalysis(reporter, new String[]{"v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java"},
+            new String[]{"v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java"});
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ADDED.code()));
     }
@@ -38,7 +39,8 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testAnnotationRemoved() throws Exception {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v2/annotations/Added.java", "v1/annotations/Added.java");
+        runAnalysis(reporter, new String[]{"v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java"},
+            new String[]{"v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java"});
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_REMOVED.code()));
     }
@@ -81,6 +83,22 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
         runAnalysis(reporter, "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED.code()));
+    }
+
+    @Test
+    public void testElementDeprecated() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ELEMENT_NOW_DEPRECATED.code()));
+    }
+
+    @Test
+    public void testElementNoLongerDeprecated() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v2/annotations/Attributes.java", "v1/annotations/Attributes.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ELEMENT_NO_LONGER_DEPRECATED.code()));
     }
 
     //TODO also check for situation where the annotation used is not on the classpath - wonder how that behaves

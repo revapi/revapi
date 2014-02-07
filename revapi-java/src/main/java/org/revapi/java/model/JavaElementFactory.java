@@ -51,4 +51,26 @@ final class JavaElementFactory {
         //TODO we're missing wrappers for TypeParameterElement and PackageElement.
         //I could see use for PackageElement, because packages can have annotations on them
     }
+
+    public static int compareByType(org.revapi.Element a, org.revapi.Element b) {
+        int ar = a == null ? -1 : getModelTypeRank(a.getClass());
+        int br = b == null ? -1 : getModelTypeRank(b.getClass());
+        return ar - br;
+    }
+
+    private static int getModelTypeRank(Class<?> cls) {
+        if (cls == AnnotationElement.class) {
+            return 4;
+        } else if (cls == FieldElement.class) {
+            return 1;
+        } else if (cls == MethodElement.class) {
+            return 2;
+        } else if (cls == MethodParameterElement.class) {
+            return 3;
+        } else if (cls == TypeElement.class) {
+            return 0;
+        } else {
+            return -1;
+        }
+    }
 }

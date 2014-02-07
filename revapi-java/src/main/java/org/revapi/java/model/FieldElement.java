@@ -34,7 +34,7 @@ public final class FieldElement extends JavaElementBase<VariableElement> {
     @Override
     public int compareTo(Element o) {
         if (!(o instanceof FieldElement)) {
-            return -1;
+            return JavaElementFactory.compareByType(this, o);
         }
 
         return element.getSimpleName().toString()

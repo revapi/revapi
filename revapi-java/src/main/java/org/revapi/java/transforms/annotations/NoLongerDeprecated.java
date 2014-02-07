@@ -14,12 +14,18 @@
  * limitations under the License
  */
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Target;
+package org.revapi.java.transforms.annotations;
 
-@Inherited
-@Target(ElementType.TYPE)
-public @interface InheritedAnnotation {
+import org.revapi.java.checks.Code;
+
+/**
+ * @author Lukas Krejci
+ * @since 0.1
+ */
+public final class NoLongerDeprecated extends AbstractAnnotationPresenceCheck {
+
+    public NoLongerDeprecated() {
+        super("java.lang.Deprecated", Code.ANNOTATION_REMOVED, Code.ELEMENT_NO_LONGER_DEPRECATED);
+    }
 
 }

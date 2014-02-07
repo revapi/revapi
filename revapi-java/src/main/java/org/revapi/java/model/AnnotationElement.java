@@ -57,7 +57,7 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
     @Override
     public int compareTo(Element o) {
         if (!(o instanceof AnnotationElement)) {
-            return 1;
+            return JavaElementFactory.compareByType(this, o);
         }
 
         return toString().compareTo(o.toString());
@@ -65,6 +65,6 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
 
     @Override
     public String toString() {
-        return Util.toHumanReadableString(annotation.getAnnotationType());
+        return "@" + Util.toHumanReadableString(annotation.getAnnotationType());
     }
 }

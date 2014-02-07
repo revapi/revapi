@@ -14,9 +14,7 @@
  * limitations under the License
  */
 
-import java.lang.Deprecated;
-
-@Deprecated
+@InheritedAnnotation
 public class Added {
 
 }

@@ -33,7 +33,7 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
     @Override
     public int compareTo(Element o) {
         if (!(o instanceof MethodParameterElement)) {
-            return 1;
+            return JavaElementFactory.compareByType(this, o);
         }
 
         return toString().compareTo(o.toString());
