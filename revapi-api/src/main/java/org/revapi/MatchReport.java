@@ -126,6 +126,17 @@ public final class MatchReport {
             List<?> tmp2 = new ArrayList<>(attachments);
             this.attachments = Collections.unmodifiableList(tmp2);
         }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("Problem[");
+            sb.append("code='").append(code).append('\'');
+            sb.append(", name='").append(name).append('\'');
+            sb.append(", classification=").append(classification);
+            sb.append(", description='").append(description).append('\'');
+            sb.append(']');
+            return sb.toString();
+        }
     }
 
     public static final class Builder {
@@ -180,5 +191,15 @@ public final class MatchReport {
 
     public List<Problem> getProblems() {
         return problems;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("MatchReport[");
+        sb.append("oldElement=").append(oldElement.getFullHumanReadableString());
+        sb.append(", newElement=").append(newElement.getFullHumanReadableString());
+        sb.append(", problems=").append(problems);
+        sb.append(']');
+        return sb.toString();
     }
 }

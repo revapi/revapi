@@ -34,7 +34,12 @@
         </dependency>
 
         <dependency>
-            <groupId>org.revapi</groupId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+        <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
             <scope>runtime</scope>
         </dependency>

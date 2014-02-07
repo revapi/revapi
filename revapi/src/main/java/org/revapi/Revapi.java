@@ -29,6 +29,9 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.revapi.query.CompoundFilter;
 
 /**
@@ -36,6 +39,8 @@ import org.revapi.query.CompoundFilter;
  * @since 1.0
  */
 public final class Revapi {
+    private static final Logger LOG = LoggerFactory.getLogger(Revapi.class);
+
     public static final class Builder {
         private Set<ApiAnalyzer> analyzers = Collections.emptySet();
         private Set<Reporter> reporters = Collections.emptySet();
@@ -310,16 +315,48 @@ public final class Revapi {
             }
 
             if (analyzeThis) {
-                report(elementAnalyzer.endAnalysis(a, b));
+                transformAndReport(elementAnalyzer.endAnalysis(a, b));
             }
         }
     }
 
-    private void report(MatchReport matchReport) {
+    private void transformAndReport(MatchReport matchReport) {
         if (matchReport == null) {
             return;
         }
 
+        int iteration = 0;
+        boolean changed;
+        do {
+            changed = false;
+
+            for (ProblemTransform t : availableProblemTransforms) {
+                ListIterator<MatchReport.Problem> it = matchReport.getProblems().listIterator();
+                while (it.hasNext()) {
+                    MatchReport.Problem p = it.next();
+                    MatchReport.Problem tp = t.transform(matchReport.getOldElement(), matchReport.getNewElement(), p);
+                    if (tp == null) {
+                        //ignore it now.. we detecting changes transforms want to do... once the changes are done,
+                        //we'll loop through once more and remove the problems that the transforms want removed
+                    } else if (tp != p) { //yes, reference equality is OK here
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Problem transform {} transforms {} to  {}", t.getClass(), p, tp);
+                        }
+                        it.set(tp);
+                        changed = true;
+                    }
+                }
+            }
+
+            iteration++;
+
+            if (iteration % 100 == 0) {
+                LOG.warn("Transformation of problems in match report " + matchReport + " has cycled " + iteration +
+                    " times. Maybe we're in an infinite loop with problems transforming back and forth?");
+            }
+        } while (changed);
+
+        //now remove the problems that the transforms want removed
         for (ProblemTransform t : availableProblemTransforms) {
             ListIterator<MatchReport.Problem> it = matchReport.getProblems().listIterator();
             while (it.hasNext()) {
@@ -327,14 +364,14 @@ public final class Revapi {
                 MatchReport.Problem tp = t.transform(matchReport.getOldElement(), matchReport.getNewElement(), p);
                 if (tp == null) {
                     it.remove();
-                } else if (tp != p) { //yes, reference equality is OK here
-                    it.set(tp);
                 }
             }
         }
 
-        for (Reporter reporter : availableReporters) {
-            reporter.report(matchReport);
+        if (!matchReport.getProblems().isEmpty()) {
+            for (Reporter reporter : availableReporters) {
+                reporter.report(matchReport);
+            }
         }
     }
 }
