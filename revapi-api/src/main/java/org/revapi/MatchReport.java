@@ -89,7 +89,7 @@ public final class MatchReport {
             }
         }
 
-        public static Builder create() {
+        public static Builder builder() {
             return new Builder(null);
         }
 
@@ -133,7 +133,7 @@ public final class MatchReport {
         private Element newElement;
         private ArrayList<Problem> problems = new ArrayList<>();
 
-        private Builder withOld(Element element) {
+        public Builder withOld(Element element) {
             oldElement = element;
             return this;
         }
@@ -152,7 +152,7 @@ public final class MatchReport {
         }
     }
 
-    public static Builder create() {
+    public static Builder builder() {
         return new Builder();
     }
 

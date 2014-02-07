@@ -32,5 +32,11 @@
             <groupId>org.revapi</groupId>
             <artifactId>revapi-api</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-basic-features</artifactId>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 </project>

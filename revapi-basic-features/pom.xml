@@ -25,43 +25,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>revapi-java</artifactId>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.revapi</groupId>
-                <artifactId>revapi-java-spi</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.jboss.shrinkwrap</groupId>
-                <artifactId>shrinkwrap-bom</artifactId>
-                <version>1.0.1</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <artifactId>revapi-basic-features</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-java-spi</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>4.1</version>
-        </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -74,21 +40,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.jboss.shrinkwrap</groupId>
-            <artifactId>shrinkwrap-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.shrinkwrap</groupId>
-            <artifactId>shrinkwrap-impl-base</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi</artifactId>
-            <scope>test</scope>
+            <artifactId>revapi-api</artifactId>
         </dependency>
     </dependencies>
 </project>

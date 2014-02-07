@@ -121,7 +121,7 @@ public enum Code {
 
     public MatchReport.Problem createProblem(Locale locale) {
         Message message = getMessages(locale).get(code);
-        MatchReport.Problem.Builder bld = MatchReport.Problem.create().withCode(code).withName(message.name)
+        MatchReport.Problem.Builder bld = MatchReport.Problem.builder().withCode(code).withName(message.name)
             .withDescription(message.description);
         for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {
             bld.addClassification(e.getKey(), e.getValue());
@@ -133,7 +133,7 @@ public enum Code {
     public MatchReport.Problem createProblem(Locale locale, Object[] params, Object... attachments) {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, params);
-        MatchReport.Problem.Builder bld = MatchReport.Problem.create().withCode(code).withName(message.name)
+        MatchReport.Problem.Builder bld = MatchReport.Problem.builder().withCode(code).withName(message.name)
             .withDescription(description).addAttachments(attachments);
 
         for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {

@@ -46,12 +46,6 @@
             </dependency>
 
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.11</version>
-            </dependency>
-
-            <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-java</artifactId>
                 <version>${project.version}</version>
@@ -61,6 +55,30 @@
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-java-spi</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-basic-features</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.11</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.5</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>0.9.29</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -80,6 +98,7 @@
         <module>revapi-java-spi</module>
         <module>revapi-maven-plugin</module>
         <module>revapi-reporting-text</module>
+        <module>revapi-basic-features</module>
     </modules>
 
     <build>
