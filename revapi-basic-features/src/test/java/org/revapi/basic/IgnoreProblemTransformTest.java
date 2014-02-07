@@ -90,4 +90,6 @@ public class IgnoreProblemTransformTest {
         problem = t.transform(oldE, newE, problem);
         Assert.assertNull(problem);
     }
+
+    //TODO add tests for old and new element matching
 }
