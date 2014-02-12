@@ -65,22 +65,19 @@ public final class ProbingAnnotationProcessor extends AbstractProcessor {
         return false;
     }
 
-    public <T> Future<T> waitForProcessingAndExecute(ExecutorService executor, final Callable<T> task)
-        throws Exception {
+    public <T> Future<T> submitWithCompilationAwareness(ExecutorService executor, final Callable<T> task)
+    throws Exception {
 
-        Future<T> ret = executor.submit(new Callable<T>() {
+        return executor.submit(new Callable<T>() {
             @Override
             public T call() throws Exception {
                 try {
-                    T ret = task.call();
-                    return ret;
+                    return task.call();
                 } finally {
                     releaseCompilationProgress();
                 }
             }
         });
-
-        return ret;
     }
 
     private void releaseCompilationProgress() {

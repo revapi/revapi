@@ -62,11 +62,11 @@ public final class ProbingEnvironment implements TypeEnvironment {
 
     @Override
     public Elements getElementUtils() {
-        return processingEnvironment.getElementUtils();
+        return processingEnvironment == null ? null : processingEnvironment.getElementUtils();
     }
 
     @Override
     public Types getTypeUtils() {
-        return processingEnvironment.getTypeUtils();
+        return processingEnvironment == null ? null : processingEnvironment.getTypeUtils();
     }
 }

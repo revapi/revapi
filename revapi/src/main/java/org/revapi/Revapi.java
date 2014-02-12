@@ -302,7 +302,8 @@ public final class Revapi {
             Element a = it.getLeft();
             Element b = it.getRight();
 
-            boolean analyzeThis = availableFilters.applies(a) && availableFilters.applies(b);
+            boolean analyzeThis =
+                (a == null || availableFilters.applies(a)) && (b == null || availableFilters.applies(b));
 
             if (analyzeThis) {
                 elementAnalyzer.beginAnalysis(a, b);

@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi.java.classes.misc;
+package misc;
 
 /**
  * @author Lukas Krejci
@@ -22,7 +22,7 @@ package org.revapi.java.classes.misc;
  */
 public class B extends A {
     int f1;
-    TopLevelPrivate f2;
+    public TopLevelPrivate f2;
     String f3;
 
     @Deprecated

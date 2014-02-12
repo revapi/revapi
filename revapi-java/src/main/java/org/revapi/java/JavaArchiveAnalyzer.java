@@ -18,14 +18,11 @@ package org.revapi.java;
 
 import java.io.StringWriter;
 import java.util.Iterator;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.revapi.Archive;
 import org.revapi.ArchiveAnalyzer;
+import org.revapi.java.compilation.CompilationFuture;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.Compiler;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -58,7 +55,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
             compilationValve = compiler.compile(probingEnvironment);
 
             probingEnvironment.getTree()
-                .setCompilationFuture(new CompilationFuture(probingEnvironment, output));
+                .setCompilationFuture(new CompilationFuture(compilationValve, output));
 
             return probingEnvironment.getTree();
         } catch (Exception e) {
@@ -91,54 +88,4 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         return bld.toString();
     }
 
-    private static class CompilationFuture implements Future<Void> {
-        private final ProbingEnvironment env;
-        private final StringWriter output;
-
-        private CompilationFuture(ProbingEnvironment env, StringWriter output) {
-            this.env = env;
-            this.output = output;
-        }
-
-        @Override
-        public boolean cancel(boolean mayInterruptIfRunning) {
-            return false;
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return false;
-        }
-
-        @Override
-        public boolean isDone() {
-            return env.getCompilationProgressLatch().getCount() == 0;
-        }
-
-        @Override
-        public Void get() throws InterruptedException, ExecutionException {
-            env.getCompilationProgressLatch().await();
-            if (output.getBuffer().length() > 0) {
-                throw new ExecutionException(
-                    new Exception("Compilation failed while analyzing " + env.getName() + ":\n" + output.toString()));
-            }
-            return null;
-        }
-
-        @Override
-        public Void get(long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
-
-            if (!env.getCompilationProgressLatch().await(timeout, unit)) {
-                throw new TimeoutException();
-            }
-
-            if (output.getBuffer().length() > 0) {
-                throw new ExecutionException(
-                    new Exception("Compilation failed while analyzing " + env.getName() + ":\n" + output.toString()));
-            }
-
-            return null;
-        }
-    }
 }

@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -32,6 +33,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
 import org.revapi.Archive;
+import org.revapi.java.model.ClassTreeInitializer;
 
 /**
  * @author Lukas Krejci
@@ -58,7 +60,7 @@ public final class Compiler {
         this.additionalClassPath = additionalClassPath;
     }
 
-    public CompilationValve compile(ProbingEnvironment environment) throws Exception {
+    public CompilationValve compile(final ProbingEnvironment environment) throws Exception {
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
 
         File sourceDir = new File(targetPath, "sources");
@@ -77,7 +79,7 @@ public final class Compiler {
 
         List<JavaFileObject> sources = Arrays.<JavaFileObject>asList(
             new MarkerAnnotationObject(),
-            new ArchiveProbeObject(classPath, additionalClassPath, environment)
+            new ArchiveProbeObject()
         );
 
         final JavaCompiler.CompilationTask task = compiler
@@ -88,7 +90,14 @@ public final class Compiler {
 
         task.setProcessors(Arrays.asList(processor));
 
-        Future<Boolean> future = processor.waitForProcessingAndExecute(executor, task);
+        Future<Boolean> future = processor.submitWithCompilationAwareness(executor, new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                new ClassTreeInitializer(classPath, additionalClassPath, environment).initTree();
+
+                return task.call();
+            }
+        });
 
         return new CompilationValve(future, targetPath, environment);
     }

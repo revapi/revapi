@@ -23,6 +23,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
+import org.revapi.java.JavaElement;
 import org.revapi.java.JavaModelElement;
 import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -36,6 +37,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
 
     protected final ProbingEnvironment environment;
     protected T element;
+    private boolean initializedChildren;
 
     public JavaElementBase(ProbingEnvironment env, T element) {
         this.environment = env;
@@ -58,36 +60,35 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
 
     @Override
     @SuppressWarnings("unchecked")
-    public SortedSet<JavaModelElement> getChildren() {
-        return (SortedSet<JavaModelElement>) super.getChildren();
-    }
+    public SortedSet<JavaElement> getChildren() {
+        if (!initializedChildren) {
+            SortedSet<JavaElement> set = (SortedSet<JavaElement>) super.getChildren();
 
-    @Override
-    public final String toString() {
-        return Util.toHumanReadableString(getModelElement());
-    }
-
-    @Override
-    protected SortedSet<org.revapi.Element> newChildrenInstance() {
-        SortedSet<org.revapi.Element> set = super.newChildrenInstance();
-
-        if (getModelElement() == null) {
-            return set;
-        }
-
-        for (Element e : getModelElement().getEnclosedElements()) {
-            JavaModelElement child = JavaElementFactory.elementFor(e, environment);
-            if (child != null) {
-                child.setParent(this);
-
-                set.add(child);
+            if (getModelElement() == null) {
+                return set;
             }
+
+            for (Element e : getModelElement().getEnclosedElements()) {
+                JavaModelElement child = JavaElementFactory.elementFor(e, environment);
+                if (child != null) {
+                    child.setParent(this);
+
+                    set.add(child);
+                }
+            }
+
+            for (AnnotationMirror m : getModelElement().getAnnotationMirrors()) {
+                set.add(new AnnotationElement(environment, m));
+            }
+
+            initializedChildren = true;
         }
 
-        for (AnnotationMirror m : getModelElement().getAnnotationMirrors()) {
-            set.add(new AnnotationElement(environment, m));
-        }
+        return (SortedSet<JavaElement>) super.getChildren();
+    }
 
-        return set;
+    @Override
+    public String toString() {
+        return Util.toHumanReadableString(getModelElement());
     }
 }

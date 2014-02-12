@@ -16,6 +16,7 @@
 
 package org.revapi.java.model;
 
+import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -46,7 +47,7 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
 
     @Override
     public javax.lang.model.element.TypeElement getModelElement() {
-        if (element == null) {
+        if (element == null && environment.getElementUtils() != null) {
             element = environment.getElementUtils().getTypeElement(canonicalName);
         }
         return element;
@@ -67,5 +68,11 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
         }
 
         return binaryName.compareTo(((TypeElement) o).binaryName);
+    }
+
+    @Override
+    public String toString() {
+        javax.lang.model.element.TypeElement el = getModelElement();
+        return el == null ? canonicalName : Util.toHumanReadableString(el);
     }
 }

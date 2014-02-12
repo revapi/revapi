@@ -18,8 +18,11 @@ public class B {
 
     public static class T$1 {
         public static class TT$1 {
+            public T$2 f;
         }
     };
 
-    public static class T$2 {};
+    public static class T$2 {
+        public T$1 f;
+    };
 }

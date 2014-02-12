@@ -14,17 +14,27 @@
  * limitations under the License
  */
 
-public class B {
-    public static class T$1 {
-        /** this change should be ignored, because it is not "visible" from the API defined by A. */
-        public static interface TT$1 {
-        }
-    };
+package org.revapi.java.model;
 
-    /**
-     * this change though, should be detected, because T2 is technically part of the API, because it is leaked into
-     * the API as a type of public field in class A.
-     */
-    public static final class T$2 {};
+import org.revapi.Element;
+import org.revapi.java.compilation.ProbingEnvironment;
 
+/**
+ * TODO incorporate this into ClassTreeInitializer, Util.* and, element analyzer, etc.
+ *
+ * @author Lukas Krejci
+ * @since 0.1
+ */
+public class PackageElement extends JavaElementBase<javax.lang.model.element.PackageElement> {
+
+    public PackageElement(ProbingEnvironment env,
+        javax.lang.model.element.PackageElement element) {
+        super(env, element);
+    }
+
+    @Override
+    public int compareTo(Element o) {
+        //TODO implement
+        return 0;
+    }
 }

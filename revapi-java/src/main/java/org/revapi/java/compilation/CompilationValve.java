@@ -46,6 +46,14 @@ public final class CompilationValve {
         this.environment = env;
     }
 
+    ProbingEnvironment getEnvironment() {
+        return environment;
+    }
+
+    Future<Boolean> getCompilationResult() {
+        return compilationResult;
+    }
+
     public void removeCompiledResults() {
 
         if (LOG.isTraceEnabled()) {

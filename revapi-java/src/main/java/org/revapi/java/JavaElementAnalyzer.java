@@ -21,6 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.revapi.Configuration;
 import org.revapi.Element;
 import org.revapi.ElementAnalyzer;
@@ -37,6 +40,8 @@ import org.revapi.java.model.TypeElement;
  * @since 0.1
  */
 public final class JavaElementAnalyzer implements ElementAnalyzer {
+    private static final Logger LOG = LoggerFactory.getLogger(JavaElementAnalyzer.class);
+
     private final Iterable<Check> checks;
     private final CompilationValve oldCompilationValve;
     private final CompilationValve newCompilationValve;
@@ -71,12 +76,15 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
 
     @Override
     public void tearDown() {
+        LOG.trace("Tearing down compilation results");
         oldCompilationValve.removeCompiledResults();
         newCompilationValve.removeCompiledResults();
     }
 
     @Override
     public void beginAnalysis(Element oldElement, Element newElement) {
+        LOG.trace("Beginning analysis of {} and {}.", oldElement, newElement);
+
         if (conforms(oldElement, newElement, TypeElement.class)) {
             for (Check c : checks) {
                 c.visitClass(oldElement == null ? null : ((TypeElement) oldElement).getModelElement(),
@@ -136,6 +144,11 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
             problems.addAll(lastAnnotationResults);
             lastAnnotationResults.clear();
         }
+
+        if (!problems.isEmpty()) {
+            LOG.trace("Detected following problems: ", problems);
+        }
+        LOG.trace("Ended analysis of {} and  {}.", oldElement, newElement);
 
         return new MatchReport(problems, oldElement, newElement);
     }

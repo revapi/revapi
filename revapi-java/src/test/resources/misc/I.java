@@ -14,28 +14,11 @@
  * limitations under the License
  */
 
-package org.revapi.java.classes.misc;
+package misc;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class A implements I {
-
-    public static class AA {
-
-    }
-
-    public class AAA {
-        public class AAAA {
-            private void m() {
-                Object o = new Object() {
-                };
-            }
-        }
-    }
-}
-
-class TopLevelPrivate {
-    int f1;
+public interface I {
 }

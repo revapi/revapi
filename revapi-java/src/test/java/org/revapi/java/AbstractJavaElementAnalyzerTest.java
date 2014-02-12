@@ -188,6 +188,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
     };
 
+    @SuppressWarnings("ConstantConditions")
     protected ArchiveAndCompilationPath createCompiledJar(String jarName, String... sourceFiles) throws Exception {
         File targetPath = Files.createTempDirectory("element-analyzer-test-" + jarName + ".jar-").toAbsolutePath()
             .toFile();

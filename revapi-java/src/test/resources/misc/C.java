@@ -14,11 +14,11 @@
  * limitations under the License
  */
 
-package org.revapi.java.classes.misc;
+package misc;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class D extends C implements I {
+public class C {
 }
