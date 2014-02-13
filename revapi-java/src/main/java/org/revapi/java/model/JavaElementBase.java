@@ -23,6 +23,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
+import org.revapi.API;
 import org.revapi.java.JavaElement;
 import org.revapi.java.JavaModelElement;
 import org.revapi.java.Util;
@@ -42,6 +43,11 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     public JavaElementBase(ProbingEnvironment env, T element) {
         this.environment = env;
         this.element = element;
+    }
+
+    @Override
+    public API getApi() {
+        return environment.getApi();
     }
 
     @Override
@@ -65,6 +71,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
             SortedSet<JavaElement> set = (SortedSet<JavaElement>) super.getChildren();
 
             if (getModelElement() == null) {
+                //wait with the initialization until we have the model element ready
                 return set;
             }
 

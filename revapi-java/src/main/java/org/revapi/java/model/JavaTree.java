@@ -21,6 +21,7 @@ import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.query.Filter;
 import org.revapi.simple.SimpleTree;
@@ -40,7 +41,8 @@ public final class JavaTree extends SimpleTree {
     };
 
 
-    public JavaTree() {
+    public JavaTree(API api) {
+        super(api);
     }
 
     public void setCompilationFuture(Future<?> compilation) {

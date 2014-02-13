@@ -82,7 +82,7 @@ public final class ProbingAnnotationProcessor extends AbstractProcessor {
 
     private void releaseCompilationProgress() {
         if (LOG.isTraceEnabled() && environment.getCompilationProgressLatch().getCount() > 0) {
-            LOG.trace("Releasing compilation progress for " + environment.getName());
+            LOG.trace("Releasing compilation progress for " + environment.getApi());
         }
         environment.getCompilationProgressLatch().countDown();
     }

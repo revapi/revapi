@@ -93,7 +93,7 @@ public final class Compiler {
         Future<Boolean> future = processor.submitWithCompilationAwareness(executor, new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                new ClassTreeInitializer(classPath, additionalClassPath, environment).initTree();
+                new ClassTreeInitializer(environment).initTree();
 
                 return task.call();
             }

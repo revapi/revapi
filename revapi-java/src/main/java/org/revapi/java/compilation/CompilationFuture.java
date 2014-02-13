@@ -65,7 +65,7 @@ public final class CompilationFuture implements Future<Void> {
 
         if (output.getBuffer().length() > 0) {
             throw new ExecutionException(
-                new Exception("Compilation failed while analyzing " + valve.getEnvironment().getName() + ":\n" +
+                new Exception("Compilation failed while analyzing " + valve.getEnvironment().getApi() + ":\n" +
                     output.toString()));
         }
         return null;
@@ -89,7 +89,7 @@ public final class CompilationFuture implements Future<Void> {
 
         if (output.getBuffer().length() > 0) {
             throw new ExecutionException(
-                new Exception("Compilation failed while analyzing " + valve.getEnvironment().getName() + ":\n" +
+                new Exception("Compilation failed while analyzing " + valve.getEnvironment().getApi() + ":\n" +
                     output.toString()));
         }
 

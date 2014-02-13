@@ -24,12 +24,17 @@ import java.util.Map;
  * @since 0.1
  */
 public final class Configuration {
+
     private final Locale locale;
     private final Map<String, String> properties;
+    private final API oldApi;
+    private final API newApi;
 
-    public Configuration(Locale locale, Map<String, String> properties) {
+    public Configuration(Locale locale, Map<String, String> properties, API oldApi, API newApi) {
         this.locale = locale;
         this.properties = properties;
+        this.oldApi = oldApi;
+        this.newApi = newApi;
     }
 
     public Locale getLocale() {
@@ -38,5 +43,13 @@ public final class Configuration {
 
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public API getOldApi() {
+        return oldApi;
+    }
+
+    public API getNewApi() {
+        return newApi;
     }
 }

@@ -23,7 +23,7 @@ package org.revapi;
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ElementAnalyzer {
+public interface ElementDifferenceAnalyzer {
 
     /**
      * Called right before the analysis starts. Can be used to "warm up" the analyzer.

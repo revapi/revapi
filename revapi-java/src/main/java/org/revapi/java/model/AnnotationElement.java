@@ -20,6 +20,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
+import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.java.JavaAnnotationElement;
 import org.revapi.java.Util;
@@ -37,6 +38,11 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
     public AnnotationElement(ProbingEnvironment environment, AnnotationMirror annotation) {
         this.environment = environment;
         this.annotation = annotation;
+    }
+
+    @Override
+    public API getApi() {
+        return environment.getApi();
     }
 
     @Override

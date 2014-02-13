@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.Tree;
 import org.revapi.query.Filter;
@@ -31,6 +32,16 @@ import org.revapi.query.Filter;
  */
 public class SimpleTree implements Tree {
     private SortedSet<? extends SimpleElement> roots;
+    private final API api;
+
+    protected SimpleTree(API api) {
+        this.api = api;
+    }
+
+    @Override
+    public API getApi() {
+        return api;
+    }
 
     @Override
     public SortedSet<? extends SimpleElement> getRoots() {

@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.revapi.API;
 import org.revapi.Archive;
 import org.revapi.java.model.JavaTree;
 import org.revapi.java.model.TypeElement;
@@ -63,9 +64,9 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             "misc/D.java", "misc/I.java");
 
         try {
-            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(
+            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null, Executors.newSingleThreadExecutor());
+                null), Executors.newSingleThreadExecutor());
 
             JavaTree tree = analyzer.analyze();
 
@@ -90,8 +91,8 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             .addAsResource(compRes.compilationPath.resolve("C.class").toFile(), "C.class");
 
         try {
-            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(Arrays.asList(new ShrinkwrapArchive(api)),
-                Arrays.asList(new ShrinkwrapArchive(sup)), Executors.newSingleThreadExecutor());
+            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
+                Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor());
 
             JavaTree tree = analyzer.analyze();
 

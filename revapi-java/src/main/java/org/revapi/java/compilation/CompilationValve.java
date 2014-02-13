@@ -57,7 +57,7 @@ public final class CompilationValve {
     public void removeCompiledResults() {
 
         if (LOG.isTraceEnabled()) {
-            LOG.trace("Releasing compilation environment for " + environment.getName());
+            LOG.trace("Releasing compilation environment for " + environment.getApi());
         }
         environment.getCompilationTeardownLatch().countDown();
 

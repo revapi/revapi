@@ -34,6 +34,11 @@ import org.revapi.query.Filter;
  */
 public interface Element extends Comparable<Element> {
 
+    /**
+     * @return the API version this element comes from
+     */
+    API getApi();
+
     Element getParent();
 
     void setParent(Element parent);

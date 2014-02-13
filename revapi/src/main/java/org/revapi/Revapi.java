@@ -172,7 +172,9 @@ public final class Revapi {
     private final Set<Reporter> availableReporters;
     private final Set<ProblemTransform> availableProblemTransforms;
     private final CompoundFilter<Element> availableFilters;
-    private final Configuration configuration;
+    private final Map<String, String> configurationProperties;
+    private final Locale locale;
+    private Configuration configuration;
 
     private static void usage() {
         System.out.println("Revapi <oldArchive> <newArchive>");
@@ -238,18 +240,24 @@ public final class Revapi {
         this.availableReporters = availableReporters;
         this.availableProblemTransforms = availableProblemTransforms;
         this.availableFilters = new CompoundFilter<>(elementFilters);
-        this.configuration = new Configuration(locale, configurationProperties);
+        this.configurationProperties = configurationProperties;
+        this.locale = locale;
     }
 
     public void analyze(Iterable<? extends Archive> oldArchives, Iterable<? extends Archive> oldSupplementaryArchives,
         Iterable<? extends Archive> newArchives, Iterable<? extends Archive> newSupplementaryArchives)
         throws IOException {
+
+        this.configuration = new Configuration(locale, configurationProperties,
+            new API(oldArchives, oldSupplementaryArchives),
+            new API(newArchives, newSupplementaryArchives));
+
         initReporters();
         initAnalyzers();
-        initProblemFilters();
+        initProblemTransforms();
 
         for (ApiAnalyzer analyzer : availableApiAnalyzers) {
-            analyzeWith(analyzer, oldArchives, oldSupplementaryArchives, newArchives, newSupplementaryArchives);
+            analyzeWith(analyzer, configuration.getOldApi(), configuration.getNewApi());
         }
     }
 
@@ -265,33 +273,36 @@ public final class Revapi {
         }
     }
 
-    private void initProblemFilters() {
+    private void initProblemTransforms() {
         for (ProblemTransform f : availableProblemTransforms) {
             f.initialize(configuration);
         }
     }
 
-    private void analyzeWith(ApiAnalyzer apiAnalyzer, Iterable<? extends Archive> oldArchives,
-        Iterable<? extends Archive> oldSupplementaryArchives, Iterable<? extends Archive> newArchives,
-        Iterable<? extends Archive> newSupplementaryArchives)
-        throws IOException {
-        ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldArchives, oldSupplementaryArchives);
-        ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newArchives, newSupplementaryArchives);
+    private void analyzeWith(ApiAnalyzer apiAnalyzer, API oldApi, API newApi)
+    throws IOException {
+        ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
+        ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
 
         Tree oldTree = oldAnalyzer.analyze();
         Tree newTree = newAnalyzer.analyze();
 
-        ElementAnalyzer elementAnalyzer = apiAnalyzer.getElementAnalyzer(oldAnalyzer, newAnalyzer);
+        ElementDifferenceAnalyzer elementDifferenceAnalyzer = apiAnalyzer.getElementAnalyzer(oldAnalyzer, newAnalyzer);
 
         SortedSet<? extends Element> as = oldTree.getRoots();
         SortedSet<? extends Element> bs = newTree.getRoots();
 
-        elementAnalyzer.setup();
-        analyze(elementAnalyzer, as, bs);
-        elementAnalyzer.tearDown();
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Old tree: {}", oldTree);
+            LOG.trace("New tree: {}", newTree);
+        }
+
+        elementDifferenceAnalyzer.setup();
+        analyze(elementDifferenceAnalyzer, as, bs);
+        elementDifferenceAnalyzer.tearDown();
     }
 
-    private void analyze(ElementAnalyzer elementAnalyzer,
+    private void analyze(ElementDifferenceAnalyzer elementDifferenceAnalyzer,
         SortedSet<? extends Element> as, SortedSet<? extends Element> bs) {
 
         CoIterator<Element> it = new CoIterator<>(as.iterator(), bs.iterator());
@@ -306,17 +317,17 @@ public final class Revapi {
                 (a == null || availableFilters.applies(a)) && (b == null || availableFilters.applies(b));
 
             if (analyzeThis) {
-                elementAnalyzer.beginAnalysis(a, b);
+                elementDifferenceAnalyzer.beginAnalysis(a, b);
             }
 
             if (a != null && b != null && availableFilters.shouldDescendInto(a) &&
                 availableFilters.shouldDescendInto(b)) {
 
-                analyze(elementAnalyzer, a.getChildren(), b.getChildren());
+                analyze(elementDifferenceAnalyzer, a.getChildren(), b.getChildren());
             }
 
             if (analyzeThis) {
-                transformAndReport(elementAnalyzer.endAnalysis(a, b));
+                transformAndReport(elementDifferenceAnalyzer.endAnalysis(a, b));
             }
         }
     }

@@ -28,6 +28,9 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -49,15 +52,9 @@ public final class ClassTreeInitializer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassTreeInitializer.class);
 
-    private final Iterable<? extends Archive> archives;
-    private final Iterable<? extends Archive> supplementaryArchives;
     private final ProbingEnvironment environment;
 
-    public ClassTreeInitializer(Iterable<? extends Archive> archives,
-        Iterable<? extends Archive> supplementaryArchives,
-        ProbingEnvironment environment) {
-        this.archives = archives;
-        this.supplementaryArchives = supplementaryArchives;
+    public ClassTreeInitializer(ProbingEnvironment environment) {
         this.environment = environment;
     }
 
@@ -69,7 +66,7 @@ public final class ClassTreeInitializer {
         do {
             Set<String> oldAdditionalClasses = new HashSet<>(additionalClasses);
 
-            for (Archive a : archives) {
+            for (Archive a : environment.getApi().getArchives()) {
                 LOG.trace("Processing archive {}", a.getName());
                 processArchive(a, additionalClasses, secondRunOrSupplementaryArchives);
             }
@@ -78,8 +75,8 @@ public final class ClassTreeInitializer {
 
             LOG.trace("Identified additional API classes to be found in classpath: {}", additionalClasses);
 
-            if (supplementaryArchives != null) {
-                for (Archive a : supplementaryArchives) {
+            if (environment.getApi().getSupplementaryArchives() != null) {
+                for (Archive a : environment.getApi().getSupplementaryArchives()) {
                     LOG.trace("Processing archive {}", a.getName());
                     processArchive(a, additionalClasses, secondRunOrSupplementaryArchives);
                 }
@@ -103,28 +100,14 @@ public final class ClassTreeInitializer {
 
         if (!additionalClasses.isEmpty()) {
             List<String> names = new ArrayList<>();
-            for (Archive a : archives) {
-                names.add(a.getName());
-            }
-
             throw new IllegalStateException(
-                "The following classes that contribute to the public API of " + names + " could not be located: " +
+                "The following classes that contribute to the public API of " + environment.getApi() +
+                    " could not be located: " +
                     additionalClasses);
         }
 
         if (LOG.isTraceEnabled()) {
-            List<String> names = new ArrayList<>();
-            for (Archive a : archives) {
-                names.add(a.getName());
-            }
-
-            List<String> supNames = new ArrayList<>();
-            if (supplementaryArchives != null) {
-                for (Archive a : supplementaryArchives) {
-                    supNames.add(a.getName());
-                }
-            }
-            LOG.trace("Public API class tree in {} + {} initialized to: {}", names, supNames, environment.getTree());
+            LOG.trace("Public API class tree in {} initialized to: {}", environment.getApi(), environment.getTree());
         }
     }
 
@@ -182,7 +165,7 @@ public final class ClassTreeInitializer {
 
                 mainName = name;
                 mainAccess = access;
-                isPublicAPI = (mainAccess & Opcodes.ACC_PUBLIC) != 0 || (mainAccess & Opcodes.ACC_PROTECTED) != 0;
+                isPublicAPI = isPublic(mainAccess);
                 if (onlyAddAdditional && !isPublicAPI) {
                     //the class is part of the public API if some other class declared in a public capacity.
                     //if the class itself is not public then we have a check that will report such class as "suspicious".
@@ -201,7 +184,7 @@ public final class ClassTreeInitializer {
             @Override
             public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
                 //only consider public or protected fields - only those contribute to the API
-                if (isPublicAPI && (access & Opcodes.ACC_PUBLIC) != 0 || (access & Opcodes.ACC_PROTECTED) != 0) {
+                if (isPublicAPI && isPublic(access)) {
                     addToAdditionalClasses(Type.getType(desc));
                 }
                 return null;
@@ -259,7 +242,7 @@ public final class ClassTreeInitializer {
             public MethodVisitor visitMethod(int access, String name, String desc, String signature,
                 String[] exceptions) {
                 //only consider public or protected methods - only those contribute to the API
-                if (isPublicAPI && (access & Opcodes.ACC_PUBLIC) != 0 || (access & Opcodes.ACC_PROTECTED) != 0) {
+                if (isPublicAPI && isPublic(access)) {
                     addToAdditionalClasses(Type.getReturnType(desc));
                     for (Type t : Type.getArgumentTypes(desc)) {
                         addToAdditionalClasses(t);
@@ -450,4 +433,11 @@ public final class ClassTreeInitializer {
         return found.isEmpty() ? null : found.get(0);
     }
 
+    public static boolean isPublic(Element element) {
+        return element.getModifiers().contains(Modifier.PUBLIC) || element.getModifiers().contains(Modifier.PROTECTED);
+    }
+
+    private static boolean isPublic(int access) {
+        return (access & Opcodes.ACC_PUBLIC) != 0 || (access & Opcodes.ACC_PROTECTED) != 0;
+    }
 }

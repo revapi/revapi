@@ -28,15 +28,10 @@ public interface ApiAnalyzer {
      * This method is called exactly twice during the API difference analysis. The first time it is called to obtain
      * an archive analyzer for the old version of the archives and the second time for the new version of the archives.
      *
-     * @param archives              the archives to obtain an analyzer for
-     * @param supplementaryArchives the set of archives that somehow supplement the main ones (for example they contain
-     *                              definitions used in the main archives). In Java, supplementary archives would be
-     *                              the JARs that need to be on the compilation classpath. Can be null if no such
-     *                              archives are needed.
+     * @param api the api to analyze
      * @return the analyzer for the supplied archives
      */
-    ArchiveAnalyzer getArchiveAnalyzer(Iterable<? extends Archive> archives,
-        Iterable<? extends Archive> supplementaryArchives);
+    ArchiveAnalyzer getArchiveAnalyzer(API api);
 
     /**
      * This method is called exactly once during the API difference analysis and produces an element analyzer which
@@ -48,5 +43,5 @@ public interface ApiAnalyzer {
      *
      * @return an element analyzer
      */
-    ElementAnalyzer getElementAnalyzer(ArchiveAnalyzer oldArchive, ArchiveAnalyzer newArchive);
+    ElementDifferenceAnalyzer getElementAnalyzer(ArchiveAnalyzer oldArchive, ArchiveAnalyzer newArchive);
 }

@@ -17,10 +17,9 @@
 package org.revapi.java;
 
 import java.io.StringWriter;
-import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 
-import org.revapi.Archive;
+import org.revapi.API;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.java.compilation.CompilationFuture;
 import org.revapi.java.compilation.CompilationValve;
@@ -33,24 +32,21 @@ import org.revapi.java.model.JavaTree;
  * @since 0.1
  */
 public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
-    private final Iterable<? extends Archive> archives;
-    private final Iterable<? extends Archive> additionalClassPath;
+    private final API api;
     private final ExecutorService executor;
     private final ProbingEnvironment probingEnvironment;
     private CompilationValve compilationValve;
 
-    public JavaArchiveAnalyzer(Iterable<? extends Archive> archives,
-        Iterable<? extends Archive> additionalClassPath, ExecutorService compilationExecutor) {
-        this.archives = archives;
-        this.additionalClassPath = additionalClassPath;
+    public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor) {
+        this.api = api;
         this.executor = compilationExecutor;
-        this.probingEnvironment = new ProbingEnvironment(archivesToString());
+        this.probingEnvironment = new ProbingEnvironment(api);
     }
 
     @Override
     public JavaTree analyze() {
         StringWriter output = new StringWriter();
-        Compiler compiler = new Compiler(executor, output, archives, additionalClassPath);
+        Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives());
         try {
             compilationValve = compiler.compile(probingEnvironment);
 
@@ -59,7 +55,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
 
             return probingEnvironment.getTree();
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to analyze archives " + archivesToString(), e);
+            throw new IllegalStateException("Failed to analyze archives in api " + api, e);
         }
     }
 
@@ -70,22 +66,4 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     public CompilationValve getCompilationValve() {
         return compilationValve;
     }
-
-    private String archivesToString() {
-        Iterator<? extends Archive> it = archives.iterator();
-        StringBuilder bld = new StringBuilder("{");
-
-        if (it.hasNext()) {
-            bld.append(it.next().getName());
-        }
-
-        while (it.hasNext()) {
-            bld.append(", ").append(it.next().getName());
-        }
-
-        bld.append("}");
-
-        return bld.toString();
-    }
-
 }

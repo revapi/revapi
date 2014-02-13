@@ -22,6 +22,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
+import org.revapi.API;
 import org.revapi.java.TypeEnvironment;
 import org.revapi.java.model.JavaTree;
 
@@ -30,18 +31,19 @@ import org.revapi.java.model.JavaTree;
  * @since 0.1
  */
 public final class ProbingEnvironment implements TypeEnvironment {
-    private final String name;
+    private final API api;
     private volatile ProcessingEnvironment processingEnvironment;
     private final CountDownLatch compilationProgressLatch = new CountDownLatch(1);
     private final CountDownLatch compilationEnvironmentTeardownLatch = new CountDownLatch(1);
-    private final JavaTree tree = new JavaTree();
+    private final JavaTree tree;
 
-    public ProbingEnvironment(String name) {
-        this.name = name;
+    public ProbingEnvironment(API api) {
+        this.api = api;
+        this.tree = new JavaTree(api);
     }
 
-    public String getName() {
-        return name;
+    public API getApi() {
+        return api;
     }
 
     public CountDownLatch getCompilationTeardownLatch() {

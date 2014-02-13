@@ -19,11 +19,11 @@ package org.revapi.java;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.revapi.API;
 import org.revapi.ApiAnalyzer;
-import org.revapi.Archive;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Configuration;
-import org.revapi.ElementAnalyzer;
+import org.revapi.ElementDifferenceAnalyzer;
 import org.revapi.java.compilation.CompilationValve;
 
 /**
@@ -41,14 +41,12 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     }
 
     @Override
-    public ArchiveAnalyzer getArchiveAnalyzer(Iterable<? extends Archive> archives,
-        Iterable<? extends Archive> supplementaryArchives) {
-
-        return new JavaArchiveAnalyzer(archives, supplementaryArchives, compilationExecutor);
+    public ArchiveAnalyzer getArchiveAnalyzer(API api) {
+        return new JavaArchiveAnalyzer(api, compilationExecutor);
     }
 
     @Override
-    public ElementAnalyzer getElementAnalyzer(ArchiveAnalyzer oldArchive, ArchiveAnalyzer newArchive) {
+    public ElementDifferenceAnalyzer getElementAnalyzer(ArchiveAnalyzer oldArchive, ArchiveAnalyzer newArchive) {
         JavaArchiveAnalyzer oldA = (JavaArchiveAnalyzer) oldArchive;
         JavaArchiveAnalyzer newA = (JavaArchiveAnalyzer) newArchive;
 
@@ -57,6 +55,6 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         CompilationValve oldValve = oldA.getCompilationValve();
         CompilationValve newValve = newA.getCompilationValve();
 
-        return new JavaElementAnalyzer(configuration, oldEnvironment, oldValve, newEnvironment, newValve);
+        return new JavaElementDifferenceAnalyzer(configuration, oldEnvironment, oldValve, newEnvironment, newValve);
     }
 }

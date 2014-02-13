@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import org.revapi.Configuration;
 import org.revapi.Element;
-import org.revapi.ElementAnalyzer;
+import org.revapi.ElementDifferenceAnalyzer;
 import org.revapi.MatchReport;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.model.AnnotationElement;
@@ -39,8 +39,8 @@ import org.revapi.java.model.TypeElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class JavaElementAnalyzer implements ElementAnalyzer {
-    private static final Logger LOG = LoggerFactory.getLogger(JavaElementAnalyzer.class);
+public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAnalyzer {
+    private static final Logger LOG = LoggerFactory.getLogger(JavaElementDifferenceAnalyzer.class);
 
     private final Iterable<Check> checks;
     private final CompilationValve oldCompilationValve;
@@ -52,13 +52,15 @@ public final class JavaElementAnalyzer implements ElementAnalyzer {
     // coming for given parent.
     private List<MatchReport.Problem> lastAnnotationResults;
 
-    public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, CompilationValve oldValve,
+    public JavaElementDifferenceAnalyzer(Configuration configuration, TypeEnvironment oldClasses,
+        CompilationValve oldValve,
         TypeEnvironment newClasses, CompilationValve newValve) {
         this(configuration, oldClasses, oldValve, newClasses, newValve,
-            ServiceLoader.load(Check.class, JavaElementAnalyzer.class.getClassLoader()));
+            ServiceLoader.load(Check.class, JavaElementDifferenceAnalyzer.class.getClassLoader()));
     }
 
-    public JavaElementAnalyzer(Configuration configuration, TypeEnvironment oldClasses, CompilationValve oldValve,
+    public JavaElementDifferenceAnalyzer(Configuration configuration, TypeEnvironment oldClasses,
+        CompilationValve oldValve,
         TypeEnvironment newClasses, CompilationValve newValve, Iterable<Check> checks) {
         this.oldCompilationValve = oldValve;
         this.newCompilationValve = newValve;

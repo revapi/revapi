@@ -30,6 +30,11 @@ import org.revapi.query.Filter;
 public interface Tree {
 
     /**
+     * @return the API this tree represents
+     */
+    API getApi();
+
+    /**
      * A sorted set of all root elements of the tree. The set uses the natural order of the element implementations.
      */
     SortedSet<? extends Element> getRoots();
