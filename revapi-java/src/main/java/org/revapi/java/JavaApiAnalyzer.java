@@ -25,6 +25,7 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.Configuration;
 import org.revapi.ElementDifferenceAnalyzer;
 import org.revapi.java.compilation.CompilationValve;
+import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
  * @author Lukas Krejci
@@ -50,8 +51,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         JavaArchiveAnalyzer oldA = (JavaArchiveAnalyzer) oldArchive;
         JavaArchiveAnalyzer newA = (JavaArchiveAnalyzer) newArchive;
 
-        TypeEnvironment oldEnvironment = oldA.getProbingEnvironment();
-        TypeEnvironment newEnvironment = newA.getProbingEnvironment();
+        ProbingEnvironment oldEnvironment = oldA.getProbingEnvironment();
+        ProbingEnvironment newEnvironment = newA.getProbingEnvironment();
         CompilationValve oldValve = oldA.getCompilationValve();
         CompilationValve newValve = newA.getCompilationValve();
 

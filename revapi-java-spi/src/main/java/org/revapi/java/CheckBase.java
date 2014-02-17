@@ -36,6 +36,7 @@ import org.revapi.MatchReport;
  * @since 0.1
  */
 public abstract class CheckBase implements Check {
+
     protected static class ActiveElements<T extends Element> {
         public final T oldElement;
         public final T newElement;
@@ -50,11 +51,23 @@ public abstract class CheckBase implements Check {
         }
     }
 
-    protected TypeEnvironment oldTypeEnvironment;
-    protected TypeEnvironment newTypeEnvironment;
+    private TypeEnvironment oldTypeEnvironment;
+    private TypeEnvironment newTypeEnvironment;
     private int depth;
     private final Deque<ActiveElements> activations = new ArrayDeque<>();
-    protected Configuration configuration;
+    private Configuration configuration;
+
+    public TypeEnvironment getOldTypeEnvironment() {
+        return oldTypeEnvironment;
+    }
+
+    public TypeEnvironment getNewTypeEnvironment() {
+        return newTypeEnvironment;
+    }
+
+    public Configuration getConfiguration() {
+        return configuration;
+    }
 
     @Override
     public void initialize(Configuration configuration) {

@@ -17,4 +17,6 @@
 public class Type {
     public float f1;
     public Object f2;
+    //should be ignored because it's not part of public API
+    private float f3;
 }

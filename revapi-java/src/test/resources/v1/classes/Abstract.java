@@ -15,5 +15,8 @@
  */
 
 public class Abstract {
-
+    private static final int staticInit;
+    static {
+        staticInit = 0;
+    }
 }

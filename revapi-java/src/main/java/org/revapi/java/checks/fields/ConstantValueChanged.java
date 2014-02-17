@@ -37,6 +37,10 @@ public final class ConstantValueChanged extends AbstractJavaCheck {
             return;
         }
 
+        if (isBothPrivate(oldField, newField)) {
+            return;
+        }
+
         Object oldC = oldField.getConstantValue();
         Object newC = newField.getConstantValue();
 

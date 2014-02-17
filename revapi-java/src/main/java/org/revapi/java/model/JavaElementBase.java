@@ -95,7 +95,34 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     }
 
     @Override
-    public String toString() {
+    public String getFullHumanReadableString() {
         return Util.toHumanReadableString(getModelElement());
+    }
+
+    @Override
+    public int hashCode() {
+        return getFullHumanReadableString().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+
+        if (obj == null) {
+            return false;
+        }
+
+        if (!(obj instanceof JavaElementBase)) {
+            return false;
+        }
+
+        return getFullHumanReadableString().equals(((JavaElementBase<?>) obj).getFullHumanReadableString());
+    }
+
+    @Override
+    public String toString() {
+        return getFullHumanReadableString();
     }
 }

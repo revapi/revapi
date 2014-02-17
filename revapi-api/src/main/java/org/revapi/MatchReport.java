@@ -128,6 +128,27 @@ public final class MatchReport {
         }
 
         @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Problem problem = (Problem) o;
+
+            return code.equals(problem.code) && classification.equals(problem.classification);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = code.hashCode();
+            result = 31 * result + classification.hashCode();
+            return result;
+        }
+
+        @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder("Problem[");
             sb.append("code='").append(code).append('\'');
@@ -194,10 +215,40 @@ public final class MatchReport {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MatchReport that = (MatchReport) o;
+
+        if (newElement != null ? !newElement.equals(that.newElement) : that.newElement != null) {
+            return false;
+        }
+
+        if (oldElement != null ? !oldElement.equals(that.oldElement) : that.oldElement != null) {
+            return false;
+        }
+
+        return problems.equals(that.problems);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = problems.hashCode();
+        result = 31 * result + (oldElement != null ? oldElement.hashCode() : 0);
+        result = 31 * result + (newElement != null ? newElement.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("MatchReport[");
-        sb.append("oldElement=").append(oldElement.getFullHumanReadableString());
-        sb.append(", newElement=").append(newElement.getFullHumanReadableString());
+        sb.append("oldElement=").append(oldElement == null ? "null" : oldElement.getFullHumanReadableString());
+        sb.append(", newElement=").append(newElement == null ? "null" : newElement.getFullHumanReadableString());
         sb.append(", problems=").append(problems);
         sb.append(']');
         return sb.toString();

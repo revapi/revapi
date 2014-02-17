@@ -19,7 +19,6 @@ package org.revapi.java.checks.fields;
 import java.util.Collections;
 import java.util.List;
 
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.MatchReport;
@@ -35,14 +34,8 @@ public final class Removed extends AbstractJavaCheck {
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField != null && newField == null) {
-
-            boolean add = oldField.getModifiers().contains(Modifier.PUBLIC) ||
-                oldField.getModifiers().contains(Modifier.PROTECTED);
-
-            if (add) {
-                pushActive(oldField, null);
-            }
+        if (oldField != null && newField == null && isAccessible(oldField)) {
+            pushActive(oldField, null);
         }
     }
 

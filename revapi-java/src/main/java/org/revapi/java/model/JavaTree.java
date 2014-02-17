@@ -40,7 +40,6 @@ public final class JavaTree extends SimpleTree {
         }
     };
 
-
     public JavaTree(API api) {
         super(api);
     }

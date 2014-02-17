@@ -37,6 +37,10 @@ public final class TypeChanged extends AbstractJavaCheck {
             return;
         }
 
+        if (isBothPrivate(oldField, newField)) {
+            return;
+        }
+
         String oldType = Util.toUniqueString(oldField.asType());
         String newType = Util.toUniqueString(newField.asType());
 
@@ -59,5 +63,4 @@ public final class TypeChanged extends AbstractJavaCheck {
             createProblem(Code.FIELD_TYPE_CHANGED, new String[]{oldType, newType}, fields.oldElement.asType(),
                 fields.newElement.asType()));
     }
-    //TODO implement
 }

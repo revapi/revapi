@@ -86,8 +86,14 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
             return;
         }
 
-        List<TypeMirror> oldSuperTypes = Util.getAllSuperClasses(oldTypeEnvironment.getTypeUtils(), oldType.asType());
-        List<TypeMirror> newSuperTypes = Util.getAllSuperClasses(newTypeEnvironment.getTypeUtils(), newType.asType());
+        if (isBothPrivate(oldType, newType)) {
+            return;
+        }
+
+        List<TypeMirror> oldSuperTypes = Util
+            .getAllSuperClasses(getOldTypeEnvironment().getTypeUtils(), oldType.asType());
+        List<TypeMirror> newSuperTypes = Util
+            .getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(), newType.asType());
 
         if (oldSuperTypes.size() != newSuperTypes.size()) {
             pushActive(oldType, newType, oldSuperTypes, newSuperTypes);

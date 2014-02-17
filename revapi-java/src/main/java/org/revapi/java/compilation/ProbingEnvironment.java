@@ -16,6 +16,8 @@
 
 package org.revapi.java.compilation;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -36,10 +38,12 @@ public final class ProbingEnvironment implements TypeEnvironment {
     private final CountDownLatch compilationProgressLatch = new CountDownLatch(1);
     private final CountDownLatch compilationEnvironmentTeardownLatch = new CountDownLatch(1);
     private final JavaTree tree;
+    private final Set<String> forcedApiClasses;
 
     public ProbingEnvironment(API api) {
         this.api = api;
         this.tree = new JavaTree(api);
+        this.forcedApiClasses = new HashSet<>();
     }
 
     public API getApi() {
@@ -70,5 +74,9 @@ public final class ProbingEnvironment implements TypeEnvironment {
     @Override
     public Types getTypeUtils() {
         return processingEnvironment == null ? null : processingEnvironment.getTypeUtils();
+    }
+
+    public Set<String> getForcedApiClassesCanonicalNames() {
+        return forcedApiClasses;
     }
 }

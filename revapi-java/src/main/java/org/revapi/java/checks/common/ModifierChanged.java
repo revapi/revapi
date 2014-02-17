@@ -46,6 +46,10 @@ public abstract class ModifierChanged extends AbstractJavaCheck {
             return;
         }
 
+        if (isBothPrivate(oldElement, newElement)) {
+            return;
+        }
+
         boolean oldHas = oldElement.getModifiers().contains(modifier);
         boolean newHas = newElement.getModifiers().contains(modifier);
 

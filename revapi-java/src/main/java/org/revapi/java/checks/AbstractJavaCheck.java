@@ -16,8 +16,11 @@
 
 package org.revapi.java.checks;
 
+import javax.lang.model.element.Element;
+
 import org.revapi.MatchReport;
 import org.revapi.java.CheckBase;
+import org.revapi.java.model.ClassTreeInitializer;
 
 /**
  * @author Lukas Krejci
@@ -32,6 +35,26 @@ public abstract class AbstractJavaCheck extends CheckBase {
     }
 
     protected MatchReport.Problem createProblem(Code code, Object[] params, Object... attachments) {
-        return code.createProblem(configuration.getLocale(), params, attachments);
+        return code.createProblem(getConfiguration().getLocale(), params, attachments);
+    }
+
+    protected final boolean isBothPrivate(Element a, Element b) {
+        if (a == null || b == null) {
+            return false;
+        }
+
+        return !ClassTreeInitializer.isAccessible(a) && !ClassTreeInitializer.isAccessible(b);
+    }
+
+    protected final boolean isBothAccessible(Element a, Element b) {
+        if (a == null || b == null) {
+            return false;
+        }
+
+        return ClassTreeInitializer.isAccessible(a) && ClassTreeInitializer.isAccessible(b);
+    }
+
+    protected final boolean isAccessible(Element e) {
+        return ClassTreeInitializer.isAccessible(e);
     }
 }

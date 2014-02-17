@@ -32,7 +32,8 @@ import org.revapi.java.checks.Code;
 public final class KindChanged extends AbstractJavaCheck {
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType != null && newType != null && oldType.getKind() != newType.getKind()) {
+        if (oldType != null && newType != null && oldType.getKind() != newType.getKind() && isBothAccessible(oldType,
+            newType)) {
             pushActive(oldType, newType);
         }
     }

@@ -34,6 +34,4 @@ public final class VisibilityIncreased extends VisibilityChanged {
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
         super.doVisit(oldField, newField);
     }
-
-    //TODO implement
 }

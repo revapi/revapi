@@ -39,10 +39,14 @@ public final class NoLongerImplementsInterface extends AbstractJavaCheck {
             return;
         }
 
+        if (isBothPrivate(oldType, newType)) {
+            return;
+        }
+
         List<? extends TypeMirror> newInterfaces = newType.getInterfaces();
 
         for (TypeMirror oldIface : oldType.getInterfaces()) {
-            if (!Util.isSubtype(oldIface, newInterfaces, oldTypeEnvironment.getTypeUtils())) {
+            if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
                 pushActive(oldType, newType);
                 break;
             }
@@ -61,7 +65,7 @@ public final class NoLongerImplementsInterface extends AbstractJavaCheck {
         List<? extends TypeMirror> newInterfaces = types.newElement.getInterfaces();
 
         for (TypeMirror oldIface : types.oldElement.getInterfaces()) {
-            if (!Util.isSubtype(oldIface, newInterfaces, oldTypeEnvironment.getTypeUtils())) {
+            if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
                 result.add(createProblem(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE,
                     new String[]{
                         Util.toHumanReadableString(oldIface)}, oldIface));

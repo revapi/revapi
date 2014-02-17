@@ -34,14 +34,8 @@ public final class Added extends AbstractJavaCheck {
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null && newField != null) {
-
-            boolean add = newField.getModifiers().contains(Modifier.PUBLIC) ||
-                newField.getModifiers().contains(Modifier.PROTECTED);
-
-            if (add) {
-                pushActive(null, newField);
-            }
+        if (oldField == null && newField != null && isAccessible(newField)) {
+            pushActive(null, newField);
         }
     }
 

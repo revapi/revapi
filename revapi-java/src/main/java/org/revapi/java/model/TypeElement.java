@@ -28,10 +28,13 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
     private final String canonicalName;
 
     /**
-     * This is a helper constructor used only during probing the class files. All these fields are here to gather
-     * information needed to generate a meaningful probe class.
+     * This is a helper constructor used only during probing the class files. This is to ensure that we have a
+     * "bare bones" type element available even before we have functioning compilation infrastructure in
+     * the environment.
      *
      * @param env probing environment
+     * @param binaryName the binary name of the class
+     * @param canonicalName the canonical name of the class
      */
     public TypeElement(ProbingEnvironment env, String binaryName, String canonicalName) {
         super(env, null);
@@ -39,6 +42,14 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
         this.canonicalName = canonicalName;
     }
 
+    /**
+     * This constructor is used under "normal working conditions" when the probing environment already has
+     * the compilation infrastructure available (which is assumed since otherwise it would not be possible to obtain
+     * instances of the javax.lang.model.element.TypeElement interface).
+     *
+     * @param env     the probing environment
+     * @param element the model element to be represented
+     */
     public TypeElement(ProbingEnvironment env, javax.lang.model.element.TypeElement element) {
         super(env, element);
         binaryName = env.getElementUtils().getBinaryName(element).toString();
@@ -71,7 +82,7 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
     }
 
     @Override
-    public String toString() {
+    public String getFullHumanReadableString() {
         javax.lang.model.element.TypeElement el = getModelElement();
         return el == null ? canonicalName : Util.toHumanReadableString(el);
     }

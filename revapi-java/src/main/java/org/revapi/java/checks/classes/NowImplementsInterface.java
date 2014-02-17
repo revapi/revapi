@@ -36,7 +36,7 @@ public final class NowImplementsInterface extends AbstractJavaCheck {
 
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType == null || newType == null) {
+        if (oldType == null || newType == null || isBothPrivate(oldType, newType)) {
             return;
         }
 
@@ -44,7 +44,7 @@ public final class NowImplementsInterface extends AbstractJavaCheck {
         List<? extends TypeMirror> oldInterfaces = oldType.getInterfaces();
 
         for (TypeMirror newIface : newInterfaces) {
-            if (!Util.isSubtype(newIface, oldInterfaces, newTypeEnvironment.getTypeUtils())) {
+            if (!Util.isSubtype(newIface, oldInterfaces, getNewTypeEnvironment().getTypeUtils())) {
                 pushActive(oldType, newType);
                 break;
             }
@@ -64,7 +64,7 @@ public final class NowImplementsInterface extends AbstractJavaCheck {
         List<? extends TypeMirror> oldInterfaces = types.oldElement.getInterfaces();
 
         for (TypeMirror newIface : newInterfaces) {
-            if (!Util.isSubtype(newIface, oldInterfaces, newTypeEnvironment.getTypeUtils())) {
+            if (!Util.isSubtype(newIface, oldInterfaces, getNewTypeEnvironment().getTypeUtils())) {
                 result.add(
                     createProblem(Code.CLASS_NOW_IMPLEMENTS_INTERFACE,
                         new String[]{

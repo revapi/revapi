@@ -17,4 +17,5 @@
 public class Type {
     public int f1;
     public String f2;
+    private int f3;
 }

@@ -16,8 +16,10 @@
 
 package org.revapi.java;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -29,7 +31,9 @@ import org.revapi.Element;
 import org.revapi.ElementDifferenceAnalyzer;
 import org.revapi.MatchReport;
 import org.revapi.java.compilation.CompilationValve;
+import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.AnnotationElement;
+import org.revapi.java.model.ClassTreeInitializer;
 import org.revapi.java.model.FieldElement;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
@@ -45,6 +49,10 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
     private final Iterable<Check> checks;
     private final CompilationValve oldCompilationValve;
     private final CompilationValve newCompilationValve;
+    private final ProbingEnvironment oldEnvironment;
+    private final ProbingEnvironment newEnvironment;
+
+    private final Deque<Boolean> didChecksForType;
 
     // NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
     // are always sorted as last amongst sibling model elements.
@@ -52,24 +60,29 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
     // coming for given parent.
     private List<MatchReport.Problem> lastAnnotationResults;
 
-    public JavaElementDifferenceAnalyzer(Configuration configuration, TypeEnvironment oldClasses,
+    public JavaElementDifferenceAnalyzer(Configuration configuration, ProbingEnvironment oldEnvironment,
         CompilationValve oldValve,
-        TypeEnvironment newClasses, CompilationValve newValve) {
-        this(configuration, oldClasses, oldValve, newClasses, newValve,
+        ProbingEnvironment newEnvironment, CompilationValve newValve) {
+        this(configuration, oldEnvironment, oldValve, newEnvironment, newValve,
             ServiceLoader.load(Check.class, JavaElementDifferenceAnalyzer.class.getClassLoader()));
     }
 
-    public JavaElementDifferenceAnalyzer(Configuration configuration, TypeEnvironment oldClasses,
+    public JavaElementDifferenceAnalyzer(Configuration configuration, ProbingEnvironment oldEnvironment,
         CompilationValve oldValve,
-        TypeEnvironment newClasses, CompilationValve newValve, Iterable<Check> checks) {
+        ProbingEnvironment newEnvironment, CompilationValve newValve, Iterable<Check> checks) {
         this.oldCompilationValve = oldValve;
         this.newCompilationValve = newValve;
+        this.oldEnvironment = oldEnvironment;
+        this.newEnvironment = newEnvironment;
+
         this.checks = checks;
         for (Check c : checks) {
             c.initialize(configuration);
-            c.setOldTypeEnvironment(oldClasses);
-            c.setNewTypeEnvironment(newClasses);
+            c.setOldTypeEnvironment(oldEnvironment);
+            c.setNewTypeEnvironment(newEnvironment);
         }
+
+        this.didChecksForType = new ArrayDeque<>();
     }
 
     @Override
@@ -88,11 +101,47 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
         LOG.trace("Beginning analysis of {} and {}.", oldElement, newElement);
 
         if (conforms(oldElement, newElement, TypeElement.class)) {
-            for (Check c : checks) {
-                c.visitClass(oldElement == null ? null : ((TypeElement) oldElement).getModelElement(),
-                    newElement == null ? null : ((TypeElement) newElement).getModelElement());
+            // we need to handle some special case logic here.
+            //  old     | new     | isForcedIntoApi | check
+            // ---------------------------------------------
+            //  null    | null    | false           | N/A
+            //  null    | null    | true            | N/A
+            //  null    | nonnull | false           | true if not private class
+            //  null    | nonnull | true            | true
+            //  nonnull | null    | false           | true if not private class
+            //  nonnull | null    | true            | true
+            //  nonnull | nonnull | false           | true if at least 1 not private class
+            //  nonnull | nonnull | true            | true
+
+            boolean doCheck;
+            String oldCanonical = oldElement == null ? null : ((TypeElement) oldElement).getCanonicalName();
+            String newCanonical = newElement == null ? null : ((TypeElement) newElement).getCanonicalName();
+
+            if (oldElement == null) {
+                //noinspection ConstantConditions
+                doCheck =
+                    newEnvironment.getForcedApiClassesCanonicalNames().contains(newCanonical)
+                        || ClassTreeInitializer.isAccessible(((TypeElement) newElement).getModelElement());
+            } else if (newElement == null) {
+                doCheck =
+                    oldEnvironment.getForcedApiClassesCanonicalNames().contains(oldCanonical)
+                        || ClassTreeInitializer.isAccessible(((TypeElement) oldElement).getModelElement());
+            } else {
+                doCheck = oldEnvironment.getForcedApiClassesCanonicalNames().contains(oldCanonical)
+                    || newEnvironment.getForcedApiClassesCanonicalNames().contains(newCanonical)
+                    || ClassTreeInitializer.isAccessible(((TypeElement) oldElement).getModelElement())
+                    || ClassTreeInitializer.isAccessible(((TypeElement) newElement).getModelElement());
             }
-        } else if (conforms(oldElement, newElement, AnnotationElement.class)) {
+
+            didChecksForType.push(doCheck);
+
+            if (doCheck) {
+                for (Check c : checks) {
+                    c.visitClass(oldElement == null ? null : ((TypeElement) oldElement).getModelElement(),
+                        newElement == null ? null : ((TypeElement) newElement).getModelElement());
+                }
+            }
+        } else if (conforms(oldElement, newElement, AnnotationElement.class) && didChecksForType.peek()) {
             // annotation are always terminal elements and they also always sort as last elements amongst siblings, so
             // treat them a bit differently
             if (lastAnnotationResults == null) {
@@ -106,17 +155,17 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
                     lastAnnotationResults.addAll(cps);
                 }
             }
-        } else if (conforms(oldElement, newElement, FieldElement.class)) {
+        } else if (conforms(oldElement, newElement, FieldElement.class) && didChecksForType.peek()) {
             for (Check c : checks) {
                 c.visitField(oldElement == null ? null : ((FieldElement) oldElement).getModelElement(),
                     newElement == null ? null : ((FieldElement) newElement).getModelElement());
             }
-        } else if (conforms(oldElement, newElement, MethodElement.class)) {
+        } else if (conforms(oldElement, newElement, MethodElement.class) && didChecksForType.peek()) {
             for (Check c : checks) {
                 c.visitMethod(oldElement == null ? null : ((MethodElement) oldElement).getModelElement(),
                     newElement == null ? null : ((MethodElement) newElement).getModelElement());
             }
-        } else if (conforms(oldElement, newElement, MethodParameterElement.class)) {
+        } else if (conforms(oldElement, newElement, MethodParameterElement.class) && didChecksForType.peek()) {
             for (Check c : checks) {
                 c.visitMethodParameter(
                     oldElement == null ? null : ((MethodParameterElement) oldElement).getModelElement(),
@@ -127,30 +176,35 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
 
     @Override
     public MatchReport endAnalysis(Element oldElement, Element newElement) {
-        if ((oldElement == null || oldElement instanceof AnnotationElement) &&
-            (newElement == null || newElement instanceof AnnotationElement)) {
-
+        if (conforms(oldElement, newElement, AnnotationElement.class)) {
             //the annotations are always reported at the parent element
             return new MatchReport(Collections.<MatchReport.Problem>emptyList(), oldElement, newElement);
         }
 
+        boolean doChecks = true;
+        if (conforms(oldElement, newElement, TypeElement.class)) {
+            doChecks = didChecksForType.pop();
+        }
+
         List<MatchReport.Problem> problems = new ArrayList<>();
-        for (Check c : checks) {
-            List<MatchReport.Problem> p = c.visitEnd();
-            if (p != null) {
-                problems.addAll(p);
+        if (doChecks) {
+            for (Check c : checks) {
+                List<MatchReport.Problem> p = c.visitEnd();
+                if (p != null) {
+                    problems.addAll(p);
+                }
+            }
+
+            if (lastAnnotationResults != null && !lastAnnotationResults.isEmpty()) {
+                problems.addAll(lastAnnotationResults);
+                lastAnnotationResults.clear();
             }
         }
 
-        if (lastAnnotationResults != null && !lastAnnotationResults.isEmpty()) {
-            problems.addAll(lastAnnotationResults);
-            lastAnnotationResults.clear();
-        }
-
         if (!problems.isEmpty()) {
-            LOG.trace("Detected following problems: ", problems);
+            LOG.trace("Detected following problems: {}", problems);
         }
-        LOG.trace("Ended analysis of {} and  {}.", oldElement, newElement);
+        LOG.trace("Ended analysis of {} and {}.", oldElement, newElement);
 
         return new MatchReport(problems, oldElement, newElement);
     }

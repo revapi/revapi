@@ -14,14 +14,15 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.fields;
+package org.revapi.java.checks.classes;
 
 import java.util.Collections;
 import java.util.List;
 
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.TypeElement;
 
 import org.revapi.MatchReport;
+import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -29,30 +30,29 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class NoLongerConstant extends AbstractJavaCheck {
+public final class NonPublicClassPartOfAPI extends AbstractJavaCheck {
+
     @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null || newField == null) {
+    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
+        if (newType == null) {
             return;
         }
 
-        if (isBothPrivate(oldField, newField)) {
-            return;
-        }
-
-        if (oldField.getConstantValue() != null && newField.getConstantValue() == null) {
-            pushActive(oldField, newField);
+        if (!isAccessible(newType)) {
+            pushActive(oldType, newType);
         }
     }
 
     @Override
     protected List<MatchReport.Problem> doEnd() {
-        ActiveElements<VariableElement> fields = popIfActive();
-        if (fields == null) {
+        ActiveElements<TypeElement> types = popIfActive();
+
+        if (types == null) {
             return null;
         }
 
-        return Collections.singletonList(
-            createProblem(Code.FIELD_NO_LONGER_CONSTANT, fields.oldElement.getConstantValue()));
+        return Collections
+            .singletonList(createProblem(Code.CLASS_NON_PUBLIC_PART_OF_API, new Object[]{types.newElement},
+                Util.toHumanReadableString(types.newElement)));
     }
 }

@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -41,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.revapi.Archive;
+import org.revapi.java.JavaElement;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.query.Filter;
 
@@ -99,16 +101,92 @@ public final class ClassTreeInitializer {
 
 
         if (!additionalClasses.isEmpty()) {
-            List<String> names = new ArrayList<>();
             throw new IllegalStateException(
                 "The following classes that contribute to the public API of " + environment.getApi() +
-                    " could not be located: " +
-                    additionalClasses);
+                    " could not be located: " + additionalClasses);
         }
+
+        cleanUpInnerClasses(environment.getTree().getRootsUnsafe());
 
         if (LOG.isTraceEnabled()) {
             LOG.trace("Public API class tree in {} initialized to: {}", environment.getApi(), environment.getTree());
         }
+    }
+
+    private void cleanUpInnerClasses(SortedSet<? extends JavaElement> nodes) {
+        // we need to track the inner classes during the classes processing so that we know which ones are part of the
+        // API but once we have that complete picture, we actually need to remove the inner classes from the tree again
+        // because a) they are possibly misplaced by the crude algorithm we're using and b) they will be added by the
+        // the initialization code in JavaElementBase along with methods and fields.
+
+        // we only add types to the tree at this stage, so this is safe
+        @SuppressWarnings("unchecked")
+        Set<TypeElement> types = (Set<TypeElement>) nodes;
+
+        Iterator<TypeElement> it = types.iterator();
+        while (it.hasNext()) {
+            TypeElement type = it.next();
+            if (isInnerClass(type) && isEnclosingTypeInTree(type)) {
+                it.remove();
+                environment.getForcedApiClassesCanonicalNames().add(type.getCanonicalName());
+            }
+
+            cleanUpInnerClasses(type.getChildren());
+        }
+    }
+
+    private boolean isInnerClass(TypeElement type) {
+        String binaryName = type.getBinaryName();
+        String canonicalName = type.getCanonicalName();
+
+        // binary names can get confused by $ as part of the name of the class, not so canonical names
+
+        // the +1 is ok - if . is not found, we have a class in default package
+        int classNameStartIdx = canonicalName.lastIndexOf('.') + 1;
+
+        if (classNameStartIdx == 0) {
+            return false;
+        }
+
+        //make sure the last dot wasn't actually just separating top-level class name from a package name
+        return binaryName.length() > classNameStartIdx && binaryName.charAt(classNameStartIdx - 1) == '$';
+    }
+
+    private boolean isEnclosingTypeInTree(TypeElement type) {
+        String binaryName = type.getBinaryName();
+        String canonicalName = type.getCanonicalName();
+
+        int classNameStartIdx = binaryName.lastIndexOf('/') + 1;
+
+        while (classNameStartIdx < canonicalName.length()) {
+            int nextInnerClassStartIdx = canonicalName.indexOf('.', classNameStartIdx);
+            if (nextInnerClassStartIdx == -1) {
+                break;
+            }
+
+            final String enclosingTypeCanonicalName = canonicalName.substring(0, nextInnerClassStartIdx);
+            List<TypeElement> found = environment.getTree()
+                .searchUnsafe(TypeElement.class, true, new Filter<TypeElement>() {
+
+                    @Override
+                    public boolean applies(TypeElement element) {
+                        return enclosingTypeCanonicalName.equals(element.getCanonicalName());
+                    }
+
+                    @Override
+                    public boolean shouldDescendInto(Object element) {
+                        return true;
+                    }
+                }, null);
+
+            if (!found.isEmpty()) {
+                return true;
+            }
+
+            classNameStartIdx = nextInnerClassStartIdx + 1;
+        }
+
+        return false;
     }
 
     private void processArchive(Archive a, Set<String> additionalClasses, boolean onlyAddAdditional)
@@ -433,7 +511,7 @@ public final class ClassTreeInitializer {
         return found.isEmpty() ? null : found.get(0);
     }
 
-    public static boolean isPublic(Element element) {
+    public static boolean isAccessible(Element element) {
         return element.getModifiers().contains(Modifier.PUBLIC) || element.getModifiers().contains(Modifier.PROTECTED);
     }
 

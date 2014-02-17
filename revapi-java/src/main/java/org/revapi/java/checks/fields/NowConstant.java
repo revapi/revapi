@@ -36,6 +36,10 @@ public final class NowConstant extends AbstractJavaCheck {
             return;
         }
 
+        if (isBothPrivate(oldField, newField)) {
+            return;
+        }
+
         if (oldField.getConstantValue() == null && newField.getConstantValue() != null) {
             pushActive(oldField, newField);
         }

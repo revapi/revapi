@@ -28,7 +28,6 @@ import org.revapi.Configuration;
 import org.revapi.MatchReport;
 import org.revapi.Reporter;
 import org.revapi.java.checks.Code;
-import org.revapi.java.model.TypeElement;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
@@ -67,9 +66,10 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             .addAsResource(compRes2.compilationPath.resolve("A.class").toFile(), "A.class");
         JavaArchive supV2 = ShrinkWrap.create(JavaArchive.class, "supV2.jar")
             .addAsResource(compRes2.compilationPath.resolve("B.class").toFile(), "B.class")
-            .addAsResource(compRes1.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
-            .addAsResource(compRes1.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
-            .addAsResource(compRes1.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
+            .addAsResource(compRes2.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
+            .addAsResource(compRes2.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
+            .addAsResource(compRes2.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
+            .addAsResource(compRes2.compilationPath.resolve("B$T$1$Private.class").toFile(), "B$T$1$Private.class")
             .addAsResource(compRes2.compilationPath.resolve("C.class").toFile(), "C.class");
 
         final List<MatchReport> allProblems = new ArrayList<>();
@@ -92,12 +92,41 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             .asList(new ShrinkwrapArchive(supV1)), Arrays.asList(new ShrinkwrapArchive(apiV2)),
             Arrays.asList(new ShrinkwrapArchive(supV2)));
 
-        Assert.assertEquals(1, allProblems.size());
-        Assert.assertEquals(1, allProblems.get(0).getProblems().size());
-        Assert.assertEquals("B.T$2", ((TypeElement) allProblems.get(0).getOldElement()).getCanonicalName());
-        Assert.assertEquals(Code.CLASS_NOW_FINAL.code(), allProblems.get(0).getProblems().get(0).code);
+        Assert.assertEquals(3, allProblems.size());
+        Assert
+            .assertTrue(containsProblem(allProblems, null, "B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+        Assert
+            .assertTrue(containsProblem(allProblems, null, "B.T$2.f2", Code.FIELD_ADDED_IN_FINAL_CLASS.code()));
+        Assert
+            .assertTrue(containsProblem(allProblems, "B.T$2", "B.T$2", Code.CLASS_NOW_FINAL.code()));
 
         deleteDir(compRes1.compilationPath);
         deleteDir(compRes2.compilationPath);
+    }
+
+    private boolean containsProblem(List<MatchReport> problems, String oldElement, String newElement,
+        String problemCode) {
+        for (MatchReport r : problems) {
+            boolean oldTypeMatches = oldElement == null ? r.getOldElement() == null :
+                r.getOldElement() != null && oldElement.equals(r.getOldElement().getFullHumanReadableString());
+
+            boolean newTypeMatches = newElement == null ? r.getNewElement() == null :
+                r.getNewElement() != null && newElement.equals(r.getNewElement().getFullHumanReadableString());
+
+            boolean problemMatches = false;
+
+            for (MatchReport.Problem p : r.getProblems()) {
+                if (problemCode.equals(p.code)) {
+                    problemMatches = true;
+                    break;
+                }
+            }
+
+            if (oldTypeMatches && newTypeMatches && problemMatches) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

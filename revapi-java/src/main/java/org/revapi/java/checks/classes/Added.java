@@ -19,7 +19,6 @@ package org.revapi.java.checks.classes;
 import java.util.Collections;
 import java.util.List;
 
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.ChangeSeverity;
@@ -44,8 +43,7 @@ public final class Added extends AbstractJavaCheck {
 
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType == null && newType != null &&
-            (newType.getModifiers().contains(Modifier.PUBLIC) || newType.getModifiers().contains(Modifier.PROTECTED))) {
+        if (oldType == null && newType != null && isAccessible(newType)) {
             pushActive(null, newType);
         }
     }

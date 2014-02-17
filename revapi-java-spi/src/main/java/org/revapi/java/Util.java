@@ -69,6 +69,7 @@ public class Util {
                 break;
             case DOUBLE:
                 bld.append("double");
+                break;
             case FLOAT:
                 bld.append("float");
                 break;
@@ -80,6 +81,8 @@ public class Util {
                 break;
             case SHORT:
                 bld.append("short");
+                break;
+            default:
                 break;
             }
 
@@ -159,6 +162,8 @@ public class Util {
             case PACKAGE:
                 bld.append("package");
                 break;
+            default:
+                break;
             }
 
             return null;
@@ -203,6 +208,7 @@ public class Util {
                 break;
             case DOUBLE:
                 bld.append("double");
+                break;
             case FLOAT:
                 bld.append("float");
                 break;
@@ -214,6 +220,8 @@ public class Util {
                 break;
             case SHORT:
                 bld.append("short");
+                break;
+            default:
                 break;
             }
 
@@ -296,6 +304,8 @@ public class Util {
                 break;
             case PACKAGE:
                 bld.append("package");
+                break;
+            default:
                 break;
             }
 

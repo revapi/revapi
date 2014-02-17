@@ -17,14 +17,20 @@
 public class B {
     public static class T$1 {
         /** this change should be ignored, because it is not "visible" from the API defined by A. */
-        public static interface TT$1 {
+        private static interface TT$1 {
+            public static final T$2 f = null;
         }
+
+        static class Private {}
     };
 
     /**
      * this change though, should be detected, because T2 is technically part of the API, because it is leaked into
      * the API as a type of public field in class A.
      */
-    public static final class T$2 {};
+    public static final class T$2 {
+        public T$1 f;
+        public T$1.Private f2;
+    };
 
 }
