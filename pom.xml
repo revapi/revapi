@@ -25,6 +25,10 @@
     <packaging>pom</packaging>
     <version>0.1-SNAPSHOT</version>
 
+    <properties>
+        <findbugs.skip>true</findbugs.skip>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -80,6 +84,12 @@
                 <artifactId>logback-classic</artifactId>
                 <version>0.9.29</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>2.0.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -102,6 +112,16 @@
     </modules>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>findbugs-maven-plugin</artifactId>
+                    <version>2.5.3</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -109,6 +129,21 @@
                     <source>1.7</source>
                     <target>1.7</target>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${findbugs.skip}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
