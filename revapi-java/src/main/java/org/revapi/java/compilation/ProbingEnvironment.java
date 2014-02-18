@@ -20,7 +20,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import javax.annotation.Nonnull;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
@@ -67,16 +69,24 @@ public final class ProbingEnvironment implements TypeEnvironment {
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     public Elements getElementUtils() {
         return processingEnvironment == null ? null : processingEnvironment.getElementUtils();
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     public Types getTypeUtils() {
         return processingEnvironment == null ? null : processingEnvironment.getTypeUtils();
     }
 
-    public Set<String> getForcedApiClassesCanonicalNames() {
+    @Override
+    public boolean isExplicitPartOfAPI(@Nonnull TypeElement type) {
+        return getAllApiClasses().contains(type.getQualifiedName().toString());
+    }
+
+    @Nonnull
+    public Set<String> getAllApiClasses() {
         return forcedApiClasses;
     }
 }

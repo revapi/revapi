@@ -128,7 +128,6 @@ public final class ClassTreeInitializer {
             TypeElement type = it.next();
             if (isInnerClass(type) && isEnclosingTypeInTree(type)) {
                 it.remove();
-                environment.getForcedApiClassesCanonicalNames().add(type.getCanonicalName());
             }
 
             cleanUpInnerClasses(type.getChildren());
@@ -486,6 +485,7 @@ public final class ClassTreeInitializer {
             LOG.trace("Adding to tree: {}, under superType {}", type, superType);
             if (superType == null) {
                 environment.getTree().getRootsUnsafe().add(type);
+                environment.getAllApiClasses().add(canonicalName);
             } else {
                 superType.getChildren().add(type);
             }

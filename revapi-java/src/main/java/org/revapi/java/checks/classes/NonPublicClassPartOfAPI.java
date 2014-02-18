@@ -38,7 +38,7 @@ public final class NonPublicClassPartOfAPI extends AbstractJavaCheck {
             return;
         }
 
-        if (!isAccessible(newType)) {
+        if (!isAccessible(newType) && getNewTypeEnvironment().isExplicitPartOfAPI(newType)) {
             pushActive(oldType, newType);
         }
     }
