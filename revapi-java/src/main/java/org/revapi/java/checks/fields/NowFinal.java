@@ -34,6 +34,10 @@ public final class NowFinal extends ModifierChanged {
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        super.doVisit(oldField, newField);
+        if (BothFieldsRequiringCheck
+            .shouldCheck(oldField, getOldTypeEnvironment(), newField, getNewTypeEnvironment())) {
+
+            super.doVisit(oldField, newField);
+        }
     }
 }

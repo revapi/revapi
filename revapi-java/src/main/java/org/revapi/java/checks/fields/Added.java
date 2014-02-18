@@ -34,7 +34,9 @@ public final class Added extends AbstractJavaCheck {
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null && newField != null && isAccessible(newField)) {
+        if (oldField == null && newField != null && isAccessible(newField) &&
+            isAccessibleOrInAPI(newField.getEnclosingElement(), getNewTypeEnvironment())) {
+
             pushActive(null, newField);
         }
     }

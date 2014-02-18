@@ -45,20 +45,22 @@ import javax.lang.model.util.SimpleTypeVisitor7;
 
 import org.revapi.MatchReport;
 import org.revapi.java.TypeEnvironment;
-import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class SerialVersionUidUnchanged extends AbstractJavaCheck {
+public class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
 
     private static final String SERIAL_VERSION_UID_FIELD_NAME = "serialVersionUID";
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null || newField == null) {
+        if (oldField == null || newField == null ||
+            !isBothAccessibleOrInApi(oldField.getEnclosingElement(), getOldTypeEnvironment(),
+                newField.getEnclosingElement(), getNewTypeEnvironment())) {
+
             return;
         }
 

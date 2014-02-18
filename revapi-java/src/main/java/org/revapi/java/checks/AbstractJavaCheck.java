@@ -17,9 +17,11 @@
 package org.revapi.java.checks;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 
 import org.revapi.MatchReport;
 import org.revapi.java.CheckBase;
+import org.revapi.java.TypeEnvironment;
 import org.revapi.java.model.ClassTreeInitializer;
 
 /**
@@ -38,7 +40,7 @@ public abstract class AbstractJavaCheck extends CheckBase {
         return code.createProblem(getConfiguration().getLocale(), params, attachments);
     }
 
-    protected final boolean isBothPrivate(Element a, Element b) {
+    protected static boolean isBothPrivate(Element a, Element b) {
         if (a == null || b == null) {
             return false;
         }
@@ -46,7 +48,7 @@ public abstract class AbstractJavaCheck extends CheckBase {
         return !ClassTreeInitializer.isAccessible(a) && !ClassTreeInitializer.isAccessible(b);
     }
 
-    protected final boolean isBothAccessible(Element a, Element b) {
+    protected static boolean isBothAccessible(Element a, Element b) {
         if (a == null || b == null) {
             return false;
         }
@@ -54,7 +56,15 @@ public abstract class AbstractJavaCheck extends CheckBase {
         return ClassTreeInitializer.isAccessible(a) && ClassTreeInitializer.isAccessible(b);
     }
 
-    protected final boolean isAccessible(Element e) {
+    protected static boolean isAccessible(Element e) {
         return ClassTreeInitializer.isAccessible(e);
+    }
+
+    protected static boolean isAccessibleOrInAPI(Element e, TypeEnvironment env) {
+        return isAccessible(e) || (e instanceof TypeElement && env.isExplicitPartOfAPI((TypeElement) e));
+    }
+
+    protected static boolean isBothAccessibleOrInApi(Element a, TypeEnvironment envA, Element b, TypeEnvironment envB) {
+        return isAccessibleOrInAPI(a, envA) && isAccessibleOrInAPI(b, envB);
     }
 }

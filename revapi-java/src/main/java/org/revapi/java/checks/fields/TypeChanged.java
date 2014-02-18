@@ -23,21 +23,16 @@ import javax.lang.model.element.VariableElement;
 
 import org.revapi.MatchReport;
 import org.revapi.java.Util;
-import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class TypeChanged extends AbstractJavaCheck {
+public final class TypeChanged extends BothFieldsRequiringCheck {
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null || newField == null) {
-            return;
-        }
-
-        if (isBothPrivate(oldField, newField)) {
+        if (!shouldCheck(oldField, newField)) {
             return;
         }
 
