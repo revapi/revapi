@@ -18,6 +18,9 @@ package org.revapi;
 
 import java.util.Iterator;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Represents a set of archives that define an API.
  *
@@ -32,8 +35,8 @@ public final class API {
      * @see #getArchives()
      * @see #getSupplementaryArchives()
      */
-    public API(Iterable<? extends Archive> archives,
-        Iterable<? extends Archive> supplementaryArchives) {
+    public API(@Nonnull Iterable<? extends Archive> archives,
+        @Nullable Iterable<? extends Archive> supplementaryArchives) {
         this.archives = archives;
         this.supplementaryArchives = supplementaryArchives;
     }
@@ -41,7 +44,9 @@ public final class API {
     /**
      * The set of archives to check the API of.
      */
-    public Iterable<? extends Archive> getArchives() {
+    public
+    @Nonnull
+    Iterable<? extends Archive> getArchives() {
         return archives;
     }
 
@@ -51,7 +56,9 @@ public final class API {
      * the JARs that need to be on the compilation classpath. Can be null if no such
      * archives are needed.
      */
-    public Iterable<? extends Archive> getSupplementaryArchives() {
+    public
+    @Nullable
+    Iterable<? extends Archive> getSupplementaryArchives() {
         return supplementaryArchives;
     }
 

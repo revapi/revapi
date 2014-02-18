@@ -16,6 +16,7 @@
 
 package org.revapi.basic;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -23,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import org.revapi.API;
+import org.revapi.Archive;
 import org.revapi.Configuration;
 import org.revapi.Element;
 import org.revapi.MatchReport;
@@ -71,7 +73,9 @@ public class IgnoreProblemTransformTest {
 
         IgnoreProblemTransform t = new IgnoreProblemTransform();
 
-        Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), null, null);
+        Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
+            Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
+            Collections.<Archive>emptyList(), Collections.<Archive>emptyList()));
         config.getProperties().put("revapi.ignore.1.code", "c");
 
         t.initialize(config);
@@ -88,7 +92,9 @@ public class IgnoreProblemTransformTest {
 
         IgnoreProblemTransform t = new IgnoreProblemTransform();
 
-        Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), null, null);
+        Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
+            Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
+            Collections.<Archive>emptyList(), Collections.<Archive>emptyList()));
         config.getProperties().put("revapi.ignore.1.regex", "true");
         config.getProperties().put("revapi.ignore.1.code", "[c]*");
 

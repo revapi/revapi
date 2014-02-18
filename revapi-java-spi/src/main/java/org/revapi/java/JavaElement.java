@@ -16,8 +16,7 @@
 
 package org.revapi.java;
 
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
+import javax.annotation.Nonnull;
 
 import org.revapi.Element;
 
@@ -30,7 +29,6 @@ import org.revapi.Element;
  * @since 0.1
  */
 public interface JavaElement extends Element {
-    Types getTypeUtils();
-
-    Elements getElementUtils();
+    @Nonnull
+    TypeEnvironment getTypeEnvironment();
 }

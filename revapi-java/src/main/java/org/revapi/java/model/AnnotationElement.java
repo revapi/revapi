@@ -16,13 +16,13 @@
 
 package org.revapi.java.model;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.java.JavaAnnotationElement;
+import org.revapi.java.TypeEnvironment;
 import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.simple.SimpleElement;
@@ -50,14 +50,10 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
         return annotation;
     }
 
+    @Nonnull
     @Override
-    public Types getTypeUtils() {
-        return environment.getTypeUtils();
-    }
-
-    @Override
-    public Elements getElementUtils() {
-        return environment.getElementUtils();
+    public TypeEnvironment getTypeEnvironment() {
+        return environment;
     }
 
     @Override

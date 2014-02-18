@@ -18,14 +18,14 @@ package org.revapi.java.model;
 
 import java.util.SortedSet;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 import org.revapi.API;
 import org.revapi.java.JavaElement;
 import org.revapi.java.JavaModelElement;
+import org.revapi.java.TypeEnvironment;
 import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.simple.SimpleElement;
@@ -50,14 +50,10 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         return environment.getApi();
     }
 
+    @Nonnull
     @Override
-    public Types getTypeUtils() {
-        return environment.getTypeUtils();
-    }
-
-    @Override
-    public Elements getElementUtils() {
-        return environment.getElementUtils();
+    public TypeEnvironment getTypeEnvironment() {
+        return environment;
     }
 
     public T getModelElement() {

@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.Tree;
@@ -34,16 +37,18 @@ public class SimpleTree implements Tree {
     private SortedSet<? extends SimpleElement> roots;
     private final API api;
 
-    protected SimpleTree(API api) {
+    protected SimpleTree(@Nonnull API api) {
         this.api = api;
     }
 
     @Override
+    @Nonnull
     public API getApi() {
         return api;
     }
 
     @Override
+    @Nonnull
     public SortedSet<? extends SimpleElement> getRoots() {
         if (roots == null) {
             roots = new TreeSet<>();
@@ -52,15 +57,18 @@ public class SimpleTree implements Tree {
     }
 
     @Override
-    public <T extends Element> List<T> search(Class<T> resultType, boolean recurse, Filter<? super T> filter,
-        Element root) {
+    @Nonnull
+    public <T extends Element> List<T> search(@Nonnull Class<T> resultType, boolean recurse,
+        @Nullable Filter<? super T> filter,
+        @Nullable Element root) {
         List<T> results = new ArrayList<>();
         search(results, resultType, root == null ? getRoots() : root.getChildren(), recurse, filter);
         return results;
     }
 
-    public <T extends Element> void search(List<T> results, Class<T> resultType,
-        SortedSet<? extends Element> currentLevel, boolean recurse, Filter<? super T> filter) {
+    @Nonnull
+    public <T extends Element> void search(@Nonnull List<T> results, @Nonnull Class<T> resultType,
+        @Nonnull SortedSet<? extends Element> currentLevel, boolean recurse, @Nullable Filter<? super T> filter) {
 
         for (Element e : currentLevel) {
             if (resultType.isAssignableFrom(e.getClass())) {

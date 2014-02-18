@@ -16,6 +16,8 @@
 
 package org.revapi;
 
+import javax.annotation.Nonnull;
+
 import org.revapi.query.Filter;
 
 /**
@@ -24,5 +26,5 @@ import org.revapi.query.Filter;
  */
 public interface ElementFilter extends Filter<Element> {
 
-    void initialize(Configuration configuration);
+    void initialize(@Nonnull Configuration configuration);
 }

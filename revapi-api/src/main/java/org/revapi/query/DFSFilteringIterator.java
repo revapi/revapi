@@ -21,6 +21,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.revapi.Element;
 
 /**
@@ -33,8 +36,8 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
     private final Filter<? super E> filter;
     private E current;
 
-    public DFSFilteringIterator(Iterator<? extends Element> rootIterator, Class<E> resultClass,
-        Filter<? super E> filter) {
+    public DFSFilteringIterator(@Nonnull Iterator<? extends Element> rootIterator, @Nonnull Class<E> resultClass,
+        @Nullable Filter<? super E> filter) {
         dfsStack.push(rootIterator);
         this.resultClass = resultClass;
         this.filter = filter;

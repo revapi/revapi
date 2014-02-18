@@ -16,6 +16,8 @@
 
 package org.revapi.query;
 
+import javax.annotation.Nullable;
+
 /**
  * A basic filter designed to work with element {@link org.revapi.Tree trees}.
  *
@@ -31,7 +33,7 @@ public interface Filter<T> {
      *
      * @return true if the filter applies, false otherwise
      */
-    boolean applies(T element);
+    boolean applies(@Nullable T element);
 
     /**
      * Should the tree traversal descend into the provided element? It is not guaranteed that the element is
@@ -44,5 +46,5 @@ public interface Filter<T> {
      *
      * @return true if tree traversal should descend into the element, false otherwise
      */
-    boolean shouldDescendInto(Object element);
+    boolean shouldDescendInto(@Nullable Object element);
 }

@@ -25,6 +25,9 @@ import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.revapi.Element;
 import org.revapi.query.DFSFilteringIterator;
 import org.revapi.query.Filter;
@@ -226,6 +229,7 @@ public abstract class SimpleElement implements Element {
         }
     }
 
+    @Nonnull
     public SortedSet<? extends Element> getChildren() {
         if (children == null) {
             children = new ParentPreservingSet(newChildrenInstance());
@@ -233,31 +237,35 @@ public abstract class SimpleElement implements Element {
         return children;
     }
 
+    @Nonnull
     protected SortedSet<Element> newChildrenInstance() {
         return new TreeSet<>();
     }
 
     @Override
+    @Nullable
     public Element getParent() {
         return parent;
     }
 
     @Override
-    public void setParent(Element parent) {
+    public void setParent(@Nullable Element parent) {
         this.parent = parent;
     }
 
     @Override
-    public final <T extends Element> List<T> searchChildren(Class<T> resultType, boolean recurse,
-        Filter<? super T> filter) {
+    @Nonnull
+    public final <T extends Element> List<T> searchChildren(@Nonnull Class<T> resultType, boolean recurse,
+        @Nullable Filter<? super T> filter) {
         List<T> results = new ArrayList<>();
         searchChildren(results, resultType, recurse, filter);
         return results;
     }
 
     @Override
-    public final <T extends Element> void searchChildren(List<T> results, Class<T> resultType,
-        boolean recurse, Filter<? super T> filter) {
+    @Nonnull
+    public final <T extends Element> void searchChildren(@Nonnull List<T> results, @Nonnull Class<T> resultType,
+        boolean recurse, @Nullable Filter<? super T> filter) {
         for (Element e : getChildren()) {
             if (resultType.isAssignableFrom(e.getClass())) {
                 T te = resultType.cast(e);
@@ -278,14 +286,16 @@ public abstract class SimpleElement implements Element {
      * @see org.revapi.Element#getFullHumanReadableString()
      */
     @Override
+    @Nonnull
     public String getFullHumanReadableString() {
         return toString();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Element> Iterator<T> iterateOverChildren(Class<T> resultType, boolean recurse,
-        Filter<? super T> filter) {
+    @Nonnull
+    public <T extends Element> Iterator<T> iterateOverChildren(@Nonnull Class<T> resultType, boolean recurse,
+        @Nullable Filter<? super T> filter) {
 
         if (children == null) {
             return new EmptyIterator<>();
@@ -295,7 +305,8 @@ public abstract class SimpleElement implements Element {
             new FilteringIterator<>((Iterator<T>) getChildren().iterator(), resultType, filter);
     }
 
-    protected <T extends Element> List<T> getDirectChildrenOfType(Class<T> type) {
+    @Nonnull
+    protected <T extends Element> List<T> getDirectChildrenOfType(@Nonnull Class<T> type) {
         return searchChildren(type, false, null);
     }
 }

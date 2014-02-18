@@ -16,13 +16,16 @@
 
 package org.revapi;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public interface ProblemTransform {
 
-    void initialize(Configuration configuration);
+    void initialize(@Nonnull Configuration configuration);
 
     /**
      * Returns a transformed version of the problem. If this method returns null, the problem is
@@ -33,7 +36,9 @@ public interface ProblemTransform {
      * @param problem    the problem description
      *
      * @return the transformed problem or the passed in problem if no transformation necessary or null if the problem
-     *         should be discarded
+     * should be discarded
      */
-    MatchReport.Problem transform(Element oldElement, Element newElement, MatchReport.Problem problem);
+    @Nullable
+    MatchReport.Problem transform(@Nullable Element oldElement, @Nullable Element newElement,
+        @Nonnull MatchReport.Problem problem);
 }

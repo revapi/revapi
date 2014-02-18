@@ -20,6 +20,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -57,14 +59,17 @@ public abstract class CheckBase implements Check {
     private final Deque<ActiveElements> activations = new ArrayDeque<>();
     private Configuration configuration;
 
+    @Nonnull
     public TypeEnvironment getOldTypeEnvironment() {
         return oldTypeEnvironment;
     }
 
+    @Nonnull
     public TypeEnvironment getNewTypeEnvironment() {
         return newTypeEnvironment;
     }
 
+    @Nonnull
     public Configuration getConfiguration() {
         return configuration;
     }
@@ -93,6 +98,7 @@ public abstract class CheckBase implements Check {
         }
     }
 
+    @Nullable
     protected List<MatchReport.Problem> doEnd() {
         return null;
     }
@@ -103,7 +109,7 @@ public abstract class CheckBase implements Check {
         doVisitClass(oldType, newType);
     }
 
-    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
+    protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
     }
 
     @Override
@@ -112,7 +118,7 @@ public abstract class CheckBase implements Check {
         doVisitMethod(oldMethod, newMethod);
     }
 
-    protected void doVisitMethod(ExecutableElement oldMethod, ExecutableElement newMethod) {
+    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
     }
 
     @Override
@@ -121,7 +127,8 @@ public abstract class CheckBase implements Check {
         doVisitMethodParameter(oldParameter, newParameter);
     }
 
-    protected void doVisitMethodParameter(VariableElement oldParameter, VariableElement newParameter) {
+    protected void doVisitMethodParameter(@Nullable VariableElement oldParameter,
+        @Nullable VariableElement newParameter) {
     }
 
     @Override
@@ -130,7 +137,7 @@ public abstract class CheckBase implements Check {
         doVisitField(oldField, newField);
     }
 
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+    protected void doVisitField(@Nullable VariableElement oldField, @Nullable VariableElement newField) {
     }
 
     @Override
@@ -142,21 +149,25 @@ public abstract class CheckBase implements Check {
         return ret;
     }
 
-    protected List<MatchReport.Problem> doVisitAnnotation(AnnotationMirror oldAnnotation,
-        AnnotationMirror newAnnotation) {
+    @Nullable
+    protected List<MatchReport.Problem> doVisitAnnotation(@Nullable AnnotationMirror oldAnnotation,
+        @Nullable AnnotationMirror newAnnotation) {
         return null;
     }
 
-    protected final <T extends Element> void pushActive(T oldElement, T newElement, Object... context) {
+    protected final <T extends Element> void pushActive(@Nullable T oldElement, @Nullable T newElement,
+        Object... context) {
         ActiveElements<T> r = new ActiveElements<>(depth, oldElement, newElement, context);
         activations.push(r);
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     protected <T extends Element> ActiveElements<T> popIfActive() {
         return !activations.isEmpty() && activations.peek().depth == depth ? activations.pop() : null;
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     protected <T extends Element> ActiveElements<T> peekLastActive() {
         return activations.peek();

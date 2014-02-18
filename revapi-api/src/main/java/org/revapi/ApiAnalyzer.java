@@ -16,13 +16,15 @@
 
 package org.revapi;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public interface ApiAnalyzer {
 
-    void initialize(Configuration configuration);
+    void initialize(@Nonnull Configuration configuration);
 
     /**
      * This method is called exactly twice during the API difference analysis. The first time it is called to obtain
@@ -31,7 +33,8 @@ public interface ApiAnalyzer {
      * @param api the api to analyze
      * @return the analyzer for the supplied archives
      */
-    ArchiveAnalyzer getArchiveAnalyzer(API api);
+    @Nonnull
+    ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api);
 
     /**
      * This method is called exactly once during the API difference analysis and produces an element analyzer which
@@ -43,5 +46,7 @@ public interface ApiAnalyzer {
      *
      * @return an element analyzer
      */
-    ElementDifferenceAnalyzer getElementAnalyzer(ArchiveAnalyzer oldArchive, ArchiveAnalyzer newArchive);
+    @Nonnull
+    ElementDifferenceAnalyzer getElementAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
+        @Nonnull ArchiveAnalyzer newArchive);
 }

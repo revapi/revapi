@@ -16,6 +16,8 @@
 
 package org.revapi.java;
 
+import javax.annotation.Nonnull;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
@@ -28,7 +30,32 @@ import javax.lang.model.util.Types;
  */
 public interface TypeEnvironment {
 
+    /**
+     * The instance of the utility class to examine the elements of the API (types, methods, etc.)
+     *
+     * @see javax.lang.model.util.Elements
+     */
+    @Nonnull
     Elements getElementUtils();
 
+    /**
+     * The instance of the utility class to examine the types in the API.
+     *
+     * @see javax.lang.model.util.Types
+     */
+    @Nonnull
     Types getTypeUtils();
+
+    /**
+     * Determines whether given class is explicitly part of the API being checked.
+     * This might return false for inner classes.
+     * <p/>
+     * The model still contains the classes that are not explicitly part of the API because there still might be checks
+     * on them that might be relevant, like annotation checks.
+     *
+     * @param type the type to check
+     *
+     * @return true if the type is explicitly part of the API, false if it is not
+     */
+    boolean isExplicitPartOfAPI(@Nonnull TypeElement type);
 }

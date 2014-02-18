@@ -16,13 +16,15 @@
 
 package org.revapi;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public interface Reporter {
 
-    void initialize(Configuration properties);
+    void initialize(@Nonnull Configuration properties);
 
-    void report(MatchReport matchReport);
+    void report(@Nonnull MatchReport matchReport);
 }

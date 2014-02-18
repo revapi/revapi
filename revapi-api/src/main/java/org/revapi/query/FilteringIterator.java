@@ -19,6 +19,9 @@ package org.revapi.query;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
@@ -29,7 +32,8 @@ public class FilteringIterator<E> implements Iterator<E> {
     private final Filter<? super E> filter;
     private E current;
 
-    public FilteringIterator(Iterator<? extends E> iterator, Class<E> resultType, Filter<? super E> filter) {
+    public FilteringIterator(@Nonnull Iterator<? extends E> iterator, @Nonnull Class<E> resultType,
+        @Nullable Filter<? super E> filter) {
         this.wrapped = iterator;
         this.filter = filter;
         this.resultType = resultType;
@@ -58,7 +62,9 @@ public class FilteringIterator<E> implements Iterator<E> {
     }
 
     @Override
-    public E next() {
+    public
+    @Nonnull
+    E next() {
         if (current == null && !hasNext()) {
             throw new NoSuchElementException();
         }

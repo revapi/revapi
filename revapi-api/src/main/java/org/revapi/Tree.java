@@ -19,6 +19,9 @@ package org.revapi;
 import java.util.List;
 import java.util.SortedSet;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.revapi.query.Filter;
 
 /**
@@ -32,11 +35,13 @@ public interface Tree {
     /**
      * @return the API this tree represents
      */
+    @Nonnull
     API getApi();
 
     /**
      * A sorted set of all root elements of the tree. The set uses the natural order of the element implementations.
      */
+    @Nonnull
     SortedSet<? extends Element> getRoots();
 
     /**
@@ -53,6 +58,8 @@ public interface Tree {
      *
      * @return a list of elements of given type (or any subtype) from the tree, filtered by the filter if provided
      */
-    <T extends Element> List<T> search(Class<T> resultType, boolean recurse, Filter<? super T> filter,
-        Element searchRoot);
+    @Nonnull
+    <T extends Element> List<T> search(@Nonnull Class<T> resultType, boolean recurse,
+        @Nullable Filter<? super T> filter,
+        @Nullable Element searchRoot);
 }

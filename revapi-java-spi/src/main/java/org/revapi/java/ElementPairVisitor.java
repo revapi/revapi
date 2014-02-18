@@ -16,6 +16,8 @@
 
 package org.revapi.java;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
@@ -46,67 +48,67 @@ import javax.lang.model.util.SimpleElementVisitor7;
 public class ElementPairVisitor<R> extends SimpleElementVisitor7<R, Element> {
 
     @SuppressWarnings("UnusedParameters")
-    protected R unmatchedAction(Element element, Element otherElement) {
+    protected R unmatchedAction(@Nonnull Element element, @Nullable Element otherElement) {
         return null;
     }
 
-    protected R defaultMatchAction(Element element, Element otherElement) {
+    protected R defaultMatchAction(@Nonnull Element element, @Nullable Element otherElement) {
         return unmatchedAction(element, otherElement);
     }
 
     @Override
-    public final R visitPackage(PackageElement element, Element otherElement) {
+    public final R visitPackage(@Nonnull PackageElement element, @Nullable Element otherElement) {
         return otherElement instanceof PackageElement ? visitPackage(element, (PackageElement) otherElement) :
             unmatchedAction(element, otherElement);
     }
 
-    protected R visitPackage(PackageElement element, PackageElement otherElement) {
+    protected R visitPackage(@Nonnull PackageElement element, @Nonnull PackageElement otherElement) {
         return defaultMatchAction(element, otherElement);
     }
 
     @Override
-    public final R visitType(TypeElement element, Element otherElement) {
+    public final R visitType(@Nonnull TypeElement element, @Nullable Element otherElement) {
         return otherElement instanceof TypeElement ? visitType(element, (TypeElement) otherElement) :
             unmatchedAction(element, otherElement);
     }
 
-    protected R visitType(TypeElement element, TypeElement otherElement) {
+    protected R visitType(@Nonnull TypeElement element, @Nonnull TypeElement otherElement) {
         return defaultMatchAction(element, otherElement);
     }
 
     @Override
-    public final R visitVariable(VariableElement element, Element otherElement) {
+    public final R visitVariable(@Nonnull VariableElement element, @Nullable Element otherElement) {
         return otherElement instanceof VariableElement ? visitVariable(element, (VariableElement) otherElement) :
             unmatchedAction(element, otherElement);
     }
 
-    protected R visitVariable(VariableElement element, VariableElement otherElement) {
+    protected R visitVariable(@Nonnull VariableElement element, @Nonnull VariableElement otherElement) {
         return defaultMatchAction(element, otherElement);
     }
 
     @Override
-    public final R visitExecutable(ExecutableElement element, Element otherElement) {
+    public final R visitExecutable(@Nonnull ExecutableElement element, @Nullable Element otherElement) {
         return otherElement instanceof ExecutableElement ? visitExecutable(element, (ExecutableElement) otherElement) :
             unmatchedAction(element, otherElement);
     }
 
-    protected R visitExecutable(ExecutableElement element, ExecutableElement otherElement) {
+    protected R visitExecutable(@Nonnull ExecutableElement element, @Nonnull ExecutableElement otherElement) {
         return defaultMatchAction(element, otherElement);
     }
 
     @Override
-    public final R visitTypeParameter(TypeParameterElement element, Element otherElement) {
+    public final R visitTypeParameter(@Nonnull TypeParameterElement element, @Nullable Element otherElement) {
         return otherElement instanceof TypeParameterElement ? visitTypeParameter(element,
             (TypeParameterElement) otherElement) :
             unmatchedAction(element, otherElement);
     }
 
-    protected R visitTypeParameter(TypeParameterElement element, TypeParameterElement otherElement) {
+    protected R visitTypeParameter(@Nonnull TypeParameterElement element, @Nonnull TypeParameterElement otherElement) {
         return defaultMatchAction(element, otherElement);
     }
 
     @Override
-    public R visitUnknown(Element element, Element otherElement) {
+    public R visitUnknown(@Nonnull Element element, @Nullable Element otherElement) {
         return unmatchedAction(element, otherElement);
     }
 }

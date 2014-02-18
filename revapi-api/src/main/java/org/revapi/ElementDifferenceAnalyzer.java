@@ -16,6 +16,8 @@
 
 package org.revapi;
 
+import javax.annotation.Nullable;
+
 /**
  * An element analyzer is basically a visitor over matching elements of some language between
  * the two API versions being compared.
@@ -44,7 +46,7 @@ public interface ElementDifferenceAnalyzer {
      * @param oldElement the element from the old archives
      * @param newElement the element from the new archives
      */
-    void beginAnalysis(Element oldElement, Element newElement);
+    void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement);
 
     /**
      * Called when the analysis of the two elements ends (i.e. all the children have been visited).
@@ -54,5 +56,5 @@ public interface ElementDifferenceAnalyzer {
      *
      * @return a report detailing the difference found between these two elements
      */
-    MatchReport endAnalysis(Element oldElement, Element newElement);
+    MatchReport endAnalysis(@Nullable Element oldElement, @Nullable Element newElement);
 }

@@ -19,6 +19,8 @@ package org.revapi;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
@@ -30,26 +32,35 @@ public final class Configuration {
     private final API oldApi;
     private final API newApi;
 
-    public Configuration(Locale locale, Map<String, String> properties, API oldApi, API newApi) {
+    public Configuration(@Nonnull Locale locale, @Nonnull Map<String, String> properties, @Nonnull API oldApi,
+        @Nonnull API newApi) {
         this.locale = locale;
         this.properties = properties;
         this.oldApi = oldApi;
         this.newApi = newApi;
     }
 
-    public Locale getLocale() {
+    public
+    @Nonnull
+    Locale getLocale() {
         return locale;
     }
 
-    public Map<String, String> getProperties() {
+    public
+    @Nonnull
+    Map<String, String> getProperties() {
         return properties;
     }
 
-    public API getOldApi() {
+    public
+    @Nonnull
+    API getOldApi() {
         return oldApi;
     }
 
-    public API getNewApi() {
+    public
+    @Nonnull
+    API getNewApi() {
         return newApi;
     }
 }

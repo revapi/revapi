@@ -29,6 +29,9 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.SortedSet;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,19 +52,23 @@ public final class Revapi {
         private Locale locale = Locale.getDefault();
         private Map<String, String> configuration = Collections.emptyMap();
 
+        @Nonnull
         public Builder withAnalyzersOnClassPath() {
             return withAnalyzers(ServiceLoader.load(ApiAnalyzer.class));
         }
 
-        public Builder withAnalyzersOnClassPath(ClassLoader cl) {
+        @Nonnull
+        public Builder withAnalyzersOnClassPath(@Nonnull ClassLoader cl) {
             return withAnalyzers(ServiceLoader.load(ApiAnalyzer.class, cl));
         }
 
+        @Nonnull
         public Builder withAnalyzers(ApiAnalyzer... analyzers) {
             return withAnalyzers(Arrays.asList(analyzers));
         }
 
-        public Builder withAnalyzers(Iterable<? extends ApiAnalyzer> analyzers) {
+        @Nonnull
+        public Builder withAnalyzers(@Nonnull Iterable<? extends ApiAnalyzer> analyzers) {
             this.analyzers = new HashSet<>();
             for (ApiAnalyzer a : analyzers) {
                 this.analyzers.add(a);
@@ -70,19 +77,23 @@ public final class Revapi {
             return this;
         }
 
+        @Nonnull
         public Builder withReportersOnClassPath() {
             return withReporters(ServiceLoader.load(Reporter.class));
         }
 
-        public Builder withReportersOnClassPath(ClassLoader cl) {
+        @Nonnull
+        public Builder withReportersOnClassPath(@Nonnull ClassLoader cl) {
             return withReporters(ServiceLoader.load(Reporter.class, cl));
         }
 
+        @Nonnull
         public Builder withReporters(Reporter... reporters) {
             return withReporters(Arrays.asList(reporters));
         }
 
-        public Builder withReporters(Iterable<? extends Reporter> reporters) {
+        @Nonnull
+        public Builder withReporters(@Nonnull Iterable<? extends Reporter> reporters) {
             this.reporters = new HashSet<>();
             for (Reporter r : reporters) {
                 this.reporters.add(r);
@@ -91,19 +102,23 @@ public final class Revapi {
             return this;
         }
 
+        @Nonnull
         public Builder withTransformsOnClassPath() {
             return withTransforms(ServiceLoader.load(ProblemTransform.class));
         }
 
-        public Builder withTransformsOnClassPath(ClassLoader cl) {
+        @Nonnull
+        public Builder withTransformsOnClassPath(@Nonnull ClassLoader cl) {
             return withTransforms(ServiceLoader.load(ProblemTransform.class, cl));
         }
 
+        @Nonnull
         public Builder withTransforms(ProblemTransform... transforms) {
             return withTransforms(Arrays.asList(transforms));
         }
 
-        public Builder withTransforms(Iterable<? extends ProblemTransform> transforms) {
+        @Nonnull
+        public Builder withTransforms(@Nonnull Iterable<? extends ProblemTransform> transforms) {
             this.transforms = new HashSet<>();
             for (ProblemTransform t : transforms) {
                 this.transforms.add(t);
@@ -112,19 +127,23 @@ public final class Revapi {
             return this;
         }
 
+        @Nonnull
         public Builder withFiltersOnClassPath() {
             return withFilters(ServiceLoader.load(ElementFilter.class));
         }
 
-        public Builder withFiltersOnClassPath(ClassLoader cl) {
+        @Nonnull
+        public Builder withFiltersOnClassPath(@Nonnull ClassLoader cl) {
             return withFilters(ServiceLoader.load(ElementFilter.class, cl));
         }
 
+        @Nonnull
         public Builder withFilters(ElementFilter... filters) {
             return withFilters(Arrays.asList(filters));
         }
 
-        public Builder withFilters(Iterable<? extends ElementFilter> filters) {
+        @Nonnull
+        public Builder withFilters(@Nonnull Iterable<? extends ElementFilter> filters) {
             this.filters = new HashSet<>();
             for (ElementFilter f : filters) {
                 this.filters.add(f);
@@ -133,36 +152,43 @@ public final class Revapi {
             return this;
         }
 
+        @Nonnull
         public Builder withDefaultLocale() {
             this.locale = Locale.getDefault();
             return this;
         }
 
-        public Builder withLocale(Locale locale) {
+        @Nonnull
+        public Builder withLocale(@Nonnull Locale locale) {
             this.locale = locale;
             return this;
         }
 
-        public Builder withConfiguration(Map<String, String> configuration) {
+        @Nonnull
+        public Builder withConfiguration(@Nonnull Map<String, String> configuration) {
             this.configuration = configuration;
             return this;
         }
 
+        @Nonnull
         @SuppressWarnings("unchecked")
-        public Builder withConfiguration(Properties properties) {
+        public Builder withConfiguration(@Nonnull Properties properties) {
             this.configuration = (Map<String, String>) (Map) properties;
             return this;
         }
 
+        @Nonnull
         public Builder withAllExtensionsOnClassPath() {
             return withAllExtensionsOnClassPath(Thread.currentThread().getContextClassLoader());
         }
 
-        public Builder withAllExtensionsOnClassPath(ClassLoader cl) {
+        @Nonnull
+        public Builder withAllExtensionsOnClassPath(@Nonnull ClassLoader cl) {
             return withAnalyzersOnClassPath(cl).withFiltersOnClassPath(cl).withReportersOnClassPath(cl)
                 .withTransformsOnClassPath(cl);
         }
 
+        @Nonnull
         public Revapi build() {
             return new Revapi(analyzers, reporters, transforms, filters, locale, configuration);
         }
@@ -180,6 +206,7 @@ public final class Revapi {
         System.out.println("Revapi <oldArchive> <newArchive>");
     }
 
+    @Nonnull
     public static Builder builder() {
         return new Builder();
     }
@@ -208,9 +235,9 @@ public final class Revapi {
      *
      * @throws java.lang.IllegalArgumentException if any of the parameters is null
      */
-    public Revapi(Set<ApiAnalyzer> availableApiAnalyzers, Set<Reporter> availableReporters,
-        Set<ProblemTransform> availableProblemTransforms, Set<ElementFilter> elementFilters, Locale locale,
-        Map<String, String> configurationProperties) {
+    public Revapi(@Nonnull Set<ApiAnalyzer> availableApiAnalyzers, @Nonnull Set<Reporter> availableReporters,
+        @Nonnull Set<ProblemTransform> availableProblemTransforms, @Nonnull Set<ElementFilter> elementFilters,
+        @Nonnull Locale locale, @Nonnull Map<String, String> configurationProperties) {
 
         if (availableApiAnalyzers == null) {
             throw new IllegalArgumentException("availableApiAnanlyzers");
@@ -244,9 +271,11 @@ public final class Revapi {
         this.locale = locale;
     }
 
-    public void analyze(Iterable<? extends Archive> oldArchives, Iterable<? extends Archive> oldSupplementaryArchives,
-        Iterable<? extends Archive> newArchives, Iterable<? extends Archive> newSupplementaryArchives)
-        throws IOException {
+    public void analyze(@Nonnull Iterable<? extends Archive> oldArchives,
+        @Nullable Iterable<? extends Archive> oldSupplementaryArchives,
+        @Nonnull Iterable<? extends Archive> newArchives,
+        @Nullable Iterable<? extends Archive> newSupplementaryArchives)
+    throws IOException {
 
         this.configuration = new Configuration(locale, configurationProperties,
             new API(oldArchives, oldSupplementaryArchives),

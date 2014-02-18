@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
@@ -42,53 +45,63 @@ public final class MatchReport {
                 this.reportBuilder = reportBuilder;
             }
 
-            public Builder withCode(String code) {
+            @Nonnull
+            public Builder withCode(@Nonnull String code) {
                 this.code = code;
                 return this;
             }
 
-            public Builder withName(String name) {
+            @Nonnull
+            public Builder withName(@Nonnull String name) {
                 this.name = name;
                 return this;
             }
 
-            public Builder withDescription(String description) {
+            @Nonnull
+            public Builder withDescription(@Nullable String description) {
                 this.description = description;
                 return this;
             }
 
-            public Builder addClassification(CompatibilityType compat, ChangeSeverity severity) {
+            @Nonnull
+            public Builder addClassification(@Nonnull CompatibilityType compat, @Nonnull ChangeSeverity severity) {
                 classification.put(compat, severity);
                 return this;
             }
 
-            public Builder addAttachment(Object attachment) {
+            @Nonnull
+            public Builder addAttachment(@Nonnull Object attachment) {
                 attachments.add(attachment);
                 return this;
             }
 
-            public Builder addAttachments(Iterable<?> attachments) {
+            @Nonnull
+            public Builder addAttachments(@Nonnull Iterable<?> attachments) {
                 for (Object a : attachments) {
                     this.attachments.add(a);
                 }
                 return this;
             }
 
+            @Nonnull
             public Builder addAttachments(Object... attachments) {
                 return addAttachments(Arrays.asList(attachments));
             }
 
+            @Nonnull
             public MatchReport.Builder done() {
                 Problem p = build();
                 reportBuilder.problems.add(p);
                 return reportBuilder;
             }
 
+            @Nonnull
             public Problem build() {
                 return new Problem(code, name, description, classification, attachments);
             }
         }
 
+        @Nonnull
         public static Builder builder() {
             return new Builder(null);
         }
@@ -111,13 +124,14 @@ public final class MatchReport {
 
         public final List<Object> attachments;
 
-        public Problem(String code, String name, String description, CompatibilityType compatibility,
-            ChangeSeverity severity, List<Serializable> attachments) {
+        public Problem(@Nonnull String code, @Nonnull String name, @Nullable String description,
+            @Nonnull CompatibilityType compatibility,
+            @Nonnull ChangeSeverity severity, @Nonnull List<Serializable> attachments) {
             this(code, name, description, Collections.singletonMap(compatibility, severity), attachments);
         }
 
-        public Problem(String code, String name, String description,
-            Map<CompatibilityType, ChangeSeverity> classification, List<?> attachments) {
+        public Problem(@Nonnull String code, @Nonnull String name, @Nullable String description,
+            @Nonnull Map<CompatibilityType, ChangeSeverity> classification, @Nonnull List<?> attachments) {
             this.code = code;
             this.name = name;
             this.description = description;
@@ -165,20 +179,24 @@ public final class MatchReport {
         private Element newElement;
         private ArrayList<Problem> problems = new ArrayList<>();
 
-        public Builder withOld(Element element) {
+        @Nonnull
+        public Builder withOld(@Nullable Element element) {
             oldElement = element;
             return this;
         }
 
-        public Builder withNew(Element element) {
+        @Nonnull
+        public Builder withNew(@Nullable Element element) {
             newElement = element;
             return this;
         }
 
+        @Nonnull
         public Problem.Builder addProblem() {
             return new Problem.Builder(this);
         }
 
+        @Nonnull
         public MatchReport build() {
             return new MatchReport(problems, oldElement, newElement);
         }
@@ -192,7 +210,8 @@ public final class MatchReport {
     private final Element oldElement;
     private final Element newElement;
 
-    public MatchReport(Iterable<Problem> problems, Element oldElement, Element newElement) {
+    public MatchReport(@Nonnull Iterable<Problem> problems, @Nullable Element oldElement,
+        @Nullable Element newElement) {
         this.problems = new ArrayList<>();
         for (Problem p : problems) {
             this.problems.add(p);
@@ -202,14 +221,17 @@ public final class MatchReport {
         this.newElement = newElement;
     }
 
+    @Nullable
     public Element getNewElement() {
         return newElement;
     }
 
+    @Nullable
     public Element getOldElement() {
         return oldElement;
     }
 
+    @Nonnull
     public List<Problem> getProblems() {
         return problems;
     }

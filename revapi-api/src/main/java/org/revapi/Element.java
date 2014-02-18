@@ -20,6 +20,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.revapi.query.Filter;
 
 /**
@@ -37,18 +40,22 @@ public interface Element extends Comparable<Element> {
     /**
      * @return the API version this element comes from
      */
+    @Nonnull
     API getApi();
 
+    @Nullable
     Element getParent();
 
-    void setParent(Element parent);
+    void setParent(@Nullable Element parent);
 
+    @Nonnull
     SortedSet<? extends Element> getChildren();
 
     /**
      * Provides the full "path" to the element in the tree in a human readable way.
      * This method is meant to be used by the reporters to identify the element in the reports.
      */
+    @Nonnull
     String getFullHumanReadableString();
 
     /**
@@ -61,7 +68,9 @@ public interface Element extends Comparable<Element> {
      * @param filter     optional filter to further trim the number of results  @return the list of child elements of
      *                   given type potentially satisfying given filter
      */
-    <T extends Element> List<T> searchChildren(Class<T> resultType, boolean recurse, Filter<? super T> filter);
+    @Nonnull
+    <T extends Element> List<T> searchChildren(@Nonnull Class<T> resultType, boolean recurse,
+        @Nullable Filter<? super T> filter);
 
     /**
      * Recursively searches the children of this element for elements of given type, potentially applicable to given
@@ -73,8 +82,9 @@ public interface Element extends Comparable<Element> {
      *
      * @return the list of child elements of given type potentially satisfying given filter
      */
-    <T extends Element> void searchChildren(List<T> results, Class<T> resultType, boolean recurse,
-        Filter<? super T> filter);
+    @Nonnull
+    <T extends Element> void searchChildren(@Nonnull List<T> results, @Nonnull Class<T> resultType, boolean recurse,
+        @Nullable Filter<? super T> filter);
 
     /**
      * Similar to search methods but avoids the traversal over the whole tree. Instead the traversal is incremental
@@ -86,5 +96,7 @@ public interface Element extends Comparable<Element> {
      *
      * @see #searchChildren(Class, boolean, org.revapi.query.Filter)
      */
-    <T extends Element> Iterator<T> iterateOverChildren(Class<T> resultType, boolean recurse, Filter<? super T> filter);
+    @Nonnull
+    <T extends Element> Iterator<T> iterateOverChildren(@Nonnull Class<T> resultType, boolean recurse,
+        @Nullable Filter<? super T> filter);
 }

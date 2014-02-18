@@ -19,6 +19,8 @@ package org.revapi.query;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
@@ -27,7 +29,7 @@ public class CompoundFilter<T> implements Filter<T> {
 
     private final Iterable<? extends Filter<? super T>> filters;
 
-    public CompoundFilter(Iterable<? extends Filter<? super T>> filters) {
+    public CompoundFilter(@Nonnull Iterable<? extends Filter<? super T>> filters) {
         this.filters = filters;
     }
 
@@ -40,7 +42,7 @@ public class CompoundFilter<T> implements Filter<T> {
      * Return true if all the member filters apply.
      */
     @Override
-    public boolean applies(T element) {
+    public boolean applies(@Nonnull T element) {
         for (Filter<? super T> f : filters) {
             if (!f.applies(element)) {
                 return false;
@@ -53,7 +55,7 @@ public class CompoundFilter<T> implements Filter<T> {
      * Return true if at least one of the member filters applies (or if there are no member filters at all).
      */
     @Override
-    public boolean shouldDescendInto(Object element) {
+    public boolean shouldDescendInto(@Nonnull Object element) {
         Iterator<? extends Filter<? super T>> it = filters.iterator();
         boolean hasNoFilters = !it.hasNext();
 

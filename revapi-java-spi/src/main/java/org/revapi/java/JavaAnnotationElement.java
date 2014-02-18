@@ -16,6 +16,7 @@
 
 package org.revapi.java;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 
 /**
@@ -23,5 +24,6 @@ import javax.lang.model.element.AnnotationMirror;
  * @since 0.1
  */
 public interface JavaAnnotationElement extends JavaElement {
+    @Nonnull
     AnnotationMirror getAnnotation();
 }

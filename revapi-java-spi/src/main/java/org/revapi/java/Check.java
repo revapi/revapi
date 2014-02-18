@@ -18,6 +18,8 @@ package org.revapi.java;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -54,7 +56,7 @@ import org.revapi.MatchReport;
  */
 public interface Check {
 
-    void initialize(Configuration configuration);
+    void initialize(@Nonnull Configuration configuration);
 
     /**
      * The environment containing the old version of the classes. This can be used to reason about the
@@ -64,7 +66,7 @@ public interface Check {
      *
      * @param env the environment to obtain the helper objects using which one can navigate and examine types
      */
-    void setOldTypeEnvironment(TypeEnvironment env);
+    void setOldTypeEnvironment(@Nonnull TypeEnvironment env);
 
     /**
      * The environment containing the new version of the classes. This can be used to reason about the
@@ -74,7 +76,7 @@ public interface Check {
      *
      * @param env the environment to obtain the helper objects using which one can navigate and examine types
      */
-    void setNewTypeEnvironment(TypeEnvironment env);
+    void setNewTypeEnvironment(@Nonnull TypeEnvironment env);
 
     /**
      * Each of the other visit* calls is followed by a corresponding call to this method in a stack-like
@@ -90,15 +92,18 @@ public interface Check {
      * visitEnd(); //"ends" the visitType()
      * </code></pre>
      */
+    @Nullable
     List<MatchReport.Problem> visitEnd();
 
-    void visitClass(TypeElement oldType, TypeElement newType);
+    void visitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType);
 
-    void visitMethod(ExecutableElement oldMethod, ExecutableElement newMethod);
+    void visitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod);
 
-    void visitMethodParameter(VariableElement oldParameter, VariableElement newParameter);
+    void visitMethodParameter(@Nullable VariableElement oldParameter, @Nullable VariableElement newParameter);
 
-    void visitField(VariableElement oldField, VariableElement newField);
+    void visitField(@Nullable VariableElement oldField, @Nullable VariableElement newField);
 
-    List<MatchReport.Problem> visitAnnotation(AnnotationMirror oldAnnotation, AnnotationMirror newAnnotation);
+    @Nullable
+    List<MatchReport.Problem> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
+        @Nullable AnnotationMirror newAnnotation);
 }

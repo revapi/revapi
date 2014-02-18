@@ -16,6 +16,7 @@
 
 package org.revapi.java;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
 
 /**
@@ -23,5 +24,7 @@ import javax.lang.model.element.Element;
  * @since 0.1
  */
 public interface JavaModelElement extends JavaElement {
+
+    @Nonnull
     Element getModelElement();
 }

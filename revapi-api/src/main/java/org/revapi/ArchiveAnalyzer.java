@@ -16,11 +16,14 @@
 
 package org.revapi;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public interface ArchiveAnalyzer {
 
+    @Nonnull
     Tree analyze();
 }
