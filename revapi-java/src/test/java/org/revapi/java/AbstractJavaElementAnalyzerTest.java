@@ -19,10 +19,6 @@ package org.revapi.java;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URI;
-import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -34,9 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
 
 import org.junit.Rule;
@@ -61,49 +55,6 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
  * @since 0.1
  */
 public abstract class AbstractJavaElementAnalyzerTest {
-    private static class SourceInClassLoader extends SimpleJavaFileObject {
-        URL url;
-
-        private SourceInClassLoader(String path) {
-            super(getName(path), Kind.SOURCE);
-            url = getClass().getClassLoader().getResource(path);
-        }
-
-        private static URI getName(String path) {
-            return URI.create(path.substring(path.lastIndexOf('/') + 1));
-        }
-
-        @Override
-        public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
-            StringBuilder bld = new StringBuilder();
-
-            Reader rdr = openReader(ignoreEncodingErrors);
-            char[] buffer = new char[512]; //our source files are small
-
-            for (int cnt; (cnt = rdr.read(buffer)) != -1; ) {
-                bld.append(buffer, 0, cnt);
-            }
-
-            rdr.close();
-
-            return bld;
-        }
-
-        @Override
-        public NestingKind getNestingKind() {
-            return NestingKind.TOP_LEVEL;
-        }
-
-        @Override
-        public InputStream openInputStream() throws IOException {
-            return url.openStream();
-        }
-
-        @Override
-        public Reader openReader(boolean ignoreEncodingErrors) throws IOException {
-            return new InputStreamReader(openInputStream(), "UTF-8");
-        }
-    }
 
     protected final static class ShrinkwrapArchive implements Archive {
         private final JavaArchive archive;

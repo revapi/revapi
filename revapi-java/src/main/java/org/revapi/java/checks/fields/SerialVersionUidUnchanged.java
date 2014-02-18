@@ -19,7 +19,10 @@ package org.revapi.java.checks.fields;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -30,16 +33,20 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.SimpleTypeVisitor7;
 
 import org.revapi.MatchReport;
 import org.revapi.java.TypeEnvironment;
-import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
@@ -96,8 +103,12 @@ public class SerialVersionUidUnchanged extends AbstractJavaCheck {
 
     @Override
     protected List<MatchReport.Problem> doEnd() {
-        //TODO implement
-        return super.doEnd();
+        ActiveElements<VariableElement> fields = popIfActive();
+        if (fields == null) {
+            return null;
+        }
+
+        return Collections.singletonList(createProblem(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED));
     }
 
     /**
@@ -173,9 +184,6 @@ public class SerialVersionUidUnchanged extends AbstractJavaCheck {
                 }
             }
 
-            //TODO remove this guy, only here for debug purposes
-            Class cl;
-
             List<? extends VariableElement> fields = ElementFilter.fieldsIn(type.getEnclosedElements());
             MemberSignature[] fieldSigs = new MemberSignature[fields.size()];
             for (int i = 0; i < fields.size(); i++) {
@@ -210,18 +218,44 @@ public class SerialVersionUidUnchanged extends AbstractJavaCheck {
                     dout.writeUTF(sig.signature);
                 }
             }
-//
+
+            boolean hasStaticInitializer = false;
+            for (Element e : type.getEnclosedElements()) {
+                if (e.getKind() == ElementKind.STATIC_INIT) {
+                    hasStaticInitializer = true;
+                    break;
+                }
+            }
+            if (hasStaticInitializer) {
+                dout.writeUTF("<clinit>");
+                dout.writeInt(java.lang.reflect.Modifier.STATIC);
+                dout.writeUTF("()V");
+            }
 //            if (hasStaticInitializer(cl)) {
 //                dout.writeUTF("<clinit>");
 //                dout.writeInt(Modifier.STATIC);
 //                dout.writeUTF("()V");
 //            }
-//
+
+            List<ExecutableElement> ctors = ElementFilter.constructorsIn(type.getEnclosedElements());
+            MemberSignature[] consSigs = new MemberSignature[ctors.size()];
+            int i = 0;
+            for (ExecutableElement ctor : ctors) {
+                consSigs[i++] = new MemberSignature(ctor);
+            }
 //            Constructor[] cons = cl.getDeclaredConstructors();
 //            MemberSignature[] consSigs = new MemberSignature[cons.length];
 //            for (int i = 0; i < cons.length; i++) {
 //                consSigs[i] = new MemberSignature(cons[i]);
 //            }
+
+            Arrays.sort(consSigs, new Comparator<MemberSignature>() {
+                public int compare(MemberSignature o1, MemberSignature o2) {
+                    String sig1 = o1.signature;
+                    String sig2 = o2.signature;
+                    return sig1.compareTo(sig2);
+                }
+            });
 //            Arrays.sort(consSigs, new Comparator() {
 //                public int compare(Object o1, Object o2) {
 //                    String sig1 = ((MemberSignature) o1).signature;
@@ -229,6 +263,17 @@ public class SerialVersionUidUnchanged extends AbstractJavaCheck {
 //                    return sig1.compareTo(sig2);
 //                }
 //            });
+
+            for (MemberSignature sig : consSigs) {
+                int mods = asReflectiveModifiers(sig.member, Modifier.PUBLIC, Modifier.PRIVATE, Modifier.PROTECTED,
+                    Modifier.STATIC, Modifier.FINAL, Modifier.SYNCHRONIZED, Modifier.NATIVE, Modifier.ABSTRACT,
+                    Modifier.STRICTFP);
+                if ((mods & java.lang.reflect.Modifier.PRIVATE) == 0) {
+                    dout.writeUTF("<init>");
+                    dout.writeInt(mods);
+                    dout.writeUTF(sig.signature.replace('/', '.'));
+                }
+            }
 //            for (int i = 0; i < consSigs.length; i++) {
 //                MemberSignature sig = consSigs[i];
 //                int mods = sig.member.getModifiers() &
@@ -242,11 +287,27 @@ public class SerialVersionUidUnchanged extends AbstractJavaCheck {
 //                    dout.writeUTF(sig.signature.replace('/', '.'));
 //                }
 //            }
-//
+
+            List<ExecutableElement> methods = ElementFilter.methodsIn(type.getEnclosedElements());
+            MemberSignature[] methSigs = new MemberSignature[methods.size()];
+            i = 0;
+            for (ExecutableElement m : methods) {
+                methSigs[i++] = new MemberSignature(m);
+            }
 //            MemberSignature[] methSigs = new MemberSignature[methods.length];
 //            for (int i = 0; i < methods.length; i++) {
 //                methSigs[i] = new MemberSignature(methods[i]);
 //            }
+
+            Arrays.sort(methSigs, new Comparator<MemberSignature>() {
+                public int compare(MemberSignature ms1, MemberSignature ms2) {
+                    int comp = ms1.name.compareTo(ms2.name);
+                    if (comp == 0) {
+                        comp = ms1.signature.compareTo(ms2.signature);
+                    }
+                    return comp;
+                }
+            });
 //            Arrays.sort(methSigs, new Comparator() {
 //                public int compare(Object o1, Object o2) {
 //                    MemberSignature ms1 = (MemberSignature) o1;
@@ -258,6 +319,17 @@ public class SerialVersionUidUnchanged extends AbstractJavaCheck {
 //                    return comp;
 //                }
 //            });
+
+            for (MemberSignature sig : methSigs) {
+                int mods = asReflectiveModifiers(sig.member, Modifier.PUBLIC, Modifier.PRIVATE, Modifier.PROTECTED,
+                    Modifier.STATIC, Modifier.FINAL, Modifier.SYNCHRONIZED, Modifier.NATIVE, Modifier.ABSTRACT,
+                    Modifier.STRICTFP);
+                if ((mods & java.lang.reflect.Modifier.PRIVATE) == 0) {
+                    dout.writeUTF(sig.name);
+                    dout.writeInt(mods);
+                    dout.writeUTF(sig.signature.replace('/', '.'));
+                }
+            }
 //            for (int i = 0; i < methSigs.length; i++) {
 //                MemberSignature sig = methSigs[i];
 //                int mods = sig.member.getModifiers() &
@@ -272,18 +344,16 @@ public class SerialVersionUidUnchanged extends AbstractJavaCheck {
 //                }
 //            }
 //
-//            dout.flush();
-//
-//            MessageDigest md = MessageDigest.getInstance("SHA");
-//            byte[] hashBytes = md.digest(bout.toByteArray());
-//            long hash = 0;
-//            for (int i = Math.min(hashBytes.length, 8) - 1; i >= 0; i--) {
-//                hash = (hash << 8) | (hashBytes[i] & 0xFF);
-//            }
-//            return hash;
+            dout.flush();
 
-            return 42;
-        } catch (IOException /* | NoSuchAlgorithmException */ ex) {
+            MessageDigest md = MessageDigest.getInstance("SHA");
+            byte[] hashBytes = md.digest(bout.toByteArray());
+            long hash = 0;
+            for (i = Math.min(hashBytes.length, 8) - 1; i >= 0; i--) {
+                hash = (hash << 8) | (hashBytes[i] & 0xFF);
+            }
+            return hash;
+        } catch (IOException | NoSuchAlgorithmException ex) {
             throw new IllegalStateException(
                 "Could not compute default serialization UID for class: " + type.getQualifiedName().toString(), ex);
         }
@@ -304,13 +374,13 @@ public class SerialVersionUidUnchanged extends AbstractJavaCheck {
         public MemberSignature(VariableElement field) {
             member = field;
             name = field.getSimpleName().toString();
-            signature = Util.toUniqueString(field.asType());
+            signature = getSignature(field.asType());
         }
 
         public MemberSignature(ExecutableElement meth) {
             member = meth;
             name = meth.getSimpleName().toString();
-            signature = Util.toUniqueString(meth.asType());
+            signature = getSignature(meth.asType());
         }
     }
 
@@ -357,5 +427,94 @@ public class SerialVersionUidUnchanged extends AbstractJavaCheck {
         }
 
         return mods;
+    }
+
+    /**
+     * Adapted from {@link java.io.ObjectStreamClass#getClassSignature(Class)}
+     * and {@link java.io.ObjectStreamClass#getMethodSignature(Class[], Class)}
+     * <p/>
+     * Returns JVM type signature for given class.
+     */
+    private static String getSignature(TypeMirror type) {
+        StringBuilder sbuf = new StringBuilder();
+        type.accept(new SimpleTypeVisitor7<Void, StringBuilder>() {
+            @Override
+            protected Void defaultAction(TypeMirror e, StringBuilder stringBuilder) {
+                return null;
+            }
+
+            @Override
+            public Void visitPrimitive(PrimitiveType t, StringBuilder stringBuilder) {
+                switch (t.getKind()) {
+                case BOOLEAN:
+                    stringBuilder.append("Z");
+                    break;
+                case BYTE:
+                    stringBuilder.append("B");
+                    break;
+                case CHAR:
+                    stringBuilder.append("C");
+                    break;
+                case DOUBLE:
+                    stringBuilder.append("D");
+                    break;
+                case FLOAT:
+                    stringBuilder.append("F");
+                    break;
+                case INT:
+                    stringBuilder.append("I");
+                    break;
+                case LONG:
+                    stringBuilder.append("J");
+                    break;
+                case SHORT:
+                    stringBuilder.append("S");
+                    break;
+                default:
+                    break;
+                }
+
+                return null;
+            }
+
+            @Override
+            public Void visitArray(ArrayType t, StringBuilder stringBuilder) {
+                stringBuilder.append("[");
+                t.getComponentType().accept(this, stringBuilder);
+                return null;
+            }
+
+            @Override
+            public Void visitDeclared(DeclaredType t, StringBuilder stringBuilder) {
+                stringBuilder.append("L");
+                stringBuilder.append(((TypeElement) t.asElement()).getQualifiedName().toString().replace('.', '/'));
+                stringBuilder.append(";");
+
+                return null;
+            }
+
+            @Override
+            public Void visitExecutable(ExecutableType t, StringBuilder stringBuilder) {
+                stringBuilder.append("(");
+                for (TypeMirror p : t.getParameterTypes()) {
+                    p.accept(this, stringBuilder);
+                }
+                stringBuilder.append(")");
+                t.getReturnType().accept(this, stringBuilder);
+
+                return null;
+            }
+
+            @Override
+            public Void visitNoType(NoType t, StringBuilder stringBuilder) {
+                if (t.getKind() == TypeKind.VOID) {
+                    stringBuilder.append("V");
+                }
+
+                return null;
+            }
+        }, sbuf);
+
+        return sbuf.toString();
     }
 }

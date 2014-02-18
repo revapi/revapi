@@ -63,8 +63,6 @@ public enum Code {
     CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null), //TODO implement
     CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass", BREAKING, BREAKING, null),
     CLASS_NON_PUBLIC_PART_OF_API("java.class.nonPublicPartOfAPI", NON_BREAKING, NON_BREAKING, NON_BREAKING),
-    CLASS_SERIAL_VERSION_UID_UNCHANGED("java.class.serialVersionUIDUnchanged", NON_BREAKING, POTENTIALLY_BREAKING,
-        POTENTIALLY_BREAKING),
 
     ANNOTATION_ADDED("java.annotation.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     ANNOTATION_REMOVED("java.annotation.removed", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
@@ -91,6 +89,8 @@ public enum Code {
     FIELD_NO_LONGER_STATIC("java.field.noLongerStatic", BREAKING, BREAKING, null),
     FIELD_NOW_STATIC("java.field.nowStatic", BREAKING, BREAKING, null),
     FIELD_TYPE_CHANGED("java.field.typeChanged", BREAKING, BREAKING, null),
+    FIELD_SERIAL_VERSION_UID_UNCHANGED("java.field.serialVersionUIDUnchanged", NON_BREAKING, POTENTIALLY_BREAKING,
+        POTENTIALLY_BREAKING),
     FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
     FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null),
 

@@ -130,4 +130,12 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_VISIBILITY_INCREASED.code()));
     }
+
+    @Test
+    public void testSerializabilityChanges() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/fields/Serial.java", "v2/fields/Serial.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED.code()));
+    }
 }
