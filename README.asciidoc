@@ -1,0 +1,30 @@
+= Revapi
+:toc:
+
+Revapi is a tool for API analysis and change tracking.
+
+== Building
+
+This is a maven project, so to build you simply:
+
+ mvn install
+
+== Usage
+
+Revapi can be invoked in a couple of ways. It can be used as a standalone program, 
+as a maven plugin or it can also be embedded in your application and used as a library.
+
+=== Standalone
+
+TODO
+
+=== Maven
+
+TODO
+
+=== Embedding
+
+== Extending Revapi
+
+TODO
+
