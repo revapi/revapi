@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
+import javax.annotation.Nonnull;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,18 +46,21 @@ public class IgnoreProblemTransformTest {
             this.name = name;
         }
 
+        @Nonnull
         @Override
+        @SuppressWarnings("ConstantConditions")
         public API getApi() {
             return null;
         }
 
+        @Nonnull
         @Override
         public String getFullHumanReadableString() {
             return name;
         }
 
         @Override
-        public int compareTo(Element o) {
+        public int compareTo(@Nonnull Element o) {
             if (!(o instanceof DummyElement)) {
                 return -1;
             }

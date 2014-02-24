@@ -75,20 +75,21 @@ public abstract class CheckBase implements Check {
     }
 
     @Override
-    public void initialize(Configuration configuration) {
+    public void initialize(@Nonnull Configuration configuration) {
         this.configuration = configuration;
     }
 
     @Override
-    public void setOldTypeEnvironment(TypeEnvironment env) {
+    public void setOldTypeEnvironment(@Nonnull TypeEnvironment env) {
         oldTypeEnvironment = env;
     }
 
     @Override
-    public void setNewTypeEnvironment(TypeEnvironment env) {
+    public void setNewTypeEnvironment(@Nonnull TypeEnvironment env) {
         newTypeEnvironment = env;
     }
 
+    @Nullable
     @Override
     public final List<MatchReport.Problem> visitEnd() {
         try {
@@ -104,7 +105,7 @@ public abstract class CheckBase implements Check {
     }
 
     @Override
-    public final void visitClass(TypeElement oldType, TypeElement newType) {
+    public final void visitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
         depth++;
         doVisitClass(oldType, newType);
     }
@@ -113,7 +114,7 @@ public abstract class CheckBase implements Check {
     }
 
     @Override
-    public final void visitMethod(ExecutableElement oldMethod, ExecutableElement newMethod) {
+    public final void visitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
         depth++;
         doVisitMethod(oldMethod, newMethod);
     }
@@ -122,17 +123,19 @@ public abstract class CheckBase implements Check {
     }
 
     @Override
-    public final void visitMethodParameter(VariableElement oldParameter, VariableElement newParameter) {
+    public final void visitMethodParameter(@Nullable VariableElement oldParameter,
+        @Nullable VariableElement newParameter) {
         depth++;
         doVisitMethodParameter(oldParameter, newParameter);
     }
 
+    @SuppressWarnings("UnusedParameters")
     protected void doVisitMethodParameter(@Nullable VariableElement oldParameter,
         @Nullable VariableElement newParameter) {
     }
 
     @Override
-    public final void visitField(VariableElement oldField, VariableElement newField) {
+    public final void visitField(@Nullable VariableElement oldField, @Nullable VariableElement newField) {
         depth++;
         doVisitField(oldField, newField);
     }
@@ -140,9 +143,10 @@ public abstract class CheckBase implements Check {
     protected void doVisitField(@Nullable VariableElement oldField, @Nullable VariableElement newField) {
     }
 
+    @Nullable
     @Override
-    public final List<MatchReport.Problem> visitAnnotation(AnnotationMirror oldAnnotation,
-        AnnotationMirror newAnnotation) {
+    public final List<MatchReport.Problem> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
+        @Nullable AnnotationMirror newAnnotation) {
         depth++;
         List<MatchReport.Problem> ret = doVisitAnnotation(oldAnnotation, newAnnotation);
         depth--;
@@ -168,7 +172,7 @@ public abstract class CheckBase implements Check {
     }
 
     @Nullable
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "UnusedDeclaration"})
     protected <T extends Element> ActiveElements<T> peekLastActive() {
         return activations.peek();
     }

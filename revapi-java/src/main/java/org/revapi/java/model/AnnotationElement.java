@@ -40,11 +40,13 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
         this.annotation = annotation;
     }
 
+    @Nonnull
     @Override
     public API getApi() {
         return environment.getApi();
     }
 
+    @Nonnull
     @Override
     public AnnotationMirror getAnnotation() {
         return annotation;
@@ -57,7 +59,7 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
     }
 
     @Override
-    public int compareTo(Element o) {
+    public int compareTo(@Nonnull Element o) {
         if (!(o instanceof AnnotationElement)) {
             return JavaElementFactory.compareByType(this, o);
         }

@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.revapi.Configuration;
 import org.revapi.Element;
 import org.revapi.ElementFilter;
@@ -53,7 +56,7 @@ public class ConfigurableElementFilter implements ElementFilter {
     private final List<Pattern> excludes = new ArrayList<>();
 
     @Override
-    public void initialize(Configuration configuration) {
+    public void initialize(@Nonnull Configuration configuration) {
         for (Map.Entry<String, String> e : configuration.getProperties().entrySet()) {
             if (e.getKey().startsWith(INCLUDE_PREFIX)) {
                 includes.add(Pattern.compile(e.getValue()));
@@ -64,9 +67,9 @@ public class ConfigurableElementFilter implements ElementFilter {
     }
 
     @Override
-    public boolean applies(Element element) {
+    public boolean applies(@Nullable Element element) {
         boolean include = true;
-        String representation = element.getFullHumanReadableString();
+        String representation = element == null ? "" : element.getFullHumanReadableString();
 
         if (!includes.isEmpty()) {
             include = false;
@@ -91,7 +94,7 @@ public class ConfigurableElementFilter implements ElementFilter {
     }
 
     @Override
-    public boolean shouldDescendInto(Object element) {
+    public boolean shouldDescendInto(@Nullable Object element) {
         return true;
     }
 }

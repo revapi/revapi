@@ -19,6 +19,8 @@ package org.revapi.java;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.annotation.Nonnull;
+
 import org.revapi.API;
 import org.revapi.ApiAnalyzer;
 import org.revapi.ArchiveAnalyzer;
@@ -37,17 +39,20 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     private Configuration configuration;
 
     @Override
-    public void initialize(Configuration configuration) {
+    public void initialize(@Nonnull Configuration configuration) {
         this.configuration = configuration;
     }
 
+    @Nonnull
     @Override
-    public ArchiveAnalyzer getArchiveAnalyzer(API api) {
+    public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
         return new JavaArchiveAnalyzer(api, compilationExecutor);
     }
 
+    @Nonnull
     @Override
-    public ElementDifferenceAnalyzer getElementAnalyzer(ArchiveAnalyzer oldArchive, ArchiveAnalyzer newArchive) {
+    public ElementDifferenceAnalyzer getElementAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
+        @Nonnull ArchiveAnalyzer newArchive) {
         JavaArchiveAnalyzer oldA = (JavaArchiveAnalyzer) oldArchive;
         JavaArchiveAnalyzer newA = (JavaArchiveAnalyzer) newArchive;
 

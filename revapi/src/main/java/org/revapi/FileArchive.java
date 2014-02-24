@@ -21,6 +21,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Lukas Krejci
  * @since 1.0
@@ -33,11 +35,13 @@ final class FileArchive implements Archive {
         file = f;
     }
 
+    @Nonnull
     @Override
     public String getName() {
         return file.getName();
     }
 
+    @Nonnull
     @Override
     public InputStream openStream() throws IOException {
         return new FileInputStream(file);

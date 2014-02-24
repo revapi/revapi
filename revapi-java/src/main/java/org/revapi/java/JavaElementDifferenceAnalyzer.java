@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
 
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +48,6 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
     private final Iterable<Check> checks;
     private final CompilationValve oldCompilationValve;
     private final CompilationValve newCompilationValve;
-    private final ProbingEnvironment oldEnvironment;
-    private final ProbingEnvironment newEnvironment;
 
     // NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
     // are always sorted as last amongst sibling model elements.
@@ -67,8 +67,6 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
         ProbingEnvironment newEnvironment, CompilationValve newValve, Iterable<Check> checks) {
         this.oldCompilationValve = oldValve;
         this.newCompilationValve = newValve;
-        this.oldEnvironment = oldEnvironment;
-        this.newEnvironment = newEnvironment;
 
         this.checks = checks;
         for (Check c : checks) {
@@ -90,7 +88,7 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
     }
 
     @Override
-    public void beginAnalysis(Element oldElement, Element newElement) {
+    public void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
         LOG.trace("Beginning analysis of {} and {}.", oldElement, newElement);
 
         if (conforms(oldElement, newElement, TypeElement.class)) {
@@ -132,7 +130,7 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
     }
 
     @Override
-    public MatchReport endAnalysis(Element oldElement, Element newElement) {
+    public MatchReport endAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
         if (conforms(oldElement, newElement, AnnotationElement.class)) {
             //the annotations are always reported at the parent element
             return new MatchReport(Collections.<MatchReport.Problem>emptyList(), oldElement, newElement);

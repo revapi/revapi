@@ -19,6 +19,8 @@ package org.revapi.java;
 import java.io.StringWriter;
 import java.util.concurrent.ExecutorService;
 
+import javax.annotation.Nonnull;
+
 import org.revapi.API;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.java.compilation.CompilationFuture;
@@ -43,6 +45,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         this.probingEnvironment = new ProbingEnvironment(api);
     }
 
+    @Nonnull
     @Override
     public JavaTree analyze() {
         StringWriter output = new StringWriter();

@@ -16,6 +16,8 @@
 
 package org.revapi.maven;
 
+import javax.annotation.Nonnull;
+
 import org.apache.maven.plugin.logging.Log;
 
 import org.revapi.ChangeSeverity;
@@ -37,14 +39,19 @@ public class MavenReporter implements Reporter {
     }
 
     @Override
-    public void initialize(Configuration properties) {
+    public void initialize(@Nonnull Configuration properties) {
     }
 
     @Override
-    public void report(MatchReport matchReport) {
+    public void report(@Nonnull MatchReport matchReport) {
         Element element = matchReport.getOldElement();
         if (element == null) {
             element = matchReport.getNewElement();
+        }
+
+        if (element == null) {
+            //wat? This should never happen...
+            return;
         }
 
         for (MatchReport.Problem p : matchReport.getProblems()) {

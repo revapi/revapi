@@ -68,12 +68,14 @@ public final class ProbingEnvironment implements TypeEnvironment {
         this.processingEnvironment = env;
     }
 
+    @Nonnull
     @Override
     @SuppressWarnings("ConstantConditions")
     public Elements getElementUtils() {
         return processingEnvironment == null ? null : processingEnvironment.getElementUtils();
     }
 
+    @Nonnull
     @Override
     @SuppressWarnings("ConstantConditions")
     public Types getTypeUtils() {

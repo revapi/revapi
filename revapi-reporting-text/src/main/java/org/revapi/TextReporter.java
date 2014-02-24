@@ -20,6 +20,8 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
@@ -30,7 +32,7 @@ public class TextReporter implements Reporter {
     private PrintWriter output;
 
     @Override
-    public void initialize(Configuration config) {
+    public void initialize(@Nonnull Configuration config) {
         String reportMatches = config.getProperties().get("TextReporter.reportMatches");
 
         this.reportMatches = reportMatches != null && Boolean.valueOf(reportMatches);
@@ -39,7 +41,7 @@ public class TextReporter implements Reporter {
     }
 
     @Override
-    public void report(MatchReport matchReport) {
+    public void report(@Nonnull MatchReport matchReport) {
         if (!reportMatches && matchReport.getProblems().isEmpty()) {
             return;
         }
@@ -48,9 +50,12 @@ public class TextReporter implements Reporter {
             output.print("MATCH: ");
         }
 
-        output.print(matchReport.getOldElement().getFullHumanReadableString());
+        Element oldE = matchReport.getOldElement();
+        Element newE = matchReport.getNewElement();
+
+        output.print(oldE == null ? "null" : oldE.getFullHumanReadableString());
         output.print(" with ");
-        output.println(matchReport.getNewElement().getFullHumanReadableString());
+        output.println(newE == null ? "null" : newE.getFullHumanReadableString());
         if (!matchReport.getProblems().isEmpty()) {
             output.append(":");
             for (MatchReport.Problem p : matchReport.getProblems()) {

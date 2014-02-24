@@ -29,6 +29,7 @@ import java.util.SortedSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
@@ -80,7 +81,7 @@ public final class ClassTreeInitializer {
             if (environment.getApi().getSupplementaryArchives() != null) {
                 for (Archive a : environment.getApi().getSupplementaryArchives()) {
                     LOG.trace("Processing archive {}", a.getName());
-                    processArchive(a, additionalClasses, secondRunOrSupplementaryArchives);
+                    processArchive(a, additionalClasses, true);
                 }
             }
 
@@ -168,12 +169,12 @@ public final class ClassTreeInitializer {
                 .searchUnsafe(TypeElement.class, true, new Filter<TypeElement>() {
 
                     @Override
-                    public boolean applies(TypeElement element) {
-                        return enclosingTypeCanonicalName.equals(element.getCanonicalName());
+                    public boolean applies(@Nullable TypeElement element) {
+                        return element != null && enclosingTypeCanonicalName.equals(element.getCanonicalName());
                     }
 
                     @Override
-                    public boolean shouldDescendInto(Object element) {
+                    public boolean shouldDescendInto(@Nullable Object element) {
                         return true;
                     }
                 }, null);
@@ -498,12 +499,12 @@ public final class ClassTreeInitializer {
         List<TypeElement> found = environment.getTree().searchUnsafe(TypeElement.class, true,
             new Filter<TypeElement>() {
                 @Override
-                public boolean applies(TypeElement object) {
-                    return t.getClassName().equals(object.getBinaryName());
+                public boolean applies(@Nullable TypeElement object) {
+                    return object != null && t.getClassName().equals(object.getBinaryName());
                 }
 
                 @Override
-                public boolean shouldDescendInto(Object object) {
+                public boolean shouldDescendInto(@Nullable Object object) {
                     return true;
                 }
             }, superType);

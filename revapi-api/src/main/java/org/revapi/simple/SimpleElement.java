@@ -77,7 +77,7 @@ public abstract class SimpleElement implements Element {
         }
 
         @Override
-        public boolean addAll(Collection<? extends Element> c) {
+        public boolean addAll(@Nonnull Collection<? extends Element> c) {
             for (Element e : c) {
                 add(e);
             }
@@ -109,18 +109,22 @@ public abstract class SimpleElement implements Element {
             return set.contains(o);
         }
 
+        @Nonnull
         @Override
         public Iterator<Element> iterator() {
             return new ParentPreservingIterator(set.iterator());
         }
 
+        @Nonnull
         @Override
         public Object[] toArray() {
             return set.toArray();
         }
 
+        @Nonnull
         @Override
-        public <T> T[] toArray(T[] a) {
+        public <T> T[] toArray(@Nonnull T[] a) {
+            //noinspection SuspiciousToArrayCall
             return set.toArray(a);
         }
 
@@ -142,12 +146,12 @@ public abstract class SimpleElement implements Element {
         }
 
         @Override
-        public boolean containsAll(Collection<?> c) {
+        public boolean containsAll(@Nonnull Collection<?> c) {
             return set.containsAll(c);
         }
 
         @Override
-        public boolean removeAll(Collection<?> c) {
+        public boolean removeAll(@Nonnull Collection<?> c) {
             boolean ret = false;
             for (Object o : c) {
                 ret |= remove(o);
@@ -157,7 +161,7 @@ public abstract class SimpleElement implements Element {
         }
 
         @Override
-        public boolean retainAll(Collection<?> c) {
+        public boolean retainAll(@Nonnull Collection<?> c) {
             boolean ret = false;
 
             for (Object o : c) {
@@ -174,16 +178,19 @@ public abstract class SimpleElement implements Element {
             return set.comparator();
         }
 
+        @Nonnull
         @Override
         public SortedSet<Element> subSet(Element fromElement, Element toElement) {
             return set.subSet(fromElement, toElement);
         }
 
+        @Nonnull
         @Override
         public SortedSet<Element> headSet(Element toElement) {
             return set.headSet(toElement);
         }
 
+        @Nonnull
         @Override
         public SortedSet<Element> tailSet(Element fromElement) {
             return set.tailSet(fromElement);
@@ -263,7 +270,6 @@ public abstract class SimpleElement implements Element {
     }
 
     @Override
-    @Nonnull
     public final <T extends Element> void searchChildren(@Nonnull List<T> results, @Nonnull Class<T> resultType,
         boolean recurse, @Nullable Filter<? super T> filter) {
         for (Element e : getChildren()) {
@@ -275,7 +281,7 @@ public abstract class SimpleElement implements Element {
             }
 
             if (recurse && (filter == null || filter.shouldDescendInto(e))) {
-                e.searchChildren(results, resultType, recurse, filter);
+                e.searchChildren(results, resultType, true, filter);
             }
         }
     }

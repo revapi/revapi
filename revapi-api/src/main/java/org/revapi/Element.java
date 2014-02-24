@@ -79,10 +79,7 @@ public interface Element extends Comparable<Element> {
      * @param resultType the type of the elements to look for
      * @param recurse    false to search only in direct children of the element, true to search recursively
      * @param filter     optional filter to further trim the number of results
-     *
-     * @return the list of child elements of given type potentially satisfying given filter
      */
-    @Nonnull
     <T extends Element> void searchChildren(@Nonnull List<T> results, @Nonnull Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);
 

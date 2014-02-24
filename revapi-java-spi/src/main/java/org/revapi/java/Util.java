@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
@@ -51,7 +52,7 @@ import javax.lang.model.util.Types;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class Util {
+public final class Util {
 
     private static SimpleTypeVisitor7<Void, StringBuilder> toUniqueStringVisitor = new SimpleTypeVisitor7<Void, StringBuilder>() {
 
@@ -498,14 +499,15 @@ public class Util {
      *
      * @return true if the types have the same fqn, false otherwise
      */
-    public static boolean isSameType(TypeMirror t1, TypeMirror t2) {
+    public static boolean isSameType(@Nonnull TypeMirror t1, @Nonnull TypeMirror t2) {
         String t1Name = toUniqueString(t1);
         String t2Name = toUniqueString(t2);
 
         return t1Name.equals(t2Name);
     }
 
-    public static String toHumanReadableString(Element element) {
+    @Nonnull
+    public static String toHumanReadableString(@Nonnull Element element) {
         StringBuilder bld = new StringBuilder();
         element.accept(toHumanReadableStringElementVisitor, bld);
         return bld.toString();
@@ -516,23 +518,27 @@ public class Util {
      *
      * @param t type to convert to string
      */
-    public static String toUniqueString(TypeMirror t) {
+    @Nonnull
+    public static String toUniqueString(@Nonnull TypeMirror t) {
         StringBuilder bld = new StringBuilder();
         t.accept(toUniqueStringVisitor, bld);
         return bld.toString();
     }
 
-    public static String toHumanReadableString(TypeMirror t) {
+    @Nonnull
+    public static String toHumanReadableString(@Nonnull TypeMirror t) {
         StringBuilder bld = new StringBuilder();
         t.accept(toHumanReadableStringVisitor, bld);
         return bld.toString();
     }
 
-    public static String toUniqueString(AnnotationValue v) {
+    @Nonnull
+    public static String toUniqueString(@Nonnull AnnotationValue v) {
         return toHumanReadableString(v);
     }
 
-    public static String toHumanReadableString(AnnotationValue v) {
+    @Nonnull
+    public static String toHumanReadableString(@Nonnull AnnotationValue v) {
         return v.accept(new SimpleAnnotationValueVisitor7<String, Void>() {
 
             @Override
@@ -584,7 +590,8 @@ public class Util {
         }, null);
     }
 
-    public static List<TypeMirror> getAllSuperClasses(Types types, TypeMirror type) {
+    @Nonnull
+    public static List<TypeMirror> getAllSuperClasses(@Nonnull Types types, @Nonnull TypeMirror type) {
         List<? extends TypeMirror> superTypes = types.directSupertypes(type);
         List<TypeMirror> ret = new ArrayList<>();
 
@@ -597,14 +604,16 @@ public class Util {
         return ret;
     }
 
-    public static List<TypeMirror> getAllSuperTypes(Types types, TypeMirror type) {
+    @Nonnull
+    public static List<TypeMirror> getAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type) {
         ArrayList<TypeMirror> ret = new ArrayList<>();
         fillAllSuperTypes(types, type, ret);
 
         return ret;
     }
 
-    public static void fillAllSuperTypes(Types types, TypeMirror type, List<TypeMirror> result) {
+    public static void fillAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type,
+        @Nonnull List<TypeMirror> result) {
         List<? extends TypeMirror> superTypes = types.directSupertypes(type);
 
         for (TypeMirror t : superTypes) {
@@ -624,8 +633,8 @@ public class Util {
      *
      * @return true if type a sub type of one of the provided super types, false otherwise.
      */
-    public static boolean isSubtype(TypeMirror type, List<? extends TypeMirror> superTypes,
-        Types typeEnvironment) {
+    public static boolean isSubtype(@Nonnull TypeMirror type, @Nonnull List<? extends TypeMirror> superTypes,
+        @Nonnull Types typeEnvironment) {
 
         List<TypeMirror> typeSuperTypes = getAllSuperTypes(typeEnvironment, type);
         typeSuperTypes.add(0, type);
@@ -643,8 +652,9 @@ public class Util {
         return false;
     }
 
+    @Nonnull
     public static Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> keyAnnotationAttributesByName(
-        Map<? extends ExecutableElement, ? extends AnnotationValue> attributes) {
+        @Nonnull Map<? extends ExecutableElement, ? extends AnnotationValue> attributes) {
         Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> result = new LinkedHashMap<>();
         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> e : attributes.entrySet()) {
             result.put(e.getKey().getSimpleName().toString(), e);
@@ -653,7 +663,7 @@ public class Util {
         return result;
     }
 
-    public static boolean isEqual(AnnotationValue oldVal, AnnotationValue newVal) {
+    public static boolean isEqual(@Nonnull AnnotationValue oldVal, @Nonnull AnnotationValue newVal) {
         return oldVal.accept(new SimpleAnnotationValueVisitor7<Boolean, Object>() {
 
             @Override
@@ -675,11 +685,8 @@ public class Util {
 
             @Override
             public Boolean visitEnumConstant(VariableElement c, Object o) {
-                if (!(o instanceof VariableElement)) {
-                    return false;
-                }
-
-                return c.getSimpleName().toString().equals(((VariableElement) o).getSimpleName().toString());
+                return o instanceof VariableElement &&
+                    c.getSimpleName().toString().equals(((VariableElement) o).getSimpleName().toString());
             }
 
             @Override

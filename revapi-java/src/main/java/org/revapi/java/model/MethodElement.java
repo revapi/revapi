@@ -18,6 +18,7 @@ package org.revapi.java.model;
 
 import java.util.SortedSet;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
@@ -35,7 +36,7 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> {
     }
 
     @Override
-    public int compareTo(Element o) {
+    public int compareTo(@Nonnull Element o) {
         if (!(o instanceof MethodElement)) {
             return JavaElementFactory.compareByType(this, o);
         }
@@ -44,6 +45,7 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> {
             .compareTo(((MethodElement) o).getModelElement().getSimpleName().toString());
     }
 
+    @Nonnull
     @Override
     protected SortedSet<Element> newChildrenInstance() {
         SortedSet<Element> ret = super.newChildrenInstance();

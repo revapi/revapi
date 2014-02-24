@@ -21,6 +21,9 @@ import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.query.Filter;
@@ -48,6 +51,7 @@ public final class JavaTree extends SimpleTree {
         this.compilation = compilation;
     }
 
+    @Nonnull
     @Override
     @SuppressWarnings("unchecked")
     public SortedSet<TypeElement> getRoots() {
@@ -67,15 +71,17 @@ public final class JavaTree extends SimpleTree {
     }
 
     @Override
-    public <T extends Element> void search(List<T> results, Class<T> resultType,
-        SortedSet<? extends Element> currentLevel, boolean recurse, Filter<? super T> filter) {
+    public <T extends Element> void search(@Nonnull List<T> results, @Nonnull Class<T> resultType,
+        @Nonnull SortedSet<? extends Element> currentLevel, boolean recurse, @Nullable Filter<? super T> filter) {
         waitForCompilation();
         super.search(results, resultType, currentLevel, recurse, filter);
     }
 
+    @Nonnull
     @Override
-    public <T extends Element> List<T> search(Class<T> resultType, boolean recurse, Filter<? super T> filter,
-        Element root) {
+    public <T extends Element> List<T> search(@Nonnull Class<T> resultType, boolean recurse,
+        @Nullable Filter<? super T> filter,
+        @Nullable Element root) {
         waitForCompilation();
         return super.search(resultType, recurse, filter, root);
     }

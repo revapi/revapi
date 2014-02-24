@@ -66,7 +66,6 @@ public class SimpleTree implements Tree {
         return results;
     }
 
-    @Nonnull
     public <T extends Element> void search(@Nonnull List<T> results, @Nonnull Class<T> resultType,
         @Nonnull SortedSet<? extends Element> currentLevel, boolean recurse, @Nullable Filter<? super T> filter) {
 
@@ -80,7 +79,7 @@ public class SimpleTree implements Tree {
             }
 
             if (recurse && (filter == null || filter.shouldDescendInto(e))) {
-                search(results, resultType, e.getChildren(), recurse, filter);
+                search(results, resultType, e.getChildren(), true, filter);
             }
         }
     }

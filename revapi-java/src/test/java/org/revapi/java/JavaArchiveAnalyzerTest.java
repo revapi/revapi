@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
 
+import javax.annotation.Nonnull;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,11 +49,13 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             this.archive = archive;
         }
 
+        @Nonnull
         @Override
         public String getName() {
             return archive.getName();
         }
 
+        @Nonnull
         @Override
         public InputStream openStream() throws IOException {
             return archive.as(ZipExporter.class).exportAsInputStream();

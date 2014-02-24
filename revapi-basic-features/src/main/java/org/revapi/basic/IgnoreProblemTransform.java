@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +86,7 @@ public class IgnoreProblemTransform implements ProblemTransform {
     private Collection<IgnoreRecipe> toIgnore;
 
     @Override
-    public void initialize(Configuration configuration) {
+    public void initialize(@Nonnull Configuration configuration) {
         Map<String, IgnoreRecipe> foundRecipes = new HashMap<>();
 
         for (Map.Entry<String, String> e : configuration.getProperties().entrySet()) {
@@ -143,8 +146,10 @@ public class IgnoreProblemTransform implements ProblemTransform {
         toIgnore = foundRecipes.isEmpty() ? null : foundRecipes.values();
     }
 
+    @Nullable
     @Override
-    public MatchReport.Problem transform(Element oldElement, Element newElement, MatchReport.Problem problem) {
+    public MatchReport.Problem transform(@Nullable Element oldElement, @Nullable Element newElement,
+        @Nonnull MatchReport.Problem problem) {
         if (toIgnore == null) {
             return problem;
         }

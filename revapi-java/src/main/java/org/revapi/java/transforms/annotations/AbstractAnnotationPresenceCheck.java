@@ -16,6 +16,8 @@
 
 package org.revapi.java.transforms.annotations;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
@@ -49,15 +51,22 @@ abstract class AbstractAnnotationPresenceCheck implements ProblemTransform {
     }
 
     @Override
-    public void initialize(Configuration configuration) {
+    public void initialize(@Nonnull Configuration configuration) {
         this.configuration = configuration;
     }
 
+    @Nullable
     @Override
-    public MatchReport.Problem transform(final Element oldElement, final Element newElement,
-        final MatchReport.Problem problem) {
+    public MatchReport.Problem transform(@Nullable final Element oldElement, @Nullable final Element newElement,
+        @Nonnull final MatchReport.Problem problem) {
         if (Code.fromCode(problem.code) != annotationCheckCode) {
             return problem;
+        }
+
+        //we're checking for change of presence of an annotation on an element. Thus both the old and new version
+        //of the element must be non-null.
+        if (oldElement == null || newElement == null) {
+            return null;
         }
 
         AnnotationMirror affectedAnnotation = (AnnotationMirror) problem.attachments.get(0);
@@ -80,31 +89,32 @@ abstract class AbstractAnnotationPresenceCheck implements ProblemTransform {
 
                     return oldE.getModelElement().accept(new ElementPairVisitor<MatchReport.Problem>() {
                         @Override
-                        protected MatchReport.Problem unmatchedAction(javax.lang.model.element.Element element,
-                            javax.lang.model.element.Element otherElement) {
+                        protected MatchReport.Problem unmatchedAction(@Nonnull javax.lang.model.element.Element element,
+                            @Nullable javax.lang.model.element.Element otherElement) {
                             return problem;
                         }
 
                         @Override
-                        protected MatchReport.Problem visitType(TypeElement oldElement, TypeElement newElement) {
+                        protected MatchReport.Problem visitType(@Nonnull TypeElement oldElement,
+                            @Nonnull TypeElement newElement) {
                             return transformedCode.createProblem(configuration.getLocale());
                         }
 
                         @Override
-                        protected MatchReport.Problem visitPackage(PackageElement element,
-                            PackageElement otherElement) {
+                        protected MatchReport.Problem visitPackage(@Nonnull PackageElement element,
+                            @Nonnull PackageElement otherElement) {
                             return transformedCode.createProblem(configuration.getLocale());
                         }
 
                         @Override
-                        protected MatchReport.Problem visitVariable(VariableElement element,
-                            VariableElement otherElement) {
+                        protected MatchReport.Problem visitVariable(@Nonnull VariableElement element,
+                            @Nonnull VariableElement otherElement) {
                             return transformedCode.createProblem(configuration.getLocale());
                         }
 
                         @Override
-                        protected MatchReport.Problem visitExecutable(ExecutableElement element,
-                            ExecutableElement otherElement) {
+                        protected MatchReport.Problem visitExecutable(@Nonnull ExecutableElement element,
+                            @Nonnull ExecutableElement otherElement) {
                             return transformedCode.createProblem(configuration.getLocale());
                         }
                     }, newE.getModelElement());

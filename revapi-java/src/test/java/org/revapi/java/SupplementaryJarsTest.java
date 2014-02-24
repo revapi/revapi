@@ -20,13 +20,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import org.revapi.Revapi;
 import org.revapi.Configuration;
 import org.revapi.MatchReport;
 import org.revapi.Reporter;
+import org.revapi.Revapi;
 import org.revapi.java.checks.Code;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -75,11 +77,11 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         final List<MatchReport> allProblems = new ArrayList<>();
         Reporter reporter = new Reporter() {
             @Override
-            public void initialize(Configuration properties) {
+            public void initialize(@Nonnull Configuration properties) {
             }
 
             @Override
-            public void report(MatchReport matchReport) {
+            public void report(@Nonnull MatchReport matchReport) {
                 if (!matchReport.getProblems().isEmpty()) {
                     allProblems.add(matchReport);
                 }

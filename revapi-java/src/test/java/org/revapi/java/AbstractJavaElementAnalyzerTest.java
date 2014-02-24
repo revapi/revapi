@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
@@ -40,12 +41,12 @@ import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.revapi.Revapi;
 import org.revapi.Archive;
 import org.revapi.Configuration;
 import org.revapi.Element;
 import org.revapi.MatchReport;
 import org.revapi.Reporter;
+import org.revapi.Revapi;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -63,11 +64,13 @@ public abstract class AbstractJavaElementAnalyzerTest {
             this.archive = archive;
         }
 
+        @Nonnull
         @Override
         public String getName() {
             return archive.getName();
         }
 
+        @Nonnull
         @Override
         public InputStream openStream() throws IOException {
             return archive.as(ZipExporter.class).exportAsInputStream();
@@ -84,11 +87,11 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
 
         @Override
-        public void initialize(Configuration properties) {
+        public void initialize(@Nonnull Configuration properties) {
         }
 
         @Override
-        public void report(MatchReport matchReport) {
+        public void report(@Nonnull MatchReport matchReport) {
             for (MatchReport.Problem p : matchReport.getProblems()) {
                 Integer cnt = problemCounters.get(p.code);
                 if (cnt == null) {
@@ -104,7 +107,8 @@ public abstract class AbstractJavaElementAnalyzerTest {
                 }
 
                 LOG.info(
-                    e.getFullHumanReadableString() + ": " + p.name + " (" + p.code + "): " + p.classification + ", " +
+                    (e == null ? "null" : e.getFullHumanReadableString()) + ": " + p.name + " (" + p.code + "): " +
+                        p.classification + ", " +
                         p.description);
             }
         }

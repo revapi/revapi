@@ -19,6 +19,7 @@ package org.revapi.java.model;
 import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
+import javax.annotation.meta.When;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
@@ -45,6 +46,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         this.element = element;
     }
 
+    @Nonnull
     @Override
     public API getApi() {
         return environment.getApi();
@@ -56,16 +58,20 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         return environment;
     }
 
+    @Nonnull(when = When.MAYBE)
     public T getModelElement() {
         return element;
     }
 
+    @Nonnull
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
     public SortedSet<JavaElement> getChildren() {
         if (!initializedChildren) {
             SortedSet<JavaElement> set = (SortedSet<JavaElement>) super.getChildren();
 
+            //this actuall CAN be null during probing... the @Nonnull annotation is there for library users, not for the
+            //library itself
             if (getModelElement() == null) {
                 //wait with the initialization until we have the model element ready
                 return set;
@@ -90,6 +96,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         return (SortedSet<JavaElement>) super.getChildren();
     }
 
+    @Nonnull
     @Override
     public String getFullHumanReadableString() {
         return Util.toHumanReadableString(getModelElement());
@@ -106,15 +113,8 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
             return true;
         }
 
-        if (obj == null) {
-            return false;
-        }
-
-        if (!(obj instanceof JavaElementBase)) {
-            return false;
-        }
-
-        return getFullHumanReadableString().equals(((JavaElementBase<?>) obj).getFullHumanReadableString());
+        return obj != null && obj instanceof JavaElementBase &&
+            getFullHumanReadableString().equals(((JavaElementBase<?>) obj).getFullHumanReadableString());
     }
 
     @Override

@@ -16,6 +16,8 @@
 
 package org.revapi.java.model;
 
+import javax.annotation.Nonnull;
+
 import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
 
@@ -56,8 +58,13 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
         canonicalName = element.getQualifiedName().toString();
     }
 
+    @Nonnull
     @Override
+    @SuppressWarnings("ConstantConditions")
     public javax.lang.model.element.TypeElement getModelElement() {
+        //even though environment.getElementUtils() is marked @Nonnull, we do the check here, because
+        //it actually IS null for a while during initialization of the tree during compilation.
+        //we do this so that toString() works even under those conditions.
         if (element == null && environment.getElementUtils() != null) {
             element = environment.getElementUtils().getTypeElement(canonicalName);
         }
@@ -73,7 +80,7 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
     }
 
     @Override
-    public int compareTo(org.revapi.Element o) {
+    public int compareTo(@Nonnull org.revapi.Element o) {
         if (!(o instanceof TypeElement)) {
             return JavaElementFactory.compareByType(this, o);
         }
@@ -81,9 +88,12 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
         return binaryName.compareTo(((TypeElement) o).binaryName);
     }
 
+    @Nonnull
     @Override
+    @SuppressWarnings("ConstantConditions")
     public String getFullHumanReadableString() {
         javax.lang.model.element.TypeElement el = getModelElement();
+        //see getModelElement() for why we do the null check here even if getModelElement() is @Nonnull
         return el == null ? canonicalName : Util.toHumanReadableString(el);
     }
 }

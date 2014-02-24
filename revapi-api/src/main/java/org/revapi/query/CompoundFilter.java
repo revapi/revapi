@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author Lukas Krejci
@@ -42,7 +43,7 @@ public class CompoundFilter<T> implements Filter<T> {
      * Return true if all the member filters apply.
      */
     @Override
-    public boolean applies(@Nonnull T element) {
+    public boolean applies(@Nullable T element) {
         for (Filter<? super T> f : filters) {
             if (!f.applies(element)) {
                 return false;
@@ -55,7 +56,7 @@ public class CompoundFilter<T> implements Filter<T> {
      * Return true if at least one of the member filters applies (or if there are no member filters at all).
      */
     @Override
-    public boolean shouldDescendInto(@Nonnull Object element) {
+    public boolean shouldDescendInto(@Nullable Object element) {
         Iterator<? extends Filter<? super T>> it = filters.iterator();
         boolean hasNoFilters = !it.hasNext();
 

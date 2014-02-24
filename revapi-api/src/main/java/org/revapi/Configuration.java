@@ -40,27 +40,23 @@ public final class Configuration {
         this.newApi = newApi;
     }
 
-    public
     @Nonnull
-    Locale getLocale() {
+    public Locale getLocale() {
         return locale;
     }
 
-    public
     @Nonnull
-    Map<String, String> getProperties() {
+    public Map<String, String> getProperties() {
         return properties;
     }
 
-    public
     @Nonnull
-    API getOldApi() {
+    public API getOldApi() {
         return oldApi;
     }
 
-    public
     @Nonnull
-    API getNewApi() {
+    public API getNewApi() {
         return newApi;
     }
 }
