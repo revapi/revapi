@@ -60,6 +60,12 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
 
     @Nonnull
     @Override
+    protected String getHumanReadableElementType() {
+        return "class";
+    }
+
+    @Nonnull
+    @Override
     @SuppressWarnings("ConstantConditions")
     public javax.lang.model.element.TypeElement getModelElement() {
         //even though environment.getElementUtils() is marked @Nonnull, we do the check here, because
@@ -94,6 +100,6 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
     public String getFullHumanReadableString() {
         javax.lang.model.element.TypeElement el = getModelElement();
         //see getModelElement() for why we do the null check here even if getModelElement() is @Nonnull
-        return el == null ? canonicalName : Util.toHumanReadableString(el);
+        return "class " + (el == null ? canonicalName : Util.toHumanReadableString(el));
     }
 }

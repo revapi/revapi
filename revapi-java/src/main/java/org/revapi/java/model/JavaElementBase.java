@@ -19,7 +19,6 @@ package org.revapi.java.model;
 import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
-import javax.annotation.meta.When;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
@@ -47,6 +46,9 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     }
 
     @Nonnull
+    protected abstract String getHumanReadableElementType();
+
+    @Nonnull
     @Override
     public API getApi() {
         return environment.getApi();
@@ -58,7 +60,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         return environment;
     }
 
-    @Nonnull(when = When.MAYBE)
+    @Nonnull
     public T getModelElement() {
         return element;
     }
@@ -99,7 +101,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     @Nonnull
     @Override
     public String getFullHumanReadableString() {
-        return Util.toHumanReadableString(getModelElement());
+        return getHumanReadableElementType() + " " + Util.toHumanReadableString(getModelElement());
     }
 
     @Override

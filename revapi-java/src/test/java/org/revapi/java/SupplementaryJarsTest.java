@@ -96,11 +96,12 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(3, allProblems.size());
         Assert
-            .assertTrue(containsProblem(allProblems, null, "B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+            .assertTrue(
+                containsProblem(allProblems, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert
-            .assertTrue(containsProblem(allProblems, null, "B.T$2.f2", Code.FIELD_ADDED_IN_FINAL_CLASS.code()));
+            .assertTrue(containsProblem(allProblems, null, "field B.T$2.f2", Code.FIELD_ADDED_IN_FINAL_CLASS.code()));
         Assert
-            .assertTrue(containsProblem(allProblems, "B.T$2", "B.T$2", Code.CLASS_NOW_FINAL.code()));
+            .assertTrue(containsProblem(allProblems, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
 
         deleteDir(compRes1.compilationPath);
         deleteDir(compRes2.compilationPath);

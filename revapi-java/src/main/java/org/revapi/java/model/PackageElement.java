@@ -16,6 +16,8 @@
 
 package org.revapi.java.model;
 
+import javax.annotation.Nonnull;
+
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 
@@ -32,8 +34,14 @@ public class PackageElement extends JavaElementBase<javax.lang.model.element.Pac
         super(env, element);
     }
 
+    @Nonnull
     @Override
-    public int compareTo(Element o) {
+    protected String getHumanReadableElementType() {
+        return "package";
+    }
+
+    @Override
+    public int compareTo(@Nonnull Element o) {
         //TODO implement
         return 0;
     }

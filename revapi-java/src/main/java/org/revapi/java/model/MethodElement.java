@@ -35,6 +35,12 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> {
         super(env, element);
     }
 
+    @Nonnull
+    @Override
+    protected String getHumanReadableElementType() {
+        return "method";
+    }
+
     @Override
     public int compareTo(@Nonnull Element o) {
         if (!(o instanceof MethodElement)) {

@@ -16,6 +16,7 @@
 
 package org.revapi.java.model;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Element;
@@ -30,8 +31,14 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
         super(env, element);
     }
 
+    @Nonnull
     @Override
-    public int compareTo(Element o) {
+    protected String getHumanReadableElementType() {
+        return "method parameter";
+    }
+
+    @Override
+    public int compareTo(@Nonnull Element o) {
         if (!(o instanceof MethodParameterElement)) {
             return JavaElementFactory.compareByType(this, o);
         }

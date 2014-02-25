@@ -16,6 +16,7 @@
 
 package org.revapi.java.model;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Element;
@@ -31,8 +32,14 @@ public final class FieldElement extends JavaElementBase<VariableElement> {
         super(env, element);
     }
 
+    @Nonnull
     @Override
-    public int compareTo(Element o) {
+    protected String getHumanReadableElementType() {
+        return "field";
+    }
+
+    @Override
+    public int compareTo(@Nonnull Element o) {
         if (!(o instanceof FieldElement)) {
             return JavaElementFactory.compareByType(this, o);
         }
