@@ -19,7 +19,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>my.group</groupId>
-    <artifactId>my.artifact</artifactId>
-    <version>1.0.0</version>
-
+    <artifactId>my.artifact.dep</artifactId>
+    <version>2.0.0</version>
 </project>

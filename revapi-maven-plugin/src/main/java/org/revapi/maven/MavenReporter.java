@@ -18,8 +18,6 @@ package org.revapi.maven;
 
 import javax.annotation.Nonnull;
 
-import org.apache.maven.plugin.logging.Log;
-
 import org.revapi.ChangeSeverity;
 import org.revapi.Configuration;
 import org.revapi.Element;
@@ -32,10 +30,20 @@ import org.revapi.Reporter;
  */
 public class MavenReporter implements Reporter {
 
-    private final Log log;
+    private final ChangeSeverity breakingSeverity;
+    private StringBuilder allProblems;
 
-    public MavenReporter(Log log) {
-        this.log = log;
+    public MavenReporter(ChangeSeverity breakingSeverity) {
+        this.breakingSeverity = breakingSeverity;
+        allProblems = new StringBuilder();
+    }
+
+    public boolean hasBreakingProblems() {
+        return allProblems.length() > 0;
+    }
+
+    public String getAllProblemsMessage() {
+        return "The following API problems caused the build to fail:" + allProblems.toString();
     }
 
     @Override
@@ -50,32 +58,25 @@ public class MavenReporter implements Reporter {
         }
 
         if (element == null) {
-            //wat? This should never happen...
+            //wat? At least one of old and new should always be non-null
             return;
         }
 
         for (MatchReport.Problem p : matchReport.getProblems()) {
             StringBuilder message = new StringBuilder(element.getFullHumanReadableString());
 
-            message.append(": ").append(p.name).append(" (").append(p.code).append(")");
+            message.append(": ").append(p.code).append(": ").append(p.description);
 
             ChangeSeverity maxSeverity = ChangeSeverity.NON_BREAKING;
             for (ChangeSeverity s : p.classification.values()) {
-                if (maxSeverity.compareTo(s) > 0) {
+                if (maxSeverity.compareTo(s) < 0) {
                     maxSeverity = s;
                 }
             }
 
-            switch (maxSeverity) {
-            case NON_BREAKING:
-                log.info(message);
-                break;
-            case POTENTIALLY_BREAKING:
-                log.warn(message);
-                break;
-            case BREAKING:
-                log.error(message);
-                break;
+            if (maxSeverity.compareTo(breakingSeverity) >= 0) {
+                allProblems.append("\n").append(element.getFullHumanReadableString()).append(": ").append(p.code)
+                    .append(": ").append(p.description);
             }
         }
     }
