@@ -108,8 +108,7 @@
         <module>revapi-java-spi</module>
         <module>revapi-basic-features</module>
         <module>revapi-reporting-text</module>
-<!-- Leaving out maven module for now - it does not even compile yet. -->        
-<!--        <module>revapi-maven-plugin</module> -->
+        <module>revapi-maven-plugin</module>
     </modules>
 
     <build>
