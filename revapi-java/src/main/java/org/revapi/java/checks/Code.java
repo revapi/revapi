@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright $year Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -99,7 +99,8 @@ public enum Code {
     METHOD_ADDED_TO_INTERFACE("java.method.addedToInterface", BREAKING, BREAKING, null),
     METHOD_ADDED_TO_FINAL_CLASS("java.method.addedToFinalClass", NON_BREAKING, NON_BREAKING, null),
     METHOD_ABSTRACT_METHOD_ADDED("java.method.abstractMethodAdded", BREAKING, BREAKING, null),
-    METHOD_ADDED("java.method.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),;
+    METHOD_ADDED("java.method.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null),;
 
     private final String code;
     private final EnumMap<CompatibilityType, ChangeSeverity> classification;
