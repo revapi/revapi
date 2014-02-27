@@ -16,6 +16,7 @@
 
 package org.revapi.java;
 
+import java.io.File;
 import java.io.ObjectStreamClass;
 import java.util.Arrays;
 import java.util.Set;
@@ -85,20 +86,24 @@ public class SUIDGeneratorTest {
 
     @Test
     public void testSUIDGeneration() throws Exception {
-        ObjectStreamClass s = ObjectStreamClass.lookup(TestClass.class);
-        long officialSUID = s.getSerialVersionUID();
-        SUIDGeneratingAnnotationProcessor ap = new SUIDGeneratingAnnotationProcessor();
+        try {
+            ObjectStreamClass s = ObjectStreamClass.lookup(TestClass.class);
+            long officialSUID = s.getSerialVersionUID();
+            SUIDGeneratingAnnotationProcessor ap = new SUIDGeneratingAnnotationProcessor();
 
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
-        JavaCompiler.CompilationTask task = compiler
-            .getTask(null, null, null, null, Arrays.asList(TestClass.class.getName()),
-                Arrays.asList(new SourceInClassLoader("suid/TestClass.java")));
+            JavaCompiler.CompilationTask task = compiler
+                .getTask(null, null, null, null, Arrays.asList(TestClass.class.getName()),
+                    Arrays.asList(new SourceInClassLoader("suid/TestClass.java")));
 
-        task.setProcessors(Arrays.asList(ap));
+            task.setProcessors(Arrays.asList(ap));
 
-        task.call();
+            task.call();
 
-        Assert.assertEquals(officialSUID, ap.generatedSUID);
+            Assert.assertEquals(officialSUID, ap.generatedSUID);
+        } finally {
+            new File("TestClass.class").delete();
+        }
     }
 }
