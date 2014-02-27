@@ -102,13 +102,13 @@
     </dependencies>
 
     <modules>
-        <module>revapi-api</module>
         <module>revapi</module>
         <module>revapi-java</module>
         <module>revapi-java-spi</module>
         <module>revapi-basic-features</module>
         <module>revapi-reporting-text</module>
         <module>revapi-maven-plugin</module>
+        <!-- <module>revapi-standalone</module> -->
     </modules>
 
     <build>
@@ -118,6 +118,14 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>findbugs-maven-plugin</artifactId>
                     <version>2.5.3</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>2.4</version>
                 </plugin>
             </plugins>
         </pluginManagement>

@@ -24,7 +24,7 @@ import org.revapi.query.Filter;
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ElementFilter extends Filter<Element> {
+public interface ElementFilter extends Filter<Element>, AutoCloseable {
 
     void initialize(@Nonnull Configuration configuration);
 }

@@ -16,8 +16,6 @@
 
 package org.revapi;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.revapi.query.CompoundFilter;
+import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
@@ -45,20 +44,20 @@ public final class Revapi {
     private static final Logger LOG = LoggerFactory.getLogger(Revapi.class);
 
     public static final class Builder {
-        private Set<ApiAnalyzer> analyzers = Collections.emptySet();
-        private Set<Reporter> reporters = Collections.emptySet();
-        private Set<ProblemTransform> transforms = Collections.emptySet();
-        private Set<ElementFilter> filters = Collections.emptySet();
+        private Set<ApiAnalyzer> analyzers = null;
+        private Set<Reporter> reporters = null;
+        private Set<ProblemTransform> transforms = null;
+        private Set<ElementFilter> filters = null;
         private Locale locale = Locale.getDefault();
         private Map<String, String> configuration = Collections.emptyMap();
 
         @Nonnull
-        public Builder withAnalyzersOnClassPath() {
+        public Builder withAnalyzersFromThreadContextClassLoader() {
             return withAnalyzers(ServiceLoader.load(ApiAnalyzer.class));
         }
 
         @Nonnull
-        public Builder withAnalyzersOnClassPath(@Nonnull ClassLoader cl) {
+        public Builder withAnalyzersFrom(@Nonnull ClassLoader cl) {
             return withAnalyzers(ServiceLoader.load(ApiAnalyzer.class, cl));
         }
 
@@ -69,7 +68,9 @@ public final class Revapi {
 
         @Nonnull
         public Builder withAnalyzers(@Nonnull Iterable<? extends ApiAnalyzer> analyzers) {
-            this.analyzers = new HashSet<>();
+            if (this.analyzers == null) {
+                this.analyzers = new HashSet<>();
+            }
             for (ApiAnalyzer a : analyzers) {
                 this.analyzers.add(a);
             }
@@ -78,12 +79,12 @@ public final class Revapi {
         }
 
         @Nonnull
-        public Builder withReportersOnClassPath() {
+        public Builder withReportersFromThreadContextClassLoader() {
             return withReporters(ServiceLoader.load(Reporter.class));
         }
 
         @Nonnull
-        public Builder withReportersOnClassPath(@Nonnull ClassLoader cl) {
+        public Builder withReportersFrom(@Nonnull ClassLoader cl) {
             return withReporters(ServiceLoader.load(Reporter.class, cl));
         }
 
@@ -94,7 +95,9 @@ public final class Revapi {
 
         @Nonnull
         public Builder withReporters(@Nonnull Iterable<? extends Reporter> reporters) {
-            this.reporters = new HashSet<>();
+            if (this.reporters == null) {
+                this.reporters = new HashSet<>();
+            }
             for (Reporter r : reporters) {
                 this.reporters.add(r);
             }
@@ -103,12 +106,12 @@ public final class Revapi {
         }
 
         @Nonnull
-        public Builder withTransformsOnClassPath() {
+        public Builder withTransformsFromThreadContextClassLoader() {
             return withTransforms(ServiceLoader.load(ProblemTransform.class));
         }
 
         @Nonnull
-        public Builder withTransformsOnClassPath(@Nonnull ClassLoader cl) {
+        public Builder withTransformsFrom(@Nonnull ClassLoader cl) {
             return withTransforms(ServiceLoader.load(ProblemTransform.class, cl));
         }
 
@@ -119,7 +122,9 @@ public final class Revapi {
 
         @Nonnull
         public Builder withTransforms(@Nonnull Iterable<? extends ProblemTransform> transforms) {
-            this.transforms = new HashSet<>();
+            if (this.transforms == null) {
+                this.transforms = new HashSet<>();
+            }
             for (ProblemTransform t : transforms) {
                 this.transforms.add(t);
             }
@@ -128,12 +133,12 @@ public final class Revapi {
         }
 
         @Nonnull
-        public Builder withFiltersOnClassPath() {
+        public Builder withFiltersFromThreadContextClassLoader() {
             return withFilters(ServiceLoader.load(ElementFilter.class));
         }
 
         @Nonnull
-        public Builder withFiltersOnClassPath(@Nonnull ClassLoader cl) {
+        public Builder withFiltersFrom(@Nonnull ClassLoader cl) {
             return withFilters(ServiceLoader.load(ElementFilter.class, cl));
         }
 
@@ -144,7 +149,9 @@ public final class Revapi {
 
         @Nonnull
         public Builder withFilters(@Nonnull Iterable<? extends ElementFilter> filters) {
-            this.filters = new HashSet<>();
+            if (this.filters == null) {
+                this.filters = new HashSet<>();
+            }
             for (ElementFilter f : filters) {
                 this.filters.add(f);
             }
@@ -178,18 +185,23 @@ public final class Revapi {
         }
 
         @Nonnull
-        public Builder withAllExtensionsOnClassPath() {
-            return withAllExtensionsOnClassPath(Thread.currentThread().getContextClassLoader());
+        public Builder withAllExtensionsFromThreadContextClassLoader() {
+            return withAllExtensionsFrom(Thread.currentThread().getContextClassLoader());
         }
 
         @Nonnull
-        public Builder withAllExtensionsOnClassPath(@Nonnull ClassLoader cl) {
-            return withAnalyzersOnClassPath(cl).withFiltersOnClassPath(cl).withReportersOnClassPath(cl)
-                .withTransformsOnClassPath(cl);
+        public Builder withAllExtensionsFrom(@Nonnull ClassLoader cl) {
+            return withAnalyzersFrom(cl).withFiltersFrom(cl).withReportersFrom(cl)
+                .withTransformsFrom(cl);
         }
 
         @Nonnull
         public Revapi build() {
+            analyzers = analyzers == null ? Collections.<ApiAnalyzer>emptySet() : analyzers;
+            reporters = reporters == null ? Collections.<Reporter>emptySet() : reporters;
+            transforms = transforms == null ? Collections.<ProblemTransform>emptySet() : transforms;
+            filters = filters == null ? Collections.<ElementFilter>emptySet() : filters;
+
             return new Revapi(analyzers, reporters, transforms, filters, locale, configuration);
         }
     }
@@ -202,32 +214,9 @@ public final class Revapi {
     private final Locale locale;
     private Configuration configuration;
 
-    private static void usage() {
-        System.out.println("Revapi <oldArchive> <newArchive>");
-    }
-
     @Nonnull
     public static Builder builder() {
         return new Builder();
-    }
-
-    public static void main(String[] args) throws Exception {
-        //TODO beef this up
-        if (args == null || args.length != 2) {
-            usage();
-            return;
-        }
-
-        String oldArchiveName = args[0];
-        String newArchiveName = args[1];
-
-        @SuppressWarnings("unchecked")
-        Revapi revapi = Revapi.builder().withAllExtensionsOnClassPath().withConfiguration(System.getProperties())
-            .build();
-
-        revapi.analyze(
-            Arrays.<Archive>asList(new FileArchive(new File(oldArchiveName))), null,
-            Arrays.<Archive>asList(new FileArchive(new File(newArchiveName))), null);
     }
 
     /**
@@ -238,30 +227,6 @@ public final class Revapi {
     public Revapi(@Nonnull Set<ApiAnalyzer> availableApiAnalyzers, @Nonnull Set<Reporter> availableReporters,
         @Nonnull Set<ProblemTransform> availableProblemTransforms, @Nonnull Set<ElementFilter> elementFilters,
         @Nonnull Locale locale, @Nonnull Map<String, String> configurationProperties) {
-
-        if (availableApiAnalyzers == null) {
-            throw new IllegalArgumentException("availableApiAnanlyzers");
-        }
-
-        if (availableReporters == null) {
-            throw new IllegalArgumentException("availableReporters");
-        }
-
-        if (availableProblemTransforms == null) {
-            throw new IllegalArgumentException("availableProblemTransforms");
-        }
-
-        if (elementFilters == null) {
-            throw new IllegalArgumentException("elementFilters");
-        }
-
-        if (locale == null) {
-            throw new IllegalArgumentException("locale");
-        }
-
-        if (configurationProperties == null) {
-            throw new IllegalArgumentException("configurationProperties");
-        }
 
         this.availableApiAnalyzers = availableApiAnalyzers;
         this.availableReporters = availableReporters;
@@ -275,7 +240,7 @@ public final class Revapi {
         @Nullable Iterable<? extends Archive> oldSupplementaryArchives,
         @Nonnull Iterable<? extends Archive> newArchives,
         @Nullable Iterable<? extends Archive> newSupplementaryArchives)
-    throws IOException {
+        throws Exception {
 
         this.configuration = new Configuration(locale, configurationProperties,
             new API(oldArchives, oldSupplementaryArchives),
@@ -285,8 +250,15 @@ public final class Revapi {
         initAnalyzers();
         initProblemTransforms();
 
-        for (ApiAnalyzer analyzer : availableApiAnalyzers) {
-            analyzeWith(analyzer, configuration.getOldApi(), configuration.getNewApi());
+        try {
+            for (ApiAnalyzer analyzer : availableApiAnalyzers) {
+                analyzeWith(analyzer, configuration.getOldApi(), configuration.getNewApi());
+            }
+        } finally {
+            closeAll(availableProblemTransforms, "problem transform");
+            closeElementFilters();
+            closeAll(availableApiAnalyzers, "api analyzer");
+            closeAll(availableReporters, "reporter");
         }
     }
 
@@ -308,8 +280,31 @@ public final class Revapi {
         }
     }
 
+    private void closeAll(Iterable<? extends AutoCloseable> closeables, String type) {
+        for (AutoCloseable c : closeables) {
+            try {
+                c.close();
+            } catch (Exception e) {
+                LOG.warn("Failed to close " + type + " " + c, e);
+            }
+        }
+    }
+
+    private void closeElementFilters() {
+        for (Filter<? super Element> f : availableFilters.getWrappedFilters()) {
+            if (f instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) f).close();
+                } catch (Exception e) {
+                    LOG.warn("Failed to close element filter " + f, e);
+                }
+            }
+        }
+    }
+
     private void analyzeWith(ApiAnalyzer apiAnalyzer, API oldApi, API newApi)
-    throws IOException {
+        throws Exception {
+
         ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
         ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
 
@@ -326,9 +321,9 @@ public final class Revapi {
             LOG.trace("New tree: {}", newTree);
         }
 
-        elementDifferenceAnalyzer.setup();
+        elementDifferenceAnalyzer.open();
         analyze(elementDifferenceAnalyzer, as, bs);
-        elementDifferenceAnalyzer.tearDown();
+        elementDifferenceAnalyzer.close();
     }
 
     private void analyze(ElementDifferenceAnalyzer elementDifferenceAnalyzer,
@@ -376,10 +371,12 @@ public final class Revapi {
                 while (it.hasNext()) {
                     MatchReport.Problem p = it.next();
                     MatchReport.Problem tp = t.transform(matchReport.getOldElement(), matchReport.getNewElement(), p);
-                    if (tp == null) {
-                        //ignore it now.. we detecting changes transforms want to do... once the changes are done,
-                        //we'll loop through once more and remove the problems that the transforms want removed
-                    } else if (tp != p) { //yes, reference equality is OK here
+                    // ignore if transformation returned null, meaning that it "swallowed" the problem..
+                    // once the changes are done, we'll loop through once more and remove the problems that the
+                    // transforms want removed.
+                    // This prevents 1 transformation from disallowing other transformation to do what it needs
+                    // if both apply to the same problem.
+                    if (tp != null && tp != p) { //yes, reference equality is OK here
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Problem transform {} transforms {} to  {}", t.getClass(), p, tp);
                         }

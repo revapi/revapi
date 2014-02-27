@@ -157,7 +157,7 @@ public class CheckMojo extends AbstractMojo {
 
             MavenReporter reporter = new MavenReporter(failSeverity.toChangeSeverity());
 
-            Revapi revapi = Revapi.builder().withAllExtensionsOnClassPath().withReporters(reporter)
+            Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().withReporters(reporter)
                 .withConfiguration(finalConfig).build();
 
             revapi.analyze(oldArchives, oldTransitiveDeps, newArchives, newTransitiveDeps);

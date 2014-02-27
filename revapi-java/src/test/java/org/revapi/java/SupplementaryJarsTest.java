@@ -16,6 +16,7 @@
 
 package org.revapi.java;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -85,6 +86,10 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 if (!matchReport.getProblems().isEmpty()) {
                     allProblems.add(matchReport);
                 }
+            }
+
+            @Override
+            public void close() throws IOException {
             }
         };
 

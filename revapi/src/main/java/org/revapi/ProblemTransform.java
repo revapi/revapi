@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ProblemTransform {
+public interface ProblemTransform extends AutoCloseable {
 
     void initialize(@Nonnull Configuration configuration);
 

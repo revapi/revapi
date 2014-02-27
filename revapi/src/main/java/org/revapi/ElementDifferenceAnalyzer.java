@@ -25,18 +25,12 @@ import javax.annotation.Nullable;
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ElementDifferenceAnalyzer {
+public interface ElementDifferenceAnalyzer extends AutoCloseable {
 
     /**
      * Called right before the analysis starts. Can be used to "warm up" the analyzer.
      */
-    void setup();
-
-    /**
-     * Called right after the analysis ended. Can be used to tear down the analyzer and release
-     * any resources it may hold.
-     */
-    void tearDown();
+    void open();
 
     /**
      * Called when the analysis of the two corresponding elements begins. If those elements contain children, all the

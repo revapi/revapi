@@ -16,6 +16,8 @@
 
 package org.revapi.maven;
 
+import java.io.IOException;
+
 import javax.annotation.Nonnull;
 
 import org.revapi.ChangeSeverity;
@@ -79,5 +81,9 @@ public class MavenReporter implements Reporter {
                     .append(": ").append(p.description);
             }
         }
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 }

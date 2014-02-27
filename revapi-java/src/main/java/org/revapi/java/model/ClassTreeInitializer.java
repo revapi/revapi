@@ -393,6 +393,11 @@ public final class ClassTreeInitializer {
             }
 
             private void addToAdditionalClasses(Type t) {
+                if (t.getSort() < Type.ARRAY) {
+                    //primitive type
+                    return;
+                }
+
                 if (findByType(t, null) == null) {
 
                     switch (t.getSort()) {
@@ -403,8 +408,7 @@ public final class ClassTreeInitializer {
                     case Type.ARRAY:
                         String desc = t.getDescriptor();
                         desc = desc.substring(desc.lastIndexOf('[') + 1);
-                        additionalClasses.add(desc);
-                        LOG.trace("Adding to additional classes: {}", desc);
+                        addToAdditionalClasses(Type.getType(desc));
                         break;
                     case Type.METHOD:
                         throw new AssertionError("A method type should not enter here.");

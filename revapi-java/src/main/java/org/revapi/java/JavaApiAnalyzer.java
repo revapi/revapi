@@ -63,4 +63,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
 
         return new JavaElementDifferenceAnalyzer(configuration, oldEnvironment, oldValve, newEnvironment, newValve);
     }
+
+    @Override
+    public void close() {
+    }
 }

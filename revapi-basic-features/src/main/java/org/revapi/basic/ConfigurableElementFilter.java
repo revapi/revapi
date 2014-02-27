@@ -97,4 +97,8 @@ public class ConfigurableElementFilter implements ElementFilter {
     public boolean shouldDescendInto(@Nullable Object element) {
         return true;
     }
+
+    @Override
+    public void close() {
+    }
 }

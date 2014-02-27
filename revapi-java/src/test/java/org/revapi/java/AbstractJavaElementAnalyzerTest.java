@@ -113,6 +113,10 @@ public abstract class AbstractJavaElementAnalyzerTest {
             }
         }
 
+        @Override
+        public void close() throws IOException {
+        }
+
         public Map<String, Integer> getProblemCounters() {
             return problemCounters;
         }
@@ -168,7 +172,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
     protected Revapi createRevapi(Reporter testReporter) {
         return Revapi.builder().withAnalyzers(new JavaApiAnalyzer()).withReporters(testReporter)
-            .withTransformsOnClassPath().withFiltersOnClassPath().build();
+            .withTransformsFromThreadContextClassLoader().withFiltersFromThreadContextClassLoader().build();
     }
 
     protected void runAnalysis(Reporter testReporter, String v1Source, String v2Source) throws Exception {

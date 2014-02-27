@@ -30,7 +30,7 @@
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi-api</artifactId>
+            <artifactId>revapi</artifactId>
         </dependency>
     </dependencies>
 </project>

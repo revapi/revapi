@@ -121,4 +121,8 @@ abstract class AbstractAnnotationPresenceCheck implements ProblemTransform {
                 }
             }, null);
     }
+
+    @Override
+    public void close() throws Exception {
+    }
 }

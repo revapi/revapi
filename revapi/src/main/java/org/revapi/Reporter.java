@@ -22,7 +22,7 @@ import javax.annotation.Nonnull;
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface Reporter {
+public interface Reporter extends AutoCloseable {
 
     void initialize(@Nonnull Configuration properties);
 

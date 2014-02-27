@@ -117,6 +117,7 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
 
     /**
      * Always throws {@link java.lang.UnsupportedOperationException}
+     *
      * @throws UnsupportedOperationException
      */
     @Override

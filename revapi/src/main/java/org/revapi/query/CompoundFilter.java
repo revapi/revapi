@@ -39,6 +39,10 @@ public class CompoundFilter<T> implements Filter<T> {
         this(Arrays.asList(filters));
     }
 
+    public Iterable<? extends Filter<? super T>> getWrappedFilters() {
+        return filters;
+    }
+
     /**
      * Return true if all the member filters apply.
      */

@@ -77,11 +77,11 @@ public final class JavaElementDifferenceAnalyzer implements ElementDifferenceAna
     }
 
     @Override
-    public void setup() {
+    public void open() {
     }
 
     @Override
-    public void tearDown() {
+    public void close() {
         LOG.trace("Tearing down compilation results");
         oldCompilationValve.removeCompiledResults();
         newCompilationValve.removeCompiledResults();

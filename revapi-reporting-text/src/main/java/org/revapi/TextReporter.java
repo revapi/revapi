@@ -16,53 +16,120 @@
 
 package org.revapi;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public class TextReporter implements Reporter {
+    private static final Logger LOG = LoggerFactory.getLogger(TextReporter.class);
 
-    private boolean reportMatches;
+    private ChangeSeverity minLevel;
     private PrintWriter output;
+    private boolean shouldClose;
 
     @Override
     public void initialize(@Nonnull Configuration config) {
-        String reportMatches = config.getProperties().get("TextReporter.reportMatches");
+        String minLevel = config.getProperties().get("revapi.reporter.text.minLevel");
+        String output = config.getProperties().get("revapi.reporter.text.output");
+        output = output == null ? "out" : output;
 
-        this.reportMatches = reportMatches != null && Boolean.valueOf(reportMatches);
-        //TODO make this configurable - file, cout, cerr
-        output = new PrintWriter(System.out);
+        this.minLevel =
+            minLevel == null ? ChangeSeverity.POTENTIALLY_BREAKING : ChangeSeverity.valueOf(minLevel);
+
+        OutputStream out;
+
+        switch (output) {
+        case "out":
+            out = System.out;
+            break;
+        case "err":
+            out = System.err;
+            break;
+        default:
+            File f = new File(output);
+            if (f.exists() && !f.canWrite()) {
+                LOG.warn(
+                    "The configured file for text reporter, '" + f.getAbsolutePath() + "' is not a writable file." +
+                        " Defaulting the output to standard output.");
+                out = System.out;
+            } else {
+                if (!f.getParentFile().mkdirs()) {
+                    LOG.warn("Failed to create directory structure to write to the configured output file '" +
+                        f.getAbsolutePath() + "'. Defaulting the output to standard output.");
+                    out = System.out;
+                } else {
+                    try {
+                        out = new FileOutputStream(output);
+                    } catch (FileNotFoundException e) {
+                        LOG.warn("Failed to create the configured output file '" + f.getAbsolutePath() + "'." +
+                            " Defaulting the output to standard output.", e);
+                        out = System.out;
+                    }
+                }
+            }
+        }
+
+        shouldClose = out != System.out && out != System.err;
+
+        this.output = new PrintWriter(out);
     }
 
     @Override
     public void report(@Nonnull MatchReport matchReport) {
-        if (!reportMatches && matchReport.getProblems().isEmpty()) {
+        if (matchReport.getProblems().isEmpty()) {
             return;
         }
 
-        if (matchReport.getProblems().isEmpty()) {
-            output.print("MATCH: ");
+        ChangeSeverity maxReportedSeverity = ChangeSeverity.NON_BREAKING;
+        for (MatchReport.Problem p : matchReport.getProblems()) {
+            for (ChangeSeverity c : p.classification.values()) {
+                if (c.compareTo(maxReportedSeverity) > 0) {
+                    maxReportedSeverity = c;
+                }
+            }
+        }
+
+        if (maxReportedSeverity.compareTo(minLevel) < 0) {
+            return;
         }
 
         Element oldE = matchReport.getOldElement();
         Element newE = matchReport.getNewElement();
 
-        output.print(oldE == null ? "null" : oldE.getFullHumanReadableString());
+        output.print(oldE == null ? "<none>" : oldE.getFullHumanReadableString());
         output.print(" with ");
-        output.println(newE == null ? "null" : newE.getFullHumanReadableString());
+        output.print(newE == null ? "<none>" : newE.getFullHumanReadableString());
         if (!matchReport.getProblems().isEmpty()) {
-            output.append(":");
+            output.print(": ");
             for (MatchReport.Problem p : matchReport.getProblems()) {
                 output.append(p.name).append(" (").append(p.code).append(")");
                 reportClassification(output, p);
-                output.append("): ").append(p.description).append("\n");
+                output.append(": ").append(p.description).append("\n");
             }
+        }
+        output.println();
+
+        output.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (shouldClose) {
+            output.close();
         }
     }
 

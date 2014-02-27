@@ -162,4 +162,8 @@ public class IgnoreProblemTransform implements ProblemTransform {
 
         return problem;
     }
+
+    @Override
+    public void close() {
+    }
 }
