@@ -43,19 +43,15 @@ import org.jboss.forge.furnace.versions.Versions;
  * @since 0.1
  */
 final class ExtensionResolver extends MavenAddonDependencyResolver {
-    public static final String REVAPI_API_GROUP_ID = "org.revapi";
-    public static final String REVAPI_API_ARTIFACT_ID = "revapi-api";
+    public static final String REVAPI_GROUP_ID = "org.revapi";
+    public static final String REVAPI_ARTIFACT_ID = "revapi";
 
     public static final Set<String> ARTIFACTS_IN_LIB = new HashSet<>();
-
-    static {
-        //these need to go along the updates to the furnace container spec paths...
-    }
 
     public static void init() {
         FurnaceContainerSpec.paths.add("javax/annotation/processing");
 
-        initLibJar("org.revapi:revapi-api", "org/revapi", "org/revapi/simple",
+        initLibJar("org.revapi:revapi", "org/revapi", "org/revapi/simple",
             "org/revapi/query");
 
         initLibJar("com.google.code.findbugs:jsr305", "java/annotation", "javax/annotation/concurrent",
@@ -185,7 +181,7 @@ final class ExtensionResolver extends MavenAddonDependencyResolver {
             throw new RuntimeException(e);
         }
         List<Exception> exceptions = result.getExceptions();
-        String apiVersion = findVersion(result.getRoot().getChildren(), REVAPI_API_GROUP_ID, REVAPI_API_ARTIFACT_ID);
+        String apiVersion = findVersion(result.getRoot().getChildren(), REVAPI_GROUP_ID, REVAPI_ARTIFACT_ID);
         return new MavenResponseBuilder<String>(apiVersion).setExceptions(exceptions);
     }
 

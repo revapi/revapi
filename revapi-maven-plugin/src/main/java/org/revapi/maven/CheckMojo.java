@@ -167,7 +167,7 @@ public class CheckMojo extends AbstractMojo {
             } else {
                 getLog().info("API checks completed without failures.");
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new MojoExecutionException("Failed to analyze archives", e);
         }
     }

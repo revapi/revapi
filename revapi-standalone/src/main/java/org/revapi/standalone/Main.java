@@ -2,7 +2,6 @@ package org.revapi.standalone;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -208,7 +207,7 @@ public final class Main {
 
     private static void run(File libDir, File cacheDir, String[] extensionGAVs, List<FileArchive> oldArchives,
         List<FileArchive> oldSupplementaryArchives, List<FileArchive> newArchives,
-        List<FileArchive> newSupplementaryArchives, Map<String, String> configuration) throws IOException {
+        List<FileArchive> newSupplementaryArchives, Map<String, String> configuration) throws Exception {
 
         ExtensionResolver.init();
 
