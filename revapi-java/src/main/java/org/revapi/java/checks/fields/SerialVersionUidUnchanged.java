@@ -51,7 +51,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
+public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
 
     private static final String SERIAL_VERSION_UID_FIELD_NAME = "serialVersionUID";
 
