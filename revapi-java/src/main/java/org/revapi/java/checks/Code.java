@@ -74,6 +74,7 @@ public enum Code {
         POTENTIALLY_BREAKING),
     ANNOTATION_NOW_INHERITED("java.annotation.nowInherited", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
 
+    FIELD_ADDED_STATIC_FIELD("java.field.addedStaticField", NON_BREAKING, NON_BREAKING, null),
     FIELD_ADDED_IN_FINAL_CLASS("java.field.addedInFinalClass", NON_BREAKING, NON_BREAKING, null),
 
     //TODO can this really break a caller that calls a subclass through the super-class variable?

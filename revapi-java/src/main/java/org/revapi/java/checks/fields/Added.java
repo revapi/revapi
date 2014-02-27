@@ -52,9 +52,14 @@ public final class Added extends AbstractJavaCheck {
         //do not bother with this on final classes - a new field on a final class cannot
         //cause any problem
         boolean fieldInFinalClass = fields.newElement.getEnclosingElement().getModifiers().contains(Modifier.FINAL);
+        boolean isStatic = fields.newElement.getModifiers().contains(Modifier.STATIC);
 
-        return Collections
-            .singletonList(fieldInFinalClass ? createProblem(Code.FIELD_ADDED_IN_FINAL_CLASS)
-                : createProblem(Code.FIELD_ADDED_IN_NON_FINAL_CLASS));
+        if (isStatic) {
+            return Collections.singletonList(createProblem(Code.FIELD_ADDED_STATIC_FIELD));
+        } else {
+            return Collections
+                .singletonList(fieldInFinalClass ? createProblem(Code.FIELD_ADDED_IN_FINAL_CLASS)
+                    : createProblem(Code.FIELD_ADDED_IN_NON_FINAL_CLASS));
+        }
     }
 }
