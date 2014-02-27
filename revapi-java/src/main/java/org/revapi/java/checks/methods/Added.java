@@ -16,6 +16,7 @@
 
 package org.revapi.java.checks.methods;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.lang.model.element.Element;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import org.revapi.MatchReport;
 import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
@@ -72,22 +74,24 @@ public class Added extends AbstractJavaCheck {
 
         ExecutableElement method = methods.newElement;
 
-        TypeElement enclosingClass = method.accept(enclosingClassExtractor, null);
+        TypeElement enclosingClass = method.getEnclosingElement().accept(enclosingClassExtractor, null);
         if (enclosingClass == null) {
             LOG.warn("Could not find an enclosing class of method " + method + ". That's weird.");
             return null;
         }
 
+        MatchReport.Problem problem;
+
         if (enclosingClass.getKind() == ElementKind.INTERFACE) {
-            //TODO implement
+            problem = createProblem(Code.METHOD_ADDED_TO_INTERFACE);
         } else if (enclosingClass.getModifiers().contains(Modifier.FINAL)) {
-            //TODO implement
+            problem = createProblem(Code.METHOD_ADDED_TO_FINAL_CLASS);
         } else if (method.getModifiers().contains(Modifier.ABSTRACT)) {
-            //TODO implement
+            problem = createProblem(Code.METHOD_ABSTRACT_METHOD_ADDED);
         } else {
-            //TODO implement
+            problem = createProblem(Code.METHOD_ADDED);
         }
 
-        return null;
+        return problem == null ? null : Collections.singletonList(problem);
     }
 }

@@ -95,7 +95,11 @@ public enum Code {
     FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
     FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null),
 
-    METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING);
+    METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    METHOD_ADDED_TO_INTERFACE("java.method.addedToInterface", BREAKING, BREAKING, null),
+    METHOD_ADDED_TO_FINAL_CLASS("java.method.addedToFinalClass", NON_BREAKING, NON_BREAKING, null),
+    METHOD_ABSTRACT_METHOD_ADDED("java.method.abstractMethodAdded", BREAKING, BREAKING, null),
+    METHOD_ADDED("java.method.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),;
 
     private final String code;
     private final EnumMap<CompatibilityType, ChangeSeverity> classification;
