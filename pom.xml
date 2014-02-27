@@ -108,7 +108,7 @@
         <module>revapi-basic-features</module>
         <module>revapi-reporting-text</module>
         <module>revapi-maven-plugin</module>
-        <!-- <module>revapi-standalone</module> -->
+        <module>revapi-standalone</module>
     </modules>
 
     <build>

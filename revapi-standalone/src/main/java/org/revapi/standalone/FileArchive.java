@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi;
+package org.revapi.standalone;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.Nonnull;
+
+import org.revapi.Archive;
 
 /**
  * @author Lukas Krejci
