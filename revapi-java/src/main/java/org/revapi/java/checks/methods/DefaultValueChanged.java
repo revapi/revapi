@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright $year Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,44 +16,65 @@
 
 package org.revapi.java.checks.methods;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 
 import org.revapi.MatchReport;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class DefaultValueChanged extends AbstractJavaCheck {
+public final class DefaultValueChanged extends AbstractJavaCheck {
 
     @Override
     protected List<MatchReport.Problem> doEnd() {
         ActiveElements<ExecutableElement> methods = popIfActive();
-        if (methods != null) {
-            AnnotationValue oldValue = methods.oldElement.getDefaultValue();
-            AnnotationValue newValue = methods.newElement.getDefaultValue();
-
-            //TODO implement
+        if (methods == null) {
+            return null;
         }
 
-        return null;
+        AnnotationValue oldValue = methods.oldElement.getDefaultValue();
+        AnnotationValue newValue = methods.newElement.getDefaultValue();
+
+        String attribute = methods.oldElement.getSimpleName().toString();
+        String annotationType = ((TypeElement) methods.oldElement.getEnclosingElement()).getQualifiedName().toString();
+        String ov = oldValue == null ? null : Util.toHumanReadableString(oldValue);
+        String nv = newValue == null ? null : Util.toHumanReadableString(newValue);
+
+        MatchReport.Problem problem;
+
+        if (ov == null) {
+            problem = createProblem(Code.METHOD_DEFAULT_VALUE_ADDED);
+        } else if (nv == null) {
+            problem = createProblem(Code.METHOD_DEFAULT_VALUE_REMOVED);
+        } else {
+            problem = createProblem(Code.METHOD_DEFAULT_VALUE_CHANGED,
+                new String[]{attribute, annotationType, ov, nv}, oldValue, newValue);
+        }
+
+        return Collections.singletonList(problem);
     }
 
     @Override
     protected void doVisitMethod(ExecutableElement oldMethod, ExecutableElement newMethod) {
-        if (oldMethod == null || newMethod == null) {
+        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
             return;
         }
 
         AnnotationValue oldVal = oldMethod.getDefaultValue();
         AnnotationValue newVal = newMethod.getDefaultValue();
 
-        boolean equal = Util.isEqual(oldVal, newVal);
+        boolean equal =
+            oldVal != null && newVal != null && Util.isEqual(oldVal, newVal) || (oldVal == null && newVal == null);
+
 
         if (!equal) {
             pushActive(oldMethod, newMethod);

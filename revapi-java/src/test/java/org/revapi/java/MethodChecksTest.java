@@ -45,4 +45,27 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(4, (int) reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
     }
+
+    @Test
+    public void testDefaultValueChangedCheck() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/methods/DefaultValue.java", "v2/methods/DefaultValue.java");
+
+        Assert.assertEquals(6, (int) reporter.getProblemCounters().get(Code.METHOD_DEFAULT_VALUE_CHANGED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_DEFAULT_VALUE_ADDED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_DEFAULT_VALUE_REMOVED.code()));
+    }
+
+
+    @Test
+    public void testAnnotationTypeAttributeAdded() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/methods/DefaultValue.java", "v2/methods/DefaultValue.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters()
+            .get(Code.METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters()
+            .get(Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE.code()));
+        Assert.assertNull(reporter.getProblemCounters().get(Code.METHOD_ABSTRACT_METHOD_ADDED.code()));
+    }
 }

@@ -37,7 +37,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class Added extends AbstractJavaCheck {
+public final class Added extends AbstractJavaCheck {
     private static final Logger LOG = LoggerFactory.getLogger(Added.class);
 
     private final SimpleElementVisitor7<TypeElement, Void> enclosingClassExtractor = new SimpleElementVisitor7<TypeElement, Void>() {

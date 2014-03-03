@@ -30,7 +30,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class Removed extends AbstractJavaCheck {
+public final class Removed extends AbstractJavaCheck {
 
     @Override
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
@@ -46,6 +46,9 @@ public class Removed extends AbstractJavaCheck {
         if (methods == null) {
             return null;
         }
+
+        //TODO check if the method didn't move to supertype
+        //TODO check if the method didn't override a method from superclass
 
         return Collections.singletonList(createProblem(Code.METHOD_REMOVED));
     }

@@ -95,12 +95,22 @@ public enum Code {
     FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
     FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null),
 
+    METHOD_DEFAULT_VALUE_ADDED("java.method.defaultValueAdded", NON_BREAKING, NON_BREAKING, null),
     METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    METHOD_DEFAULT_VALUE_REMOVED("java.method.defaultValueRemoved", BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     METHOD_ADDED_TO_INTERFACE("java.method.addedToInterface", BREAKING, BREAKING, null),
+    METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE("java.method.attributeWithNoDefaultAddedToAnnotationType",
+        BREAKING, NON_BREAKING, BREAKING),
+    METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE("java.method.attributeWithDefaultAddedToAnnotationType",
+        NON_BREAKING, NON_BREAKING, null),
     METHOD_ADDED_TO_FINAL_CLASS("java.method.addedToFinalClass", NON_BREAKING, NON_BREAKING, null),
     METHOD_ABSTRACT_METHOD_ADDED("java.method.abstractMethodAdded", BREAKING, BREAKING, null),
     METHOD_ADDED("java.method.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
-    METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null),;
+    METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null),
+
+    //TODO is this needed? How does it behave?
+    METHOD_ATTRIBUTE_WITHOUT_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE("", BREAKING, NON_BREAKING, null),
+    METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE("", BREAKING, NON_BREAKING, null),;
 
     private final String code;
     private final EnumMap<CompatibilityType, ChangeSeverity> classification;
