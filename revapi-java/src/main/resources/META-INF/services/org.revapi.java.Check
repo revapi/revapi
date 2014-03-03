@@ -1,5 +1,5 @@
 #
-# Copyright $year Lukas Krejci
+# Copyright 2014 Lukas Krejci
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,4 +51,6 @@ org.revapi.java.checks.methods.DefaultValueChanged
 org.revapi.java.checks.methods.NoLongerFinal
 org.revapi.java.checks.methods.NowFinal
 org.revapi.java.checks.methods.Removed
+org.revapi.java.checks.methods.VisibilityIncreased
+org.revapi.java.checks.methods.VisibilityReduced
 

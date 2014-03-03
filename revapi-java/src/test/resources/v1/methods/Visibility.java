@@ -14,25 +14,13 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.methods;
+public class Visibility {
 
-import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
+    private void privateMethod() {
 
-import org.revapi.java.checks.Code;
-import org.revapi.java.checks.common.VisibilityChanged;
-
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public final class VisibilityReduced extends VisibilityChanged {
-    public VisibilityReduced() {
-        super(Code.METHOD_VISIBILITY_REDUCED, false);
     }
 
-    @Override
-    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
-        doVisit(oldMethod, newMethod);
+    public void publicMethod() {
+
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,9 @@ public enum Code {
     METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE("", BREAKING, NON_BREAKING, null),
 
     METHOD_NO_LONGER_FINAL("java.method.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
-    METHOD_NOW_FINAL("java.method.nowFinal", BREAKING, BREAKING, null),;
+    METHOD_NOW_FINAL("java.method.nowFinal", BREAKING, BREAKING, null),
+    METHOD_VISIBILITY_INCREASED("java.method.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
+    METHOD_VISIBILITY_REDUCED("java.method.visibilityReduced", BREAKING, BREAKING, null),;
 
     private final String code;
     private final EnumMap<CompatibilityType, ChangeSeverity> classification;

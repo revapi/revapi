@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,5 +76,14 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_FINAL.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_FINAL.code()));
+    }
+
+    @Test
+    public void testVisibilityChanges() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/methods/Visibility.java", "v2/methods/Visibility.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_VISIBILITY_INCREASED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_VISIBILITY_REDUCED.code()));
     }
 }
