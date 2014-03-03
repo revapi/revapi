@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright $year Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v1/fields/Added.java", "v2/fields/Added.java");
 
-        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_ADDED_IN_NON_FINAL_CLASS.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_ADDED.code()));
     }
 
     @Test

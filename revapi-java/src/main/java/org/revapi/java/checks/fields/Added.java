@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright $year Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,17 +49,12 @@ public final class Added extends AbstractJavaCheck {
             return null;
         }
 
-        //do not bother with this on final classes - a new field on a final class cannot
-        //cause any problem
-        boolean fieldInFinalClass = fields.newElement.getEnclosingElement().getModifiers().contains(Modifier.FINAL);
         boolean isStatic = fields.newElement.getModifiers().contains(Modifier.STATIC);
 
         if (isStatic) {
             return Collections.singletonList(createProblem(Code.FIELD_ADDED_STATIC_FIELD));
         } else {
-            return Collections
-                .singletonList(fieldInFinalClass ? createProblem(Code.FIELD_ADDED_IN_FINAL_CLASS)
-                    : createProblem(Code.FIELD_ADDED_IN_NON_FINAL_CLASS));
+            return Collections.singletonList(createProblem(Code.FIELD_ADDED));
         }
     }
 }

@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright $year Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -104,7 +104,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             .assertTrue(
                 containsProblem(allProblems, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert
-            .assertTrue(containsProblem(allProblems, null, "field B.T$2.f2", Code.FIELD_ADDED_IN_FINAL_CLASS.code()));
+            .assertTrue(containsProblem(allProblems, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert
             .assertTrue(containsProblem(allProblems, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
 

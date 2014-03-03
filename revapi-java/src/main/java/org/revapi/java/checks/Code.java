@@ -36,6 +36,8 @@ import org.revapi.CompatibilityType;
 import org.revapi.MatchReport;
 
 /**
+ * TODO move this class to SPI so that extenders can take advantage of it.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
@@ -75,10 +77,7 @@ public enum Code {
     ANNOTATION_NOW_INHERITED("java.annotation.nowInherited", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
 
     FIELD_ADDED_STATIC_FIELD("java.field.addedStaticField", NON_BREAKING, NON_BREAKING, null),
-    FIELD_ADDED_IN_FINAL_CLASS("java.field.addedInFinalClass", NON_BREAKING, NON_BREAKING, null),
-
-    //TODO can this really break a caller that calls a subclass through the super-class variable?
-    FIELD_ADDED_IN_NON_FINAL_CLASS("java.field.addedInNonFinalClass", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    FIELD_ADDED("java.field.added", NON_BREAKING, NON_BREAKING, null),
 
     FIELD_REMOVED("java.field.removed", BREAKING, BREAKING, null),
     FIELD_CONSTANT_REMOVED("java.field.removedWithConstant", BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
