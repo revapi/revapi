@@ -110,7 +110,10 @@ public enum Code {
 
     //TODO is this needed? How does it behave?
     METHOD_ATTRIBUTE_WITHOUT_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE("", BREAKING, NON_BREAKING, null),
-    METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE("", BREAKING, NON_BREAKING, null),;
+    METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE("", BREAKING, NON_BREAKING, null),
+
+    METHOD_NO_LONGER_FINAL("java.method.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
+    METHOD_NOW_FINAL("java.method.nowFinal", BREAKING, BREAKING, null),;
 
     private final String code;
     private final EnumMap<CompatibilityType, ChangeSeverity> classification;

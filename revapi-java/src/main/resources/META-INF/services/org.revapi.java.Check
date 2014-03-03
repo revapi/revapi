@@ -14,22 +14,6 @@
 # limitations under the License
 #
 
-#
-# Copyright $year Lukas Krejci
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License
-#
-
 org.revapi.java.checks.classes.Added
 org.revapi.java.checks.classes.InheritanceChainChanged
 org.revapi.java.checks.classes.KindChanged
@@ -64,5 +48,7 @@ org.revapi.java.checks.fields.VisibilityReduced
 
 org.revapi.java.checks.methods.Added
 org.revapi.java.checks.methods.DefaultValueChanged
+org.revapi.java.checks.methods.NoLongerFinal
+org.revapi.java.checks.methods.NowFinal
 org.revapi.java.checks.methods.Removed
 

@@ -14,26 +14,13 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks.methods;
+public class Final {
 
-import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
+    public void finalMethod() {
 
-import org.revapi.java.checks.Code;
-import org.revapi.java.checks.common.ModifierChanged;
-
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public final class NowFinal extends ModifierChanged {
-    public NowFinal() {
-        super(true, Code.METHOD_NOW_FINAL, Modifier.FINAL);
     }
 
-    @Override
-    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
-        doVisit(oldMethod, newMethod);
+    public final void nonFinalMethod() {
+
     }
 }
