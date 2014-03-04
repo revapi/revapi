@@ -16,13 +16,64 @@ as a maven plugin or it can also be embedded in your application and used as a l
 
 === Standalone
 
-TODO
+Download the standalone distribution zip and
+
+ unzip rhq-revapi-XXX.zip
+ cd rhq-revapi-XXX
+ ./revapi.sh
+
+Read the usage info and go.
 
 === Maven
 
-TODO
+[source,xml]
+----
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-maven-plugin</artifactId>
+            <version>...</version>
+            <dependencies>
+                <dependency>
+                    <groupId>org.revapi</groupId>
+                    <artifactId>revapi-java</artifactId>
+                    <version>...</version>
+                </dependency>    
+                <dependency>
+                    <groupId>com.acme</groupId>
+                    <artifactId>my-extension</artifactId>
+                    <version>...</version>
+                </dependency>
+                ...
+            </dependencies>
+            <configuration>
+                ...
+            </configuration>
+            <executions>
+                <execution>
+                    <id>api-check</id>
+                    <goals><goal>check</goal></goals>
+                    ...
+                </execution>
+                ...
+            </executions>
+        </plugin>
+        ...
+    </plugins>    
+    ...
+</build>    
+----
+
 
 === Embedding
+
+[source,java]
+----
+Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader()
+    .withConfiguration(System.getProperties()).build();
+revapi.analyze(...);
+----
 
 == Extending Revapi
 
