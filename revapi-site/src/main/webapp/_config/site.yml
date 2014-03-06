@@ -1,0 +1,26 @@
+title: Revapi - evolve your APIs with confidence
+org: JBoss by Red Hat
+base_url: 'http://metlos.github.io/revapi'
+scm: 'https://github.com/metlos/revapi'
+version: '${project.version}'
+
+asciidoctor:
+  :safe: safe
+  :attributes:
+    base_url: 'http://metlos.github.io/revapi'
+    docs_url: 'docs'
+    idprefix: ''
+    idseparator: '-'
+    sectanchors: ''
+    icons: font
+    source-highlighter: coderay
+    coderay-css: style
+    scm: 'https://github.com/metlos/revapi'
+    version: '${project.version}'
+
+profiles:
+  development:
+    base_url: "http://localhost:4242"
+    asciidoctor:
+      :attributes:
+         base_url: "http://localhost:4242"

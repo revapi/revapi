@@ -1,0 +1,9 @@
+= Getting Started
+:awestruct-layout: docs
+:awestruct-index: 1
+
+== Getting Started
+
+=== Standalone Usage
+
+=== Maven

@@ -1,0 +1,34 @@
+!!!5
+%html
+  %head
+    %meta{ :charset=>'utf-8' }
+    %title #{site.title}
+    %meta{ :name=>'viewport', :content=>'width=device-width, initial-scale=1.0' }
+    :css
+      body {
+        padding-top: 60px;
+      }
+    %link{ :rel=>'stylesheet', :type=>'text/css', :href=>"#{site.base_url}/stylesheets/bootstrap.css" }
+    %link{ :rel=>'stylesheet', :type=>'text/css', :href=>"#{site.base_url}/stylesheets/bootstrap-responsive.css" }
+    /[if lt IE 9]
+      %script{ :type=>'text/javascript', :src=>'//html5shim.googlecode.com/svn/trunk/html5.js' }
+  %body
+    .navbar.navbar-fixed-top
+      .navbar-inner
+        .container
+          %a.brand{ :href=>"#{site.base_url}" } #{site.title}
+          %ul.nav
+            %li
+              %a{ :href=>"#{site.base_url}" } Home
+            %li
+              %a{ :href=>"#{site.base_url}/docs"} Documentation
+          .navbar-text.pull-right
+            Latest version: #{site.version}
+    .container
+      ~ content
+      %hr
+      %footer
+        %p &copy; #{site.org} #{Date.today.year}
+    -# Uncomment script tags (remove leading -#) when you're ready to use behaviors
+    %script{ :type=>'text/javascript', :src=>'//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js' }
+    %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts//bootstrap/bootstrap.js" }

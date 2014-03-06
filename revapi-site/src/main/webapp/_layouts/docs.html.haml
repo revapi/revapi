@@ -1,0 +1,14 @@
+---
+layout: base
+---
+
+.container
+  .row
+    .span3
+      %ul.nav.nav-list
+        %li.nav-header Using Revapi
+        - for doc in site.docs
+          %li
+            %a{ :href=>doc.url + "#content"}= doc.title
+    .span9
+      ~ content
