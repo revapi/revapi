@@ -4,11 +4,27 @@ layout: base
 
 .container
   .row
-    .span3
-      %ul.nav.nav-list
-        %li.nav-header Using Revapi
-        - for doc in site.docs
-          %li
-            %a{ :href=>doc.url + "#content"}= doc.title
-    .span9
+    .col-md-9
       ~ content
+    .col-md-3
+      -##docs.affix.pull-right
+      -#  .nav-header
+      -#  .panel.panel-default
+      -#    .panel-heading.text-center
+      -#      %h3.panel-title Documentation
+      -#    .list-group
+      -#      - i = 0
+      -#      - for doc in site.docs
+      -#        %a.list-group-item{ :id=>"doc#{i}", :href=>doc.url}= doc.title
+      -#        - i += 1
+      -#      :javascript
+      -#        var docs = [];
+      -#        #{site.docs.map do |doc| "docs.push(\"#{site.base_url}#{doc.url}\")"; end.join(";")}
+      -#
+      -#        for(i in docs) {
+      -#          if (docs[i] == window.location) {
+      -#            document.getElementById("doc" + i).className = "list-group-item active";
+      -#            break;
+      -#          }
+      -#        }
+

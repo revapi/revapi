@@ -1,9 +1,145 @@
 = Getting Started
 :awestruct-layout: docs
-:awestruct-index: 1
+:awestruct-index: 0
+:toc: right
+
+[.toc-on-right]
+toc::[]
 
 == Getting Started
 
+Revapi can be used in 3 ways. Either as a standalone java program, using its maven plugin during build or as an embedded
+library.
+
 === Standalone Usage
 
+NOTE: Revapi hasn't seen a single stable release yet, so you won't be able to really download it from anywhere.
+Currently the only option you have is to link:building.html[build] Revapi and then obtain the installation archive from
+local maven repo.
+
+First you need to download the standalone distribution of Revapi, say `revapi-standalone-0.1.0.zip`. Now you have to:
+
+----
+unzip revapi-standalone-0.1.0.zip
+cd revapi-standalone-0.1.0
+----
+
+Your installation is now ready. To start using it, you can simply invoke
+
+----
+./revapi.sh
+----
+
+(or if you're unfortunate enough to be on windows)
+
+----
+revapi.bat
+----
+
+and you will be presented with the usual usage information.
+
+----
+revapi.sh [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]*
+          [-s <FILE>[,<FILE>]*] [-t <FILE>[,<FILE>]*] [-D<CONFIG_OPTION>=<VALUE>]*
+          [-c <FILE>[,<FILE>]*] [-r <DIR>]
+
+          -u
+          -h
+          --usage
+          --help
+              Prints this message and exits.
+          -e
+          --extensions=<GAV>[,<GAV>]*
+              Comma-separated list of maven GAVs of revapi extensions.
+          -o
+          --old=<FILE>[,<FILE>]*
+             Comma-separated list of files of the old version of API
+          -s
+          --old-supplementary=<FILE>[,<FILE>]*
+             Comma-separated list of files that supplement the old version of API
+          -n
+          --new=<FILE>[,<FILE>]*
+             Comma-separated list of files of the new version of API
+          -t
+          --new-supplementary=<FILE>[,<FILE>]*
+             Comma-separated list of files that supplement the new version of API
+          -D
+             A key-value pair representing a single configuration option of revapi
+             or one of the loaded extensions
+          -c
+          --config-files=<FILE>[,<FILE>]*
+             Comma-separated list of configuration files in Java properties format.
+          -d
+          --cache-dir=<DIR>
+             The location of local cache of extensions to use to locate artifacts.
+             Defaults to 'extensions' directory under revapi installation dir.
+----
+
+As an example, suppose the Revapi's java extension released version 0.1.0 (which it didn't yet). An invocation of Revapi
+could look like this:
+
+----
+./revapi.sh -extensions=org.revapi:revapi-java:0.1.0,org.revapi:revapi-text-reporter:0.1.0 \
+   --old=my-lib-0.1.0.jar --new=my-lib-0.2.0.jar -D revapi.reporter.text.minSeverity=BREAKING
+----
+
+The supplementary archives, in case of java, are additional jars defining classes that classes in your "main" jar "leak"
+into the API, i.e. if some of your classes inherit from one defined in the additional jar, or if one of your API
+method's return type or parameter comes from the additional jar.
+
+Different extensions might define different configuration options that you might supply to them using either the `-D`
+command line parameter or they can be read from a java property file(s) specified by the `-c` option.
+
 === Maven
+
+Revapi's main purpose is to track API changes between releases. This is ideally done during build and so the maven
+integration is essential.
+
+The basic usage of the Revapi's maven plugin is quite simple. In your `pom.xml`, do:
+
+[source,xml]
+----
+<build>
+    ...
+    <plugins>
+        ...
+        <plugin>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-maven-plugin</artifactId>
+            <version>0.1.0</version>
+            <dependencies>
+                <dependency>
+                    <groupId>org.revapi</groupId>
+                    <artifactId>revapi-java</artifactId>
+                    <version>0.1.0</version>
+                </dependency>
+                ...
+            </dependencies>
+            <executions>
+                <execution>
+                    <id>check</id>
+                    <goals><goal>check</goal><goals>
+                </execution>
+            </executions>
+        </plugin>
+        ...
+    </plugins>
+    ...
+</build>
+----
+
+By default, Revapi only bundles the link:extension-basic.html[basic extensions] so in order to check your java code,
+you need to add the Revapi's java extension as a dependency to the maven plugin.
+
+For more detailed info, check the maven plugin's link:../maven-plugin[site].
+
+=== Embedding
+
+[source,java]
+----
+Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader()
+    .withConfiguration(System.getProperties()).build();
+revapi.analyze(...);
+----
+
+For more details, see link:../javadoc[javadoc].

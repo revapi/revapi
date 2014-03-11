@@ -21,6 +21,10 @@ It is therefore important for the tool to do 2 things right:
 . correctly identify all changes in an API, be it Java code, configuration files, descriptor files of any sort, etc.
 . allow the developer to mark selected changes as intentional (unavoidable changes in API are sometimes necessary).
 
+NOTE: If you like what you see and would like to help out, we're eager to get contributions. This project is very new
+and hasn't seen a single release yet. At the same time it already is easier to use than any of the pre-existing similar
+solutions.
+
 == Prior Art
 
 ==== https://sigtest.java.net/[SigTest]
