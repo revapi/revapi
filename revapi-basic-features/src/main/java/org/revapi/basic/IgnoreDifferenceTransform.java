@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,13 +28,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.revapi.Configuration;
+import org.revapi.DifferenceTransform;
 import org.revapi.Element;
-import org.revapi.MatchReport;
-import org.revapi.ProblemTransform;
+import org.revapi.Report;
 
 /**
- * A generic problem transform that can ignore problems based on the problem code ({@link
- * org.revapi.MatchReport.Problem#code}) and on the old or new elements' full human representations
+ * A generic difference transform that can ignore differences based on the difference code ({@link
+ * org.revapi.Report.Difference#code}) and on the old or new elements' full human representations
  * ({@link org.revapi.Element#getFullHumanReadableString()}).
  * <p/>
  * The transform is configured using properties in the general form of:
@@ -53,8 +53,8 @@ import org.revapi.ProblemTransform;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class IgnoreProblemTransform implements ProblemTransform {
-    private static final Logger LOG = LoggerFactory.getLogger(IgnoreProblemTransform.class);
+public class IgnoreDifferenceTransform implements DifferenceTransform {
+    private static final Logger LOG = LoggerFactory.getLogger(IgnoreDifferenceTransform.class);
 
     public static final String CONFIG_PROPERTY_PREFIX = "revapi.ignore.";
     private static final int CONFIG_PROPERTY_PREFIX_LENGTH = CONFIG_PROPERTY_PREFIX.length();
@@ -68,15 +68,15 @@ public class IgnoreProblemTransform implements ProblemTransform {
         String newElement;
         Pattern newElementRegex;
 
-        boolean shouldIgnore(MatchReport.Problem problem, Element oldElement, Element newElement) {
+        boolean shouldIgnore(Report.Difference difference, Element oldElement, Element newElement) {
             if (regex) {
-                return codeRegex.matcher(problem.code).matches() &&
+                return codeRegex.matcher(difference.code).matches() &&
                     (oldElementRegex == null ||
                         oldElementRegex.matcher(oldElement.getFullHumanReadableString()).matches()) &&
                     (newElementRegex == null ||
                         newElementRegex.matcher(newElement.getFullHumanReadableString()).matches());
             } else {
-                return code.equals(problem.code) &&
+                return code.equals(difference.code) &&
                     (this.oldElement == null || this.oldElement.equals(oldElement.getFullHumanReadableString())) &&
                     (this.newElement == null || this.newElement.equals(newElement.getFullHumanReadableString()));
             }
@@ -148,19 +148,19 @@ public class IgnoreProblemTransform implements ProblemTransform {
 
     @Nullable
     @Override
-    public MatchReport.Problem transform(@Nullable Element oldElement, @Nullable Element newElement,
-        @Nonnull MatchReport.Problem problem) {
+    public Report.Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
+        @Nonnull Report.Difference difference) {
         if (toIgnore == null) {
-            return problem;
+            return difference;
         }
 
         for (IgnoreRecipe r : toIgnore) {
-            if (r.shouldIgnore(problem, oldElement, newElement)) {
+            if (r.shouldIgnore(difference, oldElement, newElement)) {
                 return null;
             }
         }
 
-        return problem;
+        return difference;
     }
 
     @Override

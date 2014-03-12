@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,13 +27,13 @@ import javax.annotation.Nullable;
 import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.query.Filter;
-import org.revapi.simple.SimpleTree;
+import org.revapi.simple.SimpleElementForest;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class JavaTree extends SimpleTree {
+public final class JavaElementForest extends SimpleElementForest {
 
     private Future<?> compilation;
     private static final ThreadLocal<Boolean> UNSAFE_MODE = new ThreadLocal<Boolean>() {
@@ -43,7 +43,7 @@ public final class JavaTree extends SimpleTree {
         }
     };
 
-    public JavaTree(API api) {
+    public JavaElementForest(API api) {
         super(api);
     }
 

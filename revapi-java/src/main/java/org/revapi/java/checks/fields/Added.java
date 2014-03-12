@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -42,7 +42,7 @@ public final class Added extends AbstractJavaCheck {
     }
 
     @Override
-    protected List<MatchReport.Problem> doEnd() {
+    protected List<Report.Difference> doEnd() {
         ActiveElements<VariableElement> fields = popIfActive();
 
         if (fields == null) {
@@ -52,9 +52,9 @@ public final class Added extends AbstractJavaCheck {
         boolean isStatic = fields.newElement.getModifiers().contains(Modifier.STATIC);
 
         if (isStatic) {
-            return Collections.singletonList(createProblem(Code.FIELD_ADDED_STATIC_FIELD));
+            return Collections.singletonList(createDifference(Code.FIELD_ADDED_STATIC_FIELD));
         } else {
-            return Collections.singletonList(createProblem(Code.FIELD_ADDED));
+            return Collections.singletonList(createDifference(Code.FIELD_ADDED));
         }
     }
 }

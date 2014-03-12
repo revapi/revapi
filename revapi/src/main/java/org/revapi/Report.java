@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,17 +31,17 @@ import javax.annotation.Nullable;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class MatchReport {
-    public static final class Problem {
+public final class Report {
+    public static final class Difference {
         public static final class Builder {
-            private final MatchReport.Builder reportBuilder;
+            private final Report.Builder reportBuilder;
             private String code;
             private String name;
             private String description;
             private Map<CompatibilityType, ChangeSeverity> classification = new HashMap<>();
             private List<Object> attachments = new ArrayList<>();
 
-            private Builder(MatchReport.Builder reportBuilder) {
+            private Builder(Report.Builder reportBuilder) {
                 this.reportBuilder = reportBuilder;
             }
 
@@ -89,15 +89,15 @@ public final class MatchReport {
             }
 
             @Nonnull
-            public MatchReport.Builder done() {
-                Problem p = build();
-                reportBuilder.problems.add(p);
+            public Report.Builder done() {
+                Difference p = build();
+                reportBuilder.differences.add(p);
                 return reportBuilder;
             }
 
             @Nonnull
-            public Problem build() {
-                return new Problem(code, name, description, classification, attachments);
+            public Difference build() {
+                return new Difference(code, name, description, classification, attachments);
             }
         }
 
@@ -124,13 +124,13 @@ public final class MatchReport {
 
         public final List<Object> attachments;
 
-        public Problem(@Nonnull String code, @Nonnull String name, @Nullable String description,
+        public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
             @Nonnull CompatibilityType compatibility,
             @Nonnull ChangeSeverity severity, @Nonnull List<Serializable> attachments) {
             this(code, name, description, Collections.singletonMap(compatibility, severity), attachments);
         }
 
-        public Problem(@Nonnull String code, @Nonnull String name, @Nullable String description,
+        public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
             @Nonnull Map<CompatibilityType, ChangeSeverity> classification, @Nonnull List<?> attachments) {
             this.code = code;
             this.name = name;
@@ -150,9 +150,9 @@ public final class MatchReport {
                 return false;
             }
 
-            Problem problem = (Problem) o;
+            Difference difference = (Difference) o;
 
-            return code.equals(problem.code) && classification.equals(problem.classification);
+            return code.equals(difference.code) && classification.equals(difference.classification);
         }
 
         @Override
@@ -177,7 +177,7 @@ public final class MatchReport {
     public static final class Builder {
         private Element oldElement;
         private Element newElement;
-        private ArrayList<Problem> problems = new ArrayList<>();
+        private ArrayList<Difference> differences = new ArrayList<>();
 
         @Nonnull
         public Builder withOld(@Nullable Element element) {
@@ -192,13 +192,13 @@ public final class MatchReport {
         }
 
         @Nonnull
-        public Problem.Builder addProblem() {
-            return new Problem.Builder(this);
+        public Difference.Builder addProblem() {
+            return new Difference.Builder(this);
         }
 
         @Nonnull
-        public MatchReport build() {
-            return new MatchReport(problems, oldElement, newElement);
+        public Report build() {
+            return new Report(differences, oldElement, newElement);
         }
     }
 
@@ -206,15 +206,15 @@ public final class MatchReport {
         return new Builder();
     }
 
-    private final List<Problem> problems;
+    private final List<Difference> differences;
     private final Element oldElement;
     private final Element newElement;
 
-    public MatchReport(@Nonnull Iterable<Problem> problems, @Nullable Element oldElement,
+    public Report(@Nonnull Iterable<Difference> problems, @Nullable Element oldElement,
         @Nullable Element newElement) {
-        this.problems = new ArrayList<>();
-        for (Problem p : problems) {
-            this.problems.add(p);
+        this.differences = new ArrayList<>();
+        for (Difference p : problems) {
+            this.differences.add(p);
         }
 
         this.oldElement = oldElement;
@@ -232,8 +232,8 @@ public final class MatchReport {
     }
 
     @Nonnull
-    public List<Problem> getProblems() {
-        return problems;
+    public List<Difference> getDifferences() {
+        return differences;
     }
 
     @Override
@@ -245,7 +245,7 @@ public final class MatchReport {
             return false;
         }
 
-        MatchReport that = (MatchReport) o;
+        Report that = (Report) o;
 
         if (newElement != null ? !newElement.equals(that.newElement) : that.newElement != null) {
             return false;
@@ -255,12 +255,12 @@ public final class MatchReport {
             return false;
         }
 
-        return problems.equals(that.problems);
+        return differences.equals(that.differences);
     }
 
     @Override
     public int hashCode() {
-        int result = problems.hashCode();
+        int result = differences.hashCode();
         result = 31 * result + (oldElement != null ? oldElement.hashCode() : 0);
         result = 31 * result + (newElement != null ? newElement.hashCode() : 0);
         return result;
@@ -271,7 +271,7 @@ public final class MatchReport {
         final StringBuilder sb = new StringBuilder("MatchReport[");
         sb.append("oldElement=").append(oldElement == null ? "null" : oldElement.getFullHumanReadableString());
         sb.append(", newElement=").append(newElement == null ? "null" : newElement.getFullHumanReadableString());
-        sb.append(", problems=").append(problems);
+        sb.append(", problems=").append(differences);
         sb.append(']');
         return sb.toString();
     }

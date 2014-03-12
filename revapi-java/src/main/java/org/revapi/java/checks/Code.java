@@ -33,7 +33,7 @@ import java.util.WeakHashMap;
 
 import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
-import org.revapi.MatchReport;
+import org.revapi.Report;
 
 /**
  * TODO move this class to SPI so that extenders can take advantage of it.
@@ -114,7 +114,10 @@ public enum Code {
     METHOD_NO_LONGER_FINAL("java.method.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
     METHOD_NOW_FINAL("java.method.nowFinal", BREAKING, BREAKING, null),
     METHOD_VISIBILITY_INCREASED("java.method.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
-    METHOD_VISIBILITY_REDUCED("java.method.visibilityReduced", BREAKING, BREAKING, null),;
+    METHOD_VISIBILITY_REDUCED("java.method.visibilityReduced", BREAKING, BREAKING, null),
+    METHOD_RETURN_TYPE_CHANGED("java.method.returnTypeChanged", POTENTIALLY_BREAKING, BREAKING, null),
+    METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED("java.method.returnTypeTypeParametersChanged", POTENTIALLY_BREAKING,
+        NON_BREAKING, POTENTIALLY_BREAKING),;
 
     private final String code;
     private final EnumMap<CompatibilityType, ChangeSeverity> classification;
@@ -142,9 +145,9 @@ public enum Code {
         return code;
     }
 
-    public MatchReport.Problem createProblem(Locale locale) {
+    public Report.Difference createDifference(Locale locale) {
         Message message = getMessages(locale).get(code);
-        MatchReport.Problem.Builder bld = MatchReport.Problem.builder().withCode(code).withName(message.name)
+        Report.Difference.Builder bld = Report.Difference.builder().withCode(code).withName(message.name)
             .withDescription(message.description);
         for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {
             bld.addClassification(e.getKey(), e.getValue());
@@ -153,10 +156,10 @@ public enum Code {
         return bld.build();
     }
 
-    public MatchReport.Problem createProblem(Locale locale, Object[] params, Object... attachments) {
+    public Report.Difference createProblem(Locale locale, Object[] params, Object... attachments) {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, params);
-        MatchReport.Problem.Builder bld = MatchReport.Problem.builder().withCode(code).withName(message.name)
+        Report.Difference.Builder bld = Report.Difference.builder().withCode(code).withName(message.name)
             .withDescription(description).addAttachments(attachments);
 
         for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {

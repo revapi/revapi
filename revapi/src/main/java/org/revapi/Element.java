@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import org.revapi.query.Filter;
 
 /**
- * An element in a tree representation of given "language" under API inspection. In case of programming languages this
+ * An element in a forest representation of given "language" under API inspection. In case of programming languages this
  * will usually be a (trimmed down) abstract syntax tree, in case of XSD this can be an actual DOM tree.
  * <p/>
  * An element is comparable with all other element types for given language, giving a total ordering across all and any
@@ -52,7 +52,7 @@ public interface Element extends Comparable<Element> {
     SortedSet<? extends Element> getChildren();
 
     /**
-     * Provides the full "path" to the element in the tree in a human readable way.
+     * Provides the full "path" to the element in the forest in a human readable way.
      * This method is meant to be used by the reporters to identify the element in the reports.
      */
     @Nonnull
@@ -84,10 +84,10 @@ public interface Element extends Comparable<Element> {
         @Nullable Filter<? super T> filter);
 
     /**
-     * Similar to search methods but avoids the traversal over the whole tree. Instead the traversal is incremental
+     * Similar to search methods but avoids the traversal over the whole forest. Instead the traversal is incremental
      * and governed by the returned iterator.
      *
-     * @param recurse if true, the iterator traverses the element tree using depth first search
+     * @param recurse if true, the iterator traverses the element forest using depth first search
      *
      * @return the iterator that will iterate over the results
      *

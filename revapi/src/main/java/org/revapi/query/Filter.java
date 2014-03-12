@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@ package org.revapi.query;
 import javax.annotation.Nullable;
 
 /**
- * A basic filter designed to work with element {@link org.revapi.Tree trees}.
+ * A basic filter designed to work with element {@link org.revapi.ElementForest forests}.
  *
  * @author Lukas Krejci
  * @since 0.1
@@ -27,16 +27,16 @@ import javax.annotation.Nullable;
 public interface Filter<T> {
 
     /**
-     * If an element in a tree is of compatible type, does the filter apply to it?
+     * If an element in a forest is of compatible type, does the filter apply to it?
      *
-     * @param element the element in the tree
+     * @param element the element in the forest
      *
      * @return true if the filter applies, false otherwise
      */
     boolean applies(@Nullable T element);
 
     /**
-     * Should the tree traversal descend into the provided element? It is not guaranteed that the element is
+     * Should the forest traversal descend into the provided element? It is not guaranteed that the element is
      * of the type required by this parameter, but its children might be.
      * <p/>
      * Therefore the filter is given a chance to influence the decision even for elements of types that it is not
@@ -44,7 +44,7 @@ public interface Filter<T> {
      *
      * @param element the element to be descended into
      *
-     * @return true if tree traversal should descend into the element, false otherwise
+     * @return true if forest traversal should descend into the element, false otherwise
      */
     boolean shouldDescendInto(@Nullable Object element);
 }

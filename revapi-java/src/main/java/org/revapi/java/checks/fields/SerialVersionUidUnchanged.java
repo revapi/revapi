@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.SimpleTypeVisitor7;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.TypeEnvironment;
 import org.revapi.java.checks.Code;
 
@@ -104,13 +104,13 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
     }
 
     @Override
-    protected List<MatchReport.Problem> doEnd() {
+    protected List<Report.Difference> doEnd() {
         ActiveElements<VariableElement> fields = popIfActive();
         if (fields == null) {
             return null;
         }
 
-        return Collections.singletonList(createProblem(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED));
+        return Collections.singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED));
     }
 
     /**
@@ -363,7 +363,7 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
 
     /**
      * Adapted from {@link java.io.ObjectStreamClass.MemberSignature}
-     * <p/>
+     * <p>
      * Class for computing and caching field/constructor/method signatures
      * during serialVersionUID calculation.
      */
@@ -434,7 +434,7 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
     /**
      * Adapted from {@link java.io.ObjectStreamClass#getClassSignature(Class)}
      * and {@link java.io.ObjectStreamClass#getMethodSignature(Class[], Class)}
-     * <p/>
+     * <p>
      * Returns JVM type signature for given class.
      */
     private static String getSignature(TypeMirror type) {

@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 
 import org.revapi.Configuration;
+import org.revapi.DifferenceTransform;
 import org.revapi.Element;
-import org.revapi.MatchReport;
-import org.revapi.ProblemTransform;
+import org.revapi.Report;
 import org.revapi.java.JavaModelElement;
 import org.revapi.java.checks.Code;
 
@@ -35,7 +35,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class AnnotationTypeAttributeAdded implements ProblemTransform {
+public final class AnnotationTypeAttributeAdded implements DifferenceTransform {
     private Locale locale;
 
     @Override
@@ -45,11 +45,11 @@ public final class AnnotationTypeAttributeAdded implements ProblemTransform {
 
     @Nullable
     @Override
-    public MatchReport.Problem transform(@Nullable Element oldElement, @Nullable Element newElement,
-        @Nonnull MatchReport.Problem problem) {
+    public Report.Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
+        @Nonnull Report.Difference difference) {
 
-        if (Code.METHOD_ABSTRACT_METHOD_ADDED != Code.fromCode(problem.code)) {
-            return problem;
+        if (Code.METHOD_ABSTRACT_METHOD_ADDED != Code.fromCode(difference.code)) {
+            return difference;
         }
 
         @SuppressWarnings("ConstantConditions")
@@ -59,13 +59,13 @@ public final class AnnotationTypeAttributeAdded implements ProblemTransform {
             AnnotationValue defaultValue = method.getDefaultValue();
 
             if (defaultValue == null) {
-                return Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE.createProblem(locale);
+                return Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE.createDifference(locale);
             } else {
-                return Code.METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE.createProblem(locale);
+                return Code.METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE.createDifference(locale);
             }
         }
 
-        return problem;
+        return difference;
     }
 
     @Override

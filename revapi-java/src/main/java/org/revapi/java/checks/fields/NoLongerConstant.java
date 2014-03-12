@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.checks.Code;
 
 /**
@@ -41,13 +41,13 @@ public final class NoLongerConstant extends BothFieldsRequiringCheck {
     }
 
     @Override
-    protected List<MatchReport.Problem> doEnd() {
+    protected List<Report.Difference> doEnd() {
         ActiveElements<VariableElement> fields = popIfActive();
         if (fields == null) {
             return null;
         }
 
         return Collections.singletonList(
-            createProblem(Code.FIELD_NO_LONGER_CONSTANT, fields.oldElement.getConstantValue()));
+            createDifference(Code.FIELD_NO_LONGER_CONSTANT, fields.oldElement.getConstantValue()));
     }
 }

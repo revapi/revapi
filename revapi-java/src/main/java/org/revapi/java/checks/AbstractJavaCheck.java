@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@ package org.revapi.java.checks;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.CheckBase;
 import org.revapi.java.TypeEnvironment;
 import org.revapi.java.model.ClassTreeInitializer;
@@ -30,13 +30,13 @@ import org.revapi.java.model.ClassTreeInitializer;
  */
 public abstract class AbstractJavaCheck extends CheckBase {
 
-    protected MatchReport.Problem createProblem(Code code,
+    protected Report.Difference createDifference(Code code,
         Object... params) {
 
-        return createProblem(code, params, params);
+        return createDifference(code, params, params);
     }
 
-    protected MatchReport.Problem createProblem(Code code, Object[] params, Object... attachments) {
+    protected Report.Difference createDifference(Code code, Object[] params, Object... attachments) {
         return code.createProblem(getConfiguration().getLocale(), params, attachments);
     }
 

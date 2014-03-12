@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ElementDifferenceAnalyzer extends AutoCloseable {
+public interface DifferenceAnalyzer extends AutoCloseable {
 
     /**
      * Called right before the analysis starts. Can be used to "warm up" the analyzer.
@@ -50,5 +50,5 @@ public interface ElementDifferenceAnalyzer extends AutoCloseable {
      *
      * @return a report detailing the difference found between these two elements
      */
-    MatchReport endAnalysis(@Nullable Element oldElement, @Nullable Element newElement);
+    Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement);
 }

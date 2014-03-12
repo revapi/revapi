@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.revapi.Archive;
 import org.revapi.Configuration;
 import org.revapi.Element;
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -91,25 +91,25 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
 
         @Override
-        public void report(@Nonnull MatchReport matchReport) {
-            for (MatchReport.Problem p : matchReport.getProblems()) {
-                Integer cnt = problemCounters.get(p.code);
+        public void report(@Nonnull Report report) {
+            for (Report.Difference d : report.getDifferences()) {
+                Integer cnt = problemCounters.get(d.code);
                 if (cnt == null) {
                     cnt = 1;
                 } else {
                     cnt += 1;
                 }
-                problemCounters.put(p.code, cnt);
+                problemCounters.put(d.code, cnt);
 
-                Element e = matchReport.getNewElement();
+                Element e = report.getNewElement();
                 if (e == null) {
-                    e = matchReport.getOldElement();
+                    e = report.getOldElement();
                 }
 
                 LOG.info(
-                    (e == null ? "null" : e.getFullHumanReadableString()) + ": " + p.name + " (" + p.code + "): " +
-                        p.classification + ", " +
-                        p.description);
+                    (e == null ? "null" : e.getFullHumanReadableString()) + ": " + d.name + " (" + d.code + "): " +
+                        d.classification + ", " +
+                        d.description);
             }
         }
 

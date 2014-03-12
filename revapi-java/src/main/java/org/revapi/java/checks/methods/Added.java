@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import javax.lang.model.util.SimpleElementVisitor7;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -60,7 +60,7 @@ public final class Added extends AbstractJavaCheck {
     }
 
     @Override
-    protected List<MatchReport.Problem> doEnd() {
+    protected List<Report.Difference> doEnd() {
         ActiveElements<ExecutableElement> methods = popIfActive();
         if (methods == null) {
             return null;
@@ -80,18 +80,18 @@ public final class Added extends AbstractJavaCheck {
             return null;
         }
 
-        MatchReport.Problem problem;
+        Report.Difference difference;
 
         if (enclosingClass.getKind() == ElementKind.INTERFACE) {
-            problem = createProblem(Code.METHOD_ADDED_TO_INTERFACE);
+            difference = createDifference(Code.METHOD_ADDED_TO_INTERFACE);
         } else if (enclosingClass.getModifiers().contains(Modifier.FINAL)) {
-            problem = createProblem(Code.METHOD_ADDED_TO_FINAL_CLASS);
+            difference = createDifference(Code.METHOD_ADDED_TO_FINAL_CLASS);
         } else if (method.getModifiers().contains(Modifier.ABSTRACT)) {
-            problem = createProblem(Code.METHOD_ABSTRACT_METHOD_ADDED);
+            difference = createDifference(Code.METHOD_ABSTRACT_METHOD_ADDED);
         } else {
-            problem = createProblem(Code.METHOD_ADDED);
+            difference = createDifference(Code.METHOD_ADDED);
         }
 
-        return problem == null ? null : Collections.singletonList(problem);
+        return difference == null ? null : Collections.singletonList(difference);
     }
 }

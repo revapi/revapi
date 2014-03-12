@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -116,11 +116,11 @@ public final class ClassTreeInitializer {
 
     private void cleanUpInnerClasses(SortedSet<? extends JavaElement> nodes) {
         // we need to track the inner classes during the classes processing so that we know which ones are part of the
-        // API but once we have that complete picture, we actually need to remove the inner classes from the tree again
+        // API but once we have that complete picture, we actually need to remove the inner classes from the forest again
         // because a) they are possibly misplaced by the crude algorithm we're using and b) they will be added by the
         // the initialization code in JavaElementBase along with methods and fields.
 
-        // we only add types to the tree at this stage, so this is safe
+        // we only add types to the forest at this stage, so this is safe
         @SuppressWarnings("unchecked")
         Set<TypeElement> types = (Set<TypeElement>) nodes;
 

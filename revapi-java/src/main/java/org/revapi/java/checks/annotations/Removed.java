@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -32,12 +32,12 @@ import org.revapi.java.checks.Code;
  */
 public final class Removed extends AbstractJavaCheck {
     @Override
-    protected List<MatchReport.Problem> doVisitAnnotation(AnnotationMirror oldAnnotation,
+    protected List<Report.Difference> doVisitAnnotation(AnnotationMirror oldAnnotation,
         AnnotationMirror newAnnotation) {
 
         if (oldAnnotation != null && newAnnotation == null) {
             return Collections.singletonList(
-                createProblem(Code.ANNOTATION_REMOVED, new String[]{
+                createDifference(Code.ANNOTATION_REMOVED, new String[]{
                     Util.toHumanReadableString(oldAnnotation.getAnnotationType())}, oldAnnotation));
         }
 

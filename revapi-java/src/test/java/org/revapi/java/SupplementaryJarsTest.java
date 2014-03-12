@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import org.revapi.Configuration;
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.java.checks.Code;
@@ -75,16 +75,16 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             .addAsResource(compRes2.compilationPath.resolve("B$T$1$Private.class").toFile(), "B$T$1$Private.class")
             .addAsResource(compRes2.compilationPath.resolve("C.class").toFile(), "C.class");
 
-        final List<MatchReport> allProblems = new ArrayList<>();
+        final List<Report> allReports = new ArrayList<>();
         Reporter reporter = new Reporter() {
             @Override
             public void initialize(@Nonnull Configuration properties) {
             }
 
             @Override
-            public void report(@Nonnull MatchReport matchReport) {
-                if (!matchReport.getProblems().isEmpty()) {
-                    allProblems.add(matchReport);
+            public void report(@Nonnull Report report) {
+                if (!report.getDifferences().isEmpty()) {
+                    allReports.add(report);
                 }
             }
 
@@ -99,22 +99,22 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             .asList(new ShrinkwrapArchive(supV1)), Arrays.asList(new ShrinkwrapArchive(apiV2)),
             Arrays.asList(new ShrinkwrapArchive(supV2)));
 
-        Assert.assertEquals(3, allProblems.size());
+        Assert.assertEquals(3, allReports.size());
         Assert
             .assertTrue(
-                containsProblem(allProblems, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+                containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert
-            .assertTrue(containsProblem(allProblems, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
+            .assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert
-            .assertTrue(containsProblem(allProblems, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
+            .assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
 
         deleteDir(compRes1.compilationPath);
         deleteDir(compRes2.compilationPath);
     }
 
-    private boolean containsProblem(List<MatchReport> problems, String oldElement, String newElement,
-        String problemCode) {
-        for (MatchReport r : problems) {
+    private boolean containsDifference(List<Report> problems, String oldElement, String newElement,
+        String differenceCode) {
+        for (Report r : problems) {
             boolean oldTypeMatches = oldElement == null ? r.getOldElement() == null :
                 r.getOldElement() != null && oldElement.equals(r.getOldElement().getFullHumanReadableString());
 
@@ -123,8 +123,8 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
             boolean problemMatches = false;
 
-            for (MatchReport.Problem p : r.getProblems()) {
-                if (problemCode.equals(p.code)) {
+            for (Report.Difference p : r.getDifferences()) {
+                if (differenceCode.equals(p.code)) {
                     problemMatches = true;
                     break;
                 }

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -44,7 +44,7 @@ public final class NonPublicClassPartOfAPI extends AbstractJavaCheck {
     }
 
     @Override
-    protected List<MatchReport.Problem> doEnd() {
+    protected List<Report.Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
 
         if (types == null) {
@@ -52,7 +52,7 @@ public final class NonPublicClassPartOfAPI extends AbstractJavaCheck {
         }
 
         return Collections
-            .singletonList(createProblem(Code.CLASS_NON_PUBLIC_PART_OF_API, new Object[]{types.newElement},
+            .singletonList(createDifference(Code.CLASS_NON_PUBLIC_PART_OF_API, new Object[]{types.newElement},
                 Util.toHumanReadableString(types.newElement)));
     }
 }

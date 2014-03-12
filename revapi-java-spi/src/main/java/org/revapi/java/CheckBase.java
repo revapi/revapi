@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Configuration;
-import org.revapi.MatchReport;
+import org.revapi.Report;
 
 /**
  * An empty implementation of the {@link Check} interface.
@@ -91,7 +91,7 @@ public abstract class CheckBase implements Check {
 
     @Nullable
     @Override
-    public final List<MatchReport.Problem> visitEnd() {
+    public final List<Report.Difference> visitEnd() {
         try {
             return doEnd();
         } finally {
@@ -100,7 +100,7 @@ public abstract class CheckBase implements Check {
     }
 
     @Nullable
-    protected List<MatchReport.Problem> doEnd() {
+    protected List<Report.Difference> doEnd() {
         return null;
     }
 
@@ -145,16 +145,16 @@ public abstract class CheckBase implements Check {
 
     @Nullable
     @Override
-    public final List<MatchReport.Problem> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
+    public final List<Report.Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
         @Nullable AnnotationMirror newAnnotation) {
         depth++;
-        List<MatchReport.Problem> ret = doVisitAnnotation(oldAnnotation, newAnnotation);
+        List<Report.Difference> ret = doVisitAnnotation(oldAnnotation, newAnnotation);
         depth--;
         return ret;
     }
 
     @Nullable
-    protected List<MatchReport.Problem> doVisitAnnotation(@Nullable AnnotationMirror oldAnnotation,
+    protected List<Report.Difference> doVisitAnnotation(@Nullable AnnotationMirror oldAnnotation,
         @Nullable AnnotationMirror newAnnotation) {
         return null;
     }

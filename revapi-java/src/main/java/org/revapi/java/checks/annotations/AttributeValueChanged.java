@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -35,14 +35,14 @@ import org.revapi.java.checks.Code;
  */
 public final class AttributeValueChanged extends AbstractJavaCheck {
     @Override
-    protected List<MatchReport.Problem> doVisitAnnotation(AnnotationMirror oldAnnotation,
+    protected List<Report.Difference> doVisitAnnotation(AnnotationMirror oldAnnotation,
         AnnotationMirror newAnnotation) {
 
         if (oldAnnotation == null || newAnnotation == null) {
             return null;
         }
 
-        List<MatchReport.Problem> result = new ArrayList<>();
+        List<Report.Difference> result = new ArrayList<>();
 
         Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> oldAttrs = Util
             .keyAnnotationAttributesByName(oldAnnotation.getElementValues());
@@ -58,11 +58,11 @@ public final class AttributeValueChanged extends AbstractJavaCheck {
 
             if (newValue == null) {
                 result.add(
-                    createProblem(Code.ANNOTATION_ATTRIBUTE_REMOVED,
+                    createDifference(Code.ANNOTATION_ATTRIBUTE_REMOVED,
                         new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType())},
                         oldValue.getKey(), oldAnnotation));
             } else if (!Util.isEqual(oldValue.getValue(), newValue.getValue())) {
-                result.add(createProblem(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED,
+                result.add(createDifference(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED,
                     new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType()),
                         Util.toHumanReadableString(oldValue.getValue()),
                         Util.toHumanReadableString(newValue.getValue())},
@@ -80,7 +80,7 @@ public final class AttributeValueChanged extends AbstractJavaCheck {
 
             if (oldValue == null) {
                 result.add(
-                    createProblem(Code.ANNOTATION_ATTRIBUTE_ADDED,
+                    createDifference(Code.ANNOTATION_ATTRIBUTE_ADDED,
                         new String[]{name, Util.toHumanReadableString(newAnnotation.getAnnotationType())},
                         newValue.getKey(),
                         newAnnotation));

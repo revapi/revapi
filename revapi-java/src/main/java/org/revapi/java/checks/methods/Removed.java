@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -41,7 +41,7 @@ public final class Removed extends AbstractJavaCheck {
 
     @Nullable
     @Override
-    protected List<MatchReport.Problem> doEnd() {
+    protected List<Report.Difference> doEnd() {
         ActiveElements<ExecutableElement> methods = popIfActive();
         if (methods == null) {
             return null;
@@ -50,6 +50,6 @@ public final class Removed extends AbstractJavaCheck {
         //TODO check if the method didn't move to supertype
         //TODO check if the method didn't override a method from superclass
 
-        return Collections.singletonList(createProblem(Code.METHOD_REMOVED));
+        return Collections.singletonList(createDifference(Code.METHOD_REMOVED));
     }
 }

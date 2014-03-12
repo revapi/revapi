@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ import javax.lang.model.util.Types;
 
 import org.revapi.API;
 import org.revapi.java.TypeEnvironment;
-import org.revapi.java.model.JavaTree;
+import org.revapi.java.model.JavaElementForest;
 
 /**
  * @author Lukas Krejci
@@ -39,12 +39,12 @@ public final class ProbingEnvironment implements TypeEnvironment {
     private volatile ProcessingEnvironment processingEnvironment;
     private final CountDownLatch compilationProgressLatch = new CountDownLatch(1);
     private final CountDownLatch compilationEnvironmentTeardownLatch = new CountDownLatch(1);
-    private final JavaTree tree;
+    private final JavaElementForest tree;
     private final Set<String> forcedApiClasses;
 
     public ProbingEnvironment(API api) {
         this.api = api;
-        this.tree = new JavaTree(api);
+        this.tree = new JavaElementForest(api);
         this.forcedApiClasses = new HashSet<>();
     }
 
@@ -60,7 +60,7 @@ public final class ProbingEnvironment implements TypeEnvironment {
         return compilationProgressLatch;
     }
 
-    public JavaTree getTree() {
+    public JavaElementForest getTree() {
         return tree;
     }
 

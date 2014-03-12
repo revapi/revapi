@@ -89,14 +89,14 @@ public class TextReporter implements Reporter {
     }
 
     @Override
-    public void report(@Nonnull MatchReport matchReport) {
-        if (matchReport.getProblems().isEmpty()) {
+    public void report(@Nonnull Report report) {
+        if (report.getDifferences().isEmpty()) {
             return;
         }
 
         ChangeSeverity maxReportedSeverity = ChangeSeverity.NON_BREAKING;
-        for (MatchReport.Problem p : matchReport.getProblems()) {
-            for (ChangeSeverity c : p.classification.values()) {
+        for (Report.Difference d : report.getDifferences()) {
+            for (ChangeSeverity c : d.classification.values()) {
                 if (c.compareTo(maxReportedSeverity) > 0) {
                     maxReportedSeverity = c;
                 }
@@ -107,18 +107,18 @@ public class TextReporter implements Reporter {
             return;
         }
 
-        Element oldE = matchReport.getOldElement();
-        Element newE = matchReport.getNewElement();
+        Element oldE = report.getOldElement();
+        Element newE = report.getNewElement();
 
         output.print(oldE == null ? "<none>" : oldE.getFullHumanReadableString());
         output.print(" with ");
         output.print(newE == null ? "<none>" : newE.getFullHumanReadableString());
-        if (!matchReport.getProblems().isEmpty()) {
+        if (!report.getDifferences().isEmpty()) {
             output.print(": ");
-            for (MatchReport.Problem p : matchReport.getProblems()) {
-                output.append(p.name).append(" (").append(p.code).append(")");
-                reportClassification(output, p);
-                output.append(": ").append(p.description).append("\n");
+            for (Report.Difference d : report.getDifferences()) {
+                output.append(d.name).append(" (").append(d.code).append(")");
+                reportClassification(output, d);
+                output.append(": ").append(d.description).append("\n");
             }
         }
         output.println();
@@ -133,8 +133,8 @@ public class TextReporter implements Reporter {
         }
     }
 
-    private void reportClassification(PrintWriter output, MatchReport.Problem problem) {
-        Iterator<Map.Entry<CompatibilityType, ChangeSeverity>> it = problem.classification.entrySet().iterator();
+    private void reportClassification(PrintWriter output, Report.Difference difference) {
+        Iterator<Map.Entry<CompatibilityType, ChangeSeverity>> it = difference.classification.entrySet().iterator();
 
         if (it.hasNext()) {
             Map.Entry<CompatibilityType, ChangeSeverity> e = it.next();

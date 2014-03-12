@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -54,19 +54,19 @@ public final class NoLongerImplementsInterface extends AbstractJavaCheck {
     }
 
     @Override
-    protected List<MatchReport.Problem> doEnd() {
+    protected List<Report.Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types == null) {
             return null;
         }
 
-        List<MatchReport.Problem> result = new ArrayList<>();
+        List<Report.Difference> result = new ArrayList<>();
 
         List<? extends TypeMirror> newInterfaces = types.newElement.getInterfaces();
 
         for (TypeMirror oldIface : types.oldElement.getInterfaces()) {
             if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
-                result.add(createProblem(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE,
+                result.add(createDifference(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE,
                     new String[]{
                         Util.toHumanReadableString(oldIface)}, oldIface));
             }

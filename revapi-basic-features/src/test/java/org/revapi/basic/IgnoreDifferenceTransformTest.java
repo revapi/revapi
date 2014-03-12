@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,14 +29,14 @@ import org.revapi.API;
 import org.revapi.Archive;
 import org.revapi.Configuration;
 import org.revapi.Element;
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class IgnoreProblemTransformTest {
+public class IgnoreDifferenceTransformTest {
 
     private static class DummyElement extends SimpleElement {
 
@@ -74,9 +74,9 @@ public class IgnoreProblemTransformTest {
         DummyElement oldE = new DummyElement("a");
         DummyElement newE = new DummyElement("b");
 
-        MatchReport.Problem problem = MatchReport.Problem.builder().withCode("c").build();
+        Report.Difference difference = Report.Difference.builder().withCode("c").build();
 
-        IgnoreProblemTransform t = new IgnoreProblemTransform();
+        IgnoreDifferenceTransform t = new IgnoreDifferenceTransform();
 
         Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
             Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
@@ -84,8 +84,8 @@ public class IgnoreProblemTransformTest {
         config.getProperties().put("revapi.ignore.1.code", "c");
 
         t.initialize(config);
-        problem = t.transform(oldE, newE, problem);
-        Assert.assertNull(problem);
+        difference = t.transform(oldE, newE, difference);
+        Assert.assertNull(difference);
     }
 
     @Test
@@ -93,9 +93,9 @@ public class IgnoreProblemTransformTest {
         DummyElement oldE = new DummyElement("a");
         DummyElement newE = new DummyElement("b");
 
-        MatchReport.Problem problem = MatchReport.Problem.builder().withCode("c").build();
+        Report.Difference difference = Report.Difference.builder().withCode("c").build();
 
-        IgnoreProblemTransform t = new IgnoreProblemTransform();
+        IgnoreDifferenceTransform t = new IgnoreDifferenceTransform();
 
         Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
             Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
@@ -104,8 +104,8 @@ public class IgnoreProblemTransformTest {
         config.getProperties().put("revapi.ignore.1.code", "[c]*");
 
         t.initialize(config);
-        problem = t.transform(oldE, newE, problem);
-        Assert.assertNull(problem);
+        difference = t.transform(oldE, newE, difference);
+        Assert.assertNull(difference);
     }
 
     //TODO add tests for old and new element matching

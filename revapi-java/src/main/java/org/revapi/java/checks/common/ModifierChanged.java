@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@ import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -59,13 +59,13 @@ public abstract class ModifierChanged extends AbstractJavaCheck {
     }
 
     @Override
-    protected final List<MatchReport.Problem> doEnd() {
+    protected final List<Report.Difference> doEnd() {
         ActiveElements<Element> elements = popIfActive();
         if (elements == null) {
             return null;
         }
 
-        return Collections.singletonList(createProblem(code));
+        return Collections.singletonList(createDifference(code));
     }
 
 }

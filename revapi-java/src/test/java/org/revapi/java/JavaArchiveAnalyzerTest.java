@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ import org.junit.Test;
 
 import org.revapi.API;
 import org.revapi.Archive;
-import org.revapi.java.model.JavaTree;
+import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -72,9 +72,9 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
                 null), Executors.newSingleThreadExecutor());
 
-            JavaTree tree = analyzer.analyze();
+            JavaElementForest forest = analyzer.analyze();
 
-            Assert.assertEquals(6, tree.getRoots().size());
+            Assert.assertEquals(6, forest.getRoots().size());
         } finally {
             deleteDir(archive.compilationPath);
         }
@@ -98,11 +98,11 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor());
 
-            JavaTree tree = analyzer.analyze();
+            JavaElementForest forest = analyzer.analyze();
 
-            Assert.assertEquals(3, tree.getRoots().size());
+            Assert.assertEquals(3, forest.getRoots().size());
 
-            Iterator<TypeElement> roots = tree.getRoots().iterator();
+            Iterator<TypeElement> roots = forest.getRoots().iterator();
 
             TypeElement A = roots.next();
             TypeElement B_T$1 = roots.next();

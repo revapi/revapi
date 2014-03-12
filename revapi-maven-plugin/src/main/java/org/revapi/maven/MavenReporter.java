@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
 import org.revapi.ChangeSeverity;
 import org.revapi.Configuration;
 import org.revapi.Element;
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.Reporter;
 
 /**
@@ -53,10 +53,10 @@ public class MavenReporter implements Reporter {
     }
 
     @Override
-    public void report(@Nonnull MatchReport matchReport) {
-        Element element = matchReport.getOldElement();
+    public void report(@Nonnull Report report) {
+        Element element = report.getOldElement();
         if (element == null) {
-            element = matchReport.getNewElement();
+            element = report.getNewElement();
         }
 
         if (element == null) {
@@ -64,21 +64,21 @@ public class MavenReporter implements Reporter {
             return;
         }
 
-        for (MatchReport.Problem p : matchReport.getProblems()) {
+        for (Report.Difference d : report.getDifferences()) {
             StringBuilder message = new StringBuilder(element.getFullHumanReadableString());
 
-            message.append(": ").append(p.code).append(": ").append(p.description);
+            message.append(": ").append(d.code).append(": ").append(d.description);
 
             ChangeSeverity maxSeverity = ChangeSeverity.NON_BREAKING;
-            for (ChangeSeverity s : p.classification.values()) {
+            for (ChangeSeverity s : d.classification.values()) {
                 if (maxSeverity.compareTo(s) < 0) {
                     maxSeverity = s;
                 }
             }
 
             if (maxSeverity.compareTo(breakingSeverity) >= 0) {
-                allProblems.append("\n").append(element.getFullHumanReadableString()).append(": ").append(p.code)
-                    .append(": ").append(p.description);
+                allProblems.append("\n").append(element.getFullHumanReadableString()).append(": ").append(d.code)
+                    .append(": ").append(d.description);
             }
         }
     }

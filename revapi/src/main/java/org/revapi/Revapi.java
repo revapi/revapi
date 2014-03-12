@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public final class Revapi {
     public static final class Builder {
         private Set<ApiAnalyzer> analyzers = null;
         private Set<Reporter> reporters = null;
-        private Set<ProblemTransform> transforms = null;
+        private Set<DifferenceTransform> transforms = null;
         private Set<ElementFilter> filters = null;
         private Locale locale = Locale.getDefault();
         private Map<String, String> configuration = Collections.emptyMap();
@@ -107,25 +107,25 @@ public final class Revapi {
 
         @Nonnull
         public Builder withTransformsFromThreadContextClassLoader() {
-            return withTransforms(ServiceLoader.load(ProblemTransform.class));
+            return withTransforms(ServiceLoader.load(DifferenceTransform.class));
         }
 
         @Nonnull
         public Builder withTransformsFrom(@Nonnull ClassLoader cl) {
-            return withTransforms(ServiceLoader.load(ProblemTransform.class, cl));
+            return withTransforms(ServiceLoader.load(DifferenceTransform.class, cl));
         }
 
         @Nonnull
-        public Builder withTransforms(ProblemTransform... transforms) {
+        public Builder withTransforms(DifferenceTransform... transforms) {
             return withTransforms(Arrays.asList(transforms));
         }
 
         @Nonnull
-        public Builder withTransforms(@Nonnull Iterable<? extends ProblemTransform> transforms) {
+        public Builder withTransforms(@Nonnull Iterable<? extends DifferenceTransform> transforms) {
             if (this.transforms == null) {
                 this.transforms = new HashSet<>();
             }
-            for (ProblemTransform t : transforms) {
+            for (DifferenceTransform t : transforms) {
                 this.transforms.add(t);
             }
 
@@ -199,7 +199,7 @@ public final class Revapi {
         public Revapi build() {
             analyzers = analyzers == null ? Collections.<ApiAnalyzer>emptySet() : analyzers;
             reporters = reporters == null ? Collections.<Reporter>emptySet() : reporters;
-            transforms = transforms == null ? Collections.<ProblemTransform>emptySet() : transforms;
+            transforms = transforms == null ? Collections.<DifferenceTransform>emptySet() : transforms;
             filters = filters == null ? Collections.<ElementFilter>emptySet() : filters;
 
             return new Revapi(analyzers, reporters, transforms, filters, locale, configuration);
@@ -208,7 +208,7 @@ public final class Revapi {
 
     private final Set<ApiAnalyzer> availableApiAnalyzers;
     private final Set<Reporter> availableReporters;
-    private final Set<ProblemTransform> availableProblemTransforms;
+    private final Set<DifferenceTransform> availableProblemTransforms;
     private final CompoundFilter<Element> availableFilters;
     private final Map<String, String> configurationProperties;
     private final Locale locale;
@@ -225,7 +225,7 @@ public final class Revapi {
      * @throws java.lang.IllegalArgumentException if any of the parameters is null
      */
     public Revapi(@Nonnull Set<ApiAnalyzer> availableApiAnalyzers, @Nonnull Set<Reporter> availableReporters,
-        @Nonnull Set<ProblemTransform> availableProblemTransforms, @Nonnull Set<ElementFilter> elementFilters,
+        @Nonnull Set<DifferenceTransform> availableProblemTransforms, @Nonnull Set<ElementFilter> elementFilters,
         @Nonnull Locale locale, @Nonnull Map<String, String> configurationProperties) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
@@ -275,7 +275,7 @@ public final class Revapi {
     }
 
     private void initProblemTransforms() {
-        for (ProblemTransform f : availableProblemTransforms) {
+        for (DifferenceTransform f : availableProblemTransforms) {
             f.initialize(configuration);
         }
     }
@@ -308,10 +308,10 @@ public final class Revapi {
         ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
         ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
 
-        Tree oldTree = oldAnalyzer.analyze();
-        Tree newTree = newAnalyzer.analyze();
+        ElementForest oldTree = oldAnalyzer.analyze();
+        ElementForest newTree = newAnalyzer.analyze();
 
-        ElementDifferenceAnalyzer elementDifferenceAnalyzer = apiAnalyzer.getElementAnalyzer(oldAnalyzer, newAnalyzer);
+        DifferenceAnalyzer elementDifferenceAnalyzer = apiAnalyzer.getDifferenceAnalyzer(oldAnalyzer, newAnalyzer);
 
         SortedSet<? extends Element> as = oldTree.getRoots();
         SortedSet<? extends Element> bs = newTree.getRoots();
@@ -326,7 +326,7 @@ public final class Revapi {
         elementDifferenceAnalyzer.close();
     }
 
-    private void analyze(ElementDifferenceAnalyzer elementDifferenceAnalyzer,
+    private void analyze(DifferenceAnalyzer elementDifferenceAnalyzer,
         SortedSet<? extends Element> as, SortedSet<? extends Element> bs) {
 
         CoIterator<Element> it = new CoIterator<>(as.iterator(), bs.iterator());
@@ -356,8 +356,8 @@ public final class Revapi {
         }
     }
 
-    private void transformAndReport(MatchReport matchReport) {
-        if (matchReport == null) {
+    private void transformAndReport(Report report) {
+        if (report == null) {
             return;
         }
 
@@ -366,11 +366,11 @@ public final class Revapi {
         do {
             changed = false;
 
-            for (ProblemTransform t : availableProblemTransforms) {
-                ListIterator<MatchReport.Problem> it = matchReport.getProblems().listIterator();
+            for (DifferenceTransform t : availableProblemTransforms) {
+                ListIterator<Report.Difference> it = report.getDifferences().listIterator();
                 while (it.hasNext()) {
-                    MatchReport.Problem p = it.next();
-                    MatchReport.Problem tp = t.transform(matchReport.getOldElement(), matchReport.getNewElement(), p);
+                    Report.Difference p = it.next();
+                    Report.Difference tp = t.transform(report.getOldElement(), report.getNewElement(), p);
                     // ignore if transformation returned null, meaning that it "swallowed" the problem..
                     // once the changes are done, we'll loop through once more and remove the problems that the
                     // transforms want removed.
@@ -389,26 +389,26 @@ public final class Revapi {
             iteration++;
 
             if (iteration % 100 == 0) {
-                LOG.warn("Transformation of problems in match report " + matchReport + " has cycled " + iteration +
+                LOG.warn("Transformation of problems in match report " + report + " has cycled " + iteration +
                     " times. Maybe we're in an infinite loop with problems transforming back and forth?");
             }
         } while (changed);
 
         //now remove the problems that the transforms want removed
-        for (ProblemTransform t : availableProblemTransforms) {
-            ListIterator<MatchReport.Problem> it = matchReport.getProblems().listIterator();
+        for (DifferenceTransform t : availableProblemTransforms) {
+            ListIterator<Report.Difference> it = report.getDifferences().listIterator();
             while (it.hasNext()) {
-                MatchReport.Problem p = it.next();
-                MatchReport.Problem tp = t.transform(matchReport.getOldElement(), matchReport.getNewElement(), p);
+                Report.Difference p = it.next();
+                Report.Difference tp = t.transform(report.getOldElement(), report.getNewElement(), p);
                 if (tp == null) {
                     it.remove();
                 }
             }
         }
 
-        if (!matchReport.getProblems().isEmpty()) {
+        if (!report.getDifferences().isEmpty()) {
             for (Reporter reporter : availableReporters) {
-                reporter.report(matchReport);
+                reporter.report(report);
             }
         }
     }

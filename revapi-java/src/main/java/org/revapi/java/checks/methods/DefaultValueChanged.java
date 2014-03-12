@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2014 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.MatchReport;
+import org.revapi.Report;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -35,7 +35,7 @@ import org.revapi.java.checks.Code;
 public final class DefaultValueChanged extends AbstractJavaCheck {
 
     @Override
-    protected List<MatchReport.Problem> doEnd() {
+    protected List<Report.Difference> doEnd() {
         ActiveElements<ExecutableElement> methods = popIfActive();
         if (methods == null) {
             return null;
@@ -49,18 +49,18 @@ public final class DefaultValueChanged extends AbstractJavaCheck {
         String ov = oldValue == null ? null : Util.toHumanReadableString(oldValue);
         String nv = newValue == null ? null : Util.toHumanReadableString(newValue);
 
-        MatchReport.Problem problem;
+        Report.Difference difference;
 
         if (ov == null) {
-            problem = createProblem(Code.METHOD_DEFAULT_VALUE_ADDED);
+            difference = createDifference(Code.METHOD_DEFAULT_VALUE_ADDED);
         } else if (nv == null) {
-            problem = createProblem(Code.METHOD_DEFAULT_VALUE_REMOVED);
+            difference = createDifference(Code.METHOD_DEFAULT_VALUE_REMOVED);
         } else {
-            problem = createProblem(Code.METHOD_DEFAULT_VALUE_CHANGED,
+            difference = createDifference(Code.METHOD_DEFAULT_VALUE_CHANGED,
                 new String[]{attribute, annotationType, ov, nv}, oldValue, newValue);
         }
 
-        return Collections.singletonList(problem);
+        return Collections.singletonList(difference);
     }
 
     @Override

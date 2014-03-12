@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,9 +26,9 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.SimpleElementVisitor7;
 
 import org.revapi.Configuration;
+import org.revapi.DifferenceTransform;
 import org.revapi.Element;
-import org.revapi.MatchReport;
-import org.revapi.ProblemTransform;
+import org.revapi.Report;
 import org.revapi.java.ElementPairVisitor;
 import org.revapi.java.JavaModelElement;
 import org.revapi.java.checks.Code;
@@ -37,7 +37,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-abstract class AbstractAnnotationPresenceCheck implements ProblemTransform {
+abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
     protected Configuration configuration;
     private final String annotationQualifiedName;
     private final Code annotationCheckCode;
@@ -57,10 +57,10 @@ abstract class AbstractAnnotationPresenceCheck implements ProblemTransform {
 
     @Nullable
     @Override
-    public MatchReport.Problem transform(@Nullable final Element oldElement, @Nullable final Element newElement,
-        @Nonnull final MatchReport.Problem problem) {
-        if (Code.fromCode(problem.code) != annotationCheckCode) {
-            return problem;
+    public Report.Difference transform(@Nullable final Element oldElement, @Nullable final Element newElement,
+        @Nonnull final Report.Difference difference) {
+        if (Code.fromCode(difference.code) != annotationCheckCode) {
+            return difference;
         }
 
         //we're checking for change of presence of an annotation on an element. Thus both the old and new version
@@ -69,53 +69,53 @@ abstract class AbstractAnnotationPresenceCheck implements ProblemTransform {
             return null;
         }
 
-        AnnotationMirror affectedAnnotation = (AnnotationMirror) problem.attachments.get(0);
+        AnnotationMirror affectedAnnotation = (AnnotationMirror) difference.attachments.get(0);
 
         return affectedAnnotation.getAnnotationType().asElement()
-            .accept(new SimpleElementVisitor7<MatchReport.Problem, Void>() {
+            .accept(new SimpleElementVisitor7<Report.Difference, Void>() {
                 @Override
-                protected MatchReport.Problem defaultAction(javax.lang.model.element.Element e, Void ignored) {
-                    return problem;
+                protected Report.Difference defaultAction(javax.lang.model.element.Element e, Void ignored) {
+                    return difference;
                 }
 
                 @Override
-                public MatchReport.Problem visitType(TypeElement e, Void ignored) {
+                public Report.Difference visitType(TypeElement e, Void ignored) {
                     if (!annotationQualifiedName.equals(e.getQualifiedName().toString())) {
-                        return problem;
+                        return difference;
                     }
 
                     JavaModelElement oldE = (JavaModelElement) oldElement;
                     JavaModelElement newE = (JavaModelElement) newElement;
 
-                    return oldE.getModelElement().accept(new ElementPairVisitor<MatchReport.Problem>() {
+                    return oldE.getModelElement().accept(new ElementPairVisitor<Report.Difference>() {
                         @Override
-                        protected MatchReport.Problem unmatchedAction(@Nonnull javax.lang.model.element.Element element,
+                        protected Report.Difference unmatchedAction(@Nonnull javax.lang.model.element.Element element,
                             @Nullable javax.lang.model.element.Element otherElement) {
-                            return problem;
+                            return difference;
                         }
 
                         @Override
-                        protected MatchReport.Problem visitType(@Nonnull TypeElement oldElement,
+                        protected Report.Difference visitType(@Nonnull TypeElement oldElement,
                             @Nonnull TypeElement newElement) {
-                            return transformedCode.createProblem(configuration.getLocale());
+                            return transformedCode.createDifference(configuration.getLocale());
                         }
 
                         @Override
-                        protected MatchReport.Problem visitPackage(@Nonnull PackageElement element,
+                        protected Report.Difference visitPackage(@Nonnull PackageElement element,
                             @Nonnull PackageElement otherElement) {
-                            return transformedCode.createProblem(configuration.getLocale());
+                            return transformedCode.createDifference(configuration.getLocale());
                         }
 
                         @Override
-                        protected MatchReport.Problem visitVariable(@Nonnull VariableElement element,
+                        protected Report.Difference visitVariable(@Nonnull VariableElement element,
                             @Nonnull VariableElement otherElement) {
-                            return transformedCode.createProblem(configuration.getLocale());
+                            return transformedCode.createDifference(configuration.getLocale());
                         }
 
                         @Override
-                        protected MatchReport.Problem visitExecutable(@Nonnull ExecutableElement element,
+                        protected Report.Difference visitExecutable(@Nonnull ExecutableElement element,
                             @Nonnull ExecutableElement otherElement) {
-                            return transformedCode.createProblem(configuration.getLocale());
+                            return transformedCode.createDifference(configuration.getLocale());
                         }
                     }, newE.getModelElement());
                 }
