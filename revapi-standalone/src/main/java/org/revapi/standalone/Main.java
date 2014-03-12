@@ -209,7 +209,7 @@ public final class Main {
                     p.load(is);
                 }
 
-                configuration.putAll((Map<String, String>) (Map) p);
+                configuration.putAll((Map<String, String>) (Map<?, ?>) p);
             }
         }
         configuration.putAll(additionalConfigOptions);

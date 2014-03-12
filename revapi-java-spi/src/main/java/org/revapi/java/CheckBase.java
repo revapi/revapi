@@ -56,7 +56,7 @@ public abstract class CheckBase implements Check {
     private TypeEnvironment oldTypeEnvironment;
     private TypeEnvironment newTypeEnvironment;
     private int depth;
-    private final Deque<ActiveElements> activations = new ArrayDeque<>();
+    private final Deque<ActiveElements<?>> activations = new ArrayDeque<>();
     private Configuration configuration;
 
     @Nonnull
@@ -168,12 +168,13 @@ public abstract class CheckBase implements Check {
     @Nullable
     @SuppressWarnings("unchecked")
     protected <T extends Element> ActiveElements<T> popIfActive() {
-        return !activations.isEmpty() && activations.peek().depth == depth ? activations.pop() : null;
+        return (ActiveElements<T>) (!activations.isEmpty() && activations.peek().depth == depth ? activations.pop() :
+            null);
     }
 
     @Nullable
     @SuppressWarnings({"unchecked", "UnusedDeclaration"})
     protected <T extends Element> ActiveElements<T> peekLastActive() {
-        return activations.peek();
+        return (ActiveElements<T>) activations.peek();
     }
 }

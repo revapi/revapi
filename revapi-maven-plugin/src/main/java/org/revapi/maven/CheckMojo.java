@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -186,8 +186,8 @@ public class CheckMojo extends AbstractMojo {
                 Properties properties = new Properties();
                 try (FileInputStream in = new FileInputStream(f)) {
                     properties.load(in);
-                    finalConfig.putAll((Map) properties);
-                } catch (IOException e) {
+                    finalConfig.putAll((Map<String, String>) (Map<?, ?>) properties);
+                } catch (IOException ignored) {
                     throw new MojoExecutionException("Could not load configuration from '" + path + "'.");
                 }
             }

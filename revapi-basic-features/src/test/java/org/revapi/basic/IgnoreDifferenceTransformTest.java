@@ -76,16 +76,17 @@ public class IgnoreDifferenceTransformTest {
 
         Report.Difference difference = Report.Difference.builder().withCode("c").build();
 
-        IgnoreDifferenceTransform t = new IgnoreDifferenceTransform();
+        try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
 
-        Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
-            Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
-            Collections.<Archive>emptyList(), Collections.<Archive>emptyList()));
-        config.getProperties().put("revapi.ignore.1.code", "c");
+            Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
+                Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
+                Collections.<Archive>emptyList(), Collections.<Archive>emptyList()));
+            config.getProperties().put("revapi.ignore.1.code", "c");
 
-        t.initialize(config);
-        difference = t.transform(oldE, newE, difference);
-        Assert.assertNull(difference);
+            t.initialize(config);
+            difference = t.transform(oldE, newE, difference);
+            Assert.assertNull(difference);
+        }
     }
 
     @Test
@@ -95,17 +96,17 @@ public class IgnoreDifferenceTransformTest {
 
         Report.Difference difference = Report.Difference.builder().withCode("c").build();
 
-        IgnoreDifferenceTransform t = new IgnoreDifferenceTransform();
+        try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
+            Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
+                Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
+                Collections.<Archive>emptyList(), Collections.<Archive>emptyList()));
+            config.getProperties().put("revapi.ignore.1.regex", "true");
+            config.getProperties().put("revapi.ignore.1.code", "[c]*");
 
-        Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
-            Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
-            Collections.<Archive>emptyList(), Collections.<Archive>emptyList()));
-        config.getProperties().put("revapi.ignore.1.regex", "true");
-        config.getProperties().put("revapi.ignore.1.code", "[c]*");
-
-        t.initialize(config);
-        difference = t.transform(oldE, newE, difference);
-        Assert.assertNull(difference);
+            t.initialize(config);
+            difference = t.transform(oldE, newE, difference);
+            Assert.assertNull(difference);
+        }
     }
 
     //TODO add tests for old and new element matching
