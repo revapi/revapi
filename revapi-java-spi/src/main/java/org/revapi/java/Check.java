@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Configuration;
-import org.revapi.MatchReport;
+import org.revapi.Report;
 
 /**
  * An interface that java API checkers need to implement.
@@ -93,7 +93,7 @@ public interface Check {
      * </code></pre>
      */
     @Nullable
-    List<MatchReport.Problem> visitEnd();
+    List<Report.Difference> visitEnd();
 
     void visitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType);
 
@@ -104,6 +104,6 @@ public interface Check {
     void visitField(@Nullable VariableElement oldField, @Nullable VariableElement newField);
 
     @Nullable
-    List<MatchReport.Problem> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
+    List<Report.Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
         @Nullable AnnotationMirror newAnnotation);
 }
