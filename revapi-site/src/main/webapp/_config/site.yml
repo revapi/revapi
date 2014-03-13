@@ -24,3 +24,9 @@ profiles:
     asciidoctor:
       :attributes:
          base_url: "http://localhost:4242"
+  production:
+    base_url: "http://metlos.github.io/revapi"
+    deploy:
+      host: github_pages
+      branch: gh-pages
+
