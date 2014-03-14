@@ -70,6 +70,12 @@ public final class Report {
             }
 
             @Nonnull
+            public Builder addClassifications(Map<CompatibilityType, ChangeSeverity> classifications) {
+                classification.putAll(classifications);
+                return this;
+            }
+
+            @Nonnull
             public Builder addAttachment(@Nonnull Object attachment) {
                 attachments.add(attachment);
                 return this;

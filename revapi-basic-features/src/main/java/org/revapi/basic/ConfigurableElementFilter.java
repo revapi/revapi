@@ -29,7 +29,7 @@ import org.revapi.Element;
 import org.revapi.ElementFilter;
 
 /**
- * An element filter that can filter out elements based on matching their full human readable reprensentations.
+ * An element filter that can filter out elements based on matching their full human readable representations.
  * The configuration looks like follows:
  * <pre><code>
  *     revapi.filter.include.1=REGEX_ON_ELEMENT_FULL_REPRESENTATIONS

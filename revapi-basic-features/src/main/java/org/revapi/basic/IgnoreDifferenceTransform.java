@@ -16,19 +16,9 @@
 
 package org.revapi.basic;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.revapi.Configuration;
-import org.revapi.DifferenceTransform;
 import org.revapi.Element;
 import org.revapi.Report;
 
@@ -53,114 +43,34 @@ import org.revapi.Report;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class IgnoreDifferenceTransform implements DifferenceTransform {
-    private static final Logger LOG = LoggerFactory.getLogger(IgnoreDifferenceTransform.class);
+public class IgnoreDifferenceTransform
+    extends AbstractDifferenceReferringTransform<IgnoreDifferenceTransform.IgnoreRecipe, Void> {
+    public static final String CONFIG_PROPERTY_PREFIX = "revapi.ignore";
 
-    public static final String CONFIG_PROPERTY_PREFIX = "revapi.ignore.";
-    private static final int CONFIG_PROPERTY_PREFIX_LENGTH = CONFIG_PROPERTY_PREFIX.length();
+    public static class IgnoreRecipe extends DifferenceMatchRecipe {
+        @Override
+        public Report.Difference transformMatching(Report.Difference difference, Element oldElement,
+            Element newElement) {
 
-    private static class IgnoreRecipe {
-        boolean regex;
-        String code;
-        Pattern codeRegex;
-        String oldElement;
-        Pattern oldElementRegex;
-        String newElement;
-        Pattern newElementRegex;
-
-        boolean shouldIgnore(Report.Difference difference, Element oldElement, Element newElement) {
-            if (regex) {
-                return codeRegex.matcher(difference.code).matches() &&
-                    (oldElementRegex == null ||
-                        oldElementRegex.matcher(oldElement.getFullHumanReadableString()).matches()) &&
-                    (newElementRegex == null ||
-                        newElementRegex.matcher(newElement.getFullHumanReadableString()).matches());
-            } else {
-                return code.equals(difference.code) &&
-                    (this.oldElement == null || this.oldElement.equals(oldElement.getFullHumanReadableString())) &&
-                    (this.newElement == null || this.newElement.equals(newElement.getFullHumanReadableString()));
-            }
+            //we ignore the matching elements, so null is the correct return value.
+            return null;
         }
     }
 
-    private Collection<IgnoreRecipe> toIgnore;
-
-    @Override
-    public void initialize(@Nonnull Configuration configuration) {
-        Map<String, IgnoreRecipe> foundRecipes = new HashMap<>();
-
-        for (Map.Entry<String, String> e : configuration.getProperties().entrySet()) {
-            if (e.getKey().startsWith(CONFIG_PROPERTY_PREFIX)) {
-                int dotIdx = e.getKey().indexOf('.', CONFIG_PROPERTY_PREFIX_LENGTH);
-                if (dotIdx < 0) {
-                    LOG.warn("Property name '" + e.getKey() + "' does not have supported format.");
-                    continue;
-                }
-
-                String recipeId = e.getKey().substring(CONFIG_PROPERTY_PREFIX_LENGTH, dotIdx);
-
-                IgnoreRecipe recipe = foundRecipes.get(recipeId);
-                if (recipe == null) {
-                    recipe = new IgnoreRecipe();
-                    foundRecipes.put(recipeId, recipe);
-                }
-
-                String what = e.getKey().substring(dotIdx + 1);
-                switch (what) {
-                case "code":
-                    recipe.code = e.getValue();
-                    break;
-                case "old":
-                    recipe.oldElement = e.getValue();
-                    break;
-                case "new":
-                    recipe.newElement = e.getValue();
-                    break;
-                case "regex":
-                    recipe.regex = Boolean.parseBoolean(e.getValue());
-                    break;
-                }
-            }
-        }
-
-        //check if all recipes have code specified and init them
-        for (Map.Entry<String, IgnoreRecipe> e : foundRecipes.entrySet()) {
-            IgnoreRecipe r = e.getValue();
-
-            if (r.code == null) {
-                throw new IllegalArgumentException(
-                    CONFIG_PROPERTY_PREFIX + e.getKey() + " doesn't define the problem code.");
-            }
-
-            if (r.regex) {
-                r.codeRegex = Pattern.compile(r.code);
-                if (r.oldElement != null) {
-                    r.oldElementRegex = Pattern.compile(r.oldElement);
-                }
-                if (r.newElement != null) {
-                    r.newElementRegex = Pattern.compile(r.newElement);
-                }
-            }
-        }
-
-        toIgnore = foundRecipes.isEmpty() ? null : foundRecipes.values();
+    public IgnoreDifferenceTransform() {
+        super(CONFIG_PROPERTY_PREFIX);
     }
 
     @Nullable
     @Override
-    public Report.Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
-        @Nonnull Report.Difference difference) {
-        if (toIgnore == null) {
-            return difference;
-        }
+    protected Void initConfiguration() {
+        return null;
+    }
 
-        for (IgnoreRecipe r : toIgnore) {
-            if (r.shouldIgnore(difference, oldElement, newElement)) {
-                return null;
-            }
-        }
-
-        return difference;
+    @Nonnull
+    @Override
+    protected IgnoreRecipe newRecipe(Void context) {
+        return new IgnoreRecipe();
     }
 
     @Override
