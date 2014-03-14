@@ -22,7 +22,7 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -54,13 +54,13 @@ public final class NoLongerImplementsInterface extends AbstractJavaCheck {
     }
 
     @Override
-    protected List<Report.Difference> doEnd() {
+    protected List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types == null) {
             return null;
         }
 
-        List<Report.Difference> result = new ArrayList<>();
+        List<Difference> result = new ArrayList<>();
 
         List<? extends TypeMirror> newInterfaces = types.newElement.getInterfaces();
 

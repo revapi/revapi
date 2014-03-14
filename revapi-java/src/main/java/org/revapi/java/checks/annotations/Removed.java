@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -32,7 +32,7 @@ import org.revapi.java.checks.Code;
  */
 public final class Removed extends AbstractJavaCheck {
     @Override
-    protected List<Report.Difference> doVisitAnnotation(AnnotationMirror oldAnnotation,
+    protected List<Difference> doVisitAnnotation(AnnotationMirror oldAnnotation,
         AnnotationMirror newAnnotation) {
 
         if (oldAnnotation != null && newAnnotation == null) {

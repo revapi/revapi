@@ -26,9 +26,9 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.SimpleElementVisitor7;
 
 import org.revapi.Configuration;
+import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
-import org.revapi.Report;
 import org.revapi.java.ElementPairVisitor;
 import org.revapi.java.JavaModelElement;
 import org.revapi.java.checks.Code;
@@ -57,8 +57,8 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
 
     @Nullable
     @Override
-    public Report.Difference transform(@Nullable final Element oldElement, @Nullable final Element newElement,
-        @Nonnull final Report.Difference difference) {
+    public Difference transform(@Nullable final Element oldElement, @Nullable final Element newElement,
+        @Nonnull final Difference difference) {
         if (Code.fromCode(difference.code) != annotationCheckCode) {
             return difference;
         }
@@ -72,14 +72,14 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
         AnnotationMirror affectedAnnotation = (AnnotationMirror) difference.attachments.get(0);
 
         return affectedAnnotation.getAnnotationType().asElement()
-            .accept(new SimpleElementVisitor7<Report.Difference, Void>() {
+            .accept(new SimpleElementVisitor7<Difference, Void>() {
                 @Override
-                protected Report.Difference defaultAction(javax.lang.model.element.Element e, Void ignored) {
+                protected Difference defaultAction(javax.lang.model.element.Element e, Void ignored) {
                     return difference;
                 }
 
                 @Override
-                public Report.Difference visitType(TypeElement e, Void ignored) {
+                public Difference visitType(TypeElement e, Void ignored) {
                     if (!annotationQualifiedName.equals(e.getQualifiedName().toString())) {
                         return difference;
                     }
@@ -87,33 +87,33 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
                     JavaModelElement oldE = (JavaModelElement) oldElement;
                     JavaModelElement newE = (JavaModelElement) newElement;
 
-                    return oldE.getModelElement().accept(new ElementPairVisitor<Report.Difference>() {
+                    return oldE.getModelElement().accept(new ElementPairVisitor<Difference>() {
                         @Override
-                        protected Report.Difference unmatchedAction(@Nonnull javax.lang.model.element.Element element,
+                        protected Difference unmatchedAction(@Nonnull javax.lang.model.element.Element element,
                             @Nullable javax.lang.model.element.Element otherElement) {
                             return difference;
                         }
 
                         @Override
-                        protected Report.Difference visitType(@Nonnull TypeElement oldElement,
+                        protected Difference visitType(@Nonnull TypeElement oldElement,
                             @Nonnull TypeElement newElement) {
                             return transformedCode.createDifference(configuration.getLocale());
                         }
 
                         @Override
-                        protected Report.Difference visitPackage(@Nonnull PackageElement element,
+                        protected Difference visitPackage(@Nonnull PackageElement element,
                             @Nonnull PackageElement otherElement) {
                             return transformedCode.createDifference(configuration.getLocale());
                         }
 
                         @Override
-                        protected Report.Difference visitVariable(@Nonnull VariableElement element,
+                        protected Difference visitVariable(@Nonnull VariableElement element,
                             @Nonnull VariableElement otherElement) {
                             return transformedCode.createDifference(configuration.getLocale());
                         }
 
                         @Override
-                        protected Report.Difference visitExecutable(@Nonnull ExecutableElement element,
+                        protected Difference visitExecutable(@Nonnull ExecutableElement element,
                             @Nonnull ExecutableElement otherElement) {
                             return transformedCode.createDifference(configuration.getLocale());
                         }

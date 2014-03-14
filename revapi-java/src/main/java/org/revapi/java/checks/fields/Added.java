@@ -22,7 +22,7 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -42,7 +42,7 @@ public final class Added extends AbstractJavaCheck {
     }
 
     @Override
-    protected List<Report.Difference> doEnd() {
+    protected List<Difference> doEnd() {
         ActiveElements<VariableElement> fields = popIfActive();
 
         if (fields == null) {

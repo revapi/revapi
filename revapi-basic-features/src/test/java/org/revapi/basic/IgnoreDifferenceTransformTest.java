@@ -28,8 +28,8 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.Archive;
 import org.revapi.Configuration;
+import org.revapi.Difference;
 import org.revapi.Element;
-import org.revapi.Report;
 import org.revapi.simple.SimpleElement;
 
 /**
@@ -74,7 +74,7 @@ public class IgnoreDifferenceTransformTest {
         DummyElement oldE = new DummyElement("a");
         DummyElement newE = new DummyElement("b");
 
-        Report.Difference difference = Report.Difference.builder().withCode("c").build();
+        Difference difference = Difference.builder().withCode("c").build();
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
 
@@ -94,7 +94,7 @@ public class IgnoreDifferenceTransformTest {
         DummyElement oldE = new DummyElement("a");
         DummyElement newE = new DummyElement("b");
 
-        Report.Difference difference = Report.Difference.builder().withCode("c").build();
+        Difference difference = Difference.builder().withCode("c").build();
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
             Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(

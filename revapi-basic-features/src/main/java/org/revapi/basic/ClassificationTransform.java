@@ -8,8 +8,8 @@ import javax.annotation.Nullable;
 
 import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
+import org.revapi.Difference;
 import org.revapi.Element;
-import org.revapi.Report;
 
 /**
  * A generic difference transform that can change the classification of a difference. This can be used in situations
@@ -46,12 +46,12 @@ public class ClassificationTransform
         protected final Map<CompatibilityType, ChangeSeverity> classification = new HashMap<>();
 
         @Override
-        public Report.Difference transformMatching(Report.Difference difference, Element oldElement,
+        public Difference transformMatching(Difference difference, Element oldElement,
             Element newElement) {
             if (classification.isEmpty()) {
                 return difference;
             } else {
-                return Report.Difference.builder().withCode(difference.code).withName(difference.name)
+                return Difference.builder().withCode(difference.code).withName(difference.name)
                     .withDescription(difference.description).addAttachments(difference.attachments)
                     .addClassifications(difference.classification).addClassifications(classification).build();
             }

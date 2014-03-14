@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.revapi.Configuration;
+import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
-import org.revapi.Report;
 
 /**
  * @author Lukas Krejci
@@ -118,8 +118,8 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
 
     @Nullable
     @Override
-    public final Report.Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
-        @Nonnull Report.Difference difference) {
+    public final Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
+        @Nonnull Difference difference) {
 
         if (configuredRecipes == null) {
             return difference;

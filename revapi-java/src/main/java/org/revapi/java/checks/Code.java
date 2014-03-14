@@ -33,7 +33,7 @@ import java.util.WeakHashMap;
 
 import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
-import org.revapi.Report;
+import org.revapi.Difference;
 
 /**
  * TODO move this class to SPI so that extenders can take advantage of it.
@@ -145,9 +145,9 @@ public enum Code {
         return code;
     }
 
-    public Report.Difference createDifference(Locale locale) {
+    public Difference createDifference(Locale locale) {
         Message message = getMessages(locale).get(code);
-        Report.Difference.Builder bld = Report.Difference.builder().withCode(code).withName(message.name)
+        Difference.Builder bld = Difference.builder().withCode(code).withName(message.name)
             .withDescription(message.description);
         for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {
             bld.addClassification(e.getKey(), e.getValue());
@@ -156,10 +156,10 @@ public enum Code {
         return bld.build();
     }
 
-    public Report.Difference createProblem(Locale locale, Object[] params, Object... attachments) {
+    public Difference createProblem(Locale locale, Object[] params, Object... attachments) {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, params);
-        Report.Difference.Builder bld = Report.Difference.builder().withCode(code).withName(message.name)
+        Difference.Builder bld = Difference.builder().withCode(code).withName(message.name)
             .withDescription(description).addAttachments(attachments);
 
         for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {

@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 
 import org.revapi.ChangeSeverity;
 import org.revapi.Configuration;
+import org.revapi.Difference;
 import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Reporter;
@@ -64,7 +65,7 @@ public class MavenReporter implements Reporter {
             return;
         }
 
-        for (Report.Difference d : report.getDifferences()) {
+        for (Difference d : report.getDifferences()) {
             StringBuilder message = new StringBuilder(element.getFullHumanReadableString());
 
             message.append(": ").append(d.code).append(": ").append(d.description);

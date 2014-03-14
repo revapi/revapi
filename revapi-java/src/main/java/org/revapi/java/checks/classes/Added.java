@@ -22,7 +22,7 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.ChangeSeverity;
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -32,7 +32,7 @@ import org.revapi.java.checks.Code;
  */
 public final class Added extends AbstractJavaCheck {
     @Override
-    protected List<Report.Difference> doEnd() {
+    protected List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types != null) {
             return Collections.singletonList(createDifference(Code.CLASS_ADDED, null, ChangeSeverity.NON_BREAKING));

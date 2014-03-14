@@ -23,7 +23,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -35,7 +35,7 @@ import org.revapi.java.checks.Code;
 public final class DefaultValueChanged extends AbstractJavaCheck {
 
     @Override
-    protected List<Report.Difference> doEnd() {
+    protected List<Difference> doEnd() {
         ActiveElements<ExecutableElement> methods = popIfActive();
         if (methods == null) {
             return null;
@@ -49,7 +49,7 @@ public final class DefaultValueChanged extends AbstractJavaCheck {
         String ov = oldValue == null ? null : Util.toHumanReadableString(oldValue);
         String nv = newValue == null ? null : Util.toHumanReadableString(newValue);
 
-        Report.Difference difference;
+        Difference difference;
 
         if (ov == null) {
             difference = createDifference(Code.METHOD_DEFAULT_VALUE_ADDED);

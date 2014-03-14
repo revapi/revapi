@@ -24,7 +24,7 @@ import javax.lang.model.element.TypeElement;
 
 import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
-import org.revapi.Report;
+import org.revapi.Difference;
 
 public class Extension extends org.revapi.java.CheckBase {
 
@@ -36,11 +36,11 @@ public class Extension extends org.revapi.java.CheckBase {
     }
 
     @Override
-    public List<Report.Difference> doEnd() {
+    public List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types != null) {
             return Collections.singletonList(
-                Report.Difference.builder().withCode("!!TEST_CODE!!").withName("test check")
+                Difference.builder().withCode("!!TEST_CODE!!").withName("test check")
                     .withDescription("test description")
                     .addClassification(CompatibilityType.SOURCE, ChangeSeverity.BREAKING).build());
         }

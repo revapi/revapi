@@ -95,7 +95,7 @@ public class TextReporter implements Reporter {
         }
 
         ChangeSeverity maxReportedSeverity = ChangeSeverity.NON_BREAKING;
-        for (Report.Difference d : report.getDifferences()) {
+        for (Difference d : report.getDifferences()) {
             for (ChangeSeverity c : d.classification.values()) {
                 if (c.compareTo(maxReportedSeverity) > 0) {
                     maxReportedSeverity = c;
@@ -115,7 +115,7 @@ public class TextReporter implements Reporter {
         output.print(newE == null ? "<none>" : newE.getFullHumanReadableString());
         if (!report.getDifferences().isEmpty()) {
             output.print(": ");
-            for (Report.Difference d : report.getDifferences()) {
+            for (Difference d : report.getDifferences()) {
                 output.append(d.name).append(" (").append(d.code).append(")");
                 reportClassification(output, d);
                 output.append(": ").append(d.description).append("\n");
@@ -133,7 +133,7 @@ public class TextReporter implements Reporter {
         }
     }
 
-    private void reportClassification(PrintWriter output, Report.Difference difference) {
+    private void reportClassification(PrintWriter output, Difference difference) {
         Iterator<Map.Entry<CompatibilityType, ChangeSeverity>> it = difference.classification.entrySet().iterator();
 
         if (it.hasNext()) {

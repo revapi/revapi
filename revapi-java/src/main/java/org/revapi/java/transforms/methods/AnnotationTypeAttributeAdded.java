@@ -25,9 +25,9 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 
 import org.revapi.Configuration;
+import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
-import org.revapi.Report;
 import org.revapi.java.JavaModelElement;
 import org.revapi.java.checks.Code;
 
@@ -45,8 +45,8 @@ public final class AnnotationTypeAttributeAdded implements DifferenceTransform {
 
     @Nullable
     @Override
-    public Report.Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
-        @Nonnull Report.Difference difference) {
+    public Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
+        @Nonnull Difference difference) {
 
         if (Code.METHOD_ABSTRACT_METHOD_ADDED != Code.fromCode(difference.code)) {
             return difference;

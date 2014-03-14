@@ -29,7 +29,7 @@ import javax.lang.model.util.SimpleElementVisitor7;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -60,7 +60,7 @@ public final class Added extends AbstractJavaCheck {
     }
 
     @Override
-    protected List<Report.Difference> doEnd() {
+    protected List<Difference> doEnd() {
         ActiveElements<ExecutableElement> methods = popIfActive();
         if (methods == null) {
             return null;
@@ -80,7 +80,7 @@ public final class Added extends AbstractJavaCheck {
             return null;
         }
 
-        Report.Difference difference;
+        Difference difference;
 
         if (enclosingClass.getKind() == ElementKind.INTERFACE) {
             difference = createDifference(Code.METHOD_ADDED_TO_INTERFACE);

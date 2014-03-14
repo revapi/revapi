@@ -2,8 +2,8 @@ package org.revapi.basic;
 
 import java.util.regex.Pattern;
 
+import org.revapi.Difference;
 import org.revapi.Element;
-import org.revapi.Report;
 
 /**
  * A helper class to {@link org.revapi.basic.AbstractDifferenceReferringTransform} that defines the match of
@@ -21,7 +21,7 @@ public abstract class DifferenceMatchRecipe {
     String newElement;
     Pattern newElementRegex;
 
-    public boolean matches(Report.Difference difference, Element oldElement, Element newElement) {
+    public boolean matches(Difference difference, Element oldElement, Element newElement) {
         if (regex) {
             return codeRegex.matcher(difference.code).matches() &&
                 (oldElementRegex == null ||
@@ -35,6 +35,6 @@ public abstract class DifferenceMatchRecipe {
         }
     }
 
-    public abstract Report.Difference transformMatching(Report.Difference difference, Element oldElement,
+    public abstract Difference transformMatching(Difference difference, Element oldElement,
         Element newElement);
 }

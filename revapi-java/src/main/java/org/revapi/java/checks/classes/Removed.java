@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -39,10 +39,10 @@ public final class Removed extends AbstractJavaCheck {
     }
 
     @Override
-    protected List<Report.Difference> doEnd() {
+    protected List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types != null) {
-            Report.Difference difference = createDifference(Code.CLASS_REMOVED
+            Difference difference = createDifference(Code.CLASS_REMOVED
             );
 
             return Collections.singletonList(difference);

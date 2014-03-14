@@ -13,8 +13,8 @@ import org.revapi.Archive;
 import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
 import org.revapi.Configuration;
+import org.revapi.Difference;
 import org.revapi.Element;
-import org.revapi.Report;
 import org.revapi.simple.SimpleElement;
 
 /**
@@ -63,7 +63,7 @@ public class ClassificationTransformTest {
         DummyElement oldE = new DummyElement("old");
         DummyElement newE = new DummyElement("new");
 
-        Report.Difference difference = Report.Difference.builder().withCode("code").addClassification(
+        Difference difference = Difference.builder().withCode("code").addClassification(
             CompatibilityType.BINARY, ChangeSeverity.NON_BREAKING).addClassification(CompatibilityType.SOURCE,
             ChangeSeverity.POTENTIALLY_BREAKING).build();
 

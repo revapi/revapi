@@ -26,7 +26,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Configuration;
-import org.revapi.Report;
+import org.revapi.Difference;
 
 /**
  * An interface that java API checkers need to implement.
@@ -93,7 +93,7 @@ public interface Check {
      * </code></pre>
      */
     @Nullable
-    List<Report.Difference> visitEnd();
+    List<Difference> visitEnd();
 
     void visitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType);
 
@@ -104,6 +104,6 @@ public interface Check {
     void visitField(@Nullable VariableElement oldField, @Nullable VariableElement newField);
 
     @Nullable
-    List<Report.Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
+    List<Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
         @Nullable AnnotationMirror newAnnotation);
 }

@@ -43,7 +43,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.SimpleTypeVisitor7;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.TypeEnvironment;
 import org.revapi.java.checks.Code;
 
@@ -104,7 +104,7 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
     }
 
     @Override
-    protected List<Report.Difference> doEnd() {
+    protected List<Difference> doEnd() {
         ActiveElements<VariableElement> fields = popIfActive();
         if (fields == null) {
             return null;
@@ -363,7 +363,7 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
 
     /**
      * Adapted from {@link java.io.ObjectStreamClass.MemberSignature}
-     * <p>
+     * <p/>
      * Class for computing and caching field/constructor/method signatures
      * during serialVersionUID calculation.
      */
@@ -434,7 +434,7 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
     /**
      * Adapted from {@link java.io.ObjectStreamClass#getClassSignature(Class)}
      * and {@link java.io.ObjectStreamClass#getMethodSignature(Class[], Class)}
-     * <p>
+     * <p/>
      * Returns JVM type signature for given class.
      */
     private static String getSignature(TypeMirror type) {

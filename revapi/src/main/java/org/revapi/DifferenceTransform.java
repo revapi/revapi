@@ -39,6 +39,6 @@ public interface DifferenceTransform extends AutoCloseable {
      * difference should be discarded
      */
     @Nullable
-    Report.Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
-        @Nonnull Report.Difference difference);
+    Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
+        @Nonnull Difference difference);
 }

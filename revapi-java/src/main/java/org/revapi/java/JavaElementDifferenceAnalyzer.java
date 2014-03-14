@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.revapi.Configuration;
+import org.revapi.Difference;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
 import org.revapi.Report;
@@ -53,7 +54,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     // are always sorted as last amongst sibling model elements.
     // So, when reported for their parent element, we can be sure that there are no more children
     // coming for given parent.
-    private List<Report.Difference> lastAnnotationResults;
+    private List<Difference> lastAnnotationResults;
 
     public JavaElementDifferenceAnalyzer(Configuration configuration, ProbingEnvironment oldEnvironment,
         CompilationValve oldValve,
@@ -103,7 +104,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 lastAnnotationResults = new ArrayList<>();
             }
             for (Check c : checks) {
-                List<Report.Difference> cps = c
+                List<Difference> cps = c
                     .visitAnnotation(oldElement == null ? null : ((AnnotationElement) oldElement).getAnnotation(),
                         newElement == null ? null : ((AnnotationElement) newElement).getAnnotation());
                 if (cps != null) {
@@ -133,12 +134,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     public Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
         if (conforms(oldElement, newElement, AnnotationElement.class)) {
             //the annotations are always reported at the parent element
-            return new Report(Collections.<Report.Difference>emptyList(), oldElement, newElement);
+            return new Report(Collections.<Difference>emptyList(), oldElement, newElement);
         }
 
-        List<Report.Difference> differences = new ArrayList<>();
+        List<Difference> differences = new ArrayList<>();
         for (Check c : checks) {
-            List<Report.Difference> p = c.visitEnd();
+            List<Difference> p = c.visitEnd();
             if (p != null) {
                 differences.addAll(p);
             }

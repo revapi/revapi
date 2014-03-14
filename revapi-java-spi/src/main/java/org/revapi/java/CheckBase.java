@@ -29,7 +29,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Configuration;
-import org.revapi.Report;
+import org.revapi.Difference;
 
 /**
  * An empty implementation of the {@link Check} interface.
@@ -91,7 +91,7 @@ public abstract class CheckBase implements Check {
 
     @Nullable
     @Override
-    public final List<Report.Difference> visitEnd() {
+    public final List<Difference> visitEnd() {
         try {
             return doEnd();
         } finally {
@@ -100,7 +100,7 @@ public abstract class CheckBase implements Check {
     }
 
     @Nullable
-    protected List<Report.Difference> doEnd() {
+    protected List<Difference> doEnd() {
         return null;
     }
 
@@ -145,16 +145,16 @@ public abstract class CheckBase implements Check {
 
     @Nullable
     @Override
-    public final List<Report.Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
+    public final List<Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
         @Nullable AnnotationMirror newAnnotation) {
         depth++;
-        List<Report.Difference> ret = doVisitAnnotation(oldAnnotation, newAnnotation);
+        List<Difference> ret = doVisitAnnotation(oldAnnotation, newAnnotation);
         depth--;
         return ret;
     }
 
     @Nullable
-    protected List<Report.Difference> doVisitAnnotation(@Nullable AnnotationMirror oldAnnotation,
+    protected List<Difference> doVisitAnnotation(@Nullable AnnotationMirror oldAnnotation,
         @Nullable AnnotationMirror newAnnotation) {
         return null;
     }

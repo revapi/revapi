@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.checks.Code;
 
 /**
@@ -41,7 +41,7 @@ public final class NoLongerConstant extends BothFieldsRequiringCheck {
     }
 
     @Override
-    protected List<Report.Difference> doEnd() {
+    protected List<Difference> doEnd() {
         ActiveElements<VariableElement> fields = popIfActive();
         if (fields == null) {
             return null;

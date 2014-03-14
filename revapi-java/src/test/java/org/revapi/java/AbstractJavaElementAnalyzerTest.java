@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import org.revapi.Archive;
 import org.revapi.Configuration;
+import org.revapi.Difference;
 import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Reporter;
@@ -92,7 +93,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
         @Override
         public void report(@Nonnull Report report) {
-            for (Report.Difference d : report.getDifferences()) {
+            for (Difference d : report.getDifferences()) {
                 Integer cnt = problemCounters.get(d.code);
                 if (cnt == null) {
                     cnt = 1;

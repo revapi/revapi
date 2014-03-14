@@ -367,10 +367,10 @@ public final class Revapi {
             changed = false;
 
             for (DifferenceTransform t : availableProblemTransforms) {
-                ListIterator<Report.Difference> it = report.getDifferences().listIterator();
+                ListIterator<Difference> it = report.getDifferences().listIterator();
                 while (it.hasNext()) {
-                    Report.Difference p = it.next();
-                    Report.Difference tp = t.transform(report.getOldElement(), report.getNewElement(), p);
+                    Difference p = it.next();
+                    Difference tp = t.transform(report.getOldElement(), report.getNewElement(), p);
                     // ignore if transformation returned null, meaning that it "swallowed" the problem..
                     // once the changes are done, we'll loop through once more and remove the problems that the
                     // transforms want removed.
@@ -396,10 +396,10 @@ public final class Revapi {
 
         //now remove the problems that the transforms want removed
         for (DifferenceTransform t : availableProblemTransforms) {
-            ListIterator<Report.Difference> it = report.getDifferences().listIterator();
+            ListIterator<Difference> it = report.getDifferences().listIterator();
             while (it.hasNext()) {
-                Report.Difference p = it.next();
-                Report.Difference tp = t.transform(report.getOldElement(), report.getNewElement(), p);
+                Difference p = it.next();
+                Difference tp = t.transform(report.getOldElement(), report.getNewElement(), p);
                 if (tp == null) {
                     it.remove();
                 }

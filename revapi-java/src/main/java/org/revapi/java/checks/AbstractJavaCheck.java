@@ -19,7 +19,7 @@ package org.revapi.java.checks;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.CheckBase;
 import org.revapi.java.TypeEnvironment;
 import org.revapi.java.model.ClassTreeInitializer;
@@ -30,13 +30,13 @@ import org.revapi.java.model.ClassTreeInitializer;
  */
 public abstract class AbstractJavaCheck extends CheckBase {
 
-    protected Report.Difference createDifference(Code code,
+    protected Difference createDifference(Code code,
         Object... params) {
 
         return createDifference(code, params, params);
     }
 
-    protected Report.Difference createDifference(Code code, Object[] params, Object... attachments) {
+    protected Difference createDifference(Code code, Object[] params, Object... attachments) {
         return code.createProblem(getConfiguration().getLocale(), params, attachments);
     }
 

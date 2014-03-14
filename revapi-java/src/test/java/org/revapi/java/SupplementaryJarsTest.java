@@ -27,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import org.revapi.Configuration;
+import org.revapi.Difference;
 import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
@@ -123,7 +124,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
             boolean problemMatches = false;
 
-            for (Report.Difference p : r.getDifferences()) {
+            for (Difference p : r.getDifferences()) {
                 if (differenceCode.equals(p.code)) {
                     problemMatches = true;
                     break;

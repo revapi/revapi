@@ -19,12 +19,12 @@ package org.revapi.basic;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.revapi.Difference;
 import org.revapi.Element;
-import org.revapi.Report;
 
 /**
  * A generic difference transform that can ignore differences based on the difference code ({@link
- * org.revapi.Report.Difference#code}) and on the old or new elements' full human representations
+ * org.revapi.Difference#code}) and on the old or new elements' full human representations
  * ({@link org.revapi.Element#getFullHumanReadableString()}).
  * <p/>
  * The transform is configured using properties in the general form of:
@@ -49,7 +49,7 @@ public class IgnoreDifferenceTransform
 
     public static class IgnoreRecipe extends DifferenceMatchRecipe {
         @Override
-        public Report.Difference transformMatching(Report.Difference difference, Element oldElement,
+        public Difference transformMatching(Difference difference, Element oldElement,
             Element newElement) {
 
             //we ignore the matching elements, so null is the correct return value.

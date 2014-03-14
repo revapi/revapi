@@ -22,7 +22,7 @@ import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
-import org.revapi.Report;
+import org.revapi.Difference;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
 
@@ -59,7 +59,7 @@ public abstract class ModifierChanged extends AbstractJavaCheck {
     }
 
     @Override
-    protected final List<Report.Difference> doEnd() {
+    protected final List<Difference> doEnd() {
         ActiveElements<Element> elements = popIfActive();
         if (elements == null) {
             return null;
