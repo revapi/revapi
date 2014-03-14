@@ -163,4 +163,39 @@
             </plugin>
         </plugins>
     </build>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Lukas Krejci</name>
+            <email>lkrejci@redhat.com</email>
+            <url>http://metlos.wordpress.com</url>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>github-issues</system>
+        <url>https://github.com/metlos/revapi/issues</url>
+    </issueManagement>
+
+    <ciManagement>
+        <system>travis</system>
+        <url>https://travis-ci.org/metlos/revapi</url>
+    </ciManagement>
+
+    <mailingLists />
+
+    <scm>
+        <connection>https://github.com/metlos/revapi.git</connection>
+        <url>https://github.com/metlos/revapi</url>
+    </scm>
+
 </project>
