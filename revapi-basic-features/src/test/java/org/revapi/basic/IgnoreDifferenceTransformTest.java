@@ -16,18 +16,13 @@
 
 package org.revapi.basic;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Locale;
-
 import javax.annotation.Nonnull;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import org.revapi.API;
-import org.revapi.Archive;
-import org.revapi.Configuration;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.Element;
 import org.revapi.simple.SimpleElement;
@@ -78,10 +73,8 @@ public class IgnoreDifferenceTransformTest {
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
 
-            Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
-                Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
-                Collections.<Archive>emptyList(), Collections.<Archive>emptyList()));
-            config.getProperties().put("revapi.ignore.1.code", "c");
+            AnalysisContext config = AnalysisContext.builder()
+                .withConfigurationFromJSON("{\"revapi\":{\"ignore\":[{\"code\":\"c\"}]}}").build();
 
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
@@ -97,11 +90,8 @@ public class IgnoreDifferenceTransformTest {
         Difference difference = Difference.builder().withCode("c").build();
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
-            Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), new API(
-                Collections.<Archive>emptyList(), Collections.<Archive>emptyList()), new API(
-                Collections.<Archive>emptyList(), Collections.<Archive>emptyList()));
-            config.getProperties().put("revapi.ignore.1.regex", "true");
-            config.getProperties().put("revapi.ignore.1.code", "[c]*");
+            AnalysisContext config = AnalysisContext.builder()
+                .withConfigurationFromJSON("{\"revapi\":{\"ignore\":[{\"regex\": true, \"code\":\"c\"}]}}").build();
 
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);

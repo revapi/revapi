@@ -18,13 +18,13 @@ package org.revapi.basic;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.revapi.Configuration;
+import org.jboss.dmr.ModelNode;
+import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementFilter;
 
@@ -32,10 +32,14 @@ import org.revapi.ElementFilter;
  * An element filter that can filter out elements based on matching their full human readable representations.
  * The configuration looks like follows:
  * <pre><code>
- *     revapi.filter.include.1=REGEX_ON_ELEMENT_FULL_REPRESENTATIONS
- *     revapi.filter.include.another=REGEX_ON_ELEMENT_FULL_REPRESENTATIONS
- *     revapi.filter.exclude=REGEX_ON_ELEMENT_FULL_REPRESENTATIONS
- *     revapi.filter.exclude.some-other-stuff=REGEX_ON_ELEMENT_FULL_REPRESENTATION
+ * {
+ *      "revapi" : {
+ *          "filter" : {
+ *              "include" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"],
+ *              "exclude" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"]
+ *          }
+ *      }
+ * }
  * </code></pre>
  * <p/>
  * The "suffixes" in the property names (i.e. the part after "revapi.filter.(in|ex)clude") are optional and are
@@ -49,20 +53,18 @@ import org.revapi.ElementFilter;
  * @since 0.1
  */
 public class ConfigurableElementFilter implements ElementFilter {
-    private static final String INCLUDE_PREFIX = "revapi.filter.include";
-    private static final String EXCLUDE_PREFIX = "revapi.filter.exclude";
-
     private final List<Pattern> includes = new ArrayList<>();
     private final List<Pattern> excludes = new ArrayList<>();
 
     @Override
-    public void initialize(@Nonnull Configuration configuration) {
-        for (Map.Entry<String, String> e : configuration.getProperties().entrySet()) {
-            if (e.getKey().startsWith(INCLUDE_PREFIX)) {
-                includes.add(Pattern.compile(e.getValue()));
-            } else if (e.getKey().startsWith(EXCLUDE_PREFIX)) {
-                excludes.add(Pattern.compile(e.getValue()));
-            }
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        ModelNode root = analysisContext.getConfiguration().get("revapi", "filter");
+        for (ModelNode inc : root.get("includes").asList()) {
+            includes.add(Pattern.compile(inc.asString()));
+        }
+
+        for (ModelNode exc : root.get("excludes").asList()) {
+            excludes.add(Pattern.compile(exc.asString()));
         }
     }
 

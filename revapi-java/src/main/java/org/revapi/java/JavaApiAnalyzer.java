@@ -22,9 +22,9 @@ import java.util.concurrent.Executors;
 import javax.annotation.Nonnull;
 
 import org.revapi.API;
+import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
 import org.revapi.ArchiveAnalyzer;
-import org.revapi.Configuration;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -36,11 +36,11 @@ import org.revapi.java.compilation.ProbingEnvironment;
 public final class JavaApiAnalyzer implements ApiAnalyzer {
 
     private final ExecutorService compilationExecutor = Executors.newFixedThreadPool(2);
-    private Configuration configuration;
+    private AnalysisContext analysisContext;
 
     @Override
-    public void initialize(@Nonnull Configuration configuration) {
-        this.configuration = configuration;
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        this.analysisContext = analysisContext;
     }
 
     @Nonnull
@@ -61,7 +61,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         CompilationValve oldValve = oldA.getCompilationValve();
         CompilationValve newValve = newA.getCompilationValve();
 
-        return new JavaElementDifferenceAnalyzer(configuration, oldEnvironment, oldValve, newEnvironment, newValve);
+        return new JavaElementDifferenceAnalyzer(analysisContext, oldEnvironment, oldValve, newEnvironment, newValve);
     }
 
     @Override

@@ -20,15 +20,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +44,6 @@ public final class Revapi {
         private Set<Reporter> reporters = null;
         private Set<DifferenceTransform> transforms = null;
         private Set<ElementFilter> filters = null;
-        private Locale locale = Locale.getDefault();
-        private Map<String, String> configuration = Collections.emptyMap();
 
         @Nonnull
         public Builder withAnalyzersFromThreadContextClassLoader() {
@@ -160,31 +154,6 @@ public final class Revapi {
         }
 
         @Nonnull
-        public Builder withDefaultLocale() {
-            this.locale = Locale.getDefault();
-            return this;
-        }
-
-        @Nonnull
-        public Builder withLocale(@Nonnull Locale locale) {
-            this.locale = locale;
-            return this;
-        }
-
-        @Nonnull
-        public Builder withConfiguration(@Nonnull Map<String, String> configuration) {
-            this.configuration = configuration;
-            return this;
-        }
-
-        @Nonnull
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        public Builder withConfiguration(@Nonnull Properties properties) {
-            this.configuration = (Map<String, String>) (Map) properties;
-            return this;
-        }
-
-        @Nonnull
         public Builder withAllExtensionsFromThreadContextClassLoader() {
             return withAllExtensionsFrom(Thread.currentThread().getContextClassLoader());
         }
@@ -202,7 +171,7 @@ public final class Revapi {
             transforms = transforms == null ? Collections.<DifferenceTransform>emptySet() : transforms;
             filters = filters == null ? Collections.<ElementFilter>emptySet() : filters;
 
-            return new Revapi(analyzers, reporters, transforms, filters, locale, configuration);
+            return new Revapi(analyzers, reporters, transforms, filters);
         }
     }
 
@@ -210,9 +179,6 @@ public final class Revapi {
     private final Set<Reporter> availableReporters;
     private final Set<DifferenceTransform> availableProblemTransforms;
     private final CompoundFilter<Element> availableFilters;
-    private final Map<String, String> configurationProperties;
-    private final Locale locale;
-    private Configuration configuration;
 
     @Nonnull
     public static Builder builder() {
@@ -225,34 +191,23 @@ public final class Revapi {
      * @throws java.lang.IllegalArgumentException if any of the parameters is null
      */
     public Revapi(@Nonnull Set<ApiAnalyzer> availableApiAnalyzers, @Nonnull Set<Reporter> availableReporters,
-        @Nonnull Set<DifferenceTransform> availableProblemTransforms, @Nonnull Set<ElementFilter> elementFilters,
-        @Nonnull Locale locale, @Nonnull Map<String, String> configurationProperties) {
+        @Nonnull Set<DifferenceTransform> availableProblemTransforms, @Nonnull Set<ElementFilter> elementFilters) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
         this.availableReporters = availableReporters;
         this.availableProblemTransforms = availableProblemTransforms;
         this.availableFilters = new CompoundFilter<>(elementFilters);
-        this.configurationProperties = configurationProperties;
-        this.locale = locale;
     }
 
-    public void analyze(@Nonnull Iterable<? extends Archive> oldArchives,
-        @Nullable Iterable<? extends Archive> oldSupplementaryArchives,
-        @Nonnull Iterable<? extends Archive> newArchives,
-        @Nullable Iterable<? extends Archive> newSupplementaryArchives)
-        throws Exception {
+    public void analyze(@Nonnull AnalysisContext analysisContext) throws Exception {
 
-        this.configuration = new Configuration(locale, configurationProperties,
-            new API(oldArchives, oldSupplementaryArchives),
-            new API(newArchives, newSupplementaryArchives));
-
-        initReporters();
-        initAnalyzers();
-        initProblemTransforms();
+        initReporters(analysisContext);
+        initAnalyzers(analysisContext);
+        initProblemTransforms(analysisContext);
 
         try {
             for (ApiAnalyzer analyzer : availableApiAnalyzers) {
-                analyzeWith(analyzer, configuration.getOldApi(), configuration.getNewApi());
+                analyzeWith(analyzer, analysisContext.getOldApi(), analysisContext.getNewApi());
             }
         } finally {
             closeAll(availableProblemTransforms, "problem transform");
@@ -262,21 +217,21 @@ public final class Revapi {
         }
     }
 
-    private void initReporters() {
+    private void initReporters(@Nonnull AnalysisContext analysisContext) {
         for (Reporter r : availableReporters) {
-            r.initialize(configuration);
+            r.initialize(analysisContext);
         }
     }
 
-    private void initAnalyzers() {
+    private void initAnalyzers(@Nonnull AnalysisContext analysisContext) {
         for (ApiAnalyzer a : availableApiAnalyzers) {
-            a.initialize(configuration);
+            a.initialize(analysisContext);
         }
     }
 
-    private void initProblemTransforms() {
+    private void initProblemTransforms(@Nonnull AnalysisContext analysisContext) {
         for (DifferenceTransform f : availableProblemTransforms) {
-            f.initialize(configuration);
+            f.initialize(analysisContext);
         }
     }
 

@@ -18,7 +18,6 @@ package org.revapi.java;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -26,7 +25,8 @@ import javax.annotation.Nonnull;
 import org.junit.Assert;
 import org.junit.Test;
 
-import org.revapi.Configuration;
+import org.revapi.API;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.Report;
 import org.revapi.Reporter;
@@ -79,7 +79,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         final List<Report> allReports = new ArrayList<>();
         Reporter reporter = new Reporter() {
             @Override
-            public void initialize(@Nonnull Configuration properties) {
+            public void initialize(@Nonnull AnalysisContext properties) {
             }
 
             @Override
@@ -96,9 +96,11 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
         Revapi revapi = createRevapi(reporter);
 
-        revapi.analyze(Arrays.asList(new ShrinkwrapArchive(apiV1)), Arrays
-            .asList(new ShrinkwrapArchive(supV1)), Arrays.asList(new ShrinkwrapArchive(apiV2)),
-            Arrays.asList(new ShrinkwrapArchive(supV2)));
+        revapi.analyze(
+            AnalysisContext.builder()
+                .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
+                .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
+                .build());
 
         Assert.assertEquals(3, allReports.size());
         Assert

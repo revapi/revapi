@@ -41,8 +41,9 @@ import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.revapi.API;
+import org.revapi.AnalysisContext;
 import org.revapi.Archive;
-import org.revapi.Configuration;
 import org.revapi.Difference;
 import org.revapi.Element;
 import org.revapi.Report;
@@ -88,7 +89,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
 
         @Override
-        public void initialize(@Nonnull Configuration properties) {
+        public void initialize(@Nonnull AnalysisContext properties) {
         }
 
         @Override
@@ -186,8 +187,11 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
         Revapi revapi = createRevapi(testReporter);
 
-        revapi.analyze(Arrays.asList(new ShrinkwrapArchive(v1Archive.archive)), null,
-            Arrays.asList(new ShrinkwrapArchive(v2Archive.archive)), null);
+        revapi.analyze(
+            AnalysisContext.builder()
+                .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
+                .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build())
+                .build());
 
         deleteDir(v1Archive.compilationPath);
         deleteDir(v2Archive.compilationPath);

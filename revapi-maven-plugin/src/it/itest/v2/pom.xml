@@ -56,10 +56,20 @@
                         </goals>
                         <configuration>
                             <analysisConfiguration>
-                                <revapi.ignore.1.code>java.class.nowFinal</revapi.ignore.1.code>
-                                <revapi.ignore.1.old>class test.Dep</revapi.ignore.1.old>
-                                <revapi.ignore.2.code>java.class.noLongerImplementsInterface</revapi.ignore.2.code>
-                                <revapi.ignore.3.code>!!TEST_CODE!!</revapi.ignore.3.code>
+                                { "revapi" : {
+                                "ignore" : [
+                                {
+                                "code" : "java.class.nowFinal",
+                                "old" : "class test.Dep"
+                                },
+                                {
+                                "code" : "java.class.noLongerImplementsInterface"
+                                },
+                                {
+                                "code" : "!!TEST_CODE!!"
+                                }
+                                ]
+                                }}
                             </analysisConfiguration>
                         </configuration>
                     </execution>

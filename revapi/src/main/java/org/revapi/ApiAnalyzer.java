@@ -18,19 +18,20 @@ package org.revapi;
 
 import javax.annotation.Nonnull;
 
+import org.revapi.configuration.Configurable;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ApiAnalyzer extends AutoCloseable {
-
-    void initialize(@Nonnull Configuration configuration);
+public interface ApiAnalyzer extends AutoCloseable, Configurable {
 
     /**
      * This method is called exactly twice during the API difference analysis. The first time it is called to obtain
      * an archive analyzer for the old version of the archives and the second time for the new version of the archives.
      *
      * @param api the api to analyze
+     *
      * @return the analyzer for the supplied archives
      */
     @Nonnull

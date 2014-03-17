@@ -1,11 +1,12 @@
 package org.revapi.basic;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jboss.dmr.ModelNode;
 import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
@@ -17,24 +18,33 @@ import org.revapi.Element;
  * <p/>
  * The transform can be configured like so:
  * <pre><code>
- * revapi.reclassify.1.regex=false
- * revapi.reclassify.1.code=PROBLEM_CODE;
- * revapi.reclassify.1.old=FULL_REPRESENTATION_OF_THE_OLD_ELEMENT
- * revapi.reclassify.1.new=FULL_REPRESENTATION_OF_THE_NEW_ELEMENT
- * revapi.reclassify.1.NEW_COMPATIBILITY_TYPE=NEW_SEVERITY
- * revapi.reclassify.1.NEW_COMPATIBILITY_TYPE=NEW_SEVERITY
- * revapi.reclassify.1.NEW_COMPATIBILITY_TYPE=NEW_SEVERITY
+ * {
+ *  "revapi" : {
+ *      "reclassify" : [
+ *          {
+ *              "regex" : false,
+ *              "code" : "PROBLEM_CODE",
+ *              "old" : "FULL_REPRESENTATION_OF_THE_OLD_ELEMENT",
+ *              "new" : "FULL_REPRESENTATION_OF_THE_NEW_ELEMENT",
+ *              classify : {
+ *                  "NEW_COMPATIBILITY_TYPE": "NEW_SEVERITY",
+ *                  "NEW_COMPATIBILITY_TYPE_2": "NEW_SEVERITY_2",
+ *              }
+ *          },
+ *          ...
+ *      ]
+ *  }
+ * }
  * </code></pre>
  * <p/>
  * The {@code code} is mandatory (obviously). The {@code old} and {@code new} properties are optional and the rule will
  * match when all the specified properties of it match. If regex attribute is "true" (defaults to "false"), all the
- * code, old and new are understood as regexes.
+ * code, old and new are understood as regexes (java regexes, not javascript ones).
  * <p/>
  * The {@code NEW_COMPATIBILITY_TYPE} corresponds to one of the names of the {@link org.revapi.CompatibilityType}
  * enum and the {@code NEW_SEVERITY} corresponds to one of the names of the {@link org.revapi.ChangeSeverity}
  * enum. The reclassified difference inherits its classification (i.e. the compatibility type + severity pairs) and
- * only
- * redefines the ones explicitly defined in the configuration.
+ * only redefines the ones explicitly defined in the configuration.
  *
  * @author Lukas Krejci
  * @since 0.1
@@ -43,7 +53,19 @@ public class ClassificationTransform
     extends AbstractDifferenceReferringTransform<ClassificationTransform.ClassificationRecipe, Void> {
 
     public static class ClassificationRecipe extends DifferenceMatchRecipe {
-        protected final Map<CompatibilityType, ChangeSeverity> classification = new HashMap<>();
+        protected final Map<CompatibilityType, ChangeSeverity> classification = new EnumMap<>(CompatibilityType.class);
+
+        public ClassificationRecipe(ModelNode node) {
+            super(node);
+            ModelNode classfications = node.get("classify");
+            for (CompatibilityType ct : CompatibilityType.values()) {
+                if (classfications.has(ct.name())) {
+                    String val = classfications.get(ct.name()).asString();
+                    ChangeSeverity sev = ChangeSeverity.valueOf(val);
+                    classification.put(ct, sev);
+                }
+            }
+        }
 
         @Override
         public Difference transformMatching(Difference difference, Element oldElement,
@@ -59,7 +81,7 @@ public class ClassificationTransform
     }
 
     public ClassificationTransform() {
-        super("revapi.reclassify");
+        super("revapi", "reclassify");
     }
 
     @Nullable
@@ -70,21 +92,8 @@ public class ClassificationTransform
 
     @Nonnull
     @Override
-    protected ClassificationRecipe newRecipe(Void context) {
-        return new ClassificationRecipe();
-    }
-
-    @Override
-    protected void assignToRecipe(@Nullable Void context, @Nonnull ClassificationRecipe recipe,
-        @Nonnull String key, @Nullable String value) {
-
-        try {
-            CompatibilityType comp = CompatibilityType.valueOf(key);
-            ChangeSeverity sev = value == null ? null : ChangeSeverity.valueOf(value);
-            recipe.classification.put(comp, sev);
-        } catch (IllegalArgumentException ignored) {
-            super.assignToRecipe(context, recipe, key, value);
-        }
+    protected ClassificationRecipe newRecipe(Void context, ModelNode config) {
+        return new ClassificationRecipe(config);
     }
 
     @Override

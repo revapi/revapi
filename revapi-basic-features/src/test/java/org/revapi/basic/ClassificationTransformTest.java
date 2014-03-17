@@ -1,18 +1,16 @@
 package org.revapi.basic;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Locale;
 
 import javax.annotation.Nonnull;
 
 import org.junit.Test;
 
 import org.revapi.API;
+import org.revapi.AnalysisContext;
 import org.revapi.Archive;
 import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
-import org.revapi.Configuration;
 import org.revapi.Difference;
 import org.revapi.Element;
 import org.revapi.simple.SimpleElement;
@@ -67,10 +65,10 @@ public class ClassificationTransformTest {
             CompatibilityType.BINARY, ChangeSeverity.NON_BREAKING).addClassification(CompatibilityType.SOURCE,
             ChangeSeverity.POTENTIALLY_BREAKING).build();
 
-        Configuration config = new Configuration(Locale.getDefault(), new HashMap<String, String>(), emptyAPI(),
-            emptyAPI());
-        config.getProperties().put("revapi.reclassify.1.code", "code");
-        config.getProperties().put("revapi.reclassify.1.BINARY", "BREAKING");
+        AnalysisContext config = AnalysisContext.builder()
+            .withConfigurationFromJSON(
+                "{\"revapi\": {\"reclassify\":[{\"code\":\"code\", \"classify\": {\"BINARY\" : \"BREAKING\"}}]}}")
+            .build();
 
         try (ClassificationTransform t = new ClassificationTransform()) {
             t.initialize(config);

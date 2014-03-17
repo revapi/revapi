@@ -19,6 +19,7 @@ package org.revapi.basic;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jboss.dmr.ModelNode;
 import org.revapi.Difference;
 import org.revapi.Element;
 
@@ -29,25 +30,35 @@ import org.revapi.Element;
  * <p/>
  * The transform is configured using properties in the general form of:
  * <pre><code>
- * revapi.ignore.1.regex=false
- * revapi.ignore.1.code=PROBLEM_CODE;
- * revapi.ignore.1.old=FULL_REPRESENTATION_OF_THE_OLD_ELEMENT
- * revapi.ignore.1.new=FULL_REPRESENTATION_OF_THE_NEW_ELEMENT
- * revapi.ignore.2.code=PROBLEM_CODE
- * ...
+ *  {
+ *      "revapi" : {
+ *          "ignore" : [
+ *              {
+ *                  "regex" : false,
+ *                  "code" : "PROBLEM_CODE",
+ *                  "old" : "FULL_REPRESENTATION_OF_THE_OLD_ELEMENT",
+ *                  "new" : "FULL_REPRESENTATION_OF_THE_NEW_ELEMENT",
+ *              },
+ *              ...
+ *          ]
+ *      }
+ *  }
  * </code></pre>
  * The {@code code} is mandatory (obviously). The {@code old} and {@code new} properties are optional and the rule will
  * match when all the specified properties of it match. If regex attribute is "true" (defaults to "false"), all the
- * code, old and new are understood as regexes.
+ * code, old and new are understood as regexes (java regexes, not javascript ones).
  *
  * @author Lukas Krejci
  * @since 0.1
  */
 public class IgnoreDifferenceTransform
     extends AbstractDifferenceReferringTransform<IgnoreDifferenceTransform.IgnoreRecipe, Void> {
-    public static final String CONFIG_PROPERTY_PREFIX = "revapi.ignore";
 
     public static class IgnoreRecipe extends DifferenceMatchRecipe {
+        public IgnoreRecipe(ModelNode node) {
+            super(node);
+        }
+
         @Override
         public Difference transformMatching(Difference difference, Element oldElement,
             Element newElement) {
@@ -58,7 +69,7 @@ public class IgnoreDifferenceTransform
     }
 
     public IgnoreDifferenceTransform() {
-        super(CONFIG_PROPERTY_PREFIX);
+        super("revapi", "ignore");
     }
 
     @Nullable
@@ -69,8 +80,8 @@ public class IgnoreDifferenceTransform
 
     @Nonnull
     @Override
-    protected IgnoreRecipe newRecipe(Void context) {
-        return new IgnoreRecipe();
+    protected IgnoreRecipe newRecipe(Void context, ModelNode config) {
+        return new IgnoreRecipe(config);
     }
 
     @Override

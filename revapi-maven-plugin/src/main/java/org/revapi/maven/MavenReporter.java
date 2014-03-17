@@ -20,8 +20,8 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
+import org.revapi.AnalysisContext;
 import org.revapi.ChangeSeverity;
-import org.revapi.Configuration;
 import org.revapi.Difference;
 import org.revapi.Element;
 import org.revapi.Report;
@@ -50,7 +50,7 @@ public class MavenReporter implements Reporter {
     }
 
     @Override
-    public void initialize(@Nonnull Configuration properties) {
+    public void initialize(@Nonnull AnalysisContext properties) {
     }
 
     @Override

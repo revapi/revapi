@@ -16,6 +16,7 @@
 
 package org.revapi;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 import javax.annotation.Nonnull;
@@ -28,6 +29,34 @@ import javax.annotation.Nullable;
  * @since 0.1
  */
 public final class API {
+
+    public static final class Builder {
+        private Iterable<? extends Archive> archives;
+        private Iterable<? extends Archive> supplementaryArchives;
+
+        public Builder of(Archive... archives) {
+            return of(Arrays.asList(archives));
+        }
+
+        public Builder of(Iterable<? extends Archive> archives) {
+            this.archives = archives;
+            return this;
+        }
+
+        public Builder supportedBy(Archive... archives) {
+            return supportedBy(Arrays.asList(archives));
+        }
+
+        public Builder supportedBy(Iterable<? extends Archive> archives) {
+            this.supplementaryArchives = archives;
+            return this;
+        }
+
+        public API build() {
+            return new API(archives, supplementaryArchives);
+        }
+    }
+
     private final Iterable<? extends Archive> archives;
     private final Iterable<? extends Archive> supplementaryArchives;
 
@@ -41,12 +70,23 @@ public final class API {
         this.supplementaryArchives = supplementaryArchives;
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static Builder of(Archive... archives) {
+        return builder().of(archives);
+    }
+
+    public static Builder of(Iterable<? extends Archive> archives) {
+        return builder().of(archives);
+    }
+
     /**
      * The set of archives to check the API of.
      */
-    public
     @Nonnull
-    Iterable<? extends Archive> getArchives() {
+    public Iterable<? extends Archive> getArchives() {
         return archives;
     }
 
@@ -56,9 +96,8 @@ public final class API {
      * the JARs that need to be on the compilation classpath. Can be null if no such
      * archives are needed.
      */
-    public
     @Nullable
-    Iterable<? extends Archive> getSupplementaryArchives() {
+    public Iterable<? extends Archive> getSupplementaryArchives() {
         return supplementaryArchives;
     }
 

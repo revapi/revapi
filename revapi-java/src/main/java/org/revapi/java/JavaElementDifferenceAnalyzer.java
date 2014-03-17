@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.revapi.Configuration;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
@@ -56,14 +56,14 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     // coming for given parent.
     private List<Difference> lastAnnotationResults;
 
-    public JavaElementDifferenceAnalyzer(Configuration configuration, ProbingEnvironment oldEnvironment,
+    public JavaElementDifferenceAnalyzer(AnalysisContext analysisContext, ProbingEnvironment oldEnvironment,
         CompilationValve oldValve,
         ProbingEnvironment newEnvironment, CompilationValve newValve) {
-        this(configuration, oldEnvironment, oldValve, newEnvironment, newValve,
+        this(analysisContext, oldEnvironment, oldValve, newEnvironment, newValve,
             ServiceLoader.load(Check.class, JavaElementDifferenceAnalyzer.class.getClassLoader()));
     }
 
-    public JavaElementDifferenceAnalyzer(Configuration configuration, ProbingEnvironment oldEnvironment,
+    public JavaElementDifferenceAnalyzer(AnalysisContext analysisContext, ProbingEnvironment oldEnvironment,
         CompilationValve oldValve,
         ProbingEnvironment newEnvironment, CompilationValve newValve, Iterable<Check> checks) {
         this.oldCompilationValve = oldValve;
@@ -71,7 +71,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
         this.checks = checks;
         for (Check c : checks) {
-            c.initialize(configuration);
+            c.initialize(analysisContext);
             c.setOldTypeEnvironment(oldEnvironment);
             c.setNewTypeEnvironment(newEnvironment);
         }

@@ -28,7 +28,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.Configuration;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 
 /**
@@ -57,7 +57,7 @@ public abstract class CheckBase implements Check {
     private TypeEnvironment newTypeEnvironment;
     private int depth;
     private final Deque<ActiveElements<?>> activations = new ArrayDeque<>();
-    private Configuration configuration;
+    private AnalysisContext analysisContext;
 
     @Nonnull
     public TypeEnvironment getOldTypeEnvironment() {
@@ -70,13 +70,13 @@ public abstract class CheckBase implements Check {
     }
 
     @Nonnull
-    public Configuration getConfiguration() {
-        return configuration;
+    public AnalysisContext getAnalysisContext() {
+        return analysisContext;
     }
 
     @Override
-    public void initialize(@Nonnull Configuration configuration) {
-        this.configuration = configuration;
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        this.analysisContext = analysisContext;
     }
 
     @Override

@@ -25,7 +25,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.SimpleElementVisitor7;
 
-import org.revapi.Configuration;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
@@ -38,7 +38,7 @@ import org.revapi.java.checks.Code;
  * @since 0.1
  */
 abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
-    protected Configuration configuration;
+    protected AnalysisContext analysisContext;
     private final String annotationQualifiedName;
     private final Code annotationCheckCode;
     private final Code transformedCode;
@@ -51,8 +51,8 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
     }
 
     @Override
-    public void initialize(@Nonnull Configuration configuration) {
-        this.configuration = configuration;
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        this.analysisContext = analysisContext;
     }
 
     @Nullable
@@ -97,25 +97,25 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
                         @Override
                         protected Difference visitType(@Nonnull TypeElement oldElement,
                             @Nonnull TypeElement newElement) {
-                            return transformedCode.createDifference(configuration.getLocale());
+                            return transformedCode.createDifference(analysisContext.getLocale());
                         }
 
                         @Override
                         protected Difference visitPackage(@Nonnull PackageElement element,
                             @Nonnull PackageElement otherElement) {
-                            return transformedCode.createDifference(configuration.getLocale());
+                            return transformedCode.createDifference(analysisContext.getLocale());
                         }
 
                         @Override
                         protected Difference visitVariable(@Nonnull VariableElement element,
                             @Nonnull VariableElement otherElement) {
-                            return transformedCode.createDifference(configuration.getLocale());
+                            return transformedCode.createDifference(analysisContext.getLocale());
                         }
 
                         @Override
                         protected Difference visitExecutable(@Nonnull ExecutableElement element,
                             @Nonnull ExecutableElement otherElement) {
-                            return transformedCode.createDifference(configuration.getLocale());
+                            return transformedCode.createDifference(analysisContext.getLocale());
                         }
                     }, newE.getModelElement());
                 }

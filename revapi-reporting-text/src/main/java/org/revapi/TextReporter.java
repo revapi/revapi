@@ -42,9 +42,9 @@ public class TextReporter implements Reporter {
     private boolean shouldClose;
 
     @Override
-    public void initialize(@Nonnull Configuration config) {
-        String minLevel = config.getProperties().get("revapi.reporter.text.minSeverity");
-        String output = config.getProperties().get("revapi.reporter.text.output");
+    public void initialize(@Nonnull AnalysisContext config) {
+        String minLevel = config.getConfiguration().get("revapi", "reporter", "text", "minSeverity").asString();
+        String output = config.getConfiguration().get("revapi", "reporter", "text", "output").asString();
         output = output == null ? "out" : output;
 
         this.minLevel =

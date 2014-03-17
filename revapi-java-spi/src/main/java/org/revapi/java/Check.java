@@ -25,7 +25,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.Configuration;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 
 /**
@@ -56,7 +56,7 @@ import org.revapi.Difference;
  */
 public interface Check {
 
-    void initialize(@Nonnull Configuration configuration);
+    void initialize(@Nonnull AnalysisContext analysisContext);
 
     /**
      * The environment containing the old version of the classes. This can be used to reason about the

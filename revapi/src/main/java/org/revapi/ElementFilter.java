@@ -16,15 +16,12 @@
 
 package org.revapi;
 
-import javax.annotation.Nonnull;
-
+import org.revapi.configuration.Configurable;
 import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ElementFilter extends Filter<Element>, AutoCloseable {
-
-    void initialize(@Nonnull Configuration configuration);
+public interface ElementFilter extends Filter<Element>, AutoCloseable, Configurable {
 }

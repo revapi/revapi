@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +30,7 @@ import javax.annotation.Nullable;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import org.jboss.dmr.ModelNode;
 import org.jboss.forge.furnace.Furnace;
 import org.jboss.forge.furnace.addons.Addon;
 import org.jboss.forge.furnace.addons.AddonId;
@@ -40,6 +40,8 @@ import org.jboss.forge.furnace.manager.AddonManager;
 import org.jboss.forge.furnace.manager.impl.AddonManagerImpl;
 import org.jboss.forge.furnace.manager.request.InstallRequest;
 import org.jboss.forge.furnace.util.Addons;
+import org.revapi.API;
+import org.revapi.AnalysisContext;
 import org.revapi.Revapi;
 
 import gnu.getopt.Getopt;
@@ -199,31 +201,16 @@ public final class Main {
         List<FileArchive> newSupplementaryArchives = newSupplementaryArchivePaths == null ? null :
             convertPaths(newSupplementaryArchivePaths, "New API supplementary file");
 
-        Map<String, String> configuration = new HashMap<>();
-        if (configFiles != null) {
-            for (String configFile : configFiles) {
-                File f = new File(configFile);
-                checkCanRead(f, "Configuration file");
-                Properties p = new Properties();
-                try (FileInputStream is = new FileInputStream(f)) {
-                    p.load(is);
-                }
-
-                configuration.putAll((Map<String, String>) (Map<?, ?>) p);
-            }
-        }
-        configuration.putAll(additionalConfigOptions);
-
-        run(new File(baseDir, "lib"), cacheDir, extensionGAVs, oldArchives, oldSupplementaryArchives, newArchives,
-            newSupplementaryArchives,
-            configuration);
+        run(cacheDir, extensionGAVs, oldArchives, oldSupplementaryArchives, newArchives,
+            newSupplementaryArchives, configFiles, additionalConfigOptions);
 
         System.exit(0);
     }
 
-    private static void run(File libDir, File cacheDir, String[] extensionGAVs, List<FileArchive> oldArchives,
+    private static void run(File cacheDir, String[] extensionGAVs, List<FileArchive> oldArchives,
         List<FileArchive> oldSupplementaryArchives, List<FileArchive> newArchives,
-        List<FileArchive> newSupplementaryArchives, Map<String, String> configuration) throws Exception {
+        List<FileArchive> newSupplementaryArchives, String[] configFiles, Map<String, String> additionalConfig)
+        throws Exception {
 
         ExtensionResolver.init();
 
@@ -252,10 +239,29 @@ public final class Main {
                 builder.withAllExtensionsFrom(addon.getClassLoader());
             }
 
-            Revapi revapi = builder.withConfiguration(configuration).withAllExtensionsFromThreadContextClassLoader()
-                .build();
+            Revapi revapi = builder.withAllExtensionsFromThreadContextClassLoader().build();
 
-            revapi.analyze(oldArchives, oldSupplementaryArchives, newArchives, newSupplementaryArchives);
+            AnalysisContext.Builder ctxBld = AnalysisContext.builder()
+                .withOldAPI(API.of(oldArchives).supportedBy(oldSupplementaryArchives).build())
+                .withNewAPI(API.of(newArchives).supportedBy(newSupplementaryArchives).build());
+
+            for (String cf : configFiles) {
+                File f = new File(cf);
+                checkCanRead(f, "Configuration file");
+
+                try (FileInputStream is = new FileInputStream(f)) {
+                    ctxBld.mergeConfigurationFromJSONStream(is);
+                }
+            }
+
+            for (Map.Entry<String, String> e : additionalConfig.entrySet()) {
+                String[] keyPath = e.getKey().split("\\.");
+                ModelNode additionalNode = new ModelNode();
+                additionalNode.get(keyPath).set(e.getValue());
+                ctxBld.mergeConfiguration(additionalNode);
+            }
+
+            revapi.analyze(ctxBld.build());
         } finally {
             furnace.stop();
         }

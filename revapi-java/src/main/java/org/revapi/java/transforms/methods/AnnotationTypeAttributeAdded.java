@@ -24,7 +24,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 
-import org.revapi.Configuration;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
@@ -39,8 +39,8 @@ public final class AnnotationTypeAttributeAdded implements DifferenceTransform {
     private Locale locale;
 
     @Override
-    public void initialize(@Nonnull Configuration configuration) {
-        locale = configuration.getLocale();
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        locale = analysisContext.getLocale();
     }
 
     @Nullable

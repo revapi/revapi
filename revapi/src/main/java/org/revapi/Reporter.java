@@ -18,13 +18,13 @@ package org.revapi;
 
 import javax.annotation.Nonnull;
 
+import org.revapi.configuration.Configurable;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface Reporter extends AutoCloseable {
-
-    void initialize(@Nonnull Configuration properties);
+public interface Reporter extends AutoCloseable, Configurable {
 
     void report(@Nonnull Report report);
 }

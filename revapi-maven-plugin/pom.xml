@@ -136,7 +136,8 @@
                         <goal>install</goal>
                     </goals>
                     <!-- debug the itest -->
-                    <!--<mavenOpts>-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</mavenOpts>-->
+                    <!-- <mavenOpts>-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</mavenOpts>-->
+                    <debug>true</debug>
                 </configuration>
                 <executions>
                     <execution>

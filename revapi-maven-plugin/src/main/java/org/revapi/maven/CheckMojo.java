@@ -21,10 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -51,6 +48,8 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.util.graph.visitor.TreeDependencyVisitor;
 
+import org.revapi.API;
+import org.revapi.AnalysisContext;
 import org.revapi.Revapi;
 
 /**
@@ -63,13 +62,13 @@ public class CheckMojo extends AbstractMojo {
     private static final String BUILD_COORDINATES = "BUILD";
 
     /**
-     * The configuration of various analysis options. The available options depend on what
+     * The JSON configuration of various analysis options. The available options depend on what
      * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
      * <p/>
      * These settings take precendence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
     @Parameter
-    private Map<String, String> analysisConfiguration;
+    private String analysisConfiguration;
 
     /**
      * The list of files containing the configuration of various analysis options.
@@ -153,14 +152,17 @@ public class CheckMojo extends AbstractMojo {
         }
 
         try {
-            Map<String, String> finalConfig = gatherConfig();
-
             MavenReporter reporter = new MavenReporter(failSeverity.toChangeSeverity());
 
             Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().withReporters(reporter)
-                .withConfiguration(finalConfig).build();
+                .build();
 
-            revapi.analyze(oldArchives, oldTransitiveDeps, newArchives, newTransitiveDeps);
+            AnalysisContext.Builder ctxBuilder = AnalysisContext.builder()
+                .withOldAPI(API.of(oldArchives).supportedBy(oldTransitiveDeps).build())
+                .withNewAPI(API.of(newArchives).supportedBy(newTransitiveDeps).build());
+            gatherConfig(ctxBuilder);
+
+            revapi.analyze(ctxBuilder.build());
 
             if (reporter.hasBreakingProblems()) {
                 throw new MojoFailureException(reporter.getAllProblemsMessage());
@@ -173,9 +175,7 @@ public class CheckMojo extends AbstractMojo {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, String> gatherConfig() throws MojoExecutionException {
-        Map<String, String> finalConfig = new HashMap<>();
-
+    private void gatherConfig(AnalysisContext.Builder ctxBld) throws MojoExecutionException {
         if (analysisConfigurationFiles != null && analysisConfigurationFiles.length > 0) {
             for (String path : analysisConfigurationFiles) {
                 File f = new File(path);
@@ -183,20 +183,17 @@ public class CheckMojo extends AbstractMojo {
                     throw new MojoExecutionException("Could not locate analysis configuration file in '" + path + "'.");
                 }
 
-                Properties properties = new Properties();
                 try (FileInputStream in = new FileInputStream(f)) {
-                    properties.load(in);
-                    finalConfig.putAll((Map<String, String>) (Map<?, ?>) properties);
+                    ctxBld.mergeConfigurationFromJSONStream(in);
                 } catch (IOException ignored) {
                     throw new MojoExecutionException("Could not load configuration from '" + path + "'.");
                 }
             }
         }
-        if (analysisConfiguration != null) {
-            finalConfig.putAll(analysisConfiguration);
-        }
 
-        return finalConfig;
+        if (analysisConfiguration != null) {
+            ctxBld.mergeConfigurationFromJSON(analysisConfiguration);
+        }
     }
 
     private List<FileArchive> resolveArtifacts(String[] coordinates) throws ArtifactResolutionException {

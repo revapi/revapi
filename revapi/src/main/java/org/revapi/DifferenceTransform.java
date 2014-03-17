@@ -19,13 +19,13 @@ package org.revapi;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.revapi.configuration.Configurable;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface DifferenceTransform extends AutoCloseable {
-
-    void initialize(@Nonnull Configuration configuration);
+public interface DifferenceTransform extends AutoCloseable, Configurable {
 
     /**
      * Returns a transformed version of the difference. If this method returns null, the difference is
