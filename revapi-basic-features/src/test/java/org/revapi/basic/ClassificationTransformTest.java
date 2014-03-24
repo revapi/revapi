@@ -79,4 +79,6 @@ public class ClassificationTransformTest {
                 difference.classification.get(CompatibilityType.SOURCE) == ChangeSeverity.POTENTIALLY_BREAKING;
         }
     }
+
+    //TODO add schema tests
 }

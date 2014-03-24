@@ -99,5 +99,7 @@ public class IgnoreDifferenceTransformTest {
         }
     }
 
+    //TODO add schema tests
+
     //TODO add tests for old and new element matching
 }

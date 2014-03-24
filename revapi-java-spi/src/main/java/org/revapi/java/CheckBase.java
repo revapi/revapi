@@ -16,6 +16,7 @@
 
 package org.revapi.java;
 
+import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -72,6 +73,18 @@ public abstract class CheckBase implements Check {
     @Nonnull
     public AnalysisContext getAnalysisContext() {
         return analysisContext;
+    }
+
+    @Nullable
+    @Override
+    public String[] getConfigurationRootPaths() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        return null;
     }
 
     @Override

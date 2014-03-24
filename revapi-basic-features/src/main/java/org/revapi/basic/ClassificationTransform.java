@@ -1,5 +1,7 @@
 package org.revapi.basic;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -82,6 +84,22 @@ public class ClassificationTransform
 
     public ClassificationTransform() {
         super("revapi", "reclassify");
+    }
+
+    @Nullable
+    @Override
+    public String[] getConfigurationRootPaths() {
+        return new String[]{"revapi.reclassify"};
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        if ("revapi.reclassify".equals(configurationRootPath)) {
+            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/classification-schema.json"));
+        } else {
+            return null;
+        }
     }
 
     @Nullable

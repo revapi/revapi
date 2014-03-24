@@ -16,6 +16,8 @@
 
 package org.revapi.basic;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -42,9 +44,6 @@ import org.revapi.ElementFilter;
  * }
  * </code></pre>
  * <p/>
- * The "suffixes" in the property names (i.e. the part after "revapi.filter.(in|ex)clude") are optional and are
- * supported so that it is possible to have multiple include filters defined in a properties file.
- * <p/>
  * If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
  * elements matching it are included. Out of the included elements, some may be further excluded by the exclude
  * filters.
@@ -55,6 +54,22 @@ import org.revapi.ElementFilter;
 public class ConfigurableElementFilter implements ElementFilter {
     private final List<Pattern> includes = new ArrayList<>();
     private final List<Pattern> excludes = new ArrayList<>();
+
+    @Nullable
+    @Override
+    public String[] getConfigurationRootPaths() {
+        return new String[]{"revapi.filter"};
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        if ("revapi.filter".equals(configurationRootPath)) {
+            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/filter-schema.json"));
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {

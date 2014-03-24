@@ -17,8 +17,10 @@
 package org.revapi.maven;
 
 import java.io.IOException;
+import java.io.Reader;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
 import org.revapi.ChangeSeverity;
@@ -47,6 +49,18 @@ public class MavenReporter implements Reporter {
 
     public String getAllProblemsMessage() {
         return "The following API problems caused the build to fail:" + allProblems.toString();
+    }
+
+    @Nullable
+    @Override
+    public String[] getConfigurationRootPaths() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        return null;
     }
 
     @Override

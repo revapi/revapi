@@ -16,6 +16,7 @@
 
 package org.revapi.java.transforms.methods;
 
+import java.io.Reader;
 import java.util.Locale;
 
 import javax.annotation.Nonnull;
@@ -37,6 +38,18 @@ import org.revapi.java.checks.Code;
  */
 public final class AnnotationTypeAttributeAdded implements DifferenceTransform {
     private Locale locale;
+
+    @Nullable
+    @Override
+    public String[] getConfigurationRootPaths() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        return null;
+    }
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {

@@ -25,8 +25,8 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.AnalysisContext;
 import org.revapi.Difference;
+import org.revapi.configuration.Configurable;
 
 /**
  * An interface that java API checkers need to implement.
@@ -54,9 +54,7 @@ import org.revapi.Difference;
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface Check {
-
-    void initialize(@Nonnull AnalysisContext analysisContext);
+public interface Check extends Configurable {
 
     /**
      * The environment containing the old version of the classes. This can be used to reason about the

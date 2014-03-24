@@ -16,6 +16,9 @@
 
 package org.revapi.basic;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -70,6 +73,22 @@ public class IgnoreDifferenceTransform
 
     public IgnoreDifferenceTransform() {
         super("revapi", "ignore");
+    }
+
+    @Nullable
+    @Override
+    public String[] getConfigurationRootPaths() {
+        return new String[]{"revapi.ignore"};
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        if ("revapi.ignore".equals(configurationRootPath)) {
+            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/ignore-schema.json"));
+        } else {
+            return null;
+        }
     }
 
     @Nullable

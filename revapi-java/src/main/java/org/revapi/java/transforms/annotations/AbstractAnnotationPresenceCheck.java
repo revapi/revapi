@@ -16,6 +16,8 @@
 
 package org.revapi.java.transforms.annotations;
 
+import java.io.Reader;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
@@ -48,6 +50,18 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
         this.annotationQualifiedName = annotationQualifiedName;
         this.annotationCheckCode = annotationCheckCode;
         this.transformedCode = transformedCode;
+    }
+
+    @Nullable
+    @Override
+    public String[] getConfigurationRootPaths() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        return null;
     }
 
     @Override

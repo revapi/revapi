@@ -17,10 +17,12 @@
 package org.revapi.java;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -78,6 +80,18 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
         final List<Report> allReports = new ArrayList<>();
         Reporter reporter = new Reporter() {
+            @Nullable
+            @Override
+            public String[] getConfigurationRootPaths() {
+                return null;
+            }
+
+            @Nullable
+            @Override
+            public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+                return null;
+            }
+
             @Override
             public void initialize(@Nonnull AnalysisContext properties) {
             }
@@ -100,7 +114,8 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             AnalysisContext.builder()
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
-                .build());
+                .build()
+        );
 
         Assert.assertEquals(3, allReports.size());
         Assert

@@ -19,7 +19,6 @@ package org.revapi.java;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.ServiceLoader;
 
 import javax.annotation.Nullable;
 
@@ -55,13 +54,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     // So, when reported for their parent element, we can be sure that there are no more children
     // coming for given parent.
     private List<Difference> lastAnnotationResults;
-
-    public JavaElementDifferenceAnalyzer(AnalysisContext analysisContext, ProbingEnvironment oldEnvironment,
-        CompilationValve oldValve,
-        ProbingEnvironment newEnvironment, CompilationValve newValve) {
-        this(analysisContext, oldEnvironment, oldValve, newEnvironment, newValve,
-            ServiceLoader.load(Check.class, JavaElementDifferenceAnalyzer.class.getClassLoader()));
-    }
 
     public JavaElementDifferenceAnalyzer(AnalysisContext analysisContext, ProbingEnvironment oldEnvironment,
         CompilationValve oldValve,

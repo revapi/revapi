@@ -16,21 +16,31 @@
 
 package org.revapi;
 
+import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.revapi.query.CompoundFilter;
-import org.revapi.query.Filter;
+import org.revapi.configuration.Configurable;
+import org.revapi.configuration.ConfigurationException;
+import org.revapi.configuration.ConfigurationValidator;
+import org.revapi.configuration.ValidationResult;
 
 /**
  * @author Lukas Krejci
@@ -175,10 +185,107 @@ public final class Revapi {
         }
     }
 
+    private static class CompoundFilter implements ElementFilter, Iterable<ElementFilter> {
+        private final Collection<? extends ElementFilter> filters;
+        private final String[] allConfigRoots;
+        private final Map<String, ElementFilter> rootsToFilters;
+
+        private CompoundFilter(Collection<? extends ElementFilter> filters) {
+            this.filters = filters;
+
+            rootsToFilters = new HashMap<>();
+            List<String> tmp = new ArrayList<>();
+
+            for (ElementFilter f : filters) {
+                String[] roots = f.getConfigurationRootPaths();
+                if (roots != null) {
+                    for (String root : roots) {
+                        tmp.add(root);
+                        rootsToFilters.put(root, f);
+                    }
+                }
+            }
+
+            allConfigRoots = tmp.toArray(new String[tmp.size()]);
+        }
+
+        @Override
+        public void close() throws Exception {
+            Exception thrown = null;
+            for (ElementFilter f : filters) {
+                try {
+                    f.close();
+                } catch (Exception e) {
+                    if (thrown == null) {
+                        thrown = new Exception("Failed to close some element filters");
+                    }
+
+                    thrown.addSuppressed(e);
+                }
+            }
+
+            if (thrown != null) {
+                throw thrown;
+            }
+        }
+
+        @Nullable
+        @Override
+        public String[] getConfigurationRootPaths() {
+            return allConfigRoots;
+        }
+
+        @Nullable
+        @Override
+        public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+            ElementFilter f = rootsToFilters.get(configurationRootPath);
+
+            return f == null ? null : f.getJSONSchema(configurationRootPath);
+        }
+
+        @Override
+        public void initialize(@Nonnull AnalysisContext analysisContext) {
+            for (ElementFilter f : filters) {
+                f.initialize(analysisContext);
+            }
+        }
+
+        @Override
+        public boolean applies(@Nullable Element element) {
+            for (ElementFilter f : filters) {
+                if (!f.applies(element)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public boolean shouldDescendInto(@Nullable Object element) {
+            Iterator<? extends ElementFilter> it = filters.iterator();
+            boolean hasNoFilters = !it.hasNext();
+
+            while (it.hasNext()) {
+                if (it.next().shouldDescendInto(element)) {
+                    return true;
+                }
+            }
+
+            return hasNoFilters;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Iterator<ElementFilter> iterator() {
+            return (Iterator<ElementFilter>) filters.iterator();
+        }
+    }
+
     private final Set<ApiAnalyzer> availableApiAnalyzers;
     private final Set<Reporter> availableReporters;
-    private final Set<DifferenceTransform> availableProblemTransforms;
-    private final CompoundFilter<Element> availableFilters;
+    private final Set<DifferenceTransform> availableTransforms;
+    private final CompoundFilter availableFilters;
+    private final ConfigurationValidator configurationValidator;
 
     @Nonnull
     public static Builder builder() {
@@ -191,47 +298,48 @@ public final class Revapi {
      * @throws java.lang.IllegalArgumentException if any of the parameters is null
      */
     public Revapi(@Nonnull Set<ApiAnalyzer> availableApiAnalyzers, @Nonnull Set<Reporter> availableReporters,
-        @Nonnull Set<DifferenceTransform> availableProblemTransforms, @Nonnull Set<ElementFilter> elementFilters) {
+        @Nonnull Set<DifferenceTransform> availableTransforms, @Nonnull Set<ElementFilter> elementFilters) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
         this.availableReporters = availableReporters;
-        this.availableProblemTransforms = availableProblemTransforms;
-        this.availableFilters = new CompoundFilter<>(elementFilters);
+        this.availableTransforms = availableTransforms;
+        this.availableFilters = new CompoundFilter(elementFilters);
+        this.configurationValidator = new ConfigurationValidator();
     }
 
     public void analyze(@Nonnull AnalysisContext analysisContext) throws Exception {
+        ValidationResult validation = ValidationResult.success();
 
-        initReporters(analysisContext);
-        initAnalyzers(analysisContext);
-        initProblemTransforms(analysisContext);
+        initialize(analysisContext, validation, availableFilters);
+        initialize(analysisContext, validation, availableReporters);
+        initialize(analysisContext, validation, availableApiAnalyzers);
+        initialize(analysisContext, validation, availableTransforms);
+
+        if (!validation.isSuccessful()) {
+            throw new ConfigurationException(validation.toString());
+        }
 
         try {
             for (ApiAnalyzer analyzer : availableApiAnalyzers) {
                 analyzeWith(analyzer, analysisContext.getOldApi(), analysisContext.getNewApi());
             }
         } finally {
-            closeAll(availableProblemTransforms, "problem transform");
-            closeElementFilters();
+            closeAll(availableTransforms, "problem transform");
+            closeAll(availableFilters, "element filters");
             closeAll(availableApiAnalyzers, "api analyzer");
             closeAll(availableReporters, "reporter");
         }
     }
 
-    private void initReporters(@Nonnull AnalysisContext analysisContext) {
-        for (Reporter r : availableReporters) {
-            r.initialize(analysisContext);
-        }
-    }
+    private void initialize(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
+        Iterable<? extends Configurable> configurables) {
+        for (Configurable c : configurables) {
+            ValidationResult partial = configurationValidator.validate(analysisContext.getConfiguration(), c);
+            validationResult = validationResult.merge(partial);
 
-    private void initAnalyzers(@Nonnull AnalysisContext analysisContext) {
-        for (ApiAnalyzer a : availableApiAnalyzers) {
-            a.initialize(analysisContext);
-        }
-    }
-
-    private void initProblemTransforms(@Nonnull AnalysisContext analysisContext) {
-        for (DifferenceTransform f : availableProblemTransforms) {
-            f.initialize(analysisContext);
+            if (validationResult.isSuccessful()) {
+                c.initialize(analysisContext);
+            }
         }
     }
 
@@ -241,18 +349,6 @@ public final class Revapi {
                 c.close();
             } catch (Exception e) {
                 LOG.warn("Failed to close " + type + " " + c, e);
-            }
-        }
-    }
-
-    private void closeElementFilters() {
-        for (Filter<? super Element> f : availableFilters.getWrappedFilters()) {
-            if (f instanceof AutoCloseable) {
-                try {
-                    ((AutoCloseable) f).close();
-                } catch (Exception e) {
-                    LOG.warn("Failed to close element filter " + f, e);
-                }
             }
         }
     }
@@ -321,7 +417,7 @@ public final class Revapi {
         do {
             changed = false;
 
-            for (DifferenceTransform t : availableProblemTransforms) {
+            for (DifferenceTransform t : availableTransforms) {
                 ListIterator<Difference> it = report.getDifferences().listIterator();
                 while (it.hasNext()) {
                     Difference p = it.next();
@@ -350,7 +446,7 @@ public final class Revapi {
         } while (changed);
 
         //now remove the problems that the transforms want removed
-        for (DifferenceTransform t : availableProblemTransforms) {
+        for (DifferenceTransform t : availableTransforms) {
             ListIterator<Difference> it = report.getDifferences().listIterator();
             while (it.hasNext()) {
                 Difference p = it.next();

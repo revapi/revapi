@@ -20,12 +20,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +39,27 @@ import org.slf4j.LoggerFactory;
  */
 public class TextReporter implements Reporter {
     private static final Logger LOG = LoggerFactory.getLogger(TextReporter.class);
+    private static final String CONFIG_ROOT_PATH = "revapi.reporter.text";
 
     private ChangeSeverity minLevel;
     private PrintWriter output;
     private boolean shouldClose;
+
+    @Nullable
+    @Override
+    public String[] getConfigurationRootPaths() {
+        return new String[]{CONFIG_ROOT_PATH};
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        if (CONFIG_ROOT_PATH.equals(configurationRootPath)) {
+            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/schema.json"));
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public void initialize(@Nonnull AnalysisContext config) {

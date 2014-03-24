@@ -19,6 +19,7 @@ package org.revapi.java;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
@@ -88,6 +90,18 @@ public abstract class AbstractJavaElementAnalyzerTest {
             this.problemCounters = new HashMap<>();
         }
 
+        @Nullable
+        @Override
+        public String[] getConfigurationRootPaths() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+            return null;
+        }
+
         @Override
         public void initialize(@Nonnull AnalysisContext properties) {
         }
@@ -111,7 +125,8 @@ public abstract class AbstractJavaElementAnalyzerTest {
                 LOG.info(
                     (e == null ? "null" : e.getFullHumanReadableString()) + ": " + d.name + " (" + d.code + "): " +
                         d.classification + ", " +
-                        d.description);
+                        d.description
+                );
             }
         }
 
@@ -191,7 +206,8 @@ public abstract class AbstractJavaElementAnalyzerTest {
             AnalysisContext.builder()
                 .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build())
-                .build());
+                .build()
+        );
 
         deleteDir(v1Archive.compilationPath);
         deleteDir(v2Archive.compilationPath);

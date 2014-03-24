@@ -16,10 +16,46 @@
 
 package org.revapi.basic;
 
+import org.junit.Assert;
+import org.junit.Test;
+
+import org.jboss.dmr.ModelNode;
+import org.revapi.configuration.ConfigurationValidator;
+import org.revapi.configuration.ValidationResult;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public class ConfigurableElementFilterTest {
+
+    @Test
+    public void testInvalidConfig_noFilters() throws Exception {
+        ConfigurationValidator validator = new ConfigurationValidator();
+
+        String json = "{\"revapi\" : {\"filter\" : { }}}";
+
+        ValidationResult result = validator.validate(ModelNode.fromJSONString(json), new ConfigurableElementFilter());
+
+        Assert.assertFalse(result.isSuccessful());
+    }
+
+    @Test
+    public void testInvalidConfig_noDefsForFilter() throws Exception {
+        ConfigurationValidator validator = new ConfigurationValidator();
+
+        String json = "{\"revapi\" : {\"filter\" : { \"include\" : [] }}}";
+        ValidationResult result = validator.validate(ModelNode.fromJSONString(json), new ConfigurableElementFilter());
+        Assert.assertFalse(result.isSuccessful());
+
+        json = "{\"revapi\" : {\"filter\" : { \"exclude\" : [] }}}";
+        result = validator.validate(ModelNode.fromJSONString(json), new ConfigurableElementFilter());
+        Assert.assertFalse(result.isSuccessful());
+
+        json = "{\"revapi\" : {\"filter\" : { \"exclude\" : {} }}}";
+        result = validator.validate(ModelNode.fromJSONString(json), new ConfigurableElementFilter());
+        Assert.assertFalse(result.isSuccessful());
+    }
+
     //TODO add tests
 }
