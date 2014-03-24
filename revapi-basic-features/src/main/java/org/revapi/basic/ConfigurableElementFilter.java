@@ -74,6 +74,10 @@ public class ConfigurableElementFilter implements ElementFilter {
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         ModelNode root = analysisContext.getConfiguration().get("revapi", "filter");
+        if (!root.isDefined()) {
+            return;
+        }
+
         for (ModelNode inc : root.get("includes").asList()) {
             includes.add(Pattern.compile(inc.asString()));
         }
