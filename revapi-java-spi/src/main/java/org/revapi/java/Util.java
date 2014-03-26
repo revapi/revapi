@@ -17,10 +17,12 @@
 package org.revapi.java;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
@@ -54,34 +56,40 @@ import javax.lang.model.util.Types;
  */
 public final class Util {
 
-    private static SimpleTypeVisitor7<Void, StringBuilder> toUniqueStringVisitor = new SimpleTypeVisitor7<Void, StringBuilder>() {
+    private static class StringBuilderAndState<T> {
+        final StringBuilder bld = new StringBuilder();
+        final Set<T> visitedObjects = new HashSet<>();
+        boolean visitingMethod;
+    }
+
+    private static SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>> toUniqueStringVisitor = new SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
 
         @Override
-        public Void visitPrimitive(PrimitiveType t, StringBuilder bld) {
+        public Void visitPrimitive(PrimitiveType t, StringBuilderAndState<TypeMirror> state) {
             switch (t.getKind()) {
             case BOOLEAN:
-                bld.append("boolean");
+                state.bld.append("boolean");
                 break;
             case BYTE:
-                bld.append("byte");
+                state.bld.append("byte");
                 break;
             case CHAR:
-                bld.append("char");
+                state.bld.append("char");
                 break;
             case DOUBLE:
-                bld.append("double");
+                state.bld.append("double");
                 break;
             case FLOAT:
-                bld.append("float");
+                state.bld.append("float");
                 break;
             case INT:
-                bld.append("int");
+                state.bld.append("int");
                 break;
             case LONG:
-                bld.append("long");
+                state.bld.append("long");
                 break;
             case SHORT:
-                bld.append("short");
+                state.bld.append("short");
                 break;
             default:
                 break;
@@ -91,63 +99,72 @@ public final class Util {
         }
 
         @Override
-        public Void visitArray(ArrayType t, StringBuilder bld) {
-            bld.append("[");
+        public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> bld) {
+            bld.bld.append("[");
             t.getComponentType().accept(this, bld);
-            bld.append("]");
+            bld.bld.append("]");
             return null;
         }
 
         @Override
-        public Void visitTypeVariable(TypeVariable t, StringBuilder bld) {
-            if (t.getLowerBound() != null && t.getLowerBound().getKind() != TypeKind.NULL) {
-                t.getLowerBound().accept(this, bld);
-                bld.append("+");
+        public Void visitTypeVariable(TypeVariable t, StringBuilderAndState<TypeMirror> state) {
+            if (state.visitedObjects.contains(t)) {
+                state.bld.append("%");
+                return null;
             }
 
-            t.getUpperBound().accept(this, bld);
+            state.visitedObjects.add(t);
+
+            if (t.getLowerBound() != null && t.getLowerBound().getKind() != TypeKind.NULL) {
+                t.getLowerBound().accept(this, state);
+                state.bld.append("-");
+            }
+
+            t.getUpperBound().accept(this, state);
+            state.bld.append("+");
             return null;
         }
 
         @Override
-        public Void visitWildcard(WildcardType t, StringBuilder bld) {
+        public Void visitWildcard(WildcardType t, StringBuilderAndState<TypeMirror> state) {
             if (t.getSuperBound() != null) {
-                t.getSuperBound().accept(this, bld);
-                bld.append("+");
+                t.getSuperBound().accept(this, state);
+                state.bld.append("-");
             }
 
             if (t.getExtendsBound() != null) {
-                t.getExtendsBound().accept(this, bld);
+                t.getExtendsBound().accept(this, state);
+                state.bld.append("+");
             }
 
             return null;
         }
 
         @Override
-        public Void visitExecutable(ExecutableType t, StringBuilder bld) {
-            visitTypeVars(t.getTypeVariables(), bld);
+        public Void visitExecutable(ExecutableType t, StringBuilderAndState<TypeMirror> state) {
+            visitTypeVars(t.getTypeVariables(), state);
 
-            t.getReturnType().accept(this, bld);
-            bld.append("(");
+            t.getReturnType().accept(this, state);
+            state.bld.append("(");
 
             Iterator<? extends TypeMirror> it = t.getParameterTypes().iterator();
             if (it.hasNext()) {
-                it.next().accept(this, bld);
+                it.next().accept(this, state);
             }
             while (it.hasNext()) {
-                bld.append(",");
-                it.next().accept(this, bld);
+                state.bld.append(",");
+                it.next().accept(this, state);
             }
-            bld.append(")");
+            state.bld.append(")");
 
             if (!t.getThrownTypes().isEmpty()) {
-                bld.append("throws:");
+                state.bld.append("throws:");
                 it = t.getThrownTypes().iterator();
 
-                it.next().accept(this, bld);
+                it.next().accept(this, state);
                 while (it.hasNext()) {
-                    bld.append(",");
-                    it.next().accept(this, bld);
+                    state.bld.append(",");
+                    it.next().accept(this, state);
                 }
             }
 
@@ -155,13 +172,13 @@ public final class Util {
         }
 
         @Override
-        public Void visitNoType(NoType t, StringBuilder bld) {
+        public Void visitNoType(NoType t, StringBuilderAndState<TypeMirror> state) {
             switch (t.getKind()) {
             case VOID:
-                bld.append("void");
+                state.bld.append("void");
                 break;
             case PACKAGE:
-                bld.append("package");
+                state.bld.append("package");
                 break;
             default:
                 break;
@@ -171,56 +188,56 @@ public final class Util {
         }
 
         @Override
-        public Void visitDeclared(DeclaredType t, StringBuilder bld) {
-            bld.append(((TypeElement) t.asElement()).getQualifiedName());
-            visitTypeVars(t.getTypeArguments(), bld);
+        public Void visitDeclared(DeclaredType t, StringBuilderAndState<TypeMirror> state) {
+            state.bld.append(((TypeElement) t.asElement()).getQualifiedName());
+            visitTypeVars(t.getTypeArguments(), state);
             return null;
         }
 
-        private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilder bld) {
+        private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState<TypeMirror> state) {
             if (!vars.isEmpty()) {
-                bld.append("<");
+                state.bld.append("<");
                 Iterator<? extends TypeMirror> it = vars.iterator();
-                it.next().accept(this, bld);
+                it.next().accept(this, state);
 
                 while (it.hasNext()) {
-                    bld.append(",");
-                    it.next().accept(this, bld);
+                    state.bld.append(",");
+                    it.next().accept(this, state);
                 }
 
-                bld.append(">");
+                state.bld.append(">");
             }
         }
     };
 
-    private static SimpleTypeVisitor7<Void, StringBuilder> toHumanReadableStringVisitor = new SimpleTypeVisitor7<Void, StringBuilder>() {
+    private static SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>> toHumanReadableStringVisitor = new SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
 
         @Override
-        public Void visitPrimitive(PrimitiveType t, StringBuilder bld) {
+        public Void visitPrimitive(PrimitiveType t, StringBuilderAndState<TypeMirror> state) {
             switch (t.getKind()) {
             case BOOLEAN:
-                bld.append("boolean");
+                state.bld.append("boolean");
                 break;
             case BYTE:
-                bld.append("byte");
+                state.bld.append("byte");
                 break;
             case CHAR:
-                bld.append("char");
+                state.bld.append("char");
                 break;
             case DOUBLE:
-                bld.append("double");
+                state.bld.append("double");
                 break;
             case FLOAT:
-                bld.append("float");
+                state.bld.append("float");
                 break;
             case INT:
-                bld.append("int");
+                state.bld.append("int");
                 break;
             case LONG:
-                bld.append("long");
+                state.bld.append("long");
                 break;
             case SHORT:
-                bld.append("short");
+                state.bld.append("short");
                 break;
             default:
                 break;
@@ -230,81 +247,95 @@ public final class Util {
         }
 
         @Override
-        public Void visitArray(ArrayType t, StringBuilder bld) {
-            bld.append("[");
-            t.getComponentType().accept(this, bld);
-            bld.append("]");
+        public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> state) {
+            state.bld.append("[");
+            t.getComponentType().accept(this, state);
+            state.bld.append("]");
             return null;
         }
 
         @Override
-        public Void visitTypeVariable(TypeVariable t, StringBuilder bld) {
-            bld.append(t.asElement().getSimpleName());
-            if (t.getLowerBound() != null && t.getLowerBound().getKind() != TypeKind.NULL) {
-                bld.append(" super ");
-                t.getLowerBound().accept(this, bld);
+        public Void visitTypeVariable(TypeVariable t, StringBuilderAndState<TypeMirror> state) {
+            if (state.visitedObjects.contains(t)) {
+                state.bld.append(t.asElement().getSimpleName());
+                return null;
             }
 
-            bld.append(" extends ");
-            t.getUpperBound().accept(this, bld);
+            state.visitedObjects.add(t);
+
+            state.bld.append(t.asElement().getSimpleName());
+
+            if (!state.visitingMethod) {
+                if (t.getLowerBound() != null && t.getLowerBound().getKind() != TypeKind.NULL) {
+                    state.bld.append(" super ");
+                    t.getLowerBound().accept(this, state);
+                }
+
+                state.bld.append(" extends ");
+                t.getUpperBound().accept(this, state);
+            }
+
             return null;
         }
 
         @Override
-        public Void visitWildcard(WildcardType t, StringBuilder bld) {
-            bld.append("?");
+        public Void visitWildcard(WildcardType t, StringBuilderAndState<TypeMirror> state) {
+            state.bld.append("?");
             if (t.getSuperBound() != null) {
-                bld.append(" super ");
-                t.getSuperBound().accept(this, bld);
+                state.bld.append(" super ");
+                t.getSuperBound().accept(this, state);
             }
 
             if (t.getExtendsBound() != null) {
-                bld.append(" extends ");
-                t.getExtendsBound().accept(this, bld);
+                state.bld.append(" extends ");
+                t.getExtendsBound().accept(this, state);
             }
 
             return null;
         }
 
         @Override
-        public Void visitExecutable(ExecutableType t, StringBuilder bld) {
-            visitTypeVars(t.getTypeVariables(), bld);
+        public Void visitExecutable(ExecutableType t, StringBuilderAndState<TypeMirror> state) {
+            visitTypeVars(t.getTypeVariables(), state);
 
-            t.getReturnType().accept(this, bld);
-            bld.append("(");
+            state.visitingMethod = true;
+
+            t.getReturnType().accept(this, state);
+            state.bld.append("(");
 
             Iterator<? extends TypeMirror> it = t.getParameterTypes().iterator();
             if (it.hasNext()) {
-                it.next().accept(this, bld);
+                it.next().accept(this, state);
             }
             while (it.hasNext()) {
-                bld.append(", ");
-                it.next().accept(this, bld);
+                state.bld.append(", ");
+                it.next().accept(this, state);
             }
-            bld.append(")");
+            state.bld.append(")");
 
             if (!t.getThrownTypes().isEmpty()) {
-                bld.append(" throws ");
+                state.bld.append(" throws ");
                 it = t.getThrownTypes().iterator();
 
-                it.next().accept(this, bld);
+                it.next().accept(this, state);
                 while (it.hasNext()) {
-                    bld.append(", ");
-                    it.next().accept(this, bld);
+                    state.bld.append(", ");
+                    it.next().accept(this, state);
                 }
             }
 
+            state.visitingMethod = false;
             return null;
         }
 
         @Override
-        public Void visitNoType(NoType t, StringBuilder bld) {
+        public Void visitNoType(NoType t, StringBuilderAndState<TypeMirror> state) {
             switch (t.getKind()) {
             case VOID:
-                bld.append("void");
+                state.bld.append("void");
                 break;
             case PACKAGE:
-                bld.append("package");
+                state.bld.append("package");
                 break;
             default:
                 break;
@@ -314,46 +345,39 @@ public final class Util {
         }
 
         @Override
-        public Void visitDeclared(DeclaredType t, StringBuilder bld) {
-            bld.append(((TypeElement) t.asElement()).getQualifiedName());
-            visitTypeVars(t.getTypeArguments(), bld);
+        public Void visitDeclared(DeclaredType t, StringBuilderAndState<TypeMirror> state) {
+            state.bld.append(((TypeElement) t.asElement()).getQualifiedName());
+            visitTypeVars(t.getTypeArguments(), state);
             return null;
         }
 
-        private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilder bld) {
+        private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState<TypeMirror> state) {
             if (!vars.isEmpty()) {
-                bld.append("<");
+                state.bld.append("<");
                 Iterator<? extends TypeMirror> it = vars.iterator();
-                it.next().accept(this, bld);
+                it.next().accept(this, state);
 
                 while (it.hasNext()) {
-                    bld.append(", ");
-                    it.next().accept(this, bld);
+                    state.bld.append(", ");
+                    it.next().accept(this, state);
                 }
 
-                bld.append(">");
+                state.bld.append(">");
             }
         }
     };
 
-    private static SimpleElementVisitor7<Void, StringBuilder> toHumanReadableStringElementVisitor = new SimpleElementVisitor7<Void, StringBuilder>() {
-        private ThreadLocal<Boolean> visitingMethod = new ThreadLocal<Boolean>() {
-            @Override
-            protected Boolean initialValue() {
-                return false;
-            }
-        };
-
+    private static SimpleElementVisitor7<Void, StringBuilderAndState<TypeMirror>> toHumanReadableStringElementVisitor = new SimpleElementVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
         @Override
-        public Void visitVariable(VariableElement e, StringBuilder stringBuilder) {
+        public Void visitVariable(VariableElement e, StringBuilderAndState<TypeMirror> state) {
             Element enclosing = e.getEnclosingElement();
             if (enclosing instanceof TypeElement) {
-                enclosing.accept(this, stringBuilder);
-                stringBuilder.append(".").append(e.getSimpleName());
+                enclosing.accept(this, state);
+                state.bld.append(".").append(e.getSimpleName());
             } else if (enclosing instanceof ExecutableElement) {
-                if (visitingMethod.get()) {
+                if (state.visitingMethod) {
                     //we're visiting a method, so we need to output the in a simple way
-                    e.asType().accept(toHumanReadableStringVisitor, stringBuilder);
+                    e.asType().accept(toHumanReadableStringVisitor, state);
                     //NOTE the names of method params seem not to be available
                     //stringBuilder.append(" ").append(e.getSimpleName());
                 } else {
@@ -361,18 +385,18 @@ public final class Util {
                     //in this case, we need to identify the parameter inside the full method signature so that
                     //the full location is available.
                     int paramIdx = ((ExecutableElement) enclosing).getParameters().indexOf(e);
-                    enclosing.accept(this, stringBuilder);
-                    int openPar = stringBuilder.indexOf("(");
-                    int closePar = stringBuilder.indexOf(")", openPar);
+                    enclosing.accept(this, state);
+                    int openPar = state.bld.indexOf("(");
+                    int closePar = state.bld.indexOf(")", openPar);
 
                     int paramStart = openPar + 1;
                     int curParIdx = -1;
                     for (int i = openPar + 1; i < closePar; ++i) {
-                        if (stringBuilder.charAt(i) == ',') {
+                        if (state.bld.charAt(i) == ',') {
                             curParIdx++;
                             if (curParIdx == paramIdx) {
-                                String par = stringBuilder.substring(paramStart, i);
-                                stringBuilder.replace(paramStart, i - 1, "%%" + par + "%%");
+                                String par = state.bld.substring(paramStart, i);
+                                state.bld.replace(paramStart, i - 1, "%%" + par + "%%");
                             } else {
                                 paramStart = i + 1;
                             }
@@ -380,104 +404,104 @@ public final class Util {
                     }
                 }
             } else {
-                stringBuilder.append(e.getSimpleName());
+                state.bld.append(e.getSimpleName());
             }
 
             return null;
         }
 
         @Override
-        public Void visitPackage(PackageElement e, StringBuilder stringBuilder) {
-            stringBuilder.append(e.getQualifiedName());
+        public Void visitPackage(PackageElement e, StringBuilderAndState<TypeMirror> state) {
+            state.bld.append(e.getQualifiedName());
             return null;
         }
 
         @Override
-        public Void visitType(TypeElement e, StringBuilder stringBuilder) {
-            stringBuilder.append(e.getQualifiedName());
+        public Void visitType(TypeElement e, StringBuilderAndState<TypeMirror> state) {
+            state.bld.append(e.getQualifiedName());
 
             List<? extends TypeParameterElement> typePars = e.getTypeParameters();
             if (typePars.size() > 0) {
-                stringBuilder.append("<");
+                state.bld.append("<");
 
-                typePars.get(0).accept(this, stringBuilder);
+                typePars.get(0).accept(this, state);
                 for (int i = 1; i < typePars.size(); ++i) {
-                    stringBuilder.append(", ");
-                    typePars.get(i).accept(this, stringBuilder);
+                    state.bld.append(", ");
+                    typePars.get(i).accept(this, state);
                 }
-                stringBuilder.append(">");
+                state.bld.append(">");
             }
 
             return null;
         }
 
         @Override
-        public Void visitExecutable(ExecutableElement e, StringBuilder stringBuilder) {
-            visitingMethod.set(true);
+        public Void visitExecutable(ExecutableElement e, StringBuilderAndState<TypeMirror> state) {
+            state.visitingMethod = true;
 
             try {
                 List<? extends TypeParameterElement> typePars = e.getTypeParameters();
                 if (typePars.size() > 0) {
-                    stringBuilder.append("<");
+                    state.bld.append("<");
 
-                    typePars.get(0).accept(this, stringBuilder);
+                    typePars.get(0).accept(this, state);
                     for (int i = 1; i < typePars.size(); ++i) {
-                        stringBuilder.append(", ");
-                        typePars.get(i).accept(this, stringBuilder);
+                        state.bld.append(", ");
+                        typePars.get(i).accept(this, state);
                     }
-                    stringBuilder.append("> ");
+                    state.bld.append("> ");
                 }
 
-                e.getReturnType().accept(toHumanReadableStringVisitor, stringBuilder);
-                stringBuilder.append(" ");
-                e.getEnclosingElement().accept(this, stringBuilder);
-                stringBuilder.append(".").append(e.getSimpleName()).append("(");
+                e.getReturnType().accept(toHumanReadableStringVisitor, state);
+                state.bld.append(" ");
+                e.getEnclosingElement().accept(this, state);
+                state.bld.append(".").append(e.getSimpleName()).append("(");
 
                 List<? extends VariableElement> pars = e.getParameters();
                 if (pars.size() > 0) {
-                    pars.get(0).accept(this, stringBuilder);
+                    pars.get(0).accept(this, state);
                     for (int i = 1; i < pars.size(); ++i) {
-                        stringBuilder.append(", ");
-                        pars.get(i).accept(this, stringBuilder);
+                        state.bld.append(", ");
+                        pars.get(i).accept(this, state);
                     }
                 }
 
-                stringBuilder.append(")");
+                state.bld.append(")");
 
                 List<? extends TypeMirror> thrownTypes = e.getThrownTypes();
 
                 if (thrownTypes.size() > 0) {
-                    stringBuilder.append(" throws ");
-                    thrownTypes.get(0).accept(toHumanReadableStringVisitor, stringBuilder);
+                    state.bld.append(" throws ");
+                    thrownTypes.get(0).accept(toHumanReadableStringVisitor, state);
                     for (int i = 1; i < thrownTypes.size(); ++i) {
-                        stringBuilder.append(", ");
-                        thrownTypes.get(i).accept(toHumanReadableStringVisitor, stringBuilder);
+                        state.bld.append(", ");
+                        thrownTypes.get(i).accept(toHumanReadableStringVisitor, state);
                     }
                 }
 
                 return null;
             } finally {
-                visitingMethod.set(false);
+                state.visitingMethod = false;
             }
         }
 
         @Override
-        public Void visitTypeParameter(TypeParameterElement e, StringBuilder stringBuilder) {
-            stringBuilder.append(e.getSimpleName());
+        public Void visitTypeParameter(TypeParameterElement e, StringBuilderAndState<TypeMirror> state) {
+            state.bld.append(e.getSimpleName());
             List<? extends TypeMirror> bounds = e.getBounds();
             if (bounds.size() > 0) {
                 if (bounds.size() == 1) {
                     TypeMirror firstBound = bounds.get(0);
                     String bs = toHumanReadableString(firstBound);
                     if (!"java.lang.Object".equals(bs)) {
-                        stringBuilder.append(" extends ").append(bs);
+                        state.bld.append(" extends ").append(bs);
                     }
                 } else {
-                    stringBuilder.append(" extends ");
-                    bounds.get(0).accept(toHumanReadableStringVisitor, stringBuilder);
+                    state.bld.append(" extends ");
+                    bounds.get(0).accept(toHumanReadableStringVisitor, state);
                     for (int i = 1; i < bounds.size(); ++i) {
-                        stringBuilder.append(", ");
-                        bounds.get(i).accept(toHumanReadableStringVisitor, stringBuilder);
+                        state.bld.append(", ");
+                        bounds.get(i).accept(toHumanReadableStringVisitor, state);
                     }
                 }
             }
@@ -508,9 +532,9 @@ public final class Util {
 
     @Nonnull
     public static String toHumanReadableString(@Nonnull Element element) {
-        StringBuilder bld = new StringBuilder();
-        element.accept(toHumanReadableStringElementVisitor, bld);
-        return bld.toString();
+        StringBuilderAndState<TypeMirror> state = new StringBuilderAndState<>();
+        element.accept(toHumanReadableStringElementVisitor, state);
+        return state.bld.toString();
     }
 
     /**
@@ -520,16 +544,16 @@ public final class Util {
      */
     @Nonnull
     public static String toUniqueString(@Nonnull TypeMirror t) {
-        StringBuilder bld = new StringBuilder();
-        t.accept(toUniqueStringVisitor, bld);
-        return bld.toString();
+        StringBuilderAndState<TypeMirror> state = new StringBuilderAndState<>();
+        t.accept(toUniqueStringVisitor, state);
+        return state.bld.toString();
     }
 
     @Nonnull
     public static String toHumanReadableString(@Nonnull TypeMirror t) {
-        StringBuilder bld = new StringBuilder();
-        t.accept(toHumanReadableStringVisitor, bld);
-        return bld.toString();
+        StringBuilderAndState<TypeMirror> state = new StringBuilderAndState<>();
+        t.accept(toHumanReadableStringVisitor, state);
+        return state.bld.toString();
     }
 
     @Nonnull
