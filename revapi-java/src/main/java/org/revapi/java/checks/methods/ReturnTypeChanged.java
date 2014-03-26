@@ -16,10 +16,70 @@
 
 package org.revapi.java.checks.methods;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.Nullable;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.TypeMirror;
+
+import org.revapi.Difference;
+import org.revapi.java.Util;
+import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class ReturnTypeChanged {
-    //TODO implement
+public class ReturnTypeChanged extends AbstractJavaCheck {
+    @Override
+    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
+        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
+            return;
+        }
+
+        String oldRet = Util.toUniqueString(oldMethod.getReturnType());
+        String newRet = Util.toUniqueString(newMethod.getReturnType());
+
+        if (!oldRet.equals(newRet)) {
+            pushActive(oldMethod, newMethod);
+        }
+    }
+
+    @Nullable
+    @Override
+    protected List<Difference> doEnd() {
+        ActiveElements<ExecutableElement> methods = popIfActive();
+        if (methods == null) {
+            return null;
+        }
+
+        TypeMirror oldReturnType = methods.oldElement.getReturnType();
+        TypeMirror newReturnType = methods.newElement.getReturnType();
+
+        TypeMirror erasedOldType = getOldTypeEnvironment().getTypeUtils().erasure(oldReturnType);
+        TypeMirror erasedNewType = getNewTypeEnvironment().getTypeUtils().erasure(newReturnType);
+
+        String oldR = Util.toUniqueString(oldReturnType);
+        String newR = Util.toUniqueString(newReturnType);
+
+        String oldER = Util.toUniqueString(erasedOldType);
+        String newER = Util.toUniqueString(erasedNewType);
+
+        Code code = null;
+
+        if (!oldER.equals(newER)) {
+            code = Code.METHOD_RETURN_TYPE_CHANGED;
+        } else {
+            if (!oldR.equals(newR)) {
+                code = Code.METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED;
+            }
+        }
+
+        String oldHR = Util.toHumanReadableString(oldReturnType);
+        String newHR = Util.toHumanReadableString(newReturnType);
+
+        return code == null ? null : Collections.singletonList(createDifference(code, oldHR, newHR));
+    }
 }

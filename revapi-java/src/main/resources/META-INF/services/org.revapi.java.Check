@@ -51,6 +51,7 @@ org.revapi.java.checks.methods.DefaultValueChanged
 org.revapi.java.checks.methods.NoLongerFinal
 org.revapi.java.checks.methods.NowFinal
 org.revapi.java.checks.methods.Removed
+org.revapi.java.checks.methods.ReturnTypeChanged
 org.revapi.java.checks.methods.VisibilityIncreased
 org.revapi.java.checks.methods.VisibilityReduced
 
