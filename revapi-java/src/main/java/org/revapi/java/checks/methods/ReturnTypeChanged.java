@@ -32,7 +32,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class ReturnTypeChanged extends AbstractJavaCheck {
+public final class ReturnTypeChanged extends AbstractJavaCheck {
     @Override
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
         if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
