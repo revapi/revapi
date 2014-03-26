@@ -156,7 +156,7 @@ public enum Code {
         return bld.build();
     }
 
-    public Difference createProblem(Locale locale, Object[] params, Object... attachments) {
+    public Difference createDifference(Locale locale, Object[] params, Object... attachments) {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, params);
         Difference.Builder bld = Difference.builder().withCode(code).withName(message.name)

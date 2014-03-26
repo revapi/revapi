@@ -37,7 +37,7 @@ public abstract class AbstractJavaCheck extends CheckBase {
     }
 
     protected Difference createDifference(Code code, Object[] params, Object... attachments) {
-        return code.createProblem(getAnalysisContext().getLocale(), params, attachments);
+        return code.createDifference(getAnalysisContext().getLocale(), params, attachments);
     }
 
     protected static boolean isBothPrivate(Element a, Element b) {
