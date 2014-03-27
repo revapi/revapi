@@ -396,11 +396,17 @@ public final class Util {
                             curParIdx++;
                             if (curParIdx == paramIdx) {
                                 String par = state.bld.substring(paramStart, i);
-                                state.bld.replace(paramStart, i - 1, "%%" + par + "%%");
+                                state.bld.replace(paramStart, i, "===" + par + "===");
                             } else {
-                                paramStart = i + 1;
+                                //accommodate for the space after commas for the second and further parameters
+                                paramStart = i + (paramIdx == 0 ? 1 : 2);
                             }
                         }
+                    }
+
+                    if (++curParIdx == paramIdx) {
+                        String par = state.bld.substring(paramStart, closePar);
+                        state.bld.replace(paramStart, closePar, "===" + par + "===");
                     }
                 }
             } else {
@@ -455,7 +461,7 @@ public final class Util {
                 e.getReturnType().accept(toHumanReadableStringVisitor, state);
                 state.bld.append(" ");
                 e.getEnclosingElement().accept(this, state);
-                state.bld.append(".").append(e.getSimpleName()).append("(");
+                state.bld.append("::").append(e.getSimpleName()).append("(");
 
                 List<? extends VariableElement> pars = e.getParameters();
                 if (pars.size() > 0) {
