@@ -117,7 +117,8 @@ public enum Code {
     METHOD_VISIBILITY_REDUCED("java.method.visibilityReduced", BREAKING, BREAKING, null),
     METHOD_RETURN_TYPE_CHANGED("java.method.returnTypeChanged", POTENTIALLY_BREAKING, BREAKING, null),
     METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED("java.method.returnTypeTypeParametersChanged", POTENTIALLY_BREAKING,
-        NON_BREAKING, POTENTIALLY_BREAKING),;
+        NON_BREAKING, POTENTIALLY_BREAKING),
+    METHOD_NUMBER_OF_PARAMETERS_CHANGED("java.method.numberOfParametersChanged", BREAKING, BREAKING, null);
 
     private final String code;
     private final EnumMap<CompatibilityType, ChangeSeverity> classification;

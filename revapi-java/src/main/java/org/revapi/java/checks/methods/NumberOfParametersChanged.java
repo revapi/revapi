@@ -16,10 +16,42 @@
 
 package org.revapi.java.checks.methods;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.Nullable;
+import javax.lang.model.element.ExecutableElement;
+
+import org.revapi.Difference;
+import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class NumberOfParametersChanged {
-    //TODO implement
+public final class NumberOfParametersChanged extends AbstractJavaCheck {
+
+    @Override
+    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
+        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
+            return;
+        }
+
+        if (oldMethod.getParameters().size() != newMethod.getParameters().size()) {
+            pushActive(oldMethod, newMethod);
+        }
+    }
+
+    @Nullable
+    @Override
+    protected List<Difference> doEnd() {
+        ActiveElements<ExecutableElement> methods = popIfActive();
+
+        if (methods == null) {
+            return null;
+        }
+
+        return Collections.singletonList(createDifference(Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED));
+    }
 }
