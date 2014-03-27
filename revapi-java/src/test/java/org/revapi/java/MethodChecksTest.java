@@ -56,7 +56,6 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_DEFAULT_VALUE_REMOVED.code()));
     }
 
-
     @Test
     public void testAnnotationTypeAttributeAdded() throws Exception {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
@@ -104,5 +103,13 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert
             .assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED.code()));
+    }
+
+    @Test
+    public void testParamTypeChanged() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/methods/ParamType.java", "v2/methods/ParamType.java");
+
+        Assert.assertEquals(3, (int) reporter.getProblemCounters().get(Code.METHOD_PARAMETER_TYPE_CHANGED.code()));
     }
 }

@@ -16,10 +16,51 @@
 
 package org.revapi.java.checks.methods;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.Nullable;
+import javax.lang.model.element.VariableElement;
+
+import org.revapi.Difference;
+import org.revapi.java.Util;
+import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class ParameterTypeChanged {
-    //TODO implement
+public final class ParameterTypeChanged extends AbstractJavaCheck {
+    @Override
+    protected void doVisitMethodParameter(@Nullable VariableElement oldParameter,
+        @Nullable VariableElement newParameter) {
+
+        if (oldParameter == null || newParameter == null) {
+            //will be handled by nof parameters changed...
+            return;
+        }
+
+        String oldType = Util.toUniqueString(oldParameter.asType());
+        String newType = Util.toUniqueString(newParameter.asType());
+
+        if (!oldType.equals(newType)) {
+            pushActive(oldParameter, newParameter);
+        }
+    }
+
+    @Nullable
+    @Override
+    protected List<Difference> doEnd() {
+
+        ActiveElements<VariableElement> params = popIfActive();
+        if (params == null) {
+            return null;
+        }
+
+        String oldType = Util.toHumanReadableString(params.oldElement.asType());
+        String newType = Util.toHumanReadableString(params.newElement.asType());
+
+        return Collections.singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_CHANGED, oldType, newType));
+    }
 }

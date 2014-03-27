@@ -17,9 +17,11 @@
 package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Element;
+import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -27,8 +29,16 @@ import org.revapi.java.compilation.ProbingEnvironment;
  * @since 0.1
  */
 public final class MethodParameterElement extends JavaElementBase<VariableElement> {
+    private final int index;
+
     public MethodParameterElement(ProbingEnvironment env, VariableElement element) {
         super(env, element);
+        if (element.getEnclosingElement() instanceof ExecutableElement) {
+            index = ((ExecutableElement) element.getEnclosingElement()).getParameters().indexOf(element);
+        } else {
+            throw new IllegalArgumentException(
+                "MethodParameterElement cannot be constructed using a VariableElement not representing a method parameter.");
+        }
     }
 
     @Nonnull
@@ -43,6 +53,58 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
             return JavaElementFactory.compareByType(this, o);
         }
 
-        return toString().compareTo(o.toString());
+        MethodParameterElement other = (MethodParameterElement) o;
+
+        String myType = Util.toUniqueString(getModelElement().getEnclosingElement().getEnclosingElement().asType());
+        String myMethod = getModelElement().getEnclosingElement().getSimpleName().toString();
+
+        String otherType = Util
+            .toUniqueString(other.getModelElement().getEnclosingElement().getEnclosingElement().asType());
+        String otherMethod = other.getModelElement().getEnclosingElement().getSimpleName().toString();
+
+        int ret = myType.compareTo(otherType);
+        if (ret != 0) {
+            return ret;
+        }
+
+        ret = myMethod.compareTo(otherMethod);
+        if (ret != 0) {
+            return ret;
+        }
+
+        return index - other.index;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (obj == this) {
+            return true;
+        }
+
+        if (!(obj instanceof MethodParameterElement)) {
+            return false;
+        }
+
+        MethodParameterElement other = (MethodParameterElement) obj;
+
+        ExecutableElement myMethodElement = (ExecutableElement) getModelElement().getEnclosingElement();
+        ExecutableElement otherMethodElement = (ExecutableElement) other.getModelElement().getEnclosingElement();
+
+        if (myMethodElement.getParameters().size() != otherMethodElement.getParameters().size()) {
+            return false;
+        }
+
+        String myType = Util.toUniqueString(myMethodElement.getEnclosingElement().asType());
+        String myMethod = myMethodElement.getSimpleName().toString();
+
+        String otherType = Util.toUniqueString(otherMethodElement.getEnclosingElement().asType());
+        String otherMethod = otherMethodElement.getSimpleName().toString();
+
+
+        return myType.equals(otherType) && myMethod.equals(otherMethod) && index == other.index;
     }
 }
