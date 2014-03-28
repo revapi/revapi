@@ -73,7 +73,8 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
             try {
                 Recipe recipe = newRecipe(ctx, config);
                 codes.add(
-                    recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code)) : recipe.codeRegex);
+                    recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code) + "$") :
+                        recipe.codeRegex);
                 configuredRecipes.add(recipe);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException(
