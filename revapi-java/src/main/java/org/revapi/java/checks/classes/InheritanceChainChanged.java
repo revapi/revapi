@@ -22,6 +22,7 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 
 import org.revapi.Difference;
 import org.revapi.java.Util;
@@ -60,6 +61,7 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
                 }
             }
 
+            int newTypeIdx = 0;
             for (TypeMirror nt : newSuperTypes) {
                 boolean found = false;
                 for (TypeMirror ot : oldSuperTypes) {
@@ -74,8 +76,30 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
                         ? Code.CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS
                         : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
 
-                    ret.add(createDifference(code, new String[]{Util.toHumanReadableString(nt)}, nt));
+                    //only add the most concrete changes
+                    //we exploit the fact that the Util.getAllSuperClasses() method returns the super types
+                    //in a breadth-first-search manner with the direct super types first.
+                    boolean mostConcrete = true;
+                    Types newTypeEnv = getNewTypeEnvironment().getTypeUtils();
+                    for (int i = newTypeIdx - 1; i >= 0; --i) {
+                        TypeMirror previousNewSuperType = newSuperTypes.get(i);
+                        if (newTypeEnv.isSubtype(previousNewSuperType, nt)) {
+                            mostConcrete = false;
+                        }
+                    }
+
+                    if (mostConcrete) {
+                        ret.add(createDifference(code, new String[]{Util.toHumanReadableString(nt)}, nt));
+
+                        //additionally add a difference about checked exceptions
+                        if (changedToCheckedException(getNewTypeEnvironment().getTypeUtils(), nt, oldSuperTypes)) {
+                            code = Code.CLASS_NOW_CHECKED_EXCEPTION;
+                            ret.add(createDifference(code));
+                        }
+                    }
                 }
+
+                ++newTypeIdx;
             }
 
             return ret;
@@ -112,5 +136,29 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
                 }
             }
         }
+    }
+
+    private boolean changedToCheckedException(Types newTypeEnv, TypeMirror newType, List<TypeMirror> oldTypes) {
+        if ("java.lang.Exception".equals(Util.toHumanReadableString(newType))) {
+            return isTypeThrowable(oldTypes);
+        } else {
+            for (TypeMirror sc : Util.getAllSuperClasses(newTypeEnv, newType)) {
+                if ("java.lang.Exception".equals(Util.toHumanReadableString(sc))) {
+                    return isTypeThrowable(oldTypes);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isTypeThrowable(List<TypeMirror> superClassesOfType) {
+        for (TypeMirror sc : superClassesOfType) {
+            if (Util.toHumanReadableString(sc).equals("java.lang.Throwable")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

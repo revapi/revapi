@@ -14,6 +14,8 @@
  * limitations under the License
  */
 
+import java.io.IOException;
+
 public class NewSuperTypes {
     public class A {
 
@@ -30,4 +32,8 @@ public class NewSuperTypes {
     public class C extends BB {
 
     }
+
+    public class E extends IOException {}
+
+    public class EE extends Exception {}
 }

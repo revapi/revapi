@@ -14,6 +14,8 @@
  * limitations under the License
  */
 
+import java.io.IOException;
+
 public class ChangedSuperTypes {
 
     public class A extends B {}
@@ -21,4 +23,6 @@ public class ChangedSuperTypes {
     public class B  {}
 
     public class C extends A {}
+
+    public class E extends IOException {}
 }

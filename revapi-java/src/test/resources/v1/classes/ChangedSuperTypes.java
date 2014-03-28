@@ -21,4 +21,6 @@ public class ChangedSuperTypes {
     public class B extends A {}
 
     public class C extends B {}
+
+    public class E extends RuntimeException {}
 }

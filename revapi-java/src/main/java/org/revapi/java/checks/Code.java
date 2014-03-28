@@ -60,7 +60,7 @@ public enum Code {
         null),
     CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS("java.class.nonFinalClassInheritsFromNewClass", POTENTIALLY_BREAKING,
         POTENTIALLY_BREAKING, POTENTIALLY_BREAKING),
-    CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null), //TODO implement
+    CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null),
     CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass", BREAKING, BREAKING, null),
     CLASS_NON_PUBLIC_PART_OF_API("java.class.nonPublicPartOfAPI", NON_BREAKING, NON_BREAKING, NON_BREAKING),
 

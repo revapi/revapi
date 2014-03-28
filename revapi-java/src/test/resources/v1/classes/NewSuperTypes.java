@@ -30,4 +30,8 @@ public class NewSuperTypes {
     public class BB extends B {
 
     }
+
+    public class E {}
+
+    public class EE extends Error {}
 }
