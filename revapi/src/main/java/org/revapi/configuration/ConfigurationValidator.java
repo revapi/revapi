@@ -57,6 +57,10 @@ public final class ConfigurationValidator {
                 String[] path = rootPath.split("\\.");
                 ModelNode configNode = fullConfiguration.get(path);
 
+                if (!configNode.isDefined()) {
+                    continue;
+                }
+
                 try (Reader schemaReader = configurable.getJSONSchema(rootPath)) {
                     if (schemaReader == null) {
                         continue;
@@ -131,7 +135,7 @@ public final class ConfigurationValidator {
             }
         }
 
-        return ValidationResult.fromTv4Results(result);
+        return result.isDefined() ? ValidationResult.fromTv4Results(result) : new ValidationResult(null, null);
     }
 
     private ScriptEngine getJsEngine(Writer output) throws IOException, ScriptException {

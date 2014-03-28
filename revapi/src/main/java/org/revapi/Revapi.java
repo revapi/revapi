@@ -313,10 +313,10 @@ public final class Revapi {
     public void analyze(@Nonnull AnalysisContext analysisContext) throws Exception {
         ValidationResult validation = ValidationResult.success();
 
-        initialize(analysisContext, validation, availableFilters);
-        initialize(analysisContext, validation, availableReporters);
-        initialize(analysisContext, validation, availableApiAnalyzers);
-        initialize(analysisContext, validation, availableTransforms);
+        validation = initialize(analysisContext, validation, availableFilters);
+        validation = initialize(analysisContext, validation, availableReporters);
+        validation = initialize(analysisContext, validation, availableApiAnalyzers);
+        validation = initialize(analysisContext, validation, availableTransforms);
 
         matchingTransformsCache.clear();
 
@@ -336,7 +336,7 @@ public final class Revapi {
         }
     }
 
-    private void initialize(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
+    private ValidationResult initialize(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
         Iterable<? extends Configurable> configurables) {
         for (Configurable c : configurables) {
             ValidationResult partial = configurationValidator.validate(analysisContext.getConfiguration(), c);
@@ -346,6 +346,8 @@ public final class Revapi {
                 c.initialize(analysisContext);
             }
         }
+
+        return validationResult;
     }
 
     private void closeAll(Iterable<? extends AutoCloseable> closeables, String type) {

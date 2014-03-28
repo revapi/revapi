@@ -48,8 +48,7 @@ final class JavaElementFactory {
             throw new IllegalArgumentException("Unsupported model element: " + modelElement.getClass());
         }
 
-        //TODO we're missing wrappers for TypeParameterElement and PackageElement.
-        //I could see use for PackageElement, because packages can have annotations on them
+        //TODO I could see use for PackageElement, because packages can have annotations on them
     }
 
     public static int compareByType(org.revapi.Element a, org.revapi.Element b) {

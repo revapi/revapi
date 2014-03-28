@@ -2,6 +2,7 @@ package org.revapi.configuration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -22,6 +23,36 @@ public final class ValidationResult {
             this.code = code;
             this.message = message;
             this.dataPath = dataPath;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Error error = (Error) o;
+
+            if (code != error.code) {
+                return false;
+            }
+
+            if (!dataPath.equals(error.dataPath)) {
+                return false;
+            }
+
+            return message.equals(error.message);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = code;
+            result = 31 * result + message.hashCode();
+            result = 31 * result + dataPath.hashCode();
+            return result;
         }
 
         @Override
@@ -82,8 +113,40 @@ public final class ValidationResult {
     }
 
     public ValidationResult merge(ValidationResult other) {
-        //TODO implement
-        return this;
+        if (missingSchemas == null && errors == null) {
+            return other;
+        }
+
+        if (other.missingSchemas == null && other.errors == null) {
+            return this;
+        }
+
+        HashSet<String> newMissingSchemas = missingSchemas == null ? null
+            : new HashSet<>(Arrays.asList(missingSchemas));
+
+        if (other.missingSchemas != null) {
+            if (newMissingSchemas == null) {
+                newMissingSchemas = new HashSet<>();
+            }
+            newMissingSchemas.addAll(Arrays.asList(other.missingSchemas));
+        }
+
+        String[] retMissingSchemas =
+            newMissingSchemas == null ? null : newMissingSchemas.toArray(new String[newMissingSchemas.size()]);
+
+        HashSet<Error> newErrors = errors == null ? null : new HashSet<>(Arrays.asList(errors));
+
+        if (other.errors != null) {
+            if (newErrors == null) {
+                newErrors = new HashSet<>();
+            }
+
+            newErrors.addAll(Arrays.asList(other.errors));
+        }
+
+        Error[] retErrors = newErrors == null ? null : newErrors.toArray(new Error[newErrors.size()]);
+
+        return new ValidationResult(retMissingSchemas, retErrors);
     }
 
     @Nullable
