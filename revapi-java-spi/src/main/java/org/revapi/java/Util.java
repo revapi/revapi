@@ -100,9 +100,8 @@ public final class Util {
 
         @Override
         public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> bld) {
-            bld.bld.append("[");
             t.getComponentType().accept(this, bld);
-            bld.bld.append("]");
+            bld.bld.append("[]");
             return null;
         }
 
@@ -248,9 +247,8 @@ public final class Util {
 
         @Override
         public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> state) {
-            state.bld.append("[");
             t.getComponentType().accept(this, state);
-            state.bld.append("]");
+            state.bld.append("[]");
             return null;
         }
 
@@ -578,7 +576,7 @@ public final class Util {
 
             @Override
             public String visitType(TypeMirror t, Void ignored) {
-                return toHumanReadableString(t);
+                return toHumanReadableString(t) + ".class";
             }
 
             @Override
@@ -609,8 +607,13 @@ public final class Util {
             public String visitArray(List<? extends AnnotationValue> vals, Void ignored) {
                 StringBuilder bld = new StringBuilder("[");
 
-                for (AnnotationValue v : vals) {
-                    bld.append(v.accept(this, null));
+                Iterator<? extends AnnotationValue> it = vals.iterator();
+                if (it.hasNext()) {
+                    bld.append(it.next().accept(this, null));
+                }
+
+                while (it.hasNext()) {
+                    bld.append(", ").append(it.next().accept(this, null));
                 }
 
                 bld.append("]");
