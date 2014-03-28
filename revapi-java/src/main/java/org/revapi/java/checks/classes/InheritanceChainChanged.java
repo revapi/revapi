@@ -17,14 +17,20 @@
 package org.revapi.java.checks.classes;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
+import org.revapi.CoIterator;
 import org.revapi.Difference;
+import org.revapi.java.TypeEnvironment;
 import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
@@ -42,64 +48,78 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
             List<Difference> ret = new ArrayList<>();
 
             @SuppressWarnings("unchecked")
-            List<TypeMirror> oldSuperTypes = (List<TypeMirror>) types.context[0];
+            List<TypeMirror> oldSuperClasses = (List<TypeMirror>) types.context[0];
             @SuppressWarnings("unchecked")
-            List<TypeMirror> newSuperTypes = (List<TypeMirror>) types.context[1];
+            List<TypeMirror> newSuperClasses = (List<TypeMirror>) types.context[1];
 
-            for (TypeMirror ot : oldSuperTypes) {
-                boolean found = false;
-                for (TypeMirror nt : newSuperTypes) {
-                    if (Util.isSameType(ot, nt)) {
-                        found = true;
-                        break;
-                    }
+            Comparator<TypeMirror> typeNameComparator = new Comparator<TypeMirror>() {
+                @Override
+                public int compare(TypeMirror o1, TypeMirror o2) {
+                    return Util.toUniqueString(o1).compareTo(Util.toUniqueString(o2));
                 }
+            };
 
-                if (!found) {
-                    ret.add(createDifference(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS,
-                        new String[]{Util.toHumanReadableString(ot)}, ot));
+            List<TypeMirror> removedSuperClasses = new ArrayList<>();
+            List<TypeMirror> addedSuperClasses = new ArrayList<>();
+
+            Collections.sort(oldSuperClasses, typeNameComparator);
+            Collections.sort(newSuperClasses, typeNameComparator);
+
+            CoIterator<TypeMirror> iterator = new CoIterator<>(oldSuperClasses.iterator(), newSuperClasses.iterator(),
+                typeNameComparator);
+            while (iterator.hasNext()) {
+                iterator.next();
+
+                TypeMirror oldType = iterator.getLeft();
+                TypeMirror newType = iterator.getRight();
+
+                if (oldType == null) {
+                    addedSuperClasses.add(newType);
+                } else if (newType == null) {
+                    removedSuperClasses.add(oldType);
                 }
             }
 
-            int newTypeIdx = 0;
-            for (TypeMirror nt : newSuperTypes) {
-                boolean found = false;
-                for (TypeMirror ot : oldSuperTypes) {
-                    if (Util.isSameType(ot, nt)) {
-                        found = true;
-                        break;
-                    }
+            //this will give us the equivalent of removed/added superclasses but ordered by the inheritance chain
+            //not by name
+            removedSuperClasses = retainInCopy(oldSuperClasses, removedSuperClasses);
+            addedSuperClasses = retainInCopy(newSuperClasses, addedSuperClasses);
+
+            Iterator<TypeMirror> removedIt = removedSuperClasses.iterator();
+            Iterator<TypeMirror> addedIt = addedSuperClasses.iterator();
+
+            //always report the most concrete classes
+            if (removedIt.hasNext()) {
+                removedIt.next();
+            }
+
+            if (addedIt.hasNext()) {
+                addedIt.next();
+            }
+
+            //ok, now we only have super types left of the most concrete removed/added super class.
+            //we are only going to report those that changed their inheritance hierarchy in the other version of the API.
+            removeClassesWithEquivalentSuperClassChain(removedIt, getOldTypeEnvironment(), getNewTypeEnvironment());
+            removeClassesWithEquivalentSuperClassChain(addedIt, getNewTypeEnvironment(), getOldTypeEnvironment());
+
+            for (TypeMirror t : removedSuperClasses) {
+                String str = Util.toHumanReadableString(t);
+                ret.add(createDifference(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS,
+                    new String[]{str}, t));
+            }
+
+            for (TypeMirror t : addedSuperClasses) {
+                String str = Util.toHumanReadableString(t);
+                Code code = types.oldElement.getModifiers().contains(Modifier.FINAL)
+                    ? Code.CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS
+                    : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
+
+                ret.add(createDifference(code, new String[]{str}, t));
+
+                //additionally add a difference about checked exceptions
+                if (changedToCheckedException(getNewTypeEnvironment().getTypeUtils(), t, oldSuperClasses)) {
+                    ret.add(createDifference(Code.CLASS_NOW_CHECKED_EXCEPTION));
                 }
-
-                if (!found) {
-                    Code code = types.oldElement.getModifiers().contains(Modifier.FINAL)
-                        ? Code.CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS
-                        : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
-
-                    //only add the most concrete changes
-                    //we exploit the fact that the Util.getAllSuperClasses() method returns the super types
-                    //in a breadth-first-search manner with the direct super types first.
-                    boolean mostConcrete = true;
-                    Types newTypeEnv = getNewTypeEnvironment().getTypeUtils();
-                    for (int i = newTypeIdx - 1; i >= 0; --i) {
-                        TypeMirror previousNewSuperType = newSuperTypes.get(i);
-                        if (newTypeEnv.isSubtype(previousNewSuperType, nt)) {
-                            mostConcrete = false;
-                        }
-                    }
-
-                    if (mostConcrete) {
-                        ret.add(createDifference(code, new String[]{Util.toHumanReadableString(nt)}, nt));
-
-                        //additionally add a difference about checked exceptions
-                        if (changedToCheckedException(getNewTypeEnvironment().getTypeUtils(), nt, oldSuperTypes)) {
-                            code = Code.CLASS_NOW_CHECKED_EXCEPTION;
-                            ret.add(createDifference(code));
-                        }
-                    }
-                }
-
-                ++newTypeIdx;
             }
 
             return ret;
@@ -138,7 +158,9 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
         }
     }
 
-    private boolean changedToCheckedException(Types newTypeEnv, TypeMirror newType, List<TypeMirror> oldTypes) {
+    private boolean changedToCheckedException(@Nonnull Types newTypeEnv, @Nonnull TypeMirror newType,
+        @Nonnull List<TypeMirror> oldTypes) {
+
         if ("java.lang.Exception".equals(Util.toHumanReadableString(newType))) {
             return isTypeThrowable(oldTypes);
         } else {
@@ -152,7 +174,7 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
         return false;
     }
 
-    private boolean isTypeThrowable(List<TypeMirror> superClassesOfType) {
+    private boolean isTypeThrowable(@Nonnull List<TypeMirror> superClassesOfType) {
         for (TypeMirror sc : superClassesOfType) {
             if (Util.toHumanReadableString(sc).equals("java.lang.Throwable")) {
                 return true;
@@ -160,5 +182,49 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
         }
 
         return false;
+    }
+
+    private List<String> superClassChainAsUniqueStrings(@Nonnull TypeMirror cls, @Nonnull Types env) {
+        List<TypeMirror> supers = Util.getAllSuperClasses(env, cls);
+        List<String> ret = new ArrayList<>(supers.size());
+
+        for (TypeMirror s : supers) {
+            ret.add(Util.toUniqueString(s));
+        }
+
+        return ret;
+    }
+
+    private void removeClassesWithEquivalentSuperClassChain(Iterator<TypeMirror> candidates,
+        TypeEnvironment candidateEnvironment, TypeEnvironment oppositeEnvironment) {
+
+        while (candidates.hasNext()) {
+            boolean report = true;
+
+            TypeMirror candidate = candidates.next();
+            String typeName = Util.toHumanReadableString(candidate);
+            TypeElement el = oppositeEnvironment.getElementUtils().getTypeElement(typeName);
+            if (el != null) {
+                TypeMirror opposite = el.asType();
+
+                List<String> candidateSuperChain = superClassChainAsUniqueStrings(candidate,
+                    candidateEnvironment.getTypeUtils());
+
+                List<String> oppositeSuperChain = superClassChainAsUniqueStrings(opposite,
+                    oppositeEnvironment.getTypeUtils());
+
+                report = !candidateSuperChain.equals(oppositeSuperChain);
+            }
+
+            if (!report) {
+                candidates.remove();
+            }
+        }
+    }
+
+    private List<TypeMirror> retainInCopy(List<TypeMirror> all, List<TypeMirror> retained) {
+        List<TypeMirror> tmp = new ArrayList<>(all);
+        tmp.retainAll(retained);
+        return tmp;
     }
 }

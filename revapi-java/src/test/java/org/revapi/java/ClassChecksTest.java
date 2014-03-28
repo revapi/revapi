@@ -76,7 +76,7 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v2/classes/NewSuperTypes.java", "v1/classes/NewSuperTypes.java");
         Assert
-            .assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
+            .assertEquals(3, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert
             .assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
-        Assert.assertEquals(1,
+        Assert.assertEquals(2,
             (int) reporter.getProblemCounters().get(Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_CHECKED_EXCEPTION.code()));
     }
