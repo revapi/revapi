@@ -16,6 +16,7 @@
 
 package org.revapi;
 
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -47,10 +48,11 @@ import java.util.NoSuchElementException;
  * @author Lukas Krejci
  * @since 0.1
  */
-final class CoIterator<E extends Comparable<? super E>> {
+public final class CoIterator<E> {
 
     private final Iterator<? extends E> left;
     private final Iterator<? extends E> right;
+    private final Comparator<? super E> comparator;
 
     private E currentLeft;
     private E currentRight;
@@ -62,20 +64,35 @@ final class CoIterator<E extends Comparable<? super E>> {
      * produce the intended results.
      * <p/>
      * Also, the iterators must not ever return null - i.e. the collections must not contain null
-     * values.
+     * values otherwise the behavior of the iteration is undefined.
      *
      * @param left  the iterator over "left" collection
      * @param right the iterator over "right" collection
+     * @param comparator the comparator used to sort the collections (this must have been done prior to calling this
+     *                   constructor)
      */
-    public CoIterator(Iterator<? extends E> left, Iterator<? extends E> right) {
+    public CoIterator(Iterator<? extends E> left, Iterator<? extends E> right, Comparator<? super E> comparator) {
         this.left = left;
         this.right = right;
+        this.comparator = comparator;
+
         if (left.hasNext()) {
             currentLeft = left.next();
         }
         if (right.hasNext()) {
             currentRight = right.next();
         }
+    }
+
+    /**
+     * Assumes the iterators iterate over comparable elements.
+     * If <code>E</code> is not at the same time comparable, calling {@link #next()} will fail with a class cast
+     * exception at the first mutual comparison of elements from the two collections.
+     *
+     * @see #CoIterator(java.util.Iterator, java.util.Iterator, java.util.Comparator)
+     */
+    public CoIterator(Iterator<? extends E> left, Iterator<? extends E> right) {
+        this(left, right, new NaturalOrderComparator());
     }
 
     public boolean hasNext() {
@@ -96,7 +113,7 @@ final class CoIterator<E extends Comparable<? super E>> {
         } else if (!hasLeft) {
             order = 1;
         } else {
-            order = currentLeft.compareTo(currentRight);
+            order = comparator.compare(currentLeft, currentRight);
         }
 
         if (order < 0) {
@@ -125,5 +142,13 @@ final class CoIterator<E extends Comparable<? super E>> {
 
     private E nextOrNull(Iterator<? extends E> it) {
         return it.hasNext() ? it.next() : null;
+    }
+
+    private static final class NaturalOrderComparator implements Comparator<Object> {
+        @Override
+        @SuppressWarnings("unchecked")
+        public int compare(Object o1, Object o2) {
+            return ((Comparable<Object>) o1).compareTo(o2);
+        }
     }
 }
