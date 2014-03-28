@@ -19,6 +19,7 @@ package org.revapi.java.checks.classes;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
@@ -69,8 +70,11 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
                 }
 
                 if (!found) {
-                    ret.add(createDifference(Code.CLASS_INHERITS_FROM_NEW_CLASS,
-                        new String[]{Util.toHumanReadableString(nt)}, nt));
+                    Code code = types.oldElement.getModifiers().contains(Modifier.FINAL)
+                        ? Code.CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS
+                        : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
+
+                    ret.add(createDifference(code, new String[]{Util.toHumanReadableString(nt)}, nt));
                 }
             }
 

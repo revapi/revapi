@@ -56,12 +56,10 @@ public enum Code {
     CLASS_REMOVED("java.class.removed", BREAKING, BREAKING, null),
     CLASS_NO_LONGER_IMPLEMENTS_INTERFACE("java.class.noLongerImplementsInterface", BREAKING, BREAKING, null),
     CLASS_NOW_IMPLEMENTS_INTERFACE("java.class.nowImplementsInterface", NON_BREAKING, NON_BREAKING, null),
-    @Deprecated
-    CLASS_INHERITS_FROM_NEW_CLASS("java.class.inheritsFromNewClass", NON_BREAKING, NON_BREAKING, null),
     CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS("java.class.finalClassInheritsFromNewClass", NON_BREAKING, NON_BREAKING,
-        null), //TODO implement
+        null),
     CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS("java.class.nonFinalClassInheritsFromNewClass", POTENTIALLY_BREAKING,
-        POTENTIALLY_BREAKING, POTENTIALLY_BREAKING), //TODO implement
+        POTENTIALLY_BREAKING, POTENTIALLY_BREAKING),
     CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null), //TODO implement
     CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass", BREAKING, BREAKING, null),
     CLASS_NON_PUBLIC_PART_OF_API("java.class.nonPublicPartOfAPI", NON_BREAKING, NON_BREAKING, NON_BREAKING),
@@ -106,11 +104,10 @@ public enum Code {
     METHOD_ABSTRACT_METHOD_ADDED("java.method.abstractMethodAdded", BREAKING, BREAKING, null),
     METHOD_ADDED("java.method.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null),
-
-    //TODO is this needed? How does it behave?
-    METHOD_ATTRIBUTE_WITHOUT_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE("", BREAKING, NON_BREAKING, null),
-    METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE("", BREAKING, NON_BREAKING, null),
-
+    METHOD_ATTRIBUTE_WITHOUT_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE(
+        "java.method.attributeWithNoDefaultRemovedFromAnnotationType", BREAKING, POTENTIALLY_BREAKING, null),
+    METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE(
+        "java.method.attributeWithDefaultRemovedFromAnnotationType", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
     METHOD_NO_LONGER_FINAL("java.method.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
     METHOD_NOW_FINAL("java.method.nowFinal", BREAKING, BREAKING, null),
     METHOD_VISIBILITY_INCREASED("java.method.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
