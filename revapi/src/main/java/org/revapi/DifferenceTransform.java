@@ -16,6 +16,8 @@
 
 package org.revapi;
 
+import java.util.regex.Pattern;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -28,8 +30,17 @@ import org.revapi.configuration.Configurable;
 public interface DifferenceTransform extends AutoCloseable, Configurable {
 
     /**
+     * The list of regexes to match the difference codes this transform can handle.
+     */
+    @Nonnull
+    Pattern[] getDifferenceCodePatterns();
+
+    /**
      * Returns a transformed version of the difference. If this method returns null, the difference is
      * discarded and not reported. Therefore, if you don't want to transform a difference, just return it.
+     * <p/>
+     * The code of the difference will match at least one of the regexes returned from the {@link
+     * #getDifferenceCodePatterns()} method.
      *
      * @param oldElement the old differing element
      * @param newElement the new differing element

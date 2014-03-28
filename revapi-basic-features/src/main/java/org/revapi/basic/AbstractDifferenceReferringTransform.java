@@ -2,6 +2,8 @@ package org.revapi.basic;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,6 +25,7 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
     private final String[] propertyPrefix;
     private final String propertyPrefixAsString;
     private Collection<Recipe> configuredRecipes;
+    private Pattern[] codes;
 
     protected AbstractDifferenceReferringTransform(@Nonnull String... propertyPrefix) {
         this.propertyPrefix = propertyPrefix;
@@ -36,6 +39,12 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
             bld.append(".").append(propertyPrefix[i]);
         }
         propertyPrefixAsString = bld.toString();
+    }
+
+    @Nonnull
+    @Override
+    public Pattern[] getDifferenceCodePatterns() {
+        return codes;
     }
 
     @Nullable
@@ -54,18 +63,24 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
         ModelNode myNode = analysisContext.getConfiguration().get(propertyPrefix);
 
         if (myNode.getType() != ModelType.LIST) {
+            this.codes = new Pattern[0];
             return;
         }
+
+        List<Pattern> codes = new ArrayList<>();
 
         for (ModelNode config : myNode.asList()) {
             try {
                 Recipe recipe = newRecipe(ctx, config);
+                codes.add(
+                    recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code)) : recipe.codeRegex);
                 configuredRecipes.add(recipe);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException(
                     "Property " + propertyPrefixAsString + "[" + idx + "] is not valid: " + e.getMessage());
             }
         }
+        this.codes = codes.toArray(new Pattern[codes.size()]);
     }
 
     @Nullable

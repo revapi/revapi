@@ -2,6 +2,7 @@ package org.revapi.java.transforms.methods;
 
 import java.io.Reader;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -22,6 +23,17 @@ import org.revapi.java.checks.Code;
  */
 public class AnnotationTypeAttributeRemoved implements DifferenceTransform {
     private Locale locale;
+    private final Pattern[] codes;
+
+    public AnnotationTypeAttributeRemoved() {
+        codes = new Pattern[]{Pattern.compile("^" + Pattern.quote(Code.METHOD_REMOVED.code()) + "$")};
+    }
+
+    @Nonnull
+    @Override
+    public Pattern[] getDifferenceCodePatterns() {
+        return codes;
+    }
 
     @Nullable
     @Override
@@ -45,10 +57,6 @@ public class AnnotationTypeAttributeRemoved implements DifferenceTransform {
     public Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
         @Nonnull Difference difference) {
 
-        if (Code.METHOD_REMOVED != Code.fromCode(difference.code)) {
-            return difference;
-        }
-
         @SuppressWarnings("ConstantConditions")
         ExecutableElement method = (ExecutableElement) ((JavaModelElement) oldElement).getModelElement();
 
@@ -56,7 +64,7 @@ public class AnnotationTypeAttributeRemoved implements DifferenceTransform {
             AnnotationValue defaultValue = method.getDefaultValue();
 
             if (defaultValue == null) {
-                return Code.METHOD_ATTRIBUTE_WITHOUT_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE.createDifference(locale);
+                return Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE.createDifference(locale);
             } else {
                 return Code.METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE.createDifference(locale);
             }

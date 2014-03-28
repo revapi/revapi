@@ -17,6 +17,7 @@
 package org.revapi.java.transforms.annotations;
 
 import java.io.Reader;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,14 +43,21 @@ import org.revapi.java.checks.Code;
 abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
     protected AnalysisContext analysisContext;
     private final String annotationQualifiedName;
-    private final Code annotationCheckCode;
     private final Code transformedCode;
+    private final Pattern[] codes;
 
     protected AbstractAnnotationPresenceCheck(String annotationQualifiedName, Code annotationCheckCode,
         Code transformedCode) {
         this.annotationQualifiedName = annotationQualifiedName;
-        this.annotationCheckCode = annotationCheckCode;
         this.transformedCode = transformedCode;
+        String regex = "^" + Pattern.quote(annotationCheckCode.code()) + "$";
+        codes = new Pattern[]{Pattern.compile(regex)};
+    }
+
+    @Nonnull
+    @Override
+    public Pattern[] getDifferenceCodePatterns() {
+        return codes;
     }
 
     @Nullable
@@ -73,10 +81,6 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
     @Override
     public Difference transform(@Nullable final Element oldElement, @Nullable final Element newElement,
         @Nonnull final Difference difference) {
-        if (Code.fromCode(difference.code) != annotationCheckCode) {
-            return difference;
-        }
-
         //we're checking for change of presence of an annotation on an element. Thus both the old and new version
         //of the element must be non-null.
         if (oldElement == null || newElement == null) {

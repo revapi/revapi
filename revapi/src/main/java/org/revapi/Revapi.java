@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -287,6 +288,8 @@ public final class Revapi {
     private final CompoundFilter availableFilters;
     private final ConfigurationValidator configurationValidator;
 
+    private final Map<String, List<DifferenceTransform>> matchingTransformsCache = new HashMap<>();
+
     @Nonnull
     public static Builder builder() {
         return new Builder();
@@ -314,6 +317,8 @@ public final class Revapi {
         initialize(analysisContext, validation, availableReporters);
         initialize(analysisContext, validation, availableApiAnalyzers);
         initialize(analysisContext, validation, availableTransforms);
+
+        matchingTransformsCache.clear();
 
         if (!validation.isSuccessful()) {
             throw new ConfigurationException(validation.toString());
@@ -417,21 +422,21 @@ public final class Revapi {
         do {
             changed = false;
 
-            for (DifferenceTransform t : availableTransforms) {
-                ListIterator<Difference> it = report.getDifferences().listIterator();
-                while (it.hasNext()) {
-                    Difference p = it.next();
-                    Difference tp = t.transform(report.getOldElement(), report.getNewElement(), p);
+            ListIterator<Difference> it = report.getDifferences().listIterator();
+            while (it.hasNext()) {
+                Difference d = it.next();
+                for (DifferenceTransform t : getTransformsForDifference(d)) {
+                    Difference td = t.transform(report.getOldElement(), report.getNewElement(), d);
                     // ignore if transformation returned null, meaning that it "swallowed" the problem..
                     // once the changes are done, we'll loop through once more and remove the problems that the
                     // transforms want removed.
                     // This prevents 1 transformation from disallowing other transformation to do what it needs
                     // if both apply to the same problem.
-                    if (tp != null && tp != p) { //yes, reference equality is OK here
+                    if (td != null && td != d) { //yes, reference equality is OK here
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Problem transform {} transforms {} to  {}", t.getClass(), p, tp);
+                            LOG.debug("Difference transform {} transforms {} to  {}", t.getClass(), d, td);
                         }
-                        it.set(tp);
+                        it.set(td);
                         changed = true;
                     }
                 }
@@ -446,12 +451,12 @@ public final class Revapi {
         } while (changed);
 
         //now remove the problems that the transforms want removed
-        for (DifferenceTransform t : availableTransforms) {
-            ListIterator<Difference> it = report.getDifferences().listIterator();
-            while (it.hasNext()) {
-                Difference p = it.next();
-                Difference tp = t.transform(report.getOldElement(), report.getNewElement(), p);
-                if (tp == null) {
+        ListIterator<Difference> it = report.getDifferences().listIterator();
+        while (it.hasNext()) {
+            Difference d = it.next();
+            for (DifferenceTransform t : getTransformsForDifference(d)) {
+                Difference td = t.transform(report.getOldElement(), report.getNewElement(), d);
+                if (td == null) {
                     it.remove();
                 }
             }
@@ -462,5 +467,23 @@ public final class Revapi {
                 reporter.report(report);
             }
         }
+    }
+
+    private List<DifferenceTransform> getTransformsForDifference(Difference diff) {
+        List<DifferenceTransform> ret = matchingTransformsCache.get(diff.code);
+        if (ret == null) {
+            ret = new ArrayList<>();
+            for (DifferenceTransform t : availableTransforms) {
+                for (Pattern p : t.getDifferenceCodePatterns()) {
+                    if (p.matcher(diff.code).matches()) {
+                        ret.add(t);
+                        break;
+                    }
+                }
+            }
+            matchingTransformsCache.put(diff.code, ret);
+        }
+
+        return ret;
     }
 }
