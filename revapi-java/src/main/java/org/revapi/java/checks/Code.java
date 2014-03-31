@@ -19,13 +19,14 @@ package org.revapi.java.checks;
 import static org.revapi.ChangeSeverity.BREAKING;
 import static org.revapi.ChangeSeverity.NON_BREAKING;
 import static org.revapi.ChangeSeverity.POTENTIALLY_BREAKING;
-import static org.revapi.CompatibilityType.BINARY;
-import static org.revapi.CompatibilityType.SEMANTIC;
-import static org.revapi.CompatibilityType.SOURCE;
+import static org.revapi.java.JavaCompatibility.BINARY;
+import static org.revapi.java.JavaCompatibility.REFLECTION;
+import static org.revapi.java.JavaCompatibility.SEMANTIC;
+import static org.revapi.java.JavaCompatibility.SOURCE;
 
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -36,99 +37,102 @@ import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 
 /**
- * TODO move this class to SPI so that extenders can take advantage of it.
- *
  * @author Lukas Krejci
  * @since 0.1
  */
 public enum Code {
-    ELEMENT_NO_LONGER_DEPRECATED("java.element.noLongerDeprecated", NON_BREAKING, NON_BREAKING, null),
-    ELEMENT_NOW_DEPRECATED("java.element.nowDeprecated", NON_BREAKING, NON_BREAKING, null),
+    ELEMENT_NO_LONGER_DEPRECATED("java.element.noLongerDeprecated", NON_BREAKING, NON_BREAKING, null, null),
+    ELEMENT_NOW_DEPRECATED("java.element.nowDeprecated", NON_BREAKING, NON_BREAKING, null, null),
 
-    CLASS_VISIBILITY_INCREASED("java.class.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
-    CLASS_VISIBILITY_REDUCED("java.class.visibilityReduced", BREAKING, BREAKING, null),
-    CLASS_KIND_CHANGED("java.class.kindChanged", BREAKING, BREAKING, null),
-    CLASS_NO_LONGER_FINAL("java.class.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
-    CLASS_NOW_FINAL("java.class.nowFinal", BREAKING, BREAKING, null),
-    CLASS_NO_LONGER_ABSTRACT("java.class.noLongerAbstract", NON_BREAKING, NON_BREAKING, null),
-    CLASS_NOW_ABSTRACT("java.class.nowAbstract", BREAKING, BREAKING, null),
-    CLASS_ADDED("java.class.added", NON_BREAKING, NON_BREAKING, null),
-    CLASS_REMOVED("java.class.removed", BREAKING, BREAKING, null),
-    CLASS_NO_LONGER_IMPLEMENTS_INTERFACE("java.class.noLongerImplementsInterface", BREAKING, BREAKING, null),
-    CLASS_NOW_IMPLEMENTS_INTERFACE("java.class.nowImplementsInterface", NON_BREAKING, NON_BREAKING, null),
+    CLASS_VISIBILITY_INCREASED("java.class.visibilityIncreased", NON_BREAKING, NON_BREAKING, null, null),
+    CLASS_VISIBILITY_REDUCED("java.class.visibilityReduced", BREAKING, BREAKING, null, null),
+    CLASS_KIND_CHANGED("java.class.kindChanged", BREAKING, BREAKING, null, null),
+    CLASS_NO_LONGER_FINAL("java.class.noLongerFinal", NON_BREAKING, NON_BREAKING, null, null),
+    CLASS_NOW_FINAL("java.class.nowFinal", BREAKING, BREAKING, null, null),
+    CLASS_NO_LONGER_ABSTRACT("java.class.noLongerAbstract", NON_BREAKING, NON_BREAKING, null, null),
+    CLASS_NOW_ABSTRACT("java.class.nowAbstract", BREAKING, BREAKING, null, null),
+    CLASS_ADDED("java.class.added", NON_BREAKING, NON_BREAKING, null, null),
+    CLASS_REMOVED("java.class.removed", BREAKING, BREAKING, null, null),
+    CLASS_NO_LONGER_IMPLEMENTS_INTERFACE("java.class.noLongerImplementsInterface", BREAKING, BREAKING, null, null),
+    CLASS_NOW_IMPLEMENTS_INTERFACE("java.class.nowImplementsInterface", NON_BREAKING, NON_BREAKING, null, null),
     CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS("java.class.finalClassInheritsFromNewClass", NON_BREAKING, NON_BREAKING,
-        null),
+        null, null),
     CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS("java.class.nonFinalClassInheritsFromNewClass", POTENTIALLY_BREAKING,
-        POTENTIALLY_BREAKING, POTENTIALLY_BREAKING),
-    CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null),
-    CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass", BREAKING, BREAKING, null),
-    CLASS_NON_PUBLIC_PART_OF_API("java.class.nonPublicPartOfAPI", NON_BREAKING, NON_BREAKING, NON_BREAKING),
+        POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
+    CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null, null),
+    CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass", BREAKING, BREAKING, null, null),
+    CLASS_NON_PUBLIC_PART_OF_API("java.class.nonPublicPartOfAPI", NON_BREAKING, NON_BREAKING, NON_BREAKING, null),
 
-    ANNOTATION_ADDED("java.annotation.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
-    ANNOTATION_REMOVED("java.annotation.removed", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    ANNOTATION_ADDED("java.annotation.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING, null),
+    ANNOTATION_REMOVED("java.annotation.removed", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING, null),
     ANNOTATION_ATTRIBUTE_VALUE_CHANGED("java.annotation.attributeValueChanged", NON_BREAKING, NON_BREAKING,
-        POTENTIALLY_BREAKING),
-    ANNOTATION_ATTRIBUTE_ADDED("java.annotation.attributeAdded", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
-    ANNOTATION_ATTRIBUTE_REMOVED("java.annotation.attributeRemoved", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+        POTENTIALLY_BREAKING, null),
+    ANNOTATION_ATTRIBUTE_ADDED("java.annotation.attributeAdded", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING,
+        null),
+    ANNOTATION_ATTRIBUTE_REMOVED("java.annotation.attributeRemoved", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING,
+        null),
     ANNOTATION_NO_LONGER_INHERITED("java.annotation.noLongerInherited", NON_BREAKING, NON_BREAKING,
-        POTENTIALLY_BREAKING),
-    ANNOTATION_NOW_INHERITED("java.annotation.nowInherited", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+        POTENTIALLY_BREAKING, null),
+    ANNOTATION_NOW_INHERITED("java.annotation.nowInherited", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING, null),
 
-    FIELD_ADDED_STATIC_FIELD("java.field.addedStaticField", NON_BREAKING, NON_BREAKING, null),
-    FIELD_ADDED("java.field.added", NON_BREAKING, NON_BREAKING, null),
+    FIELD_ADDED_STATIC_FIELD("java.field.addedStaticField", NON_BREAKING, NON_BREAKING, null, null),
+    FIELD_ADDED("java.field.added", NON_BREAKING, NON_BREAKING, null, null),
 
-    FIELD_REMOVED("java.field.removed", BREAKING, BREAKING, null),
-    FIELD_CONSTANT_REMOVED("java.field.removedWithConstant", BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
-    FIELD_CONSTANT_VALUE_CHANGED("java.field.constantValueChanged", NON_BREAKING, NON_BREAKING, BREAKING),
-    FIELD_NOW_CONSTANT("java.field.nowConstant", NON_BREAKING, NON_BREAKING, null),
-    FIELD_NO_LONGER_CONSTANT("java.field.noLongerConstant", NON_BREAKING, NON_BREAKING, BREAKING),
-    FIELD_NOW_FINAL("java.field.nowFinal", BREAKING, BREAKING, null),
-    FIELD_NO_LONGER_FINAL("java.field.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
-    FIELD_NO_LONGER_STATIC("java.field.noLongerStatic", BREAKING, BREAKING, null),
-    FIELD_NOW_STATIC("java.field.nowStatic", BREAKING, BREAKING, null),
-    FIELD_TYPE_CHANGED("java.field.typeChanged", BREAKING, BREAKING, null),
+    FIELD_REMOVED("java.field.removed", BREAKING, BREAKING, null, null),
+    FIELD_CONSTANT_REMOVED("java.field.removedWithConstant", BREAKING, NON_BREAKING, POTENTIALLY_BREAKING, null),
+    FIELD_CONSTANT_VALUE_CHANGED("java.field.constantValueChanged", NON_BREAKING, NON_BREAKING, BREAKING, null),
+    FIELD_NOW_CONSTANT("java.field.nowConstant", NON_BREAKING, NON_BREAKING, null, null),
+    FIELD_NO_LONGER_CONSTANT("java.field.noLongerConstant", NON_BREAKING, NON_BREAKING, BREAKING, null),
+    FIELD_NOW_FINAL("java.field.nowFinal", BREAKING, BREAKING, null, null),
+    FIELD_NO_LONGER_FINAL("java.field.noLongerFinal", NON_BREAKING, NON_BREAKING, null, null),
+    FIELD_NO_LONGER_STATIC("java.field.noLongerStatic", BREAKING, BREAKING, null, null),
+    FIELD_NOW_STATIC("java.field.nowStatic", BREAKING, BREAKING, null, null),
+    FIELD_TYPE_CHANGED("java.field.typeChanged", BREAKING, BREAKING, null, null),
     FIELD_SERIAL_VERSION_UID_UNCHANGED("java.field.serialVersionUIDUnchanged", NON_BREAKING, POTENTIALLY_BREAKING,
-        POTENTIALLY_BREAKING),
-    FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
-    FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null),
+        POTENTIALLY_BREAKING, null),
+    FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", NON_BREAKING, NON_BREAKING, null, null),
+    FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null, null),
 
-    METHOD_DEFAULT_VALUE_ADDED("java.method.defaultValueAdded", NON_BREAKING, NON_BREAKING, null),
-    METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
-    METHOD_DEFAULT_VALUE_REMOVED("java.method.defaultValueRemoved", BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
-    METHOD_ADDED_TO_INTERFACE("java.method.addedToInterface", BREAKING, BREAKING, null),
+    METHOD_DEFAULT_VALUE_ADDED("java.method.defaultValueAdded", NON_BREAKING, NON_BREAKING, null, null),
+    METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING,
+        null),
+    METHOD_DEFAULT_VALUE_REMOVED("java.method.defaultValueRemoved", BREAKING, NON_BREAKING, POTENTIALLY_BREAKING, null),
+    METHOD_ADDED_TO_INTERFACE("java.method.addedToInterface", BREAKING, BREAKING, null, null),
     METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE("java.method.attributeWithNoDefaultAddedToAnnotationType",
-        BREAKING, NON_BREAKING, BREAKING),
+        BREAKING, NON_BREAKING, BREAKING, null),
     METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE("java.method.attributeWithDefaultAddedToAnnotationType",
-        NON_BREAKING, NON_BREAKING, null),
-    METHOD_ADDED_TO_FINAL_CLASS("java.method.addedToFinalClass", NON_BREAKING, NON_BREAKING, null),
-    METHOD_ABSTRACT_METHOD_ADDED("java.method.abstractMethodAdded", BREAKING, BREAKING, null),
-    METHOD_ADDED("java.method.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
-    METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null),
-    METHOD_OVERRIDING_METHOD_REMOVED("java.method.overridingMethodRemoved", NON_BREAKING, NON_BREAKING, null),
+        NON_BREAKING, NON_BREAKING, null, null),
+    METHOD_ADDED_TO_FINAL_CLASS("java.method.addedToFinalClass", NON_BREAKING, NON_BREAKING, null, null),
+    METHOD_ABSTRACT_METHOD_ADDED("java.method.abstractMethodAdded", BREAKING, BREAKING, null, null),
+    METHOD_ADDED("java.method.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING, null),
+    METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null, null),
+    METHOD_OVERRIDING_METHOD_REMOVED("java.method.overridingMethodRemoved", NON_BREAKING, NON_BREAKING, null, null),
     METHOD_ATTRIBUTE_WITH_NO_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE(
-        "java.method.attributeWithNoDefaultRemovedFromAnnotationType", BREAKING, POTENTIALLY_BREAKING, null),
+        "java.method.attributeWithNoDefaultRemovedFromAnnotationType", BREAKING, POTENTIALLY_BREAKING, null, null),
     METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE(
-        "java.method.attributeWithDefaultRemovedFromAnnotationType", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
-    METHOD_NO_LONGER_FINAL("java.method.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
-    METHOD_NOW_FINAL("java.method.nowFinal", BREAKING, BREAKING, null),
-    METHOD_VISIBILITY_INCREASED("java.method.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
-    METHOD_VISIBILITY_REDUCED("java.method.visibilityReduced", BREAKING, BREAKING, null),
-    METHOD_RETURN_TYPE_CHANGED("java.method.returnTypeChanged", POTENTIALLY_BREAKING, BREAKING, null),
+        "java.method.attributeWithDefaultRemovedFromAnnotationType", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null,
+        null),
+    METHOD_NO_LONGER_FINAL("java.method.noLongerFinal", NON_BREAKING, NON_BREAKING, null, null),
+    METHOD_NOW_FINAL("java.method.nowFinal", BREAKING, BREAKING, null, null),
+    METHOD_VISIBILITY_INCREASED("java.method.visibilityIncreased", NON_BREAKING, NON_BREAKING, null, null),
+    METHOD_VISIBILITY_REDUCED("java.method.visibilityReduced", BREAKING, BREAKING, null, null),
+    METHOD_RETURN_TYPE_CHANGED("java.method.returnTypeChanged", POTENTIALLY_BREAKING, BREAKING, null, null),
     METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED("java.method.returnTypeTypeParametersChanged", POTENTIALLY_BREAKING,
-        NON_BREAKING, POTENTIALLY_BREAKING),
-    METHOD_NUMBER_OF_PARAMETERS_CHANGED("java.method.numberOfParametersChanged", BREAKING, BREAKING, null),
-    METHOD_PARAMETER_TYPE_CHANGED("java.method.parameterTypeChanged", POTENTIALLY_BREAKING, BREAKING, null);
+        NON_BREAKING, POTENTIALLY_BREAKING, null),
+    METHOD_NUMBER_OF_PARAMETERS_CHANGED("java.method.numberOfParametersChanged", BREAKING, BREAKING, null, null),
+    METHOD_PARAMETER_TYPE_CHANGED("java.method.parameterTypeChanged", POTENTIALLY_BREAKING, BREAKING, null, null);
 
     private final String code;
-    private final EnumMap<CompatibilityType, ChangeSeverity> classification;
+    private final Map<CompatibilityType, ChangeSeverity> classification;
 
     private Code(String code, ChangeSeverity sourceSeverity, ChangeSeverity binarySeverity,
-        ChangeSeverity semanticSeverity) {
+        ChangeSeverity semanticSeverity, ChangeSeverity reflectionSeverity) {
         this.code = code;
-        classification = new EnumMap<>(CompatibilityType.class);
+        classification = new HashMap<>();
         addClassification(SOURCE, sourceSeverity);
         addClassification(BINARY, binarySeverity);
         addClassification(SEMANTIC, semanticSeverity);
+        addClassification(REFLECTION, reflectionSeverity);
     }
 
     public static Code fromCode(String code) {

@@ -23,8 +23,8 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.ChangeSeverity;
-import org.revapi.CompatibilityType;
 import org.revapi.Difference;
+import org.revapi.java.JavaCompatibility;
 
 public class Extension extends org.revapi.java.CheckBase {
 
@@ -42,7 +42,7 @@ public class Extension extends org.revapi.java.CheckBase {
             return Collections.singletonList(
                 Difference.builder().withCode("!!TEST_CODE!!").withName("test check")
                     .withDescription("test description")
-                    .addClassification(CompatibilityType.SOURCE, ChangeSeverity.BREAKING).build());
+                    .addClassification(JavaCompatibility.SOURCE, ChangeSeverity.BREAKING).build());
         }
 
         return null;

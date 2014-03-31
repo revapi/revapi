@@ -2,7 +2,7 @@ package org.revapi.basic;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -43,10 +43,11 @@ import org.revapi.Element;
  * match when all the specified properties of it match. If regex attribute is "true" (defaults to "false"), all the
  * code, old and new are understood as regexes (java regexes, not javascript ones).
  * <p/>
- * The {@code NEW_COMPATIBILITY_TYPE} corresponds to one of the names of the {@link org.revapi.CompatibilityType}
- * enum and the {@code NEW_SEVERITY} corresponds to one of the names of the {@link org.revapi.ChangeSeverity}
- * enum. The reclassified difference inherits its classification (i.e. the compatibility type + severity pairs) and
- * only redefines the ones explicitly defined in the configuration.
+ * The {@code NEW_COMPATIBILITY_TYPE} corresponds to one of the constants on the
+ * {@link org.revapi.CompatibilityType} or some of its inheritors and the {@code NEW_SEVERITY} corresponds to one
+ * of the names of the {@link org.revapi.ChangeSeverity} enum. The reclassified difference inherits its
+ * classification (i.e. the compatibility type + severity pairs) and only redefines the ones explicitly defined in the
+ * configuration.
  *
  * @author Lukas Krejci
  * @since 0.1
@@ -55,14 +56,14 @@ public class ClassificationTransform
     extends AbstractDifferenceReferringTransform<ClassificationTransform.ClassificationRecipe, Void> {
 
     public static class ClassificationRecipe extends DifferenceMatchRecipe {
-        protected final Map<CompatibilityType, ChangeSeverity> classification = new EnumMap<>(CompatibilityType.class);
+        protected final Map<CompatibilityType, ChangeSeverity> classification = new HashMap<>();
 
         public ClassificationRecipe(ModelNode node) {
             super(node);
-            ModelNode classfications = node.get("classify");
+            ModelNode classifications = node.get("classify");
             for (CompatibilityType ct : CompatibilityType.values()) {
-                if (classfications.has(ct.name())) {
-                    String val = classfications.get(ct.name()).asString();
+                if (classifications.has(ct.name())) {
+                    String val = classifications.get(ct.name()).asString();
                     ChangeSeverity sev = ChangeSeverity.valueOf(val);
                     classification.put(ct, sev);
                 }

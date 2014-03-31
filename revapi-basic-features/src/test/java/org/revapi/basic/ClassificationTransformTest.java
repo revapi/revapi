@@ -21,6 +21,16 @@ import org.revapi.simple.SimpleElement;
  */
 public class ClassificationTransformTest {
 
+    private static class DummyCompatibility extends CompatibilityType {
+
+        public static final CompatibilityType DUMMY_1 = new DummyCompatibility("dummy.1");
+        public static final CompatibilityType DUMMY_2 = new DummyCompatibility("dummy.2");
+
+        public DummyCompatibility(@Nonnull String name) {
+            super(name);
+        }
+    }
+
     private static class DummyElement extends SimpleElement {
 
         private final String name;
@@ -62,21 +72,21 @@ public class ClassificationTransformTest {
         DummyElement newE = new DummyElement("new");
 
         Difference difference = Difference.builder().withCode("code").addClassification(
-            CompatibilityType.BINARY, ChangeSeverity.NON_BREAKING).addClassification(CompatibilityType.SOURCE,
+            DummyCompatibility.DUMMY_2, ChangeSeverity.NON_BREAKING).addClassification(DummyCompatibility.DUMMY_1,
             ChangeSeverity.POTENTIALLY_BREAKING).build();
 
         AnalysisContext config = AnalysisContext.builder()
             .withConfigurationFromJSON(
-                "{\"revapi\": {\"reclassify\":[{\"code\":\"code\", \"classify\": {\"BINARY\" : \"BREAKING\"}}]}}")
+                "{\"revapi\": {\"reclassify\":[{\"code\":\"code\", \"classify\": {\"dummy.2\" : \"BREAKING\"}}]}}")
             .build();
 
         try (ClassificationTransform t = new ClassificationTransform()) {
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
             assert difference != null &&
-                difference.classification.get(CompatibilityType.BINARY) == ChangeSeverity.BREAKING;
+                difference.classification.get(DummyCompatibility.DUMMY_2) == ChangeSeverity.BREAKING;
             assert difference != null &&
-                difference.classification.get(CompatibilityType.SOURCE) == ChangeSeverity.POTENTIALLY_BREAKING;
+                difference.classification.get(DummyCompatibility.DUMMY_1) == ChangeSeverity.POTENTIALLY_BREAKING;
         }
     }
 

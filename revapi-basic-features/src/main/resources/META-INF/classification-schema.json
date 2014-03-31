@@ -34,19 +34,8 @@
             "classify": {
                 "description": "Specifies the new classification of the matched differences.",
                 "type": "object",
-                "properties": {
-                    "SOURCE": {
-                        "$ref": "#/definitions/classification"
-                    },
-                    "BINARY": {
-                        "$ref": "#definitions/classification"
-                    },
-                    "SEMANTIC": {
-                        "$ref": "#/definitions/classification"
-                    },
-                    "OTHER": {
-                        "$ref": "#/definitions/classification"
-                    }
+                "additionalProperties": {
+                    "$ref": "#/definitions/classification"
                 },
                 "minProperties": 1
             }
