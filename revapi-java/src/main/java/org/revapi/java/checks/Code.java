@@ -104,6 +104,7 @@ public enum Code {
     METHOD_ABSTRACT_METHOD_ADDED("java.method.abstractMethodAdded", BREAKING, BREAKING, null),
     METHOD_ADDED("java.method.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null),
+    METHOD_OVERRIDING_METHOD_REMOVED("java.method.overridingMethodRemoved", NON_BREAKING, NON_BREAKING, null),
     METHOD_ATTRIBUTE_WITH_NO_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE(
         "java.method.attributeWithNoDefaultRemovedFromAnnotationType", BREAKING, POTENTIALLY_BREAKING, null),
     METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE(
