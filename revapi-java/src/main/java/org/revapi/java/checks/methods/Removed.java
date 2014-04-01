@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
@@ -55,9 +56,13 @@ public final class Removed extends AbstractJavaCheck {
             return null;
         }
 
+        Difference difference = null;
+
         //try to find the removed method in some of the superclasses in the new environment
         ExecutableElement oldMethod = methods.oldElement;
         TypeElement type = (TypeElement) oldMethod.getEnclosingElement();
+        boolean oldMethodAbstract = oldMethod.getModifiers().contains(Modifier.ABSTRACT);
+        boolean oldMethodFinal = oldMethod.getModifiers().contains(Modifier.FINAL);
 
         String methodSignature = getMethodSignature(oldMethod.getSimpleName(),
             (ExecutableType) getOldTypeEnvironment().getTypeUtils().erasure(
@@ -76,6 +81,7 @@ public final class Removed extends AbstractJavaCheck {
         List<TypeMirror> superClasses = Util
             .getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(), newType.asType());
 
+        outer:
         for (TypeMirror superClass : superClasses) {
             Element superClassEl = ((DeclaredType) superClass).asElement();
             List<? extends ExecutableElement> superMethods = ElementFilter
@@ -87,12 +93,28 @@ public final class Removed extends AbstractJavaCheck {
 
                 if (superMethodSignature.equals(methodSignature)) {
                     //ok, we got the method somewhere up in the superclasses
-                    return Collections.singletonList(createDifference(Code.METHOD_OVERRIDING_METHOD_REMOVED));
+
+                    //has it changed to abstract?
+                    if (!oldMethodAbstract && superMethod.getModifiers().contains(Modifier.ABSTRACT)) {
+                        difference = createDifference(Code.METHOD_REPLACED_BY_ABSTRACT_METHOD_IN_SUPERCLASS,
+                            new String[]{Util.toHumanReadableString(superClass)}, superMethod);
+                    } else if (!oldMethodFinal && superMethod.getModifiers().contains(Modifier.FINAL)) {
+                        difference = createDifference(Code.METHOD_NON_FINAL_METHOD_REPLACED_BY_FINAL_IN_SUPERCLASS,
+                            new String[]{Util.toHumanReadableString(superClass)}, superMethod);
+                    } else {
+                        difference = createDifference(Code.METHOD_OVERRIDING_METHOD_REMOVED);
+                    }
+
+                    break outer;
                 }
             }
         }
 
-        return Collections.singletonList(createDifference(Code.METHOD_REMOVED));
+        if (difference == null) {
+            difference = createDifference(Code.METHOD_REMOVED);
+        }
+
+        return Collections.singletonList(difference);
     }
 
     private String getMethodSignature(@Nonnull CharSequence methodName, @Nonnull ExecutableType erasedMethod) {

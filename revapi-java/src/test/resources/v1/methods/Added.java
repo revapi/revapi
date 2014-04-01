@@ -5,10 +5,12 @@ public final class Added {
     }
 
     public static abstract class Abstract {
-
+        public void ordinaryMethod1() {}
+        public abstract void ordinaryMethod2();
+        public final void ordinaryMethod3(){}
     }
 
-    public static class Ordinary {
+    public static abstract class Ordinary extends Abstract {
 
     }
 }

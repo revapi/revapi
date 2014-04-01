@@ -25,8 +25,18 @@ public final class Added {
         public abstract void newMethod();
     }
 
-    public static class Ordinary {
+    public static class Ordinary extends Abstract {
         public void newMethod() {}
+
+        public void ordinaryMethod1() {
+
+        }
+
+        public void ordinaryMethod2() {
+
+        }
+
+        public void ordinaryMethod3() {}
     }
 
     public void newMethod() {}

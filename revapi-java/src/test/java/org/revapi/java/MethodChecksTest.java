@@ -32,10 +32,10 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v1/methods/Added.java", "v2/methods/Added.java");
 
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED.code()));
+        Assert.assertEquals(3, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED_TO_FINAL_CLASS.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED_TO_INTERFACE.code()));
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_ABSTRACT_METHOD_ADDED.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_ABSTRACT_METHOD_ADDED.code()));
     }
 
     @Test
@@ -43,6 +43,11 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v2/methods/Added.java", "v1/methods/Added.java");
 
+        Assert.assertEquals(1,
+            (int) reporter.getProblemCounters().get(Code.METHOD_REPLACED_BY_ABSTRACT_METHOD_IN_SUPERCLASS.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters()
+            .get(Code.METHOD_NON_FINAL_METHOD_REPLACED_BY_FINAL_IN_SUPERCLASS.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_OVERRIDING_METHOD_REMOVED.code()));
         Assert.assertEquals(4, (int) reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
     }
 
