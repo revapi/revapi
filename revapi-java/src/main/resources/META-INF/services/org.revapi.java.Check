@@ -17,6 +17,7 @@
 org.revapi.java.checks.classes.Added
 org.revapi.java.checks.classes.InheritanceChainChanged
 org.revapi.java.checks.classes.KindChanged
+org.revapi.java.checks.classes.Missing
 org.revapi.java.checks.classes.NoLongerAbstract
 org.revapi.java.checks.classes.NoLongerFinal
 org.revapi.java.checks.classes.NoLongerImplementsInterface

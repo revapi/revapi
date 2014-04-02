@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -56,9 +57,11 @@ public final class ClassTreeInitializer {
     private static final Logger LOG = LoggerFactory.getLogger(ClassTreeInitializer.class);
 
     private final ProbingEnvironment environment;
+    private final MissingClassReporting reporting;
 
-    public ClassTreeInitializer(ProbingEnvironment environment) {
+    public ClassTreeInitializer(ProbingEnvironment environment, MissingClassReporting missingClassReporting) {
         this.environment = environment;
+        this.reporting = missingClassReporting;
     }
 
     public void initTree() throws IOException {
@@ -102,9 +105,28 @@ public final class ClassTreeInitializer {
 
 
         if (!additionalClasses.isEmpty()) {
-            throw new IllegalStateException(
-                "The following classes that contribute to the public API of " + environment.getApi() +
-                    " could not be located: " + additionalClasses);
+            List<String> prettyNames = convertDescriptorToTypeNames(additionalClasses);
+
+            if (reporting == null || reporting == MissingClassReporting.ERROR) {
+                //default is to throw
+                throw new IllegalStateException(
+                    "The following classes that contribute to the public API of " + environment.getApi() +
+                        " could not be located: " + prettyNames
+                );
+            }
+
+            switch (reporting) {
+            case IGNORE:
+                LOG.warn("The following classes that contribute to the public API of " + environment.getApi() +
+                    " could not be located: " + prettyNames);
+                break;
+            case REPORT:
+                for (String desc : additionalClasses) {
+                    Type t = Type.getType(desc);
+                    String binary = t.getClassName();
+                    addConditionally(Type.getType(desc), binary, null, true);
+                }
+            }
         }
 
         cleanUpInnerClasses(environment.getTree().getRootsUnsafe());
@@ -112,6 +134,19 @@ public final class ClassTreeInitializer {
         if (LOG.isTraceEnabled()) {
             LOG.trace("Public API class tree in {} initialized to: {}", environment.getApi(), environment.getTree());
         }
+    }
+
+    private List<String> convertDescriptorToTypeNames(Set<String> additionalClasses) {
+        List<String> ret = new ArrayList<>(additionalClasses.size());
+
+        for (String desc : additionalClasses) {
+            String typeName = Type.getType(desc).getClassName();
+            ret.add(typeName);
+        }
+
+        Collections.sort(ret);
+
+        return ret;
     }
 
     private void cleanUpInnerClasses(SortedSet<? extends JavaElement> nodes) {
@@ -345,7 +380,7 @@ public final class ClassTreeInitializer {
                         }
 
                         if (innerClassCanonicalName == null) {
-                            addConditionally(t, Type.getObjectType(mainName).getClassName(), null);
+                            addConditionally(t, Type.getObjectType(mainName).getClassName(), null, false);
                         } else {
                             if (!onlyAddAdditional) {
                                 StringBuilder binaryName = new StringBuilder();
@@ -357,7 +392,7 @@ public final class ClassTreeInitializer {
                                     canonicalName.append(innerClassCanonicalNameParts.get(i));
 
                                     superType = addConditionally(Type.getObjectType(binaryName.toString()),
-                                        canonicalName.toString(), superType);
+                                        canonicalName.toString(), superType, false);
 
                                     binaryName.append("$");
                                     canonicalName.append(".");
@@ -382,7 +417,7 @@ public final class ClassTreeInitializer {
                                 binaryName.replace(binaryName.length() - 1, binaryName.length(), "");
                                 canonicalName.replace(canonicalName.length() - 1, canonicalName.length(), "");
                                 addConditionally(Type.getObjectType(binaryName.toString()), canonicalName.toString(),
-                                    superType);
+                                    superType, false);
                             }
                         }
                     }
@@ -476,21 +511,24 @@ public final class ClassTreeInitializer {
         }
     }
 
-    private TypeElement addConditionally(Type t, String canonicalName, TypeElement superType) {
+    private TypeElement addConditionally(Type t, String canonicalName, TypeElement superType, boolean asError) {
         boolean add = false;
 
         TypeElement type = findByType(t, superType);
         if (type == null) {
             String binaryName = t.getClassName();
             add = true;
-            type = new TypeElement(environment, binaryName, canonicalName);
+            type = asError ? new MissingClassElement(environment, binaryName, canonicalName) :
+                new TypeElement(environment, binaryName, canonicalName);
         }
 
         if (add) {
             LOG.trace("Adding to tree: {}, under superType {}", type, superType);
             if (superType == null) {
                 environment.getTree().getRootsUnsafe().add(type);
-                environment.getAllApiClasses().add(canonicalName);
+                if (!asError) {
+                    environment.getAllApiClasses().add(canonicalName);
+                }
             } else {
                 superType.getChildren().add(type);
             }
@@ -511,7 +549,8 @@ public final class ClassTreeInitializer {
                 public boolean shouldDescendInto(@Nullable Object object) {
                     return true;
                 }
-            }, superType);
+            }, superType
+        );
 
         return found.isEmpty() ? null : found.get(0);
     }

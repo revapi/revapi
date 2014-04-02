@@ -70,7 +70,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor());
+                null), Executors.newSingleThreadExecutor(), null);
 
             JavaElementForest forest = analyzer.analyze();
 
@@ -96,7 +96,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
-                Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor());
+                Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null);
 
             JavaElementForest forest = analyzer.analyze();
 

@@ -59,14 +59,16 @@ final class JavaElementFactory {
 
     private static int getModelTypeRank(Class<?> cls) {
         if (cls == AnnotationElement.class) {
-            return 4;
+            return 5;
         } else if (cls == FieldElement.class) {
-            return 1;
-        } else if (cls == MethodElement.class) {
             return 2;
-        } else if (cls == MethodParameterElement.class) {
+        } else if (cls == MethodElement.class) {
             return 3;
+        } else if (cls == MethodParameterElement.class) {
+            return 4;
         } else if (cls == TypeElement.class) {
+            return 1;
+        } else if (cls == MissingClassElement.class) {
             return 0;
         } else {
             return -1;

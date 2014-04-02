@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "missing-classes": {
+            "description": "Specifies the behavior when the analyzer encounters a missing API class. \
+                             If \"ignore\" is specified, the missing class is merely logged at WARNING level. \
+                             If \"error\" is specified (which is the default) the analysis fails. \
+                             If \"report\" is specified, the missing class is reported as a difference with a \
+                             \"java.missing.oldClass\" or \"java.missing.newClass\" depending on whether the missing \
+                             class was found in old or new archives. The severity of these differences is set to \
+                             \"POTENTIALLY_BREAKING\".",
+            "type": "string",
+            "enum": [ "ignore", "error", "report" ],
+            "default": "error"
+        }
+    }
+}

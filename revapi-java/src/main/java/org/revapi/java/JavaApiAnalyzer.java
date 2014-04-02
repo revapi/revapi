@@ -16,7 +16,9 @@
 
 package org.revapi.java;
 
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ServiceLoader;
@@ -26,6 +28,7 @@ import java.util.concurrent.Executors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jboss.dmr.ModelNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
@@ -33,6 +36,7 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.model.MissingClassReporting;
 
 /**
  * @author Lukas Krejci
@@ -56,6 +60,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Override
     public String[] getConfigurationRootPaths() {
         ArrayList<String> checkConfigPaths = new ArrayList<>();
+        checkConfigPaths.add("revapi.java");
+
         for (Check c : checks) {
             String[] cp = c.getConfigurationRootPaths();
             if (cp != null) {
@@ -63,19 +69,20 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
             }
         }
 
-        if (checkConfigPaths.isEmpty()) {
-            return null;
-        } else {
-            String[] configs = new String[checkConfigPaths.size()];
-            configs = checkConfigPaths.toArray(configs);
+        String[] configs = new String[checkConfigPaths.size()];
+        configs = checkConfigPaths.toArray(configs);
 
-            return configs;
-        }
+        return configs;
     }
 
     @Nullable
     @Override
     public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        if ("revapi.java".equals(configurationRootPath)) {
+            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/config-schema.json"),
+                Charset.forName("UTF-8"));
+        }
+
         for (Check check : checks) {
             String[] roots = check.getConfigurationRootPaths();
             if (roots == null) {
@@ -100,7 +107,21 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Nonnull
     @Override
     public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
-        return new JavaArchiveAnalyzer(api, compilationExecutor);
+        MissingClassReporting reportingType = MissingClassReporting.ERROR;
+
+        ModelNode config = analysisContext.getConfiguration().get("revapi", "java", "missing-classes");
+        if (config.isDefined()) {
+            switch (config.asString()) {
+            case "report":
+                reportingType = MissingClassReporting.REPORT;
+                break;
+            case "ignore":
+                reportingType = MissingClassReporting.IGNORE;
+                break;
+            }
+        }
+
+        return new JavaArchiveAnalyzer(api, compilationExecutor, reportingType);
     }
 
     @Nonnull

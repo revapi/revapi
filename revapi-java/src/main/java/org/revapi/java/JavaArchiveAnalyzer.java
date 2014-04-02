@@ -28,6 +28,7 @@ import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.Compiler;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementForest;
+import org.revapi.java.model.MissingClassReporting;
 
 /**
  * @author Lukas Krejci
@@ -37,11 +38,14 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final API api;
     private final ExecutorService executor;
     private final ProbingEnvironment probingEnvironment;
+    private final MissingClassReporting missingClassReporting;
     private CompilationValve compilationValve;
 
-    public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor) {
+    public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
+        MissingClassReporting missingClassReporting) {
         this.api = api;
         this.executor = compilationExecutor;
+        this.missingClassReporting = missingClassReporting;
         this.probingEnvironment = new ProbingEnvironment(api);
     }
 
@@ -51,7 +55,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         StringWriter output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives());
         try {
-            compilationValve = compiler.compile(probingEnvironment);
+            compilationValve = compiler.compile(probingEnvironment, missingClassReporting);
 
             probingEnvironment.getTree()
                 .setCompilationFuture(new CompilationFuture(compilationValve, output));

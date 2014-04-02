@@ -25,7 +25,7 @@ import org.revapi.java.compilation.ProbingEnvironment;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement> {
+public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement> {
     private final String binaryName;
     private final String canonicalName;
 
@@ -100,6 +100,6 @@ public final class TypeElement extends JavaElementBase<javax.lang.model.element.
     public String getFullHumanReadableString() {
         javax.lang.model.element.TypeElement el = getModelElement();
         //see getModelElement() for why we do the null check here even if getModelElement() is @Nonnull
-        return "class " + (el == null ? canonicalName : Util.toHumanReadableString(el));
+        return getHumanReadableElementType() + " " + (el == null ? canonicalName : Util.toHumanReadableString(el));
     }
 }

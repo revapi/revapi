@@ -18,6 +18,7 @@ package org.revapi.java.checks;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 
 import org.revapi.Difference;
 import org.revapi.java.CheckBase;
@@ -58,6 +59,10 @@ public abstract class AbstractJavaCheck extends CheckBase {
 
     protected static boolean isAccessible(Element e) {
         return ClassTreeInitializer.isAccessible(e);
+    }
+
+    protected static boolean isMissing(Element e) {
+        return e.asType().getKind() == TypeKind.ERROR;
     }
 
     protected static boolean isAccessibleOrInAPI(Element e, TypeEnvironment env) {

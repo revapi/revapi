@@ -42,6 +42,10 @@ import org.revapi.Difference;
  * @since 0.1
  */
 public enum Code {
+    //these two are used during class tree initialization even before any "normal" checks can occur
+    MISSING_IN_OLD_API("java.missing.oldClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
+    MISSING_IN_NEW_API("java.missing.newClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
+
     ELEMENT_NO_LONGER_DEPRECATED("java.element.noLongerDeprecated", NON_BREAKING, NON_BREAKING, null),
     ELEMENT_NOW_DEPRECATED("java.element.nowDeprecated", NON_BREAKING, NON_BREAKING, null),
 
