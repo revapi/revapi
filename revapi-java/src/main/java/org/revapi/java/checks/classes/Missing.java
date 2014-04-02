@@ -14,7 +14,7 @@ import org.revapi.java.checks.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class Missing extends AbstractJavaCheck {
+public final class Missing extends AbstractJavaCheck {
 
     @Override
     protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
