@@ -84,8 +84,6 @@ public final class Added extends AbstractJavaCheck {
 
         if (enclosingClass.getKind() == ElementKind.INTERFACE) {
             difference = createDifference(Code.METHOD_ADDED_TO_INTERFACE);
-        } else if (enclosingClass.getModifiers().contains(Modifier.FINAL)) {
-            difference = createDifference(Code.METHOD_ADDED_TO_FINAL_CLASS);
         } else if (method.getModifiers().contains(Modifier.ABSTRACT)) {
             difference = createDifference(Code.METHOD_ABSTRACT_METHOD_ADDED);
         } else {
