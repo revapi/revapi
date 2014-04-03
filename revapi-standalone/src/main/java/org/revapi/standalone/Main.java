@@ -201,8 +201,12 @@ public final class Main {
         List<FileArchive> newSupplementaryArchives = newSupplementaryArchivePaths == null ? null :
             convertPaths(newSupplementaryArchivePaths, "New API supplementary file");
 
-        run(cacheDir, extensionGAVs, oldArchives, oldSupplementaryArchives, newArchives,
-            newSupplementaryArchives, configFiles, additionalConfigOptions);
+        try {
+            run(cacheDir, extensionGAVs, oldArchives, oldSupplementaryArchives, newArchives,
+                newSupplementaryArchives, configFiles, additionalConfigOptions);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         System.exit(0);
     }
@@ -223,13 +227,15 @@ public final class Main {
         try {
             AddonManager manager = new AddonManagerImpl(furnace, new ExtensionResolver());
 
-            for (String gav : extensionGAVs) {
-                DefaultArtifact artifact = new DefaultArtifact(gav);
-                String ga = artifact.getGroupId() + ":" + artifact.getArtifactId();
-                String v = artifact.getBaseVersion();
+            if (extensionGAVs != null) {
+                for (String gav : extensionGAVs) {
+                    DefaultArtifact artifact = new DefaultArtifact(gav);
+                    String ga = artifact.getGroupId() + ":" + artifact.getArtifactId();
+                    String v = artifact.getBaseVersion();
 
-                InstallRequest request = manager.install(AddonId.from(ga, v));
-                request.perform();
+                    InstallRequest request = manager.install(AddonId.from(ga, v));
+                    request.perform();
+                }
             }
 
             Revapi.Builder builder = Revapi.builder();
@@ -245,12 +251,14 @@ public final class Main {
                 .withOldAPI(API.of(oldArchives).supportedBy(oldSupplementaryArchives).build())
                 .withNewAPI(API.of(newArchives).supportedBy(newSupplementaryArchives).build());
 
-            for (String cf : configFiles) {
-                File f = new File(cf);
-                checkCanRead(f, "Configuration file");
+            if (configFiles != null) {
+                for (String cf : configFiles) {
+                    File f = new File(cf);
+                    checkCanRead(f, "Configuration file");
 
-                try (FileInputStream is = new FileInputStream(f)) {
-                    ctxBld.mergeConfigurationFromJSONStream(is);
+                    try (FileInputStream is = new FileInputStream(f)) {
+                        ctxBld.mergeConfigurationFromJSONStream(is);
+                    }
                 }
             }
 

@@ -52,12 +52,14 @@ final class ExtensionResolver extends MavenAddonDependencyResolver {
         FurnaceContainerSpec.paths.add("javax/annotation/processing");
 
         initLibJar("org.revapi:revapi", "org/revapi", "org/revapi/simple",
-            "org/revapi/query");
+            "org/revapi/query", "org/revapi/configuration");
 
         initLibJar("com.google.code.findbugs:jsr305", "java/annotation", "javax/annotation/concurrent",
             "javax/annotation/meta");
 
         initLibJar("org.slf4j:slf4j-api", "org/slf4j", "org/slf4j/helpers", "org/slf4j/spi");
+
+        initLibJar("org.jboss:jboss-dmr", "org/jboss/dmr");
     }
 
     private static void initLibJar(String groupArtifact, String... packages) {
