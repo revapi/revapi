@@ -307,8 +307,8 @@ public final class ClassTreeInitializer {
             public void visitInnerClass(String name, String outerName, String innerName, int access) {
                 if (isPublicAPI && maybeInner && innerName != null) {
                     boolean considerThisName = false;
-                    if (innerClassCanonicalName == null) {
-                        if (outerName != null) {
+                    if (outerName != null && outerName.startsWith(mainName)) {
+                        if (innerClassCanonicalName == null) {
                             String base = Type.getObjectType(outerName).getClassName();
                             innerClassCanonicalName = new StringBuilder(base);
                             innerClassCanonicalNameParts = new ArrayList<>();
@@ -329,17 +329,17 @@ public final class ClassTreeInitializer {
 
                                 considerThisName = true;
                             }
+                        } else if (innerClassCanonicalName.length() < mainName.length() &&
+                            containsAt(mainName, innerName, currentInnerClassTraversePos)) {
+
+                            innerClassCanonicalName.append(".").append(innerName);
+                            currentInnerClassTraversePos += innerName.length() + 1;
+
+                            innerClassCanonicalNameParts.add(innerName);
+                            innerClassBinaryNameParts.add(innerName);
+
+                            considerThisName = true;
                         }
-                    } else if (innerClassCanonicalName.length() < mainName.length() &&
-                        containsAt(mainName, innerName, currentInnerClassTraversePos)) {
-
-                        innerClassCanonicalName.append(".").append(innerName);
-                        currentInnerClassTraversePos += innerName.length() + 1;
-
-                        innerClassCanonicalNameParts.add(innerName);
-                        innerClassBinaryNameParts.add(innerName);
-
-                        considerThisName = true;
                     }
 
                     LOG.trace("visitInnerClass(): name={}, outerName={}, innerName={}, canonical={}", name, outerName,
