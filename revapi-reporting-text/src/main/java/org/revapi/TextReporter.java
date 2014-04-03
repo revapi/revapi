@@ -65,10 +65,10 @@ public class TextReporter implements Reporter {
     public void initialize(@Nonnull AnalysisContext config) {
         String minLevel = config.getConfiguration().get("revapi", "reporter", "text", "minSeverity").asString();
         String output = config.getConfiguration().get("revapi", "reporter", "text", "output").asString();
-        output = output == null ? "out" : output;
+        output = "undefined".equals(output) ? "out" : output;
 
         this.minLevel =
-            minLevel == null ? ChangeSeverity.POTENTIALLY_BREAKING : ChangeSeverity.valueOf(minLevel);
+            "undefined".equals(minLevel) ? ChangeSeverity.POTENTIALLY_BREAKING : ChangeSeverity.valueOf(minLevel);
 
         OutputStream out;
 
