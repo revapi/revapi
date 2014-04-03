@@ -360,6 +360,12 @@ public final class ClassTreeInitializer {
                     for (Type t : Type.getArgumentTypes(desc)) {
                         addToAdditionalClasses(t);
                     }
+
+                    if (exceptions != null && exceptions.length > 0) {
+                        for (String ex : exceptions) {
+                            addToAdditionalClasses(Type.getObjectType(ex));
+                        }
+                    }
                 }
 
                 return null;
