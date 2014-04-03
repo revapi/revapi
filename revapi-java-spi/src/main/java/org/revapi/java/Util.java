@@ -35,6 +35,7 @@ import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
@@ -46,6 +47,9 @@ import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import javax.lang.model.util.SimpleElementVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A random assortment of methods to help with implementing the Java API checks made public so that
@@ -61,6 +65,8 @@ public final class Util {
         final Set<T> visitedObjects = new HashSet<>();
         boolean visitingMethod;
     }
+
+    private static final Logger LOG = LoggerFactory.getLogger(Util.class);
 
     private static SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>> toUniqueStringVisitor = new SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
 
@@ -188,8 +194,21 @@ public final class Util {
 
         @Override
         public Void visitDeclared(DeclaredType t, StringBuilderAndState<TypeMirror> state) {
+            CharSequence name = ((TypeElement) t.asElement()).getQualifiedName();
+            state.bld.append(name);
+            try {
+                visitTypeVars(t.getTypeArguments(), state);
+            } catch (RuntimeException e) {
+                LOG.debug("Failed to enumerate type arguments of '" + name + "'. Class is missing?", e);
+            }
+
+            return null;
+        }
+
+        @Override
+        public Void visitError(ErrorType t, StringBuilderAndState<TypeMirror> state) {
+            //the missing types are like declared types but don't have any further info on them apart from the name...
             state.bld.append(((TypeElement) t.asElement()).getQualifiedName());
-            visitTypeVars(t.getTypeArguments(), state);
             return null;
         }
 
@@ -344,8 +363,14 @@ public final class Util {
 
         @Override
         public Void visitDeclared(DeclaredType t, StringBuilderAndState<TypeMirror> state) {
-            state.bld.append(((TypeElement) t.asElement()).getQualifiedName());
-            visitTypeVars(t.getTypeArguments(), state);
+            CharSequence name = ((TypeElement) t.asElement()).getQualifiedName();
+            state.bld.append(name);
+            try {
+                visitTypeVars(t.getTypeArguments(), state);
+            } catch (RuntimeException e) {
+                LOG.debug("Failed to enumerate type arguments of '" + name + "'. Class is missing?", e);
+            }
+
             return null;
         }
 
@@ -363,6 +388,7 @@ public final class Util {
                 state.bld.append(">");
             }
         }
+
     };
 
     private static SimpleElementVisitor7<Void, StringBuilderAndState<TypeMirror>> toHumanReadableStringElementVisitor = new SimpleElementVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
@@ -625,13 +651,18 @@ public final class Util {
 
     @Nonnull
     public static List<TypeMirror> getAllSuperClasses(@Nonnull Types types, @Nonnull TypeMirror type) {
-        List<? extends TypeMirror> superTypes = types.directSupertypes(type);
         List<TypeMirror> ret = new ArrayList<>();
 
-        while (superTypes != null && !superTypes.isEmpty()) {
-            TypeMirror superClass = superTypes.get(0);
-            ret.add(superClass);
-            superTypes = types.directSupertypes(superClass);
+        try {
+            List<? extends TypeMirror> superTypes = types.directSupertypes(type);
+            while (superTypes != null && !superTypes.isEmpty()) {
+                TypeMirror superClass = superTypes.get(0);
+                ret.add(superClass);
+                superTypes = types.directSupertypes(superClass);
+            }
+        } catch (RuntimeException e) {
+            LOG.debug("Failed to find all super classes of type '" + toHumanReadableString(type) + ". Possibly " +
+                "missing classes?", e);
         }
 
         return ret;
@@ -647,11 +678,17 @@ public final class Util {
 
     public static void fillAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type,
         @Nonnull List<TypeMirror> result) {
-        List<? extends TypeMirror> superTypes = types.directSupertypes(type);
 
-        for (TypeMirror t : superTypes) {
-            result.add(t);
-            fillAllSuperTypes(types, t, result);
+        try {
+            List<? extends TypeMirror> superTypes = types.directSupertypes(type);
+
+            for (TypeMirror t : superTypes) {
+                result.add(t);
+                fillAllSuperTypes(types, t, result);
+            }
+        } catch (RuntimeException e) {
+            LOG.debug("Failed to find all super types of type '" + toHumanReadableString(type) + ". Possibly " +
+                "missing classes?", e);
         }
     }
 
