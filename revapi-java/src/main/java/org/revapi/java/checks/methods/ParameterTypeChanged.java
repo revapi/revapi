@@ -41,6 +41,10 @@ public final class ParameterTypeChanged extends AbstractJavaCheck {
             return;
         }
 
+        if (isBothPrivate(oldParameter.getEnclosingElement(), newParameter.getEnclosingElement())) {
+            return;
+        }
+
         String oldType = Util.toUniqueString(oldParameter.asType());
         String newType = Util.toUniqueString(newParameter.asType());
 
