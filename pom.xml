@@ -101,7 +101,7 @@
         </dependency>
 
         <dependency>
-        <groupId>junit</groupId>
+            <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
@@ -197,7 +197,7 @@
         <url>https://travis-ci.org/metlos/revapi</url>
     </ciManagement>
 
-    <mailingLists />
+    <mailingLists/>
 
     <scm>
         <connection>https://github.com/metlos/revapi.git</connection>
