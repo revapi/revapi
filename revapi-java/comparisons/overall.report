@@ -1,0 +1,993 @@
+----------------------------------------------------------------------------
+REVAPI
+class comparison.annotations.Added:
+java.annotation.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Element newly annotated with 'comparison.annotations.InheritedAnnotation'.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.annotations.Attributes::m(int):
+java.annotation.attributeValueChanged BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Attribute 'b' of annotation 'comparison.annotations.Attributes.Anno' changed value from '1' to '2'.
+java.annotation.attributeAdded BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Attribute 'a' of annotation 'comparison.annotations.Attributes.Anno' is now explicitly set.
+java.element.nowDeprecated BINARY: NON_BREAKING, SOURCE: NON_BREAKING: The element is now deprecated.
+
+CLIRR
+INFO: 7007: comparison.annotations.Attributes: Method 'public void m(int)' has been deprecated
+
+SIGTEST
+comparison.annotations.Attributes:      m(int):anno 0 java.lang.Deprecated()
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.annotations.InheritedAnnotation:
+java.annotation.nowInherited BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Annotation type is now inherited.
+
+CLIRR
+NA
+
+SIGTEST
+comparison.annotations.InheritedAnnotation:                 anno 0 java.lang.annotation.Inherited()
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.Abstract:
+java.class.nowAbstract BINARY: BREAKING, SOURCE: BREAKING: Class is now abstract.
+
+CLIRR
+ERROR: 3005: comparison.classes.Abstract: Added abstract modifier to class
+
+SIGTEST
+missing classes
+comparison.classes.Abstract:            CLASS public comparison.classes.Abstract
+missing methods
+comparison.classes.Abstract:            method protected java.lang.Object java.lang.Object.clone()
+comparison.classes.Abstract:            method public final void java.lang.Object.wait()
+comparison.classes.Abstract:            method public final void java.lang.Object.wait(long)
+comparison.classes.Abstract:            method public final void java.lang.Object.wait(long,int)
+added classes
+comparison.classes.Abstract:            CLASS public abstract comparison.classes.Abstract
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.ChangedSuperTypes.A:
+java.class.nonFinalClassInheritsFromNewClass BINARY: POTENTIALLY_BREAKING, SOURCE: POTENTIALLY_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Non-final class now inherits from 'comparison.classes.ChangedSuperTypes.B'.
+
+CLIRR
+INFO: 5000: comparison.classes.ChangedSuperTypes$A: Added comparison.classes.ChangedSuperTypes$B to the list of superclasses
+
+SIGTEST
+missing superclasses and superinterfaces
+comparison.classes.ChangedSuperTypes$A: superclass java.lang.Object
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.ChangedSuperTypes.B:
+java.class.noLongerInheritsFromClass BINARY: BREAKING, SOURCE: BREAKING: Class no longer inherits from 'comparison.classes.ChangedSuperTypes.A'.
+
+CLIRR
+ERROR: 5001: comparison.classes.ChangedSuperTypes$B: Removed comparison.classes.ChangedSuperTypes$A from the list of superclasses
+
+SIGTEST
+missing superclasses and superinterfaces
+comparison.classes.ChangedSuperTypes$B: superclass comparison.classes.ChangedSuperTypes$A
+missing methods
+comparison.classes.ChangedSuperTypes$B: method protected java.lang.Object java.lang.Object.clone()
+comparison.classes.ChangedSuperTypes$B: method public final void java.lang.Object.wait()
+comparison.classes.ChangedSuperTypes$B: method public final void java.lang.Object.wait(long)
+comparison.classes.ChangedSuperTypes$B: method public final void java.lang.Object.wait(long,int)
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.ChangedSuperTypes.E:
+java.class.noLongerInheritsFromClass BINARY: BREAKING, SOURCE: BREAKING: Class no longer inherits from 'java.lang.RuntimeException'.
+java.class.nonFinalClassInheritsFromNewClass BINARY: POTENTIALLY_BREAKING, SOURCE: POTENTIALLY_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Non-final class now inherits from 'java.io.IOException'.
+java.class.nowCheckedException BINARY: NON_BREAKING, SOURCE: BREAKING: Throwable class is now a checked exception.
+
+CLIRR
+WARNING: 5000: comparison.classes.ChangedSuperTypes$E: Added java.io.IOException to the list of superclasses
+ERROR: 5001: comparison.classes.ChangedSuperTypes$E: Removed java.lang.RuntimeException from the list of superclasses
+
+SIGTEST
+missing superclasses and superinterfaces
+comparison.classes.ChangedSuperTypes$E: superclass java.lang.RuntimeException
+missing methods
+comparison.classes.ChangedSuperTypes$E: method protected java.lang.Object java.lang.Object.clone()
+comparison.classes.ChangedSuperTypes$E: method public final void java.lang.Object.wait()
+comparison.classes.ChangedSuperTypes$E: method public final void java.lang.Object.wait(long)
+comparison.classes.ChangedSuperTypes$E: method public final void java.lang.Object.wait(long,int)
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.ClassAdded:
+java.class.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Class was added.
+
+CLIRR
+INFO: 8000: comparison.classes.ClassAdded: Class comparison.classes.ClassAdded added
+
+SIGTEST
+added classes
+comparison.classes.ClassAdded
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.classes.ClassVisibilityReduced.TestClass::<init>():
+java.method.visibilityReduced BINARY: BREAKING, SOURCE: BREAKING: visibility reduced
+
+CLIRR
+NA
+
+SIGTEST
+comparison.classes.ClassVisibilityReduced:                  method protected java.lang.Object java.lang.Object.clone()
+comparison.classes.ClassVisibilityReduced:                  method public final void java.lang.Object.wait()
+comparison.classes.ClassVisibilityReduced:                  method public final void java.lang.Object.wait(long)
+comparison.classes.ClassVisibilityReduced:                  method public final void java.lang.Object.wait(long,int)
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.ClassVisibilityReduced.TestClass:
+java.class.visibilityReduced BINARY: BREAKING, SOURCE: BREAKING: Visibility was reduced from 'public' to 'package'.
+
+CLIRR
+ERROR: 1001: comparison.classes.ClassVisibilityReduced$TestClass: Decreased visibility of class from public to package
+
+SIGTEST
+missing classes
+comparison.classes.ClassVisibilityReduced$TestClass
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.Final:
+java.class.nowFinal BINARY: BREAKING, SOURCE: BREAKING: Class is now final.
+
+CLIRR
+ERROR: 3003: comparison.classes.Final: Added final modifier to class
+
+SIGTEST
+missing classes
+comparison.classes.Final:               CLASS public comparison.classes.Final
+missing methods
+comparison.classes.Final:               method protected java.lang.Object java.lang.Object.clone()
+comparison.classes.Final:               method public final void java.lang.Object.wait()
+comparison.classes.Final:               method public final void java.lang.Object.wait(long)
+comparison.classes.Final:               method public final void java.lang.Object.wait(long,int)
+added classes
+comparison.classes.Final:               CLASS public final comparison.classes.Final
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.ImplementedInterfaces.A:
+java.class.nowImplementsInterface BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Class now implements interface 'java.lang.Cloneable'.
+
+CLIRR
+INFO: 4000: comparison.classes.ImplementedInterfaces$A: Added java.lang.Cloneable to the set of implemented interfaces
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.ImplementedInterfaces.B:
+java.class.noLongerImplementsInterface BINARY: BREAKING, SOURCE: BREAKING: Class no longer implements interface 'java.lang.Cloneable'.
+
+CLIRR
+ERROR: 4001: comparison.classes.ImplementedInterfaces$B: Removed java.lang.Cloneable from the set of implemented interfaces
+
+SIGTEST
+missing superclasses or superinterfacees
+comparison.classes.ImplementedInterfaces$B:                 interface @ java.lang.Cloneable
+missing methods
+comparison.classes.ImplementedInterfaces$B:                 method protected java.lang.Object java.lang.Object.clone()
+comparison.classes.ImplementedInterfaces$B:                 method public final void java.lang.Object.wait()
+comparison.classes.ImplementedInterfaces$B:                 method public final void java.lang.Object.wait(long)
+comparison.classes.ImplementedInterfaces$B:                 method public final void java.lang.Object.wait(long,int)
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.classes.KindChanged.Annotation::<init>():
+java.method.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Method was added.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.KindChanged.Annotation:
+java.class.kindChanged BINARY: BREAKING, SOURCE: BREAKING: Class kind changed from '@interface' to 'class'.
+java.class.noLongerAbstract BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Class is no longer abstract.
+java.class.noLongerImplementsInterface BINARY: BREAKING, SOURCE: BREAKING: Class no longer implements interface 'java.lang.annotation.Annotation'.
+
+CLIRR
+ERROR: 2001: comparison.classes.KindChanged$Annotation: Changed from interface to class
+ERROR: 4001: comparison.classes.KindChanged$Annotation: Removed java.lang.annotation.Annotation from the set of implemented interfaces
+
+SIGTEST
+missing classes
+comparison.classes.KindChanged$Annotation:                  CLASS public abstract interface static !annotation comparison.classes.KindChanged$Annotation
+missing superclasses or superinterfaces
+comparison.classes.KindChanged$Annotation:                  interface @ java.lang.annotation.Annotation
+missing methods
+comparison.classes.KindChanged$Annotation:                  method public abstract boolean java.lang.annotation.Annotation.equals(java.lang.Object)
+comparison.classes.KindChanged$Annotation:                  method public abstract int java.lang.annotation.Annotation.hashCode()
+comparison.classes.KindChanged$Annotation:                  method public abstract java.lang.Class<? extends java.lang.annotation.Annotation> java.lang.annotation.Annotation.annotationType()
+comparison.classes.KindChanged$Annotation:                  method public abstract java.lang.String java.lang.annotation.Annotation.toString()
+added classes
+comparison.classes.KindChanged$Annotation:                  CLASS public comparison.classes.KindChanged$Annotation
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.classes.KindChanged.Class::<init>():
+java.method.removed BINARY: BREAKING, SOURCE: BREAKING: Method was removed.
+
+CLIRR
+NA
+
+SIGTEST
+missing constructors
+comparison.classes.KindChanged$Class:   constructor public comparison.classes.KindChanged$Class.<init>(comparison.classes.KindChanged)
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.KindChanged.Class:
+java.class.kindChanged BINARY: BREAKING, SOURCE: BREAKING: Class kind changed from 'class' to 'interface'.
+java.class.nowAbstract BINARY: BREAKING, SOURCE: BREAKING: Class is now abstract.
+
+CLIRR
+ERROR: 2000: comparison.classes.KindChanged$Class: Changed from class to interface
+
+SIGTEST
+missing classes
+comparison.classes.KindChanged$Class:   CLASS public comparison.classes.KindChanged$Class
+missing superclasses or superinterfaces
+comparison.classes.KindChanged$Class:   superclass java.lang.Object
+missing methods
+comparison.classes.KindChanged$Class:   method protected java.lang.Object java.lang.Object.clone()
+comparison.classes.KindChanged$Class:   method protected void java.lang.Object.finalize() throws java.lang.Throwable
+comparison.classes.KindChanged$Class:   method public boolean java.lang.Object.equals(java.lang.Object)
+comparison.classes.KindChanged$Class:   method public final java.lang.Class<?> java.lang.Object.getClass()
+comparison.classes.KindChanged$Class:   method public final void java.lang.Object.notify()
+comparison.classes.KindChanged$Class:   method public final void java.lang.Object.notifyAll()
+comparison.classes.KindChanged$Class:   method public final void java.lang.Object.wait()
+comparison.classes.KindChanged$Class:   method public final void java.lang.Object.wait(long)
+comparison.classes.KindChanged$Class:   method public final void java.lang.Object.wait(long,int)
+comparison.classes.KindChanged$Class:   method public int java.lang.Object.hashCode()
+comparison.classes.KindChanged$Class:   method public java.lang.String java.lang.Object.toString()
+added classes
+comparison.classes.KindChanged$Class:   CLASS public abstract interface static comparison.classes.KindChanged$Class
+----------------------------------------------------------------------------
+
+REVAPI
+method comparison.classes.KindChanged.Enum comparison.classes.KindChanged.Enum::valueOf(java.lang.String):
+java.method.removed BINARY: BREAKING, SOURCE: BREAKING: Method was removed.
+
+CLIRR
+NA, but this seems more correct, because valueOf isn't really defined on the class, it is possibly injected by compiler
+
+SIGTEST
+comparison.classes.KindChanged$Enum:    method public final static comparison.classes.KindChanged$Enum comparison.classes.KindChanged$Enum.valueOf(java.lang.String)
+----------------------------------------------------------------------------
+
+REVAPI
+method comparison.classes.KindChanged.Enum[] comparison.classes.KindChanged.Enum::values():
+java.method.removed BINARY: BREAKING, SOURCE: BREAKING: Method was removed.
+
+CLIRR
+NA, but this seems more correct, because valueOf isn't really defined on the class, it is possibly injected by compiler
+
+SIGTEST
+comparison.classes.KindChanged$Enum:    method public final static comparison.classes.KindChanged$Enum[] comparison.classes.KindChanged$Enum.values()
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.KindChanged.Enum:
+java.class.noLongerInheritsFromClass BINARY: BREAKING, SOURCE: BREAKING: Class no longer inherits from 'java.lang.Enum<comparison.classes.KindChanged.Enum>'.
+java.class.kindChanged BINARY: BREAKING, SOURCE: BREAKING: Class kind changed from 'enum' to '@interface'.
+java.class.noLongerFinal BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Class is no longer final.
+java.class.nowAbstract BINARY: BREAKING, SOURCE: BREAKING: Class is now abstract.
+java.class.nowImplementsInterface BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Class now implements interface 'java.lang.annotation.Annotation'.
+
+CLIRR
+ERROR: 2000: comparison.classes.KindChanged$Enum: Changed from class to interface
+INFO: 3001: comparison.classes.KindChanged$Enum: Removed final modifier from class
+ERROR: 4001: comparison.classes.KindChanged$Enum: Removed java.io.Serializable from the set of implemented interfaces
+ERROR: 4001: comparison.classes.KindChanged$Enum: Removed java.lang.Comparable from the set of implemented interfaces
+INFO: 4000: comparison.classes.KindChanged$Enum: Added java.lang.annotation.Annotation to the set of implemented interfaces
+ERROR: 5001: comparison.classes.KindChanged$Enum: Removed java.lang.Enum from the list of superclasses
+
+SIGTEST
+missing classes
+comparison.classes.KindChanged$Enum:    CLASS public final static !enum comparison.classes.KindChanged$Enum
+missing superclasses or superinterfaces
+comparison.classes.KindChanged$Enum:    interface java.io.Serializable
+comparison.classes.KindChanged$Enum:    interface java.lang.Comparable<comparison.classes.KindChanged$Enum>
+comparison.classes.KindChanged$Enum:    superclass java.lang.Enum<comparison.classes.KindChanged$Enum>
+missing methods
+comparison.classes.KindChanged$Enum:    method protected final java.lang.Object java.lang.Enum.clone()
+comparison.classes.KindChanged$Enum:    method protected final void java.lang.Enum.finalize()
+comparison.classes.KindChanged$Enum:    method public final boolean java.lang.Enum.equals(java.lang.Object)
+comparison.classes.KindChanged$Enum:    method public final int java.lang.Enum.compareTo(comparison.classes.KindChanged$Enum)
+comparison.classes.KindChanged$Enum:    method public final int java.lang.Enum.hashCode()
+comparison.classes.KindChanged$Enum:    method public final int java.lang.Enum.ordinal()
+comparison.classes.KindChanged$Enum:    method public final java.lang.Class<?> java.lang.Object.getClass()
+comparison.classes.KindChanged$Enum:    method public final java.lang.Class<comparison.classes.KindChanged$Enum> java.lang.Enum.getDeclaringClass()
+comparison.classes.KindChanged$Enum:    method public final java.lang.String java.lang.Enum.name()
+comparison.classes.KindChanged$Enum:    method public final static comparison.classes.KindChanged$Enum comparison.classes.KindChanged$Enum.valueOf(java.lang.String)
+comparison.classes.KindChanged$Enum:    method public final static comparison.classes.KindChanged$Enum[] comparison.classes.KindChanged$Enum.values()
+comparison.classes.KindChanged$Enum:    method public final void java.lang.Object.notify()
+comparison.classes.KindChanged$Enum:    method public final void java.lang.Object.notifyAll()
+comparison.classes.KindChanged$Enum:    method public final void java.lang.Object.wait()
+comparison.classes.KindChanged$Enum:    method public final void java.lang.Object.wait(long)
+comparison.classes.KindChanged$Enum:    method public final void java.lang.Object.wait(long,int)
+comparison.classes.KindChanged$Enum:    method public java.lang.String java.lang.Enum.toString()
+comparison.classes.KindChanged$Enum:    method public static <%0 extends java.lang.Enum<{%%0}>> {%%0} java.lang.Enum.valueOf(java.lang.Class<{%%0}>,java.lang.String)
+added classes
+comparison.classes.KindChanged$Enum:    CLASS public abstract interface static !annotation comparison.classes.KindChanged$Enum
+----------------------------------------------------------------------------
+
+REVAPI
+method comparison.classes.KindChanged.Interface comparison.classes.KindChanged.Interface::valueOf(java.lang.String):
+java.method.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Method was added.
+
+CLIRR
+NA
+S
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method comparison.classes.KindChanged.Interface[] comparison.classes.KindChanged.Interface::values():
+java.method.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Method was added.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.KindChanged.Interface:
+java.class.nonFinalClassInheritsFromNewClass BINARY: POTENTIALLY_BREAKING, SOURCE: POTENTIALLY_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Non-final class now inherits from 'java.lang.Enum<comparison.classes.KindChanged.Interface>'.
+java.class.kindChanged BINARY: BREAKING, SOURCE: BREAKING: Class kind changed from 'interface' to 'enum'.
+java.class.noLongerAbstract BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Class is no longer abstract.
+java.class.nowFinal BINARY: BREAKING, SOURCE: BREAKING: Class is now final.
+
+CLIRR
+ERROR: 2001: comparison.classes.KindChanged$Interface: Changed from interface to class
+INFO: 3002: comparison.classes.KindChanged$Interface: Added final modifier to class, but class was effectively final anyway
+INFO: 4000: comparison.classes.KindChanged$Interface: Added java.io.Serializable to the set of implemented interfaces
+INFO: 4000: comparison.classes.KindChanged$Interface: Added java.lang.Comparable to the set of implemented interfaces
+INFO: 5000: comparison.classes.KindChanged$Interface: Added java.lang.Enum to the list of superclasses
+
+SIGTEST
+missing classes
+comparison.classes.KindChanged$Interface:                   CLASS public abstract interface static comparison.classes.KindChanged$Interface
+added classes
+comparison.classes.KindChanged$Interface:                   CLASS public final static !enum comparison.classes.KindChanged$Interface
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.NewSuperTypes.C:
+java.class.nonFinalClassInheritsFromNewClass BINARY: POTENTIALLY_BREAKING, SOURCE: POTENTIALLY_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Non-final class now inherits from 'comparison.classes.NewSuperTypes.BB'.
+
+CLIRR
+INFO: 5000: comparison.classes.NewSuperTypes$C: Added comparison.classes.NewSuperTypes$BB to the list of superclasses
+
+SIGTEST
+missing superclasses or superinterfaces
+comparison.classes.NewSuperTypes$C:     superclass comparison.classes.NewSuperTypes$B
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.NewSuperTypes.E:
+java.class.nonFinalClassInheritsFromNewClass BINARY: POTENTIALLY_BREAKING, SOURCE: POTENTIALLY_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Non-final class now inherits from 'java.io.IOException'.
+
+CLIRR
+INFO: 4000: comparison.classes.NewSuperTypes$E: Added java.io.Serializable to the set of implemented interfaces
+INFO: 5000: comparison.classes.NewSuperTypes$E: Added java.io.IOException to the list of superclasses
+INFO: 5000: comparison.classes.NewSuperTypes$E: Added java.lang.Exception to the list of superclasses
+INFO: 5000: comparison.classes.NewSuperTypes$E: Added java.lang.Throwable to the list of superclasses
+
+SIGTEST
+missing superclasses or superinterfaces
+comparison.classes.NewSuperTypes$E:     superclass java.lang.Object
+missing methods
+comparison.classes.NewSuperTypes$E:     method protected java.lang.Object java.lang.Object.clone()
+comparison.classes.NewSuperTypes$E:     method public final void java.lang.Object.wait()
+comparison.classes.NewSuperTypes$E:     method public final void java.lang.Object.wait(long)
+comparison.classes.NewSuperTypes$E:     method public final void java.lang.Object.wait(long,int)
+comparison.classes.NewSuperTypes$E:     method public java.lang.String java.lang.Object.toString()
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.classes.NewSuperTypes.EE:
+java.class.noLongerInheritsFromClass BINARY: BREAKING, SOURCE: BREAKING: Class no longer inherits from 'java.lang.Error'.
+java.class.nonFinalClassInheritsFromNewClass BINARY: POTENTIALLY_BREAKING, SOURCE: POTENTIALLY_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Non-final class now inherits from 'java.lang.Exception'.
+java.class.nowCheckedException BINARY: NON_BREAKING, SOURCE: BREAKING: Throwable class is now a checked exception.
+
+CLIRR
+ERROR: 5001: comparison.classes.NewSuperTypes$EE: Removed java.lang.Error from the list of superclasses
+WARNING: 5000: comparison.classes.NewSuperTypes$EE: Added java.lang.Exception to the list of superclasses
+
+SIGTEST
+missing superclasses or superinerfaces
+comparison.classes.NewSuperTypes$EE:    superclass java.lang.Error
+missing methods
+comparison.classes.NewSuperTypes$EE:    method protected java.lang.Object java.lang.Object.clone()
+comparison.classes.NewSuperTypes$EE:    method public final void java.lang.Object.wait()
+comparison.classes.NewSuperTypes$EE:    method public final void java.lang.Object.wait(long)
+comparison.classes.NewSuperTypes$EE:    method public final void java.lang.Object.wait(long,int)
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Added.f1:
+java.field.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Field added to class.
+
+CLIRR
+INFO: 6000: comparison.fields.Added: Added public field f1
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Added.f2:
+java.field.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Field added to class.
+
+CLIRR
+INFO: 6000: comparison.fields.Added: Added protected field f2
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Constants.c2:
+java.field.constantValueChanged BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: BREAKING: Constant field changed value from '2' to '3'.
+
+CLIRR
+WARNING: 6003: comparison.fields.Constants: Value of compile-time constant c2 has been changed
+
+SIGTEST
+missing fields
+comparison.fields.Constants:            field public final static int comparison.fields.Constants.c2 = 2
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Constants.c3:
+java.field.nowConstant BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Field now declares a compile time constant value '3'.
+
+CLIRR
+NA
+
+SIGTEST
+missing fields
+comparison.fields.Constants:            field public final static int comparison.fields.Constants.c3
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Constants.removed:
+java.field.removedWithConstant BINARY: NON_BREAKING, SOURCE: BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Field with constant value has been removed.
+
+CLIRR
+ERROR: 6011: comparison.fields.Constants: Field removed has been removed, but it was previously a constant
+
+SIGTEST
+comparison.fields.Constants:            field public final static int comparison.fields.Constants.removed = 4
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Final.f:
+java.field.nowConstant BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Field now declares a compile time constant value '1'.
+java.field.nowFinal BINARY: BREAKING, SOURCE: BREAKING: Field is now final.
+
+CLIRR
+ERROR: 6006: comparison.fields.Final: Field f is now final
+
+SIGTEST
+missing fields
+comparison.fields.Final:                field public int comparison.fields.Final.f
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Serial.serialVersionUID:
+java.field.serialVersionUIDUnchanged BINARY: POTENTIALLY_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: The class changed in an incompatible way with regards to serialization but the serialVersionUID field stayed unchanged. This might be ok and/or desired but is suspicious.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Static.f:
+java.field.nowStatic BINARY: BREAKING, SOURCE: BREAKING: Field is now static.
+
+CLIRR
+ERROR: 6008: comparison.fields.Static: Field f is now static
+
+SIGTEST
+missing fields
+comparison.fields.Static:               field public int comparison.fields.Static.f
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Type.f1:
+java.field.typeChanged BINARY: BREAKING, SOURCE: BREAKING: The type of the field changed from 'int' to 'float'.
+
+CLIRR
+ERROR: 6004: comparison.fields.Type: Changed type of field f1 from int to float
+
+SIGTEST
+comparison.fields.Type:                 field public int comparison.fields.Type.f1
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Type.f2:
+java.field.typeChanged BINARY: BREAKING, SOURCE: BREAKING: The type of the field changed from 'java.lang.String' to 'java.lang.Object'.
+
+CLIRR
+ERROR: 6004: comparison.fields.Type: Changed type of field f2 from java.lang.String to java.lang.Object
+
+SIGTEST
+comparison.fields.Type:                 field public java.lang.String comparison.fields.Type.f2
+----------------------------------------------------------------------------
+
+REVAPI
+field comparison.fields.Visibility.f:
+java.field.visibilityReduced BINARY: BREAKING, SOURCE: BREAKING: Visibility was reduced from 'public' to 'protected'.
+
+CLIRR
+ERROR: 6010: comparison.fields.Visibility: Accessibility of field f has been weakened from public to protected
+
+SIGTEST
+missing fields
+comparison.fields.Visibility:           field public int comparison.fields.Visibility.f
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added.Abstract::newMethod():
+java.method.abstractMethodAdded BINARY: BREAKING, SOURCE: BREAKING: Abstract method was added.
+
+CLIRR
+ERROR: 7013: comparison.methods.Added$Abstract: Abstract method 'public void newMethod()' has been added
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added.Abstract::ordinaryMethod1():
+java.method.removed BINARY: BREAKING, SOURCE: BREAKING: Method was removed.
+
+CLIRR
+ERROR: 7002: comparison.methods.Added$Abstract: Method 'public void ordinaryMethod1()' has been removed
+
+SIGTEST
+missing methods
+comparison.methods.Added$Abstract:      method public void comparison.methods.Added$Abstract.ordinaryMethod1()
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added.Abstract::ordinaryMethod2():
+java.method.removed BINARY: BREAKING, SOURCE: BREAKING: Method was removed.
+
+CLIRR
+ERROR: 7002: comparison.methods.Added$Abstract: Method 'public void ordinaryMethod2()' has been removed
+
+SIGTEST
+missing methods
+comparison.methods.Added$Abstract:      method public abstract void comparison.methods.Added$Abstract.ordinaryMethod2()
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added.Abstract::ordinaryMethod3():
+java.method.removed BINARY: BREAKING, SOURCE: BREAKING: Method was removed.
+
+CLIRR
+ERROR: 7002: comparison.methods.Added$Abstract: Method 'public void ordinaryMethod3()' has been removed
+
+SIGTEST
+comparison.methods.Added$Abstract:      method public final void comparison.methods.Added$Abstract.ordinaryMethod3()
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added.Iface::newMethod():
+java.method.addedToInterface BINARY: BREAKING, SOURCE: BREAKING: Method was added to an interface.
+
+CLIRR
+ERROR: 7012: comparison.methods.Added$Iface: Method 'public void newMethod()' has been added to an interface
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added.Ordinary::newMethod():
+java.method.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Method was added.
+
+CLIRR
+INFO: 7011: comparison.methods.Added$Ordinary: Method 'public void newMethod()' has been added
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added.Ordinary::ordinaryMethod1():
+java.method.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Method was added.
+
+CLIRR
+INFO: 7011: comparison.methods.Added$Ordinary: Method 'public void ordinaryMethod1()' has been added
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added.Ordinary::ordinaryMethod2():
+java.method.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Method was added.
+
+CLIRR
+INFO: 7011: comparison.methods.Added$Ordinary: Method 'public void ordinaryMethod2()' has been added
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added.Ordinary::ordinaryMethod3():
+java.method.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Method was added.
+
+CLIRR
+INFO: 7011: comparison.methods.Added$Ordinary: Method 'public void ordinaryMethod3()' has been added
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+class comparison.methods.Added.Ordinary:
+java.class.noLongerAbstract BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Class is no longer abstract.
+
+CLIRR
+INFO: 3004: comparison.methods.Added$Ordinary: Removed abstract modifier from class
+
+SIGTEST
+missing classes
+comparison.methods.Added$Ordinary:      CLASS public abstract static comparison.methods.Added$Ordinary
+added classes
+comparison.methods.Added$Ordinary:      CLASS public static comparison.methods.Added$Ordinary
+
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Added::newMethod():
+java.method.added BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Method was added.
+
+CLIRR
+INFO: 7011: comparison.methods.Added: Method 'public void newMethod()' has been added
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method java.lang.annotation.Target comparison.methods.DefaultValue.Value::def():
+java.method.defaultValueChanged BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Default value of attribute 'def' of annotation 'comparison.methods.DefaultValue.Value' changed value from '@java.lang.annotation.Target(value = [java.lang.annotation.ElementType.FIELD])' to '@java.lang.annotation.Target(value = [java.lang.annotation.ElementType.ANNOTATION_TYPE])'.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method float comparison.methods.DefaultValue.Value::newValueWithDefault():
+java.method.attributeWithDefaultAddedToAnnotationType BINARY: NON_BREAKING, SOURCE: NON_BREAKING: The annotation has a new attribute with a default value.
+
+CLIRR
+ERROR: 7012: comparison.methods.DefaultValue$Value: Method 'public float newValueWithDefault()' has been added to an interface
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method int comparison.methods.DefaultValue.Value::value():
+java.method.defaultValueAdded BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Default value was added to the attribute.
+
+CLIRR
+NA
+
+SIGTEST
+missing methods
+comparison.methods.DefaultValue$Value:  method public abstract int comparison.methods.DefaultValue$Value.value()
+----------------------------------------------------------------------------
+
+REVAPI
+method comparison.methods.DefaultValue.Value comparison.methods.DefaultValue::annotation():
+java.method.defaultValueRemoved BINARY: NON_BREAKING, SOURCE: BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Default value was removed from the attribute.
+
+CLIRR
+NA
+
+SIGTEST
+comparison.methods.DefaultValue:        method public abstract !hasdefault comparison.methods.DefaultValue$Value comparison.methods.DefaultValue.annotation()
+----------------------------------------------------------------------------
+
+REVAPI
+method comparison.methods.DefaultValue.Value[] comparison.methods.DefaultValue::annotationArray():
+java.method.defaultValueChanged BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Default value of attribute 'annotationArray' of annotation 'comparison.methods.DefaultValue' changed value from '[@comparison.methods.DefaultValue.Value(value = 0), @comparison.methods.DefaultValue.Value(value = 0)]' to '[@comparison.methods.DefaultValue.Value, @comparison.methods.DefaultValue.Value(def = @java.lang.annotation.Target(value = [java.lang.annotation.ElementType.CONSTRUCTOR])), @comparison.methods.DefaultValue.Value(value = 1)]'.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method java.lang.Class<?> comparison.methods.DefaultValue::classAttr():
+java.method.defaultValueChanged BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Default value of attribute 'classAttr' of annotation 'comparison.methods.DefaultValue' changed value from 'java.lang.String.class' to 'void.class'.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method java.lang.Class<?>[] comparison.methods.DefaultValue::classesAttr():
+java.method.defaultValueChanged BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Default value of attribute 'classesAttr' of annotation 'comparison.methods.DefaultValue' changed value from '[java.lang.String.class, int.class]' to '[java.lang.String.class, int.class, void.class]'.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method float comparison.methods.DefaultValue::newValueWithoutDefault():
+java.method.attributeWithNoDefaultAddedToAnnotationType BINARY: NON_BREAKING, SOURCE: BREAKING, SEMANTIC: BREAKING: The annotation has a new attribute without a default value.
+
+CLIRR
+ERROR: 7012: comparison.methods.DefaultValue: Method 'public float newValueWithoutDefault()' has been added to an interface
+
+SIGTEST
+----------------------------------------------------------------------------
+
+REVAPI
+method java.lang.String[] comparison.methods.DefaultValue::stringArray():
+java.method.defaultValueChanged BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Default value of attribute 'stringArray' of annotation 'comparison.methods.DefaultValue' changed value from '[kachny, kachny]' to '[kachny, kachny, kachnicky]'.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method java.lang.String comparison.methods.DefaultValue::stringAttr():
+java.method.defaultValueChanged BINARY: NON_BREAKING, SOURCE: NON_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: Default value of attribute 'stringAttr' of annotation 'comparison.methods.DefaultValue' changed value from 'kachny' to 'kachnicky'.
+
+CLIRR
+NA
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Final::finalMethod():
+java.method.noLongerFinal BINARY: NON_BREAKING, SOURCE: NON_BREAKING: Method is no longer final.
+
+CLIRR
+INFO: 7015: comparison.methods.Final: Method 'public void finalMethod()' is no longer final
+
+SIGTEST
+missing methods
+comparison.methods.Final:               method public final void comparison.methods.Final.finalMethod()
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Final::nonFinalMethod():
+java.method.nowFinal BINARY: BREAKING, SOURCE: BREAKING: Method is now final.
+
+CLIRR
+ERROR: 7014: comparison.methods.Final: Method 'public void nonFinalMethod()' is now final
+
+SIGTEST
+missing methods
+comparison.methods.Final:               method public void comparison.methods.Final.nonFinalMethod()
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Final::nonFinalMethod():
+java.method.nowFinal BINARY: BREAKING, SOURCE: BREAKING: Method is now final.
+
+CLIRR
+ERROR: 7014: comparison.methods.Final: Method 'public void nonFinalMethod()' is now final
+
+SIGTEST
+comparison.methods.Final:               method public void comparison.methods.Final.nonFinalMethod()
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.NofParams::method1(int):
+java.method.numberOfParametersChanged BINARY: BREAKING, SOURCE: BREAKING: The number of parameters of the method have changed.
+
+CLIRR
+ERROR: 7004: comparison.methods.NofParams: In method 'public void method1()' the number of arguments has changed
+
+SIGTEST
+missing methods
+comparison.methods.NofParams:           method public abstract void comparison.methods.NofParams.method1()
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.NofParams::method2():
+java.method.numberOfParametersChanged BINARY: BREAKING, SOURCE: BREAKING: The number of parameters of the method have changed.
+
+CLIRR
+ERROR: 7004: comparison.methods.NofParams: In method 'public void method2(int)' the number of arguments has changed
+
+SIGTEST
+missing methods
+comparison.methods.NofParams:           method public abstract void comparison.methods.NofParams.method2(int)
+----------------------------------------------------------------------------
+
+REVAPI
+method parameter void comparison.methods.ParamType::method1(===double===, float, java.lang.Object, java.lang.String):
+java.method.parameterTypeChanged BINARY: BREAKING, SOURCE: POTENTIALLY_BREAKING: The type of the parameter changed from 'int' to 'double'.
+
+CLIRR
+ERROR: 7005: comparison.methods.ParamType: Parameter 1 of 'public void method1(int, float, java.lang.String, java.lang.Object)' has changed its type to double
+
+SIGTEST
+missing methods
+comparison.methods.ParamType:           method public abstract void comparison.methods.ParamType.method1(int,float,java.lang.String,java.lang.Object)
+----------------------------------------------------------------------------
+
+REVAPI
+method parameter void comparison.methods.ParamType::method1(double, float, ===java.lang.Object===, java.lang.String):
+java.method.parameterTypeChanged BINARY: BREAKING, SOURCE: POTENTIALLY_BREAKING: The type of the parameter changed from 'java.lang.String' to 'java.lang.Object'.
+
+CLIRR
+ERROR: 7005: comparison.methods.ParamType: Parameter 3 of 'public void method1(int, float, java.lang.String, java.lang.Object)' has changed its type to java.lang.Object
+
+SIGTEST
+missing methods
+comparison.methods.ParamType:           method public abstract void comparison.methods.ParamType.method1(int,float,java.lang.String,java.lang.Object)
+----------------------------------------------------------------------------
+
+REVAPI
+method parameter void comparison.methods.ParamType::method1(double, float, java.lang.Object, ===java.lang.String===):
+java.method.parameterTypeChanged BINARY: BREAKING, SOURCE: POTENTIALLY_BREAKING: The type of the parameter changed from 'java.lang.Object' to 'java.lang.String'.
+
+CLIRR
+ERROR: 7005: comparison.methods.ParamType: Parameter 4 of 'public void method1(int, float, java.lang.String, java.lang.Object)' has changed its type to java.lang.String
+
+SIGTEST
+missing methods
+comparison.methods.ParamType:           method public abstract void comparison.methods.ParamType.method1(int,float,java.lang.String,java.lang.Object)
+----------------------------------------------------------------------------
+
+REVAPI
+method int comparison.methods.ReturnType<R extends java.lang.Number>::method1():
+java.method.returnTypeChanged BINARY: BREAKING, SOURCE: POTENTIALLY_BREAKING: The return type changed from 'void' to  'int'.
+
+CLIRR
+ERROR: 7006: comparison.methods.ReturnType: Return type of method 'public void method1()' has been changed to int
+
+SIGTEST
+missing methods
+comparison.methods.ReturnType:          method public abstract void comparison.methods.ReturnType.method1()
+----------------------------------------------------------------------------
+
+REVAPI
+method R comparison.methods.ReturnType<R extends java.lang.Number>::method2():
+java.method.returnTypeChanged BINARY: BREAKING, SOURCE: POTENTIALLY_BREAKING: The return type changed from 'R extends java.lang.Object' to  'R extends java.lang.Number'.
+
+CLIRR
+ERROR: 7006: comparison.methods.ReturnType: Return type of method 'public java.lang.Object method2()' has been changed to java.lang.Number
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method <U extends java.lang.Comparable<R extends java.lang.Number>> U comparison.methods.ReturnType<R extends java.lang.Number>::method3():
+java.method.returnTypeTypeParametersChanged BINARY: NON_BREAKING, SOURCE: POTENTIALLY_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: The return type changed from 'U extends java.lang.Comparable<U>' to 'U extends java.lang.Comparable<R extends java.lang.Number>'.
+
+CLIRR
+NA
+
+SIGTEST
+missing methods
+comparison.methods.ReturnType:          method public abstract <%0 extends java.lang.Comparable<{%%0}>> {%%0} comparison.methods.ReturnType.method3()
+----------------------------------------------------------------------------
+
+REVAPI
+method <U extends R extends java.lang.Number> U comparison.methods.ReturnType<R extends java.lang.Number>::method4():
+java.method.returnTypeTypeParametersChanged BINARY: NON_BREAKING, SOURCE: POTENTIALLY_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: The return type changed from 'U extends java.lang.Number' to 'U extends R extends java.lang.Number'.
+
+CLIRR
+NA
+
+SIGTEST
+missing methods
+comparison.methods.ReturnType:          method public abstract <%0 extends java.lang.Number> {%%0} comparison.methods.ReturnType.method4()
+----------------------------------------------------------------------------
+
+REVAPI
+method java.util.Set<java.lang.Double> comparison.methods.ReturnType<R extends java.lang.Number>::method5():
+java.method.returnTypeTypeParametersChanged BINARY: NON_BREAKING, SOURCE: POTENTIALLY_BREAKING, SEMANTIC: POTENTIALLY_BREAKING: The return type changed from 'java.util.Set<java.lang.Integer>' to 'java.util.Set<java.lang.Double>'.
+
+CLIRR
+NA
+
+SIGTEST
+missing methods
+comparison.methods.ReturnType:          method public abstract java.util.Set<java.lang.Integer> comparison.methods.ReturnType.method5()
+----------------------------------------------------------------------------
+
+REVAPI
+method java.lang.String comparison.methods.ReturnType<R extends java.lang.Number>::method6():
+java.method.returnTypeChanged BINARY: BREAKING, SOURCE: POTENTIALLY_BREAKING: The return type changed from 'java.lang.Object' to  'java.lang.String'.
+
+CLIRR
+ERROR: 7006: comparison.methods.ReturnType: Return type of method 'public java.lang.Object method6()' has been changed to java.lang.String
+
+SIGTEST
+comparison.methods.ReturnType:          method public abstract java.lang.Object comparison.methods.ReturnType.method6()
+----------------------------------------------------------------------------
+
+REVAPI
+NA
+
+CLIRR
+NA
+
+SIGTEST
+missing classes
+comparison.methods.ReturnType:          CLASS public abstract interface comparison.methods.ReturnType<%0 extends java.lang.Object>
+added classes
+comparison.methods.ReturnType:          CLASS public abstract interface comparison.methods.ReturnType<%0 extends java.lang.Number>
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Visibility::privateMethod():
+java.method.visibilityIncreased BINARY: NON_BREAKING, SOURCE: NON_BREAKING: visibility increased
+
+CLIRR
+INFO: 7010: comparison.methods.Visibility: Accessibility of method 'private void privateMethod()' has been increased from private to protected
+
+SIGTEST
+NA
+----------------------------------------------------------------------------
+
+REVAPI
+method void comparison.methods.Visibility::publicMethod():
+java.method.visibilityReduced BINARY: BREAKING, SOURCE: BREAKING: visibility reduced
+
+CLIRR
+ERROR: 7009: comparison.methods.Visibility: Accessibility of method 'public void publicMethod()' has been decreased from public to private
+
+SIGTEST
+missing methods
+comparison.methods.Visibility:          method public void comparison.methods.Visibility.publicMethod()
+
