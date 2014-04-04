@@ -84,7 +84,8 @@ public class TextReporter implements Reporter {
             if (f.exists() && !f.canWrite()) {
                 LOG.warn(
                     "The configured file for text reporter, '" + f.getAbsolutePath() + "' is not a writable file." +
-                        " Defaulting the output to standard output.");
+                        " Defaulting the output to standard output."
+                );
                 out = System.out;
             } else {
                 if (!f.getParentFile().mkdirs()) {
@@ -130,13 +131,11 @@ public class TextReporter implements Reporter {
         Element oldE = report.getOldElement();
         Element newE = report.getNewElement();
 
-        output.print(oldE == null ? "<none>" : oldE.getFullHumanReadableString());
-        output.print(" with ");
-        output.print(newE == null ? "<none>" : newE.getFullHumanReadableString());
         if (!report.getDifferences().isEmpty()) {
-            output.print(": ");
+            output.print(newE == null ? oldE.getFullHumanReadableString() : newE.getFullHumanReadableString());
+            output.println(":");
             for (Difference d : report.getDifferences()) {
-                output.append(d.name).append(" (").append(d.code).append(")");
+                output.append(d.code);
                 reportClassification(output, d);
                 output.append(": ").append(d.description).append("\n");
             }
