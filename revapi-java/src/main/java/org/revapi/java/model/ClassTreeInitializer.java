@@ -290,6 +290,12 @@ public final class ClassTreeInitializer {
                 }
                 maybeInner = name.indexOf('$') >= 0;
 
+                if (isPublicAPI) {
+                    addToAdditionalClasses(Type.getObjectType(superName));
+                    for (String iface : interfaces) {
+                        addToAdditionalClasses(Type.getObjectType(iface));
+                    }
+                }
                 LOG.trace("visit(): name={}, signature={}, publicAPI={}, onlyAdditional={}", name, signature,
                     isPublicAPI, onlyAddAdditional);
             }
@@ -307,7 +313,7 @@ public final class ClassTreeInitializer {
             public void visitInnerClass(String name, String outerName, String innerName, int access) {
                 if (isPublicAPI && maybeInner && innerName != null) {
                     boolean considerThisName = false;
-                    if (outerName != null && outerName.startsWith(mainName)) {
+                    if (outerName != null) {
                         if (innerClassCanonicalName == null) {
                             String base = Type.getObjectType(outerName).getClassName();
                             innerClassCanonicalName = new StringBuilder(base);
@@ -387,7 +393,7 @@ public final class ClassTreeInitializer {
 
                         if (innerClassCanonicalName == null) {
                             addConditionally(t, Type.getObjectType(mainName).getClassName(), null, false);
-                        } else {
+                        } else if (processingInnerClass) {
                             if (!onlyAddAdditional) {
                                 StringBuilder binaryName = new StringBuilder();
                                 StringBuilder canonicalName = new StringBuilder();
