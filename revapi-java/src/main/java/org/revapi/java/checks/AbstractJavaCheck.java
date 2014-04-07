@@ -26,6 +26,8 @@ import org.revapi.java.TypeEnvironment;
 import org.revapi.java.model.ClassTreeInitializer;
 
 /**
+ * TODO move to SPI
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

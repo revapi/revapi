@@ -58,3 +58,5 @@ org.revapi.java.checks.methods.ReturnTypeChanged
 org.revapi.java.checks.methods.VisibilityIncreased
 org.revapi.java.checks.methods.VisibilityReduced
 
+org.revapi.java.checks.generics.FormalTypeParametersChanged
+org.revapi.java.checks.generics.SuperTypeParametersChanged

@@ -146,9 +146,14 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
         if (oldSuperTypes.size() != newSuperTypes.size()) {
             pushActive(oldType, newType, oldSuperTypes, newSuperTypes);
         } else {
+            Types oldTypes = getOldTypeEnvironment().getTypeUtils();
+            Types newTypes = getNewTypeEnvironment().getTypeUtils();
+
             for (int i = 0; i < oldSuperTypes.size(); ++i) {
-                TypeMirror oldSuperClass = oldSuperTypes.get(i);
-                TypeMirror newSuperClass = newSuperTypes.get(i);
+                //need to erase them all so that we get only true type changes. formal type parameter changes
+                //are captured by SuperTypeParametersChanged check
+                TypeMirror oldSuperClass = oldTypes.erasure(oldSuperTypes.get(i));
+                TypeMirror newSuperClass = oldTypes.erasure(newSuperTypes.get(i));
 
                 if (!Util.isSameType(oldSuperClass, newSuperClass)) {
                     pushActive(oldType, newType, oldSuperTypes, newSuperTypes);
@@ -189,7 +194,7 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
         List<String> ret = new ArrayList<>(supers.size());
 
         for (TypeMirror s : supers) {
-            ret.add(Util.toUniqueString(s));
+            ret.add(Util.toUniqueString(env.erasure(s)));
         }
 
         return ret;

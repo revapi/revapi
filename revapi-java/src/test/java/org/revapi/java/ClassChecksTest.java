@@ -158,4 +158,19 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_ABSTRACT.code()));
     }
+
+    @Test
+    public void testFormalTypeParametersChanged() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/classes/TypeParams.java", "v2/classes/TypeParams.java");
+
+        Assert.assertEquals(2,
+            (int) reporter.getProblemCounters().get(Code.GENERICS_FORMAL_TYPE_PARAMETER_CHANGED.code()));
+        Assert
+            .assertEquals(1, (int) reporter.getProblemCounters().get(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(
+            Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED.code()));
+        Assert.assertEquals(1,
+            (int) reporter.getProblemCounters().get(Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED.code()));
+    }
 }

@@ -67,6 +67,8 @@ public enum Code {
     CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null),
     CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass", BREAKING, BREAKING, null),
     CLASS_NON_PUBLIC_PART_OF_API("java.class.nonPublicPartOfAPI", NON_BREAKING, NON_BREAKING, NON_BREAKING),
+    CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED("java.class.superTypeTypeParametersChanged", POTENTIALLY_BREAKING,
+        NON_BREAKING, POTENTIALLY_BREAKING),
 
     ANNOTATION_ADDED("java.annotation.added", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     ANNOTATION_REMOVED("java.annotation.removed", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
@@ -124,7 +126,13 @@ public enum Code {
     METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED("java.method.returnTypeTypeParametersChanged", POTENTIALLY_BREAKING,
         NON_BREAKING, POTENTIALLY_BREAKING),
     METHOD_NUMBER_OF_PARAMETERS_CHANGED("java.method.numberOfParametersChanged", BREAKING, BREAKING, null),
-    METHOD_PARAMETER_TYPE_CHANGED("java.method.parameterTypeChanged", POTENTIALLY_BREAKING, BREAKING, null);
+    METHOD_PARAMETER_TYPE_CHANGED("java.method.parameterTypeChanged", POTENTIALLY_BREAKING, BREAKING, null),
+
+    GENERICS_ELEMENT_NOW_PARAMETERIZED("java.generics.elementNowParameterized", NON_BREAKING, NON_BREAKING,
+        POTENTIALLY_BREAKING),
+    GENERICS_FORMAL_TYPE_PARAMETER_ADDED("java.generics.formalTypeParameterAdded", BREAKING, NON_BREAKING, null),
+    GENERICS_FORMAL_TYPE_PARAMETER_REMOVED("java.generics.formalTypeParameterRemoved", BREAKING, NON_BREAKING, null),
+    GENERICS_FORMAL_TYPE_PARAMETER_CHANGED("java.generics.formalTypeParameterChanged", BREAKING, NON_BREAKING, null);
 
     private final String code;
     private final EnumMap<CompatibilityType, ChangeSeverity> classification;

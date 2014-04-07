@@ -16,12 +16,96 @@
 
 package org.revapi.java.checks.generics;
 
-import org.revapi.java.CheckBase;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+
+import org.revapi.Difference;
+import org.revapi.java.Util;
+import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.checks.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class SuperTypeParametersChanged extends CheckBase {
-    //TODO implement
+public class SuperTypeParametersChanged extends AbstractJavaCheck {
+
+    @Override
+    protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
+        if (oldType == null || newType == null ||
+            !isBothAccessibleOrInApi(oldType, getOldTypeEnvironment(), newType, getNewTypeEnvironment())) {
+            return;
+        }
+
+        List<? extends TypeMirror> oldSuperTypes = getOldTypeEnvironment().getTypeUtils().directSupertypes(
+            oldType.asType());
+
+        List<? extends TypeMirror> newSuperTypes = getNewTypeEnvironment().getTypeUtils().directSupertypes(
+            newType.asType());
+
+        if (oldSuperTypes.size() != newSuperTypes.size()) {
+            //super types changed, handled elsewhere
+            return;
+        }
+
+        Map<String, TypeMirror> erasedOld = new LinkedHashMap<>();
+        Map<String, TypeMirror> erasedNew = new LinkedHashMap<>();
+
+        for (TypeMirror t : oldSuperTypes) {
+            erasedOld.put(Util.toUniqueString(getOldTypeEnvironment().getTypeUtils().erasure(t)), t);
+        }
+
+        for (TypeMirror t : newSuperTypes) {
+            erasedNew.put(Util.toUniqueString(getNewTypeEnvironment().getTypeUtils().erasure(t)), t);
+        }
+
+        if (!erasedOld.keySet().equals(erasedNew.keySet())) {
+            //super types changed, handled elsewhere
+            return;
+        }
+
+        Map<TypeMirror, TypeMirror> changed = new LinkedHashMap<>();
+
+        for (Map.Entry<String, TypeMirror> e : erasedOld.entrySet()) {
+            TypeMirror oldT = e.getValue();
+            TypeMirror newT = erasedNew.get(e.getKey());
+            String oldS = Util.toUniqueString(oldT);
+            String newS = Util.toUniqueString(newT);
+
+            if (!oldS.equals(newS)) {
+                changed.put(oldT, newT);
+            }
+        }
+
+        if (!changed.isEmpty()) {
+            pushActive(oldType, newType, changed);
+        }
+    }
+
+    @Nullable
+    @Override
+    protected List<Difference> doEnd() {
+        ActiveElements<TypeElement> types = popIfActive();
+        if (types == null) {
+            return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<TypeMirror, TypeMirror> changed = (Map<TypeMirror, TypeMirror>) types.context[0];
+
+        List<Difference> ret = new ArrayList<>();
+        for (Map.Entry<TypeMirror, TypeMirror> e : changed.entrySet()) {
+            ret.add(createDifference(Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED,
+                new String[]{Util.toHumanReadableString(e.getKey()), Util.toHumanReadableString(e.getValue())},
+                e.getKey(), e.getValue()));
+        }
+
+        return ret;
+    }
 }

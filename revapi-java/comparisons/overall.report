@@ -957,7 +957,8 @@ comparison.methods.ReturnType:          method public abstract java.lang.Object 
 ----------------------------------------------------------------------------
 
 REVAPI
-NA
+class comparison.methods.ReturnType<R extends java.lang.Number>:
+java.generics.formalTypeParameterChanged SOURCE: BREAKING, BINARY: NON_BREAKING: The formal type parameter changed from 'R' to 'R extends java.lang.Number'.
 
 CLIRR
 NA
