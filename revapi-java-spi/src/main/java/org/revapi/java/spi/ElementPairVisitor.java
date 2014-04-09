@@ -42,6 +42,8 @@ import javax.lang.model.util.SimpleElementVisitor7;
  *     }, e2);
  * </code></pre>
  *
+ * @see org.revapi.java.spi.TypeMirrorPairVisitor
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

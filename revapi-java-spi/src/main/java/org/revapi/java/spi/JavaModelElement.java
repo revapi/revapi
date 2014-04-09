@@ -20,11 +20,18 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
 
 /**
+ * All elements corresponding to various Java language model (apart from annotations (see
+ * {@link org.revapi.java.spi.JavaAnnotationElement})), i.e. classes, methods, fields and method parameters, will
+ * implement this interface.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
 public interface JavaModelElement extends JavaElement {
 
+    /**
+     * @return the corresponding {@link javax.lang.model.element.Element model element}.
+     */
     @Nonnull
     Element getModelElement();
 }

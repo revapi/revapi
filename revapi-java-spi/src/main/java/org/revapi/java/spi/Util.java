@@ -649,6 +649,15 @@ public final class Util {
         }, null);
     }
 
+    /**
+     * Returns all the super classes of given type. I.e. the returned list does NOT contain any interfaces
+     * the class or tis superclasses implement.
+     *
+     * @param types the Types instance of the compilation environment from which the type comes from
+     * @param type  the type
+     *
+     * @return the list of super classes
+     */
     @Nonnull
     public static List<TypeMirror> getAllSuperClasses(@Nonnull Types types, @Nonnull TypeMirror type) {
         List<TypeMirror> ret = new ArrayList<>();
@@ -668,6 +677,14 @@ public final class Util {
         return ret;
     }
 
+    /**
+     * Similar to {@link #getAllSuperClasses(javax.lang.model.util.Types, javax.lang.model.type.TypeMirror)} but
+     * returns all super types including implemented interfaces.
+     *
+     * @param types the Types instance of the compilation environment from which the type comes from
+     * @param type the type
+     * @return the list of super tpyes
+     */
     @Nonnull
     public static List<TypeMirror> getAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type) {
         ArrayList<TypeMirror> ret = new ArrayList<>();
@@ -676,6 +693,14 @@ public final class Util {
         return ret;
     }
 
+    /**
+     * Similar to {@link #getAllSuperTypes(javax.lang.model.util.Types, javax.lang.model.type.TypeMirror)} but avoids
+     * instantiation of a new list.
+     *
+     * @param types the Types instance of the compilation environment from which the type comes from
+     * @param type the type
+     * @param result the list to add the results to.
+     */
     public static void fillAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type,
         @Nonnull List<TypeMirror> result) {
 
@@ -722,6 +747,18 @@ public final class Util {
         return false;
     }
 
+    /**
+     * Extracts the names of the attributes from the executable elements that represents them in the given map and
+     * returns a map keyed by those names.
+     * <p/>
+     * I.e. while representing annotation attributes on an annotation type by executable elements is technically correct
+     * it is more convenient to address them simply by their names, which, in case of annotation types, are unique
+     * (i.e. you cannot overload an annotation attribute, because they cannot have method parameters).
+     *
+     * @param attributes the attributes as obtained by
+     *                   {@link javax.lang.model.element.AnnotationMirror#getElementValues()}
+     * @return the equivalent of the supplied map keyed by attribute names instead of the full-blown executable elements
+     */
     @Nonnull
     public static Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> keyAnnotationAttributesByName(
         @Nonnull Map<? extends ExecutableElement, ? extends AnnotationValue> attributes) {

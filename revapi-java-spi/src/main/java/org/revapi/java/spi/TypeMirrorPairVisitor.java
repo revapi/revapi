@@ -31,6 +31,24 @@ import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleTypeVisitor7;
 
 /**
+ * Similar to {@link org.revapi.java.spi.ElementPairVisitor} but provides a visitor to visit two type mirrors
+ * of the same type.
+ * <p/>
+ * Typical usage:
+ * <pre><code>
+ *     javax.lang.model.type.TypeMirror t1 = ...;
+ *     javax.lang.model.type.TypeMirror t2 = ...;
+ * <p/>
+ *     t1.accept(new TypeMirrorPairVisitor&lt;Void&gt;() {
+ * <p/>
+ *         protected Void visitArray(ArrayType t1, ArrayType t2) {
+ *             ...
+ *         }
+ *     }, t2);
+ * </code></pre>
+ *
+ * @see org.revapi.java.spi.ElementPairVisitor
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

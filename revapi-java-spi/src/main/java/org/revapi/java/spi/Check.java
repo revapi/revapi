@@ -50,6 +50,9 @@ import org.revapi.configuration.Configurable;
  *     visitAnnotation*
  *  visitEnd)*
  * </code></pre>
+ * <p/>
+ * Consider inheriting from the {@link org.revapi.java.spi.CheckBase} instead of directly implementing this
+ * interface because it takes care of matching the corresponding {@code visit*()} and {@code visitEnd()} calls.
  *
  * @author Lukas Krejci
  * @since 0.1
@@ -82,13 +85,16 @@ public interface Check extends Configurable {
      * <p/>
      * I.e. a series of calls might look like this:<br/>
      * <pre><code>
-     * visitType();
+     * visitClass();
      * visitMethod();
      * visitEnd();
      * visitMethod();
      * visitEnd();
-     * visitEnd(); //"ends" the visitType()
+     * visitEnd(); //"ends" the visitClass()
      * </code></pre>
+     *
+     * @return the list of found differences between corresponding elements or null if no differences found (null is
+     * considered equivalent to returning an empty collection).
      */
     @Nullable
     List<Difference> visitEnd();
@@ -101,6 +107,11 @@ public interface Check extends Configurable {
 
     void visitField(@Nullable VariableElement oldField, @Nullable VariableElement newField);
 
+    /**
+     * Visiting annotation is slightly different, because it is not followed by the standard {@link #visitEnd()} call.
+     * Instead, because visiting annotation is always "terminal" in a sense that an annotation doesn't have any child
+     * elements, the list of differences is returned straight away.
+     */
     @Nullable
     List<Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
         @Nullable AnnotationMirror newAnnotation);
