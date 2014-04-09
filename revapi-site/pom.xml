@@ -46,17 +46,7 @@
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi-java</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.revapi</groupId>
             <artifactId>revapi-java-spi</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-reporting-text</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -90,7 +80,7 @@
                                 <exec command="rake update" dir="${project.build.directory}/webapp"/>
                                 <exec command="rake gen" dir="${project.build.directory}/webapp"/>
                                 <copy todir="${built.site}">
-                                <fileset dir="${project.build.directory}/webapp" includes=".nojekyll"/>
+                                    <fileset dir="${project.build.directory}/webapp" includes=".nojekyll"/>
                                 </copy>
                             </tasks>
                         </configuration>
@@ -103,7 +93,8 @@
                         <phase>site-deploy</phase>
                         <configuration>
                             <tasks>
-                                <exec command="awestruct -P production -g --deploy" dir="${project.build.directory}/webapp"/>
+                                <exec command="awestruct -P production -g --deploy"
+                                      dir="${project.build.directory}/webapp"/>
                             </tasks>
                         </configuration>
                         <goals>
