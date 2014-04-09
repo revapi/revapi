@@ -115,7 +115,9 @@
         <module>revapi-reporting-text</module>
         <module>revapi-maven-plugin</module>
         <module>revapi-standalone</module>
-        <module>revapi-site</module>
+        <!-- Don't build the site by default, because it requires functioning awestruct installation, which is not
+             something Travis and/or ordinary contributor is going to have. -->
+        <!-- <module>revapi-site</module> -->
     </modules>
 
     <build>
