@@ -28,6 +28,39 @@
     <artifactId>revapi-site</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <built.site>${project.build.directory}/webapp/_site</built.site>
+    </properties>
+
+    <dependencies>
+        <!-- all these dependencies are stuff that we generate javadoc for -->
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-basic-features</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-java</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-java-spi</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-reporting-text</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
     <build>
         <resources>
             <resource>
@@ -56,8 +89,8 @@
                             <tasks>
                                 <exec command="rake update" dir="${project.build.directory}/webapp"/>
                                 <exec command="rake gen" dir="${project.build.directory}/webapp"/>
-                                <copy todir="${project.build.directory}/webapp/_site">
-                                    <fileset dir="${project.build.directory}/webapp" includes=".nojekyll"/>
+                                <copy todir="${built.site}">
+                                <fileset dir="${project.build.directory}/webapp" includes=".nojekyll"/>
                                 </copy>
                             </tasks>
                         </configuration>
@@ -81,9 +114,30 @@
             </plugin>
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
+                <version>2.4</version>
                 <configuration>
                     <warSourceDirectory>${project.build.directory}/webapp/_site</warSourceDirectory>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>javadoc-jar</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>aggregate</goal>
+                        </goals>
+                        <configuration>
+                            <reportOutputDirectory>${built.site}</reportOutputDirectory>
+                            <includeDependencySources>true</includeDependencySources>
+                            <dependencySourceIncludes>
+                                <dependencySourceInclude>org.revapi:*</dependencySourceInclude>
+                            </dependencySourceIncludes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

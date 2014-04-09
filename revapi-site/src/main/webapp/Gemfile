@@ -25,16 +25,16 @@
 source 'https://rubygems.org' # This tells Bundler where to look for gems
 
 #noinspection GemInspection
-gem 'awestruct', :github => 'awestruct'
+gem 'awestruct', '>= 0.5.4'
 
 #noinspection GemInspection
-gem 'rake', '>= 0.9.2' # Needed for the Rakefile to work
+gem 'rake', '= 0.9.2' # Needed for the Rakefile to work
 
 #noinspection GemInspection
 gem 'asciidoctor', '>= 0.1.4'
 
 #noinspection GemInspection
-gem 'coderay'
+#gem 'coderay'
 
 #gem 'awestruct', '>= 0.5.1'                               # Goes without saying
 # gem 'coffee-script', '>= 2.2.0'                         # If using coffee-script or to remove the warning

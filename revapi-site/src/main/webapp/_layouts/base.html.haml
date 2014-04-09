@@ -10,6 +10,10 @@
       }
     %link{ :rel=>'stylesheet', :type=>'text/css', :href=>"#{site.base_url}/stylesheets/bootstrap.css" }
     %link{ :rel=>'stylesheet', :type=>'text/css', :href=>"#{site.base_url}/stylesheets/styles.css" }
+    %link{ :rel=>"stylesheet", :type=>'text/css', :href=>"#{site.base_url}/stylesheets/lightbox.css"}
+    %script{ :type=>'text/javascript', :src=>'//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js' }
+    %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/bootstrap.js" }
+    %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/lightbox.min.js" }
     /[if lt IE 9]
       %script{ :type=>'text/javascript', :src=>'//html5shim.googlecode.com/svn/trunk/html5.js' }
   %body
@@ -39,6 +43,3 @@
       %hr
       %footer
         %p &copy; #{site.org} #{Date.today.year}
-    -# Uncomment script tags (remove leading -#) when you're ready to use behaviors
-    %script{ :type=>'text/javascript', :src=>'//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js' }
-    %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts//bootstrap.js" }

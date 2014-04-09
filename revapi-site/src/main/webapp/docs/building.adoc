@@ -1,6 +1,6 @@
 = Building
 :awestruct-layout: docs
-:awestruct-index: 50
+:awestruct-index: 200
 :toc: right
 
 [.toc-on-right]

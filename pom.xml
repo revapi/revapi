@@ -115,6 +115,7 @@
         <module>revapi-reporting-text</module>
         <module>revapi-maven-plugin</module>
         <module>revapi-standalone</module>
+        <module>revapi-site</module>
     </modules>
 
     <build>
@@ -164,6 +165,21 @@
                         <configuration>
                             <skip>${findbugs.skip}</skip>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.1</version>
+                <executions>
+                    <execution>
+                        <id>bundle-sources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                            <goal>test-jar-no-fork</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

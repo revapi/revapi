@@ -1,0 +1,32 @@
+= Architecture
+:awestruct-layout: docs
+:awestruct-index: 1
+:toc: right
+
+[.toc-on-right]
+toc::[]
+
+== Architecture
+
+Revapi has a very simple architecture consisting of a simple linear pipeline that processes a "forest" (a set of trees)
+of individual API elements.
+
+The API elements come from archives. As of now, the only possible source of archives is the file system (future versions
+of Revapi may introduce other implementations for different sources of archives).
+
+A set of archives containing the old version of API is passed to an archive analyzer that produces a forest of API
+elements. Then archives of the new version are analyzed the same way.
+
+The two API forests are then consistently sorted and traversed in parallel. New or missing elements are detected and
+equivalent elements are compared using an element analyzer, producing a set of reports that contain the differences
+found while comparing the elements. The differences are then simply reported.
+
+The following diagram depicts the work flow graphically. 
+
++++<a href="../img/revapi-workflow.png" data-lightbox="1">+++
+image:../img/revapi-workflow.png[width="100%",role="thumb"]
++++</a>+++
+
+Each of the stages in that work flow is configurable. The configuration is supplied as JSON files, that are validated
+against JSON schemas that each extension can supply.
+

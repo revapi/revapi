@@ -1,6 +1,6 @@
 = Basic Extensions
 :awestruct-layout: docs
-:awestruct-index: 1
+:awestruct-index: 100
 :toc: right
 
 [.toc-on-right]
