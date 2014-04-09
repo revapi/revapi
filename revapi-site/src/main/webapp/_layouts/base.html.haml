@@ -36,6 +36,8 @@
                 - for doc in site.docs
                   %li
                     %a{ :href=>doc.url}= doc.title
+            %li
+              %a{ :href=>"#{site.base_url}/apidocs"} Javadoc
           .navbar-text.navbar-right
             Latest version: #{site.version}
     .container{ :role=>"main"}
