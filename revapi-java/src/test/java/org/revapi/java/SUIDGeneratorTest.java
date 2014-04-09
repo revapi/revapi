@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import org.revapi.java.checks.fields.SerialVersionUidUnchanged;
+import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.suid.TestClass;
 
 /**

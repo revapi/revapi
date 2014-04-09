@@ -23,9 +23,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Difference;
-import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -68,7 +68,8 @@ public final class NoLongerImplementsInterface extends AbstractJavaCheck {
             if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
                 result.add(createDifference(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE,
                     new String[]{
-                        Util.toHumanReadableString(oldIface)}, oldIface));
+                        Util.toHumanReadableString(oldIface)}, oldIface
+                ));
             }
         }
 

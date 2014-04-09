@@ -8,16 +8,40 @@ import javax.annotation.Nullable;
 import org.revapi.AnalysisContext;
 
 /**
+ * A thing that can be configured from a JSON file.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
 public interface Configurable {
 
+    /**
+     * Revapi supports a single configuration file for multiple extensions. Each such extension is supposed to define
+     * a set of paths in the JSON file that it wants to read the configuration from.
+     */
     @Nullable
     String[] getConfigurationRootPaths();
 
+    /**
+     * Returns a reader using which the caller can read the JSON schema for given configuration root path.
+     *
+     * @param configurationRootPath the root path to get the expected schema for. This will be one of the paths
+     *                              returned
+     *                              from {@link #getConfigurationRootPaths()}.
+     *
+     * @return the reader for reading in the schema JSON or null if no schema is needed for given root path.
+     */
     @Nullable
     Reader getJSONSchema(@Nonnull String configurationRootPath);
 
+    /**
+     * The instance can configure itself for the upcoming analysis from the supplied analysis context.
+     * <p/>
+     * The configuration contained in the context is the FULL configuration of all extensions. I.e. it contains also
+     * configuration not intended for this configurable. When reading from the configuration one therefore needs to
+     * use the full path to the configuration properties, including the root paths.
+     *
+     * @param analysisContext the context of the upcoming analysis
+     */
     void initialize(@Nonnull AnalysisContext analysisContext);
 }

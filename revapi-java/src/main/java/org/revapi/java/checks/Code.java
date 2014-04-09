@@ -16,12 +16,12 @@
 
 package org.revapi.java.checks;
 
-import static org.revapi.ChangeSeverity.BREAKING;
-import static org.revapi.ChangeSeverity.NON_BREAKING;
-import static org.revapi.ChangeSeverity.POTENTIALLY_BREAKING;
 import static org.revapi.CompatibilityType.BINARY;
 import static org.revapi.CompatibilityType.SEMANTIC;
 import static org.revapi.CompatibilityType.SOURCE;
+import static org.revapi.DifferenceSeverity.BREAKING;
+import static org.revapi.DifferenceSeverity.NON_BREAKING;
+import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
 
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
@@ -31,9 +31,9 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.WeakHashMap;
 
-import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
+import org.revapi.DifferenceSeverity;
 
 /**
  * TODO move this class to SPI so that extenders can take advantage of it.
@@ -135,10 +135,10 @@ public enum Code {
     GENERICS_FORMAL_TYPE_PARAMETER_CHANGED("java.generics.formalTypeParameterChanged", BREAKING, NON_BREAKING, null);
 
     private final String code;
-    private final EnumMap<CompatibilityType, ChangeSeverity> classification;
+    private final EnumMap<CompatibilityType, DifferenceSeverity> classification;
 
-    private Code(String code, ChangeSeverity sourceSeverity, ChangeSeverity binarySeverity,
-        ChangeSeverity semanticSeverity) {
+    private Code(String code, DifferenceSeverity sourceSeverity, DifferenceSeverity binarySeverity,
+        DifferenceSeverity semanticSeverity) {
         this.code = code;
         classification = new EnumMap<>(CompatibilityType.class);
         addClassification(SOURCE, sourceSeverity);
@@ -164,7 +164,7 @@ public enum Code {
         Message message = getMessages(locale).get(code);
         Difference.Builder bld = Difference.builder().withCode(code).withName(message.name)
             .withDescription(message.description);
-        for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {
+        for (Map.Entry<CompatibilityType, DifferenceSeverity> e : classification.entrySet()) {
             bld.addClassification(e.getKey(), e.getValue());
         }
 
@@ -177,7 +177,7 @@ public enum Code {
         Difference.Builder bld = Difference.builder().withCode(code).withName(message.name)
             .withDescription(description).addAttachments(attachments);
 
-        for (Map.Entry<CompatibilityType, ChangeSeverity> e : classification.entrySet()) {
+        for (Map.Entry<CompatibilityType, DifferenceSeverity> e : classification.entrySet()) {
             bld.addClassification(e.getKey(), e.getValue());
         }
 
@@ -224,7 +224,7 @@ public enum Code {
         return messageRef.get();
     }
 
-    private void addClassification(CompatibilityType compatibilityType, ChangeSeverity severity) {
+    private void addClassification(CompatibilityType compatibilityType, DifferenceSeverity severity) {
         if (severity != null) {
             classification.put(compatibilityType, severity);
         }

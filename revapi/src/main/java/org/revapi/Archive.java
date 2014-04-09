@@ -22,6 +22,8 @@ import java.io.InputStream;
 import javax.annotation.Nonnull;
 
 /**
+ * A simple abstraction of a file or archive. The archive merely has a name and can be opened as a stream.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

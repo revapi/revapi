@@ -24,6 +24,10 @@ import javax.annotation.Nullable;
 import org.revapi.configuration.Configurable;
 
 /**
+ * A difference transform may elect to transform certain kinds of differences into other kinds. This comes useful
+ * in custom extensions that want to "modify the behavior" of other extensions by consuming and transforming the
+ * differences found by the other extensions into something else.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
@@ -39,7 +43,7 @@ public interface DifferenceTransform extends AutoCloseable, Configurable {
      * Returns a transformed version of the difference. If this method returns null, the difference is
      * discarded and not reported. Therefore, if you don't want to transform a difference, just return it.
      * <p/>
-     * The code of the difference will match at least one of the regexes returned from the {@link
+     * The code of the supplied difference will match at least one of the regexes returned from the {@link
      * #getDifferenceCodePatterns()} method.
      *
      * @param oldElement the old differing element

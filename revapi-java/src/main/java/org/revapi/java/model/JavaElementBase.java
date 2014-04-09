@@ -23,11 +23,11 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
 import org.revapi.API;
-import org.revapi.java.JavaElement;
-import org.revapi.java.JavaModelElement;
-import org.revapi.java.TypeEnvironment;
-import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaElement;
+import org.revapi.java.spi.JavaModelElement;
+import org.revapi.java.spi.TypeEnvironment;
+import org.revapi.java.spi.Util;
 import org.revapi.simple.SimpleElement;
 
 /**

@@ -23,9 +23,9 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
 import org.revapi.Difference;
-import org.revapi.java.CheckBase;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
 
 /**
  * @author Lukas Krejci

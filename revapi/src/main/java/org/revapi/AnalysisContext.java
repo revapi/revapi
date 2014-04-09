@@ -28,6 +28,8 @@ import org.jboss.dmr.ModelNode;
 import org.revapi.configuration.StripCommentsFromJSON;
 
 /**
+ * An analysis context is an aggregation of the APIs to check and configuration for the analysis.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
@@ -122,6 +124,14 @@ public final class AnalysisContext {
     private final API oldApi;
     private final API newApi;
 
+    /**
+     * Constructor
+     *
+     * @param locale        the locale the analysis reporters should use
+     * @param configuration configuration represented as DMR node
+     * @param oldApi        the old API
+     * @param newApi        the new API
+     */
     public AnalysisContext(@Nonnull Locale locale, @Nullable ModelNode configuration, @Nonnull API oldApi,
         @Nonnull API newApi) {
         this.locale = locale;

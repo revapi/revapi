@@ -27,16 +27,28 @@ import javax.annotation.Nullable;
 import org.revapi.Element;
 
 /**
+ * Recursively walks an element forest in a depth-first manner leaving out elements not matching the optionally provided
+ * filter.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
 public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
-    private final Class<E> resultClass;
+    private final Class<? extends E> resultClass;
     private final Deque<Iterator<? extends Element>> dfsStack = new LinkedList<>();
     private final Filter<? super E> filter;
     private E current;
 
-    public DFSFilteringIterator(@Nonnull Iterator<? extends Element> rootIterator, @Nonnull Class<E> resultClass,
+    /**
+     * Constructor.
+     *
+     * @param rootIterator the iterator over the root elements of the forest
+     * @param resultClass  the class of the elements to look for in the forest. All the returned elements will be
+     *                     assignable to this class.
+     * @param filter       optional filter that further filters out unwanted elements.
+     */
+    public DFSFilteringIterator(@Nonnull Iterator<? extends Element> rootIterator,
+        @Nonnull Class<? extends E> resultClass,
         @Nullable Filter<? super E> filter) {
         dfsStack.push(rootIterator);
         this.resultClass = resultClass;

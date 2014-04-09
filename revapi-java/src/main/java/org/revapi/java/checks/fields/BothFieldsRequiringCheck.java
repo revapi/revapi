@@ -18,8 +18,8 @@ package org.revapi.java.checks.fields;
 
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.java.TypeEnvironment;
 import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.spi.TypeEnvironment;
 
 /**
  * @author Lukas Krejci

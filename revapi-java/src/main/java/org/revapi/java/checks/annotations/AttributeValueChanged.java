@@ -25,9 +25,9 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -60,13 +60,15 @@ public final class AttributeValueChanged extends AbstractJavaCheck {
                 result.add(
                     createDifference(Code.ANNOTATION_ATTRIBUTE_REMOVED,
                         new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType())},
-                        oldValue.getKey(), oldAnnotation));
+                        oldValue.getKey(), oldAnnotation)
+                );
             } else if (!Util.isEqual(oldValue.getValue(), newValue.getValue())) {
                 result.add(createDifference(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED,
                     new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType()),
                         Util.toHumanReadableString(oldValue.getValue()),
                         Util.toHumanReadableString(newValue.getValue())},
-                    oldValue.getKey(), oldAnnotation, oldValue.getValue(), newValue.getValue()));
+                    oldValue.getKey(), oldAnnotation, oldValue.getValue(), newValue.getValue()
+                ));
             }
 
             newAttrs.remove(name);
@@ -83,7 +85,8 @@ public final class AttributeValueChanged extends AbstractJavaCheck {
                     createDifference(Code.ANNOTATION_ATTRIBUTE_ADDED,
                         new String[]{name, Util.toHumanReadableString(newAnnotation.getAnnotationType())},
                         newValue.getKey(),
-                        newAnnotation));
+                        newAnnotation)
+                );
             }
         }
 

@@ -32,9 +32,9 @@ import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
-import org.revapi.java.ElementPairVisitor;
-import org.revapi.java.JavaModelElement;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.ElementPairVisitor;
+import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci

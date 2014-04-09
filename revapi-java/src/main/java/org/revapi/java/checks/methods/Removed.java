@@ -31,9 +31,9 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
 import org.revapi.Difference;
-import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci

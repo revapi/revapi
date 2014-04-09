@@ -23,7 +23,7 @@ public final class Difference {
         private String code;
         private String name;
         private String description;
-        private Map<CompatibilityType, ChangeSeverity> classification = new HashMap<>();
+        private Map<CompatibilityType, DifferenceSeverity> classification = new HashMap<>();
         private List<Object> attachments = new ArrayList<>();
 
         Builder(Report.Builder reportBuilder) {
@@ -49,13 +49,13 @@ public final class Difference {
         }
 
         @Nonnull
-        public Builder addClassification(@Nonnull CompatibilityType compat, @Nonnull ChangeSeverity severity) {
+        public Builder addClassification(@Nonnull CompatibilityType compat, @Nonnull DifferenceSeverity severity) {
             classification.put(compat, severity);
             return this;
         }
 
         @Nonnull
-        public Builder addClassifications(Map<CompatibilityType, ChangeSeverity> classifications) {
+        public Builder addClassifications(Map<CompatibilityType, DifferenceSeverity> classifications) {
             classification.putAll(classifications);
             return this;
         }
@@ -111,22 +111,22 @@ public final class Difference {
      * Detailed description of the problem
      */
     public final String description;
-    public final Map<CompatibilityType, ChangeSeverity> classification;
+    public final Map<CompatibilityType, DifferenceSeverity> classification;
 
     public final List<Object> attachments;
 
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
         @Nonnull CompatibilityType compatibility,
-        @Nonnull ChangeSeverity severity, @Nonnull List<Serializable> attachments) {
+        @Nonnull DifferenceSeverity severity, @Nonnull List<Serializable> attachments) {
         this(code, name, description, Collections.singletonMap(compatibility, severity), attachments);
     }
 
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
-        @Nonnull Map<CompatibilityType, ChangeSeverity> classification, @Nonnull List<?> attachments) {
+        @Nonnull Map<CompatibilityType, DifferenceSeverity> classification, @Nonnull List<?> attachments) {
         this.code = code;
         this.name = name;
         this.description = description;
-        HashMap<CompatibilityType, ChangeSeverity> tmp = new HashMap<>(classification);
+        HashMap<CompatibilityType, DifferenceSeverity> tmp = new HashMap<>(classification);
         this.classification = Collections.unmodifiableMap(tmp);
         List<?> tmp2 = new ArrayList<>(attachments);
         this.attachments = Collections.unmodifiableList(tmp2);

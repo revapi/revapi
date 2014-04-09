@@ -44,8 +44,8 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.SimpleTypeVisitor7;
 
 import org.revapi.Difference;
-import org.revapi.java.TypeEnvironment;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.TypeEnvironment;
 
 /**
  * @author Lukas Krejci

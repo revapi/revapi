@@ -21,8 +21,8 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Element;
-import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci

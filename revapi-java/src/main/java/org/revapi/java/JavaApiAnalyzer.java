@@ -38,6 +38,7 @@ import org.revapi.DifferenceAnalyzer;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.MissingClassReporting;
+import org.revapi.java.spi.Check;
 
 /**
  * @author Lukas Krejci

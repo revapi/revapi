@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi;
+package org.revapi.reporter.text;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,6 +33,14 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.revapi.AnalysisContext;
+import org.revapi.CompatibilityType;
+import org.revapi.Difference;
+import org.revapi.DifferenceSeverity;
+import org.revapi.Element;
+import org.revapi.Report;
+import org.revapi.Reporter;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
@@ -41,7 +49,7 @@ public class TextReporter implements Reporter {
     private static final Logger LOG = LoggerFactory.getLogger(TextReporter.class);
     private static final String CONFIG_ROOT_PATH = "revapi.reporter.text";
 
-    private ChangeSeverity minLevel;
+    private DifferenceSeverity minLevel;
     private PrintWriter output;
     private boolean shouldClose;
 
@@ -68,7 +76,8 @@ public class TextReporter implements Reporter {
         output = "undefined".equals(output) ? "out" : output;
 
         this.minLevel =
-            "undefined".equals(minLevel) ? ChangeSeverity.POTENTIALLY_BREAKING : ChangeSeverity.valueOf(minLevel);
+            "undefined".equals(minLevel) ? DifferenceSeverity.POTENTIALLY_BREAKING : DifferenceSeverity
+                .valueOf(minLevel);
 
         OutputStream out;
 
@@ -115,9 +124,9 @@ public class TextReporter implements Reporter {
             return;
         }
 
-        ChangeSeverity maxReportedSeverity = ChangeSeverity.NON_BREAKING;
+        DifferenceSeverity maxReportedSeverity = DifferenceSeverity.NON_BREAKING;
         for (Difference d : report.getDifferences()) {
-            for (ChangeSeverity c : d.classification.values()) {
+            for (DifferenceSeverity c : d.classification.values()) {
                 if (c.compareTo(maxReportedSeverity) > 0) {
                     maxReportedSeverity = c;
                 }
@@ -153,15 +162,15 @@ public class TextReporter implements Reporter {
     }
 
     private void reportClassification(PrintWriter output, Difference difference) {
-        Iterator<Map.Entry<CompatibilityType, ChangeSeverity>> it = difference.classification.entrySet().iterator();
+        Iterator<Map.Entry<CompatibilityType, DifferenceSeverity>> it = difference.classification.entrySet().iterator();
 
         if (it.hasNext()) {
-            Map.Entry<CompatibilityType, ChangeSeverity> e = it.next();
+            Map.Entry<CompatibilityType, DifferenceSeverity> e = it.next();
             output.append(" ").append(e.getKey().toString()).append(": ").append(e.getValue().toString());
         }
 
         while (it.hasNext()) {
-            Map.Entry<CompatibilityType, ChangeSeverity> e = it.next();
+            Map.Entry<CompatibilityType, DifferenceSeverity> e = it.next();
             output.append(", ").append(e.getKey().toString()).append(": ").append(e.getValue().toString());
         }
     }

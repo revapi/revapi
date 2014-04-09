@@ -9,9 +9,9 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
-import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
+import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 import org.revapi.simple.SimpleElement;
 
@@ -62,8 +62,8 @@ public class ClassificationTransformTest {
         DummyElement newE = new DummyElement("new");
 
         Difference difference = Difference.builder().withCode("code").addClassification(
-            CompatibilityType.BINARY, ChangeSeverity.NON_BREAKING).addClassification(CompatibilityType.SOURCE,
-            ChangeSeverity.POTENTIALLY_BREAKING).build();
+            CompatibilityType.BINARY, DifferenceSeverity.NON_BREAKING).addClassification(CompatibilityType.SOURCE,
+            DifferenceSeverity.POTENTIALLY_BREAKING).build();
 
         AnalysisContext config = AnalysisContext.builder()
             .withConfigurationFromJSON(
@@ -74,9 +74,9 @@ public class ClassificationTransformTest {
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
             assert difference != null &&
-                difference.classification.get(CompatibilityType.BINARY) == ChangeSeverity.BREAKING;
+                difference.classification.get(CompatibilityType.BINARY) == DifferenceSeverity.BREAKING;
             assert difference != null &&
-                difference.classification.get(CompatibilityType.SOURCE) == ChangeSeverity.POTENTIALLY_BREAKING;
+                difference.classification.get(CompatibilityType.SOURCE) == DifferenceSeverity.POTENTIALLY_BREAKING;
         }
     }
 

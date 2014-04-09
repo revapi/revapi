@@ -17,9 +17,29 @@
 package org.revapi;
 
 /**
+ * Enumerates possible compatibility types.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
 public enum CompatibilityType {
-    SOURCE, BINARY, SEMANTIC, OTHER
+    /**
+     * The compatibility at source code level.
+     */
+    SOURCE,
+
+    /**
+     * The compatibility at the binary level.
+     */
+    BINARY,
+
+    /**
+     * Semantic or behavioral compatibility.
+     */
+    SEMANTIC,
+
+    /**
+     * Other type of compatibility not listed here.
+     */
+    OTHER
 }

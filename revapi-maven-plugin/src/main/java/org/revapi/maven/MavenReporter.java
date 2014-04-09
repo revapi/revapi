@@ -23,8 +23,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
-import org.revapi.ChangeSeverity;
 import org.revapi.Difference;
+import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Reporter;
@@ -35,10 +35,10 @@ import org.revapi.Reporter;
  */
 public class MavenReporter implements Reporter {
 
-    private final ChangeSeverity breakingSeverity;
+    private final DifferenceSeverity breakingSeverity;
     private StringBuilder allProblems;
 
-    public MavenReporter(ChangeSeverity breakingSeverity) {
+    public MavenReporter(DifferenceSeverity breakingSeverity) {
         this.breakingSeverity = breakingSeverity;
         allProblems = new StringBuilder();
     }
@@ -84,8 +84,8 @@ public class MavenReporter implements Reporter {
 
             message.append(": ").append(d.code).append(": ").append(d.description);
 
-            ChangeSeverity maxSeverity = ChangeSeverity.NON_BREAKING;
-            for (ChangeSeverity s : d.classification.values()) {
+            DifferenceSeverity maxSeverity = DifferenceSeverity.NON_BREAKING;
+            for (DifferenceSeverity s : d.classification.values()) {
                 if (maxSeverity.compareTo(s) < 0) {
                     maxSeverity = s;
                 }

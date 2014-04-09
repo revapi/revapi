@@ -22,6 +22,8 @@ import javax.script.SimpleScriptContext;
 import org.jboss.dmr.ModelNode;
 
 /**
+ * @see #validate(org.jboss.dmr.ModelNode, Configurable)
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
@@ -39,6 +41,16 @@ public final class ConfigurationValidator {
 
     private WeakReference<ScriptEngine> jsEngine;
 
+    /**
+     * Validates that the full configuration contains valid configuration for given configurable.
+     *
+     * @param fullConfiguration the full configuration containing properties for all configurables
+     * @param configurable      the configurable to validate the configuration for
+     *
+     * @return the result of the validation.
+     *
+     * @throws ConfigurationException if reading the JSON schemas of the configurable failed
+     */
     public ValidationResult validate(@Nonnull ModelNode fullConfiguration, @Nonnull Configurable configurable)
         throws ConfigurationException {
         try {

@@ -37,6 +37,7 @@ import org.revapi.java.model.FieldElement;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.TypeElement;
+import org.revapi.java.spi.Check;
 
 /**
  * @author Lukas Krejci

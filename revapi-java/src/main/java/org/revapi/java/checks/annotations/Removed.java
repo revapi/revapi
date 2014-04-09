@@ -22,9 +22,9 @@ import java.util.List;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.revapi.Difference;
-import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -38,7 +38,8 @@ public final class Removed extends AbstractJavaCheck {
         if (oldAnnotation != null && newAnnotation == null) {
             return Collections.singletonList(
                 createDifference(Code.ANNOTATION_REMOVED, new String[]{
-                    Util.toHumanReadableString(oldAnnotation.getAnnotationType())}, oldAnnotation));
+                    Util.toHumanReadableString(oldAnnotation.getAnnotationType())}, oldAnnotation)
+            );
         }
 
         return null;

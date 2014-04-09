@@ -10,6 +10,8 @@ import javax.annotation.Nullable;
 import org.jboss.dmr.ModelNode;
 
 /**
+ * Represents the results of the the configuration validation.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
@@ -66,6 +68,9 @@ public final class ValidationResult {
         }
     }
 
+    /**
+     * Returns new validation result representing successful validation.
+     */
     public static ValidationResult success() {
         return new ValidationResult(null, null);
     }
@@ -78,7 +83,7 @@ public final class ValidationResult {
         this.errors = errors;
     }
 
-    public static ValidationResult fromTv4Results(ModelNode tv4ResultJSON) {
+    static ValidationResult fromTv4Results(ModelNode tv4ResultJSON) {
         if (tv4ResultJSON.get("valid").asBoolean()) {
             return ValidationResult.success();
         } else {
@@ -149,11 +154,20 @@ public final class ValidationResult {
         return new ValidationResult(retMissingSchemas, retErrors);
     }
 
+    /**
+     * The list of schemas referenced from the "root" schemas that weren't found.
+     *
+     * @return
+     */
     @Nullable
     public String[] getMissingSchemas() {
         return missingSchemas;
     }
 
+    /**
+     * Errors found during checking
+     * @return
+     */
     @Nullable
     public Error[] getErrors() {
         return errors;

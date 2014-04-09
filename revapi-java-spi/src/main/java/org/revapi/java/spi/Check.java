@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi.java;
+package org.revapi.java.spi;
 
 import java.util.List;
 

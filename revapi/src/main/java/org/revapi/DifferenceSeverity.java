@@ -14,17 +14,30 @@
  * limitations under the License
  */
 
-package org.revapi.java;
-
-import javax.annotation.Nonnull;
-import javax.lang.model.element.Element;
+package org.revapi;
 
 /**
+ * Enumerates the possible severities of differences found during the API analysis.
+ * <p/>
+ * The difference doesn't have a single severity, rather it can have different severity for each
+ * {@link org.revapi.CompatibilityType}.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface JavaModelElement extends JavaElement {
+public enum DifferenceSeverity {
+    /**
+     * The difference doesn't cause any breakage in given compatibility type
+     */
+    NON_BREAKING,
 
-    @Nonnull
-    Element getModelElement();
+    /**
+     * Under certain circumstances the difference is breaking the compatibility of given type.
+     */
+    POTENTIALLY_BREAKING,
+
+    /**
+     * The difference definitely breaks the compatibility of given type.
+     */
+    BREAKING
 }

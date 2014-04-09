@@ -22,11 +22,11 @@ import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.ChangeSeverity;
+import org.revapi.DifferenceSeverity;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 
-public class Extension extends org.revapi.java.CheckBase {
+public class Extension extends org.revapi.java.spi.CheckBase {
 
     @Override
     public void doVisitClass(TypeElement oldType, TypeElement newType) {
@@ -42,7 +42,7 @@ public class Extension extends org.revapi.java.CheckBase {
             return Collections.singletonList(
                 Difference.builder().withCode("!!TEST_CODE!!").withName("test check")
                     .withDescription("test description")
-                    .addClassification(CompatibilityType.SOURCE, ChangeSeverity.BREAKING).build());
+                    .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING).build());
         }
 
         return null;

@@ -19,6 +19,9 @@ package org.revapi;
 import javax.annotation.Nonnull;
 
 /**
+ * The instances of implementations of this interface are produced by the {@link org.revapi.ApiAnalyzer}s to
+ * analyze the API archives and create an element tree that is then used for API comparison.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

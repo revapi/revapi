@@ -44,6 +44,9 @@ import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.ValidationResult;
 
 /**
+ * The main entry point to the library. The instance of this class is initialized with the different extensions and then
+ * can run analyses on APIs with different configurations using the {@link #analyze(AnalysisContext)} method.
+ *
  * @author Lukas Krejci
  * @since 1.0
  */

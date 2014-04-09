@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,22 +14,16 @@
  * limitations under the License
  */
 
-package org.revapi.java;
+package org.revapi.java.spi;
 
 import javax.annotation.Nonnull;
-
-import org.revapi.Element;
+import javax.lang.model.element.AnnotationMirror;
 
 /**
- * Basic interface that all Revapi elements modelling the Java AST satisfy.
- * The methods on this interface are provided so that it is possible to write {@link
- * org.revapi.DifferenceTransform
- * problem transforms} without needing to somehow initialize the environment the java element is present in.
- *
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface JavaElement extends Element {
+public interface JavaAnnotationElement extends JavaElement {
     @Nonnull
-    TypeEnvironment getTypeEnvironment();
+    AnnotationMirror getAnnotation();
 }

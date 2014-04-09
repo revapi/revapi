@@ -28,7 +28,8 @@ import javax.annotation.Nullable;
 public interface DifferenceAnalyzer extends AutoCloseable {
 
     /**
-     * Called right before the analysis starts. Can be used to "warm up" the analyzer.
+     * Called right before the analysis starts. Can be used to "warm up" the analyzer. The corresponding
+     * {@link #close()} method is provided through the {@link java.lang.AutoCloseable} super interface.
      */
     void open();
 

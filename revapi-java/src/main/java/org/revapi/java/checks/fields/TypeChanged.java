@@ -22,8 +22,8 @@ import java.util.List;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.Util;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -56,6 +56,7 @@ public final class TypeChanged extends BothFieldsRequiringCheck {
 
         return Collections.singletonList(
             createDifference(Code.FIELD_TYPE_CHANGED, new String[]{oldType, newType}, fields.oldElement.asType(),
-                fields.newElement.asType()));
+                fields.newElement.asType())
+        );
     }
 }

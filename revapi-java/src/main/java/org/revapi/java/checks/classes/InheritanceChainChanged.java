@@ -30,10 +30,10 @@ import javax.lang.model.util.Types;
 
 import org.revapi.CoIterator;
 import org.revapi.Difference;
-import org.revapi.java.TypeEnvironment;
-import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.TypeEnvironment;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci

@@ -20,6 +20,13 @@ import org.revapi.configuration.Configurable;
 import org.revapi.query.Filter;
 
 /**
+ * An element filter is a type of extension that can serve as an input filter on the element forest.
+ * <p/>
+ * Once the {@link org.revapi.ElementForest} is produced by an {@link org.revapi.ArchiveAnalyzer}, the
+ * registered element filters will be called to potentially leave out certain elements from the API analysis.
+ * <p/>
+ * An example of this might be leaving out certain packages from the analysis of java archives.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

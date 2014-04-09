@@ -23,10 +23,10 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Difference;
-import org.revapi.java.CheckBase;
-import org.revapi.java.Util;
 import org.revapi.java.checks.AbstractJavaCheck;
 import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -68,7 +68,9 @@ public final class NowImplementsInterface extends AbstractJavaCheck {
                 result.add(
                     createDifference(Code.CLASS_NOW_IMPLEMENTS_INTERFACE,
                         new String[]{
-                            Util.toHumanReadableString(newIface)}, newIface));
+                            Util.toHumanReadableString(newIface)}, newIface
+                    )
+                );
             }
         }
 

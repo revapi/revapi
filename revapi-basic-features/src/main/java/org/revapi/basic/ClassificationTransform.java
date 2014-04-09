@@ -9,9 +9,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.jboss.dmr.ModelNode;
-import org.revapi.ChangeSeverity;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
+import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 
 /**
@@ -44,7 +44,7 @@ import org.revapi.Element;
  * code, old and new are understood as regexes (java regexes, not javascript ones).
  * <p/>
  * The {@code NEW_COMPATIBILITY_TYPE} corresponds to one of the names of the {@link org.revapi.CompatibilityType}
- * enum and the {@code NEW_SEVERITY} corresponds to one of the names of the {@link org.revapi.ChangeSeverity}
+ * enum and the {@code NEW_SEVERITY} corresponds to one of the names of the {@link org.revapi.DifferenceSeverity}
  * enum. The reclassified difference inherits its classification (i.e. the compatibility type + severity pairs) and
  * only redefines the ones explicitly defined in the configuration.
  *
@@ -55,7 +55,8 @@ public class ClassificationTransform
     extends AbstractDifferenceReferringTransform<ClassificationTransform.ClassificationRecipe, Void> {
 
     public static class ClassificationRecipe extends DifferenceMatchRecipe {
-        protected final Map<CompatibilityType, ChangeSeverity> classification = new EnumMap<>(CompatibilityType.class);
+        protected final Map<CompatibilityType, DifferenceSeverity> classification = new EnumMap<>(
+            CompatibilityType.class);
 
         public ClassificationRecipe(ModelNode node) {
             super(node);
@@ -63,7 +64,7 @@ public class ClassificationTransform
             for (CompatibilityType ct : CompatibilityType.values()) {
                 if (classfications.has(ct.name())) {
                     String val = classfications.get(ct.name()).asString();
-                    ChangeSeverity sev = ChangeSeverity.valueOf(val);
+                    DifferenceSeverity sev = DifferenceSeverity.valueOf(val);
                     classification.put(ct, sev);
                 }
             }

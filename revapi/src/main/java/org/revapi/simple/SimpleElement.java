@@ -34,6 +34,8 @@ import org.revapi.query.Filter;
 import org.revapi.query.FilteringIterator;
 
 /**
+ * A simple implementation of the {@link org.revapi.Element} interface intended to be extended.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
@@ -236,6 +238,11 @@ public abstract class SimpleElement implements Element {
         }
     }
 
+    /**
+     * This default implementation uses the {@link #newChildrenInstance()} to initialize the children set and wraps
+     * it in a private set implementation that automagically changes the parent of the elements based on the
+     * membership.
+     */
     @Nonnull
     public SortedSet<? extends Element> getChildren() {
         if (children == null) {
@@ -244,17 +251,28 @@ public abstract class SimpleElement implements Element {
         return children;
     }
 
+    /**
+     * Override this method if you need some specialized instance of sorted set or want to do some custom pre-populating
+     * or initialization of the children. This method merely returns an empty new {@link java.util.TreeSet} instance.
+     */
     @Nonnull
     protected SortedSet<Element> newChildrenInstance() {
         return new TreeSet<>();
     }
 
+    /**
+     * The parent element of this element.
+     */
     @Override
     @Nullable
     public Element getParent() {
         return parent;
     }
 
+    /**
+     * Sets the parent element. No other processing is automagically done (i.e. the parent's children set is <b>NOT</b>
+     * updated by calling this method).
+     */
     @Override
     public void setParent(@Nullable Element parent) {
         this.parent = parent;

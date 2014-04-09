@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi.java;
+package org.revapi.java.spi;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,9 +33,9 @@ import javax.lang.model.util.SimpleElementVisitor7;
  * <pre><code>
  *     javax.lang.model.element.Element e1 = ...;
  *     javax.lang.model.element.Element e2 = ...;
- *
+ * <p/>
  *     e1.accept(new ElementPairVisitor&lt;Void&gt;() {
- *
+ * <p/>
  *         protected Void visitType(TypeElement e1, TypeElement e2) {
  *             ...
  *         }

@@ -44,8 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.revapi.Archive;
-import org.revapi.java.JavaElement;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.query.Filter;
 
 /**

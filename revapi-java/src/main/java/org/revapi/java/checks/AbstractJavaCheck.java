@@ -21,9 +21,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 
 import org.revapi.Difference;
-import org.revapi.java.CheckBase;
-import org.revapi.java.TypeEnvironment;
 import org.revapi.java.model.ClassTreeInitializer;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.TypeEnvironment;
 
 /**
  * TODO move to SPI

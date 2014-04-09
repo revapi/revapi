@@ -1,6 +1,8 @@
 package org.revapi.configuration;
 
 /**
+ * Thrown if an invalid configuration is detected.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

@@ -27,8 +27,8 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import org.revapi.API;
-import org.revapi.java.TypeEnvironment;
 import org.revapi.java.model.JavaElementForest;
+import org.revapi.java.spi.TypeEnvironment;
 
 /**
  * @author Lukas Krejci

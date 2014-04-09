@@ -23,16 +23,21 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * A decorator over the {@link java.util.Iterator} impls that can leave out the elements of incompatible types that
+ * optionally don't conform to provided filter.
+ * <p/>
+ * This implementation does NOT support null elements returned by the decorated iterator.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
 public class FilteringIterator<E> implements Iterator<E> {
     private final Class<E> resultType;
-    private final Iterator<? extends E> wrapped;
+    private final Iterator<?> wrapped;
     private final Filter<? super E> filter;
     private E current;
 
-    public FilteringIterator(@Nonnull Iterator<? extends E> iterator, @Nonnull Class<E> resultType,
+    public FilteringIterator(@Nonnull Iterator<?> iterator, @Nonnull Class<E> resultType,
         @Nullable Filter<? super E> filter) {
         this.wrapped = iterator;
         this.filter = filter;
@@ -45,7 +50,7 @@ public class FilteringIterator<E> implements Iterator<E> {
             return wrapped.hasNext();
         } else {
             while (wrapped.hasNext()) {
-                E next = wrapped.next();
+                Object next = wrapped.next();
                 if (next == null || !resultType.isAssignableFrom(next.getClass())) {
                     continue;
                 }

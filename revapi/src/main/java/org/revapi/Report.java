@@ -23,6 +23,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * Represents the differences between comparable elements from old and new API.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

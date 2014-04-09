@@ -30,6 +30,8 @@ import org.revapi.ElementForest;
 import org.revapi.query.Filter;
 
 /**
+ * A simple element forest of {@link org.revapi.simple.SimpleElement}s.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

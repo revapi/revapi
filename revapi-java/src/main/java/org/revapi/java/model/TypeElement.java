@@ -18,8 +18,8 @@ package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
 
-import org.revapi.java.Util;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -34,8 +34,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
      * "bare bones" type element available even before we have functioning compilation infrastructure in
      * the environment.
      *
-     * @param env probing environment
-     * @param binaryName the binary name of the class
+     * @param env           probing environment
+     * @param binaryName    the binary name of the class
      * @param canonicalName the canonical name of the class
      */
     public TypeElement(ProbingEnvironment env, String binaryName, String canonicalName) {

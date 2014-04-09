@@ -14,12 +14,17 @@
  * limitations under the License
  */
 
-package org.revapi;
+package org.revapi.java.spi;
+
+import javax.annotation.Nonnull;
+import javax.lang.model.element.Element;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public enum ChangeSeverity {
-    NON_BREAKING, POTENTIALLY_BREAKING, BREAKING
+public interface JavaModelElement extends JavaElement {
+
+    @Nonnull
+    Element getModelElement();
 }

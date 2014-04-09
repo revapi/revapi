@@ -1,6 +1,6 @@
 package org.revapi.maven;
 
-import org.revapi.ChangeSeverity;
+import org.revapi.DifferenceSeverity;
 
 /**
  * @author Lukas Krejci
@@ -9,14 +9,14 @@ import org.revapi.ChangeSeverity;
 public enum FailSeverity {
     nonBreaking, potentiallyBreaking, breaking;
 
-    public ChangeSeverity toChangeSeverity() {
+    public DifferenceSeverity toChangeSeverity() {
         switch (this) {
         case nonBreaking:
-            return ChangeSeverity.NON_BREAKING;
+            return DifferenceSeverity.NON_BREAKING;
         case potentiallyBreaking:
-            return ChangeSeverity.POTENTIALLY_BREAKING;
+            return DifferenceSeverity.POTENTIALLY_BREAKING;
         case breaking:
-            return ChangeSeverity.BREAKING;
+            return DifferenceSeverity.BREAKING;
         default:
             throw new AssertionError("FailLevel.toChangeSeverity() not exhaustive.");
         }

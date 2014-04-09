@@ -21,6 +21,12 @@ import javax.annotation.Nonnull;
 import org.revapi.configuration.Configurable;
 
 /**
+ * A reporter is the final stage during the API change analysis. It somehow conveys the found difference reports to
+ * some kind of output.
+ * <p/>
+ * Importantly, reporters are {@link org.revapi.configuration.Configurable} and can use the locale defined in the
+ * analysis context of the configuration to produce the desired output.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
