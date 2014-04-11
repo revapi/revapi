@@ -93,7 +93,7 @@
                         <phase>site-deploy</phase>
                         <configuration>
                             <tasks>
-                                <exec command="awestruct -P production -g --deploy"
+                                <exec command="awestruct -P production -g -w --deploy"
                                       dir="${project.build.directory}/webapp"/>
                             </tasks>
                         </configuration>
@@ -129,6 +129,15 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <skip>true</skip>
+                    <skipDeploy>true</skipDeploy>
+                </configuration>
             </plugin>
         </plugins>
     </build>
