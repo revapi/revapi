@@ -31,7 +31,6 @@ import javax.lang.model.util.SimpleElementVisitor7;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
-import org.revapi.Element;
 import org.revapi.java.checks.Code;
 import org.revapi.java.spi.ElementPairVisitor;
 import org.revapi.java.spi.JavaModelElement;
@@ -40,7 +39,7 @@ import org.revapi.java.spi.JavaModelElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
+abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<JavaModelElement> {
     protected AnalysisContext analysisContext;
     private final String annotationQualifiedName;
     private final Code transformedCode;
@@ -79,7 +78,8 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
 
     @Nullable
     @Override
-    public Difference transform(@Nullable final Element oldElement, @Nullable final Element newElement,
+    public Difference transform(@Nullable final JavaModelElement oldElement,
+        @Nullable final JavaModelElement newElement,
         @Nonnull final Difference difference) {
         //we're checking for change of presence of an annotation on an element. Thus both the old and new version
         //of the element must be non-null.
@@ -102,10 +102,7 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
                         return difference;
                     }
 
-                    JavaModelElement oldE = (JavaModelElement) oldElement;
-                    JavaModelElement newE = (JavaModelElement) newElement;
-
-                    return oldE.getModelElement().accept(new ElementPairVisitor<Difference>() {
+                    return oldElement.getModelElement().accept(new ElementPairVisitor<Difference>() {
                         @Override
                         protected Difference unmatchedAction(@Nonnull javax.lang.model.element.Element element,
                             @Nullable javax.lang.model.element.Element otherElement) {
@@ -135,7 +132,7 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform {
                             @Nonnull ExecutableElement otherElement) {
                             return transformedCode.createDifference(analysisContext.getLocale());
                         }
-                    }, newE.getModelElement());
+                    }, newElement.getModelElement());
                 }
             }, null);
     }

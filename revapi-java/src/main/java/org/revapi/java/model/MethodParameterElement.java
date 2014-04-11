@@ -22,13 +22,16 @@ import javax.lang.model.element.VariableElement;
 
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaMethodParameterElement;
 import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class MethodParameterElement extends JavaElementBase<VariableElement> {
+public final class MethodParameterElement extends JavaElementBase<VariableElement> implements
+    JavaMethodParameterElement {
+
     private final int index;
 
     public MethodParameterElement(ProbingEnvironment env, VariableElement element) {

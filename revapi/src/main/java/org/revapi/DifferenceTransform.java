@@ -28,10 +28,15 @@ import org.revapi.configuration.Configurable;
  * in custom extensions that want to "modify the behavior" of other extensions by consuming and transforming the
  * differences found by the other extensions into something else.
  *
+ * @param <T> the type of the element expected in the {@code transform} method. Note that you need to be careful about
+ *            this type because the types of the elements passed to {@code transform} depend on the differences that the
+ *            transform is interested in. Thus you may end up with {@code ClassCastException}s if you're not careful.
+ *            This type needs to be cast-able to the type of all possible elements that the handled differences can
+ *            apply to. If in doubt, just use {@link org.revapi.Element} which is guaranteed to work.
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface DifferenceTransform extends AutoCloseable, Configurable {
+public interface DifferenceTransform<T extends Element> extends AutoCloseable, Configurable {
 
     /**
      * The list of regexes to match the difference codes this transform can handle.
@@ -54,6 +59,5 @@ public interface DifferenceTransform extends AutoCloseable, Configurable {
      * difference should be discarded
      */
     @Nullable
-    Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
-        @Nonnull Difference difference);
+    Difference transform(@Nullable T oldElement, @Nullable T newElement, @Nonnull Difference difference);
 }

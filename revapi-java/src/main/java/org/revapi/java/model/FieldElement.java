@@ -21,12 +21,13 @@ import javax.lang.model.element.VariableElement;
 
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class FieldElement extends JavaElementBase<VariableElement> {
+public final class FieldElement extends JavaElementBase<VariableElement> implements JavaFieldElement {
 
     public FieldElement(ProbingEnvironment env, VariableElement element) {
         super(env, element);

@@ -20,7 +20,7 @@ import org.revapi.Element;
  * @since 0.1
  */
 public abstract class AbstractDifferenceReferringTransform<Recipe extends DifferenceMatchRecipe, ConfigContext>
-    implements DifferenceTransform {
+    implements DifferenceTransform<Element> {
 
     private final String[] propertyPrefix;
     private final String propertyPrefixAsString;

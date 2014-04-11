@@ -19,13 +19,14 @@ package org.revapi.java.model;
 import javax.annotation.Nonnull;
 
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement> {
+public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement> implements JavaTypeElement {
     private final String binaryName;
     private final String canonicalName;
 

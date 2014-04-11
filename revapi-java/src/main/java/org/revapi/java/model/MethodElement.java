@@ -24,12 +24,13 @@ import javax.lang.model.element.VariableElement;
 
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class MethodElement extends JavaElementBase<ExecutableElement> {
+public final class MethodElement extends JavaElementBase<ExecutableElement> implements JavaMethodElement {
 
     public MethodElement(ProbingEnvironment env, ExecutableElement element) {
         super(env, element);

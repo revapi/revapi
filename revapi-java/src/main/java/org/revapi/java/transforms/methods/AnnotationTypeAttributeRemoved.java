@@ -13,7 +13,6 @@ import javax.lang.model.element.ExecutableElement;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
-import org.revapi.Element;
 import org.revapi.java.checks.Code;
 import org.revapi.java.spi.JavaModelElement;
 
@@ -21,7 +20,7 @@ import org.revapi.java.spi.JavaModelElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class AnnotationTypeAttributeRemoved implements DifferenceTransform {
+public class AnnotationTypeAttributeRemoved implements DifferenceTransform<JavaModelElement> {
     private Locale locale;
     private final Pattern[] codes;
 
@@ -54,11 +53,11 @@ public class AnnotationTypeAttributeRemoved implements DifferenceTransform {
 
     @Nullable
     @Override
-    public Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
+    public Difference transform(@Nullable JavaModelElement oldElement, @Nullable JavaModelElement newElement,
         @Nonnull Difference difference) {
 
         @SuppressWarnings("ConstantConditions")
-        ExecutableElement method = (ExecutableElement) ((JavaModelElement) oldElement).getModelElement();
+        ExecutableElement method = (ExecutableElement) oldElement.getModelElement();
 
         if (method.getEnclosingElement().getKind() == ElementKind.ANNOTATION_TYPE) {
             AnnotationValue defaultValue = method.getDefaultValue();

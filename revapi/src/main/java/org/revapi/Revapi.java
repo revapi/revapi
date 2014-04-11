@@ -56,7 +56,7 @@ public final class Revapi {
     public static final class Builder {
         private Set<ApiAnalyzer> analyzers = null;
         private Set<Reporter> reporters = null;
-        private Set<DifferenceTransform> transforms = null;
+        private Set<DifferenceTransform<?>> transforms = null;
         private Set<ElementFilter> filters = null;
 
         @Nonnull
@@ -115,25 +115,39 @@ public final class Revapi {
 
         @Nonnull
         public Builder withTransformsFromThreadContextClassLoader() {
-            return withTransforms(ServiceLoader.load(DifferenceTransform.class));
+            //don't you love Java generics? ;)
+            @SuppressWarnings("rawtypes")
+            Iterable trs = ServiceLoader.load(DifferenceTransform.class);
+
+            @SuppressWarnings("unchecked")
+            Iterable<DifferenceTransform<?>> rtrs = (Iterable<DifferenceTransform<?>>) trs;
+
+            return withTransforms(rtrs);
         }
 
         @Nonnull
         public Builder withTransformsFrom(@Nonnull ClassLoader cl) {
-            return withTransforms(ServiceLoader.load(DifferenceTransform.class, cl));
+            //don't you love Java generics? ;)
+            @SuppressWarnings("rawtypes")
+            Iterable trs = ServiceLoader.load(DifferenceTransform.class, cl);
+
+            @SuppressWarnings("unchecked")
+            Iterable<DifferenceTransform<?>> rtrs = (Iterable<DifferenceTransform<?>>) trs;
+
+            return withTransforms(rtrs);
         }
 
         @Nonnull
-        public Builder withTransforms(DifferenceTransform... transforms) {
+        public Builder withTransforms(DifferenceTransform<?>... transforms) {
             return withTransforms(Arrays.asList(transforms));
         }
 
         @Nonnull
-        public Builder withTransforms(@Nonnull Iterable<? extends DifferenceTransform> transforms) {
+        public Builder withTransforms(@Nonnull Iterable<? extends DifferenceTransform<?>> transforms) {
             if (this.transforms == null) {
                 this.transforms = new HashSet<>();
             }
-            for (DifferenceTransform t : transforms) {
+            for (DifferenceTransform<?> t : transforms) {
                 this.transforms.add(t);
             }
 
@@ -182,7 +196,7 @@ public final class Revapi {
         public Revapi build() {
             analyzers = analyzers == null ? Collections.<ApiAnalyzer>emptySet() : analyzers;
             reporters = reporters == null ? Collections.<Reporter>emptySet() : reporters;
-            transforms = transforms == null ? Collections.<DifferenceTransform>emptySet() : transforms;
+            transforms = transforms == null ? Collections.<DifferenceTransform<?>>emptySet() : transforms;
             filters = filters == null ? Collections.<ElementFilter>emptySet() : filters;
 
             return new Revapi(analyzers, reporters, transforms, filters);
@@ -287,11 +301,11 @@ public final class Revapi {
 
     private final Set<ApiAnalyzer> availableApiAnalyzers;
     private final Set<Reporter> availableReporters;
-    private final Set<DifferenceTransform> availableTransforms;
+    private final Set<DifferenceTransform<?>> availableTransforms;
     private final CompoundFilter availableFilters;
     private final ConfigurationValidator configurationValidator;
 
-    private final Map<String, List<DifferenceTransform>> matchingTransformsCache = new HashMap<>();
+    private final Map<String, List<DifferenceTransform<?>>> matchingTransformsCache = new HashMap<>();
 
     @Nonnull
     public static Builder builder() {
@@ -304,7 +318,7 @@ public final class Revapi {
      * @throws java.lang.IllegalArgumentException if any of the parameters is null
      */
     public Revapi(@Nonnull Set<ApiAnalyzer> availableApiAnalyzers, @Nonnull Set<Reporter> availableReporters,
-        @Nonnull Set<DifferenceTransform> availableTransforms, @Nonnull Set<ElementFilter> elementFilters) {
+        @Nonnull Set<DifferenceTransform<?>> availableTransforms, @Nonnull Set<ElementFilter> elementFilters) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
         this.availableReporters = availableReporters;
@@ -430,16 +444,30 @@ public final class Revapi {
             ListIterator<Difference> it = report.getDifferences().listIterator();
             while (it.hasNext()) {
                 Difference d = it.next();
-                for (DifferenceTransform t : getTransformsForDifference(d)) {
-                    Difference td = t.transform(report.getOldElement(), report.getNewElement(), d);
-                    // ignore if transformation returned null, meaning that it "swallowed" the problem..
-                    // once the changes are done, we'll loop through once more and remove the problems that the
+                for (DifferenceTransform<?> t : getTransformsForDifference(d)) {
+                    // it is the responsibility of the transform to declare the proper type.
+                    // it will get a ClassCastException if it fails to declare a type that is common to all differences
+                    // it can handle
+                    @SuppressWarnings("unchecked")
+                    DifferenceTransform<Element> tt = (DifferenceTransform<Element>) t;
+
+                    Difference td = d;
+                    try {
+                        td = tt.transform(report.getOldElement(), report.getNewElement(), d);
+                    } catch (Exception e) {
+                        LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an exception" +
+                            " while processing difference " + d + " on old element " + report.getOldElement() + " and" +
+                            " new element " + report.getNewElement(), e);
+                    }
+
+                    // ignore if transformation returned null, meaning that it "swallowed" the difference..
+                    // once the changes are done, we'll loop through once more and remove the differences that the
                     // transforms want removed.
                     // This prevents 1 transformation from disallowing other transformation to do what it needs
-                    // if both apply to the same problem.
+                    // if both apply to the same difference.
                     if (td != null && td != d) { //yes, reference equality is OK here
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Difference transform {} transforms {} to  {}", t.getClass(), d, td);
+                            LOG.debug("Difference transform {} transforms {} to {}", t.getClass(), d, td);
                         }
                         it.set(td);
                         changed = true;
@@ -450,17 +478,19 @@ public final class Revapi {
             iteration++;
 
             if (iteration % 100 == 0) {
-                LOG.warn("Transformation of problems in match report " + report + " has cycled " + iteration +
-                    " times. Maybe we're in an infinite loop with problems transforming back and forth?");
+                LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration +
+                    " times. Maybe we're in an infinite loop with differences transforming back and forth?");
             }
         } while (changed);
 
-        //now remove the problems that the transforms want removed
+        //now remove the differences that the transforms want removed
         ListIterator<Difference> it = report.getDifferences().listIterator();
         while (it.hasNext()) {
             Difference d = it.next();
-            for (DifferenceTransform t : getTransformsForDifference(d)) {
-                Difference td = t.transform(report.getOldElement(), report.getNewElement(), d);
+            for (DifferenceTransform<?> t : getTransformsForDifference(d)) {
+                @SuppressWarnings("unchecked")
+                DifferenceTransform<Element> tt = (DifferenceTransform<Element>) t;
+                Difference td = tt.transform(report.getOldElement(), report.getNewElement(), d);
                 if (td == null) {
                     it.remove();
                 }
@@ -474,11 +504,11 @@ public final class Revapi {
         }
     }
 
-    private List<DifferenceTransform> getTransformsForDifference(Difference diff) {
-        List<DifferenceTransform> ret = matchingTransformsCache.get(diff.code);
+    private List<DifferenceTransform<?>> getTransformsForDifference(Difference diff) {
+        List<DifferenceTransform<?>> ret = matchingTransformsCache.get(diff.code);
         if (ret == null) {
             ret = new ArrayList<>();
-            for (DifferenceTransform t : availableTransforms) {
+            for (DifferenceTransform<?> t : availableTransforms) {
                 for (Pattern p : t.getDifferenceCodePatterns()) {
                     if (p.matcher(diff.code).matches()) {
                         ret.add(t);
