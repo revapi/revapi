@@ -1,0 +1,10 @@
+= Java Extension
+:awestruct-layout: docs
+:awestruct-index: 101
+:toc: right
+
+[.toc-on-right]
+toc::[]
+
+== Java Extension
+TODO

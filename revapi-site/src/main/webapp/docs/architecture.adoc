@@ -53,7 +53,8 @@ link:../apidocs/org/revapi/ElementForest.html[element forest] (i.e. a set of ele
 
 === Element Filter
 An link:../apidocs/org/revapi/ElementFilter.html[element filter] can filter out elements from the element forest
-before they are passed further down the API analysis pipeline.
+before they are passed further down the API analysis pipeline. The same set of element filters is applied to both the
+old API and new API element forests.
 
 === Difference Analyzer
 The magic happens in the link:../apidocs/org/revapi/DifferenceAnalyzer.html[difference analyzers]. Revapi
@@ -62,7 +63,11 @@ elements in them (using a link:../apidocs/org/revapi/CoIterator.html[coiterator]
 pairs to the difference analyzer that performs the actual analysis of changes and provides the reports summarizing them.
 
 === Difference Transform
-TODO
+Once the differences are found they are supplied to the
+link:../apidocs/org/revapi/DifferenceTransform.html[difference transforms]. These extensions can, as the name
+suggests, transform the found differences into different ones or altogether remove them from the results.
 
 === Reporter
-TODO
+Finally, after the final set of differences is settled, it is passed to the
+link:../apidocs/org/revapi/Reporter.html[reporters]. These are responsible to report the found differences to the
+caller somehow (standard output, database, xml files, whatever one imagines).

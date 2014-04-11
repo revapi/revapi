@@ -128,7 +128,7 @@ The basic usage of the Revapi's maven plugin is quite simple. In your `pom.xml`,
 </build>
 ----
 
-By default, Revapi only bundles the link:extension-basic.html[basic extensions] so in order to check your java code,
+By default, Revapi only bundles the <<extension-basic.adoc#, basic extensions>> so in order to check your java code,
 you need to add the Revapi's java extension as a dependency to the maven plugin.
 
 For more detailed info, check the maven plugin's link:../maven-plugin[site].
@@ -137,9 +137,14 @@ For more detailed info, check the maven plugin's link:../maven-plugin[site].
 
 [source,java]
 ----
-Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader()
-    .withConfiguration(System.getProperties()).build();
-revapi.analyze(...);
+Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().build();
+
+AnalysisContext analysisContext = AnalysisContext.builder()
+    .withOldAPI(API.of(...))
+    .withNewAPI(API.of(...))
+    .withConfigurationFromJSON("json").build();
+
+revapi.analyze(analysisContext);
 ----
 
-For more details, see link:../javadoc[javadoc].
+For more details, see link:../apidocs[javadoc].
