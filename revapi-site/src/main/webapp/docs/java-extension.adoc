@@ -45,6 +45,20 @@ found neither in the API libraries themselves or in the supporting libraries. It
 missing classes or to report them. If it is configured to report them, one of the above codes will be emitted
 depending on whether the missing class is found in the old version of the API or the new one.
 
+The missing class behavior can be configured by the `revapi.java.missing-classes` configuration property with the
+possible values of `ignore`, `report` and `error`, e.g.:
+
+[source,javascript]
+----
+{
+    "revapi" : {
+        "java" : {
+            "missing-classes" : "report"
+        }
+    }
+}
+----
+
 === Element No Longer Deprecated
 [cols="35s,<65d"]
 |=============
