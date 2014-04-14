@@ -18,14 +18,14 @@ package org.revapi.java.checks.fields;
 
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.java.checks.AbstractJavaCheck;
+import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.TypeEnvironment;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-abstract class BothFieldsRequiringCheck extends AbstractJavaCheck {
+abstract class BothFieldsRequiringCheck extends CheckBase {
 
     protected boolean shouldCheck(VariableElement oldField, VariableElement newField) {
         return shouldCheck(oldField, getOldTypeEnvironment(), newField, getNewTypeEnvironment());

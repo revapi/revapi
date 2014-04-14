@@ -23,14 +23,14 @@ import javax.lang.model.element.TypeElement;
 
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class Added extends AbstractJavaCheck {
+public final class Added extends CheckBase {
     @Override
     protected List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();

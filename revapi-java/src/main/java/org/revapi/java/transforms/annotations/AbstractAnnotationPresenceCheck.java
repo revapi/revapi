@@ -31,7 +31,7 @@ import javax.lang.model.util.SimpleElementVisitor7;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Code;
 import org.revapi.java.spi.ElementPairVisitor;
 import org.revapi.java.spi.JavaModelElement;
 

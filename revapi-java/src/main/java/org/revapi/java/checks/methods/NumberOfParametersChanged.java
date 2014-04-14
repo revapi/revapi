@@ -23,14 +23,14 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class NumberOfParametersChanged extends AbstractJavaCheck {
+public final class NumberOfParametersChanged extends CheckBase {
 
     @Override
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {

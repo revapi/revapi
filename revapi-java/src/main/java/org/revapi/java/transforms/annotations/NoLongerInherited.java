@@ -16,7 +16,7 @@
 
 package org.revapi.java.transforms.annotations;
 
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci

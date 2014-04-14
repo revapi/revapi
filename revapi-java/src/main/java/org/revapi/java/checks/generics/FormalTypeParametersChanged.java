@@ -29,15 +29,15 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class FormalTypeParametersChanged extends AbstractJavaCheck {
+public final class FormalTypeParametersChanged extends CheckBase {
 
     @Override
     protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
@@ -115,8 +115,10 @@ public final class FormalTypeParametersChanged extends AbstractJavaCheck {
         }
 
         for (TypeParameterElement e : added) {
-            diffs.add(createDifference(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED,
-                new String[]{Util.toHumanReadableString(e)}, e));
+            diffs.add(
+                createDifference(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED, new String[]{Util.toHumanReadableString(e)},
+                    e)
+            );
         }
 
         for (TypeParameterElement e : removed) {

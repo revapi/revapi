@@ -23,15 +23,14 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
 import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public abstract class VisibilityChanged extends AbstractJavaCheck {
+public abstract class VisibilityChanged extends CheckBase {
     private final Code code;
     private final boolean reportIncrease;
 
@@ -96,8 +95,8 @@ public abstract class VisibilityChanged extends AbstractJavaCheck {
     }
 
     private Difference report(Modifier oldVisibility, Modifier newVisibility) {
-        return createDifference(code,
-            new String[]{modifier(oldVisibility), modifier(newVisibility)}, oldVisibility, newVisibility);
+        return createDifference(code, new String[]{modifier(oldVisibility), modifier(newVisibility)}, oldVisibility,
+            newVisibility);
     }
 
     private String modifier(Modifier m) {

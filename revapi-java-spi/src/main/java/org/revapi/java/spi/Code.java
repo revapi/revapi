@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi.java.checks;
+package org.revapi.java.spi;
 
 import static org.revapi.CompatibilityType.BINARY;
 import static org.revapi.CompatibilityType.SEMANTIC;
@@ -36,7 +36,8 @@ import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 
 /**
- * TODO move this class to SPI so that extenders can take advantage of it.
+ * The is a list of all difference codes Revapi's Java extension can emit. This can be used by others when they want to
+ * override the default detection behavior by providing custom difference transforms.
  *
  * @author Lukas Krejci
  * @since 0.1

@@ -23,14 +23,14 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public abstract class ModifierChanged extends AbstractJavaCheck {
+public abstract class ModifierChanged extends CheckBase {
     private final boolean added;
     private final Code code;
     private final Modifier modifier;

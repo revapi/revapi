@@ -20,8 +20,8 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 
-import org.revapi.java.checks.Code;
 import org.revapi.java.checks.common.ModifierChanged;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci

@@ -26,17 +26,21 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 
 /**
  * A basic implementation of the {@link Check} interface. This class easies the matching of the {@code visit*()}
- * methods
- * and their corresponding {@link #visitEnd()} by keeping track of the "depth" individual calls (see the recursive
+ * methods and their corresponding {@link #visitEnd()} by keeping track of the "depth" individual calls (see the
+ * recursive
  * nature of the {@link org.revapi.java.spi.Check call order}).
+ * <p/>
+ * This class also contains a couple of utility methods for checking the accessibility of elements, etc.
  *
  * @author Lukas Krejci
  * @see #pushActive(javax.lang.model.element.Element, javax.lang.model.element.Element, Object...)
@@ -45,6 +49,99 @@ import org.revapi.Difference;
  */
 public abstract class CheckBase implements Check {
 
+    /**
+     * Checks whether both provided elements are (package) private. If one of them is null, the fact cannot be
+     * determined and therefore this method would return false.
+     *
+     * @param a first element
+     * @param b second element
+     *
+     * @return true if both elements are not null and are private or package private
+     */
+    public static boolean isBothPrivate(@Nullable Element a, @Nullable Element b) {
+        if (a == null || b == null) {
+            return false;
+        }
+
+        return !isAccessible(a) && !isAccessible(b);
+    }
+
+    /**
+     * Checks whether both provided elements are public or protected. If one at least one of them is null, the method
+     * returns false, because the accessibility cannot be truthfully detected in that case.
+     *
+     * @param a first element
+     * @param b second element
+     *
+     * @return true if both elements are not null and accessible (i.e. public or protected)
+     */
+    public static boolean isBothAccessible(@Nullable Element a, @Nullable Element b) {
+        if (a == null || b == null) {
+            return false;
+        }
+
+        return isAccessible(a) && isAccessible(b);
+    }
+
+    /**
+     * Returns true if the provided element is public or protected, false otherwise.
+     */
+    public static boolean isAccessible(@Nonnull Element e) {
+        return e.getModifiers().contains(Modifier.PUBLIC) || e.getModifiers().contains(Modifier.PROTECTED);
+    }
+
+    /**
+     * The element is deemed missing if its type kind ({@link javax.lang.model.type.TypeMirror#getKind()}) is
+     * {@link TypeKind#ERROR}.
+     *
+     * @param e the element
+     *
+     * @return true if the element is missing, false otherwise
+     */
+    public static boolean isMissing(@Nonnull Element e) {
+        return e.asType().getKind() == TypeKind.ERROR;
+    }
+
+    /**
+     * Certain elements might be forced into the API even if they are not accessible (this is most usually a
+     * programming
+     * error). This method is an extension of the {@link #isAccessible(javax.lang.model.element.Element)} and also
+     * checks for the explicit presence of the element in the API by using the
+     * {@link org.revapi.java.spi.TypeEnvironment#isExplicitPartOfAPI(javax.lang.model.element.TypeElement)}
+     * method.
+     *
+     * @param e   the element
+     * @param env the type environment from which the element comes from
+     *
+     * @return true if the element is accessible or is an explicit part of the API
+     */
+    public static boolean isAccessibleOrInAPI(@Nonnull Element e, @Nonnull TypeEnvironment env) {
+        return isAccessible(e) || (e instanceof TypeElement && env.isExplicitPartOfAPI((TypeElement) e));
+    }
+
+    /**
+     * Extension of the {@link #isBothAccessibleOrInApi(javax.lang.model.element.Element, TypeEnvironment,
+     * javax.lang.model.element.Element, TypeEnvironment)} method for 2 elements.
+     *
+     * @param a    the first element
+     * @param envA the type environment of the first element
+     * @param b    the second element
+     * @param envB the type environment of the second element
+     *
+     * @return true if both elements are accessible or an explicit part of their respective APIs.
+     */
+    public static boolean isBothAccessibleOrInApi(@Nonnull Element a, @Nonnull TypeEnvironment envA, @Nonnull Element b,
+        @Nonnull TypeEnvironment envB) {
+
+        return isAccessibleOrInAPI(a, envA) && isAccessibleOrInAPI(b, envB);
+    }
+
+    /**
+     * Represents the elements that have been {@link #pushActive(javax.lang.model.element.Element,
+     * javax.lang.model.element.Element, Object...) pushed} onto the active elements stack.
+     *
+     * @param <T> the type of elements
+     */
     protected static class ActiveElements<T extends Element> {
         public final T oldElement;
         public final T newElement;
@@ -64,6 +161,18 @@ public abstract class CheckBase implements Check {
     private int depth;
     private final Deque<ActiveElements<?>> activations = new ArrayDeque<>();
     private AnalysisContext analysisContext;
+
+    @Nonnull
+    protected Difference createDifference(@Nonnull Code code,
+        Object... params) {
+
+        return createDifference(code, params, params);
+    }
+
+    @Nonnull
+    protected Difference createDifference(@Nonnull Code code, @Nonnull Object[] params, Object... attachments) {
+        return code.createDifference(getAnalysisContext().getLocale(), params, attachments);
+    }
 
     @Nonnull
     public TypeEnvironment getOldTypeEnvironment() {

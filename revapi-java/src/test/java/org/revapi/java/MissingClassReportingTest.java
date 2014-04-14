@@ -18,7 +18,7 @@ import org.revapi.Difference;
 import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Code;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 

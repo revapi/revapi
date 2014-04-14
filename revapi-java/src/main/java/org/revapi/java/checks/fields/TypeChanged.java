@@ -22,7 +22,7 @@ import java.util.List;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
 
 /**

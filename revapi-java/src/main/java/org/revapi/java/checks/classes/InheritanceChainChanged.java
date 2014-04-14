@@ -30,8 +30,8 @@ import javax.lang.model.util.Types;
 
 import org.revapi.CoIterator;
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 
@@ -39,7 +39,7 @@ import org.revapi.java.spi.Util;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class InheritanceChainChanged extends AbstractJavaCheck {
+public final class InheritanceChainChanged extends CheckBase {
     @Override
     protected List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
@@ -104,8 +104,7 @@ public final class InheritanceChainChanged extends AbstractJavaCheck {
 
             for (TypeMirror t : removedSuperClasses) {
                 String str = Util.toHumanReadableString(t);
-                ret.add(createDifference(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS,
-                    new String[]{str}, t));
+                ret.add(createDifference(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS, new String[]{str}, t));
             }
 
             for (TypeMirror t : addedSuperClasses) {

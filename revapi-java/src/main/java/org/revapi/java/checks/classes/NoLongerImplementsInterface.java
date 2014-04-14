@@ -23,15 +23,15 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class NoLongerImplementsInterface extends AbstractJavaCheck {
+public final class NoLongerImplementsInterface extends CheckBase {
 
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
@@ -66,10 +66,8 @@ public final class NoLongerImplementsInterface extends AbstractJavaCheck {
 
         for (TypeMirror oldIface : types.oldElement.getInterfaces()) {
             if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
-                result.add(createDifference(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE,
-                    new String[]{
-                        Util.toHumanReadableString(oldIface)}, oldIface
-                ));
+                result.add(createDifference(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE, new String[]{
+                    Util.toHumanReadableString(oldIface)}, oldIface));
             }
         }
 

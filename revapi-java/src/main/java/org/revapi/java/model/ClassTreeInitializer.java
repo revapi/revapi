@@ -31,8 +31,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.Modifier;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -565,10 +563,6 @@ public final class ClassTreeInitializer {
         );
 
         return found.isEmpty() ? null : found.get(0);
-    }
-
-    public static boolean isAccessible(Element element) {
-        return element.getModifiers().contains(Modifier.PUBLIC) || element.getModifiers().contains(Modifier.PROTECTED);
     }
 
     private static boolean isPublic(int access) {

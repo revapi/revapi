@@ -19,8 +19,8 @@ package org.revapi.java.checks.methods;
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 
-import org.revapi.java.checks.Code;
 import org.revapi.java.checks.common.VisibilityChanged;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci

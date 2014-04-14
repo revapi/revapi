@@ -23,15 +23,15 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class ParameterTypeChanged extends AbstractJavaCheck {
+public final class ParameterTypeChanged extends CheckBase {
     @Override
     protected void doVisitMethodParameter(@Nullable VariableElement oldParameter,
         @Nullable VariableElement newParameter) {

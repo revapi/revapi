@@ -22,15 +22,14 @@ import java.util.List;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
 import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class Removed extends AbstractJavaCheck {
+public final class Removed extends CheckBase {
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {

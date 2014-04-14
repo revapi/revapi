@@ -22,7 +22,7 @@ import java.util.List;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
@@ -55,6 +55,7 @@ public final class ConstantValueChanged extends BothFieldsRequiringCheck {
         return Collections.singletonList(
             createDifference(Code.FIELD_CONSTANT_VALUE_CHANGED,
                 fields.oldElement.getConstantValue().toString(),
-                fields.newElement.getConstantValue().toString()));
+                fields.newElement.getConstantValue().toString())
+        );
     }
 }

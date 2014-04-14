@@ -22,14 +22,14 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class KindChanged extends AbstractJavaCheck {
+public final class KindChanged extends CheckBase {
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
         if (oldType != null && newType != null && oldType.getKind() != newType.getKind() && isBothAccessible(oldType,
@@ -46,8 +46,7 @@ public final class KindChanged extends AbstractJavaCheck {
             TypeElement n = types.newElement;
 
             if (o.getKind() != n.getKind()) {
-                Difference p = createDifference(Code.CLASS_KIND_CHANGED,
-                    new String[]{kind(o), kind(n)}, o, n);
+                Difference p = createDifference(Code.CLASS_KIND_CHANGED, new String[]{kind(o), kind(n)}, o, n);
 
                 return Collections.singletonList(p);
             }

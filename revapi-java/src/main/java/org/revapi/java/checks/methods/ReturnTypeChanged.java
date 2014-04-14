@@ -24,15 +24,15 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class ReturnTypeChanged extends AbstractJavaCheck {
+public final class ReturnTypeChanged extends CheckBase {
     @Override
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
         if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {

@@ -25,15 +25,15 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.AbstractJavaCheck;
-import org.revapi.java.checks.Code;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class AttributeValueChanged extends AbstractJavaCheck {
+public final class AttributeValueChanged extends CheckBase {
     @Override
     protected List<Difference> doVisitAnnotation(AnnotationMirror oldAnnotation,
         AnnotationMirror newAnnotation) {
@@ -66,8 +66,8 @@ public final class AttributeValueChanged extends AbstractJavaCheck {
                 result.add(createDifference(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED,
                     new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType()),
                         Util.toHumanReadableString(oldValue.getValue()),
-                        Util.toHumanReadableString(newValue.getValue())},
-                    oldValue.getKey(), oldAnnotation, oldValue.getValue(), newValue.getValue()
+                        Util.toHumanReadableString(newValue.getValue())}, oldValue.getKey(), oldAnnotation,
+                    oldValue.getValue(), newValue.getValue()
                 ));
             }
 
@@ -84,8 +84,7 @@ public final class AttributeValueChanged extends AbstractJavaCheck {
                 result.add(
                     createDifference(Code.ANNOTATION_ATTRIBUTE_ADDED,
                         new String[]{name, Util.toHumanReadableString(newAnnotation.getAnnotationType())},
-                        newValue.getKey(),
-                        newAnnotation)
+                        newValue.getKey(), newAnnotation)
                 );
             }
         }

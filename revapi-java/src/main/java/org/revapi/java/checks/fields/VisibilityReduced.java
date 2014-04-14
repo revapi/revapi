@@ -18,8 +18,8 @@ package org.revapi.java.checks.fields;
 
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.java.checks.Code;
 import org.revapi.java.checks.common.VisibilityChanged;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
