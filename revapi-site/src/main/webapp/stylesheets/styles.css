@@ -58,6 +58,7 @@ body {
     width: 25%;
     height: 90%;
     overflow: auto;
+    border: 1px solid #c0c0c0;
 }
 
 @media (max-width: 992px) {

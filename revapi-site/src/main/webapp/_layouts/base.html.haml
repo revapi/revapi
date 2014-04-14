@@ -7,9 +7,6 @@
     %link{ :rel=>'stylesheet', :type=>'text/css', :href=>"#{site.base_url}/stylesheets/bootstrap.css" }
     %link{ :rel=>'stylesheet', :type=>'text/css', :href=>"#{site.base_url}/stylesheets/styles.css" }
     %link{ :rel=>"stylesheet", :type=>'text/css', :href=>"#{site.base_url}/stylesheets/lightbox.css"}
-    %script{ :type=>'text/javascript', :src=>'//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js' }
-    %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/bootstrap.js" }
-    %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/lightbox.min.js" }
     /[if lt IE 9]
       %script{ :type=>'text/javascript', :src=>'//html5shim.googlecode.com/svn/trunk/html5.js' }
   %body
@@ -41,3 +38,14 @@
       %hr
       %footer
         %p &copy; #{site.org} #{Date.today.year}
+      %script{ :type=>'text/javascript', :src=>'//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js' }
+      %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/bootstrap.js" }
+      %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/lightbox.min.js" }
+      %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/navbar-fix.js" }
+      %script
+        // When our page loads, check to see if it contains and anchor
+        scroll_if_anchor(window.location.hash);
+
+        // Intercept all anchor clicks
+        $("body").on("click", "a", scroll_if_anchor);
+
