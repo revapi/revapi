@@ -109,6 +109,8 @@ public enum Code {
         NON_BREAKING, NON_BREAKING, null),
     METHOD_ABSTRACT_METHOD_ADDED("java.method.abstractMethodAdded", BREAKING, BREAKING, null),
     METHOD_ADDED("java.method.added", NON_BREAKING, NON_BREAKING, null),
+    METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS("java.method.finalMethodAddedToNonFinalClass", POTENTIALLY_BREAKING,
+        POTENTIALLY_BREAKING, null),
     METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null),
     METHOD_OVERRIDING_METHOD_REMOVED("java.method.overridingMethodRemoved", NON_BREAKING, NON_BREAKING, null),
     METHOD_REPLACED_BY_ABSTRACT_METHOD_IN_SUPERCLASS("java.method.replacedByAbstractMethodInSuperClass", BREAKING,

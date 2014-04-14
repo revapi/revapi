@@ -91,6 +91,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_FINAL.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_FINAL.code()));
+        Assert.assertEquals(1,
+            (int) reporter.getProblemCounters().get(Code.METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS.code()));
     }
 
     @Test

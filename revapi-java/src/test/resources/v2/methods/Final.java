@@ -23,4 +23,6 @@ public class Final {
     public final void nonFinalMethod() {
 
     }
+
+    public final void newFinal() {}
 }

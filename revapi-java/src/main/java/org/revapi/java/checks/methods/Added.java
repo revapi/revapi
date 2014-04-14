@@ -86,10 +86,14 @@ public final class Added extends CheckBase {
             difference = createDifference(Code.METHOD_ADDED_TO_INTERFACE);
         } else if (method.getModifiers().contains(Modifier.ABSTRACT)) {
             difference = createDifference(Code.METHOD_ABSTRACT_METHOD_ADDED);
+        } else if (method.getModifiers().contains(Modifier.FINAL) &&
+            !enclosingClass.getModifiers().contains(Modifier.FINAL)) {
+
+            difference = createDifference(Code.METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS);
         } else {
             difference = createDifference(Code.METHOD_ADDED);
         }
 
-        return difference == null ? null : Collections.singletonList(difference);
+        return Collections.singletonList(difference);
     }
 }
