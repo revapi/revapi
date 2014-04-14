@@ -56,6 +56,8 @@ body {
     padding-left: 1em;
     z-index: 1000;
     width: 25%;
+    height: 90%;
+    overflow: auto;
 }
 
 @media (max-width: 992px) {
@@ -66,4 +68,8 @@ body {
 
 .paragraph p {
     text-align: justify;
+}
+
+table.tableblock td {
+    padding: 2px;
 }

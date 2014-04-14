@@ -72,12 +72,17 @@ Read the usage info and go.
 
 [source,java]
 ----
-Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader()
-    .withConfiguration(System.getProperties()).build();
-revapi.analyze(...);
+Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().build();
+
+AnalysisContext analysisContext = AnalysisContext.builder()
+    .withOldAPI(API.of(...))
+    .withNewAPI(API.of(...))
+    .withConfigurationFromJSON("json").build();
+
+revapi.analyze(analysisContext);
 ----
 
 == Extending Revapi
 
-TODO
+See the http://metlos.github.io/revapi/docs/architecture.html[site] for more info.
 
