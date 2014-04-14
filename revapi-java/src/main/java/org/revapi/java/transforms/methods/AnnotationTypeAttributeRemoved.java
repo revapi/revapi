@@ -60,13 +60,7 @@ public class AnnotationTypeAttributeRemoved implements DifferenceTransform<JavaM
         ExecutableElement method = (ExecutableElement) oldElement.getModelElement();
 
         if (method.getEnclosingElement().getKind() == ElementKind.ANNOTATION_TYPE) {
-            AnnotationValue defaultValue = method.getDefaultValue();
-
-            if (defaultValue == null) {
-                return Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE.createDifference(locale);
-            } else {
-                return Code.METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE.createDifference(locale);
-            }
+            return Code.METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE.createDifference(locale);
         }
 
         return difference;

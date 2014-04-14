@@ -77,10 +77,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v2/methods/DefaultValue.java", "v1/methods/DefaultValue.java");
 
-        Assert.assertEquals(1, (int) reporter.getProblemCounters()
-            .get(Code.METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE.code()));
-        Assert.assertEquals(1, (int) reporter.getProblemCounters()
-            .get(Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters()
+            .get(Code.METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE.code()));
         Assert.assertNull(reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
     }
 

@@ -117,10 +117,8 @@ public enum Code {
         BREAKING, null),
     METHOD_NON_FINAL_METHOD_REPLACED_BY_FINAL_IN_SUPERCLASS("java.method.nonFinalReplacedByFinalInSuperclass", BREAKING,
         BREAKING, null),
-    METHOD_ATTRIBUTE_WITH_NO_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE(
-        "java.method.attributeWithNoDefaultRemovedFromAnnotationType", BREAKING, POTENTIALLY_BREAKING, null),
-    METHOD_ATTRIBUTE_WITH_DEFAULT_REMOVED_FROM_ANNOTATION_TYPE(
-        "java.method.attributeWithDefaultRemovedFromAnnotationType", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
+    METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE(
+        "java.method.attributeRemovedFromAnnotationType", BREAKING, BREAKING, null),
     METHOD_NO_LONGER_FINAL("java.method.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
     METHOD_NOW_FINAL("java.method.nowFinal", BREAKING, BREAKING, null),
     METHOD_VISIBILITY_INCREASED("java.method.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
