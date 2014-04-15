@@ -28,7 +28,7 @@
               %ul.dropdown-menu
                 - for doc in site.docs
                   %li
-                    %a{ :href=>doc.url}= doc.title
+                    %a{ :href=>"#{site.base_url}/#{doc.url}"}= doc.title
             %li
               %a{ :href=>"#{site.base_url}/apidocs"} Javadoc
           .navbar-text.navbar-right
