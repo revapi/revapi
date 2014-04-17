@@ -21,7 +21,6 @@ because it is written using http://awestruct.org[awestruct] and as such requires
 successfully. This is not something people usually have set up on their machines so you have to build the site by
 explicitly going into its module directory and call
 
- mvn install
+ mvn site
 
-This will invoke awestruct build from inside maven and the site will be located in the target directory either exploded
-or packed as a war file (which, after all, is merely a fancifully named zip file).
+This will invoke awestruct build from inside maven and the site will be located in the target directory.
