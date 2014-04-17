@@ -74,7 +74,8 @@ public class IgnoreDifferenceTransformTest {
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
 
             AnalysisContext config = AnalysisContext.builder()
-                .withConfigurationFromJSON("{\"revapi\":{\"ignore\":[{\"code\":\"c\"}]}}").build();
+                .withConfigurationFromJSON(
+                    "{\"revapi\":{\"ignore\":[{\"code\":\"c\", \"justification\" : \"because\"}]}}").build();
 
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
@@ -91,15 +92,15 @@ public class IgnoreDifferenceTransformTest {
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
             AnalysisContext config = AnalysisContext.builder()
-                .withConfigurationFromJSON("{\"revapi\":{\"ignore\":[{\"regex\": true, \"code\":\"c\"}]}}").build();
+                .withConfigurationFromJSON(
+                    "{\"revapi\":{\"ignore\":[{\"regex\": true, \"code\":\"c\", \"justification\" : \"because\"}]}}")
+                .build();
 
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
             Assert.assertNull(difference);
         }
     }
-
-    //TODO add schema tests
 
     //TODO add tests for old and new element matching
 }

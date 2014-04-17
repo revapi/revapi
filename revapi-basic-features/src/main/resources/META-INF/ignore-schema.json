@@ -30,8 +30,12 @@
                                  extension to find out the expected format. This attribute is optional. If not \
                                  specified the old element is not taken into account.",
                 "type": "string"
+            },
+            "justification": {
+                "description": "The justification for ignoring the difference.",
+                "type": "string"
             }
         },
-        "required": [ "code" ]
+        "required": [ "code", "justification" ]
     }
 }
