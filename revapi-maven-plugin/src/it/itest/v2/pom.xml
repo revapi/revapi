@@ -60,13 +60,16 @@
                                 "ignore" : [
                                 {
                                 "code" : "java.class.nowFinal",
-                                "old" : "class test.Dep"
+                                "old" : "class test.Dep",
+                                "justification" : "foo"
                                 },
                                 {
-                                "code" : "java.class.noLongerImplementsInterface"
+                                "code" : "java.class.noLongerImplementsInterface",
+                                "justification" : "bar"
                                 },
                                 {
-                                "code" : "!!TEST_CODE!!"
+                                "code" : "!!TEST_CODE!!",
+                                "justification" : "baz"
                                 }
                                 ]
                                 }}
