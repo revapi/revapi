@@ -55,5 +55,5 @@ Typically, this happens with Java runtime library itself, when a Jar is compiled
 it is then run on.
 
 == Getting Involved
-{scm}[GitHub], read link:/docs/[docs].
+{scm}[GitHub], read link:docs/[docs].
 

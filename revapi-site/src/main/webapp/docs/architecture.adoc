@@ -24,7 +24,7 @@ found while comparing the elements. The differences are then simply reported.
 The following diagram depicts the work flow graphically. 
 
 +++<a href="../img/revapi-workflow.png" data-lightbox="1">+++
-image:../img/revapi-workflow.png[width="100%",role="thumb"]
+image:{base_url}/img/revapi-workflow.png[width="100%",role="thumb"]
 +++</a>+++
 
 Each of the stages in that work flow is configurable. The configuration is supplied as JSON files, that are validated
