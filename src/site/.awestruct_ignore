@@ -1,3 +1,5 @@
 Gemfile
 Gemfile.lock
 Rakefile
+site.xml
+apt/

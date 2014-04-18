@@ -27,10 +27,23 @@
 
     <artifactId>revapi-java-spi</artifactId>
 
+    <properties>
+        <skip.awestruct.site>true</skip.awestruct.site>
+        <skip.site>false</skip.site>
+        <skip.deploy>true</skip.deploy>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>http://metlos.github.io/revapi/generated/${project.artifactId}</url>
+        </site>
+    </distributionManagement>
 </project>

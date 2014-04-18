@@ -17,8 +17,8 @@ REST API changes (hint, hint, get involved, if you want these to happen ;) ).
 == SPI
 
 The Java extension can be augmented through its small
-link:../apidocs/org/revapi/java/spi/package-summary.html[SPI] that declares a
-link:../apidocs/org/revapi/java/spi/Check.html[hook interface] into the java checking process that represents the
+link:../generated/revapi-java-spi/apidocs/org/revapi/java/spi/package-summary.html[SPI] that declares a
+link:../generated/revapi-java-spi/apidocs/org/revapi/java/spi/Check.html[hook interface] into the java checking process that represents the
 Revapi's API elements as Java's own
 http://docs.oracle.com/javase/7/docs/api/javax/lang/model/package-summary.html[model elements]. The checking framework
 then can use the Java plaform's own rich functionality for examining the classes in the checked libraries (note, that
@@ -28,7 +28,7 @@ You can walk through the <<enhance-java-checks.adoc#, example Java check>> to se
 
 == Detected Differences
 All the differences detected by the extension are defined in the
-link:../apidocs/org/revapi/java/spi/Code.html[Code] enumeration. Below, you can find a short discussion of each
+link:../generated/revapi-java-spi/apidocs/org/revapi/java/spi/Code.html[Code] enumeration. Below, you can find a short discussion of each
 type of the difference.
 
 === Missing API Class

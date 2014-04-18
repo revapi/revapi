@@ -310,7 +310,7 @@ if (typeof jQuery === 'undefined') {
         this.interval && clearInterval(this.interval)
 
         this.options.interval
-            && !this.paused
+        && !this.paused
         && (this.interval = setInterval($.proxy(this.next, this), this.options.interval))
 
         return this
@@ -1217,11 +1217,12 @@ if (typeof jQuery === 'undefined') {
                 var parentLeft = this.options.container == 'body' ? 0 : $parent.offset().left
 
                 placement =
-                    placement == 'bottom' && pos.top + pos.height + actualHeight - docScroll > parentHeight ? 'top' :
+                        placement == 'bottom' && pos.top + pos.height + actualHeight - docScroll > parentHeight ?
+                    'top' :
                         placement == 'top' && pos.top - docScroll - actualHeight < 0 ? 'bottom' :
-                            placement == 'right' && pos.right + actualWidth > parentWidth ? 'left' :
-                                placement == 'left' && pos.left - actualWidth < parentLeft ? 'right' :
-                                    placement
+                        placement == 'right' && pos.right + actualWidth > parentWidth ? 'left' :
+                        placement == 'left' && pos.left - actualWidth < parentLeft ? 'right' :
+                    placement
 
                 $tip
                     .removeClass(orgPlacement)
@@ -1366,11 +1367,12 @@ if (typeof jQuery === 'undefined') {
     Tooltip.prototype.getCalculatedOffset = function (placement, pos, actualWidth, actualHeight) {
         return placement == 'bottom' ?
         { top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth / 2  } :
-            placement == 'top' ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2  } :
+                placement == 'top' ?
+        { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2  } :
                 placement == 'left' ?
-                { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
-                    /* placement == 'right' */
-                { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width   }
+        { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
+            /* placement == 'right' */
+        { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width   }
     }
 
     Tooltip.prototype.getTitle = function () {
@@ -1520,8 +1522,8 @@ if (typeof jQuery === 'undefined') {
 
         return $e.attr('data-content')
             || (typeof o.content == 'function' ?
-            o.content.call($e[0]) :
-            o.content)
+                o.content.call($e[0]) :
+                o.content)
     }
 
     Popover.prototype.arrow = function () {
@@ -1620,9 +1622,9 @@ if (typeof jQuery === 'undefined') {
                     && $href.length
                     && $href.is(':visible')
                     && [
-                    [$href[offsetMethod]().top +
-                        (!$.isWindow(self.$scrollElement.get(0)) && self.$scrollElement.scrollTop()), href ]
-                ]) || null
+                        [$href[offsetMethod]().top +
+                            (!$.isWindow(self.$scrollElement.get(0)) && self.$scrollElement.scrollTop()), href ]
+                    ]) || null
             })
             .sort(function (a, b) {
                 return a[0] - b[0]
@@ -1652,8 +1654,8 @@ if (typeof jQuery === 'undefined') {
 
         for (i = offsets.length; i--;) {
             activeTarget != targets[i]
-                && scrollTop >= offsets[i]
-                && (!offsets[i + 1] || scrollTop <= offsets[i + 1])
+            && scrollTop >= offsets[i]
+            && (!offsets[i + 1] || scrollTop <= offsets[i + 1])
             && this.activate(targets[i])
         }
     }
@@ -1913,7 +1915,8 @@ if (typeof jQuery === 'undefined') {
         if (typeof offsetBottom == 'function') offsetBottom = offset.bottom(this.$element)
 
         var affix = this.unpin != null && (scrollTop + this.unpin <= position.top) ? false :
-            offsetBottom != null && (position.top + this.$element.height() >= scrollHeight - offsetBottom) ? 'bottom' :
+                offsetBottom != null && (position.top + this.$element.height() >= scrollHeight - offsetBottom) ?
+            'bottom' :
                 offsetTop != null && (scrollTop <= offsetTop) ? 'top' : false
 
         if (this.affixed === affix) return

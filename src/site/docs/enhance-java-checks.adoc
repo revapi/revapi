@@ -37,7 +37,7 @@ In the `pom.xml`, we will specify that we want to use that SPI:
 
 === Code
 To ignore a found difference, we need to implement a
-link:../apidocs/org/revapi/DifferenceTransform.html[difference transform].
+link:../generated/revapi/apidocs/org/revapi/DifferenceTransform.html[difference transform].
 
 ```java
 package my.extension;

@@ -35,39 +35,39 @@ against JSON schemas that each extension can supply.
 The diagram above hints at several extension points available in Revapi.
 
 === Archives
-An link:../apidocs/org/revapi/Archive.html[archive] is a very simple abstraction over a file that represents the
+An link:../generated/revapi/apidocs/org/revapi/Archive.html[archive] is a very simple abstraction over a file that represents the
 archive containing some API elements (like Java's jar archive or a class file, an XML document, properties file, etc).
 
 Revapi actually doesn't provide any implementation of it on its own (only the standalone Revapi's CLI contains a private
 implementation able to read from files) but it is trivial to implement one.
 
 === API Analyzer
-An link:../apidocs/org/revapi/ApiAnalyzer.html[API analyzer] (which is kinda implicit in the diagram) is the main
+An link:../generated/revapi/apidocs/org/revapi/ApiAnalyzer.html[API analyzer] (which is kinda implicit in the diagram) is the main
 interface for implementing API checks for custom "language". It provides and configures the analyzers of the archives
 and API difference analyzers both to be detailed below.
 
 === Archive Analyzer
-An link:../apidocs/org/revapi/ArchiveAnalyzer.html[archive analyzer] is instantiated and configured by the API
+An link:../generated/revapi/apidocs/org/revapi/ArchiveAnalyzer.html[archive analyzer] is instantiated and configured by the API
 analyzer to analyze archives of a version of API. It represents the results of the analysis as an
 link:../apidocs/org/revapi/ElementForest.html[element forest] (i.e. a set of element trees).
 
 === Element Filter
-An link:../apidocs/org/revapi/ElementFilter.html[element filter] can filter out elements from the element forest
+An link:../generated/revapi/apidocs/org/revapi/ElementFilter.html[element filter] can filter out elements from the element forest
 before they are passed further down the API analysis pipeline. The same set of element filters is applied to both the
 old API and new API element forests.
 
 === Difference Analyzer
-The magic happens in the link:../apidocs/org/revapi/DifferenceAnalyzer.html[difference analyzers]. Revapi
+The magic happens in the link:../generated/revapi/apidocs/org/revapi/DifferenceAnalyzer.html[difference analyzers]. Revapi
 simultaneously traverses the two element forests discovering new or removed elements and matching the comparable
 elements in them (using a link:../apidocs/org/revapi/CoIterator.html[coiterator]). It then passes the matched
 pairs to the difference analyzer that performs the actual analysis of changes and provides the reports summarizing them.
 
 === Difference Transform
 Once the differences are found they are supplied to the
-link:../apidocs/org/revapi/DifferenceTransform.html[difference transforms]. These extensions can, as the name
+link:../generated/revapi/apidocs/org/revapi/DifferenceTransform.html[difference transforms]. These extensions can, as the name
 suggests, transform the found differences into different ones or altogether remove them from the results.
 
 === Reporter
 Finally, after the final set of differences is settled, it is passed to the
-link:../apidocs/org/revapi/Reporter.html[reporters]. These are responsible to report the found differences to the
+link:../generated/revapi/apidocs/org/revapi/Reporter.html[reporters]. These are responsible to report the found differences to the
 caller somehow (standard output, database, xml files, whatever one imagines).

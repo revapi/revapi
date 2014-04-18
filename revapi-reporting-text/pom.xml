@@ -27,6 +27,12 @@
 
     <artifactId>revapi-reporting-text</artifactId>
 
+    <properties>
+        <skip.awestruct.site>true</skip.awestruct.site>
+        <skip.site>true</skip.site>
+        <skip.deploy>true</skip.deploy>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>

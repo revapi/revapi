@@ -1,0 +1,13 @@
+Revapi Javadocs
+
+ The following artifacts define a public API of Revapi:
+
+ * {{{./revapi/apidocs/index.html} Revapi}}
+
+ * {{{./revapi-basic-features/apidocs/index.html} Basic Features}}
+
+ * {{{./revapi-java-spi/apidocs/index.html} Java Extension SPI}}
+
+Revapi Maven Plugin
+
+ The documentation of the Revapi's maven plugin is {{{./revapi-maven-plugin/plugin-info.html}here}}.

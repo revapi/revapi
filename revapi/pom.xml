@@ -27,6 +27,12 @@
 
     <artifactId>revapi</artifactId>
 
+    <properties>
+        <skip.awestruct.site>true</skip.awestruct.site>
+        <skip.site>false</skip.site>
+        <skip.deploy>true</skip.deploy>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -39,4 +45,11 @@
             <version>1.2.0.Final</version>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>http://metlos.github.io/revapi/generated/${project.artifactId}</url>
+        </site>
+    </distributionManagement>
 </project>

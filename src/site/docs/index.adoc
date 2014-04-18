@@ -14,7 +14,7 @@ library.
 === Standalone Usage
 
 NOTE: Revapi hasn't seen a single stable release yet, so you won't be able to really download it from anywhere.
-Currently the only option you have is to link:building.html[build] Revapi and then obtain the installation archive from
+Currently the only option you have is to <<building.adoc#, build>> Revapi and then obtain the installation archive from
 local maven repo.
 
 First you need to download the standalone distribution of Revapi, say `revapi-standalone-0.1.0.zip`. Now you have to:
@@ -131,7 +131,7 @@ The basic usage of the Revapi's maven plugin is quite simple. In your `pom.xml`,
 By default, Revapi only bundles the <<extension-basic.adoc#, basic extensions>> so in order to check your java code,
 you need to add the Revapi's java extension as a dependency to the maven plugin.
 
-For more detailed info, check the maven plugin's link:../maven-plugin[site].
+For more detailed info, check the maven plugin's link:../generated/revapi-maven-plugin/plugin-info.html[site].
 
 === Embedding
 
@@ -147,4 +147,4 @@ AnalysisContext analysisContext = AnalysisContext.builder()
 revapi.analyze(analysisContext);
 ----
 
-For more details, see link:../apidocs[javadoc].
+For more details, see link:../generated/index.html[javadoc].
