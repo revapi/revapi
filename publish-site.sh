@@ -1,3 +1,3 @@
 #!/bin/sh
 
-mvn site site:stage && mvn site-deploy
+mvn -Psite site site:stage && mvn -Psite site-deploy
