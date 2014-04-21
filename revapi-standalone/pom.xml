@@ -31,7 +31,6 @@
 
     <properties>
         <skip.awestruct.site>true</skip.awestruct.site>
-        <skip.site>true</skip.site>
         <skip.deploy>true</skip.deploy>
     </properties>
 
@@ -112,4 +111,11 @@
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>http://metlos.github.io/revapi/generated/${project.artifactId}</url>
+        </site>
+    </distributionManagement>
 </project>
