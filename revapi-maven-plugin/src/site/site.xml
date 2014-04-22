@@ -33,7 +33,7 @@
         <menu name="Overview">
             <item name="Revapi Main Site" href="../../index.html"/>
             <item name="Goals" href="plugin-info.html"/>
-            <item name="Example" href="example.html"/>
+            <item name="Examples" href="examples.html"/>
         </menu>
 
         <menu ref="reports"/>

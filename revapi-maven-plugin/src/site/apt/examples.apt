@@ -1,0 +1,128 @@
+Examples
+
+* Analysis Configuration
+
+ In your pom.xml, add the following into the build section:
+
++---
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>0.1.0</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-java</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+    </dependencies>
+    <configuration>
+        <analysisConfiguration>
+            {
+                "revapi" : {
+                    "java" : {
+                        "missing-classes" : "report"
+                    },
+                    "ignore" : {
+                        "code" : "java.method.addedToInterface",
+                        "regex" : "true",
+                        "new" : "class com\\.example\\.ejbs\\..*"
+                    },
+                    "filter" : {
+                        "exclude" : ["class com\\.example\\.impl\\..*"]
+                    }
+                }
+            }
+        </analysisConfiguration>
+        <analysisConfigurationFiles>
+            <file>${project.basedir}/api-check-config.json</file>
+        </analysisConfigurationFiles>
+    </configuration>
+    <executions>
+        <execution>
+            <phase>verify</phase>
+            <goals>
+                <goal>check</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
++---
+
+ There are 3 things of note in the above example.
+
+ * Additional extensions are declared as dependencies of the revapi maven plugin.
+
+ * The configuration of the API analysis can be either inlined in the pom.xml or contained in arbitrary number of
+configuration files.
+
+ * The configuration of different extensions can be "mangled" together in a single JSON object. In the above example,
+the "revapi.java.missing-classes" configures behavior of missing class reporting in the Java extension while
+"revapi.ignore" and "revapi.filter" configure ignoring certain found differences or filtering out certain elements from
+the analysis respectively.
+
+* Specifying Old And New Versions
+
+ By default Revapi checks the latest released version of the currently built project against the version produced during
+ the build. This corresponds to the following setup of the plugin:
+
++---
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>0.1.0</version>
+    <oldArtifacts>
+        <artifact>${project.groupId}:${project.artifactId}:RELEASE</artifact>
+    </oldArtifacts>
+    <newArtifacts>
+        <artifact>BUILD</artifact>
+    </newArtifacts>
+    <executions>
+        <execution>
+            <phase>verify</phase>
+            <goals>
+                <goal>check</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
++---
+
+ As you might have guessed from the above snippet, you can specify more than 1 artifact as the components of a version
+ of an API. This might come handy for example in cases, where you decided to split up your API into multiple archives
+ yet you still want to retain backwards compatibility.
+
+ Also note, that both the old and new artifacts are specified as GAVs (groupId:artifactId:version) so you're not
+ restricted to just doing API checks of the currently built project (note that the <<<RELEASE>>> version is resolved by
+ Maven itself to the latest available version of the artifact). The special <<<BUILD>>> GAV is used to specify
+ artifacts that were produced during the build of the current project.
+
+* Other Options
+
+ You can skip the execution of the API checker by setting its <<<skip>>> configuration attribute to true
+
++---
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>0.1.0</version>
+    <configuration>
+        <skip>true</skip>
+    </configuration>
+</plugin>
++---
+
+ You can set the minimal severity of the found differences that will cause the build to fail. The default is
+ <<<breaking>>>, meaning only breaking changes will fail the build. Other possible values are <<<nonBreaking>>> and
+ <<<potentiallyBreaking>>>.
+
++---
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>0.1.0</version>
+    <configuration>
+        <failSeverity>breaking</failSeverity>
+    </configuration>
+</plugin>
++---

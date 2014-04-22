@@ -53,6 +53,9 @@ import org.revapi.AnalysisContext;
 import org.revapi.Revapi;
 
 /**
+ * Runs the API check of old and new artifacts using the specified configuration of extensions declared as dependencies
+ * of the plugin.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
@@ -98,6 +101,9 @@ public class CheckMojo extends AbstractMojo {
     @Parameter(defaultValue = BUILD_COORDINATES)
     private String[] newArtifacts;
 
+    /**
+     * Whether to skip the mojo execution.
+     */
     @Parameter
     private boolean skip;
 
