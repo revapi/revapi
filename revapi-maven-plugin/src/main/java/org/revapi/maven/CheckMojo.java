@@ -80,7 +80,7 @@ public class CheckMojo extends AbstractMojo {
      * <p/>
      * The {@code analysisConfiguration} can override the settings present in the files.
      */
-    @Parameter
+    @Parameter(property = "revapi.analysisConfigurationFiles")
     @SuppressWarnings("MismatchedReadAndWriteOfArray")
     private String[] analysisConfigurationFiles;
 
@@ -91,14 +91,14 @@ public class CheckMojo extends AbstractMojo {
      * <p/>
      * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
      */
-    @Parameter(defaultValue = "${project.groupId}:${project.artifactId}:RELEASE")
+    @Parameter(defaultValue = "${project.groupId}:${project.artifactId}:RELEASE", property = "revapi.oldArtifacts")
     private String[] oldArtifacts;
 
     /**
      * The coordinates of the new artifacts. Defaults to single artifact with the artifacts from the build.
      * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
      */
-    @Parameter(defaultValue = BUILD_COORDINATES)
+    @Parameter(defaultValue = BUILD_COORDINATES, property = "revapi.newArtifacts")
     private String[] newArtifacts;
 
     /**
@@ -111,7 +111,7 @@ public class CheckMojo extends AbstractMojo {
      * The severity of found problems at which to break the build. Defaults to API breaking changes.
      * Possible values: nonBreaking, potentiallyBreaking, breaking.
      */
-    @Parameter(defaultValue = "breaking")
+    @Parameter(defaultValue = "breaking", property = "revapi.failSeverity")
     private FailSeverity failSeverity;
 
     @Component
