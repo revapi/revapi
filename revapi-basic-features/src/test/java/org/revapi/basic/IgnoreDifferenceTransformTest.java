@@ -17,12 +17,14 @@
 package org.revapi.basic;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.Archive;
 import org.revapi.Difference;
 import org.revapi.Element;
 import org.revapi.simple.SimpleElement;
@@ -45,6 +47,12 @@ public class IgnoreDifferenceTransformTest {
         @Override
         @SuppressWarnings("ConstantConditions")
         public API getApi() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Archive getArchive() {
             return null;
         }
 

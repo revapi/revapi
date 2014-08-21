@@ -43,6 +43,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import javax.lang.model.util.SimpleElementVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor7;
@@ -863,5 +864,34 @@ public final class Util {
                 return true;
             }
         }, newVal.getValue());
+    }
+
+    /**
+     * Tries to find a type element using the provided Elements helper given its binary name. Note that this might NOT
+     * be able to find some classes if there are conflicts in the canonical names (but that theoretically cannot happen
+     * because the compiler should refuse to compile code with conflicting canonical names).
+     *
+     * @param elements   the elements instance to search the classpath
+     * @param binaryName the binary name of the class
+     *
+     * @return the type element with given binary name
+     */
+    public static TypeElement findTypeByBinaryName(Elements elements, String binaryName) {
+        TypeElement ret;
+
+        int dollarPos = 0;
+        while ((ret = elements.getTypeElement(binaryName)) == null) {
+            dollarPos = binaryName.indexOf('$', dollarPos);
+            if (dollarPos == -1) {
+                break;
+            }
+
+            if (dollarPos < binaryName.length()) {
+                binaryName = binaryName.substring(0, dollarPos) + "." + binaryName.substring(dollarPos + 1);
+            }
+        }
+
+
+        return ret;
     }
 }

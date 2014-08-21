@@ -16,9 +16,16 @@
 
 package org.revapi.java;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -34,10 +41,13 @@ import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.model.FieldElement;
+import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Check;
+import org.revapi.java.spi.JavaTypeElement;
+import org.revapi.java.spi.UseSite;
 
 /**
  * @author Lukas Krejci
@@ -49,6 +59,10 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private final Iterable<Check> checks;
     private final CompilationValve oldCompilationValve;
     private final CompilationValve newCompilationValve;
+    private final AnalysisConfiguration analysisConfiguration;
+    private final ResourceBundle messages;
+    private final ProbingEnvironment oldEnvironment;
+    private final ProbingEnvironment newEnvironment;
 
     // NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
     // are always sorted as last amongst sibling model elements.
@@ -58,7 +72,9 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
     public JavaElementDifferenceAnalyzer(AnalysisContext analysisContext, ProbingEnvironment oldEnvironment,
         CompilationValve oldValve,
-        ProbingEnvironment newEnvironment, CompilationValve newValve, Iterable<Check> checks) {
+        ProbingEnvironment newEnvironment, CompilationValve newValve, Iterable<Check> checks,
+        AnalysisConfiguration analysisConfiguration) {
+
         this.oldCompilationValve = oldValve;
         this.newCompilationValve = newValve;
 
@@ -68,6 +84,47 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             c.setOldTypeEnvironment(oldEnvironment);
             c.setNewTypeEnvironment(newEnvironment);
         }
+
+        this.analysisConfiguration = analysisConfiguration;
+
+        messages = ResourceBundle.getBundle("org.revapi.java.messages", analysisContext.getLocale());
+
+        this.oldEnvironment = oldEnvironment;
+        this.newEnvironment = newEnvironment;
+    }
+
+    @Override
+    public Comparator<? super Element> getCorrespondenceComparator() {
+        return new Comparator<Element>() {
+            @Override
+            public int compare(Element o1, Element o2) {
+                int ret = JavaElementFactory.compareByType(o1, o2);
+
+                if (ret != 0) {
+                    return ret;
+                }
+
+                //the only "special" treatment is required for methods, for which we need to detect return type
+                //changes and such, which requires pronouncing methods equal on type and name, excluding return and
+                //parameter types
+                if (o1 instanceof MethodElement) {
+                    MethodElement m1 = (MethodElement) o1;
+                    MethodElement m2 = (MethodElement) o2;
+
+                    @SuppressWarnings("ConstantConditions")
+                    String sig1 = ((TypeElement) m1.getParent()).getCanonicalName() + "::" +
+                        m1.getModelElement().getSimpleName().toString();
+
+                    @SuppressWarnings("ConstantConditions")
+                    String sig2 = ((TypeElement) m2.getParent()).getCanonicalName() + "::" +
+                        m2.getModelElement().getSimpleName().toString();
+
+                    return sig1.compareTo(sig2);
+                } else {
+                    return o1.compareTo(o2);
+                }
+            }
+        };
     }
 
     @Override
@@ -148,6 +205,20 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
         LOG.trace("Ended analysis of {} and {}.", oldElement, newElement);
 
+        ListIterator<Difference> it = differences.listIterator();
+        while (it.hasNext()) {
+            Difference d = it.next();
+            if (analysisConfiguration.getUseReportingCodes().contains(d.code)) {
+                StringBuilder newDesc = new StringBuilder(d.description);
+                appendUses(oldElement, oldEnvironment, newDesc);
+                appendUses(newElement, newEnvironment, newDesc);
+
+                d = Difference.builder().addAttachments(d.attachments).addClassifications(d.classification)
+                    .withCode(d.code).withName(d.name).withDescription(newDesc.toString()).build();
+            }
+            it.set(d);
+        }
+
         return new Report(differences, oldElement, newElement);
     }
 
@@ -156,5 +227,105 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         boolean cb = b == null || cls.isAssignableFrom(b.getClass());
 
         return ca && cb;
+    }
+
+    private String join(Collection<UseSite> useSites) {
+        StringBuilder bld = new StringBuilder();
+        Iterator<UseSite> it = useSites.iterator();
+
+        if (it.hasNext()) {
+            append(bld, it.next());
+        }
+
+        while (it.hasNext()) {
+            bld.append(", ");
+            append(bld, it.next());
+        }
+
+        return bld.toString();
+    }
+
+    private void append(StringBuilder bld, UseSite use) {
+        String message;
+        switch (use.getUseType()) {
+        case ANNOTATES:
+            message = "revapi.java.uses.annotates";
+            break;
+        case HAS_TYPE:
+            message = "revapi.java.uses.hasType";
+            break;
+        case IS_IMPLEMENTED:
+            message = "revapi.java.uses.isImplemented";
+            break;
+        case IS_INHERITED:
+            message = "revapi.java.uses.isInherited";
+            break;
+        case IS_THROWN:
+            message = "revapi.java.uses.isThrown";
+            break;
+        case PARAMETER_TYPE:
+            message = "revapi.java.uses.parameterType";
+            break;
+        case RETURN_TYPE:
+            message = "revapi.java.uses.returnType";
+            break;
+        default:
+            throw new AssertionError("Invalid use type.");
+        }
+
+        message = messages.getString(message);
+        message = MessageFormat.format(message, use.getSite().getFullHumanReadableString());
+
+        bld.append(message);
+    }
+
+    private void appendUses(Element element, ProbingEnvironment environment, StringBuilder bld) {
+        if (element instanceof JavaTypeElement) {
+            bld.append("\n");
+
+            javax.lang.model.element.TypeElement type = ((JavaTypeElement) element).getModelElement();
+
+            Set<UseSite> useSites = environment.getUseSites(type);
+            Iterator<UseSite> useIt = useSites.iterator();
+
+            if (useIt.hasNext()) {
+                appendUse(bld, useIt.next());
+            }
+
+            while (useIt.hasNext()) {
+                bld.append(", ");
+                appendUse(bld, useIt.next());
+            }
+        }
+    }
+
+    private void appendUse(StringBuilder bld, UseSite use) {
+        List<UseSite> chain = getShortestPathToApiArchive(use);
+        Iterator<UseSite> chainIt = chain.iterator();
+
+        if (chainIt.hasNext()) {
+            append(bld, chainIt.next());
+        }
+
+        while (chainIt.hasNext()) {
+            bld.append(" <- ");
+            append(bld, chainIt.next());
+        }
+    }
+
+    private List<UseSite> getShortestPathToApiArchive(UseSite bottomUse) {
+        // TODO implement
+        return Collections.singletonList(bottomUse);
+    }
+
+    private static <T> boolean contains(T value, Iterable<? extends T> values) {
+        Iterator<? extends T> it = values.iterator();
+        while (it.hasNext()) {
+            if (value.equals(it.next())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -20,6 +20,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
+import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaModelElement;
 
@@ -27,23 +28,23 @@ import org.revapi.java.spi.JavaModelElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-final class JavaElementFactory {
+public final class JavaElementFactory {
     private JavaElementFactory() {
 
     }
 
     @SuppressWarnings("unchecked")
-    public static JavaModelElement elementFor(Element modelElement, ProbingEnvironment env) {
+    public static JavaModelElement elementFor(Element modelElement, ProbingEnvironment env, Archive archive) {
         if (modelElement instanceof javax.lang.model.element.TypeElement) {
-            return new TypeElement(env, (javax.lang.model.element.TypeElement) modelElement);
+            return new TypeElement(env, archive, (javax.lang.model.element.TypeElement) modelElement);
         } else if (modelElement instanceof VariableElement &&
             modelElement.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
-            return new FieldElement(env, (VariableElement) modelElement);
+            return new FieldElement(env, archive, (VariableElement) modelElement);
         } else if (modelElement instanceof VariableElement &&
             modelElement.getEnclosingElement() instanceof ExecutableElement) {
-            return new MethodParameterElement(env, (VariableElement) modelElement);
+            return new MethodParameterElement(env, archive, (VariableElement) modelElement);
         } else if (modelElement instanceof ExecutableElement) {
-            return new MethodElement(env, (ExecutableElement) modelElement);
+            return new MethodElement(env, archive, (ExecutableElement) modelElement);
         } else {
             throw new IllegalArgumentException("Unsupported model element: " + modelElement.getClass());
         }

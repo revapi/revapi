@@ -16,9 +16,11 @@
 
 package org.revapi.java;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
 
@@ -70,7 +72,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null);
+                null), Executors.newSingleThreadExecutor(), null, Collections.<File>emptySet());
 
             JavaElementForest forest = analyzer.analyze();
 
@@ -96,7 +98,8 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
-                Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null);
+                Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
+                Collections.<File>emptySet());
 
             JavaElementForest forest = analyzer.analyze();
 

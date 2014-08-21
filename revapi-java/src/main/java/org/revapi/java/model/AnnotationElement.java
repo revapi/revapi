@@ -17,9 +17,11 @@
 package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.revapi.API;
+import org.revapi.Archive;
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaAnnotationElement;
@@ -34,16 +36,25 @@ import org.revapi.simple.SimpleElement;
 public final class AnnotationElement extends SimpleElement implements JavaAnnotationElement {
     private final AnnotationMirror annotation;
     private final ProbingEnvironment environment;
+    private final Archive archive;
+    private String comparableSignature;
 
-    public AnnotationElement(ProbingEnvironment environment, AnnotationMirror annotation) {
+    public AnnotationElement(ProbingEnvironment environment, Archive archive, AnnotationMirror annotation) {
         this.environment = environment;
         this.annotation = annotation;
+        this.archive = archive;
     }
 
     @Nonnull
     @Override
     public API getApi() {
         return environment.getApi();
+    }
+
+    @Nullable
+    @Override
+    public Archive getArchive() {
+        return archive;
     }
 
     @Nonnull
@@ -64,11 +75,19 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
             return JavaElementFactory.compareByType(this, o);
         }
 
-        return toString().compareTo(o.toString());
+        return getComparableSignature().compareTo(((AnnotationElement) o).getComparableSignature());
     }
 
     @Override
     public String toString() {
-        return "@" + Util.toHumanReadableString(annotation.getAnnotationType());
+        return getComparableSignature();
+    }
+
+    private String getComparableSignature() {
+        if (comparableSignature == null) {
+            comparableSignature = "@" + Util.toHumanReadableString(annotation.getAnnotationType());
+        }
+
+        return comparableSignature;
     }
 }

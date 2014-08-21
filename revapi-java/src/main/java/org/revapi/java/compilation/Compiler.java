@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -32,15 +33,20 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.revapi.Archive;
+import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.model.ClassTreeInitializer;
-import org.revapi.java.model.MissingClassReporting;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public final class Compiler {
+    private static final Logger LOG = LoggerFactory.getLogger(Compiler.class);
+
     private final JavaCompiler compiler;
     private final Writer output;
     private final Iterable<? extends Archive> classPath;
@@ -62,7 +68,8 @@ public final class Compiler {
     }
 
     public CompilationValve compile(final ProbingEnvironment environment,
-        final MissingClassReporting missingClassReporting) throws Exception {
+        final AnalysisConfiguration.MissingClassReporting missingClassReporting, final Set<File> bootstrapClasspath)
+        throws Exception {
 
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
 
@@ -96,7 +103,7 @@ public final class Compiler {
         Future<Boolean> future = processor.submitWithCompilationAwareness(executor, new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                new ClassTreeInitializer(environment, missingClassReporting).initTree();
+                new ClassTreeInitializer(environment, missingClassReporting, bootstrapClasspath).initTree();
 
                 return task.call();
             }
@@ -129,12 +136,19 @@ public final class Compiler {
         }
 
         for (Archive a : archives) {
+            File f = new File(parentDir, a.getName());
+            if (f.exists()) {
+                LOG.warn(
+                    "File " + f.getAbsolutePath() + " already exists. Assume it already contains the bits we need.");
+                continue;
+            }
+
             Path target = new File(parentDir, a.getName()).toPath();
 
             try (InputStream data = a.openStream()) {
                 Files.copy(data, target);
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to copy class path element: " + a.getName());
+                throw new IllegalStateException("Failed to copy class path element: " + a.getName(), e);
             }
         }
     }

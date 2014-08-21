@@ -404,7 +404,8 @@ public final class Revapi {
     private void analyze(DifferenceAnalyzer elementDifferenceAnalyzer,
         SortedSet<? extends Element> as, SortedSet<? extends Element> bs) {
 
-        CoIterator<Element> it = new CoIterator<>(as.iterator(), bs.iterator());
+        CoIterator<Element> it = new CoIterator<>(as.iterator(), bs.iterator(),
+            elementDifferenceAnalyzer.getCorrespondenceComparator());
 
         while (it.hasNext()) {
             it.next();

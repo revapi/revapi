@@ -16,7 +16,9 @@
 
 package org.revapi.java;
 
+import java.io.File;
 import java.io.StringWriter;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.Nonnull;
@@ -28,7 +30,6 @@ import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.Compiler;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementForest;
-import org.revapi.java.model.MissingClassReporting;
 
 /**
  * @author Lukas Krejci
@@ -38,15 +39,17 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final API api;
     private final ExecutorService executor;
     private final ProbingEnvironment probingEnvironment;
-    private final MissingClassReporting missingClassReporting;
+    private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
+    private final Set<File> bootstrapClasspath;
     private CompilationValve compilationValve;
 
     public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
-        MissingClassReporting missingClassReporting) {
+        AnalysisConfiguration.MissingClassReporting missingClassReporting, Set<File> bootstrapClasspath) {
         this.api = api;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
         this.probingEnvironment = new ProbingEnvironment(api);
+        this.bootstrapClasspath = bootstrapClasspath;
     }
 
     @Nonnull
@@ -55,7 +58,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         StringWriter output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives());
         try {
-            compilationValve = compiler.compile(probingEnvironment, missingClassReporting);
+            compilationValve = compiler.compile(probingEnvironment, missingClassReporting, bootstrapClasspath);
 
             probingEnvironment.getTree()
                 .setCompilationFuture(new CompilationFuture(compilationValve, output));

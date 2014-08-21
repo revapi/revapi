@@ -19,7 +19,7 @@ package org.revapi.java.model;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
 
-import org.revapi.Element;
+import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaFieldElement;
 
@@ -29,8 +29,8 @@ import org.revapi.java.spi.JavaFieldElement;
  */
 public final class FieldElement extends JavaElementBase<VariableElement> implements JavaFieldElement {
 
-    public FieldElement(ProbingEnvironment env, VariableElement element) {
-        super(env, element);
+    public FieldElement(ProbingEnvironment env, Archive archive, VariableElement element) {
+        super(env, archive, element);
     }
 
     @Nonnull
@@ -40,12 +40,7 @@ public final class FieldElement extends JavaElementBase<VariableElement> impleme
     }
 
     @Override
-    public int compareTo(@Nonnull Element o) {
-        if (!(o instanceof FieldElement)) {
-            return JavaElementFactory.compareByType(this, o);
-        }
-
-        return element.getSimpleName().toString()
-            .compareTo(((FieldElement) o).getModelElement().getSimpleName().toString());
+    protected String createComparableSignature() {
+        return getModelElement().getSimpleName().toString();
     }
 }

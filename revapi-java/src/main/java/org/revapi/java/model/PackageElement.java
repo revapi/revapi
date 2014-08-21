@@ -18,7 +18,7 @@ package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
 
-import org.revapi.Element;
+import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -30,8 +30,8 @@ import org.revapi.java.compilation.ProbingEnvironment;
 public class PackageElement extends JavaElementBase<javax.lang.model.element.PackageElement> {
 
     public PackageElement(ProbingEnvironment env,
-        javax.lang.model.element.PackageElement element) {
-        super(env, element);
+        Archive archive, javax.lang.model.element.PackageElement element) {
+        super(env, archive, element);
     }
 
     @Nonnull
@@ -41,8 +41,7 @@ public class PackageElement extends JavaElementBase<javax.lang.model.element.Pac
     }
 
     @Override
-    public int compareTo(@Nonnull Element o) {
-        //TODO implement
-        return 0;
+    protected String createComparableSignature() {
+        return "";  //TODO implement
     }
 }

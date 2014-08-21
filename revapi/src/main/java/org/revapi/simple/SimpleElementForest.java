@@ -63,6 +63,7 @@ public class SimpleElementForest implements ElementForest {
     public <T extends Element> List<T> search(@Nonnull Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter,
         @Nullable Element root) {
+
         List<T> results = new ArrayList<>();
         search(results, resultType, root == null ? getRoots() : root.getChildren(), recurse, filter);
         return results;
@@ -73,7 +74,8 @@ public class SimpleElementForest implements ElementForest {
 
         for (Element e : currentLevel) {
             if (resultType.isAssignableFrom(e.getClass())) {
-                T te = resultType.cast(e);
+                @SuppressWarnings("unchecked")
+                T te = (T) e;
 
                 if (filter == null || filter.applies(te)) {
                     results.add(te);

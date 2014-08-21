@@ -18,6 +18,8 @@ package org.revapi;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,15 +33,31 @@ import javax.annotation.Nullable;
 public final class API {
 
     public static final class Builder {
-        private Iterable<? extends Archive> archives;
-        private Iterable<? extends Archive> supplementaryArchives;
+        private final Set<Archive> archives = new LinkedHashSet<>();
+        private final Set<Archive> supplementaryArchives = new LinkedHashSet<>();
 
         public Builder of(Archive... archives) {
             return of(Arrays.asList(archives));
         }
 
         public Builder of(Iterable<? extends Archive> archives) {
-            this.archives = archives;
+            this.archives.clear();
+            return addArchives(archives);
+        }
+
+        public Builder addArchive(Archive archive) {
+            archives.add(archive);
+            return this;
+        }
+
+        public Builder addArchives(Archive... archives) {
+            return addArchives(Arrays.asList(archives));
+        }
+
+        public Builder addArchives(Iterable<? extends Archive> archives) {
+            for (Archive a : archives) {
+                this.archives.add(a);
+            }
             return this;
         }
 
@@ -48,7 +66,23 @@ public final class API {
         }
 
         public Builder supportedBy(Iterable<? extends Archive> archives) {
-            this.supplementaryArchives = archives;
+            this.supplementaryArchives.clear();
+            return addSupportArchives(archives);
+        }
+
+        public Builder addSupportArchive(Archive archive) {
+            supplementaryArchives.add(archive);
+            return this;
+        }
+
+        public Builder addSupportArchives(Archive... archives) {
+            return addSupportArchives(Arrays.asList(archives));
+        }
+
+        public Builder addSupportArchives(Iterable<? extends Archive> archives) {
+            for (Archive a : archives) {
+                this.supplementaryArchives.add(a);
+            }
             return this;
         }
 

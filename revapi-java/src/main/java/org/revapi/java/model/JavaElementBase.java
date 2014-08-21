@@ -19,10 +19,12 @@ package org.revapi.java.model;
 import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
 import org.revapi.API;
+import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -39,10 +41,13 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     protected final ProbingEnvironment environment;
     protected T element;
     private boolean initializedChildren;
+    private final Archive archive;
+    private String comparableSignature;
 
-    public JavaElementBase(ProbingEnvironment env, T element) {
+    public JavaElementBase(ProbingEnvironment env, Archive archive, T element) {
         this.environment = env;
         this.element = element;
+        this.archive = archive;
     }
 
     @Nonnull
@@ -52,6 +57,21 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     @Override
     public API getApi() {
         return environment.getApi();
+    }
+
+    @Nullable
+    @Override
+    public Archive getArchive() {
+        return archive;
+    }
+
+    @Override
+    public int compareTo(org.revapi.Element o) {
+        if (getClass() != o.getClass()) {
+            return JavaElementFactory.compareByType(this, o);
+        }
+
+        return getComparableSignature().compareTo(((JavaElementBase<?>) o).getComparableSignature());
     }
 
     @Nonnull
@@ -80,7 +100,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
             }
 
             for (Element e : getModelElement().getEnclosedElements()) {
-                JavaModelElement child = JavaElementFactory.elementFor(e, environment);
+                JavaModelElement child = JavaElementFactory.elementFor(e, environment, archive);
                 if (child != null) {
                     child.setParent(this);
 
@@ -89,7 +109,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
             }
 
             for (AnnotationMirror m : getModelElement().getAnnotationMirrors()) {
-                set.add(new AnnotationElement(environment, m));
+                set.add(new AnnotationElement(environment, archive, m));
             }
 
             initializedChildren = true;
@@ -123,4 +143,14 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     public String toString() {
         return getFullHumanReadableString();
     }
+
+    protected String getComparableSignature() {
+        if (comparableSignature == null) {
+            comparableSignature = createComparableSignature();
+        }
+
+        return comparableSignature;
+    }
+
+    protected abstract String createComparableSignature();
 }

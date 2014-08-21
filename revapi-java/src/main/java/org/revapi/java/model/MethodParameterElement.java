@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
+import org.revapi.Archive;
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaMethodParameterElement;
@@ -33,9 +34,10 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
     JavaMethodParameterElement {
 
     private final int index;
+    private String comparableSignature;
 
-    public MethodParameterElement(ProbingEnvironment env, VariableElement element) {
-        super(env, element);
+    public MethodParameterElement(ProbingEnvironment env, Archive archive, VariableElement element) {
+        super(env, archive, element);
         if (element.getEnclosingElement() instanceof ExecutableElement) {
             index = ((ExecutableElement) element.getEnclosingElement()).getParameters().indexOf(element);
         } else {
@@ -52,30 +54,14 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
     @Override
     public int compareTo(@Nonnull Element o) {
-        if (!(o instanceof MethodParameterElement)) {
-            return JavaElementFactory.compareByType(this, o);
+        int ret = super.compareTo(o);
+
+        if (ret == 0) {
+            MethodParameterElement other = (MethodParameterElement) o;
+            ret = index - other.index;
         }
 
-        MethodParameterElement other = (MethodParameterElement) o;
-
-        String myType = Util.toUniqueString(getModelElement().getEnclosingElement().getEnclosingElement().asType());
-        String myMethod = getModelElement().getEnclosingElement().getSimpleName().toString();
-
-        String otherType = Util
-            .toUniqueString(other.getModelElement().getEnclosingElement().getEnclosingElement().asType());
-        String otherMethod = other.getModelElement().getEnclosingElement().getSimpleName().toString();
-
-        int ret = myType.compareTo(otherType);
-        if (ret != 0) {
-            return ret;
-        }
-
-        ret = myMethod.compareTo(otherMethod);
-        if (ret != 0) {
-            return ret;
-        }
-
-        return index - other.index;
+        return ret;
     }
 
     @Override
@@ -109,5 +95,13 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
 
         return myType.equals(otherType) && myMethod.equals(otherMethod) && index == other.index;
+    }
+
+    @Override
+    protected String createComparableSignature() {
+        String myType = Util.toUniqueString(getModelElement().getEnclosingElement().getEnclosingElement().asType());
+        String myMethod = getModelElement().getEnclosingElement().getSimpleName().toString();
+
+        return myType + "::" + myMethod;
     }
 }

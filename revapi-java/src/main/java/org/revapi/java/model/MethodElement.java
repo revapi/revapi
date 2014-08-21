@@ -22,9 +22,11 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
+import org.revapi.Archive;
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaMethodElement;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -32,8 +34,8 @@ import org.revapi.java.spi.JavaMethodElement;
  */
 public final class MethodElement extends JavaElementBase<ExecutableElement> implements JavaMethodElement {
 
-    public MethodElement(ProbingEnvironment env, ExecutableElement element) {
-        super(env, element);
+    public MethodElement(ProbingEnvironment env, Archive archive, ExecutableElement element) {
+        super(env, archive, element);
     }
 
     @Nonnull
@@ -43,13 +45,9 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> impl
     }
 
     @Override
-    public int compareTo(@Nonnull Element o) {
-        if (!(o instanceof MethodElement)) {
-            return JavaElementFactory.compareByType(this, o);
-        }
-
-        return getModelElement().getSimpleName().toString()
-            .compareTo(((MethodElement) o).getModelElement().getSimpleName().toString());
+    protected String createComparableSignature() {
+        return getModelElement().getSimpleName() + ":" +
+            Util.toUniqueString(getTypeEnvironment().getTypeUtils().erasure(getModelElement().asType()));
     }
 
     @Nonnull
@@ -58,7 +56,7 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> impl
         SortedSet<Element> ret = super.newChildrenInstance();
 
         for (VariableElement v : getModelElement().getParameters()) {
-            MethodParameterElement p = new MethodParameterElement(environment, v);
+            MethodParameterElement p = new MethodParameterElement(environment, getArchive(), v);
             p.setParent(this);
             ret.add(p);
         }

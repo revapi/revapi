@@ -43,6 +43,12 @@ public interface Element extends Comparable<Element> {
     @Nonnull
     API getApi();
 
+    /**
+     * @return the archive the element comes from or null if that cannot be determined
+     */
+    @Nullable
+    Archive getArchive();
+
     @Nullable
     Element getParent();
 

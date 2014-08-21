@@ -18,6 +18,7 @@ package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
 
+import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
@@ -39,8 +40,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
      * @param binaryName    the binary name of the class
      * @param canonicalName the canonical name of the class
      */
-    public TypeElement(ProbingEnvironment env, String binaryName, String canonicalName) {
-        super(env, null);
+    public TypeElement(ProbingEnvironment env, Archive archive, String binaryName, String canonicalName) {
+        super(env, archive, null);
         this.binaryName = binaryName;
         this.canonicalName = canonicalName;
     }
@@ -53,10 +54,23 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
      * @param env     the probing environment
      * @param element the model element to be represented
      */
-    public TypeElement(ProbingEnvironment env, javax.lang.model.element.TypeElement element) {
-        super(env, element);
+    public TypeElement(ProbingEnvironment env, Archive archive, javax.lang.model.element.TypeElement element) {
+        super(env, archive, element);
         binaryName = env.getElementUtils().getBinaryName(element).toString();
         canonicalName = element.getQualifiedName().toString();
+    }
+
+    public boolean isInnerClass() {
+        int dotPos = -1;
+
+        do {
+            dotPos = canonicalName.indexOf('.', dotPos + 1);
+            if (dotPos >= 0 && binaryName.charAt(dotPos) == '$') {
+                return true;
+            }
+        } while (dotPos >= 0);
+
+        return false;
     }
 
     @Nonnull
@@ -102,5 +116,11 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         javax.lang.model.element.TypeElement el = getModelElement();
         //see getModelElement() for why we do the null check here even if getModelElement() is @Nonnull
         return getHumanReadableElementType() + " " + (el == null ? canonicalName : Util.toHumanReadableString(el));
+    }
+
+    @Override
+    protected String createComparableSignature() {
+        //this isn't used, because compareTo is implemented differently
+        return null;
     }
 }

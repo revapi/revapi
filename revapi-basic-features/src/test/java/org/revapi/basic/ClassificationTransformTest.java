@@ -3,6 +3,7 @@ package org.revapi.basic;
 import java.util.Collections;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.junit.Test;
 
@@ -33,6 +34,12 @@ public class ClassificationTransformTest {
         @Override
         @SuppressWarnings("ConstantConditions")
         public API getApi() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Archive getArchive() {
             return null;
         }
 

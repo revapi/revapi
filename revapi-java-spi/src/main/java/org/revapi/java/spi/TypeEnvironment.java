@@ -16,6 +16,8 @@
 
 package org.revapi.java.spi;
 
+import java.util.Set;
+
 import javax.annotation.Nonnull;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
@@ -58,4 +60,14 @@ public interface TypeEnvironment {
      * @return true if the type is explicitly part of the API, false if it is not
      */
     boolean isExplicitPartOfAPI(@Nonnull TypeElement type);
+
+    /**
+     * Returns the known use sites of the given type.
+     *
+     * @param type the type
+     *
+     * @return the use sites found during the analysis of archives
+     */
+    @Nonnull
+    Set<UseSite> getUseSites(@Nonnull TypeElement type);
 }

@@ -16,12 +16,14 @@
 
 package org.revapi.java;
 
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -29,7 +31,6 @@ import java.util.concurrent.ThreadFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
@@ -37,7 +38,6 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
-import org.revapi.java.model.MissingClassReporting;
 import org.revapi.java.spi.Check;
 
 /**
@@ -56,6 +56,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     });
 
     private AnalysisContext analysisContext;
+    private AnalysisConfiguration configuration;
     private final Iterable<Check> checks;
 
     public JavaApiAnalyzer() {
@@ -112,26 +113,18 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         this.analysisContext = analysisContext;
+        this.configuration = AnalysisConfiguration.fromModel(analysisContext.getConfiguration());
     }
 
     @Nonnull
     @Override
     public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
-        MissingClassReporting reportingType = MissingClassReporting.ERROR;
+        Set<File> bootstrapClasspath =
+            api == analysisContext.getOldApi() ? configuration.getOldApiBootstrapClasspath() :
+                configuration.getNewApiBootstrapClasspath();
 
-        ModelNode config = analysisContext.getConfiguration().get("revapi", "java", "missing-classes");
-        if (config.isDefined()) {
-            switch (config.asString()) {
-            case "report":
-                reportingType = MissingClassReporting.REPORT;
-                break;
-            case "ignore":
-                reportingType = MissingClassReporting.IGNORE;
-                break;
-            }
-        }
-
-        return new JavaArchiveAnalyzer(api, compilationExecutor, reportingType);
+        return new JavaArchiveAnalyzer(api, compilationExecutor, configuration.getMissingClassReporting(),
+            bootstrapClasspath);
     }
 
     @Nonnull
@@ -147,10 +140,11 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         CompilationValve newValve = newA.getCompilationValve();
 
         return new JavaElementDifferenceAnalyzer(analysisContext, oldEnvironment, oldValve, newEnvironment, newValve,
-            checks);
+            checks, configuration);
     }
 
     @Override
     public void close() {
+        compilationExecutor.shutdown();
     }
 }
