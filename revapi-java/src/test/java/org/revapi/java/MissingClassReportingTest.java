@@ -131,14 +131,16 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
             AnalysisContext.builder()
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
-                .withConfigurationFromJSON("{\"revapi\" : { \"java\" : { \"missing-classes\" : \"report\" }}}").build()
+                .withConfigurationFromJSON(
+                    "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }}}}").build()
         );
 
         Assert.assertEquals(1, allReports.size());
-        Assert.assertEquals(2, allReports.get(0).getDifferences().size());
+        Assert.assertEquals(3, allReports.get(0).getDifferences().size());
 
         boolean containsMissingOld = false;
         boolean containsMissingNew = false;
+        boolean containsPartOfAPI = false;
 
         for (Difference d : allReports.get(0).getDifferences()) {
             if (d.code.equals(Code.MISSING_IN_NEW_API.code())) {
@@ -148,10 +150,15 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
             if (d.code.equals(Code.MISSING_IN_OLD_API.code())) {
                 containsMissingOld = true;
             }
+
+            if (d.code.equals(Code.CLASS_NON_PUBLIC_PART_OF_API.code())) {
+                containsPartOfAPI = true;
+            }
         }
 
         Assert.assertTrue(containsMissingOld);
         Assert.assertTrue(containsMissingNew);
+        Assert.assertTrue(containsPartOfAPI);
     }
 
     @Test
@@ -160,7 +167,8 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
             AnalysisContext.builder()
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
-                .withConfigurationFromJSON("{\"revapi\" : { \"java\" : { \"missing-classes\" : \"ignore\" }}}").build()
+                .withConfigurationFromJSON(
+                    "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"ignore\" }}}}").build()
         );
 
         Assert.assertEquals(0, allReports.size());

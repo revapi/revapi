@@ -87,7 +87,8 @@ public abstract class CheckBase implements Check {
      * Returns true if the provided element is public or protected, false otherwise.
      */
     public static boolean isAccessible(@Nonnull Element e) {
-        return e.getModifiers().contains(Modifier.PUBLIC) || e.getModifiers().contains(Modifier.PROTECTED);
+        return !isMissing(e) && e.getModifiers().contains(Modifier.PUBLIC) ||
+            e.getModifiers().contains(Modifier.PROTECTED);
     }
 
     /**

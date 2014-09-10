@@ -13,7 +13,6 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -90,7 +89,7 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
         }
     }
 
-    private NoType noType = new NoType() {
+    public static final NoType NO_TYPE = new NoType() {
         @Override
         public TypeKind getKind() {
             return TypeKind.NONE;
@@ -102,34 +101,17 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
         }
     };
 
-    private ErrorType errorType = new ErrorType() {
-        @Override
-        public javax.lang.model.element.Element asElement() {
-            return MissingTypeElement.this;
-        }
-
-        @Override
-        public TypeMirror getEnclosingType() {
-            return noType;
-        }
-
-        @Override
-        public List<? extends TypeMirror> getTypeArguments() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public TypeKind getKind() {
-            return TypeKind.ERROR;
-        }
-
-        @Override
-        public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-            return v.visitError(this, p);
-        }
-    };
+    private javax.lang.model.type.ErrorType errorType = new ErrorType();
 
     private final String qualifiedName;
+
+    public static boolean isMissing(Element e) {
+        return e instanceof MissingTypeElement;
+    }
+
+    public static boolean isMissing(TypeMirror type) {
+        return type == NO_TYPE || type instanceof ErrorType;
+    }
 
     public MissingTypeElement(String qualifiedName) {
         this.qualifiedName = qualifiedName;
@@ -189,7 +171,7 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
 
     @Override
     public TypeMirror getSuperclass() {
-        return noType;
+        return NO_TYPE;
     }
 
     @Override
@@ -211,5 +193,32 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
     @Override
     public String toString() {
         return qualifiedName;
+    }
+
+    public final class ErrorType implements javax.lang.model.type.ErrorType {
+        @Override
+        public Element asElement() {
+            return MissingTypeElement.this;
+        }
+
+        @Override
+        public TypeMirror getEnclosingType() {
+            return NO_TYPE;
+        }
+
+        @Override
+        public List<? extends TypeMirror> getTypeArguments() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public TypeKind getKind() {
+            return TypeKind.ERROR;
+        }
+
+        @Override
+        public <R, P> R accept(TypeVisitor<R, P> v, P p) {
+            return v.visitError(this, p);
+        }
     }
 }

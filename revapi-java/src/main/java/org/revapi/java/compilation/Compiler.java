@@ -22,7 +22,11 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -68,8 +72,8 @@ public final class Compiler {
     }
 
     public CompilationValve compile(final ProbingEnvironment environment,
-        final AnalysisConfiguration.MissingClassReporting missingClassReporting, final Set<File> bootstrapClasspath)
-        throws Exception {
+        final AnalysisConfiguration.MissingClassReporting missingClassReporting, final boolean ignoreMissingAnnotations,
+        final Set<File> bootstrapClasspath, final boolean ignoreAdditionalClasspathContributions) throws Exception {
 
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
 
@@ -79,8 +83,14 @@ public final class Compiler {
         File lib = new File(targetPath, "lib");
         lib.mkdir();
 
-        copyArchives(classPath, lib);
-        copyArchives(additionalClassPath, lib);
+        // make sure the classpath is in the same order as passed in
+        int classPathSize = size(classPath);
+        int nofArchives = classPathSize + size(additionalClassPath);
+
+        int prefixLength = (int) Math.log10(nofArchives) + 1;
+
+        copyArchives(classPath, lib, 0, prefixLength);
+        copyArchives(additionalClassPath, lib, classPathSize, prefixLength);
 
         List<String> options = Arrays.asList(
             "-d", sourceDir.toString(),
@@ -103,7 +113,8 @@ public final class Compiler {
         Future<Boolean> future = processor.submitWithCompilationAwareness(executor, new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                new ClassTreeInitializer(environment, missingClassReporting, bootstrapClasspath).initTree();
+                new ClassTreeInitializer(environment, missingClassReporting, ignoreMissingAnnotations,
+                    bootstrapClasspath, ignoreAdditionalClasspathContributions).initTree();
 
                 return task.call();
             }
@@ -117,39 +128,69 @@ public final class Compiler {
 
         File[] jars = classPathDir.listFiles();
 
-        if (jars.length == 0) {
+        if (jars == null || jars.length == 0) {
             return "";
-
         }
 
-        bld.append(jars[0].getAbsolutePath());
-        for (int i = 1; i < jars.length; ++i) {
-            bld.append(File.pathSeparator).append(jars[i].getAbsolutePath());
+        List<File> sortedJars = new ArrayList<>(Arrays.asList(jars));
+        Collections.sort(sortedJars, new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
+        Iterator<File> it = sortedJars.iterator();
+
+        bld.append(it.next().getAbsolutePath());
+        while (it.hasNext()) {
+            bld.append(File.pathSeparator).append(it.next().getAbsolutePath());
         }
 
         return bld.toString();
     }
 
-    private void copyArchives(Iterable<? extends Archive> archives, File parentDir) {
+    private void copyArchives(Iterable<? extends Archive> archives, File parentDir, int startIdx, int prefixLength) {
         if (archives == null) {
             return;
         }
 
         for (Archive a : archives) {
-            File f = new File(parentDir, a.getName());
+            String name = formatName(startIdx++, prefixLength, a.getName());
+            File f = new File(parentDir, name);
             if (f.exists()) {
                 LOG.warn(
                     "File " + f.getAbsolutePath() + " already exists. Assume it already contains the bits we need.");
                 continue;
             }
 
-            Path target = new File(parentDir, a.getName()).toPath();
+            Path target = new File(parentDir, name).toPath();
 
             try (InputStream data = a.openStream()) {
                 Files.copy(data, target);
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to copy class path element: " + a.getName(), e);
+                throw new IllegalStateException(
+                    "Failed to copy class path element: " + a.getName() + " to " + f.getAbsolutePath(), e);
             }
         }
+    }
+
+    private int size(Iterable<?> collection) {
+        if (collection == null) {
+            return 0;
+        }
+
+        int ret = 0;
+        Iterator<?> it = collection.iterator();
+        while (it.hasNext()) {
+            ret++;
+            it.next();
+        }
+
+        return ret;
+    }
+
+    private String formatName(int idx, int prefixLength, String rootName) {
+        return String.format("%0" + prefixLength + "d-" + rootName, idx);
     }
 }

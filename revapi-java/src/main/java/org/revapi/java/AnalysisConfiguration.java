@@ -16,14 +16,20 @@ public final class AnalysisConfiguration {
     private final Set<String> useReportingCodes;
     private final Set<File> oldApiBootstrapClasspath;
     private final Set<File> newApiBootstrapClasspath;
+    private final boolean ignoreMissingAnnotations;
+    private final boolean isIgnoreAdditionalClasspathContributions;
 
     public AnalysisConfiguration(MissingClassReporting missingClassReporting,
         Set<String> useReportingCodes, Set<File> oldApiBootstrapClasspath,
-        Set<File> newApiBootstrapClasspath) {
+        Set<File> newApiBootstrapClasspath, boolean ignoreMissingAnnotations,
+        boolean isIgnoreAdditionalClasspathContributions) {
+
         this.missingClassReporting = missingClassReporting;
         this.useReportingCodes = useReportingCodes;
         this.oldApiBootstrapClasspath = oldApiBootstrapClasspath;
         this.newApiBootstrapClasspath = newApiBootstrapClasspath;
+        this.ignoreMissingAnnotations = ignoreMissingAnnotations;
+        this.isIgnoreAdditionalClasspathContributions = isIgnoreAdditionalClasspathContributions;
     }
 
     public static AnalysisConfiguration fromModel(ModelNode node) {
@@ -31,9 +37,11 @@ public final class AnalysisConfiguration {
         Set<String> useReportingCodes = readUseReportingCodes(node);
         Set<File> oldApiBootstrapClasspath = readBootstrapClasspath(node, "old");
         Set<File> newApiBootstrapClasspath = readBootstrapClasspath(node, "new");
+        boolean ignoreMissingAnnotations = readIgnoreMissingAnnotations(node);
+        boolean ignoreAdditionalClasspathContributions = readIgnoreAdditionalClasspathContributions(node);
 
         return new AnalysisConfiguration(reporting, useReportingCodes, oldApiBootstrapClasspath,
-            newApiBootstrapClasspath);
+            newApiBootstrapClasspath, ignoreMissingAnnotations, ignoreAdditionalClasspathContributions);
     }
 
     public MissingClassReporting getMissingClassReporting() {
@@ -52,8 +60,16 @@ public final class AnalysisConfiguration {
         return newApiBootstrapClasspath;
     }
 
+    public boolean isIgnoreMissingAnnotations() {
+        return ignoreMissingAnnotations;
+    }
+
+    public boolean isIgnoreAdditionalClasspathContributions() {
+        return isIgnoreAdditionalClasspathContributions;
+    }
+
     private static MissingClassReporting readMissingClassReporting(ModelNode analysisConfig) {
-        ModelNode config = analysisConfig.get("revapi", "java", "missing-classes");
+        ModelNode config = analysisConfig.get("revapi", "java", "missing-classes", "behavior");
         if (config.isDefined()) {
             switch (config.asString()) {
             case "report":
@@ -66,6 +82,15 @@ public final class AnalysisConfiguration {
         return MissingClassReporting.ERROR;
     }
 
+    private static boolean readIgnoreMissingAnnotations(ModelNode analysisConfig) {
+        ModelNode config = analysisConfig.get("revapi", "java", "missing-classes", "ignoreMissingAnnotations");
+        if (config.isDefined()) {
+            return config.asBoolean();
+        }
+
+        return false;
+    }
+
     private static Set<String> readUseReportingCodes(ModelNode analysisConfig) {
         Set<String> ret = new HashSet<>();
         ModelNode config = analysisConfig.get("revapi", "java", "reportUsesFor");
@@ -76,6 +101,7 @@ public final class AnalysisConfiguration {
         } else {
             ret.add("java.missing.oldClass");
             ret.add("java.missing.newClass");
+            ret.add("java.class.nonPublicPartOfAPI");
         }
 
         return ret;
@@ -105,6 +131,15 @@ public final class AnalysisConfiguration {
         }
 
         return ret;
+    }
+
+    private static boolean readIgnoreAdditionalClasspathContributions(ModelNode analysisConfig) {
+        ModelNode config = analysisConfig.get("revapi", "java", "classpath", "ignoreAPIChangesInAdditionalArchives");
+        if (config.isDefined()) {
+            return config.asBoolean();
+        }
+
+        return false;
     }
 
     private static void addDefaultBootstrapJars(Set<File> result, String javaHome) {

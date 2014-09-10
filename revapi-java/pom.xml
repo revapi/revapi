@@ -59,7 +59,7 @@
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
-            <version>4.1</version>
+            <version>4.2</version>
         </dependency>
 
         <dependency>
@@ -84,6 +84,15 @@
             <groupId>org.jboss.shrinkwrap</groupId>
             <artifactId>shrinkwrap-impl-base</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- temporary to figure out CompletionFailure exceptions -->
+        <dependency>
+            <groupId>com.sun</groupId>
+            <artifactId>tools</artifactId>
+            <version>1.7</version>
+            <scope>system</scope>
+            <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
     </dependencies>
 

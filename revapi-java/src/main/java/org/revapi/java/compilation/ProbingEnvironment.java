@@ -27,7 +27,9 @@ import java.util.concurrent.CountDownLatch;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
@@ -50,11 +52,12 @@ import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.MissingClassElement;
-import org.revapi.java.model.MissingTypeElement;
 import org.revapi.java.model.RawUseSite;
+import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.UseSite;
+import org.revapi.java.spi.Util;
 import org.revapi.query.Filter;
 
 /**
@@ -67,13 +70,11 @@ public final class ProbingEnvironment implements TypeEnvironment {
     private final CountDownLatch compilationProgressLatch = new CountDownLatch(1);
     private final CountDownLatch compilationEnvironmentTeardownLatch = new CountDownLatch(1);
     private final JavaElementForest tree;
-    private final Set<String> forcedApiClasses;
     private final Map<String, Set<RawUseSite>> useSiteMap = new HashMap<>();
 
     public ProbingEnvironment(API api) {
         this.api = api;
         this.tree = new JavaElementForest(api);
-        this.forcedApiClasses = new HashSet<>();
     }
 
     public API getApi() {
@@ -100,37 +101,45 @@ public final class ProbingEnvironment implements TypeEnvironment {
     @Override
     @SuppressWarnings("ConstantConditions")
     public Elements getElementUtils() {
-        return processingEnvironment == null ? null : new DelegatingElements(processingEnvironment.getElementUtils()) {
-            @Override
-            public TypeElement getTypeElement(CharSequence name) {
-                try {
-                    return super.getTypeElement(name);
-                } catch (RuntimeException e) {
-                    if ("CompletionFailure".equals(e.getClass().getSimpleName())) {
-                        return new MissingTypeElement(name.toString());
-                    } else {
-                        throw e;
-                    }
-                }
-            }
-        };
+        return processingEnvironment == null ? null :
+            new MissingTypeAwareDelegatingElements(processingEnvironment.getElementUtils());
     }
 
     @Nonnull
     @Override
     @SuppressWarnings("ConstantConditions")
     public Types getTypeUtils() {
-        return processingEnvironment == null ? null : processingEnvironment.getTypeUtils();
+        return processingEnvironment == null ? null :
+            new MissingTypeAwareDelegatingTypes(processingEnvironment.getTypeUtils());
     }
 
     @Override
     public boolean isExplicitPartOfAPI(@Nonnull TypeElement type) {
-        return getAllApiClasses().contains(type.getQualifiedName().toString());
-    }
+        if (CheckBase.isAccessible(type)) {
+            // XXX protected inner class of a final class is I guess pretty much inaccessible, but it's currently
+            // claimed accessible...
+            return true;
+        }
 
-    @Nonnull
-    public Set<String> getAllApiClasses() {
-        return forcedApiClasses;
+        final Elements elements = getElementUtils();
+
+        String binaryName = elements.getBinaryName(type).toString();
+        Set<RawUseSite> sites = useSiteMap.get(binaryName);
+        if (sites == null || sites.isEmpty()) {
+            return false;
+        }
+
+        Boolean res = visitRawUseSites(binaryName, sites, new RawUseSiteVisitor<Boolean, Void>() {
+            @Override
+            public Boolean visit(String binaryName, RawUseSite site, Void ignored) {
+                TypeElement type = Util.findTypeByBinaryName(elements, site.getSiteClass());
+                boolean accessible = CheckBase.isAccessible(type);
+
+                return accessible ? true : null;
+            }
+        }, null);
+
+        return res != null && res;
     }
 
     /**
@@ -149,71 +158,109 @@ public final class ProbingEnvironment implements TypeEnvironment {
             return Collections.emptySet();
         }
 
+        final Elements elements = getElementUtils();
+
         HashSet<UseSite> ret = new HashSet<>(rawSites.size());
-        for (final RawUseSite ru : rawSites) {
+        for (RawUseSite ru : rawSites) {
 
-            final Elements elements = getElementUtils();
+            UseSite u = toUseSite(type, ru, elements);
 
-            List<JavaTypeElement> userTypes = tree.search(JavaTypeElement.class, true, new Filter<JavaTypeElement>() {
-                @Override
-                public boolean applies(@Nullable JavaTypeElement element) {
-                    if (element instanceof org.revapi.java.model.TypeElement) {
-                        return ((org.revapi.java.model.TypeElement) element).getBinaryName()
-                            .equals(ru.getSiteClass());
-                    } else {
-                        return element != null &&
-                            elements.getBinaryName(element.getModelElement()).contentEquals(ru.getSiteClass());
-                    }
+            ret.add(u);
+        }
+
+        return ret;
+    }
+
+    @Nullable
+    @Override
+    public <R, P> R visitUseSites(@Nonnull TypeElement type, @Nonnull final UseSite.Visitor<R, P> visitor,
+        @Nullable final P parameter) {
+
+        final Elements elements = getElementUtils();
+
+        String binaryName = elements.getBinaryName(type).toString();
+
+        Set<RawUseSite> sites = useSiteMap.get(binaryName);
+        if (sites == null) {
+            return null;
+        }
+
+        return visitRawUseSites(binaryName, sites, new RawUseSiteVisitor<R, P>() {
+            @Override
+            public R visit(String binaryName, RawUseSite site, P parameter) {
+                TypeElement type = Util.findTypeByBinaryName(elements, binaryName);
+                if (type == null) {
+                    return null;
                 }
 
-                @Override
-                public boolean shouldDescendInto(@Nullable Object element) {
-                    return element instanceof JavaTypeElement;
-                }
-            }, null);
+                UseSite use = toUseSite(type, site, elements);
 
-            JavaTypeElement t;
-            if (userTypes.isEmpty()) {
-                t = new MissingClassElement(this, ru.getSiteClass(), ru.getSiteClass());
-            } else {
-                t = userTypes.get(0);
+                return visitor.visit(type, use, parameter);
+            }
+        }, parameter);
+    }
+
+    private <R, P> R visitRawUseSites(String binaryName, Set<RawUseSite> sites, RawUseSiteVisitor<R, P> visitor,
+        P parameter) {
+
+        R ret = null;
+        for (RawUseSite site : sites) {
+            ret = visitor.visit(binaryName, site, parameter);
+            if (ret != null) {
+                return ret;
             }
 
-            final JavaTypeElement userType = t;
-            org.revapi.Element user = null;
-
-            MethodElement method;
-
-            switch (ru.getUseType()) {
-            case ANNOTATES:
-                switch (ru.getSiteType()) {
-                case CLASS:
-                    user = userType;
-                    break;
-                case FIELD:
-                    for (FieldElement f : userType.searchChildren(FieldElement.class, false, null)) {
-                        if (f.getModelElement().getSimpleName().contentEquals(ru.getSiteName())) {
-                            user = f;
-                            break;
-                        }
-                    }
-                    break;
-                case METHOD:
-                    user = findMatchingMethod(ru, userType);
-                    break;
-                case METHOD_PARAMETER:
-                    method = findMatchingMethod(ru, userType);
-                    if (method != null) {
-                        List<MethodParameterElement> params = method
-                            .searchChildren(MethodParameterElement.class, false, null);
-                        if (params.size() > ru.getSitePosition()) {
-                            user = params.get(ru.getSitePosition());
-                        }
-                    }
-                    break;
+            String siteClass = site.getSiteClass();
+            Set<RawUseSite> nextSites = useSiteMap.get(siteClass);
+            if (nextSites != null && !nextSites.isEmpty()) {
+                ret = visitRawUseSites(siteClass, nextSites, visitor, parameter);
+                if (ret != null) {
+                    return ret;
                 }
+            }
+        }
+
+        return ret;
+    }
+
+    private UseSite toUseSite(TypeElement type, final RawUseSite ru, final Elements elements) {
+        List<JavaTypeElement> userTypes = tree.search(JavaTypeElement.class, true, new Filter<JavaTypeElement>() {
+            @Override
+            public boolean applies(@Nullable JavaTypeElement element) {
+                if (element instanceof org.revapi.java.model.TypeElement) {
+                    return ((org.revapi.java.model.TypeElement) element).getBinaryName()
+                        .equals(ru.getSiteClass());
+                } else {
+                    return element != null &&
+                        elements.getBinaryName(element.getModelElement()).contentEquals(ru.getSiteClass());
+                }
+            }
+
+            @Override
+            public boolean shouldDescendInto(@Nullable Object element) {
+                return element instanceof JavaTypeElement;
+            }
+        }, null);
+
+        JavaTypeElement t;
+        if (userTypes.isEmpty()) {
+            t = new MissingClassElement(this, ru.getSiteClass(), ru.getSiteClass());
+        } else {
+            t = userTypes.get(0);
+        }
+
+        final JavaTypeElement userType = t;
+        org.revapi.Element user = null;
+
+        MethodElement method;
+
+        switch (ru.getUseType()) {
+        case ANNOTATES:
+            switch (ru.getSiteType()) {
+            case CLASS:
+                user = userType;
                 break;
-            case HAS_TYPE:
+            case FIELD:
                 for (FieldElement f : userType.searchChildren(FieldElement.class, false, null)) {
                     if (f.getModelElement().getSimpleName().contentEquals(ru.getSiteName())) {
                         user = f;
@@ -221,66 +268,85 @@ public final class ProbingEnvironment implements TypeEnvironment {
                     }
                 }
                 break;
-            case IS_IMPLEMENTED:
-                if (hasMatchingType(type.getQualifiedName(), userType.getModelElement().getInterfaces())) {
-                    user = userType;
-                }
+            case METHOD:
+                user = findMatchingMethod(ru, userType);
                 break;
-            case IS_INHERITED:
-                if (hasMatchingType(type.getQualifiedName(),
-                    Collections.singleton(userType.getModelElement().getSuperclass()))) {
-
-                    user = userType;
-                }
-                break;
-            case IS_THROWN:
-                method = findMatchingMethod(ru, userType);
-                if (method != null) {
-                    if (hasMatchingType(type.getQualifiedName(), method.getModelElement().getThrownTypes())) {
-                        user = method;
-                    }
-                }
-
-                break;
-            case PARAMETER_TYPE:
+            case METHOD_PARAMETER:
                 method = findMatchingMethod(ru, userType);
                 if (method != null) {
                     List<MethodParameterElement> params = method
                         .searchChildren(MethodParameterElement.class, false, null);
-
                     if (params.size() > ru.getSitePosition()) {
-                        MethodParameterElement parameter = params.get(ru.getSitePosition());
-                        if (hasMatchingType(type.getQualifiedName(),
-                            Collections.singleton(parameter.getModelElement().asType()))) {
-
-                            user = method;
-                        }
+                        user = params.get(ru.getSitePosition());
                     }
                 }
                 break;
-            case RETURN_TYPE:
-                method = findMatchingMethod(ru, userType);
-                if (method != null) {
-                    if (hasMatchingType(type.getQualifiedName(),
-                        Collections.singleton(method.getModelElement().getReturnType()))) {
+            }
+            break;
+        case HAS_TYPE:
+            for (FieldElement f : userType.searchChildren(FieldElement.class, false, null)) {
+                if (f.getModelElement().getSimpleName().contentEquals(ru.getSiteName())) {
+                    user = f;
+                    break;
+                }
+            }
+            break;
+        case IS_IMPLEMENTED:
+            if (hasMatchingType(elements, type, userType.getModelElement().getInterfaces())) {
+                user = userType;
+            }
+            break;
+        case IS_INHERITED:
+            if (hasMatchingType(elements, type,
+                Collections.singleton(userType.getModelElement().getSuperclass()))) {
+
+                user = userType;
+            }
+            break;
+        case IS_THROWN:
+            method = findMatchingMethod(ru, userType);
+            if (method != null) {
+                if (hasMatchingType(elements, type, method.getModelElement().getThrownTypes())) {
+                    user = method;
+                }
+            }
+
+            break;
+        case PARAMETER_TYPE:
+            method = findMatchingMethod(ru, userType);
+            if (method != null) {
+                List<MethodParameterElement> params = method
+                    .searchChildren(MethodParameterElement.class, false, null);
+
+                if (params.size() > ru.getSitePosition()) {
+                    MethodParameterElement parameter = params.get(ru.getSitePosition());
+                    if (hasMatchingType(elements, type,
+                        Collections.singleton(parameter.getModelElement().asType()))) {
 
                         user = method;
                     }
                 }
-                break;
             }
+            break;
+        case RETURN_TYPE:
+            method = findMatchingMethod(ru, userType);
+            if (method != null) {
+                if (hasMatchingType(elements, type,
+                    Collections.singleton(method.getModelElement().getReturnType()))) {
 
-            if (user == null) {
-                throw new IllegalStateException(
-                    "Could not find the corresponding model element for use: " + ru + " of type " +
-                        type.getQualifiedName());
+                    user = method;
+                }
             }
-
-            UseSite u = new UseSite(ru.getUseType(), user);
-            ret.add(u);
+            break;
         }
 
-        return ret;
+        if (user == null) {
+            throw new IllegalStateException(
+                "Could not find the corresponding model element for use: " + ru + " of type " +
+                    type.getQualifiedName());
+        }
+
+        return new UseSite(ru.getUseType(), user);
     }
 
     private MethodElement findMatchingMethod(RawUseSite methodUseSite,
@@ -324,14 +390,24 @@ public final class ProbingEnvironment implements TypeEnvironment {
         return null;
     }
 
-    private static boolean hasMatchingType(final CharSequence siteClass, Iterable<? extends TypeMirror> types) {
+    private static boolean hasMatchingType(final Elements elements, final TypeElement type,
+        Iterable<? extends TypeMirror> types) {
+
+        // for missing types, we use the binary name for comparison, otherwise we use the more precise fqn.
+        final boolean isErrorType = type.asType().getKind() == TypeKind.ERROR;
+        final Name comparableName = isErrorType ? elements.getBinaryName(type) : type.getQualifiedName();
+
         for (TypeMirror t : types) {
             boolean found = t.accept(new SimpleTypeVisitor7<Boolean, Void>(false) {
 
                 SimpleElementVisitor7<Boolean, Void> typeNameChecker = new SimpleElementVisitor7<Boolean, Void>(false) {
                     @Override
                     public Boolean visitType(TypeElement e, Void ignored) {
-                        return e.getQualifiedName().contentEquals(siteClass);
+                        if (isErrorType) {
+                            return elements.getBinaryName(e).contentEquals(comparableName);
+                        } else {
+                            return comparableName.contentEquals(e.getQualifiedName());
+                        }
                     }
                 };
 
@@ -349,6 +425,11 @@ public final class ProbingEnvironment implements TypeEnvironment {
                 public Boolean visitDeclared(DeclaredType t, Void ignored) {
                     return t.asElement().accept(typeNameChecker, null);
                 }
+
+                @Override
+                public Boolean visitTypeVariable(TypeVariable t, Void ignored) {
+                    return visit(t.getUpperBound(), ignored);
+                }
             }, null);
 
             if (found) {
@@ -357,6 +438,16 @@ public final class ProbingEnvironment implements TypeEnvironment {
         }
 
         return false;
+    }
+
+    private static Element findByName(String simpleName, Iterable<? extends Element> elements) {
+        for (Element e : elements) {
+            if (e.getSimpleName().contentEquals(simpleName)) {
+                return e;
+            }
+        }
+
+        return null;
     }
 
     private boolean equals(final Type type, TypeMirror mirror) {
@@ -432,5 +523,9 @@ public final class ProbingEnvironment implements TypeEnvironment {
         }
 
         return false;
+    }
+
+    private interface RawUseSiteVisitor<R, P> {
+        R visit(String binaryName, RawUseSite site, P parameter);
     }
 }

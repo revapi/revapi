@@ -282,7 +282,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private void appendUses(Element element, ProbingEnvironment environment, StringBuilder bld) {
         if (element instanceof JavaTypeElement) {
             bld.append("\n");
-
+            LOG.trace("Reporting uses of {}", element);
             javax.lang.model.element.TypeElement type = ((JavaTypeElement) element).getModelElement();
 
             Set<UseSite> useSites = environment.getUseSites(type);

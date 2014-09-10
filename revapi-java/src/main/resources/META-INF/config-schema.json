@@ -9,10 +9,20 @@
                              If \"report\" is specified, the missing class is reported as a difference with a \
                              \"java.missing.oldClass\" or \"java.missing.newClass\" depending on whether the missing \
                              class was found in old or new archives. The severity of these differences is set to \
-                             \"POTENTIALLY_BREAKING\".",
-            "type": "string",
-            "enum": [ "ignore", "error", "report" ],
-            "default": "error"
+                             \"POTENTIALLY_BREAKING\". Additionally one can specify whether to report as missing \
+                             classes that are only used to annotate other elements in the archives.",
+            "type": "object",
+            "properties": {
+                "behavior": {
+                    "type": "string",
+                    "enum": [ "ignore", "error", "report" ],
+                    "default": "error"
+                },
+                "ignoreMissingAnnotations": {
+                    "type": "boolean",
+                    "default": "false"
+                }
+            }
         },
         "reportUsesFor": {
             "description": "Specifies the list of difference codes for which the use sites should be specified in the \
@@ -22,18 +32,28 @@
                 "type": "string"
             },
             "uniqueItems": true,
-            "default": ["java.missing.newClass", "java.missing.oldClass"]
+            "default": ["java.missing.newClass", "java.missing.oldClass", "java.class.nonPublicPartOfAPI"]
         },
-        "bootstrap-classpath": {
-            "description": "Specifies the bootstrap classpath for the old and new versions of the API. Classes from \
-                            this path are excluded from API comparison because they are assumed compatible.",
+        "classpath": {
+            "description": "Classpath related configuration.",
             "type": "object",
             "properties": {
-                "old": {
-                    "$ref": "#/definitions/bootstrap-classpath"
+                "bootstrap": {
+                    "description": "Specifies the bootstrap classpath for the old and new versions of the API. Classes from \
+                            this path are excluded from API comparison because they are assumed compatible.",
+                    "type": "object",
+                    "properties": {
+                        "old": {
+                            "$ref": "#/definitions/bootstrap-classpath"
+                        },
+                        "new": {
+                            "$ref": "#/definitions/bootstrap-classpath"
+                        }
+                    }
                 },
-                "new": {
-                    "$ref": "#/definitions/bootstrap-classpath"
+                "ignoreAPIChangesInAdditionalArchives": {
+                    "type": "boolean",
+                    "default": "false"
                 }
             }
         }

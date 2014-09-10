@@ -19,6 +19,7 @@ package org.revapi.java.spi;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -50,10 +51,10 @@ public interface TypeEnvironment {
 
     /**
      * Determines whether given class is explicitly part of the API being checked.
-     * This might return false for inner classes.
+     * This might return false for inner classes or (package) private classes.
      * <p/>
      * The model still contains the classes that are not explicitly part of the API because there still might be checks
-     * on them that might be relevant, like annotation checks.
+     * on them that might be relevant, like annotation or visibility checks.
      *
      * @param type the type to check
      *
@@ -70,4 +71,21 @@ public interface TypeEnvironment {
      */
     @Nonnull
     Set<UseSite> getUseSites(@Nonnull TypeElement type);
+
+    /**
+     * Visits all uses of the provided type and recursively all uses of the types of the use sites.
+     * <p/>
+     * I.e. when the provided type is used as a return type of a method, the visitor will also visit the type that
+     * defines the method and all its uses, recursively.
+     *
+     * @param type      the type to visit uses of
+     * @param visitor   the visitor
+     * @param parameter the parameter to supply to the visitor
+     * @param <R>       the return type (use {@link java.lang.Void} for no return type)
+     * @param <P>       the type of the parameter (use {@link java.lang.Void} for no particular type)
+     *
+     * @return the value returned by the visitor
+     */
+    @Nullable
+    <R, P> R visitUseSites(@Nonnull TypeElement type, @Nonnull UseSite.Visitor<R, P> visitor, @Nullable P parameter);
 }

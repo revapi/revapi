@@ -65,16 +65,21 @@ public final class ClassTreeInitializer {
 
     private final ProbingEnvironment environment;
     private final AnalysisConfiguration.MissingClassReporting reporting;
+    private final boolean ignoreMissingAnnotations;
     private final Set<File> bootstrapClasspath;
     private final HashMap<String, TypeElement> typeCache;
     private HashSet<String> bootstrapClasses;
+    private final boolean ignoreAdditionalArchivesContributions;
 
     public ClassTreeInitializer(ProbingEnvironment environment,
-        AnalysisConfiguration.MissingClassReporting missingClassReporting, Set<File> bootstrapClasspath) {
+        AnalysisConfiguration.MissingClassReporting missingClassReporting, boolean ignoreMissingAnnotations,
+        Set<File> bootstrapClasspath, boolean ignoreAdditionalArchivesContributions) {
         this.environment = environment;
         this.reporting = missingClassReporting;
+        this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.typeCache = new HashMap<>();
         this.bootstrapClasspath = bootstrapClasspath;
+        this.ignoreAdditionalArchivesContributions = ignoreAdditionalArchivesContributions;
     }
 
     public void initTree() throws IOException {
@@ -222,6 +227,7 @@ public final class ClassTreeInitializer {
             private boolean isInnerClass;
             private TreeSet<OuterNameInnerNamePair> innerNames;
             private boolean visitedClassDormant;
+            private int visitedInnerClassAccess;
 
             @Override
             public void visit(int version, int access, String name, String signature, String superName,
@@ -252,8 +258,10 @@ public final class ClassTreeInitializer {
                     visitedClassOwners = name.split("\\$");
                 }
 
-                LOG.trace("visit(): name={}, signature={}, publicAPI={}, dormant={}", name, signature,
-                    isPublicAPI, visitedClassDormant);
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("visit(): name={}, signature={}, publicAPI={}, dormant={}, access=0x{}", name, signature,
+                        isPublicAPI, visitedClassDormant, Integer.toHexString(access));
+                }
             }
 
             @Override
@@ -278,7 +286,13 @@ public final class ClassTreeInitializer {
 
             @Override
             public void visitInnerClass(String name, String outerName, String innerName, int access) {
+                LOG.trace("Visiting inner class spec {} {}", innerName, outerName);
+
                 boolean isThisClass = visitedClassInternalName.equals(name);
+
+                if (isThisClass) {
+                    visitedInnerClassAccess = access;
+                }
 
                 isInnerClass = isInnerClass || isThisClass;
 
@@ -304,15 +318,26 @@ public final class ClassTreeInitializer {
             @Override
             public MethodVisitor visitMethod(int access, final String name, final String desc, String signature,
                 String[] exceptions) {
+
+                LOG.trace("Visiting method {} {}", name, desc);
+
                 //only consider public or protected methods - only those contribute to the API
                 if (isPublicAPI && isPublic(access)) {
+
+                    Type[] argumentTypes = Type.getArgumentTypes(desc);
+
                     reportUse(Type.getReturnType(desc), UseSite.Type.RETURN_TYPE, RawUseSite.SiteType.METHOD, name,
                         desc, -1);
 
-                    int pi = 0;
-                    for (Type t : Type.getArgumentTypes(desc)) {
+                    //instance inner classes synthetize their constructors to always have the enclosing type as the
+                    //first parameter. Ignore that parameter for usage reporting.
+                    int ai = isInnerClass && "<init>".equals(name)
+                        && (visitedInnerClassAccess & Opcodes.ACC_STATIC) == 0 ? 1 : 0;
+
+                    while (ai < argumentTypes.length) {
+                        Type t = argumentTypes[ai];
                         reportUse(t, UseSite.Type.PARAMETER_TYPE, RawUseSite.SiteType.METHOD_PARAMETER, name, desc,
-                            pi++);
+                            ai++);
                     }
 
                     if (exceptions != null && exceptions.length > 0) {
@@ -477,6 +502,10 @@ public final class ClassTreeInitializer {
                     return;
                 }
 
+                if (ignoreMissingAnnotations && useType == UseSite.Type.ANNOTATES) {
+                    return;
+                }
+
                 String binaryName = t.getClassName();
 
                 if (comesFromRtJar(binaryName)) {
@@ -501,7 +530,7 @@ public final class ClassTreeInitializer {
 
                     switch (t.getSort()) {
                     case Type.OBJECT:
-                        if (!visitedClassDormant) {
+                        if (!ignoreAdditionalArchivesContributions && !visitedClassDormant) {
                             context.additionalClassBinaryNames.add(binaryName);
                         }
                         addUse(binaryName, useType, siteType, siteName, siteDescriptor, sitePosition);
@@ -679,7 +708,6 @@ public final class ClassTreeInitializer {
         }
 
         if (!asError) {
-            environment.getAllApiClasses().add(type.getCanonicalName());
             additionalClasses.remove(type.getBinaryName());
         }
 
@@ -689,7 +717,6 @@ public final class ClassTreeInitializer {
                 String binaryName = ((TypeElement) c).getBinaryName();
                 typeCache.put(binaryName, (TypeElement) c);
                 if (!asError) {
-                    environment.getAllApiClasses().add(((TypeElement) c).getCanonicalName());
                     additionalClasses.remove(binaryName);
                 }
             }
@@ -711,7 +738,8 @@ public final class ClassTreeInitializer {
     }
 
     private static boolean isPublic(int access) {
-        return (access & Opcodes.ACC_PUBLIC) != 0 || (access & Opcodes.ACC_PROTECTED) != 0;
+        return (access & Opcodes.ACC_SYNTHETIC) == 0 && (access & Opcodes.ACC_BRIDGE) == 0 &&
+            ((access & Opcodes.ACC_PUBLIC) != 0 || (access & Opcodes.ACC_PROTECTED) != 0);
     }
 
     private boolean removeClassesFromRtJar(Set<String> classes) {

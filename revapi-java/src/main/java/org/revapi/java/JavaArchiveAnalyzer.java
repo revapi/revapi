@@ -40,16 +40,21 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final ExecutorService executor;
     private final ProbingEnvironment probingEnvironment;
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
+    private final boolean ignoreMissingAnnotations;
     private final Set<File> bootstrapClasspath;
     private CompilationValve compilationValve;
+    private final boolean ignoreAdditionalClasspathContributions;
 
     public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
-        AnalysisConfiguration.MissingClassReporting missingClassReporting, Set<File> bootstrapClasspath) {
+        AnalysisConfiguration.MissingClassReporting missingClassReporting, boolean ignoreMissingAnnotations,
+        Set<File> bootstrapClasspath, boolean ignoreAdditionalClasspathContributions) {
         this.api = api;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
+        this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.probingEnvironment = new ProbingEnvironment(api);
         this.bootstrapClasspath = bootstrapClasspath;
+        this.ignoreAdditionalClasspathContributions = ignoreAdditionalClasspathContributions;
     }
 
     @Nonnull
@@ -58,7 +63,9 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         StringWriter output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives());
         try {
-            compilationValve = compiler.compile(probingEnvironment, missingClassReporting, bootstrapClasspath);
+            compilationValve = compiler
+                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, bootstrapClasspath,
+                    ignoreAdditionalClasspathContributions);
 
             probingEnvironment.getTree()
                 .setCompilationFuture(new CompilationFuture(compilationValve, output));

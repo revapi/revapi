@@ -72,7 +72,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null, Collections.<File>emptySet());
+                null), Executors.newSingleThreadExecutor(), null, false, Collections.<File>emptySet(), false);
 
             JavaElementForest forest = analyzer.analyze();
 
@@ -99,7 +99,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
-                Collections.<File>emptySet());
+                false, Collections.<File>emptySet(), false);
 
             JavaElementForest forest = analyzer.analyze();
 
@@ -119,6 +119,29 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             Assert.assertEquals("B.T$2", B_T$2.getModelElement().getQualifiedName().toString());
         } finally {
             deleteDir(compRes.compilationPath);
+        }
+    }
+
+    @Test
+    public void testInstanceInnerClassCtorHandling() throws Exception {
+        ArchiveAndCompilationPath archive = createCompiledJar("jar.jar", "misc/Inner.java");
+
+        try {
+            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
+                Arrays.asList(new ShrinkwrapArchive(archive.archive)),
+                null), Executors.newSingleThreadExecutor(), null, false, Collections.<File>emptySet(), false);
+
+            JavaElementForest forest = analyzer.analyze();
+
+            //force the compilation to finish
+            forest.getRoots();
+
+            //The instance inner classes have the enclosing class as the first parameter of all their constructors.
+            //We should ignore that type of usage, because that's synthetic, generated in the bytecode and not visible
+            //to the user in the source code..
+            Assert.assertEquals(0, analyzer.getProbingEnvironment().getUseSiteMap().size());
+        } finally {
+            deleteDir(archive.compilationPath);
         }
     }
 }

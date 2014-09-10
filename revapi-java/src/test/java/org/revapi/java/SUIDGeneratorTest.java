@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -86,6 +87,13 @@ public class SUIDGeneratorTest {
                 @Override
                 public Set<UseSite> getUseSites(@Nonnull TypeElement type) {
                     return Collections.emptySet();
+                }
+
+                @Nullable
+                @Override
+                public <R, P> R visitUseSites(@Nonnull TypeElement type, @Nonnull UseSite.Visitor<R, P> visitor,
+                    @Nullable P parameter) {
+                    return null;
                 }
             });
 
