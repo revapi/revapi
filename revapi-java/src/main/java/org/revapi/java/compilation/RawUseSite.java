@@ -1,4 +1,4 @@
-package org.revapi.java.model;
+package org.revapi.java.compilation;
 
 import org.revapi.java.spi.UseSite;
 
@@ -6,7 +6,7 @@ import org.revapi.java.spi.UseSite;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class RawUseSite {
+final class RawUseSite {
     private final UseSite.Type useType;
     private final String siteClass;
     private final String siteName;

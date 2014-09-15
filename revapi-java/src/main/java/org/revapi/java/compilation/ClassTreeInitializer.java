@@ -14,7 +14,7 @@
  * limitations under the License
  */
 
-package org.revapi.java.model;
+package org.revapi.java.compilation;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +50,8 @@ import org.slf4j.LoggerFactory;
 
 import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
-import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.model.MissingClassElement;
+import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.query.Filter;
@@ -59,7 +60,7 @@ import org.revapi.query.Filter;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class ClassTreeInitializer {
+final class ClassTreeInitializer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassTreeInitializer.class);
 

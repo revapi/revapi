@@ -52,7 +52,6 @@ import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.MissingClassElement;
-import org.revapi.java.model.RawUseSite;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;

@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
-import org.revapi.java.model.ClassTreeInitializer;
 
 /**
  * @author Lukas Krejci

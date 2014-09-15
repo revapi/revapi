@@ -31,7 +31,7 @@ import javax.tools.SimpleJavaFileObject;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class ArchiveProbeObject extends SimpleJavaFileObject {
+final class ArchiveProbeObject extends SimpleJavaFileObject {
     public static final String CLASS_NAME = "Probe";
 
     private String source;

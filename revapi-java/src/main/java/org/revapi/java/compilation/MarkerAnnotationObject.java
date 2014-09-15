@@ -31,7 +31,7 @@ import javax.tools.SimpleJavaFileObject;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class MarkerAnnotationObject extends SimpleJavaFileObject {
+final class MarkerAnnotationObject extends SimpleJavaFileObject {
     public static final String CLASS_NAME = "__RevapiMarkerAnnotation";
 
     private static final String SOURCE = "public @interface " + CLASS_NAME + " {}";

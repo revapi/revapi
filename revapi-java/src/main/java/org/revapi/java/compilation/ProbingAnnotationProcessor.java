@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedAnnotationTypes(MarkerAnnotationObject.CLASS_NAME)
-public final class ProbingAnnotationProcessor extends AbstractProcessor {
+final class ProbingAnnotationProcessor extends AbstractProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ProbingAnnotationProcessor.class);
 
     private final ProbingEnvironment environment;
