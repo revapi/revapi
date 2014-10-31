@@ -30,7 +30,7 @@ public class Extension extends org.revapi.java.spi.CheckBase {
 
     @Override
     public void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if ("test.Dep".equals(oldType.getQualifiedName().toString())) {
+        if (oldType != null && "test.Dep".equals(oldType.getQualifiedName().toString())) {
             pushActive(oldType, newType);
         }
     }

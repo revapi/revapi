@@ -33,12 +33,12 @@ import org.revapi.Reporter;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class MavenReporter implements Reporter {
+final class BuildTimeReporter implements Reporter {
 
     private final DifferenceSeverity breakingSeverity;
     private StringBuilder allProblems;
 
-    public MavenReporter(DifferenceSeverity breakingSeverity) {
+    public BuildTimeReporter(DifferenceSeverity breakingSeverity) {
         this.breakingSeverity = breakingSeverity;
         allProblems = new StringBuilder();
     }
@@ -80,10 +80,6 @@ public class MavenReporter implements Reporter {
         }
 
         for (Difference d : report.getDifferences()) {
-            StringBuilder message = new StringBuilder(element.getFullHumanReadableString());
-
-            message.append(": ").append(d.code).append(": ").append(d.description);
-
             DifferenceSeverity maxSeverity = DifferenceSeverity.NON_BREAKING;
             for (DifferenceSeverity s : d.classification.values()) {
                 if (maxSeverity.compareTo(s) < 0) {

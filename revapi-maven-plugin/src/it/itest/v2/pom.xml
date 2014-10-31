@@ -53,6 +53,7 @@
                         <id>api-check</id>
                         <goals>
                             <goal>check</goal>
+                            <goal>report</goal>
                         </goals>
                         <configuration>
                             <analysisConfiguration>
@@ -74,6 +75,7 @@
                                 ]
                                 }}
                             </analysisConfiguration>
+                            <reportSeverity>nonBreaking</reportSeverity>
                         </configuration>
                     </execution>
                 </executions>

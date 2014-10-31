@@ -6,10 +6,10 @@ import org.revapi.DifferenceSeverity;
  * @author Lukas Krejci
  * @since 0.1
  */
-public enum FailSeverity {
+enum FailSeverity {
     nonBreaking, potentiallyBreaking, breaking;
 
-    public DifferenceSeverity toChangeSeverity() {
+    public DifferenceSeverity asDifferenceSeverity() {
         switch (this) {
         case nonBreaking:
             return DifferenceSeverity.NON_BREAKING;
