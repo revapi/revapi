@@ -101,9 +101,6 @@ final class ClassTreeInitializer {
 
             context.onlyAddAdditional = true;
 
-            LOG.trace("Identified additional API classes to be found in classpath: {}",
-                context.additionalClassBinaryNames);
-
             if (environment.getApi().getSupplementaryArchives() != null) {
                 for (Archive a : environment.getApi().getSupplementaryArchives()) {
                     LOG.trace("Processing archive {}", a.getName());
@@ -116,6 +113,9 @@ final class ClassTreeInitializer {
                     }
                 }
             }
+
+            LOG.trace("Identified additional API classes to be found in classpath: {}",
+                context.additionalClassBinaryNames);
 
             newAdditionalClassesDetected = !oldAdditionalClasses.equals(context.additionalClassBinaryNames);
         } while (newAdditionalClassesDetected);
@@ -533,9 +533,9 @@ final class ClassTreeInitializer {
                     case Type.OBJECT:
                         if (!ignoreAdditionalArchivesContributions && !visitedClassDormant) {
                             context.additionalClassBinaryNames.add(binaryName);
+                            LOG.trace("Adding to additional classes: {}", binaryName);
                         }
                         addUse(binaryName, useType, siteType, siteName, siteDescriptor, sitePosition);
-                        LOG.trace("Adding to additional classes: {}", binaryName);
                         break;
                     case Type.ARRAY:
                         String desc = t.getDescriptor();
