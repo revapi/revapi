@@ -86,40 +86,29 @@ final class ClassTreeInitializer {
     public void initTree() throws IOException {
         InitTreeContext context = new InitTreeContext();
 
-        boolean newAdditionalClassesDetected;
         long time = System.currentTimeMillis();
 
-        do {
-            Set<String> oldAdditionalClasses = new HashSet<>(context.additionalClassBinaryNames);
+        for (Archive a : environment.getApi().getArchives()) {
+            LOG.trace("Processing archive {}", a.getName());
+            processArchive(a, context);
+        }
 
-            for (Archive a : environment.getApi().getArchives()) {
+        removeClassesFromRtJar(context.additionalClassBinaryNames);
+
+        context.onlyAddAdditional = true;
+
+        if (!context.additionalClassBinaryNames.isEmpty() && environment.getApi().getSupplementaryArchives() != null) {
+            for (Archive a : environment.getApi().getSupplementaryArchives()) {
                 LOG.trace("Processing archive {}", a.getName());
                 processArchive(a, context);
-            }
 
-            removeClassesFromRtJar(context.additionalClassBinaryNames);
-
-            context.onlyAddAdditional = true;
-
-            if (environment.getApi().getSupplementaryArchives() != null) {
-                for (Archive a : environment.getApi().getSupplementaryArchives()) {
-                    LOG.trace("Processing archive {}", a.getName());
-                    processArchive(a, context);
-
-                    // check for additional class changes inside this loop so that we exit as soon as possible if we
-                    // clear out the additional classes early.
-                    if (context.additionalClassBinaryNames.isEmpty()) {
-                        break;
-                    }
+                // check for additional class changes inside this loop so that we exit as soon as possible if we
+                // clear out the additional classes early.
+                if (context.additionalClassBinaryNames.isEmpty()) {
+                    break;
                 }
             }
-
-            LOG.trace("Identified additional API classes to be found in classpath: {}",
-                context.additionalClassBinaryNames);
-
-            newAdditionalClassesDetected = !oldAdditionalClasses.equals(context.additionalClassBinaryNames);
-        } while (newAdditionalClassesDetected);
-
+        }
 
         if (!context.additionalClassBinaryNames.isEmpty()) {
             List<String> prettyNames = new ArrayList<>(context.additionalClassBinaryNames);
