@@ -347,6 +347,7 @@
                                               dir="${project.build.directory}/_site"/>
                                         <copy todir="${project.build.directory}/site">
                                             <fileset dir="${project.build.directory}/_site" includes=".nojekyll"/>
+                                            <fileset dir="${project.build.directory}/_site" includes="CNAME"/>
                                             <fileset dir="${project.build.directory}/_site/_site" excludes="apt/**"/>
                                         </copy>
                                     </tasks>
@@ -393,12 +394,15 @@
                     <plugin>
                         <groupId>com.github.github</groupId>
                         <artifactId>site-maven-plugin</artifactId>
-                        <version>0.9</version>
+                        <version>0.10</version>
                         <configuration>
                             <message>Committing site for version ${project.version}.</message>
                             <server>github</server>
                             <skip>${skip.deploy}</skip>
                             <outputDirectory>${project.build.directory}/staging</outputDirectory>
+                            <branch>refs/heads/master</branch>
+                            <repositoryName>revapi.github.io</repositoryName>
+                            <repositoryOwner>revapi</repositoryOwner>
                         </configuration>
                         <executions>
                             <execution>

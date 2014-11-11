@@ -1,7 +1,7 @@
 title: Revapi - evolve your APIs with confidence
-org: JBoss by Red Hat
+org: Lukas Krejci
 base_url: '${project.distributionManagement.site.url}'
-scm: 'https://github.com/metlos/revapi'
+scm: 'https://github.com/revapi/revapi'
 version: '${project.version}'
 
 asciidoctor:
