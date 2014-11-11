@@ -255,22 +255,20 @@
     <developers>
         <developer>
             <name>Lukas Krejci</name>
-            <email>lkrejci@redhat.com</email>
+            <email>krejci.l@centrum.cz</email>
             <url>http://metlos.wordpress.com</url>
-            <organization>Red Hat</organization>
-            <organizationUrl>http://redhat.com</organizationUrl>
             <timezone>+1</timezone>
         </developer>
     </developers>
 
     <issueManagement>
         <system>github-issues</system>
-        <url>https://github.com/metlos/revapi/issues</url>
+        <url>https://github.com/revapi/revapi/issues</url>
     </issueManagement>
 
     <ciManagement>
         <system>travis</system>
-        <url>https://travis-ci.org/metlos/revapi</url>
+        <url>https://travis-ci.org/revapi/revapi</url>
     </ciManagement>
 
     <mailingLists>
@@ -284,15 +282,15 @@
     </mailingLists>
 
     <scm>
-        <connection>scm:git:git://github.com/metlos/revapi.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/metlos/revapi.git</developerConnection>
-        <url>https://github.com/metlos/revapi</url>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <url>https://github.com/revapi/revapi</url>
     </scm>
 
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>http://metlos.github.io/revapi/</url>
+            <url>http://revapi.org/</url>
         </site>
     </distributionManagement>
 
