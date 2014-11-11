@@ -84,5 +84,5 @@ revapi.analyze(analysisContext);
 
 == Extending Revapi
 
-See the http://metlos.github.io/revapi/docs/architecture.html[site] for more info.
+See the http://revapi.org/docs/architecture.html[site] for more info.
 
