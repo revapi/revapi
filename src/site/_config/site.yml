@@ -31,5 +31,5 @@ profiles:
          base_url: "${project.distributionManagement.site.url}"
     deploy:
       host: github_pages
-      branch: gh-pages
+      branch: master
 
