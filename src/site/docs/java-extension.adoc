@@ -10,9 +10,8 @@ toc::[]
 
 The Java extension somewhat obviously provides API checking capability for Java libraries. It contains a large number
 of checks that check different aspects of changes in the API, but it, too, is extensible. That is useful in cases where
-Java methods are annotated using annotations like JPA or JAX-RS annotations. One can imagine
-new checks on methods and fields annotated by those annotations to perform additional analysis for DB schema changes or
-REST API changes (hint, hint, get involved, if you want these to happen ;) ).
+Java methods are annotated using annotations like JPA or JAXB.One can imagine new checks on methods and fields
+annotated by those annotations to perform additional analysis for DB schema changes or XML serialization changes.
 
 == SPI
 
