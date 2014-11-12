@@ -235,7 +235,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>http://metlos.github.io/revapi/generated/${project.artifactId}</url>
+            <url>${web.url}/generated/${project.artifactId}</url>
         </site>
     </distributionManagement>
 </project>

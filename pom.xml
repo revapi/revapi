@@ -31,6 +31,7 @@
         <skip.awestruct.site>false</skip.awestruct.site>
         <skip.site>false</skip.site>
         <skip.deploy>false</skip.deploy>
+        <web.url>http://revapi.org</web.url>
     </properties>
 
     <dependencyManagement>
@@ -290,7 +291,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>http://revapi.org/</url>
+            <url>${web.url}</url>
         </site>
     </distributionManagement>
 
