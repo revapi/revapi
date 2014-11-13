@@ -25,6 +25,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>Revapi Text Reporter</name>
+    <description>
+        Super simple Revapi reporter outputting a textual representation of
+        the differences to a file or on standard output.
+    </description>
+    <url>http://revapi.org</url>
+    
     <artifactId>revapi-reporting-text</artifactId>
 
     <properties>

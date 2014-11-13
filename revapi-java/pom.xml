@@ -25,6 +25,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>Revapi Java Extension</name>
+    <description>
+        Revapi extension to check API of java classes in jar archives.
+    </description>
+    <url>http://revapi.org</url>
+    
     <artifactId>revapi-java</artifactId>
 
     <properties>

@@ -25,6 +25,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>Revapi Java SPI</name>
+    <description>
+        SPI for extending the java extension of Revapi.
+    </description>
+    <url>http://revapi.org</url>
+    
     <artifactId>revapi-java-spi</artifactId>
 
     <properties>
