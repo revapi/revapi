@@ -4,6 +4,7 @@
     %meta{ :charset=>'utf-8' }
     %title #{site.title}
     %meta{ :name=>'viewport', :content=>'width=device-width, initial-scale=1.0' }
+    %link{ :rel=>"stylesheet", :type=>'text/css', :href=>"#{site.base_url}/stylesheets/font-awesome.css"}
     %link{ :rel=>'stylesheet', :type=>'text/css', :href=>"#{site.base_url}/stylesheets/bootstrap.css" }
     %link{ :rel=>'stylesheet', :type=>'text/css', :href=>"#{site.base_url}/stylesheets/styles.css" }
     %link{ :rel=>"stylesheet", :type=>'text/css', :href=>"#{site.base_url}/stylesheets/lightbox.css"}
@@ -21,8 +22,6 @@
           %a.navbar-brand{ :href=>"#{site.base_url}" } #{site.title}
         .collapse.navbar-collapse
           %ul.nav.navbar-nav
-            %li
-              %a{ :href=>"#{site.base_url}" } Home
             %li.dropdown
               %a.dropdown-toggle{ :href=>"#", :"data-toggle"=>"dropdown" } Documentation <b class="caret"></b>
               %ul.dropdown-menu
@@ -38,14 +37,15 @@
       %hr
       %footer
         %p &copy; #{site.org} #{Date.today.year}
-      %script{ :type=>'text/javascript', :src=>'//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js' }
-      %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/bootstrap.js" }
-      %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/lightbox.min.js" }
-      %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/navbar-fix.js" }
-      %script
-        // When our page loads, check to see if it contains and anchor
-        scroll_if_anchor(window.location.hash);
+    %script{ :type=>'text/javascript', :src=>'//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js' }
+    %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/bootstrap.js" }
+    %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/lightbox.min.js" }
+    %script{ :type=>'text/javascript', :src=>"#{site.base_url}/javascripts/navbar-fix.js" }
+    = google_analytics
+    %script
+      // When our page loads, check to see if it contains and anchor
+      scroll_if_anchor(window.location.hash);
 
-        // Intercept all anchor clicks
-        $("body").on("click", "a", scroll_if_anchor);
+      // Intercept all anchor clicks
+      $("body").on("click", "a", scroll_if_anchor);
 
