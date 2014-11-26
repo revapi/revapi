@@ -1,4 +1,4 @@
-title: Revapi - evolve your APIs with confidence
+title: Revapi 
 org: Lukas Krejci
 base_url: '${project.distributionManagement.site.url}'
 scm: 'https://github.com/revapi/revapi'
@@ -26,6 +26,7 @@ profiles:
          base_url: "http://localhost:4242"
   production:
     base_url: "${project.distributionManagement.site.url}"
+    google_analytics: UA-57095904-1
     asciidoctor:
       :attributes:
          base_url: "${project.distributionManagement.site.url}"
