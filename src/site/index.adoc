@@ -55,5 +55,9 @@ Typically, this happens with Java runtime library itself, when a Jar is compiled
 it is then run on.
 
 == Getting Involved
-{scm}[GitHub], read link:docs/[docs].
+
+Code:: {scm}[GitHub]
+Documentation:: link:docs/[here]
+IRC:: #revapi on freenode.net
+Forum:: http://stackoverflow.com[stackoverflow]
 
