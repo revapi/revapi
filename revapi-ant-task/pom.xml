@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>revapi-parent</artifactId>
+        <groupId>org.revapi</groupId>
+        <version>0.2-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>Revapi Ant Task</name>
+    <description>
+        Ant integration for Revapi.
+    </description>
+    <url>http://revapi.org</url>
+
+    <artifactId>revapi-ant-task</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-basic-features</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <artifactSet>
+                        <excludes>
+                            <exclude>org.apache.ant</exclude>
+                        </excludes>
+                    </artifactSet>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

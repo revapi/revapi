@@ -120,6 +120,7 @@
         <module>revapi-reporting-text</module>
         <module>revapi-maven-plugin</module>
         <module>revapi-standalone</module>
+        <module>revapi-ant-task</module>
     </modules>
 
     <build>
@@ -169,6 +170,11 @@
                 <plugin>
                     <artifactId>maven-project-info-reports-plugin</artifactId>
                     <version>2.7</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>2.3</version>
                 </plugin>
             </plugins>
         </pluginManagement>

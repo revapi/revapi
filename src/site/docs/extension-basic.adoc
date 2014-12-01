@@ -11,7 +11,7 @@ toc::[]
 There is a couple of basic extensions that are developed alongside the core Revapi library. These are by default
 available when using the Revapi's maven plugin or using Revapi standalone. If you're using Revapi on your own, you need
 to explicitly put the `revapi-basic-features-XXX.jar` on your class path, or depend on
-`org.revapi:revapi-basic-features:XXX` maven artifact (where XXX is the version).
+`org.revapi:revapi-basic-features:XXX` maven artifact (where XXX is the version, currently {version}).
 
 === Classification Transformation
 By configuring this extension you can reclassify certain differences to have different classification. This can be used

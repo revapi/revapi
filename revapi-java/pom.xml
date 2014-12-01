@@ -108,4 +108,31 @@
             <url>${web.url}/generated/${project.artifactId}</url>
         </site>
     </distributionManagement>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <artifactSet>
+                        <excludes>
+                            <exclude>org.revapi:revapi</exclude>
+                        </excludes>
+                    </artifactSet>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>uber</shadedClassifierName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

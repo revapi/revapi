@@ -13,16 +13,12 @@ library.
 
 === Standalone Usage
 
-NOTE: Revapi hasn't seen a single stable release yet, so you won't be able to really download it from anywhere.
-Currently the only option you have is to <<building.adoc#, build>> Revapi and then obtain the installation archive from
-local maven repo.
+First you need to download the standalone distribution of Revapi, say `revapi-standalone-{version}.zip`. Now you have to:
 
-First you need to download the standalone distribution of Revapi, say `revapi-standalone-0.1.0.zip`. Now you have to:
-
-----
-unzip revapi-standalone-0.1.0.zip
-cd revapi-standalone-0.1.0
-----
+====
+unzip revapi-standalone-{version}.zip
+cd revapi-standalone-{version}
+====
 
 Your installation is now ready. To start using it, you can simply invoke
 
@@ -75,11 +71,10 @@ revapi.sh [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]*
              Defaults to 'extensions' directory under revapi installation dir.
 ----
 
-As an example, suppose the Revapi's java extension released version 0.1.0 (which it didn't yet). An invocation of Revapi
-could look like this:
+An invocation of Revapi could look like this:
 
 ----
-./revapi.sh -extensions=org.revapi:revapi-java:0.1.0,org.revapi:revapi-text-reporter:0.1.0 \
+./revapi.sh -extensions=org.revapi:revapi-java:{version},org.revapi:revapi-text-reporter:{version} \
    --old=my-lib-0.1.0.jar --new=my-lib-0.2.0.jar -D revapi.reporter.text.minSeverity=BREAKING
 ----
 
@@ -106,12 +101,12 @@ The basic usage of the Revapi's maven plugin is quite simple. In your `pom.xml`,
         <plugin>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-plugin</artifactId>
-            <version>0.1.0</version>
+            <version>{version}</version>
             <dependencies>
                 <dependency>
                     <groupId>org.revapi</groupId>
                     <artifactId>revapi-java</artifactId>
-                    <version>0.1.0</version>
+                    <version>{version}</version>
                 </dependency>
                 ...
             </dependencies>
@@ -132,6 +127,44 @@ By default, Revapi only bundles the <<extension-basic.adoc#, basic extensions>> 
 you need to add the Revapi's java extension as a dependency to the maven plugin.
 
 For more detailed info, check the maven plugin's link:../generated/revapi-maven-plugin/plugin-info.html[site].
+
+=== Ant
+
+There is also an Ant task to invoke Revapi analysis on arbitrary archives.
+The task implicitly supports the <<extension-basic.adoc#, basic extensions>>
+but other extensions need to be added.
+
+The following attributes are supported:
+
+|====
+|`oldArchives`|The `FileSet` of archives of the old version of the API
+|`oldSupplementaryArchives`|The `FileSet` of archives that support the old API (i.e. dependencies)
+|`newArchives`|The `FileSet` of archives of the new version of the API
+|`newSupplementaryArchives`|The `FileSet` of archives that support the new API (i.e. dependencies)
+|`revapiClassPath`|A `Path` to additional extensions to use with Revapi
+|`configuration`|A JSON string with the Revapi configuration
+|`breakingSeverity`|The minimal severity of differences that will be reported
+|====
+
+An example for checking Java code:
+
+[source,xml]
+----
+<target name="api-check">
+  <taskdef name="revapi" classname="org.revapi.ant.RevapiTask" classpath="lib/revapi-ant-task-{version}.jar"/>
+  <revapi>
+    <oldArchives file="mylib-1.0.jar"/>
+    <newArchives file="mylib-1.1.jar"/>
+    <revapiClassPath>
+      <pathelement location="lib/revapi-java-{version}-uber.jar"/>
+    </revapiClassPath>
+  </revapi>
+</target>
+----
+
+Notice the use of the "uber" jar for the java extension. The uber jar of
+the java extension contains its dependencies (excluding the revapi API
+itself which is considered provided).
 
 === Embedding
 
