@@ -772,6 +772,30 @@ No API breakage, reported for completeness' sake.
 
 Any subclasses that overrode the method will break both at compile time and at runtime.
 
+=== Method No Longer Static
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.noLongerStatic+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+When a method becomes a member method, it no longer can be called from the static context. This breaks both binary
+and source compatibility.
+
+=== Method Now Static
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.nowStatic+
+| Binary severity   | breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+A static method can be called in the same way as member method, so on the source level, this change is compatible.
+It is not binary compatible though because static methods are called using a different bytecode instruction.
+
 === Method Visibility Increased
 [cols="35s,<65d"]
 |=============
