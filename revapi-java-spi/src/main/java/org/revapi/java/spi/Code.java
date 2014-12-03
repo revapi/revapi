@@ -102,7 +102,7 @@ public enum Code {
     METHOD_DEFAULT_VALUE_ADDED("java.method.defaultValueAdded", NON_BREAKING, NON_BREAKING, null),
     METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     METHOD_DEFAULT_VALUE_REMOVED("java.method.defaultValueRemoved", BREAKING, NON_BREAKING, BREAKING),
-    METHOD_ADDED_TO_INTERFACE("java.method.addedToInterface", BREAKING, BREAKING, null),
+    METHOD_ADDED_TO_INTERFACE("java.method.addedToInterface", BREAKING, POTENTIALLY_BREAKING, null),
     METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE("java.method.attributeWithNoDefaultAddedToAnnotationType",
         BREAKING, NON_BREAKING, BREAKING),
     METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE("java.method.attributeWithDefaultAddedToAnnotationType",

@@ -620,13 +620,20 @@ attribute).
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.addedToInterface+
-| Binary severity   | breaking
+| Binary severity   | potentially breaking
 | Source severity   | breaking
 | Semantic severity | NA
 |=============
 
-Adding a method to the interface will break all its implementations that were compiled/declared against the old version
-of the interface.
+This is a source-incompatible change because all implementations that were written against the old version of the
+interface will not have the implementation of the new method and therefore will not compile.
+
+This might be binary compatible though. The code that used the old version of the interface will never call such new
+method and a missing method implementation is not checked for at link time. It might break though in situations where
+the interface serves the purpose of an SPI - a library declares an SPI interface to be implemented by users and then
+uses these SPI implementations inside the library. If the new version of the library assumes that the SPI
+implementations provide the impl of the new method and it is provided with the SPI implementation of the old version
+of the interface, things will break with `NoSuchMethodError`.
 
 === Method With No Default Value Added To Annotation Type
 [cols="35s,<65d"]
