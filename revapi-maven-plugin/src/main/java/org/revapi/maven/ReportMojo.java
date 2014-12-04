@@ -20,7 +20,6 @@ import org.apache.maven.reporting.AbstractMavenReport;
 import org.apache.maven.reporting.MavenReportException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
-
 import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
@@ -47,10 +46,66 @@ public class ReportMojo extends AbstractMavenReport {
      * {@code &lt;dependencies&gt;}.
      * <p/>
      * The {@code analysisConfiguration} can override the settings present in the files.
+     * <p/>
+     * The list is either a list of strings or has the following form:
+     * <pre><code>
+     *    &lt;analysisConfigurationFiles&gt;
+     *        &lt;configurationFile&gt;
+     *            &lt;path&gt;path/to/the/file/relative/to/project/base/dir&lt;/path&gt;
+     *            &lt;roots&gt;
+     *                &lt;root&gt;configuration/root1&lt;/root&gt;
+     *                &lt;root&gt;configuration/root2&lt;/root&gt;
+     *                ...
+     *            &lt;/roots&gt;
+     *        &lt;/configurationFile&gt;
+     *        ...
+     *    &lt;/analysisConfigurationFiles&gt;
+     * </code></pre>
+     *
+     * where
+     * <ul>
+     *     <li>{@code path} is mandatory,</li>
+     *     <li>{@code roots} is optional and specifies the subtrees of the JSON config that should be used for
+     *     configuration. If not specified, the whole file is taken into account.</li>
+     * </ul>
+     * The {@code configuration/root1} and {@code configuration/root2} are JSON paths to the roots of the
+     * configuration inside that JSON config file. This might be used in cases where multiple configurations are stored
+     * within a single file and you want to use a particular one.
+     * <p/>
+     * An example of this might be a config file which contains API changes to be ignored in all past versions of a
+     * library. The classes to be ignored are specified in a configuration that is specific for each version:
+     * <pre><code>
+     *     {
+     *         "0.1.0" : {
+     *             "revapi" : {
+     *                 "ignore" : [
+     *                     {
+     *                         "code" : "java.method.addedToInterface",
+     *                         "new" : "method void com.example.MyInterface::newMethod()",
+     *                         "justification" : "This interface is not supposed to be implemented by clients."
+     *                     },
+     *                     ...
+     *                 ]
+     *             }
+     *         },
+     *         "0.2.0" : {
+     *             ...
+     *         }
+     *     }
+     * </code></pre>
      */
     @Parameter(property = "revapi.analysisConfigurationFiles")
     @SuppressWarnings("MismatchedReadAndWriteOfArray")
-    private String[] analysisConfigurationFiles;
+    private Object[] analysisConfigurationFiles;
+
+    /**
+     * Set to false if you want to tolerate files referenced in the {@code analysisConfigurationFiles} missing on the
+     * filesystem and therefore not contributing to the analysis configuration.
+     * <p/>
+     * The default is {@code true}, which means that a missing analysis configuration file will fail the build.
+     */
+    @Parameter(property = "revapi.failOnMissingConfigurationFiles", defaultValue = "true")
+    private boolean failOnMissingConfigurationFiles;
 
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
@@ -122,7 +177,7 @@ public class ReportMojo extends AbstractMavenReport {
         ReportTimeReporter reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
 
         Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts,
-            project, repositorySystem, repositorySystemSession, reporter, locale);
+            project, repositorySystem, repositorySystemSession, reporter, locale, getLog(), failOnMissingConfigurationFiles);
 
         try {
             analyzer.analyze();

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -26,11 +27,12 @@ import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.util.graph.visitor.TreeDependencyVisitor;
-
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
+
+import org.jboss.dmr.ModelNode;
 
 /**
  * @author Lukas Krejci
@@ -53,8 +55,55 @@ final class Analyzer {
      * {@code &lt;dependencies&gt;}.
      * <p/>
      * The {@code analysisConfiguration} can override the settings present in the files.
+     * <p/>
+     * The list is either a list of strings or has the following form:
+     * <pre><code>
+     *    &lt;analysisConfigurationFiles&gt;
+     *        &lt;configurationFile&gt;
+     *            &lt;path&gt;path/to/the/file/relative/to/project/base/dir&lt;/path&gt;
+     *            &lt;roots&gt;
+     *                &lt;root&gt;configuration/root1&lt;/root&gt;
+     *                &lt;root&gt;configuration/root2&lt;/root&gt;
+     *                ...
+     *            &lt;/roots&gt;
+     *        &lt;/configurationFile&gt;
+     *        ...
+     *    &lt;/analysisConfigurationFiles&gt;
+     * </code></pre>
+     *
+     * where
+     * <ul>
+     *     <li>{@code path} is mandatory,</li>
+     *     <li>{@code roots} is optional and specifies the subtrees of the JSON config that should be used for
+     *     configuration. If not specified, the whole file is taken into account.</li>
+     * </ul>
+     * The {@code configuration/root1} and {@code configuration/root2} are JSON paths to the roots of the
+     * configuration inside that JSON config file. This might be used in cases where multiple configurations are stored
+     * within a single file and you want to use a particular one.
+     * <p/>
+     * An example of this might be a config file which contains API changes to be ignored in all past versions of a
+     * library. The classes to be ignored are specified in a configuration that is specific for each version:
+     * <pre><code>
+     *     {
+     *         "0.1.0" : {
+     *             "revapi" : {
+     *                 "ignore" : [
+     *                     {
+     *                         "code" : "java.method.addedToInterface",
+     *                         "new" : "method void com.example.MyInterface::newMethod()",
+     *                         "justification" : "This interface is not supposed to be implemented by clients."
+     *                     },
+     *                     ...
+     *                 ]
+     *             }
+     *         },
+     *         "0.2.0" : {
+     *             ...
+     *         }
+     *     }
+     * </code></pre>
      */
-    private final String[] analysisConfigurationFiles;
+    private final Object[] analysisConfigurationFiles;
 
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
@@ -80,9 +129,15 @@ final class Analyzer {
     private final Reporter reporter;
     private final Locale locale;
 
-    Analyzer(String analysisConfiguration, String[] analysisConfigurationFiles, String[] oldArtifacts,
+    private final Log log;
+
+    private final boolean failOnMissingConfigurationFiles;
+
+    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
         String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
-        RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale) {
+        RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+        boolean failOnMissingConfigurationFiles) {
+
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
         this.oldArtifacts = oldArtifacts;
@@ -92,6 +147,8 @@ final class Analyzer {
         this.repositorySystemSession = repositorySystemSession;
         this.reporter = reporter;
         this.locale = locale;
+        this.log = log;
+        this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
     }
 
     void analyze() throws MojoExecutionException {
@@ -142,16 +199,53 @@ final class Analyzer {
     @SuppressWarnings("unchecked")
     private void gatherConfig(AnalysisContext.Builder ctxBld) throws MojoExecutionException {
         if (analysisConfigurationFiles != null && analysisConfigurationFiles.length > 0) {
-            for (String path : analysisConfigurationFiles) {
+            for (Object pathOrConfigFile : analysisConfigurationFiles) {
+                ConfigurationFile configFile;
+                if (pathOrConfigFile instanceof String) {
+                    configFile = new ConfigurationFile();
+                    configFile.setPath((String) pathOrConfigFile);
+                } else {
+                    configFile = (ConfigurationFile) pathOrConfigFile;
+                }
+
+                String path = configFile.getPath();
+
                 File f = new File(path);
+                if (!f.isAbsolute()) {
+                    f = new File(project.getBasedir(), path);
+                }
+
                 if (!f.isFile() || !f.canRead()) {
-                    throw new MojoExecutionException("Could not locate analysis configuration file in '" + path + "'.");
+                    String message = "Could not locate analysis configuration file '" + f.getAbsolutePath() + "'.";
+                    if (failOnMissingConfigurationFiles) {
+                        throw new MojoExecutionException(message);
+                    } else {
+                        log.warn(message);
+                        continue;
+                    }
                 }
 
                 try (FileInputStream in = new FileInputStream(f)) {
-                    ctxBld.mergeConfigurationFromJSONStream(in);
+                    ModelNode config = ModelNode.fromJSONStream(in);
+
+                    String[] roots = configFile.getRoots();
+
+                    if (roots == null) {
+                        ctxBld.mergeConfiguration(config);
+                    } else {
+                        for (String r : roots) {
+                            String[] rootPath = r.split("/");
+                            ModelNode root = config.get(rootPath);
+
+                            if (!root.isDefined()) {
+                                continue;
+                            }
+
+                            ctxBld.mergeConfiguration(root);
+                        }
+                    }
                 } catch (IOException ignored) {
-                    throw new MojoExecutionException("Could not load configuration from '" + path + "'.");
+                    throw new MojoExecutionException("Could not load configuration from '" + f.getAbsolutePath() + "'.");
                 }
             }
         }

@@ -1,0 +1,14 @@
+{
+    "nested" : {
+        "config" : {
+            "revapi" : {
+                "ignore" : [
+                    {
+                        "code" : "!!TEST_CODE!!",
+                        "justification" : "baz"
+                    }
+                ]
+            }
+        }
+    }
+}

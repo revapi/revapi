@@ -56,25 +56,28 @@
                             <goal>report</goal>
                         </goals>
                         <configuration>
-                            <analysisConfiguration>
-                                { "revapi" : {
-                                "ignore" : [
+                            <analysisConfiguration><![CDATA[
                                 {
-                                "code" : "java.class.nowFinal",
-                                "old" : "class test.Dep",
-                                "justification" : "foo"
-                                },
-                                {
-                                "code" : "java.class.noLongerImplementsInterface",
-                                "justification" : "bar"
-                                },
-                                {
-                                "code" : "!!TEST_CODE!!",
-                                "justification" : "baz"
+                                    "revapi" : {
+                                        "ignore" : [
+                                            {
+                                                "code" : "java.class.nowFinal",
+                                                "old" : "class test.Dep",
+                                                "justification" : "foo"
+                                            }
+                                        ]
+                                    }
                                 }
-                                ]
-                                }}
-                            </analysisConfiguration>
+                            ]]></analysisConfiguration>
+                            <analysisConfigurationFiles>
+                                <configurationFile>
+                                    <path>analysis-config.json</path>
+                                    <roots>
+                                        <root>nested/config</root>
+                                    </roots>
+                                </configurationFile>
+                                <file>analysis-config2.json</file>
+                            </analysisConfigurationFiles>
                             <reportSeverity>nonBreaking</reportSeverity>
                         </configuration>
                     </execution>

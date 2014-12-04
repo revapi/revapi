@@ -1,0 +1,10 @@
+{
+    "revapi" : {
+        "ignore" : [
+            {
+                "code" : "java.class.noLongerImplementsInterface",
+                "justification" : "bar"
+            }
+        ]
+    }
+}
