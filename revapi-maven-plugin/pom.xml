@@ -36,10 +36,13 @@
 
     <properties>
         <maven.version>3.1.1</maven.version>
+        <maven-invoker.version>1.8</maven-invoker.version>
         <aether.version>0.9.0.M2</aether.version>
         <skipTests>false</skipTests>
         <skip.awestruct.site>true</skip.awestruct.site>
         <skip.deploy>true</skip.deploy>
+        <itest.debug-output>false</itest.debug-output>
+        <itest.maven-opts />
     </properties>
 
     <prerequisites>
@@ -139,7 +142,7 @@
 
             <plugin>
                 <artifactId>maven-invoker-plugin</artifactId>
-                <version>1.8</version>
+                <version>${maven-invoker.version}</version>
                 <configuration>
                     <skipInstallation>${skipTests}</skipInstallation>
                     <skipInvocation>${skipTests}</skipInvocation>
@@ -150,11 +153,10 @@
                     <goals>
                         <goal>clean</goal>
                         <goal>install</goal>
-                        <goal>site</goal>
                     </goals>
-                    <!-- debug the itest -->
-                    <!-- <mavenOpts>-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</mavenOpts>-->
-                    <debug>true</debug>
+
+                    <mavenOpts>${itest.maven-opts}</mavenOpts>
+                    <debug>${itest.debug-output}</debug>
                 </configuration>
                 <executions>
                     <execution>
@@ -244,4 +246,41 @@
             <url>${web.url}/generated/${project.artifactId}</url>
         </site>
     </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>itest.debug-output</id>
+
+            <properties>
+                <itest.debug-output>true</itest.debug-output>
+            </properties>
+        </profile>
+        <profile>
+            <id>itest.debug</id>
+
+            <properties>
+                <itest.maven-opts>-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</itest.maven-opts>
+                <itest.debug-output>true</itest.debug-output>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>itest.site</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-invoker-plugin</artifactId>
+                        <version>${maven-invoker.version}</version>
+                        <configuration>
+                            <goals>
+                                <goal>clean</goal>
+                                <goal>install</goal>
+                                <goal>site</goal>
+                            </goals>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
