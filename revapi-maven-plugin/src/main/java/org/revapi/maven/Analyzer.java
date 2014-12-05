@@ -156,28 +156,30 @@ final class Analyzer {
         try {
             oldArchives = resolveArtifacts(oldArtifacts);
         } catch (ArtifactResolutionException e) {
-            throw new MojoExecutionException("Failed to resolve old artifacts", e);
+            log.warn("Failed to resolve old artifacts: " + e.getMessage() + ". The API analysis will not proceed.");
+            return;
         }
 
         List<FileArchive> newArchives;
         try {
             newArchives = resolveArtifacts(newArtifacts);
         } catch (ArtifactResolutionException e) {
-            throw new MojoExecutionException("Failed to resolve new artifacts", e);
+            log.warn("Failed to resolve new artifacts: " + e.getMessage() + ". The API analysis will not proceed.");
+            return;
         }
 
-        List<FileArchive> oldTransitiveDeps;
+        List<FileArchive> oldTransitiveDeps = Collections.emptyList();
         try {
             oldTransitiveDeps = collectTransitiveDeps(oldArtifacts);
         } catch (DependencyCollectionException | ArtifactResolutionException | DependencyResolutionException e) {
-            throw new MojoExecutionException("Failed to resolve transitive dependencies of old artifacts", e);
+            log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() + ". The API analysis might produce unexpected results.");
         }
 
-        List<FileArchive> newTransitiveDeps;
+        List<FileArchive> newTransitiveDeps = Collections.emptyList();
         try {
             newTransitiveDeps = collectTransitiveDeps(newArtifacts);
         } catch (DependencyCollectionException | ArtifactResolutionException | DependencyResolutionException e) {
-            throw new MojoExecutionException("Failed to resolve transitive dependencies of new artifacts", e);
+            log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() + ". The API analysis might produce unexpected results.");
         }
 
         try {
