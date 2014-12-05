@@ -690,9 +690,11 @@ final class ClassTreeInitializer {
 
         typeCache.put(type.getBinaryName(), type);
         TypeElementAndUseSites useSites = dormantTypes.remove(type.getBinaryName());
-        if (useSites != null && !useSites.getUseSites().isEmpty()) {
+        if (!asError && useSites != null && !useSites.getUseSites().isEmpty()) {
             for (Map.Entry<String, Set<RawUseSite>> e : useSites.getUseSites().entrySet()) {
-                additionalClasses.add(e.getKey());
+                if (!typeCache.containsKey(e.getKey())) {
+                    additionalClasses.add(e.getKey());
+                }
                 addUses(e.getKey(), e.getValue());
             }
         }
