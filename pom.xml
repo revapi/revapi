@@ -139,6 +139,10 @@
                     <version>2.4</version>
                 </plugin>
                 <plugin>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>1.7</version>
+                </plugin>
+                <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>2.16</version>
                 </plugin>
@@ -171,6 +175,11 @@
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>2.3</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.1</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -197,6 +206,19 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <releaseProfiles>release,release-profile,site</releaseProfiles>
+                    <pushChanges>false</pushChanges>
+                    <arguments>-P site,release-prepare</arguments>
+                    <preparationGoals>clean verify site site:stage</preparationGoals>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -206,7 +228,7 @@
                 <artifactId>maven-project-info-reports-plugin</artifactId>
                 <reportSets>
                     <reportSet>
-                        <reports/>
+                        <reports />
                     </reportSet>
                 </reportSets>
             </plugin>
@@ -285,7 +307,7 @@
         <profile>
             <id>site</id>
 
-            <modules/>
+            <modules />
 
             <build>
                 <resources>
@@ -328,28 +350,25 @@
                     </plugin>
                     <plugin>
                         <artifactId>maven-antrun-plugin</artifactId>
-                        <version>1.7</version>
                         <executions>
                             <execution>
                                 <id>site</id>
                                 <phase>site</phase>
                                 <configuration>
                                     <skip>${skip.awestruct.site}</skip>
-                                    <tasks>
+                                    <target>
                                         <!-- The root model generates a maven-site, but we'll be replacing it completely.
                                              The submodules' site outputs are redirected under "generated" in the resulting
                                              site -->
-                                        <delete dir="${project.build.directory}/site/"
-                                                excludes="generated/* css/* js/*"/>
-                                        <exec command="rake update" dir="${project.build.directory}/_site"/>
-                                        <exec command="awestruct -P production -g -w"
-                                              dir="${project.build.directory}/_site"/>
+                                        <delete dir="${project.build.directory}/site/" excludes="generated/* css/* js/*" />
+                                        <exec command="rake update" dir="${project.build.directory}/_site" />
+                                        <exec command="awestruct -P production -g -w" dir="${project.build.directory}/_site" />
                                         <copy todir="${project.build.directory}/site">
-                                            <fileset dir="${project.build.directory}/_site" includes=".nojekyll"/>
-                                            <fileset dir="${project.build.directory}/_site" includes="CNAME"/>
-                                            <fileset dir="${project.build.directory}/_site/_site" excludes="apt/**"/>
+                                            <fileset dir="${project.build.directory}/_site" includes=".nojekyll" />
+                                            <fileset dir="${project.build.directory}/_site" includes="CNAME" />
+                                            <fileset dir="${project.build.directory}/_site/_site" excludes="apt/**" />
                                         </copy>
-                                    </tasks>
+                                    </target>
                                 </configuration>
                                 <goals>
                                     <goal>run</goal>
@@ -359,9 +378,9 @@
                                 <id>site-cleanup</id>
                                 <phase>post-site</phase>
                                 <configuration>
-                                    <tasks>
-                                        <delete dir="${project.build.directory}/_site"/>
-                                    </tasks>
+                                    <target>
+                                        <delete dir="${project.build.directory}/_site" />
+                                    </target>
                                 </configuration>
                                 <goals>
                                     <goal>run</goal>
@@ -422,32 +441,6 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>2.4</version>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.1</version>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.5</version>
                         <executions>
@@ -462,6 +455,10 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>release-prepare</id>
         </profile>
     </profiles>
 </project>
