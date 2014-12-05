@@ -35,6 +35,8 @@
         <skip.site>false</skip.site>
         <skip.deploy>false</skip.deploy>
         <web.url>http://revapi.org</web.url>
+        <self-api-check.maven-version>0.2.0</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.2.0</self-api-check.java-extension-version>
     </properties>
 
     <dependencyManagement>
@@ -179,6 +181,11 @@
                     <artifactId>maven-release-plugin</artifactId>
                     <version>2.5.1</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.revapi</groupId>
+                    <artifactId>revapi-maven-plugin</artifactId>
+                    <version>${self-api-check.maven-version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -202,6 +209,46 @@
                         <configuration>
                             <skip>${findbugs.skip}</skip>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.revapi</groupId>
+                        <artifactId>revapi-java</artifactId>
+                        <version>${self-api-check.java-extension-version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <failOnMissingConfigurationFiles>false</failOnMissingConfigurationFiles>
+                    <analysisConfiguration><![CDATA[
+                        {
+                            "revapi" : {
+                                "java" : {
+                                    "missing-classes" : {
+                                        "behavior" : "report"
+                                    }
+                                }
+                            }
+                        }
+                    ]]></analysisConfiguration>
+                    <analysisConfigurationFiles>
+                        <configurationFile>
+                            <path>api-changes.json</path>
+                            <roots>
+                                <root>${project.version}</root>
+                            </roots>
+                        </configurationFile>
+                    </analysisConfigurationFiles>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>api-check</id>
+                        <goals><goal>check</goal></goals>
                     </execution>
                 </executions>
             </plugin>
@@ -459,6 +506,36 @@
 
         <profile>
             <id>release-prepare</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>modify-self-check-version</id>
+                                <phase>validate</phase>
+                                <goals><goal>run</goal></goals>
+                                <configuration>
+                                    <target>
+                                        <property file="release.properties" />
+                                        <if>
+                                            <isset property="project.rel.org.revapi:revapi-maven-plugin"/>
+                                            <then>
+                                                <replaceregexp file="pom.xml"
+                                                               match="&lt;self-api-check\.maven-version&gt;[a-zA-Z0-9\.]*&lt;/self-api-check\.maven-version&gt;"
+                                                               replace="&lt;self-api-check.maven-version&gt;${project.rel.org.revapi:revapi-maven-plugin}&lt;/self-api-check.maven-version}&gt;"/>
+                                                <replaceregexp file="pom.xml"
+                                                               match="&lt;self-api-check\.java-extension-version&gt;[a-zA-Z0-9\.]*&lt;/self-api-check\.java-extension-version&gt;"
+                                                               replace="&lt;self-api-check.java-extension-version&gt;${project.rel.org.revapi:revapi-java}&lt;/self-api-check.java-extension-version}&gt;"/>
+                                            </then>
+                                        </if>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
