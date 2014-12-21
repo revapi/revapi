@@ -92,7 +92,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         if (!initializedChildren) {
             SortedSet<JavaElement> set = (SortedSet<JavaElement>) super.getChildren();
 
-            //this actuall CAN be null during probing... the @Nonnull annotation is there for library users, not for the
+            //this actually CAN be null during probing... the @Nonnull annotation is there for library users, not for the
             //library itself
             if (getModelElement() == null) {
                 //wait with the initialization until we have the model element ready
