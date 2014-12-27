@@ -149,7 +149,7 @@ final class ClassTreeInitializer {
             }
         }
 
-        if (LOG.isInfoEnabled()) {
+        if (LOG.isTraceEnabled()) {
             time = System.currentTimeMillis() - time;
             final int[] num = new int[1];
             environment.getTree().searchUnsafe(JavaElement.class, true, new Filter<JavaElement>() {
@@ -164,10 +164,7 @@ final class ClassTreeInitializer {
                     return true;
                 }
             }, null);
-            LOG.info("Tree init took " + time + "ms. The resulting tree has " + num[0] + " elements.");
-        }
-
-        if (LOG.isTraceEnabled()) {
+            LOG.trace("Tree init took " + time + "ms. The resulting tree has " + num[0] + " elements.");
             LOG.trace("Public API class tree in {} initialized to: {}", environment.getApi(), environment.getTree());
         }
     }
