@@ -35,13 +35,12 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.ConfigurationException;
 import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.ValidationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The main entry point to the library. The instance of this class is initialized with the different extensions and then
@@ -391,9 +390,9 @@ public final class Revapi {
         SortedSet<? extends Element> as = oldTree.getRoots();
         SortedSet<? extends Element> bs = newTree.getRoots();
 
-        if (LOG.isTraceEnabled()) {
-            LOG.trace("Old tree: {}", oldTree);
-            LOG.trace("New tree: {}", newTree);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Old tree: {}", oldTree);
+            LOG.debug("New tree: {}", newTree);
         }
 
         elementDifferenceAnalyzer.open();
