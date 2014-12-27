@@ -67,7 +67,7 @@ public enum Code {
         POTENTIALLY_BREAKING, null),
     CLASS_NOW_CHECKED_EXCEPTION("java.class.nowCheckedException", BREAKING, NON_BREAKING, null),
     CLASS_NO_LONGER_INHERITS_FROM_CLASS("java.class.noLongerInheritsFromClass", BREAKING, BREAKING, null),
-    CLASS_NON_PUBLIC_PART_OF_API("java.class.nonPublicPartOfAPI", NON_BREAKING, NON_BREAKING, NON_BREAKING),
+    CLASS_NON_PUBLIC_PART_OF_API("java.class.nonPublicPartOfAPI", NON_BREAKING, NON_BREAKING, BREAKING),
     CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED("java.class.superTypeTypeParametersChanged", POTENTIALLY_BREAKING,
         POTENTIALLY_BREAKING, null),
 
