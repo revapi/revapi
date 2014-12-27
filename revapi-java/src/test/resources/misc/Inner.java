@@ -13,4 +13,10 @@ public class Inner {
 
         InstanceInnerClassWithCustomCtors(int blah){}
     }
+
+    private static class Inaccessible {
+        public static class Published {}
+    }
+
+    public Inaccessible.Published method() { return null; }
 }

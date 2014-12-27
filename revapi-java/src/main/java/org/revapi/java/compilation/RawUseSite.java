@@ -6,7 +6,7 @@ import org.revapi.java.spi.UseSite;
  * @author Lukas Krejci
  * @since 0.1
  */
-final class RawUseSite {
+public final class RawUseSite {
     private final UseSite.Type useType;
     private final String siteClass;
     private final String siteName;
@@ -14,11 +14,11 @@ final class RawUseSite {
     private final SiteType siteType;
     private final int sitePosition;
 
-    RawUseSite(UseSite.Type useType, SiteType siteType, String siteClass, String siteName, String siteDescriptor) {
+    public RawUseSite(UseSite.Type useType, SiteType siteType, String siteClass, String siteName, String siteDescriptor) {
         this(useType, siteType, siteClass, siteName, siteDescriptor, -1);
     }
 
-    RawUseSite(UseSite.Type useType, SiteType siteType, String siteClass, String siteName, String siteDescriptor,
+    public RawUseSite(UseSite.Type useType, SiteType siteType, String siteClass, String siteName, String siteDescriptor,
         int sitePosition) {
 
         this.useType = useType;
@@ -86,17 +86,13 @@ final class RawUseSite {
         if (siteDescriptor != null ? !siteDescriptor.equals(that.siteDescriptor) : that.siteDescriptor != null) {
             return false;
         }
+
+        //noinspection SimplifiableIfStatement
         if (siteName != null ? !siteName.equals(that.siteName) : that.siteName != null) {
             return false;
         }
-        if (siteType != that.siteType) {
-            return false;
-        }
-        if (useType != that.useType) {
-            return false;
-        }
 
-        return true;
+        return siteType == that.siteType && useType == that.useType;
     }
 
     @Override

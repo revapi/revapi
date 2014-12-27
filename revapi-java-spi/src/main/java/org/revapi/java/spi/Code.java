@@ -150,6 +150,7 @@ public enum Code {
         addClassification(SEMANTIC, semanticSeverity);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public static Code fromCode(String code) {
         for (Code c : Code.values()) {
             if (c.code.equals(code)) {

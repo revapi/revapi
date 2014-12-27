@@ -11,8 +11,52 @@ import org.revapi.Element;
  * @since 0.1
  */
 public final class UseSite {
+
+    /**
+     * The way the used class is used by the use site.
+     */
     public enum Type {
-        ANNOTATES, IS_INHERITED, IS_IMPLEMENTED, HAS_TYPE, RETURN_TYPE, PARAMETER_TYPE, IS_THROWN
+        /**
+         * The used class annotates the use site.
+         */
+        ANNOTATES,
+
+        /**
+         * The used class is inherited by the use site (class).
+         */
+        IS_INHERITED,
+
+        /**
+         * The used class is implemented by the use site (class).
+         */
+        IS_IMPLEMENTED,
+
+        /**
+         * The use site (field) has the type of the used class.
+         */
+        HAS_TYPE,
+
+        /**
+         * The use site (method) returns instances the used class.
+         */
+        RETURN_TYPE,
+
+        /**
+         * One of the parameters of the use site (method) has the type
+         * of the used class.
+         */
+        PARAMETER_TYPE,
+
+        /**
+         * The use site (method) throws exceptions of the type of the used
+         * class.
+         */
+        IS_THROWN,
+
+        /**
+         * The used class contains the use site (inner class).
+         */
+        CONTAINS
     }
 
     /**
@@ -76,15 +120,7 @@ public final class UseSite {
 
         UseSite useSite = (UseSite) o;
 
-        if (!site.equals(useSite.site)) {
-            return false;
-        }
-
-        if (useType != useSite.useType) {
-            return false;
-        }
-
-        return true;
+        return site.equals(useSite.site) && useType == useSite.useType;
     }
 
     @Override
