@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Lukas Krejci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
 package org.revapi.java.spi;
 
 import java.util.Arrays;
@@ -6,8 +22,6 @@ import java.util.EnumSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.TypeElement;
-
-import org.revapi.Element;
 
 /**
  * @author Lukas Krejci
@@ -89,18 +103,29 @@ public final class UseSite {
          */
         @Nullable
         R visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable P parameter);
+
+        /**
+         * Called when all uses have been visited.
+         *
+         *
+         * @param type type type that is being used
+         * @param parameter the parameter passed by the caller
+         * @return a return value
+         */
+        @Nullable
+        R end(TypeElement type, @Nullable P parameter);
     }
 
     private final Type useType;
-    private final Element site;
+    private final JavaElement site;
 
-    public UseSite(@Nonnull Type useType, @Nonnull Element site) {
+    public UseSite(@Nonnull Type useType, @Nonnull JavaElement site) {
         this.useType = useType;
         this.site = site;
     }
 
     @Nonnull
-    public Element getSite() {
+    public JavaElement getSite() {
         return site;
     }
 

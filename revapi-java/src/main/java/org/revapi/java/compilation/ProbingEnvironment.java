@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.MissingClassElement;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.UseSite;
@@ -128,10 +129,10 @@ public final class ProbingEnvironment implements TypeEnvironment {
 
         Set<RawUseSite> sites = useSiteMap.get(binaryName);
         if (sites == null) {
-            return null;
+            return visitor.end(type, parameter);
         }
 
-        return visitRawUseSites(binaryName, sites, new RawUseSiteVisitor<R, P>() {
+        R ret = visitRawUseSites(binaryName, sites, new RawUseSiteVisitor<R, P>() {
             @Override
             public R visit(String binaryName, RawUseSite site, P parameter) {
                 TypeElement type = Util.findTypeByBinaryName(elements, binaryName);
@@ -144,6 +145,12 @@ public final class ProbingEnvironment implements TypeEnvironment {
                 return visitor.visit(type, use, parameter);
             }
         }, parameter);
+
+        if (ret == null) {
+            ret = visitor.end(type, parameter);
+        }
+
+        return ret;
     }
 
     private <R, P> R visitRawUseSites(String binaryName, Set<RawUseSite> sites, RawUseSiteVisitor<R, P> visitor,
@@ -191,7 +198,7 @@ public final class ProbingEnvironment implements TypeEnvironment {
         }
 
         final JavaTypeElement userType = t;
-        org.revapi.Element user = null;
+        JavaElement user = null;
 
         MethodElement method;
 

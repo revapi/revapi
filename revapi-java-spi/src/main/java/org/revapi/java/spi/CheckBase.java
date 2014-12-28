@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
@@ -96,6 +97,27 @@ public abstract class CheckBase implements Check {
     }
 
     /**
+     * Similar to {@link #isAccessible(javax.lang.model.element.Element)} but also checks that all enclosing
+     * elements of the provided element are accessible, too.
+     *
+     * @param e the element to check
+     * @return true if the element and all its enclosing elements are accessible, false otherwise
+     */
+    public static boolean isEffectivelyAccessible(@Nonnull Element e) {
+        //IntelliJ is wrong about the below. e definitely CAN be null...
+        //noinspection ConstantConditions
+        while (e != null) {
+            if (!(e instanceof PackageElement) && !isAccessible(e)) {
+                return false;
+            }
+
+            e = e.getEnclosingElement();
+        }
+
+        return true;
+    }
+
+    /**
      * The element is deemed missing if its type kind ({@link javax.lang.model.type.TypeMirror#getKind()}) is
      * {@link TypeKind#ERROR}.
      *
@@ -140,13 +162,28 @@ public abstract class CheckBase implements Check {
     public static boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
         final Collection<UseSite.Type> uses) {
 
-        return isPubliclyUsedAs(type, env, uses, new HashSet<TypeElement>());
+        return isPubliclyUsedAs(type, env, uses, new HashSet<TypeElement>(), new UseSite.Visitor<Boolean, Void>() {
+            @Nullable
+            @Override
+            public Boolean visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable Void parameter) {
+                return null;
+            }
+
+            @Nullable
+            @Override
+            public Boolean end(TypeElement type, @Nullable Void parameter) {
+                return false;
+            }
+        });
     }
 
     private static boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
-    final Collection<UseSite.Type> uses, final Set<TypeElement> visitedElements) {
+    final Collection<UseSite.Type> uses, final Set<TypeElement> visitedElements, final UseSite.Visitor<Boolean, Void> noUseCheck) {
 
         final Boolean isUsedSignificantly = env.visitUseSites(type, new UseSite.Visitor<Boolean, Void>() {
+
+            private int nofUses;
+
             @Nullable
             @Override
             public Boolean visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable Void ignored) {
@@ -155,21 +192,38 @@ public abstract class CheckBase implements Check {
                     return null;
                 }
 
-                visitedElements.add(type);
+                final boolean validUse = uses.contains(use.getUseType());
 
-                boolean validUse = uses.contains(use.getUseType());
+                if (validUse && use.getSite() instanceof JavaModelElement) {
+                    nofUses++;
 
-                if (isAccessible(type)) {
-                    return validUse;
-                } else if (validUse && use.getSite() instanceof JavaModelElement) {
                     Element e = ((JavaModelElement) use.getSite()).getModelElement();
+                    if (!isEffectivelyAccessible(e)) {
+                        return null;
+                    }
+
+                    final UseSite.Visitor<Boolean, Void> effectiveAccessibilityEndCheck = new UseSite.Visitor<Boolean, Void>() {
+                        @Nullable
+                        @Override
+                        public Boolean visit(@Nonnull TypeElement type, @Nonnull UseSite use,
+                            @Nullable Void parameter) {
+                            return null;
+                        }
+
+                        @Nullable
+                        @Override
+                        public Boolean end(TypeElement type, @Nullable Void parameter) {
+                            return isEffectivelyAccessible(type);
+                        }
+                    };
+
                     return e.accept(new SimpleElementVisitor7<Boolean, Void>() {
                         @Override
                         public Boolean visitVariable(VariableElement e, Void ignored) {
                             return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
                                 @Override
                                 public Boolean visitType(TypeElement e, Void ignored) {
-                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements);
+                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements, effectiveAccessibilityEndCheck);
                                 }
                             }, null);
                         }
@@ -179,23 +233,46 @@ public abstract class CheckBase implements Check {
                             return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
                                 @Override
                                 public Boolean visitType(TypeElement e, Void ignored) {
-                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements);
+                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements, effectiveAccessibilityEndCheck);
                                 }
                             }, null);
                         }
 
                         @Override
-                        public Boolean visitType(TypeElement e, Void ignored) {
-                            return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements);
+                        public Boolean visitType(final TypeElement type, Void ignored) {
+                            return type.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
+                                @Override
+                                public Boolean visitPackage(PackageElement e, Void ignored) {
+                                    return true;
+                                }
+
+                                @Override
+                                public Boolean visitType(TypeElement e, Void ignored) {
+                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS),
+                                        visitedElements, effectiveAccessibilityEndCheck);
+                                }
+                            }, null);
                         }
                     }, null);
                 } else {
                     return null;
                 }
             }
+
+            @Nullable
+            @Override
+            public Boolean end(TypeElement type, @Nullable Void parameter) {
+                if (nofUses == 0) {
+                    return noUseCheck.end(type, parameter);
+                }
+
+                return null;
+            }
         }, null);
 
-        return isUsedSignificantly != null;
+        visitedElements.add(type);
+
+        return isUsedSignificantly != null && isUsedSignificantly;
     }
 
     /**

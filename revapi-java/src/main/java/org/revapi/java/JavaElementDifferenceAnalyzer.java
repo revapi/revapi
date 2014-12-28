@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -304,6 +304,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                         appendUse(bld, use);
                     }
 
+                    return null;
+                }
+
+                @Nullable
+                @Override
+                public Void end(javax.lang.model.element.TypeElement type, @Nullable Void parameter) {
                     return null;
                 }
             }, null);
