@@ -274,7 +274,7 @@ final class TypeTreeConstructor {
                 //when their classes are processed.
                 List<InnerClass> innerClassHierarchy = innerClassHierarchyConstructor.process();
                 if (innerClassHierarchy.isEmpty()) {
-                    LOG.error("Encountered inner class with no hierarchy: " + classBinaryName);
+                    //anonymous inner class most probably
                     return;
                 }
 
