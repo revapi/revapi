@@ -20,7 +20,9 @@ import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -138,10 +140,23 @@ public abstract class CheckBase implements Check {
     public static boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
         final Collection<UseSite.Type> uses) {
 
+        return isPubliclyUsedAs(type, env, uses, new HashSet<TypeElement>());
+    }
+
+    private static boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
+    final Collection<UseSite.Type> uses, final Set<TypeElement> visitedElements) {
+
         final Boolean isUsedSignificantly = env.visitUseSites(type, new UseSite.Visitor<Boolean, Void>() {
             @Nullable
             @Override
             public Boolean visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable Void ignored) {
+
+                if (visitedElements.contains(type)) {
+                    return null;
+                }
+
+                visitedElements.add(type);
+
                 boolean validUse = uses.contains(use.getUseType());
 
                 if (isAccessible(type)) {
@@ -154,7 +169,7 @@ public abstract class CheckBase implements Check {
                             return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
                                 @Override
                                 public Boolean visitType(TypeElement e, Void ignored) {
-                                    return isPubliclyUsedAs(e, env, UseSite.Type.all());
+                                    return isPubliclyUsedAs(e, env, UseSite.Type.all(), visitedElements);
                                 }
                             }, null);
                         }
@@ -164,14 +179,14 @@ public abstract class CheckBase implements Check {
                             return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
                                 @Override
                                 public Boolean visitType(TypeElement e, Void ignored) {
-                                    return isPubliclyUsedAs(e, env, UseSite.Type.all());
+                                    return isPubliclyUsedAs(e, env, UseSite.Type.all(), visitedElements);
                                 }
                             }, null);
                         }
 
                         @Override
                         public Boolean visitType(TypeElement e, Void ignored) {
-                            return isPubliclyUsedAs(e, env, UseSite.Type.all());
+                            return isPubliclyUsedAs(e, env, UseSite.Type.all(), visitedElements);
                         }
                     }, null);
                 } else {

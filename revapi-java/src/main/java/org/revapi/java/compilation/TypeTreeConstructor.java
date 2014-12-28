@@ -197,7 +197,7 @@ final class TypeTreeConstructor {
         }
     }
 
-    public final class ClassProcessor {
+    final class ClassProcessor {
         private final Archive archive;
         private final String classBinaryName;
         private final boolean apiType;
