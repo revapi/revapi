@@ -26,14 +26,13 @@ import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.revapi.API;
 import org.revapi.AnalysisContext;
-import org.revapi.Difference;
 import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.java.spi.Code;
+
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
@@ -76,6 +75,8 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             .addAsResource(compRes2.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
             .addAsResource(compRes2.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
             .addAsResource(compRes2.compilationPath.resolve("B$T$1$Private.class").toFile(), "B$T$1$Private.class")
+            .addAsResource(compRes2.compilationPath.resolve("B$T$3.class").toFile(), "B$T$3.class")
+            .addAsResource(compRes2.compilationPath.resolve("B$PrivateSuperClass.class").toFile(), "B$PrivateSuperClass.class")
             .addAsResource(compRes2.compilationPath.resolve("C.class").toFile(), "C.class");
 
         final List<Report> allReports = new ArrayList<>();
@@ -117,42 +118,21 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .build()
         );
 
-        Assert.assertEquals(3, allReports.size());
+        Assert.assertEquals(5, allReports.size());
         Assert
             .assertTrue(
                 containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert
             .assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert
+            .assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
+        Assert
             .assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
+        Assert
+            .assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
 
         deleteDir(compRes1.compilationPath);
         deleteDir(compRes2.compilationPath);
     }
 
-    private boolean containsDifference(List<Report> problems, String oldElement, String newElement,
-        String differenceCode) {
-        for (Report r : problems) {
-            boolean oldTypeMatches = oldElement == null ? r.getOldElement() == null :
-                r.getOldElement() != null && oldElement.equals(r.getOldElement().getFullHumanReadableString());
-
-            boolean newTypeMatches = newElement == null ? r.getNewElement() == null :
-                r.getNewElement() != null && newElement.equals(r.getNewElement().getFullHumanReadableString());
-
-            boolean problemMatches = false;
-
-            for (Difference p : r.getDifferences()) {
-                if (differenceCode.equals(p.code)) {
-                    problemMatches = true;
-                    break;
-                }
-            }
-
-            if (oldTypeMatches && newTypeMatches && problemMatches) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

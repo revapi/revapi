@@ -17,4 +17,5 @@
 public class A {
     private B.T$1 f1;
     public B.T$2 f2;
+    public B.T$3 f3;
 }

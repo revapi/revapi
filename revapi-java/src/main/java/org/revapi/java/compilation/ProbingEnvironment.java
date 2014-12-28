@@ -18,7 +18,6 @@ package org.revapi.java.compilation;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +26,6 @@ import java.util.concurrent.CountDownLatch;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
@@ -45,14 +43,12 @@ import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
 
 import org.objectweb.asm.Type;
-
 import org.revapi.API;
 import org.revapi.java.model.FieldElement;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.MissingClassElement;
-import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.UseSite;
@@ -70,6 +66,7 @@ public final class ProbingEnvironment implements TypeEnvironment {
     private final CountDownLatch compilationEnvironmentTeardownLatch = new CountDownLatch(1);
     private final JavaElementForest tree;
     private final Map<String, Set<RawUseSite>> useSiteMap = new HashMap<>();
+    private final HashMap<RawUseSite, UseSite> useSiteCache = new HashMap<>();
 
     public ProbingEnvironment(API api) {
         this.api = api;
@@ -112,62 +109,12 @@ public final class ProbingEnvironment implements TypeEnvironment {
             new MissingTypeAwareDelegatingTypes(processingEnvironment.getTypeUtils());
     }
 
-    @Override
-    public boolean isExplicitPartOfAPI(@Nonnull TypeElement type) {
-        if (CheckBase.isAccessible(type)) {
-            // XXX protected inner class of a final class is I guess pretty much inaccessible, but it's currently
-            // claimed accessible...
-            return true;
-        }
-
-        final Elements elements = getElementUtils();
-
-        String binaryName = elements.getBinaryName(type).toString();
-        Set<RawUseSite> sites = useSiteMap.get(binaryName);
-        if (sites == null || sites.isEmpty()) {
-            return false;
-        }
-
-        Boolean res = visitRawUseSites(binaryName, sites, new RawUseSiteVisitor<Boolean, Void>() {
-            @Override
-            public Boolean visit(String binaryName, RawUseSite site, Void ignored) {
-                TypeElement type = Util.findTypeByBinaryName(elements, site.getSiteClass());
-                boolean accessible = CheckBase.isAccessible(type);
-
-                return accessible ? true : null;
-            }
-        }, null);
-
-        return res != null && res;
-    }
-
     /**
      * Keys are binary names of classes
      */
     @Nonnull
     public Map<String, Set<RawUseSite>> getUseSiteMap() {
         return useSiteMap;
-    }
-
-    @Nonnull
-    @Override
-    public Set<UseSite> getUseSites(@Nonnull TypeElement type) {
-        Set<RawUseSite> rawSites = getUseSiteMap().get(type.getQualifiedName().toString());
-        if (rawSites == null || rawSites.isEmpty()) {
-            return Collections.emptySet();
-        }
-
-        final Elements elements = getElementUtils();
-
-        HashSet<UseSite> ret = new HashSet<>(rawSites.size());
-        for (RawUseSite ru : rawSites) {
-
-            UseSite u = toUseSite(type, ru, elements);
-
-            ret.add(u);
-        }
-
-        return ret;
     }
 
     @Nullable
@@ -202,27 +149,22 @@ public final class ProbingEnvironment implements TypeEnvironment {
     private <R, P> R visitRawUseSites(String binaryName, Set<RawUseSite> sites, RawUseSiteVisitor<R, P> visitor,
         P parameter) {
 
-        R ret = null;
         for (RawUseSite site : sites) {
-            ret = visitor.visit(binaryName, site, parameter);
+            R ret = visitor.visit(binaryName, site, parameter);
             if (ret != null) {
                 return ret;
             }
-
-            String siteClass = site.getSiteClass();
-            Set<RawUseSite> nextSites = useSiteMap.get(siteClass);
-            if (nextSites != null && !nextSites.isEmpty()) {
-                ret = visitRawUseSites(siteClass, nextSites, visitor, parameter);
-                if (ret != null) {
-                    return ret;
-                }
-            }
         }
 
-        return ret;
+        return null;
     }
 
     private UseSite toUseSite(TypeElement type, final RawUseSite ru, final Elements elements) {
+        UseSite cachedUseSite = useSiteCache.get(ru);
+        if (cachedUseSite != null) {
+            return cachedUseSite;
+        }
+
         List<JavaTypeElement> userTypes = tree.search(JavaTypeElement.class, true, new Filter<JavaTypeElement>() {
             @Override
             public boolean applies(@Nullable JavaTypeElement element) {
@@ -345,7 +287,10 @@ public final class ProbingEnvironment implements TypeEnvironment {
                     type.getQualifiedName());
         }
 
-        return new UseSite(ru.getUseType(), user);
+        UseSite useSite = new UseSite(ru.getUseType(), user);
+        useSiteCache.put(ru, useSite);
+
+        return useSite;
     }
 
     private MethodElement findMatchingMethod(RawUseSite methodUseSite,
@@ -437,16 +382,6 @@ public final class ProbingEnvironment implements TypeEnvironment {
         }
 
         return false;
-    }
-
-    private static Element findByName(String simpleName, Iterable<? extends Element> elements) {
-        for (Element e : elements) {
-            if (e.getSimpleName().contentEquals(simpleName)) {
-                return e;
-            }
-        }
-
-        return null;
     }
 
     private boolean equals(final Type type, TypeMirror mirror) {

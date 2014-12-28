@@ -135,8 +135,15 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                     "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }}}}").build()
         );
 
-        Assert.assertEquals(1, allReports.size());
-        Assert.assertEquals(2, allReports.get(0).getDifferences().size());
+        Assert.assertEquals(3, allReports.size());
+        Assert.assertTrue(containsDifference(allReports, "missing-class B$T$2", "missing-class B$T$2",
+            Code.MISSING_IN_NEW_API.code()));
+        Assert.assertTrue(containsDifference(allReports, "missing-class B$T$2", "missing-class B$T$2",
+            Code.MISSING_IN_OLD_API.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "missing-class B$T$3",
+            Code.MISSING_IN_NEW_API.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field A.f3",
+            Code.FIELD_ADDED.code()));
 
         boolean containsMissingOld = false;
         boolean containsMissingNew = false;
@@ -165,6 +172,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                     "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"ignore\" }}}}").build()
         );
 
-        Assert.assertEquals(0, allReports.size());
+        Assert.assertEquals(1, allReports.size());
+        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
     }
 }

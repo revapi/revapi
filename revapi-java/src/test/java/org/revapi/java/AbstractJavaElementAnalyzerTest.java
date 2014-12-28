@@ -40,9 +40,6 @@ import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
@@ -51,6 +48,9 @@ import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -60,6 +60,32 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
  * @since 0.1
  */
 public abstract class AbstractJavaElementAnalyzerTest {
+
+    protected boolean containsDifference(List<Report> problems, String oldElement, String newElement,
+        String differenceCode) {
+        for (Report r : problems) {
+            boolean oldTypeMatches = oldElement == null ? r.getOldElement() == null :
+                r.getOldElement() != null && oldElement.equals(r.getOldElement().getFullHumanReadableString());
+
+            boolean newTypeMatches = newElement == null ? r.getNewElement() == null :
+                r.getNewElement() != null && newElement.equals(r.getNewElement().getFullHumanReadableString());
+
+            boolean problemMatches = false;
+
+            for (Difference p : r.getDifferences()) {
+                if (differenceCode.equals(p.code)) {
+                    problemMatches = true;
+                    break;
+                }
+            }
+
+            if (oldTypeMatches && newTypeMatches && problemMatches) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     protected final static class ShrinkwrapArchive implements Archive {
         private final JavaArchive archive;

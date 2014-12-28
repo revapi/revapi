@@ -33,4 +33,13 @@ public class B {
         public T$1.Private f2;
     };
 
+    private static class PrivateSuperClass {}
+
+    /**
+     * This will NOT be reported as a usage of a private class in a public capacity. Inheriting from a
+     * private class by a public API class is a valid design pattern.
+     */
+    public static final class T$3 extends PrivateSuperClass  {
+
+    }
 }

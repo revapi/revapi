@@ -16,8 +16,6 @@
 
 package org.revapi.java.spi;
 
-import java.util.Set;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.TypeElement;
@@ -50,33 +48,8 @@ public interface TypeEnvironment {
     Types getTypeUtils();
 
     /**
-     * Determines whether given class is explicitly part of the API being checked.
-     * This might return false for inner classes or (package) private classes.
-     * <p/>
-     * The model still contains the classes that are not explicitly part of the API because there still might be checks
-     * on them that might be relevant, like annotation or visibility checks.
-     *
-     * @param type the type to check
-     *
-     * @return true if the type is explicitly part of the API, false if it is not
-     */
-    boolean isExplicitPartOfAPI(@Nonnull TypeElement type);
-
-    /**
-     * Returns the known use sites of the given type.
-     *
-     * @param type the type
-     *
-     * @return the use sites found during the analysis of archives
-     */
-    @Nonnull
-    Set<UseSite> getUseSites(@Nonnull TypeElement type);
-
-    /**
-     * Visits all uses of the provided type and recursively all uses of the types of the use sites.
-     * <p/>
-     * I.e. when the provided type is used as a return type of a method, the visitor will also visit the type that
-     * defines the method and all its uses, recursively.
+     * Visits the uses of the provided type. The visit will stop as soon as a non-null value is returned
+     * from the visitor, even if some use sites are left unvisited.
      *
      * @param type      the type to visit uses of
      * @param visitor   the visitor

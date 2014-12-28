@@ -38,7 +38,7 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
             return;
         }
 
-        if (!isAccessible(newType) && getNewTypeEnvironment().isExplicitPartOfAPI(newType)) {
+        if (!isAccessible(newType) && isAccessibleOrInAPI(newType, getNewTypeEnvironment())) {
             pushActive(oldType, newType);
         }
     }

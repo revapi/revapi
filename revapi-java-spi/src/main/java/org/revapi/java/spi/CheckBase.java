@@ -18,6 +18,7 @@ package org.revapi.java.spi;
 
 import java.io.Reader;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 
@@ -30,6 +31,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.util.SimpleElementVisitor7;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
@@ -105,11 +107,11 @@ public abstract class CheckBase implements Check {
 
     /**
      * Certain elements might be forced into the API even if they are not accessible (this is most usually a
-     * programming
-     * error). This method is an extension of the {@link #isAccessible(javax.lang.model.element.Element)} and also
-     * checks for the explicit presence of the element in the API by using the
-     * {@link org.revapi.java.spi.TypeEnvironment#isExplicitPartOfAPI(javax.lang.model.element.TypeElement)}
-     * method.
+     * programming error).
+     * <p/>
+     * This method returns true if the provided element is either accessible or is used as anything but super-class or
+     * super-interface. A non-accessible super-class of a public class is not an error nor a design flaw, so is the
+     * inaccessible interface being implemented.
      *
      * @param e   the element
      * @param env the type environment from which the element comes from
@@ -117,12 +119,72 @@ public abstract class CheckBase implements Check {
      * @return true if the element is accessible or is an explicit part of the API
      */
     public static boolean isAccessibleOrInAPI(@Nonnull Element e, @Nonnull TypeEnvironment env) {
-        return isAccessible(e) || (e instanceof TypeElement && env.isExplicitPartOfAPI((TypeElement) e));
+        if (isAccessible(e)) {
+            return true;
+        }
+
+        return e instanceof TypeElement && isPubliclyUsedAs((TypeElement) e, env,
+            UseSite.Type.allBut(UseSite.Type.IS_IMPLEMENTED, UseSite.Type.IS_INHERITED));
     }
 
     /**
-     * Extension of the {@link #isBothAccessibleOrInApi(javax.lang.model.element.Element, TypeEnvironment,
-     * javax.lang.model.element.Element, TypeEnvironment)} method for 2 elements.
+     * Checks if the type is publicly used as any of the provided use types.
+     *
+     * @param type the type
+     * @param env the environment in which the type exists
+     * @param uses the use types to check for
+     * @return true if the type is used at least once as any of the provided use types, false otherwise
+     */
+    public static boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
+        final Collection<UseSite.Type> uses) {
+
+        final Boolean isUsedSignificantly = env.visitUseSites(type, new UseSite.Visitor<Boolean, Void>() {
+            @Nullable
+            @Override
+            public Boolean visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable Void ignored) {
+                boolean validUse = uses.contains(use.getUseType());
+
+                if (isAccessible(type)) {
+                    return validUse;
+                } else if (validUse && use.getSite() instanceof JavaModelElement) {
+                    Element e = ((JavaModelElement) use.getSite()).getModelElement();
+                    return e.accept(new SimpleElementVisitor7<Boolean, Void>() {
+                        @Override
+                        public Boolean visitVariable(VariableElement e, Void ignored) {
+                            return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
+                                @Override
+                                public Boolean visitType(TypeElement e, Void ignored) {
+                                    return isPubliclyUsedAs(e, env, UseSite.Type.all());
+                                }
+                            }, null);
+                        }
+
+                        @Override
+                        public Boolean visitExecutable(ExecutableElement e, Void ignored) {
+                            return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
+                                @Override
+                                public Boolean visitType(TypeElement e, Void ignored) {
+                                    return isPubliclyUsedAs(e, env, UseSite.Type.all());
+                                }
+                            }, null);
+                        }
+
+                        @Override
+                        public Boolean visitType(TypeElement e, Void ignored) {
+                            return isPubliclyUsedAs(e, env, UseSite.Type.all());
+                        }
+                    }, null);
+                } else {
+                    return null;
+                }
+            }
+        }, null);
+
+        return isUsedSignificantly != null;
+    }
+
+    /**
+     * Extension of the {@link #isAccessibleOrInAPI(javax.lang.model.element.Element, TypeEnvironment)} method for 2 elements.
      *
      * @param a    the first element
      * @param envA the type environment of the first element

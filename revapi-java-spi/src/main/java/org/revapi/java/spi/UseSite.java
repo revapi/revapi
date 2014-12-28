@@ -1,5 +1,8 @@
 package org.revapi.java.spi;
 
+import java.util.Arrays;
+import java.util.EnumSet;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.TypeElement;
@@ -56,27 +59,33 @@ public final class UseSite {
         /**
          * The used class contains the use site (inner class).
          */
-        CONTAINS
+        CONTAINS;
+
+        public static EnumSet<Type> all() {
+            return EnumSet.allOf(UseSite.Type.class);
+        }
+
+        public static EnumSet<Type> allBut(UseSite.Type... types) {
+            EnumSet<Type> ret = all();
+            ret.removeAll(Arrays.asList(types));
+            return ret;
+        }
     }
 
     /**
-     * A visitor of the use site graph. Note that use sites form a directed <b>CYCLIC</b> graph so care must be taken
-     * by the implementor of this interface to avoid infinite loops. The graph traversal code does <b>NOT</b> take
-     * care of this automatically.
+     * A visitor of the use site.
      *
-     * @param <R> the type of the returned value when done visiting the graph
+     * @param <R> the type of the returned value
      * @param <P> the type of the parameter passed to the visitor
      */
     public interface Visitor<R, P> {
 
         /**
-         * Visits the node in the use-site graph. Returning a non-null value will stop the traversal.
+         * Visits the use site.
          *
          * @param type      the type that is being used
          * @param use       the site of the use of the type
          * @param parameter the parameter passed by the caller
-         *
-         * @return null if traversal should continue, a non-null result otherwise.
          */
         @Nullable
         R visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable P parameter);

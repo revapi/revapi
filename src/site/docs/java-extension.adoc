@@ -270,18 +270,16 @@ that super class nor can the methods declared in the super class be called using
 | Code              | +java.class.nonPublicPartOfAPI+
 | Binary severity   | non breaking
 | Source severity   | non breaking
-| Semantic severity | NA
+| Semantic severity | breaking
 |=============
 
-While this is reported as non-breaking, because it technically isn't an API error, it is a very strange design decision.
+While this is non-breaking from the pure API compatibility point of view, it is a very strange design decision.
 This means that a class that is not publicly accessible (i.e. is private or package private) is used in a public
 capacity (i.e. return type of a method, type of a method parameter, type of an accessible field, implemented interface).
 
-For library authors, it is recommended to configure the API checking to increase the severity of this difference,
-because more usually than not it actually highlights a usability problem in the API of the library.
-
-This is also reported on a non-accessible class that is used as a super class of another API class. While this is
-a valid and useful design pattern, Revapi currently cannot distinguish this usage from the other types.
+NOTE: This is NOT reported on a non-accessible class that is used solely as a super class of another API classes or that
+is only implemented by other API classes. An implementation of a private interface or inheriting from a non-public
+super class is a valid design decision.
 
 === Type Parameters of The Super Type Changed
 [cols="35s,<65d"]

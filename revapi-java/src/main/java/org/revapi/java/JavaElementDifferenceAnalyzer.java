@@ -25,12 +25,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.ResourceBundle;
-import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
@@ -48,6 +45,8 @@ import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Check;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
@@ -93,6 +92,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         this.newEnvironment = newEnvironment;
     }
 
+
+    @Nonnull
     @Override
     public Comparator<? super Element> getCorrespondenceComparator() {
         return new Comparator<Element>() {
@@ -209,7 +210,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         while (it.hasNext()) {
             Difference d = it.next();
             if (analysisConfiguration.getUseReportingCodes().contains(d.code)) {
-                StringBuilder newDesc = new StringBuilder(d.description);
+                StringBuilder newDesc = new StringBuilder(d.description == null ? "" : d.description);
                 appendUses(oldElement, oldEnvironment, newDesc);
                 appendUses(newElement, newEnvironment, newDesc);
 
@@ -279,25 +280,33 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         bld.append(message);
     }
 
-    private void appendUses(Element element, ProbingEnvironment environment, StringBuilder bld) {
+    private void appendUses(Element element, ProbingEnvironment environment, final StringBuilder bld) {
         if (element instanceof JavaTypeElement) {
             bld.append("\n");
             LOG.trace("Reporting uses of {}", element);
             javax.lang.model.element.TypeElement type = ((JavaTypeElement) element).getModelElement();
 
-            Set<UseSite> useSites = environment.getUseSites(type);
-            Iterator<UseSite> useIt = useSites.iterator();
+            environment.visitUseSites(type, new UseSite.Visitor<Void, Void>() {
+                boolean first = true;
 
-            if (useIt.hasNext()) {
-                appendUse(bld, useIt.next());
-            }
+                @Nullable
+                @Override
+                public Void visit(@Nonnull javax.lang.model.element.TypeElement type, @Nonnull UseSite use,
+                    @Nullable Void parameter) {
+                    if (first) {
+                        appendUse(bld, use);
+                        first = false;
+                    } else {
+                        bld.append(", ");
+                        appendUse(bld, use);
+                    }
 
-            while (useIt.hasNext()) {
-                bld.append(", ");
-                appendUse(bld, useIt.next());
-            }
+                    return null;
+                }
+            }, null);
         }
     }
+
 
     private void appendUse(StringBuilder bld, UseSite use) {
         List<UseSite> chain = getShortestPathToApiArchive(use);

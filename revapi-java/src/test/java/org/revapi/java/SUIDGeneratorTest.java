@@ -19,7 +19,6 @@ package org.revapi.java;
 import java.io.File;
 import java.io.ObjectStreamClass;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -38,7 +37,6 @@ import javax.tools.ToolProvider;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.revapi.java.checks.fields.SerialVersionUidUnchanged;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.UseSite;
@@ -76,17 +74,6 @@ public class SUIDGeneratorTest {
                 @Override
                 public Types getTypeUtils() {
                     return processingEnv.getTypeUtils();
-                }
-
-                @Override
-                public boolean isExplicitPartOfAPI(@Nonnull TypeElement type) {
-                    return true;
-                }
-
-                @Nonnull
-                @Override
-                public Set<UseSite> getUseSites(@Nonnull TypeElement type) {
-                    return Collections.emptySet();
                 }
 
                 @Nullable

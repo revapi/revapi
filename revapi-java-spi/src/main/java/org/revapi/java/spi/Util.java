@@ -877,20 +877,48 @@ public final class Util {
      * @return the type element with given binary name
      */
     public static TypeElement findTypeByBinaryName(Elements elements, String binaryName) {
+        return findTypeByBinaryName(elements, binaryName, 0);
+    }
+
+    private static TypeElement findTypeByBinaryName(Elements elements, String binaryName, int swapStartPos) {
         TypeElement ret;
 
-        int dollarPos = 0;
-        while ((ret = elements.getTypeElement(binaryName)) == null) {
-            dollarPos = binaryName.indexOf('$', dollarPos);
+        String attemptedName = binaryName;
+
+        //this is optimized for the most common scenario of classes having no $ in their names...
+        if (swapStartPos >= binaryName.length()) {
+            return null;
+        }
+
+        if (attemptedName.indexOf('$', swapStartPos) == -1) {
+            return elements.getTypeElement(attemptedName);
+        }
+
+        int dollarPos = swapStartPos;
+        while ((ret = elements.getTypeElement(attemptedName)) == null) {
+            dollarPos = attemptedName.indexOf('$', dollarPos);
             if (dollarPos == -1) {
                 break;
             }
 
             if (dollarPos < binaryName.length()) {
-                binaryName = binaryName.substring(0, dollarPos) + "." + binaryName.substring(dollarPos + 1);
+                attemptedName = attemptedName.substring(0, dollarPos) + "." + attemptedName.substring(dollarPos + 1);
             }
         }
 
+        if (ret == null) {
+            //ok, we need to try if there isn't a match with a dollar on the current position...
+            dollarPos = binaryName.indexOf('$', swapStartPos);
+            if (dollarPos != -1) {
+                ret = findTypeByBinaryName(elements, binaryName, dollarPos + 1);
+
+                if (ret == null) {
+                    //still nothing, so let's try a dot instead of a dollar on the current position
+                    binaryName = binaryName.substring(0, dollarPos) + "." + binaryName.substring(dollarPos + 1);
+                    ret = findTypeByBinaryName(elements, binaryName, swapStartPos + 1);
+                }
+            }
+        }
 
         return ret;
     }
