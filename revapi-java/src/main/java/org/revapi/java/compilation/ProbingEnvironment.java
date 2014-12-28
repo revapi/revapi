@@ -279,6 +279,9 @@ public final class ProbingEnvironment implements TypeEnvironment {
                 }
             }
             break;
+        case CONTAINS:
+            user = userType;
+            break;
         }
 
         if (user == null) {

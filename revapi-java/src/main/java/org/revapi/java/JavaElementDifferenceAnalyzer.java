@@ -270,6 +270,9 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         case RETURN_TYPE:
             message = "revapi.java.uses.returnType";
             break;
+        case CONTAINS:
+            message = "revapi.java.uses.contains";
+            break;
         default:
             throw new AssertionError("Invalid use type.");
         }
