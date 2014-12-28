@@ -126,7 +126,7 @@ public abstract class CheckBase implements Check {
         }
 
         return e instanceof TypeElement && isPubliclyUsedAs((TypeElement) e, env,
-            UseSite.Type.allBut(UseSite.Type.IS_IMPLEMENTED, UseSite.Type.IS_INHERITED));
+            UseSite.Type.allBut(UseSite.Type.IS_IMPLEMENTED, UseSite.Type.IS_INHERITED, UseSite.Type.CONTAINS));
     }
 
     /**
@@ -169,7 +169,7 @@ public abstract class CheckBase implements Check {
                             return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
                                 @Override
                                 public Boolean visitType(TypeElement e, Void ignored) {
-                                    return isPubliclyUsedAs(e, env, UseSite.Type.all(), visitedElements);
+                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements);
                                 }
                             }, null);
                         }
@@ -179,14 +179,14 @@ public abstract class CheckBase implements Check {
                             return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
                                 @Override
                                 public Boolean visitType(TypeElement e, Void ignored) {
-                                    return isPubliclyUsedAs(e, env, UseSite.Type.all(), visitedElements);
+                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements);
                                 }
                             }, null);
                         }
 
                         @Override
                         public Boolean visitType(TypeElement e, Void ignored) {
-                            return isPubliclyUsedAs(e, env, UseSite.Type.all(), visitedElements);
+                            return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements);
                         }
                     }, null);
                 } else {
