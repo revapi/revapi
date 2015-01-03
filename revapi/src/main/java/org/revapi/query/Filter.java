@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@ public interface Filter<T> {
     /**
      * Should the forest traversal descend into the provided element? It is not guaranteed that the element is
      * of the type required by this parameter, but its children might be.
-     * <p/>
-     * Therefore the filter is given a chance to influence the decision even for elements of types that it is not
+     *
+     * <p>Therefore the filter is given a chance to influence the decision even for elements of types that it is not
      * declared to filter.
      *
      * @param element the element to be descended into

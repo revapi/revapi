@@ -51,7 +51,9 @@ public final class JSONUtil {
     }
 
     /**
-     * Returns an input stream that strips comments from json data provided as an input stream.
+     * @param json the JSON-encoded data
+     * @param charset the charset of the data
+     * @return an input stream that strips comments from json data provided as an input stream.
      */
     public static InputStream stripComments(InputStream json, Charset charset) {
         Reader rdr = stripComments(new InputStreamReader(json));
@@ -59,7 +61,8 @@ public final class JSONUtil {
     }
 
     /**
-     * Returns a string with comments stripped from json data provided.
+     * @param json the JSON-encoded data
+     * @return a String with comments stripped from the provided json data.
      */
     public static String stripComments(String json) {
         try {
@@ -82,7 +85,8 @@ public final class JSONUtil {
     }
 
     /**
-     * Returns a reader that strips comments from json data provided as a reader.
+     * @param json the JSON-encoded data
+     * @return a reader that strips comments from json data provided as a reader.
      */
     public static Reader stripComments(final Reader json) {
         return new Reader() {
@@ -187,13 +191,13 @@ public final class JSONUtil {
 
     /**
      * Converts the provided javascript object to JSON string.
-     * <p>
-     * If the object is a Map instance, it is stringified as key-value pairs, if it is a list, it is stringified as
+     *
+     * <p>If the object is a Map instance, it is stringified as key-value pairs, if it is a list, it is stringified as
      * a list, otherwise the object is merely converted to string using the {@code toString()} method.
      *
      * @param object the object to stringify.
      *
-     * @return
+     * @return the object as a JSON string
      */
     public static String stringifyJavascriptObject(Object object) {
         StringBuilder bld = new StringBuilder();

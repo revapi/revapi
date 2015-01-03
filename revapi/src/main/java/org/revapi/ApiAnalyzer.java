@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import org.revapi.configuration.Configurable;
 
 /**
  * An API analyzer is the main interface one has to implement to support checking some kind of API.
- * <p/>
- * The API analyzer is a kind of "hub" that, once configured, produces archive analyzers to crack open the API archives
- * and generate an element tree from them. Later on during the analysis the API analyzer is asked to create a
+ *
+ * <p>The API analyzer is a kind of "hub" that, once configured, produces archive analyzers to crack open the API
+ * archives and generate an element tree from them. Later on during the analysis the API analyzer is asked to create a
  * difference analyzer that will be responsible to check pairs of comparable elements, each coming from the different
  * version of the API.
  *
@@ -46,8 +46,7 @@ public interface ApiAnalyzer extends AutoCloseable, Configurable {
 
     /**
      * This method is called exactly once during the API difference analysis and produces an element analyzer which
-     * will
-     * be used to compare the corresponding elements in the old and new archives.
+     * will be used to compare the corresponding elements in the old and new archives.
      *
      * @param oldArchive the analyzer used for the old archives
      * @param newArchive the analyzer used for the new archives

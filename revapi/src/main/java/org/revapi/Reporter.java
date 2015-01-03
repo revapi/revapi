@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.revapi.configuration.Configurable;
 /**
  * A reporter is the final stage during the API change analysis. It somehow conveys the found difference reports to
  * some kind of output.
- * <p/>
- * Importantly, reporters are {@link org.revapi.configuration.Configurable} and can use the locale defined in the
+ *
+ * <p>Importantly, reporters are {@link org.revapi.configuration.Configurable} and can use the locale defined in the
  * analysis context of the configuration to produce the desired output.
  *
  * @author Lukas Krejci

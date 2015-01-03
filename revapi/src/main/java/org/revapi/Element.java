@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ import org.revapi.query.Filter;
 /**
  * An element in a forest representation of given "language" under API inspection. In case of programming languages this
  * will usually be a (trimmed down) abstract syntax tree, in case of XSD this can be an actual DOM tree.
- * <p/>
- * An element is comparable with all other element types for given language, giving a total ordering across all and any
- * element types given language defines.
+ *
+ * <p>An element is comparable with all other element types for given language, giving a total ordering across all and
+ * any element types given language defines.
  *
  * @author Lukas Krejci
  * @since 0.1
@@ -49,9 +49,16 @@ public interface Element extends Comparable<Element> {
     @Nullable
     Archive getArchive();
 
+    /**
+     * @return the parent element or null if this is a root element
+     */
     @Nullable
     Element getParent();
 
+    /**
+     * Sets a new parent.
+     * @param parent the new parent of this element
+     */
     void setParent(@Nullable Element parent);
 
     @Nonnull
@@ -60,6 +67,8 @@ public interface Element extends Comparable<Element> {
     /**
      * Provides the full "path" to the element in the forest in a human readable way.
      * This method is meant to be used by the reporters to identify the element in the reports.
+     *
+     * @return human readable representation of the element
      */
     @Nonnull
     String getFullHumanReadableString();
@@ -69,10 +78,13 @@ public interface Element extends Comparable<Element> {
      * org.revapi.query.Filter)} but returns the result in a newly allocated list instance. This is basically
      * a convenience method to enable a more succinct expressions.
      *
+     * @param <T>        the type of the elements to look for
      * @param resultType the type of the elements to look for
      * @param recurse    false to search only in direct children of the element, true to search recursively
      * @param filter     optional filter to further trim the number of results  @return the list of child elements of
      *                   given type potentially satisfying given filter
+     *
+     * @return the list of found elements
      */
     @Nonnull
     <T extends Element> List<T> searchChildren(@Nonnull Class<T> resultType, boolean recurse,
@@ -82,6 +94,11 @@ public interface Element extends Comparable<Element> {
      * Recursively searches the children of this element for elements of given type, potentially applicable to given
      * filter.
      *
+     * <p>This is identical to {@link #searchChildren(Class, boolean, org.revapi.query.Filter)} in behavior but avoids
+     * the instantiation of a new list.
+     *
+     * @param <T>        the type of the elements to look for
+     * @param results    the list of the results to fill
      * @param resultType the type of the elements to look for
      * @param recurse    false to search only in direct children of the element, true to search recursively
      * @param filter     optional filter to further trim the number of results
@@ -93,7 +110,10 @@ public interface Element extends Comparable<Element> {
      * Similar to search methods but avoids the traversal over the whole forest. Instead the traversal is incremental
      * and governed by the returned iterator.
      *
+     * @param <T>        the type of the elements to look for
+     * @param resultType the type of elements to look for
      * @param recurse if true, the iterator traverses the element forest using depth first search
+     * @param filter optional filter to further trim the number of results
      *
      * @return the iterator that will iterate over the results
      *

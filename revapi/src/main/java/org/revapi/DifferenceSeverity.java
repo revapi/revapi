@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,14 +18,15 @@ package org.revapi;
 
 /**
  * Enumerates the possible severities of differences found during the API analysis.
- * <p/>
- * The difference doesn't have a single severity, rather it can have different severity for each
+ *
+ * <p>The difference doesn't have a single severity, rather it can have different severity for each
  * {@link org.revapi.CompatibilityType}.
  *
  * @author Lukas Krejci
  * @since 0.1
  */
 public enum DifferenceSeverity {
+
     /**
      * The difference doesn't cause any breakage in given compatibility type
      */

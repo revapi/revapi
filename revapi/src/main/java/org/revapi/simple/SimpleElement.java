@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -242,6 +242,8 @@ public abstract class SimpleElement implements Element {
      * This default implementation uses the {@link #newChildrenInstance()} to initialize the children set and wraps
      * it in a private set implementation that automagically changes the parent of the elements based on the
      * membership.
+     *
+     * @return children of this element
      */
     @Nonnull
     public SortedSet<? extends Element> getChildren() {
@@ -253,7 +255,10 @@ public abstract class SimpleElement implements Element {
 
     /**
      * Override this method if you need some specialized instance of sorted set or want to do some custom pre-populating
-     * or initialization of the children. This method merely returns an empty new {@link java.util.TreeSet} instance.
+     * or initialization of the children. This default implementation merely returns an empty new
+     * {@link java.util.TreeSet} instance.
+     *
+     * @return a new sorted set instance to store the children in
      */
     @Nonnull
     protected SortedSet<Element> newChildrenInstance() {
@@ -261,7 +266,7 @@ public abstract class SimpleElement implements Element {
     }
 
     /**
-     * The parent element of this element.
+     * @return The parent element of this element.
      */
     @Override
     @Nullable
@@ -272,6 +277,8 @@ public abstract class SimpleElement implements Element {
     /**
      * Sets the parent element. No other processing is automagically done (i.e. the parent's children set is <b>NOT</b>
      * updated by calling this method).
+     *
+     * @param parent the new parent element
      */
     @Override
     public void setParent(@Nullable Element parent) {
@@ -305,7 +312,9 @@ public abstract class SimpleElement implements Element {
     }
 
     /**
-     * Assumes that {@code toString()} can do the job.
+     * This default implementation assumes that {@code toString()} can do the job.
+     *
+     * @return the human readable representation of this element
      *
      * @see org.revapi.Element#getFullHumanReadableString()
      */

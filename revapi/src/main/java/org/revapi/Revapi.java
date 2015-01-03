@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -313,6 +313,11 @@ public final class Revapi {
 
     /**
      * Use the {@link #builder()} instead.
+     *
+     * @param availableApiAnalyzers the set of analyzers to use
+     * @param availableReporters the set of reporters to use
+     * @param availableTransforms the set of transforms to use
+     * @param elementFilters the set of element filters to use
      *
      * @throws java.lang.IllegalArgumentException if any of the parameters is null
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,17 +40,20 @@ public interface ElementForest {
 
     /**
      * A sorted set of all root elements of the forest. The set uses the natural order of the element implementations.
+     *
+     * @return the roots elements of the forest.
      */
     @Nonnull
     SortedSet<? extends Element> getRoots();
 
     /**
      * Searches through the forest for elements of given type, potentially further filtering.
-     * <p/>
-     * If the {@code searchRoot} is not null, this is technically equivalent to calling the
+     *
+     * <p>If the {@code searchRoot} is not null, this is technically equivalent to calling the
      * {@link Element#searchChildren(java.lang.Class, boolean, org.revapi.query.Filter)} on the
      * {@code searchRoot}.
      *
+     * @param <T>        the type of the elements to look for
      * @param resultType the type of the elements to be contained in the results
      * @param recurse    false to only search direct children, true for searching recursively
      * @param filter     the optional filter

@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -95,6 +95,9 @@ public final class API {
     private final Iterable<? extends Archive> supplementaryArchives;
 
     /**
+     * @param archives the archives
+     * @param supplementaryArchives the supplemenatry archives
+     *
      * @see #getArchives()
      * @see #getSupplementaryArchives()
      */
@@ -117,7 +120,7 @@ public final class API {
     }
 
     /**
-     * The set of archives to check the API of.
+     * @return The set of archives to check the API of.
      */
     @Nonnull
     public Iterable<? extends Archive> getArchives() {
@@ -129,6 +132,8 @@ public final class API {
      * definitions used in the main archives). In Java, supplementary archives would be
      * the JARs that need to be on the compilation classpath. Can be null if no such
      * archives are needed.
+     *
+     * @return the set of supplementary archives
      */
     @Nullable
     public Iterable<? extends Archive> getSupplementaryArchives() {

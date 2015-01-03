@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,26 +22,26 @@ import java.util.NoSuchElementException;
 
 /**
  * Heavily inspired by the equivalently named class in Clirr 0.6.
- * <p/>
- * This is an iterator that walks a pair of collections, returning
+ *
+ * <p>This is an iterator that walks a pair of collections, returning
  * matching pairs from the set.
- * <p/>
- * When an element is present in the left set but there is no equal object
+ *
+ * <p>When an element is present in the left set but there is no equal object
  * in the right set, the pair (leftobj, null) is returned.
- * <p/>
- * When an element is present in the right set but there is no equal object
+ *
+ * <p>When an element is present in the right set but there is no equal object
  * in the left set, the pair (null, rightobj) is returned.
- * <p/>
- * When an element in one set has an equal element in the other set, the
+ *
+ * <p>When an element in one set has an equal element in the other set, the
  * pair (leftobj, rightobj) is returned.
- * <p/>
- * Note that the phrase "pair is returned" above actually means that the
+ *
+ * <p>Note that the phrase "pair is returned" above actually means that the
  * getLeft and getRight methods on the iterator return those objects; the
  * pair is "conceptual" rather than a physical Pair instance. This avoids
  * instantiating an object to represent the pair for each step of the
  * iterator which would not be efficient.
- * <p/>
- * Note also that elements from the sets are always returned in the
+ *
+ * <p>Note also that elements from the sets are always returned in the
  * iteration order.
  *
  * @author Simon Kitching
@@ -62,8 +62,8 @@ public final class CoIterator<E> {
     /**
      * The iterators must iterate over sorted collections otherwise this instance might not
      * produce the intended results.
-     * <p/>
-     * Also, the iterators must not ever return null - i.e. the collections must not contain null
+     *
+     * <p>Also, the iterators must not ever return null - i.e. the collections must not contain null
      * values otherwise the behavior of the iteration is undefined.
      *
      * @param left  the iterator over "left" collection
@@ -85,9 +85,13 @@ public final class CoIterator<E> {
     }
 
     /**
-     * Assumes the iterators iterate over comparable elements.
-     * If <code>E</code> is not at the same time comparable, calling {@link #next()} will fail with a class cast
+     * Assumes the iterators iterate over comparable elements and uses their natural ordering instead of an explicit
+     * comparator.
+     * <p>If <code>E</code> is not at the same time comparable, calling {@link #next()} will fail with a class cast
      * exception at the first mutual comparison of elements from the two collections.
+     *
+     * @param left the iterator over the "left" collection
+     * @param right the iterator over the "right" collection
      *
      * @see #CoIterator(java.util.Iterator, java.util.Iterator, java.util.Comparator)
      */
@@ -99,6 +103,9 @@ public final class CoIterator<E> {
         return currentLeft != null || currentRight != null;
     }
 
+    /**
+     * Use {@link #getLeft()} and {@link #getRight()} to get the next elements from the two iterated collections.
+     */
     public void next() {
         boolean hasLeft = currentLeft != null;
         boolean hasRight = currentRight != null;
@@ -132,10 +139,18 @@ public final class CoIterator<E> {
         }
     }
 
+    /**
+     * After calling {@link #next()}, this will contain the next element from the "left" collection.
+     * @return the next element from the left collection
+     */
     public E getLeft() {
         return reportedLeft;
     }
 
+    /**
+     * After calling {@link #next()}, this will contain the next element from the "right" collection.
+     * @return the next element from the right collection
+     */
     public E getRight() {
         return reportedRight;
     }

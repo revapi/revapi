@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,17 +33,17 @@ public interface DifferenceAnalyzer extends AutoCloseable {
     /**
      * Returns a comparator that can be used to determine correspondence of two elements from the 2 versions of the API
      * being analyzed.
-     * <p/>
-     * This comparator may "lessen" the difference between the two elements (i.e. the {@link org.revapi.Element}s
+     *
+     * <p>This comparator may "lessen" the difference between the two elements (i.e. the {@link org.revapi.Element}s
      * are themselves comparable and the returned comparator may pronounce some elements equal even if their natural
      * order would be different) but it may NEVER change the order of the elements (i.e. if 2 elements are equal
-     * according to their natural order, they must remain equal and if a > b according to the natural order, "a" must
+     * according to their natural order, they must remain equal and if a &gt; b according to the natural order, "a" must
      * never be less than "b" using the correspondence comparator).
-     * <p/>
-     * In another words, it is required that the natural order of the elements is an refinement of the order produced by
-     * the correspondence comparator returned from this method.
-     * <p/>
-     * Further, this comparator must be able to consistently compare any 2 types of elements that can be produced by
+     *
+     * <p>In another words, it is required that the natural order of the elements is an refinement of the order produced
+     * by the correspondence comparator returned from this method.
+     *
+     * <p>Further, this comparator must be able to consistently compare any 2 types of elements that can be produced by
      * the API analyzer.
      *
      * @return the comparator used to compare 2 corresponding elements from the 2 versions of the API

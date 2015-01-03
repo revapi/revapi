@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.revapi.configuration.Configurable;
 public interface DifferenceTransform<T extends Element> extends AutoCloseable, Configurable {
 
     /**
-     * The list of regexes to match the difference codes this transform can handle.
+     * @return The list of regexes to match the difference codes this transform can handle.
      */
     @Nonnull
     Pattern[] getDifferenceCodePatterns();
@@ -47,8 +47,8 @@ public interface DifferenceTransform<T extends Element> extends AutoCloseable, C
     /**
      * Returns a transformed version of the difference. If this method returns null, the difference is
      * discarded and not reported. Therefore, if you don't want to transform a difference, just return it.
-     * <p/>
-     * The code of the supplied difference will match at least one of the regexes returned from the {@link
+     *
+     * <p>The code of the supplied difference will match at least one of the regexes returned from the {@link
      * #getDifferenceCodePatterns()} method.
      *
      * @param oldElement the old differing element
