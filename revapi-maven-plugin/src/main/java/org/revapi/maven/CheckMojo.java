@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ public class CheckMojo extends AbstractMojo {
     /**
      * Whether to skip the mojo execution.
      */
-    @Parameter
+    @Parameter(defaultValue = "false", property = "revapi.skip")
     private boolean skip;
 
     /**
