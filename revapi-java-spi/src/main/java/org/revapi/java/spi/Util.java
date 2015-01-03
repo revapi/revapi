@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class Util {
 
+
     private static class StringBuilderAndState<T> {
         final StringBuilder bld = new StringBuilder();
         final Set<T> visitedObjects = new HashSet<>();
@@ -583,6 +584,7 @@ public final class Util {
      * Represents the type mirror as a string in such a way that it can be used for equality comparisons.
      *
      * @param t type to convert to string
+     * @return the string representation of the type that is fit for equality comparisons
      */
     @Nonnull
     public static String toUniqueString(@Nonnull TypeMirror t) {

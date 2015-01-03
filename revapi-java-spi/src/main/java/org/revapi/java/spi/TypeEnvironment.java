@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ import javax.lang.model.util.Types;
 public interface TypeEnvironment {
 
     /**
-     * The instance of the utility class to examine the elements of the API (types, methods, etc.)
+     * @return The instance of the utility class to examine the elements of the API (types, methods, etc.)
      *
      * @see javax.lang.model.util.Elements
      */
@@ -40,7 +40,7 @@ public interface TypeEnvironment {
     Elements getElementUtils();
 
     /**
-     * The instance of the utility class to examine the types in the API.
+     * @return The instance of the utility class to examine the types in the API.
      *
      * @see javax.lang.model.util.Types
      */
@@ -51,11 +51,11 @@ public interface TypeEnvironment {
      * Visits the uses of the provided type. The visit will stop as soon as a non-null value is returned
      * from the visitor, even if some use sites are left unvisited.
      *
+     * @param <R>       the return type (use {@link java.lang.Void} for no return type)
+     * @param <P>       the type of the parameter (use {@link java.lang.Void} for no particular type)
      * @param type      the type to visit uses of
      * @param visitor   the visitor
      * @param parameter the parameter to supply to the visitor
-     * @param <R>       the return type (use {@link java.lang.Void} for no return type)
-     * @param <P>       the type of the parameter (use {@link java.lang.Void} for no particular type)
      *
      * @return the value returned by the visitor
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import org.revapi.configuration.Configurable;
 
 /**
  * An interface that java API checkers need to implement.
- * <p/>
- * The methods on this interface are called in the following order:
+ * 
+ * <p>The methods on this interface are called in the following order:
  * <pre><code>
  * initialize
  * setOldTypeEnvironment
@@ -50,8 +50,8 @@ import org.revapi.configuration.Configurable;
  *     visitAnnotation*
  *  visitEnd)*
  * </code></pre>
- * <p/>
- * Consider inheriting from the {@link org.revapi.java.spi.CheckBase} instead of directly implementing this
+ * 
+ * <p>Consider inheriting from the {@link org.revapi.java.spi.CheckBase} instead of directly implementing this
  * interface because it takes care of matching the corresponding {@code visit*()} and {@code visitEnd()} calls.
  *
  * @author Lukas Krejci
@@ -62,8 +62,8 @@ public interface Check extends Configurable {
     /**
      * The environment containing the old version of the classes. This can be used to reason about the
      * classes when doing the checks.
-     * <p/>
-     * Called once after the check has been instantiated.
+     * 
+     * <p>Called once after the check has been instantiated.
      *
      * @param env the environment to obtain the helper objects using which one can navigate and examine types
      */
@@ -72,8 +72,8 @@ public interface Check extends Configurable {
     /**
      * The environment containing the new version of the classes. This can be used to reason about the
      * classes when doing the checks.
-     * <p/>
-     * Called once after the check has been instantiated.
+     * 
+     * <p>Called once after the check has been instantiated.
      *
      * @param env the environment to obtain the helper objects using which one can navigate and examine types
      */
@@ -82,8 +82,8 @@ public interface Check extends Configurable {
     /**
      * Each of the other visit* calls is followed by a corresponding call to this method in a stack-like
      * manner.
-     * <p/>
-     * I.e. a series of calls might look like this:<br/>
+     * 
+     * <p>I.e. a series of calls might look like this:<br>
      * <pre><code>
      * visitClass();
      * visitMethod();
@@ -111,6 +111,11 @@ public interface Check extends Configurable {
      * Visiting annotation is slightly different, because it is not followed by the standard {@link #visitEnd()} call.
      * Instead, because visiting annotation is always "terminal" in a sense that an annotation doesn't have any child
      * elements, the list of differences is returned straight away.
+     *
+     * @param oldAnnotation the annotation in the old API
+     * @param newAnnotation the annotation in the new API
+     *
+     * @return the list of differences between the two annotations
      */
     @Nullable
     List<Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,

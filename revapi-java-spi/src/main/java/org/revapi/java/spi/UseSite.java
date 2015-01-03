@@ -100,6 +100,8 @@ public final class UseSite {
          * @param type      the type that is being used
          * @param use       the site of the use of the type
          * @param parameter the parameter passed by the caller
+         *
+         * @return non-null value indicates early exit before visiting all use sites.
          */
         @Nullable
         R visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable P parameter);

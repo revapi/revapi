@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,14 +28,14 @@ import javax.lang.model.util.SimpleElementVisitor7;
 
 /**
  * Can be used by various checks and problem transformations to work with two elements of the same type.
- * <p/>
- * Typical usage:
+ * 
+ * <p>Typical usage:
  * <pre><code>
  *     javax.lang.model.element.Element e1 = ...;
  *     javax.lang.model.element.Element e2 = ...;
- * <p/>
+ * 
  *     e1.accept(new ElementPairVisitor&lt;Void&gt;() {
- * <p/>
+ * 
  *         protected Void visitType(TypeElement e1, TypeElement e2) {
  *             ...
  *         }
