@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +24,9 @@ import java.util.Locale;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.revapi.configuration.JSONUtil;
+
 import org.jboss.dmr.ModelNode;
-import org.revapi.configuration.StripCommentsFromJSON;
 
 /**
  * An analysis context is an aggregation of the APIs to check and configuration for the analysis.
@@ -61,13 +62,13 @@ public final class AnalysisContext {
         }
 
         public Builder withConfigurationFromJSON(String json) {
-            this.configuration = ModelNode.fromJSONString(StripCommentsFromJSON.string(json));
+            this.configuration = ModelNode.fromJSONString(JSONUtil.stripComments(json));
             return this;
         }
 
         public Builder withConfigurationFromJSONStream(InputStream jsonStream) throws IOException {
             this.configuration = ModelNode
-                .fromJSONStream(StripCommentsFromJSON.stream(jsonStream, Charset.forName("UTF-8")));
+                .fromJSONStream(JSONUtil.stripComments(jsonStream, Charset.forName("UTF-8")));
             return this;
         }
 
@@ -83,7 +84,7 @@ public final class AnalysisContext {
             if (configuration == null) {
                 configuration = new ModelNode();
             }
-            merge(configuration, ModelNode.fromJSONString(StripCommentsFromJSON.string(json)));
+            merge(configuration, ModelNode.fromJSONString(JSONUtil.stripComments(json)));
             return this;
         }
 
@@ -91,7 +92,7 @@ public final class AnalysisContext {
             if (configuration == null) {
                 configuration = new ModelNode();
             }
-            InputStream str = StripCommentsFromJSON.stream(jsonStream, Charset.forName("UTF-8"));
+            InputStream str = JSONUtil.stripComments(jsonStream, Charset.forName("UTF-8"));
             merge(configuration, ModelNode.fromJSONStream(str));
             return this;
         }

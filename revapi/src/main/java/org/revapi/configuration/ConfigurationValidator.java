@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Lukas Krejci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
 package org.revapi.configuration;
 
 import java.io.IOException;
@@ -16,7 +32,6 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.script.SimpleBindings;
 import javax.script.SimpleScriptContext;
 
 import org.jboss.dmr.ModelNode;
@@ -86,7 +101,7 @@ public final class ConfigurationValidator {
 
                     String config = configJSONWrt.toString();
 
-                    SimpleBindings variables = new SimpleBindings();
+                    Bindings variables = js.createBindings();
 
                     js.eval("var data = " + config + ";", variables);
                     try {
@@ -97,9 +112,10 @@ public final class ConfigurationValidator {
 
                     variables.put("tv4", js.getContext().getAttribute("tv4", ScriptContext.GLOBAL_SCOPE));
 
-                    String result = (String) js.eval("JSON.stringify(tv4.validateMultiple(data, schema));", variables);
+                    Object resultObject = js.eval("tv4.validateMultiple(data, schema)", variables);
+                    ModelNode result = JSONUtil.toModelNode(resultObject);
 
-                    PartialValidationResult r = new PartialValidationResult(rootPath, ModelNode.fromJSONString(result));
+                    PartialValidationResult r = new PartialValidationResult(rootPath, result);
 
                     validationResults.add(r);
                 }
@@ -161,11 +177,12 @@ public final class ConfigurationValidator {
             ret = new ScriptEngineManager().getEngineByName("javascript");
             ScriptContext ctx = new SimpleScriptContext();
 
-            SimpleBindings globalScope = new SimpleBindings();
+            Bindings globalScope = ret.createBindings();
             ctx.setBindings(globalScope, ScriptContext.GLOBAL_SCOPE);
 
-            ret.setContext(ctx);
             initTv4(ret, globalScope);
+
+            ret.setContext(ctx);
 
             jsEngine = new WeakReference<>(ret);
         }

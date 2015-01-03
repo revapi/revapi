@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -107,7 +107,7 @@ public final class Util {
 
         @Override
         public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> bld) {
-            t.getComponentType().accept(this, bld);
+            IgnoreCompletionFailures.in(t::getComponentType).accept(this, bld);
             bld.bld.append("[]");
             return null;
         }
@@ -121,25 +121,31 @@ public final class Util {
 
             state.visitedObjects.add(t);
 
-            if (t.getLowerBound() != null && t.getLowerBound().getKind() != TypeKind.NULL) {
-                t.getLowerBound().accept(this, state);
+            TypeMirror lowerBound = IgnoreCompletionFailures.in(t::getLowerBound);
+
+            if (lowerBound != null && lowerBound.getKind() != TypeKind.NULL) {
+                lowerBound.accept(this, state);
                 state.bld.append("-");
             }
 
-            t.getUpperBound().accept(this, state);
+            IgnoreCompletionFailures.in(t::getUpperBound).accept(this, state);
             state.bld.append("+");
             return null;
         }
 
         @Override
         public Void visitWildcard(WildcardType t, StringBuilderAndState<TypeMirror> state) {
-            if (t.getSuperBound() != null) {
-                t.getSuperBound().accept(this, state);
+            TypeMirror superBound = IgnoreCompletionFailures.in(t::getSuperBound);
+
+            if (superBound != null) {
+                superBound.accept(this, state);
                 state.bld.append("-");
             }
 
-            if (t.getExtendsBound() != null) {
-                t.getExtendsBound().accept(this, state);
+            TypeMirror extendsBound = IgnoreCompletionFailures.in(t::getExtendsBound);
+
+            if (extendsBound != null) {
+                extendsBound.accept(this, state);
                 state.bld.append("+");
             }
 
@@ -148,12 +154,12 @@ public final class Util {
 
         @Override
         public Void visitExecutable(ExecutableType t, StringBuilderAndState<TypeMirror> state) {
-            visitTypeVars(t.getTypeVariables(), state);
+            visitTypeVars(IgnoreCompletionFailures.in(t::getTypeVariables), state);
 
-            t.getReturnType().accept(this, state);
+            IgnoreCompletionFailures.in(t::getReturnType).accept(this, state);
             state.bld.append("(");
 
-            Iterator<? extends TypeMirror> it = t.getParameterTypes().iterator();
+            Iterator<? extends TypeMirror> it = IgnoreCompletionFailures.in(t::getParameterTypes).iterator();
             if (it.hasNext()) {
                 it.next().accept(this, state);
             }
@@ -163,9 +169,11 @@ public final class Util {
             }
             state.bld.append(")");
 
-            if (!t.getThrownTypes().isEmpty()) {
+            List<? extends TypeMirror> thrownTypes = IgnoreCompletionFailures.in(t::getThrownTypes);
+
+            if (!thrownTypes.isEmpty()) {
                 state.bld.append("throws:");
-                it = t.getThrownTypes().iterator();
+                it = thrownTypes.iterator();
 
                 it.next().accept(this, state);
                 while (it.hasNext()) {
@@ -197,11 +205,8 @@ public final class Util {
         public Void visitDeclared(DeclaredType t, StringBuilderAndState<TypeMirror> state) {
             CharSequence name = ((TypeElement) t.asElement()).getQualifiedName();
             state.bld.append(name);
-            try {
-                visitTypeVars(t.getTypeArguments(), state);
-            } catch (RuntimeException e) {
-                LOG.debug("Failed to enumerate type arguments of '" + name + "'. Class is missing?", e);
-            }
+
+            visitTypeVars(IgnoreCompletionFailures.in(t::getTypeArguments), state);
 
             return null;
         }
@@ -267,7 +272,7 @@ public final class Util {
 
         @Override
         public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> state) {
-            t.getComponentType().accept(this, state);
+            IgnoreCompletionFailures.in(t::getComponentType).accept(this, state);
             state.bld.append("[]");
             return null;
         }
@@ -284,13 +289,15 @@ public final class Util {
             state.bld.append(t.asElement().getSimpleName());
 
             if (!state.visitingMethod) {
-                if (t.getLowerBound() != null && t.getLowerBound().getKind() != TypeKind.NULL) {
+                TypeMirror lowerBound = IgnoreCompletionFailures.in(t::getLowerBound);
+
+                if (lowerBound != null && lowerBound.getKind() != TypeKind.NULL) {
                     state.bld.append(" super ");
-                    t.getLowerBound().accept(this, state);
+                    lowerBound.accept(this, state);
                 }
 
                 state.bld.append(" extends ");
-                t.getUpperBound().accept(this, state);
+                IgnoreCompletionFailures.in(t::getUpperBound).accept(this, state);
             }
 
             return null;
@@ -299,14 +306,17 @@ public final class Util {
         @Override
         public Void visitWildcard(WildcardType t, StringBuilderAndState<TypeMirror> state) {
             state.bld.append("?");
-            if (t.getSuperBound() != null) {
+
+            TypeMirror superBound = IgnoreCompletionFailures.in(t::getSuperBound);
+            if (superBound != null) {
                 state.bld.append(" super ");
-                t.getSuperBound().accept(this, state);
+                superBound.accept(this, state);
             }
 
-            if (t.getExtendsBound() != null) {
+            TypeMirror extendsBound = IgnoreCompletionFailures.in(t::getExtendsBound);
+            if (extendsBound != null) {
                 state.bld.append(" extends ");
-                t.getExtendsBound().accept(this, state);
+                extendsBound.accept(this, state);
             }
 
             return null;
@@ -314,14 +324,14 @@ public final class Util {
 
         @Override
         public Void visitExecutable(ExecutableType t, StringBuilderAndState<TypeMirror> state) {
-            visitTypeVars(t.getTypeVariables(), state);
+            visitTypeVars(IgnoreCompletionFailures.in(t::getTypeVariables), state);
 
             state.visitingMethod = true;
 
-            t.getReturnType().accept(this, state);
+            IgnoreCompletionFailures.in(t::getReturnType).accept(this, state);
             state.bld.append("(");
 
-            Iterator<? extends TypeMirror> it = t.getParameterTypes().iterator();
+            Iterator<? extends TypeMirror> it = IgnoreCompletionFailures.in(t::getParameterTypes).iterator();
             if (it.hasNext()) {
                 it.next().accept(this, state);
             }
@@ -331,9 +341,10 @@ public final class Util {
             }
             state.bld.append(")");
 
-            if (!t.getThrownTypes().isEmpty()) {
+            List<? extends TypeMirror> thrownTypes = IgnoreCompletionFailures.in(t::getThrownTypes);
+            if (!thrownTypes.isEmpty()) {
                 state.bld.append(" throws ");
-                it = t.getThrownTypes().iterator();
+                it = thrownTypes.iterator();
 
                 it.next().accept(this, state);
                 while (it.hasNext()) {
@@ -367,7 +378,7 @@ public final class Util {
             CharSequence name = ((TypeElement) t.asElement()).getQualifiedName();
             state.bld.append(name);
             try {
-                visitTypeVars(t.getTypeArguments(), state);
+                visitTypeVars(IgnoreCompletionFailures.in(t::getTypeArguments), state);
             } catch (RuntimeException e) {
                 LOG.debug("Failed to enumerate type arguments of '" + name + "'. Class is missing?", e);
             }
@@ -451,7 +462,7 @@ public final class Util {
         public Void visitType(TypeElement e, StringBuilderAndState<TypeMirror> state) {
             state.bld.append(e.getQualifiedName());
 
-            List<? extends TypeParameterElement> typePars = e.getTypeParameters();
+            List<? extends TypeParameterElement> typePars = IgnoreCompletionFailures.in(e::getTypeParameters);
             if (typePars.size() > 0) {
                 state.bld.append("<");
 
@@ -471,7 +482,7 @@ public final class Util {
             state.visitingMethod = true;
 
             try {
-                List<? extends TypeParameterElement> typePars = e.getTypeParameters();
+                List<? extends TypeParameterElement> typePars = IgnoreCompletionFailures.in(e::getTypeParameters);
                 if (typePars.size() > 0) {
                     state.bld.append("<");
 
@@ -483,12 +494,12 @@ public final class Util {
                     state.bld.append("> ");
                 }
 
-                e.getReturnType().accept(toHumanReadableStringVisitor, state);
+                IgnoreCompletionFailures.in(e::getReturnType).accept(toHumanReadableStringVisitor, state);
                 state.bld.append(" ");
                 e.getEnclosingElement().accept(this, state);
                 state.bld.append("::").append(e.getSimpleName()).append("(");
 
-                List<? extends VariableElement> pars = e.getParameters();
+                List<? extends VariableElement> pars = IgnoreCompletionFailures.in(e::getParameters);
                 if (pars.size() > 0) {
                     pars.get(0).accept(this, state);
                     for (int i = 1; i < pars.size(); ++i) {
@@ -499,7 +510,7 @@ public final class Util {
 
                 state.bld.append(")");
 
-                List<? extends TypeMirror> thrownTypes = e.getThrownTypes();
+                List<? extends TypeMirror> thrownTypes = IgnoreCompletionFailures.in(e::getThrownTypes);
 
                 if (thrownTypes.size() > 0) {
                     state.bld.append(" throws ");
@@ -519,7 +530,7 @@ public final class Util {
         @Override
         public Void visitTypeParameter(TypeParameterElement e, StringBuilderAndState<TypeMirror> state) {
             state.bld.append(e.getSimpleName());
-            List<? extends TypeMirror> bounds = e.getBounds();
+            List<? extends TypeMirror> bounds = IgnoreCompletionFailures.in(e::getBounds);
             if (bounds.size() > 0) {
                 if (bounds.size() == 1) {
                     TypeMirror firstBound = bounds.get(0);
@@ -683,7 +694,8 @@ public final class Util {
      * returns all super types including implemented interfaces.
      *
      * @param types the Types instance of the compilation environment from which the type comes from
-     * @param type the type
+     * @param type  the type
+     *
      * @return the list of super tpyes
      */
     @Nonnull
@@ -698,8 +710,8 @@ public final class Util {
      * Similar to {@link #getAllSuperTypes(javax.lang.model.util.Types, javax.lang.model.type.TypeMirror)} but avoids
      * instantiation of a new list.
      *
-     * @param types the Types instance of the compilation environment from which the type comes from
-     * @param type the type
+     * @param types  the Types instance of the compilation environment from which the type comes from
+     * @param type   the type
      * @param result the list to add the results to.
      */
     public static void fillAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type,
@@ -751,13 +763,15 @@ public final class Util {
     /**
      * Extracts the names of the attributes from the executable elements that represents them in the given map and
      * returns a map keyed by those names.
-     * <p/>
-     * I.e. while representing annotation attributes on an annotation type by executable elements is technically correct
+     * <p>
+     * I.e. while representing annotation attributes on an annotation type by executable elements is technically
+     * correct
      * it is more convenient to address them simply by their names, which, in case of annotation types, are unique
      * (i.e. you cannot overload an annotation attribute, because they cannot have method parameters).
      *
      * @param attributes the attributes as obtained by
      *                   {@link javax.lang.model.element.AnnotationMirror#getElementValues()}
+     *
      * @return the equivalent of the supplied map keyed by attribute names instead of the full-blown executable elements
      */
     @Nonnull
