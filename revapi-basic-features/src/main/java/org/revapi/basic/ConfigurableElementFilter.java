@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,10 +25,11 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementFilter;
+
+import org.jboss.dmr.ModelNode;
 
 /**
  * An element filter that can filter out elements based on matching their full human readable representations.
@@ -43,8 +44,8 @@ import org.revapi.ElementFilter;
  *      }
  * }
  * </code></pre>
- * <p/>
- * If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
+ * 
+ * <p>If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
  * elements matching it are included. Out of the included elements, some may be further excluded by the exclude
  * filters.
  *

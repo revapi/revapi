@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Lukas Krejci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
 package org.revapi.basic;
 
 import java.io.InputStreamReader;
@@ -8,17 +24,18 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 
+import org.jboss.dmr.ModelNode;
+
 /**
  * A generic difference transform that can change the classification of a difference. This can be used in situations
  * where one wants to consider certain differences differently than the defining extension declared them.
- * <p/>
- * The transform can be configured like so:
+ * 
+ * <p>The transform can be configured like so:
  * <pre><code>
  * {
  *  "revapi" : {
@@ -38,12 +55,12 @@ import org.revapi.Element;
  *  }
  * }
  * </code></pre>
- * <p/>
- * The {@code code} is mandatory (obviously). The {@code old} and {@code new} properties are optional and the rule will
+ * 
+ * <p>The {@code code} is mandatory (obviously). The {@code old} and {@code new} properties are optional and the rule will
  * match when all the specified properties of it match. If regex attribute is "true" (defaults to "false"), all the
  * code, old and new are understood as regexes (java regexes, not javascript ones).
- * <p/>
- * The {@code NEW_COMPATIBILITY_TYPE} corresponds to one of the names of the {@link org.revapi.CompatibilityType}
+ * 
+ * <p>The {@code NEW_COMPATIBILITY_TYPE} corresponds to one of the names of the {@link org.revapi.CompatibilityType}
  * enum and the {@code NEW_SEVERITY} corresponds to one of the names of the {@link org.revapi.DifferenceSeverity}
  * enum. The reclassified difference inherits its classification (i.e. the compatibility type + severity pairs) and
  * only redefines the ones explicitly defined in the configuration.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -363,8 +363,8 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
 
     /**
      * Adapted from {@link java.io.ObjectStreamClass.MemberSignature}
-     * <p/>
-     * Class for computing and caching field/constructor/method signatures
+     *
+     * <p>Class for computing and caching field/constructor/method signatures
      * during serialVersionUID calculation.
      */
     private static class MemberSignature {
@@ -434,8 +434,8 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
     /**
      * Adapted from {@link java.io.ObjectStreamClass#getClassSignature(Class)}
      * and {@link java.io.ObjectStreamClass#getMethodSignature(Class[], Class)}
-     * <p/>
-     * Returns JVM type signature for given class.
+     *
+     * <p>Returns JVM type signature for given class.
      */
     private static String getSignature(TypeMirror type) {
         StringBuilder sbuf = new StringBuilder();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,17 @@ import java.io.Reader;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
 import org.revapi.Difference;
 import org.revapi.Element;
+
+import org.jboss.dmr.ModelNode;
 
 /**
  * A generic difference transform that can ignore differences based on the difference code ({@link
  * org.revapi.Difference#code}) and on the old or new elements' full human representations
  * ({@link org.revapi.Element#getFullHumanReadableString()}).
- * <p/>
- * The transform is configured using properties in the general form of:
+ * 
+ * <p>The transform is configured using properties in the general form of:
  * <pre><code>
  *  {
  *      "revapi" : {

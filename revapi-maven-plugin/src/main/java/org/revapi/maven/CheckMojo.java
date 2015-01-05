@@ -44,8 +44,8 @@ public class CheckMojo extends AbstractMojo {
     /**
      * The JSON configuration of various analysis options. The available options depend on what
      * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
-     * <p/>
-     * These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
+     *
+     * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
     @Parameter
     private String analysisConfiguration;
@@ -54,10 +54,10 @@ public class CheckMojo extends AbstractMojo {
      * The list of files containing the configuration of various analysis options.
      * The available options depend on what analyzers are present on the plugins classpath through the
      * {@code &lt;dependencies&gt;}.
-     * <p/>
-     * The {@code analysisConfiguration} can override the settings present in the files.
-     * <p/>
-     * The list is either a list of strings or has the following form:
+     *
+     * <p>The {@code analysisConfiguration} can override the settings present in the files.
+     *
+     * <p>The list is either a list of strings or has the following form:
      * <pre><code>
      *    &lt;analysisConfigurationFiles&gt;
      *        &lt;configurationFile&gt;
@@ -81,8 +81,8 @@ public class CheckMojo extends AbstractMojo {
      * The {@code configuration/root1} and {@code configuration/root2} are JSON paths to the roots of the
      * configuration inside that JSON config file. This might be used in cases where multiple configurations are stored
      * within a single file and you want to use a particular one.
-     * <p/>
-     * An example of this might be a config file which contains API changes to be ignored in all past versions of a
+     *
+     * <p>An example of this might be a config file which contains API changes to be ignored in all past versions of a
      * library. The classes to be ignored are specified in a configuration that is specific for each version:
      * <pre><code>
      *     {
@@ -111,8 +111,8 @@ public class CheckMojo extends AbstractMojo {
     /**
      * Set to false if you want to tolerate files referenced in the {@code analysisConfigurationFiles} missing on the
      * filesystem and therefore not contributing to the analysis configuration.
-     * <p/>
-     * The default is {@code true}, which means that a missing analysis configuration file will fail the build.
+     *
+     * <p>The default is {@code true}, which means that a missing analysis configuration file will fail the build.
      */
     @Parameter(property = "revapi.failOnMissingConfigurationFiles", defaultValue = "true")
     private boolean failOnMissingConfigurationFiles;
@@ -121,8 +121,8 @@ public class CheckMojo extends AbstractMojo {
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
      * current
      * project.
-     * <p/>
-     * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
+     *
+     * <p>If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
      */
     @Parameter(defaultValue = "${project.groupId}:${project.artifactId}:RELEASE", property = "revapi.oldArtifacts")
     private String[] oldArtifacts;
