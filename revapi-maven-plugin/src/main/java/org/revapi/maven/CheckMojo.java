@@ -105,7 +105,6 @@ public class CheckMojo extends AbstractMojo {
      * </code></pre>
      */
     @Parameter(property = "revapi.analysisConfigurationFiles")
-    @SuppressWarnings("MismatchedReadAndWriteOfArray")
     private Object[] analysisConfigurationFiles;
 
     /**
@@ -119,12 +118,11 @@ public class CheckMojo extends AbstractMojo {
 
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
-     * current
-     * project.
+     * current project.
      *
      * <p>If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
      */
-    @Parameter(defaultValue = "${project.groupId}:${project.artifactId}:RELEASE", property = "revapi.oldArtifacts")
+    @Parameter(property = "revapi.oldArtifacts")
     private String[] oldArtifacts;
 
     /**
@@ -163,6 +161,10 @@ public class CheckMojo extends AbstractMojo {
         }
 
         BuildTimeReporter reporter = new BuildTimeReporter(failSeverity.asDifferenceSeverity());
+
+        if (oldArtifacts == null || oldArtifacts.length == 0) {
+            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession)};
+        }
 
         Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
             newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(), getLog(),

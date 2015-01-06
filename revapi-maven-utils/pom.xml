@@ -15,7 +15,9 @@
   ~ limitations under the License
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
@@ -23,31 +25,28 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Revapi Java SPI</name>
+    <name>Revapi Maven Utils</name>
     <description>
-        SPI for extending the java extension of Revapi.
+        Maven utilities for Revapi.
     </description>
     <url>http://revapi.org</url>
-    
-    <artifactId>revapi-java-spi</artifactId>
 
-    <properties>
-        <skip.awestruct.site>true</skip.awestruct.site>
-        <skip.site>false</skip.site>
-        <skip.deploy>true</skip.deploy>
-    </properties>
+    <artifactId>revapi-maven-utils</artifactId>
 
+    <dependencyManagement>
         <dependencies>
             <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi</artifactId>
+                <groupId>org.eclipse.aether</groupId>
+                <artifactId>aether-api</artifactId>
+                <version>1.0.1.v20141111</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.eclipse.aether</groupId>
+            <artifactId>aether-api</artifactId>
         </dependency>
     </dependencies>
-
-    <distributionManagement>
-        <site>
-            <id>site</id>
-            <url>${web.url}/generated/${project.artifactId}</url>
-        </site>
-    </distributionManagement>
 </project>

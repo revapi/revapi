@@ -130,7 +130,7 @@ public class ReportMojo extends AbstractMavenReport {
      *
      * <p>If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
      */
-    @Parameter(defaultValue = "${project.groupId}:${project.artifactId}:RELEASE", property = "revapi.oldArtifacts")
+    @Parameter(property = "revapi.oldArtifacts")
     private String[] oldArtifacts;
 
     /**
@@ -188,6 +188,10 @@ public class ReportMojo extends AbstractMavenReport {
     protected void executeReport(Locale locale) throws MavenReportException {
         if (skip) {
             return;
+        }
+
+        if (oldArtifacts == null || oldArtifacts.length == 0) {
+            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession)};
         }
 
         ReportTimeReporter reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());

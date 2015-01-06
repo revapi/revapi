@@ -15,9 +15,7 @@
   ~ limitations under the License
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <name>Revapi parent</name>
@@ -25,7 +23,7 @@
         Parent POM for revapi projects. Common deps and site.
     </description>
     <url>http://revapi.org</url>
-    
+
     <groupId>org.revapi</groupId>
     <artifactId>revapi-parent</artifactId>
     <packaging>pom</packaging>
@@ -120,6 +118,7 @@
         <module>revapi-maven-plugin</module>
         <module>revapi-standalone</module>
         <module>revapi-ant-task</module>
+        <module>revapi-maven-utils</module>
     </modules>
 
     <build>
@@ -286,7 +285,8 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-    </scm>
+      <tag>HEAD</tag>
+  </scm>
 
     <distributionManagement>
         <site>
@@ -302,7 +302,7 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-    
+
     <profiles>
         <profile>
             <id>site</id>

@@ -26,6 +26,8 @@ import org.eclipse.aether.resolution.VersionRangeRequest;
 import org.eclipse.aether.resolution.VersionRangeResult;
 import org.eclipse.aether.util.graph.selector.StaticDependencySelector;
 import org.eclipse.aether.version.Version;
+import org.revapi.maven.utils.ScopeDependencySelector;
+import org.revapi.maven.utils.ScopeDependencyTraverser;
 
 import org.jboss.forge.furnace.addons.AddonId;
 import org.jboss.forge.furnace.impl.modules.providers.FurnaceContainerSpec;
@@ -101,8 +103,18 @@ final class ExtensionResolver extends MavenAddonDependencyResolver {
         DefaultRepositorySystemSession session = container.setupRepoSession(system, settings);
         final String mavenCoords = toMavenCoords(addonId);
         Artifact queryArtifact = new DefaultArtifact(mavenCoords);
-        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
-        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
+        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided") {
+            @Override
+            public boolean traverseDependency(Dependency dependency) {
+                return super.traverseDependency(dependency) && !ExtensionResolver.isRevapiApi(dependency);
+            }
+        });
+        session.setDependencySelector(new ScopeDependencySelector("compile", "provided") {
+            @Override
+            public boolean selectDependency(Dependency dependency) {
+                return super.selectDependency(dependency) && !ExtensionResolver.isRevapiApi(dependency);
+            }
+        });
         Dependency dependency = new Dependency(queryArtifact, null);
 
         List<RemoteRepository> repositories = MavenRepositories.getRemoteRepositories(container, settings);

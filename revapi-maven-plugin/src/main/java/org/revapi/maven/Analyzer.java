@@ -27,6 +27,7 @@ import java.util.Locale;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
@@ -47,6 +48,8 @@ import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
+import org.revapi.maven.utils.ScopeDependencySelector;
+import org.revapi.maven.utils.ScopeDependencyTraverser;
 
 import org.jboss.dmr.ModelNode;
 
@@ -160,11 +163,31 @@ final class Analyzer {
         this.newArtifacts = newArtifacts;
         this.project = project;
         this.repositorySystem = repositorySystem;
-        this.repositorySystemSession = repositorySystemSession;
+
+        DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
+        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
+        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
+
+        this.repositorySystemSession = session;
+
         this.reporter = reporter;
         this.locale = locale;
         this.log = log;
         this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
+    }
+
+    public static String getProjectArtifactCoordinates(MavenProject project, RepositorySystemSession session) {
+        org.apache.maven.artifact.Artifact artifact = project.getArtifact();
+
+        String extension = session.getArtifactTypeRegistry().get(artifact.getType()).getExtension();
+
+        if (artifact.hasClassifier()) {
+            return project.getGroupId() + ":" + project.getArtifactId() + ":" + extension + ":" +
+                    artifact.getClassifier() + ":" + project.getVersion();
+        } else {
+            return project.getGroupId() + ":" + project.getArtifactId() + ":" + extension + ":" +
+                    project.getVersion();
+        }
     }
 
     void analyze() throws MojoExecutionException {
@@ -188,14 +211,16 @@ final class Analyzer {
         try {
             oldTransitiveDeps = collectTransitiveDeps(oldArtifacts);
         } catch (DependencyCollectionException | ArtifactResolutionException | DependencyResolutionException e) {
-            log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() + ". The API analysis might produce unexpected results.");
+            log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() +
+                ". The API analysis might produce unexpected results.");
         }
 
         List<FileArchive> newTransitiveDeps = Collections.emptyList();
         try {
             newTransitiveDeps = collectTransitiveDeps(newArtifacts);
         } catch (DependencyCollectionException | ArtifactResolutionException | DependencyResolutionException e) {
-            log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() + ". The API analysis might produce unexpected results.");
+            log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() +
+                ". The API analysis might produce unexpected results.");
         }
 
         try {
@@ -336,7 +361,7 @@ final class Analyzer {
 
         final Artifact rootArtifact = resolveArtifact(coordinates);
 
-        CollectRequest collectRequest = new CollectRequest(new Dependency(resolveArtifact(coordinates), "compile"),
+        CollectRequest collectRequest = new CollectRequest(new Dependency(rootArtifact, null),
             project.getRemoteProjectRepositories());
 
         DependencyRequest request = new DependencyRequest(collectRequest, null);
@@ -350,11 +375,12 @@ final class Analyzer {
 
             @Override
             public boolean visitLeave(DependencyNode node) {
-                Artifact a = node.getDependency().getArtifact();
-
-                if (!a.equals(rootArtifact)) {
-                    resolvedArchives.add(new FileArchive(a.getFile()));
+                Dependency dep = node.getDependency();
+                if (dep == null || dep.getArtifact().equals(rootArtifact)) {
+                    return true;
                 }
+
+                resolvedArchives.add(new FileArchive(dep.getArtifact().getFile()));
 
                 return true;
             }
@@ -362,7 +388,15 @@ final class Analyzer {
     }
 
     private List<FileArchive> resolveBuildArtifacts() {
-        FileArchive archive = new FileArchive(project.getArtifact().getFile());
+        FileArchive archive;
+
+        //project.getArtifact().getFile() returns null for pom-packaged projects
+        if ("pom".equals(project.getArtifact().getType())) {
+            archive = new FileArchive(new File(project.getBasedir(), "pom.xml"));
+        } else {
+            archive = new FileArchive(project.getArtifact().getFile());
+        }
+
         return Collections.singletonList(archive);
     }
 
@@ -370,7 +404,7 @@ final class Analyzer {
         throws ArtifactResolutionException, DependencyCollectionException, DependencyResolutionException {
         for (org.apache.maven.model.Dependency dep : project.getDependencies()) {
             String scope = dep.getScope();
-            if (scope == null || "compile".equals(scope)) {
+            if (scope == null || "compile".equals(scope) || "provided".equals(scope)) {
                 String coords = dep.getGroupId() + ":" + dep.getArtifactId();
                 if (dep.getType() != null) {
                     coords += ":" + dep.getType();
