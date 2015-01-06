@@ -384,6 +384,11 @@ public final class Revapi {
     private void analyzeWith(ApiAnalyzer apiAnalyzer, API oldApi, API newApi)
         throws Exception {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Starting analysis using " + apiAnalyzer + " on:\nOld API:\n" + oldApi + "\n\nNew API:\n"
+                + newApi);
+        }
+
         ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
         ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
 
