@@ -21,8 +21,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -176,17 +178,21 @@ final class Analyzer {
         this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
     }
 
-    public static String getProjectArtifactCoordinates(MavenProject project, RepositorySystemSession session) {
+    public static String getProjectArtifactCoordinates(MavenProject project, RepositorySystemSession session,
+        String versionOverride) {
+
         org.apache.maven.artifact.Artifact artifact = project.getArtifact();
 
         String extension = session.getArtifactTypeRegistry().get(artifact.getType()).getExtension();
 
+        String version = versionOverride == null ? project.getVersion() : versionOverride;
+
         if (artifact.hasClassifier()) {
             return project.getGroupId() + ":" + project.getArtifactId() + ":" + extension + ":" +
-                    artifact.getClassifier() + ":" + project.getVersion();
+                    artifact.getClassifier() + ":" + version;
         } else {
             return project.getGroupId() + ":" + project.getArtifactId() + ":" + extension + ":" +
-                    project.getVersion();
+                    version;
         }
     }
 
@@ -207,7 +213,7 @@ final class Analyzer {
             return;
         }
 
-        List<FileArchive> oldTransitiveDeps = Collections.emptyList();
+        Set<FileArchive> oldTransitiveDeps = Collections.emptySet();
         try {
             oldTransitiveDeps = collectTransitiveDeps(oldArtifacts);
         } catch (DependencyCollectionException | ArtifactResolutionException | DependencyResolutionException e) {
@@ -215,7 +221,7 @@ final class Analyzer {
                 ". The API analysis might produce unexpected results.");
         }
 
-        List<FileArchive> newTransitiveDeps = Collections.emptyList();
+        Set<FileArchive> newTransitiveDeps = Collections.emptySet();
         try {
             newTransitiveDeps = collectTransitiveDeps(newArtifacts);
         } catch (DependencyCollectionException | ArtifactResolutionException | DependencyResolutionException e) {
@@ -324,7 +330,7 @@ final class Analyzer {
 
     private Artifact resolveArtifact(String coordinates) throws ArtifactResolutionException {
         if (BUILD_COORDINATES.equals(coordinates)) {
-            return toAetherArtifact(project.getArtifact());
+            return toAetherArtifact(project.getArtifact(), repositorySystemSession);
         }
 
         DefaultArtifact artifact = new DefaultArtifact(coordinates);
@@ -335,14 +341,16 @@ final class Analyzer {
         return result.getArtifact();
     }
 
-    private Artifact toAetherArtifact(org.apache.maven.artifact.Artifact artifact) {
-        return new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), null,
+    private static Artifact toAetherArtifact(org.apache.maven.artifact.Artifact artifact, RepositorySystemSession session) {
+        String extension = session.getArtifactTypeRegistry().get(artifact.getType()).getExtension();
+        return new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), extension,
             artifact.getVersion());
     }
 
-    private List<FileArchive> collectTransitiveDeps(String[] coordinates)
+    private Set<FileArchive> collectTransitiveDeps(String[] coordinates)
         throws DependencyCollectionException, ArtifactResolutionException, DependencyResolutionException {
-        List<FileArchive> results = new ArrayList<>();
+        Set<FileArchive> results = new LinkedHashSet<>(); //so that it is easier to compare the differences - randomized
+                                                          //order of the HashSet wouldn't help...
 
         for (String coord : coordinates) {
             collectTransitiveDeps(coord, results);
@@ -351,7 +359,7 @@ final class Analyzer {
         return results;
     }
 
-    private void collectTransitiveDeps(String coordinates, final List<FileArchive> resolvedArchives)
+    private void collectTransitiveDeps(String coordinates, final Set<FileArchive> resolvedArchives)
         throws ArtifactResolutionException, DependencyCollectionException, DependencyResolutionException {
 
         if (BUILD_COORDINATES.equals(coordinates)) {
@@ -400,7 +408,7 @@ final class Analyzer {
         return Collections.singletonList(archive);
     }
 
-    private void addProjectDeps(List<FileArchive> resolvedArchives)
+    private void addProjectDeps(Set<FileArchive> resolvedArchives)
         throws ArtifactResolutionException, DependencyCollectionException, DependencyResolutionException {
         for (org.apache.maven.model.Dependency dep : project.getDependencies()) {
             String scope = dep.getScope();

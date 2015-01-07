@@ -191,7 +191,7 @@ public class ReportMojo extends AbstractMavenReport {
         }
 
         if (oldArtifacts == null || oldArtifacts.length == 0) {
-            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession)};
+            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, "RELEASE")};
         }
 
         ReportTimeReporter reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());

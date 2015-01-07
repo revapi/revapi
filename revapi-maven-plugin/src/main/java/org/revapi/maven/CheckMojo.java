@@ -163,7 +163,7 @@ public class CheckMojo extends AbstractMojo {
         BuildTimeReporter reporter = new BuildTimeReporter(failSeverity.asDifferenceSeverity());
 
         if (oldArtifacts == null || oldArtifacts.length == 0) {
-            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession)};
+            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, "RELEASE")};
         }
 
         Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
