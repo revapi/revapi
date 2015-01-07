@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Lukas Krejci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
 package org.revapi.standalone;
 
 import java.io.File;
@@ -74,6 +90,19 @@ final class ExtensionResolver extends MavenAddonDependencyResolver {
     private Settings settings;
     private final MavenContainer container = new MavenContainer();
 
+    private final ScopeDependencyTraverser dependencyTraverser = new ScopeDependencyTraverser("compile", "provided") {
+        @Override
+        public boolean traverseDependency(Dependency dependency) {
+            return super.traverseDependency(dependency) && !ExtensionResolver.isRevapiApi(dependency);
+        }
+    };
+    private final ScopeDependencySelector dependencySelector = new ScopeDependencySelector("compile", "provided") {
+        @Override
+        public boolean selectDependency(Dependency dependency) {
+            return super.selectDependency(dependency) && !ExtensionResolver.isRevapiApi(dependency);
+        }
+    };
+
     public ExtensionResolver() {
     }
 
@@ -103,18 +132,8 @@ final class ExtensionResolver extends MavenAddonDependencyResolver {
         DefaultRepositorySystemSession session = container.setupRepoSession(system, settings);
         final String mavenCoords = toMavenCoords(addonId);
         Artifact queryArtifact = new DefaultArtifact(mavenCoords);
-        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided") {
-            @Override
-            public boolean traverseDependency(Dependency dependency) {
-                return super.traverseDependency(dependency) && !ExtensionResolver.isRevapiApi(dependency);
-            }
-        });
-        session.setDependencySelector(new ScopeDependencySelector("compile", "provided") {
-            @Override
-            public boolean selectDependency(Dependency dependency) {
-                return super.selectDependency(dependency) && !ExtensionResolver.isRevapiApi(dependency);
-            }
-        });
+        session.setDependencyTraverser(dependencyTraverser);
+        session.setDependencySelector(dependencySelector);
         Dependency dependency = new Dependency(queryArtifact, null);
 
         List<RemoteRepository> repositories = MavenRepositories.getRemoteRepositories(container, settings);
@@ -272,8 +291,8 @@ final class ExtensionResolver extends MavenAddonDependencyResolver {
 
     private DependencyNode traverseAddonGraph(String coords, RepositorySystem system, Settings settings,
         DefaultRepositorySystemSession session) {
-        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
-        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
+        session.setDependencyTraverser(dependencyTraverser);
+        session.setDependencySelector(dependencySelector);
         Artifact queryArtifact = new DefaultArtifact(coords);
 
         List<RemoteRepository> repositories = MavenRepositories.getRemoteRepositories(container, settings);
