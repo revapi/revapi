@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Lukas Krejci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
 package org.revapi.java.compilation;
 
 import java.io.File;
@@ -86,7 +102,16 @@ final class TypeTreeConstructor {
                 }
 
                 if (t.hasUseSites()) {
-                    environment.getUseSiteMap().put(t.getBinaryName(), t.getUseSites());
+                    //only add use sites which are in the API, too
+                    Set<RawUseSite> significantUseSites = new HashSet<>();
+                    for (RawUseSite r : t.getUseSites()) {
+                        TypeRecord tr = typesByBinaryName.get(r.getSiteClass());
+                        if (tr != null && tr.isApiType()) {
+                            significantUseSites.add(r);
+                        }
+                    }
+
+                    environment.getUseSiteMap().put(t.getBinaryName(), significantUseSites);
                 }
             }
         }
@@ -233,17 +258,17 @@ final class TypeTreeConstructor {
                 if (rec.getType() == null) {
                     unseenClassesBinaryNames.add(usedTypeBinaryName);
                 }
-                addUsedTypesToApi(rec, new HashSet<TypeRecord>());
+                addUsedTypesToApi(rec, new HashSet<>());
             }
 
             rec.getUseSites().add(useSite);
 
             TypeRecord userRec = getOrCreateTypeRecord(useSite.getSiteClass());
-            Map<String, EnumSet<UseSite.Type>> usedTypes = userRec.getUsedTypes();
-            EnumSet<UseSite.Type> useTypes = usedTypes.get(usedTypeBinaryName);
+            Map<TypeRecord, EnumSet<UseSite.Type>> usedTypes = userRec.getUsedTypes();
+            EnumSet<UseSite.Type> useTypes = usedTypes.get(rec);
             if (useTypes == null) {
                 useTypes = EnumSet.noneOf(UseSite.Type.class);
-                usedTypes.put(usedTypeBinaryName, useTypes);
+                usedTypes.put(rec, useTypes);
             }
             useTypes.add(useSite.getUseType());
         }
@@ -338,12 +363,12 @@ final class TypeTreeConstructor {
                 return;
             }
 
-            for (Map.Entry<String, EnumSet<UseSite.Type>> usedType : userType.getUsedTypes().entrySet()) {
+            for (Map.Entry<TypeRecord, EnumSet<UseSite.Type>> usedType : userType.getUsedTypes().entrySet()) {
                 if (!movesToApi(usedType.getValue())) {
                     continue;
                 }
 
-                TypeRecord rec = getOrCreateTypeRecord(usedType.getKey());
+                TypeRecord rec = usedType.getKey();
                 rec.setApiType(true);
                 rec.setApiThroughUse(true);
 

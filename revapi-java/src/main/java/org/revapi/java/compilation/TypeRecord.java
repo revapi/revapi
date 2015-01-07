@@ -27,7 +27,7 @@ final class TypeRecord {
     private boolean apiType;
     private boolean apiThroughUse;
     private Set<RawUseSite> useSites;
-    private Map<String, EnumSet<UseSite.Type>> usedTypes;
+    private Map<TypeRecord, EnumSet<UseSite.Type>> usedTypes;
     private TypeElement type;
     private TypeRecord owner;
     private int nestingDepth;
@@ -89,7 +89,7 @@ final class TypeRecord {
      * (i.e. as a return type of a public method, type of a public field, etc.).
      */
     @Nonnull
-    public Map<String, EnumSet<UseSite.Type>> getUsedTypes() {
+    public Map<TypeRecord, EnumSet<UseSite.Type>> getUsedTypes() {
         if (usedTypes == null) {
             usedTypes = new HashMap<>();
         }
@@ -136,6 +136,25 @@ final class TypeRecord {
 
     public void setNestingDepth(int nestingDepth) {
         this.nestingDepth = nestingDepth;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || !(o instanceof TypeRecord)) {
+            return false;
+        }
+
+        TypeRecord that = (TypeRecord) o;
+
+        return binaryName.equals(that.binaryName);
+    }
+
+    @Override
+    public int hashCode() {
+        return binaryName.hashCode();
     }
 
     @Override
