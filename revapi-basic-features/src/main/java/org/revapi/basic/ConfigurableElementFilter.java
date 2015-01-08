@@ -79,12 +79,20 @@ public class ConfigurableElementFilter implements ElementFilter {
             return;
         }
 
-        for (ModelNode inc : root.get("includes").asList()) {
-            includes.add(Pattern.compile(inc.asString()));
+        ModelNode includeNode = root.get("include");
+
+        if (includeNode.isDefined()) {
+            for (ModelNode inc : includeNode.asList()) {
+                includes.add(Pattern.compile(inc.asString()));
+            }
         }
 
-        for (ModelNode exc : root.get("excludes").asList()) {
-            excludes.add(Pattern.compile(exc.asString()));
+        ModelNode excludeNode = root.get("exclude");
+
+        if (excludeNode.isDefined()) {
+            for (ModelNode exc : excludeNode.asList()) {
+                excludes.add(Pattern.compile(exc.asString()));
+            }
         }
     }
 
