@@ -18,7 +18,6 @@ package org.revapi.java;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -29,7 +28,9 @@ import java.util.ResourceBundle;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.Archive;
 import org.revapi.Difference;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
@@ -230,25 +231,9 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         return ca && cb;
     }
 
-    private String join(Collection<UseSite> useSites) {
-        StringBuilder bld = new StringBuilder();
-        Iterator<UseSite> it = useSites.iterator();
-
-        if (it.hasNext()) {
-            append(bld, it.next());
-        }
-
-        while (it.hasNext()) {
-            bld.append(", ");
-            append(bld, it.next());
-        }
-
-        return bld.toString();
-    }
-
-    private void append(StringBuilder bld, UseSite use) {
+    private void append(StringBuilder bld, TypeAndUseSite typeAndUseSite) {
         String message;
-        switch (use.getUseType()) {
+        switch (typeAndUseSite.useSite.getUseType()) {
         case ANNOTATES:
             message = "revapi.java.uses.annotates";
             break;
@@ -278,12 +263,13 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         message = messages.getString(message);
-        message = MessageFormat.format(message, use.getSite().getFullHumanReadableString());
+        message = MessageFormat.format(message, typeAndUseSite.useSite.getSite().getFullHumanReadableString(),
+            typeAndUseSite.type.getQualifiedName().toString());
 
         bld.append(message);
     }
 
-    private void appendUses(Element element, ProbingEnvironment environment, final StringBuilder bld) {
+    private void appendUses(Element element, final ProbingEnvironment environment, final StringBuilder bld) {
         if (element instanceof JavaTypeElement) {
             bld.append("\n");
             LOG.trace("Reporting uses of {}", element);
@@ -297,11 +283,11 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 public Void visit(@Nonnull javax.lang.model.element.TypeElement type, @Nonnull UseSite use,
                     @Nullable Void parameter) {
                     if (first) {
-                        appendUse(bld, use);
+                        appendUse(bld, type, use, environment);
                         first = false;
                     } else {
                         bld.append(", ");
-                        appendUse(bld, use);
+                        appendUse(bld, type, use, environment);
                     }
 
                     return null;
@@ -317,23 +303,81 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
 
-    private void appendUse(StringBuilder bld, UseSite use) {
-        List<UseSite> chain = getShortestPathToApiArchive(use);
-        Iterator<UseSite> chainIt = chain.iterator();
+    private void appendUse(StringBuilder bld, javax.lang.model.element.TypeElement type, UseSite use,
+        ProbingEnvironment environment) {
 
+        List<TypeAndUseSite> chain = getExamplePathToApiArchive(type, use, environment);
+        Iterator<TypeAndUseSite> chainIt = chain.iterator();
+
+        TypeAndUseSite last = null;
         if (chainIt.hasNext()) {
-            append(bld, chainIt.next());
+            last = chainIt.next();
+            append(bld, last);
         }
 
         while (chainIt.hasNext()) {
             bld.append(" <- ");
-            append(bld, chainIt.next());
+            last = chainIt.next();
+            append(bld, last);
+        }
+
+        String message = MessageFormat.format(messages.getString("revapi.java.uses.partOfApi"),
+            last.useSite.getSite().getFullHumanReadableString());
+
+        bld.append(" (").append(message).append(")");
+    }
+
+    private List<TypeAndUseSite> getExamplePathToApiArchive(javax.lang.model.element.TypeElement type,
+        UseSite bottomUse, ProbingEnvironment environment) {
+
+        ArrayList<TypeAndUseSite> ret = new ArrayList<>();
+
+        traverseToApi(type, bottomUse, ret, environment);
+
+        return ret;
+    }
+
+    private boolean traverseToApi(final javax.lang.model.element.TypeElement type, final UseSite currentUse,
+        final List<TypeAndUseSite> path, final ProbingEnvironment environment) {
+
+        API api = currentUse.getSite().getApi();
+        Archive siteArchive = currentUse.getSite().getArchive();
+
+        if (contains(siteArchive, api.getArchives())) {
+            //the class is in the primary API
+            path.add(0, new TypeAndUseSite(type, currentUse));
+            return true;
+        } else {
+            JavaTypeElement useType = findClassOf(currentUse.getSite());
+            Boolean ret = environment.visitUseSites(useType.getModelElement(), new UseSite.Visitor<Boolean, Void>() {
+                @Nullable
+                @Override
+                public Boolean visit(@Nonnull javax.lang.model.element.TypeElement visitedType, @Nonnull UseSite use,
+                    @Nullable Void parameter) {
+                    if (traverseToApi(visitedType, use, path, environment)) {
+                        path.add(0, new TypeAndUseSite(type, currentUse));
+                        return true;
+                    }
+                    return null;
+                }
+
+                @Nullable
+                @Override
+                public Boolean end(javax.lang.model.element.TypeElement type, @Nullable Void parameter) {
+                    return null;
+                }
+            }, null);
+
+            return ret == null ? false : ret;
         }
     }
 
-    private List<UseSite> getShortestPathToApiArchive(UseSite bottomUse) {
-        // TODO implement
-        return Collections.singletonList(bottomUse);
+    private JavaTypeElement findClassOf(Element element) {
+        while (element != null && !(element instanceof JavaTypeElement)) {
+            element = element.getParent();
+        }
+
+        return (JavaTypeElement) element;
     }
 
     private static <T> boolean contains(T value, Iterable<? extends T> values) {
@@ -345,5 +389,15 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         return false;
+    }
+
+    private static class TypeAndUseSite {
+        final javax.lang.model.element.TypeElement type;
+        final UseSite useSite;
+
+        public TypeAndUseSite(javax.lang.model.element.TypeElement type, UseSite useSite) {
+            this.type = type;
+            this.useSite = useSite;
+        }
     }
 }
