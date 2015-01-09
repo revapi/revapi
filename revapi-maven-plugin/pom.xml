@@ -33,7 +33,7 @@
     <artifactId>revapi-maven-plugin</artifactId>
 
     <properties>
-        <maven.version>3.2.5</maven.version>
+        <maven.version>3.1.1</maven.version>
         <maven-invoker.version>1.9</maven-invoker.version>
         <aether.version>1.0.1.v20141111</aether.version>
         <skipTests>false</skipTests>
