@@ -37,11 +37,13 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
@@ -110,6 +112,16 @@ public final class Util {
         public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> bld) {
             IgnoreCompletionFailures.in(t::getComponentType).accept(this, bld);
             bld.bld.append("[]");
+            return null;
+        }
+
+        @Override
+        public Void visitIntersection(IntersectionType t, StringBuilderAndState<TypeMirror> state) {
+            for (TypeMirror b : IgnoreCompletionFailures.in(t::getBounds)) {
+                b.accept(this, state);
+                state.bld.append("+");
+            }
+
             return null;
         }
 
@@ -383,6 +395,20 @@ public final class Util {
             } catch (RuntimeException e) {
                 LOG.debug("Failed to enumerate type arguments of '" + name + "'. Class is missing?", e);
             }
+
+            return null;
+        }
+
+        @Override
+        public Void visitIntersection(IntersectionType t, StringBuilderAndState<TypeMirror> state) {
+            Iterator<? extends TypeMirror> it = IgnoreCompletionFailures.in(t::getBounds).iterator();
+            if (it.hasNext()) {
+                it.next().accept(this, state);
+            }
+
+            TypeVisitor<Void, StringBuilderAndState<TypeMirror>> me = this;
+
+            it.forEachRemaining(b -> { state.bld.append(", "); b.accept(me, state); });
 
             return null;
         }

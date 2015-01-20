@@ -33,6 +33,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
+import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
@@ -383,6 +384,17 @@ public final class ProbingEnvironment implements TypeEnvironment {
                 @Override
                 public Boolean visitTypeVariable(TypeVariable t, Void ignored) {
                     return visit(t.getUpperBound(), ignored);
+                }
+
+                @Override
+                public Boolean visitIntersection(IntersectionType t, Void ignored) {
+                    for (TypeMirror b : t.getBounds()) {
+                        if (!visit(b, ignored)) {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 }
             }, null);
 

@@ -22,11 +22,13 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.NullType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleTypeVisitor7;
 
@@ -150,6 +152,26 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
     }
 
     protected R visitNoType(NoType type, NoType otherType) {
+        return defaultMatchAction(type, otherType);
+    }
+
+    @Override
+    public final R visitIntersection(IntersectionType type, TypeMirror otherType) {
+        return otherType instanceof IntersectionType ? visitIntersection(type, (IntersectionType) otherType) :
+            unmatchedAction(type, otherType);
+    }
+
+    protected R visitIntersection(IntersectionType type, IntersectionType otherType) {
+        return defaultMatchAction(type, otherType);
+    }
+
+    @Override
+    public final R visitUnion(UnionType type, TypeMirror otherType) {
+        return otherType instanceof UnionType ? visitUnion(type, (UnionType) otherType) :
+            unmatchedAction(type, otherType);
+    }
+
+    protected R visitUnion(UnionType type, UnionType otherType) {
         return defaultMatchAction(type, otherType);
     }
 
