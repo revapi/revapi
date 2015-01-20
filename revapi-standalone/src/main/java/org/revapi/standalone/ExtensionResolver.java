@@ -215,7 +215,7 @@ final class ExtensionResolver extends MavenAddonDependencyResolver {
         }
         List<Exception> exceptions = result.getExceptions();
         String apiVersion = findVersion(result.getRoot().getChildren(), REVAPI_GROUP_ID, REVAPI_ARTIFACT_ID);
-        return new MavenResponseBuilder<String>(apiVersion).setExceptions(exceptions);
+        return new MavenResponseBuilder<>(apiVersion).setExceptions(exceptions);
     }
 
     private String findVersion(List<DependencyNode> dependencies, String groupId, String artifactId) {

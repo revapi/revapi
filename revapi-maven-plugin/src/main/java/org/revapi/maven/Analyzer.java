@@ -20,36 +20,32 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.collection.CollectRequest;
-import org.eclipse.aether.collection.DependencyCollectionException;
-import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.graph.DependencyNode;
-import org.eclipse.aether.graph.DependencyVisitor;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.resolution.DependencyRequest;
-import org.eclipse.aether.resolution.DependencyResolutionException;
-import org.eclipse.aether.resolution.DependencyResult;
-import org.eclipse.aether.util.graph.visitor.TreeDependencyVisitor;
+import org.eclipse.aether.util.artifact.DelegatingArtifact;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
+import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.maven.utils.ScopeDependencySelector;
 import org.revapi.maven.utils.ScopeDependencyTraverser;
 
@@ -196,35 +192,68 @@ final class Analyzer {
         }
     }
 
+    @SuppressWarnings("unchecked")
     void analyze() throws MojoExecutionException {
+        final BuildAwareArtifactResolver resolver = new BuildAwareArtifactResolver();
+
+        //Ok, what on Earth is this?
+        //We're building with Java8 and I really like lambdas but Maven in the version we're using doesn't like
+        //lambdas in the bytecode of the plugin - it'll actually fail to scan the archive for the annotations and
+        //therefore will not properly build the maven plugin we're implementing here.
+
+        //Sooo, we're building with Java8, so we have access to Java8 classes but cannot use Java8 features at all here.
+        //Hence, instead of a lambda, we use these Function instances and further below we need to make unsafe casts
+        //that Java8 would have correctly figured out on its own. Yay.
+
+        Function<String, FileArchive> toFileArchive = new Function<String, FileArchive>() {
+            @Override
+            public FileArchive apply(String gav) {
+                try {
+                    return new FileArchive(resolver.resolveArtifact(gav).getFile());
+                } catch (ArtifactResolutionException e) {
+                    throw new MarkerException(e.getMessage());
+                }
+            }
+        };
+
+        Function<Artifact, FileArchive> artifactToFileArchive = new Function<Artifact, FileArchive>() {
+            @Override
+            public FileArchive apply(Artifact artifact) {
+                return new FileArchive(artifact.getFile());
+            }
+        };
+
         List<FileArchive> oldArchives;
         try {
-            oldArchives = resolveArtifacts(oldArtifacts);
-        } catch (ArtifactResolutionException e) {
+            oldArchives = (List) Arrays.asList(oldArtifacts).stream().map(toFileArchive).collect(Collectors.toList());
+        } catch (MarkerException e) {
             log.warn("Failed to resolve old artifacts: " + e.getMessage() + ". The API analysis will not proceed.");
             return;
         }
 
         List<FileArchive> newArchives;
         try {
-            newArchives = resolveArtifacts(newArtifacts);
-        } catch (ArtifactResolutionException e) {
+            newArchives = (List) Arrays.asList(newArtifacts).stream().map(toFileArchive).collect(Collectors.toList());
+        } catch (MarkerException e) {
             log.warn("Failed to resolve new artifacts: " + e.getMessage() + ". The API analysis will not proceed.");
             return;
         }
 
         Set<FileArchive> oldTransitiveDeps = Collections.emptySet();
         try {
-            oldTransitiveDeps = collectTransitiveDeps(oldArtifacts);
-        } catch (DependencyCollectionException | ArtifactResolutionException | DependencyResolutionException e) {
+            oldTransitiveDeps = (Set) resolver.collectTransitiveDeps(oldArtifacts).stream()
+                .map(artifactToFileArchive).collect(Collectors.toSet());
+
+        } catch (RepositoryException e) {
             log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() +
                 ". The API analysis might produce unexpected results.");
         }
 
         Set<FileArchive> newTransitiveDeps = Collections.emptySet();
         try {
-            newTransitiveDeps = collectTransitiveDeps(newArtifacts);
-        } catch (DependencyCollectionException | ArtifactResolutionException | DependencyResolutionException e) {
+            newTransitiveDeps = (Set) resolver.collectTransitiveDeps(newArtifacts).stream()
+                .map(artifactToFileArchive).collect(Collectors.toSet());
+        } catch (RepositoryException e) {
             log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() +
                 ". The API analysis might produce unexpected results.");
         }
@@ -304,130 +333,87 @@ final class Analyzer {
         }
     }
 
-    private List<FileArchive> resolveArtifacts(String[] coordinates) throws ArtifactResolutionException {
+    private class BuildAwareArtifactResolver extends ArtifactResolver {
 
-        if (coordinates.length == 1 && BUILD_COORDINATES.equals(coordinates[0])) {
-            return resolveBuildArtifacts();
+        public BuildAwareArtifactResolver() {
+            super(repositorySystem, repositorySystemSession, project.getRemoteProjectRepositories());
         }
 
-        List<ArtifactRequest> requests = new ArrayList<>();
-        for (String coord : coordinates) {
-            DefaultArtifact artifact = new DefaultArtifact(coord);
-            ArtifactRequest request = new ArtifactRequest().setArtifact(artifact)
-                .setRepositories(project.getRemoteProjectRepositories());
+        @Override
+        protected void collectTransitiveDeps(String gav, Set<Artifact> resolvedArtifacts) throws RepositoryException {
 
-            requests.add(request);
-        }
-
-        List<ArtifactResult> results = repositorySystem.resolveArtifacts(repositorySystemSession, requests);
-
-        List<FileArchive> archives = new ArrayList<>();
-        for (ArtifactResult res : results) {
-            archives.add(new FileArchive(res.getArtifact().getFile()));
-        }
-        return archives;
-    }
-
-    private Artifact resolveArtifact(String coordinates) throws ArtifactResolutionException {
-        if (BUILD_COORDINATES.equals(coordinates)) {
-            return toAetherArtifact(project.getArtifact(), repositorySystemSession);
-        }
-
-        DefaultArtifact artifact = new DefaultArtifact(coordinates);
-        ArtifactRequest request = new ArtifactRequest().setArtifact(artifact)
-            .setRepositories(project.getRemoteProjectRepositories());
-
-        ArtifactResult result = repositorySystem.resolveArtifact(repositorySystemSession, request);
-        return result.getArtifact();
-    }
-
-    private static Artifact toAetherArtifact(org.apache.maven.artifact.Artifact artifact, RepositorySystemSession session) {
-        String extension = session.getArtifactTypeRegistry().get(artifact.getType()).getExtension();
-        return new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), extension,
-            artifact.getVersion());
-    }
-
-    private Set<FileArchive> collectTransitiveDeps(String[] coordinates)
-        throws DependencyCollectionException, ArtifactResolutionException, DependencyResolutionException {
-        Set<FileArchive> results = new LinkedHashSet<>(); //so that it is easier to compare the differences - randomized
-                                                          //order of the HashSet wouldn't help...
-
-        for (String coord : coordinates) {
-            collectTransitiveDeps(coord, results);
-        }
-
-        return results;
-    }
-
-    private void collectTransitiveDeps(String coordinates, final Set<FileArchive> resolvedArchives)
-        throws ArtifactResolutionException, DependencyCollectionException, DependencyResolutionException {
-
-        if (BUILD_COORDINATES.equals(coordinates)) {
-            addProjectDeps(resolvedArchives);
-            return;
-        }
-
-        final Artifact rootArtifact = resolveArtifact(coordinates);
-
-        CollectRequest collectRequest = new CollectRequest(new Dependency(rootArtifact, null),
-            project.getRemoteProjectRepositories());
-
-        DependencyRequest request = new DependencyRequest(collectRequest, null);
-
-        DependencyResult result = repositorySystem.resolveDependencies(repositorySystemSession, request);
-        result.getRoot().accept(new TreeDependencyVisitor(new DependencyVisitor() {
-            @Override
-            public boolean visitEnter(DependencyNode node) {
-                return true;
+            if (BUILD_COORDINATES.equals(gav)) {
+                addProjectDeps(resolvedArtifacts);
+            } else {
+                super.collectTransitiveDeps(gav, resolvedArtifacts);
             }
+        }
 
-            @Override
-            public boolean visitLeave(DependencyNode node) {
-                Dependency dep = node.getDependency();
-                if (dep == null || dep.getArtifact().equals(rootArtifact)) {
-                    return true;
+        @Override
+        public Artifact resolveArtifact(String gav) throws ArtifactResolutionException {
+            if (BUILD_COORDINATES.equals(gav)) {
+                Artifact ret = toAetherArtifact(project.getArtifact(), repositorySystemSession);
+
+                //project.getArtifact().getFile() returns null for pom-packaged projects
+                if ("pom".equals(project.getArtifact().getType())) {
+                    ret = ret.setFile(new File(project.getBasedir(), "pom.xml"));
+                } else {
+                    ret = ret.setFile(project.getArtifact().getFile());
                 }
 
-                resolvedArchives.add(new FileArchive(dep.getArtifact().getFile()));
-
-                return true;
+                return ret;
+            } else {
+                return super.resolveArtifact(gav);
             }
-        }));
-    }
-
-    private List<FileArchive> resolveBuildArtifacts() {
-        FileArchive archive;
-
-        //project.getArtifact().getFile() returns null for pom-packaged projects
-        if ("pom".equals(project.getArtifact().getType())) {
-            archive = new FileArchive(new File(project.getBasedir(), "pom.xml"));
-        } else {
-            archive = new FileArchive(project.getArtifact().getFile());
         }
 
-        return Collections.singletonList(archive);
+        private Artifact toAetherArtifact(org.apache.maven.artifact.Artifact artifact, RepositorySystemSession session) {
+            String extension = session.getArtifactTypeRegistry().get(artifact.getType()).getExtension();
+            return new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), extension,
+                artifact.getVersion());
+        }
+
+        private void addProjectDeps(Set<Artifact> resolvedArchives) throws RepositoryException {
+            for (org.apache.maven.model.Dependency dep : project.getDependencies()) {
+                String scope = dep.getScope();
+                if (scope == null || "compile".equals(scope) || "provided".equals(scope)) {
+                    String coords = dep.getGroupId() + ":" + dep.getArtifactId();
+                    if (dep.getType() != null) {
+                        coords += ":" + dep.getType();
+                    }
+                    if (dep.getClassifier() != null) {
+                        coords += ":" + dep.getClassifier();
+                    }
+                    coords += ":" + dep.getVersion();
+
+                    Artifact a = resolveArtifact(coords);
+
+                    resolvedArchives.add(a);
+
+                    collectTransitiveDeps(coords, resolvedArchives);
+                }
+            }
+        }
     }
 
-    private void addProjectDeps(Set<FileArchive> resolvedArchives)
-        throws ArtifactResolutionException, DependencyCollectionException, DependencyResolutionException {
-        for (org.apache.maven.model.Dependency dep : project.getDependencies()) {
-            String scope = dep.getScope();
-            if (scope == null || "compile".equals(scope) || "provided".equals(scope)) {
-                String coords = dep.getGroupId() + ":" + dep.getArtifactId();
-                if (dep.getType() != null) {
-                    coords += ":" + dep.getType();
-                }
-                if (dep.getClassifier() != null) {
-                    coords += ":" + dep.getClassifier();
-                }
-                coords += ":" + dep.getVersion();
+    private static class MarkerException extends RuntimeException {
+        public MarkerException() {
+        }
 
-                Artifact a = resolveArtifact(coords);
+        public MarkerException(Throwable cause) {
+            super(cause);
+        }
 
-                resolvedArchives.add(new FileArchive(a.getFile()));
+        public MarkerException(String message) {
+            super(message);
+        }
 
-                collectTransitiveDeps(coords, resolvedArchives);
-            }
+        public MarkerException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public MarkerException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+            super(message, cause, enableSuppression, writableStackTrace);
         }
     }
 }

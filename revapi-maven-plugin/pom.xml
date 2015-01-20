@@ -35,7 +35,7 @@
     <properties>
         <maven.version>3.1.1</maven.version>
         <maven-invoker.version>1.9</maven-invoker.version>
-        <aether.version>1.0.1.v20141111</aether.version>
+        <aether.version>0.9.1.v20140329</aether.version>
         <skipTests>false</skipTests>
         <skip.awestruct.site>true</skip.awestruct.site>
         <skip.deploy>true</skip.deploy>
@@ -112,6 +112,15 @@
 
     <build>
         <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Maven 3.1.1 doesn't handle java8 constructs too well -->
+                    <source>1.7</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>

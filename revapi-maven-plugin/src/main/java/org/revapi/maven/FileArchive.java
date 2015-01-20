@@ -34,6 +34,9 @@ final class FileArchive implements Archive {
     private final File file;
 
     public FileArchive(File f) {
+        if (f == null) {
+            throw new IllegalArgumentException("file cannot be null");
+        }
         file = f;
     }
 

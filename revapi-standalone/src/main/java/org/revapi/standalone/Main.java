@@ -27,7 +27,18 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
 
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositoryException;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.revapi.API;
+import org.revapi.AnalysisContext;
+import org.revapi.Revapi;
+import org.revapi.maven.utils.ArtifactResolver;
+import org.revapi.maven.utils.ScopeDependencySelector;
+import org.revapi.maven.utils.ScopeDependencyTraverser;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import org.jboss.dmr.ModelNode;
@@ -38,11 +49,9 @@ import org.jboss.forge.furnace.impl.FurnaceImpl;
 import org.jboss.forge.furnace.impl.addons.AddonRepositoryImpl;
 import org.jboss.forge.furnace.manager.AddonManager;
 import org.jboss.forge.furnace.manager.impl.AddonManagerImpl;
+import org.jboss.forge.furnace.manager.maven.MavenContainer;
 import org.jboss.forge.furnace.manager.request.InstallRequest;
 import org.jboss.forge.furnace.util.Addons;
-import org.revapi.API;
-import org.revapi.AnalysisContext;
-import org.revapi.Revapi;
 
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
@@ -77,12 +86,18 @@ public final class Main {
         System.out.println(pad + " -o");
         System.out.println(pad + " --old=<FILE>[,<FILE>]*");
         System.out.println(pad + "    Comma-separated list of files of the old version of API");
+        System.out.println(pad + " -a");
+        System.out.println(pad + " --old-gavs=<FILE>[,<FILE>]*");
+        System.out.println(pad + "    Comma-separated list of GAVs of the old version of API");
         System.out.println(pad + " -s");
         System.out.println(pad + " --old-supplementary=<FILE>[,<FILE>]*");
         System.out.println(pad + "    Comma-separated list of files that supplement the old version of API");
         System.out.println(pad + " -n");
         System.out.println(pad + " --new=<FILE>[,<FILE>]*");
         System.out.println(pad + "    Comma-separated list of files of the new version of API");
+        System.out.println(pad + " -b");
+        System.out.println(pad + " --new-gavs=<FILE>[,<FILE>]*");
+        System.out.println(pad + "    Comma-separated list of GAVs of the new version of API");
         System.out.println(pad + " -t");
         System.out.println(pad + " --new-supplementary=<FILE>[,<FILE>]*");
         System.out.println(pad + "    Comma-separated list of files that supplement the new version of API");
@@ -97,6 +112,14 @@ public final class Main {
         System.out.println(pad + " --cache-dir=<DIR>");
         System.out.println(pad + "    The location of local cache of extensions to use to locate artifacts. " +
             "Defaults to 'extensions' directory under revapi installation dir.");
+        System.out.println();
+        System.out.println("You can specify the old API either using -o and -s where you specify the filesystem paths" +
+            " to the archives and supplementary archives respectively or you can use -a to specify the GAVs of the" +
+            " old API archives and the supplementary archives (i.e. their transitive dependencies) will be determined" +
+            " automatically using Maven. But you cannot do both obviously.");
+        System.out.println();
+        System.out.println("Of course you can do the same for the new version of the API by using -n and -t for file" +
+            " paths or -b for GAVs.");
     }
 
     @SuppressWarnings("unchecked")
@@ -121,17 +144,19 @@ public final class Main {
 
         String[] extensionGAVs = null;
         String[] oldArchivePaths = null;
+        String[] oldGavs = null;
         String[] newArchivePaths = null;
+        String[] newGavs = null;
         String[] oldSupplementaryArchivePaths = null;
         String[] newSupplementaryArchivePaths = null;
         Map<String, String> additionalConfigOptions = new HashMap<>();
         String[] configFiles = null;
         File cacheDir = new File(baseDir, "extensions");
 
-        LongOpt[] longOpts = new LongOpt[10];
+        LongOpt[] longOpts = new LongOpt[12];
         longOpts[0] = new LongOpt("usage", LongOpt.NO_ARGUMENT, null, 'u');
         longOpts[1] = new LongOpt("help", LongOpt.NO_ARGUMENT, null, 'h');
-        longOpts[2] = new LongOpt("extensions", LongOpt.REQUIRED_ARGUMENT, null, 'c');
+        longOpts[2] = new LongOpt("extensions", LongOpt.REQUIRED_ARGUMENT, null, 'e');
         longOpts[3] = new LongOpt("old", LongOpt.REQUIRED_ARGUMENT, null, 'o');
         longOpts[4] = new LongOpt("new", LongOpt.REQUIRED_ARGUMENT, null, 'n');
         longOpts[5] = new LongOpt("old-supplementary", LongOpt.REQUIRED_ARGUMENT, null, 's');
@@ -139,8 +164,10 @@ public final class Main {
         longOpts[7] = null;
         longOpts[8] = new LongOpt("config-files", LongOpt.REQUIRED_ARGUMENT, null, 'c');
         longOpts[9] = new LongOpt("cache-dir", LongOpt.REQUIRED_ARGUMENT, null, 'd');
+        longOpts[10] = new LongOpt("old-gavs", LongOpt.REQUIRED_ARGUMENT, null, 'a');
+        longOpts[11] = new LongOpt("new-gavs", LongOpt.REQUIRED_ARGUMENT, null, 'b');
 
-        Getopt opts = new Getopt(scriptFileName, realArgs, "ue:o:n:s:t:D:c:d:", longOpts);
+        Getopt opts = new Getopt(scriptFileName, realArgs, "uhe:o:n:s:t:D:c:d:a:b:", longOpts);
         int c;
         while ((c = opts.getopt()) != -1) {
             switch (c) {
@@ -173,6 +200,12 @@ public final class Main {
             case 'd':
                 cacheDir = new File(opts.getOptarg());
                 break;
+            case 'a':
+                oldGavs = opts.getOptarg().split(",");
+                break;
+            case 'b':
+                newGavs = opts.getOptarg().split(",");
+                break;
             case ':':
                 System.err.println("Argument required for option " +
                     (char) opts.getOptopt());
@@ -189,17 +222,37 @@ public final class Main {
             }
         }
 
-        if (extensionGAVs == null || oldArchivePaths == null || newArchivePaths == null) {
+        if (extensionGAVs == null || (oldArchivePaths == null && oldGavs == null) ||
+            (newArchivePaths == null && newGavs == null)) {
+
             usage(scriptFileName);
             System.exit(1);
         }
 
-        List<FileArchive> oldArchives = convertPaths(oldArchivePaths, "Old API file");
-        List<FileArchive> newArchives = convertPaths(newArchivePaths, "New API file");
-        List<FileArchive> oldSupplementaryArchives = oldSupplementaryArchivePaths == null ? null :
-            convertPaths(oldSupplementaryArchivePaths, "Old API supplementary file");
-        List<FileArchive> newSupplementaryArchives = newSupplementaryArchivePaths == null ? null :
-            convertPaths(newSupplementaryArchivePaths, "New API supplementary file");
+        List<FileArchive> oldArchives = null;
+        List<FileArchive> newArchives = null;
+        List<FileArchive> oldSupplementaryArchives = null;
+        List<FileArchive> newSupplementaryArchives = null;
+
+        if (oldArchivePaths == null) {
+            ArchivesAndSupplementaryArchives res = convertGavs(oldGavs, "Old API Maven artifact");
+            oldArchives = res.archives;
+            oldSupplementaryArchives = res.supplementaryArchives;
+        } else {
+            oldArchives = convertPaths(oldArchivePaths, "Old API files");
+            oldSupplementaryArchives = oldSupplementaryArchivePaths == null ? null :
+                convertPaths(oldSupplementaryArchivePaths, "Old API supplementary files");
+        }
+
+        if (newArchivePaths == null) {
+            ArchivesAndSupplementaryArchives res = convertGavs(newGavs, "New API Maven artifact");
+            newArchives = res.archives;
+            newSupplementaryArchives = res.supplementaryArchives;
+        } else {
+            newArchives = convertPaths(newArchivePaths, "New API files");
+            newSupplementaryArchives = newSupplementaryArchivePaths == null ? null :
+                convertPaths(newSupplementaryArchivePaths, "New API supplementary files");
+        }
 
         try {
             run(cacheDir, extensionGAVs, oldArchives, oldSupplementaryArchives, newArchives,
@@ -286,6 +339,42 @@ public final class Main {
         return archives;
     }
 
+    private static ArchivesAndSupplementaryArchives convertGavs(String[] gavs, String errorMessagePrefix) {
+        MavenContainer mvn = new MavenContainer();
+        RepositorySystem repositorySystem = mvn.getRepositorySystem();
+        DefaultRepositorySystemSession session = mvn.setupRepoSession(repositorySystem, mvn.getSettings());
+
+        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
+        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
+
+        List<RemoteRepository> remoteRepositories = mvn.getEnabledRepositoriesFromProfile(mvn.getSettings());
+
+        //RemoteRepository local = new RemoteRepository.Builder("@@forced-local@@", "default", System.getenv("M2_HOME")).build();
+        RemoteRepository mavenCentral = new RemoteRepository.Builder("@@forced-maven-central@@", "default",
+            "http://repo.maven.apache.org/maven2/").build();
+
+        if (remoteRepositories.isEmpty()) {
+            //remoteRepositories.add(local);
+            remoteRepositories.add(mavenCentral);
+        }
+
+        ArtifactResolver resolver = new ArtifactResolver(repositorySystem, session, remoteRepositories);
+
+        List<FileArchive> archives = new ArrayList<>();
+        List<FileArchive> supplementaryArchives = new ArrayList<>();
+
+        for (String gav : gavs) {
+            try {
+                archives.add(new FileArchive(resolver.resolveArtifact(gav).getFile()));
+                resolver.collectTransitiveDeps(gav).forEach(a -> supplementaryArchives.add(new FileArchive(a.getFile())));
+            } catch (RepositoryException e) {
+                throw new IllegalArgumentException(errorMessagePrefix + " " + e.getMessage());
+            }
+        }
+
+        return new ArchivesAndSupplementaryArchives(archives, supplementaryArchives);
+    }
+
     private static void checkCanRead(File f, String errorMessagePrefix) throws IllegalArgumentException {
         if (!f.exists()) {
             throw new IllegalArgumentException(errorMessagePrefix + " '" + f.getAbsolutePath() + "' does not exist.");
@@ -294,6 +383,17 @@ public final class Main {
         if (!f.isFile() || !f.canRead()) {
             throw new IllegalArgumentException(
                 errorMessagePrefix + " '" + f.getAbsolutePath() + "' is not a file or cannot be read.");
+        }
+    }
+
+    private static class ArchivesAndSupplementaryArchives {
+        final List<FileArchive> archives;
+        final List<FileArchive> supplementaryArchives;
+
+        public ArchivesAndSupplementaryArchives(List<FileArchive> archives,
+            List<FileArchive> supplementaryArchives) {
+            this.archives = archives;
+            this.supplementaryArchives = supplementaryArchives;
         }
     }
 }
