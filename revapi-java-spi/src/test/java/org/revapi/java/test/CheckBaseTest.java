@@ -63,4 +63,20 @@ public class CheckBaseTest {
         Assert.assertTrue(isUsed);
     }
 
+    @Test
+    public void testPubliclyUsedAsWithSelfReferencingClass() throws Exception {
+        Jar.Environment env = jar.compile("SelfReference.java");
+
+        TypeElement SelfReference = env.getElementUtils().getTypeElement("SelfReference");
+        ExecutableElement selfReturningMethod = ElementFilter.methodsIn(SelfReference.getEnclosedElements()).get(0);
+
+        TypeEnvironment typeEnv = TestTypeEnvironment.builder(env)
+            .addUseSite(selfReturningMethod, UseSite.Type.RETURN_TYPE, SelfReference)
+            .build();
+
+        boolean isUsed = CheckBase
+            .isPubliclyUsedAs(SelfReference, typeEnv, UseSite.Type.all());
+
+        Assert.assertTrue(isUsed);
+    }
 }

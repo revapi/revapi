@@ -20,10 +20,12 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -309,6 +311,14 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         List<TypeAndUseSite> chain = getExamplePathToApiArchive(type, use, environment);
         Iterator<TypeAndUseSite> chainIt = chain.iterator();
 
+        if (chain.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Could not find example path to API element for type {} starting with use {}",
+                    type.getQualifiedName().toString(), use);
+            }
+            return;
+        }
+
         TypeAndUseSite last = null;
         if (chainIt.hasNext()) {
             last = chainIt.next();
@@ -332,13 +342,22 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
         ArrayList<TypeAndUseSite> ret = new ArrayList<>();
 
-        traverseToApi(type, bottomUse, ret, environment);
+        traverseToApi(type, bottomUse, ret, environment, new HashSet<>());
 
         return ret;
     }
 
     private boolean traverseToApi(final javax.lang.model.element.TypeElement type, final UseSite currentUse,
-        final List<TypeAndUseSite> path, final ProbingEnvironment environment) {
+        final List<TypeAndUseSite> path, final ProbingEnvironment environment, final
+    Set<javax.lang.model.element.TypeElement> visitedTypes) {
+
+        javax.lang.model.element.TypeElement useType = findClassOf(currentUse.getSite()).getModelElement();
+
+        if (visitedTypes.contains(useType)) {
+            return false;
+        }
+
+        visitedTypes.add(useType);
 
         API api = currentUse.getSite().getApi();
         Archive siteArchive = currentUse.getSite().getArchive();
@@ -348,13 +367,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             path.add(0, new TypeAndUseSite(type, currentUse));
             return true;
         } else {
-            JavaTypeElement useType = findClassOf(currentUse.getSite());
-            Boolean ret = environment.visitUseSites(useType.getModelElement(), new UseSite.Visitor<Boolean, Void>() {
+            Boolean ret = environment.visitUseSites(useType, new UseSite.Visitor<Boolean, Void>() {
                 @Nullable
                 @Override
                 public Boolean visit(@Nonnull javax.lang.model.element.TypeElement visitedType, @Nonnull UseSite use,
                     @Nullable Void parameter) {
-                    if (traverseToApi(visitedType, use, path, environment)) {
+                    if (traverseToApi(visitedType, use, path, environment, visitedTypes)) {
                         path.add(0, new TypeAndUseSite(type, currentUse));
                         return true;
                     }
