@@ -318,7 +318,17 @@ public final class Main {
             for (Map.Entry<String, String> e : additionalConfig.entrySet()) {
                 String[] keyPath = e.getKey().split("\\.");
                 ModelNode additionalNode = new ModelNode();
-                additionalNode.get(keyPath).set(e.getValue());
+                ModelNode key = additionalNode.get(keyPath);
+
+                String value = e.getValue();
+                if (value.startsWith("[") && value.endsWith("]")) {
+                    String[] values = value.substring(1, value.length() - 1).split("\\s*,\\s*");
+                    for(String v : values) {
+                        key.add(v);
+                    }
+                } else {
+                    key.set(value);
+                }
                 ctxBld.mergeConfiguration(additionalNode);
             }
 
