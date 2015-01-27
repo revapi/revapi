@@ -19,7 +19,6 @@ package org.revapi.maven;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,10 +36,7 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
-import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.util.artifact.DelegatingArtifact;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Reporter;
@@ -322,8 +318,8 @@ final class Analyzer {
                             ctxBld.mergeConfiguration(root);
                         }
                     }
-                } catch (IOException ignored) {
-                    throw new MojoExecutionException("Could not load configuration from '" + f.getAbsolutePath() + "'.");
+                } catch (IOException e) {
+                    throw new MojoExecutionException("Could not load configuration from '" + f.getAbsolutePath() + "': " + e.getMessage());
                 }
             }
         }
