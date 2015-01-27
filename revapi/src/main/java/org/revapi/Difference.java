@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Lukas Krejci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
 package org.revapi;
 
 import java.io.Serializable;
@@ -18,72 +34,72 @@ import javax.annotation.Nullable;
  * @since 0.1
  */
 public final class Difference {
-    public static final class Builder {
-        private final Report.Builder reportBuilder;
-        private String code;
-        private String name;
-        private String description;
-        private Map<CompatibilityType, DifferenceSeverity> classification = new HashMap<>();
-        private List<Object> attachments = new ArrayList<>();
-
-        Builder(Report.Builder reportBuilder) {
-            this.reportBuilder = reportBuilder;
-        }
+    private static abstract class BuilderBase<This extends BuilderBase> {
+        protected String code;
+        protected String name;
+        protected String description;
+        protected Map<CompatibilityType, DifferenceSeverity> classification = new HashMap<>();
+        protected List<Object> attachments = new ArrayList<>();
 
         @Nonnull
-        public Builder withCode(@Nonnull String code) {
+        public This withCode(@Nonnull String code) {
             this.code = code;
-            return this;
+            return castThis();
         }
 
         @Nonnull
-        public Builder withName(@Nonnull String name) {
+        public This withName(@Nonnull String name) {
             this.name = name;
-            return this;
+            return castThis();
         }
 
         @Nonnull
-        public Builder withDescription(@Nullable String description) {
+        public This withDescription(@Nullable String description) {
             this.description = description;
-            return this;
+            return castThis();
         }
 
         @Nonnull
-        public Builder addClassification(@Nonnull CompatibilityType compat, @Nonnull DifferenceSeverity severity) {
+        public This addClassification(@Nonnull CompatibilityType compat, @Nonnull DifferenceSeverity severity) {
             classification.put(compat, severity);
-            return this;
+            return castThis();
         }
 
         @Nonnull
-        public Builder addClassifications(Map<CompatibilityType, DifferenceSeverity> classifications) {
+        public This addClassifications(Map<CompatibilityType, DifferenceSeverity> classifications) {
             classification.putAll(classifications);
-            return this;
+            return castThis();
         }
 
         @Nonnull
-        public Builder addAttachment(@Nonnull Object attachment) {
+        public This addAttachment(@Nonnull Object attachment) {
             attachments.add(attachment);
-            return this;
+            return castThis();
         }
 
         @Nonnull
-        public Builder addAttachments(@Nonnull Iterable<?> attachments) {
+        public This addAttachments(@Nonnull Iterable<?> attachments) {
             for (Object a : attachments) {
                 this.attachments.add(a);
             }
-            return this;
+            return castThis();
         }
 
         @Nonnull
-        public Builder addAttachments(Object... attachments) {
+        public This addAttachments(Object... attachments) {
             return addAttachments(Arrays.asList(attachments));
         }
 
-        @Nonnull
-        public Report.Builder done() {
-            Difference p = build();
-            reportBuilder.differences.add(p);
-            return reportBuilder;
+        @SuppressWarnings("unchecked")
+        private This castThis() {
+            return (This) this;
+        }
+    }
+
+    public static final class Builder extends BuilderBase<Builder> {
+
+        private Builder() {
+
         }
 
         @Nonnull
@@ -92,9 +108,24 @@ public final class Difference {
         }
     }
 
+    public static final class InReportBuilder extends BuilderBase<InReportBuilder> {
+        private final Report.Builder reportBuilder;
+
+        InReportBuilder(Report.Builder reportBuilder) {
+            this.reportBuilder = reportBuilder;
+        }
+
+        @Nonnull
+        public Report.Builder done() {
+            Difference p = new Difference(code, name, description, classification, attachments);
+            reportBuilder.differences.add(p);
+            return reportBuilder;
+        }
+    }
+
     @Nonnull
     public static Builder builder() {
-        return new Builder(null);
+        return new Builder();
     }
 
     /**

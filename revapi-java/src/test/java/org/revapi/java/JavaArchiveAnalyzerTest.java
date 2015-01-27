@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null, false, Collections.<File>emptySet(), false);
+                null), Executors.newSingleThreadExecutor(), null, false, Collections.<File>emptySet());
 
             JavaElementForest forest = analyzer.analyze();
 
@@ -99,7 +99,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
-                false, Collections.<File>emptySet(), false);
+                false, Collections.<File>emptySet());
 
             JavaElementForest forest = analyzer.analyze();
 
