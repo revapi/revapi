@@ -33,13 +33,21 @@ import org.jboss.dmr.ModelNode;
 
 /**
  * An element filter that can filter out elements based on matching their full human readable representations.
- * The configuration looks like follows:
+ * Archive filter can filter out elements that belong to specified archives.
+ *
+ * <p>The configuration looks like follows:
  * <pre><code>
  * {
  *      "revapi" : {
  *          "filter" : {
- *              "include" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"],
- *              "exclude" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"]
+ *              "elements" : {
+ *                  "include" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"],
+ *                  "exclude" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"]
+ *              },
+ *              "archives" : {
+ *                  "include" : ["REGEX_ON_ARCHIVE_NAMES", "ANOTHER_REGEX_ON_ARCHIVE_NAMES"],
+ *                  "exclude" : ["REGEX_ON_ARCHIVE_NAMES", "ANOTHER_REGEX_ON_ARCHIVE_NAMES"]
+ *              }
  *          }
  *      }
  * }
@@ -53,8 +61,10 @@ import org.jboss.dmr.ModelNode;
  * @since 0.1
  */
 public class ConfigurableElementFilter implements ElementFilter {
-    private final List<Pattern> includes = new ArrayList<>();
-    private final List<Pattern> excludes = new ArrayList<>();
+    private final List<Pattern> elementIncludes = new ArrayList<>();
+    private final List<Pattern> elementExcludes = new ArrayList<>();
+    private final List<Pattern> archiveIncludes = new ArrayList<>();
+    private final List<Pattern> archiveExcludes = new ArrayList<>();
 
     @Nullable
     @Override
@@ -79,44 +89,31 @@ public class ConfigurableElementFilter implements ElementFilter {
             return;
         }
 
-        ModelNode includeNode = root.get("include");
-
-        if (includeNode.isDefined()) {
-            for (ModelNode inc : includeNode.asList()) {
-                includes.add(Pattern.compile(inc.asString()));
-            }
+        ModelNode elements = root.get("elements");
+        if (elements.isDefined()) {
+            readFilter(elements, elementIncludes, elementExcludes);
         }
 
-        ModelNode excludeNode = root.get("exclude");
-
-        if (excludeNode.isDefined()) {
-            for (ModelNode exc : excludeNode.asList()) {
-                excludes.add(Pattern.compile(exc.asString()));
-            }
+        ModelNode archives = root.get("archives");
+        if (archives.isDefined()) {
+            readFilter(archives, archiveIncludes, archiveExcludes);
         }
     }
 
     @Override
     public boolean applies(@Nullable Element element) {
-        boolean include = true;
-        String representation = element == null ? "" : element.getFullHumanReadableString();
+        String archive = element == null ? null : (element.getArchive() == null ? null :
+            element.getArchive().getName());
 
-        if (!includes.isEmpty()) {
-            include = false;
-            for (Pattern p : includes) {
-                if (p.matcher(representation).matches()) {
-                    include = true;
-                    break;
-                }
-            }
+        boolean include = true;
+        if (archive != null) {
+            include = isIncluded(archive, archiveIncludes, archiveExcludes);
         }
 
         if (include) {
-            for (Pattern p : excludes) {
-                if (p.matcher(representation).matches()) {
-                    include = false;
-                    break;
-                }
+            String representation = element == null ? null : element.getFullHumanReadableString();
+            if (representation != null) {
+                include = isIncluded(representation, elementIncludes, elementExcludes);
             }
         }
 
@@ -130,5 +127,48 @@ public class ConfigurableElementFilter implements ElementFilter {
 
     @Override
     public void close() {
+    }
+
+    private static void readFilter(ModelNode root, List<Pattern> include, List<Pattern> exclude) {
+        ModelNode includeNode = root.get("include");
+
+        if (includeNode.isDefined()) {
+            for (ModelNode inc : includeNode.asList()) {
+                include.add(Pattern.compile(inc.asString()));
+            }
+        }
+
+        ModelNode excludeNode = root.get("exclude");
+
+        if (excludeNode.isDefined()) {
+            for (ModelNode exc : excludeNode.asList()) {
+                exclude.add(Pattern.compile(exc.asString()));
+            }
+        }
+    }
+
+    private static boolean isIncluded(String representation, List<Pattern> includePatterns, List<Pattern> excludePatterns) {
+        boolean include = true;
+
+        if (!includePatterns.isEmpty()) {
+            include = false;
+            for (Pattern p : includePatterns) {
+                if (p.matcher(representation).matches()) {
+                    include = true;
+                    break;
+                }
+            }
+        }
+
+        if (include) {
+            for (Pattern p : excludePatterns) {
+                if (p.matcher(representation).matches()) {
+                    include = false;
+                    break;
+                }
+            }
+        }
+
+        return include;
     }
 }

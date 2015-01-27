@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,10 +123,9 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
             api == analysisContext.getOldApi() ? configuration.getOldApiBootstrapClasspath() :
                 configuration.getNewApiBootstrapClasspath();
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
-        boolean ignoreAdditionalClasspathContributions = configuration.isIgnoreAdditionalClasspathContributions();
 
         return new JavaArchiveAnalyzer(api, compilationExecutor, configuration.getMissingClassReporting(),
-            ignoreMissingAnnotations, bootstrapClasspath, ignoreAdditionalClasspathContributions);
+            ignoreMissingAnnotations, bootstrapClasspath);
     }
 
     @Nonnull

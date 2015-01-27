@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,18 +43,16 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final boolean ignoreMissingAnnotations;
     private final Set<File> bootstrapClasspath;
     private CompilationValve compilationValve;
-    private final boolean ignoreAdditionalClasspathContributions;
 
     public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
         AnalysisConfiguration.MissingClassReporting missingClassReporting, boolean ignoreMissingAnnotations,
-        Set<File> bootstrapClasspath, boolean ignoreAdditionalClasspathContributions) {
+        Set<File> bootstrapClasspath) {
         this.api = api;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.probingEnvironment = new ProbingEnvironment(api);
         this.bootstrapClasspath = bootstrapClasspath;
-        this.ignoreAdditionalClasspathContributions = ignoreAdditionalClasspathContributions;
     }
 
     @Nonnull
@@ -64,8 +62,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives());
         try {
             compilationValve = compiler
-                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, bootstrapClasspath,
-                    ignoreAdditionalClasspathContributions);
+                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, bootstrapClasspath);
 
             probingEnvironment.getTree()
                 .setCompilationFuture(new CompilationFuture(compilationValve, output));

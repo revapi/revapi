@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,16 +57,14 @@ final class ClassTreeInitializer {
     private final AnalysisConfiguration.MissingClassReporting reporting;
     private final boolean ignoreMissingAnnotations;
     private final Set<File> bootstrapClasspath;
-    private final boolean ignoreAdditionalArchivesContributions;
 
     public ClassTreeInitializer(ProbingEnvironment environment,
         AnalysisConfiguration.MissingClassReporting missingClassReporting, boolean ignoreMissingAnnotations,
-        Set<File> bootstrapClasspath, boolean ignoreAdditionalArchivesContributions) {
+        Set<File> bootstrapClasspath) {
         this.environment = environment;
         this.reporting = missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.bootstrapClasspath = bootstrapClasspath;
-        this.ignoreAdditionalArchivesContributions = ignoreAdditionalArchivesContributions;
     }
 
     public void initTree() throws IOException {
@@ -344,9 +342,7 @@ final class ClassTreeInitializer {
 
                 switch (t.getSort()) {
                 case Type.OBJECT:
-                    if (!ignoreAdditionalArchivesContributions || !context.processingSupplementaryArchives) {
-                        classProcessor.addUse(binaryName, useSite);
-                    }
+                    classProcessor.addUse(binaryName, useSite);
                     break;
                 case Type.ARRAY:
                     String desc = t.getDescriptor();

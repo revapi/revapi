@@ -13,16 +13,28 @@
             },
             "minItems": 1,
             "uniqueItems": true
+        },
+        "filter" : {
+            "type" : "object",
+            "properties" : {
+                "include": {
+                    "$ref": "#/definitions/patterns"
+                },
+                "exclude": {
+                    "$ref": "#/definitions/patterns"
+                }
+            },
+            "minProperties" : 1
         }
     },
 
     "type": "object",
     "properties": {
-        "include": {
-            "$ref": "#/definitions/patterns"
+        "elements" : {
+            "$ref" : "#/definitions/filter"
         },
-        "exclude": {
-            "$ref": "#/definitions/patterns"
+        "archives" : {
+            "$ref" : "#/definitions/filter"
         }
     },
     "minProperties": 1

@@ -33,7 +33,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.revapi.Archive;
-import org.revapi.java.model.MissingClassElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.UseSite;
@@ -149,12 +148,8 @@ final class TypeTreeConstructor {
         return rec;
     }
 
-    private TypeElement createTypeElement(Archive archive, String binaryName, String canonicalName, boolean asError) {
-        if (asError) {
-            return new MissingClassElement(environment, binaryName, canonicalName);
-        } else {
-            return new TypeElement(environment, archive, binaryName, canonicalName);
-        }
+    private TypeElement createTypeElement(Archive archive, String binaryName, String canonicalName) {
+        return new TypeElement(environment, archive, binaryName, canonicalName);
     }
 
     private boolean isOnBootstrapClasspath(String typeBinaryName) {
@@ -289,7 +284,7 @@ final class TypeTreeConstructor {
             }
 
             if (innerClassHierarchyConstructor == null) {
-                TypeElement type = createTypeElement(archive, classBinaryName, classBinaryName, false);
+                TypeElement type = createTypeElement(archive, classBinaryName, classBinaryName);
                 rec.setType(type);
                 initChildren(rec, 1);
             } else {
@@ -347,7 +342,7 @@ final class TypeTreeConstructor {
             TypeRecord rec = getOrCreateTypeRecord(ic.getBinaryName());
 
             if (rec.getType() == null) {
-                TypeElement type = createTypeElement(archive, ic.getBinaryName(), ic.getCanonicalName(), false);
+                TypeElement type = createTypeElement(archive, ic.getBinaryName(), ic.getCanonicalName());
 
                 rec.setType(type);
             }

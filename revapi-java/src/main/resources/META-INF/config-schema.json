@@ -50,10 +50,6 @@
                             "$ref": "#/definitions/bootstrap-classpath"
                         }
                     }
-                },
-                "ignoreAPIChangesInAdditionalArchives": {
-                    "type": "boolean",
-                    "default": "false"
                 }
             }
         }

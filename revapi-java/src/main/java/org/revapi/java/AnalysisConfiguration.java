@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Lukas Krejci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
 package org.revapi.java;
 
 import java.io.File;
@@ -17,19 +33,16 @@ public final class AnalysisConfiguration {
     private final Set<File> oldApiBootstrapClasspath;
     private final Set<File> newApiBootstrapClasspath;
     private final boolean ignoreMissingAnnotations;
-    private final boolean isIgnoreAdditionalClasspathContributions;
 
     public AnalysisConfiguration(MissingClassReporting missingClassReporting,
         Set<String> useReportingCodes, Set<File> oldApiBootstrapClasspath,
-        Set<File> newApiBootstrapClasspath, boolean ignoreMissingAnnotations,
-        boolean isIgnoreAdditionalClasspathContributions) {
+        Set<File> newApiBootstrapClasspath, boolean ignoreMissingAnnotations) {
 
         this.missingClassReporting = missingClassReporting;
         this.useReportingCodes = useReportingCodes;
         this.oldApiBootstrapClasspath = oldApiBootstrapClasspath;
         this.newApiBootstrapClasspath = newApiBootstrapClasspath;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
-        this.isIgnoreAdditionalClasspathContributions = isIgnoreAdditionalClasspathContributions;
     }
 
     public static AnalysisConfiguration fromModel(ModelNode node) {
@@ -38,10 +51,9 @@ public final class AnalysisConfiguration {
         Set<File> oldApiBootstrapClasspath = readBootstrapClasspath(node, "old");
         Set<File> newApiBootstrapClasspath = readBootstrapClasspath(node, "new");
         boolean ignoreMissingAnnotations = readIgnoreMissingAnnotations(node);
-        boolean ignoreAdditionalClasspathContributions = readIgnoreAdditionalClasspathContributions(node);
 
         return new AnalysisConfiguration(reporting, useReportingCodes, oldApiBootstrapClasspath,
-            newApiBootstrapClasspath, ignoreMissingAnnotations, ignoreAdditionalClasspathContributions);
+            newApiBootstrapClasspath, ignoreMissingAnnotations);
     }
 
     public MissingClassReporting getMissingClassReporting() {
@@ -62,10 +74,6 @@ public final class AnalysisConfiguration {
 
     public boolean isIgnoreMissingAnnotations() {
         return ignoreMissingAnnotations;
-    }
-
-    public boolean isIgnoreAdditionalClasspathContributions() {
-        return isIgnoreAdditionalClasspathContributions;
     }
 
     private static MissingClassReporting readMissingClassReporting(ModelNode analysisConfig) {
@@ -131,15 +139,6 @@ public final class AnalysisConfiguration {
         }
 
         return ret;
-    }
-
-    private static boolean readIgnoreAdditionalClasspathContributions(ModelNode analysisConfig) {
-        ModelNode config = analysisConfig.get("revapi", "java", "classpath", "ignoreAPIChangesInAdditionalArchives");
-        if (config.isDefined()) {
-            return config.asBoolean();
-        }
-
-        return false;
     }
 
     private static void addDefaultBootstrapJars(Set<File> result, String javaHome) {
