@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,18 @@
 
 package org.revapi.reporter.text;
 
+import org.revapi.AnalysisContext;
+import org.revapi.CompatibilityType;
+import org.revapi.Difference;
+import org.revapi.DifferenceSeverity;
+import org.revapi.Element;
+import org.revapi.Report;
+import org.revapi.Reporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -26,20 +38,6 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.Iterator;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.revapi.AnalysisContext;
-import org.revapi.CompatibilityType;
-import org.revapi.Difference;
-import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
-import org.revapi.Report;
-import org.revapi.Reporter;
 
 /**
  * @author Lukas Krejci
@@ -141,8 +139,10 @@ public class TextReporter implements Reporter {
         Element newE = report.getNewElement();
 
         if (!report.getDifferences().isEmpty()) {
-            output.print(newE == null ? oldE.getFullHumanReadableString() : newE.getFullHumanReadableString());
-            output.println(":");
+            output.print("old: ");
+            output.println(oldE == null ? "<none>" : oldE.getFullHumanReadableString());
+            output.print("new: ");
+            output.println(newE == null ? "<none>" : newE.getFullHumanReadableString());
             for (Difference d : report.getDifferences()) {
                 output.append(d.code);
                 reportClassification(output, d);

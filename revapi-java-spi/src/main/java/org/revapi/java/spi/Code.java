@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@
 
 package org.revapi.java.spi;
 
-import static org.revapi.CompatibilityType.BINARY;
-import static org.revapi.CompatibilityType.SEMANTIC;
-import static org.revapi.CompatibilityType.SOURCE;
-import static org.revapi.DifferenceSeverity.BREAKING;
-import static org.revapi.DifferenceSeverity.NON_BREAKING;
-import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
+import org.revapi.CompatibilityType;
+import org.revapi.Difference;
+import org.revapi.DifferenceSeverity;
 
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
@@ -31,9 +28,12 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.WeakHashMap;
 
-import org.revapi.CompatibilityType;
-import org.revapi.Difference;
-import org.revapi.DifferenceSeverity;
+import static org.revapi.CompatibilityType.BINARY;
+import static org.revapi.CompatibilityType.SEMANTIC;
+import static org.revapi.CompatibilityType.SOURCE;
+import static org.revapi.DifferenceSeverity.BREAKING;
+import static org.revapi.DifferenceSeverity.NON_BREAKING;
+import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
 
 /**
  * The is a list of all difference codes Revapi's Java extension can emit. This can be used by others when they want to
@@ -131,6 +131,10 @@ public enum Code {
     METHOD_PARAMETER_TYPE_CHANGED("java.method.parameterTypeChanged", POTENTIALLY_BREAKING, BREAKING, null),
     METHOD_NO_LONGER_STATIC("java.method.noLongerStatic", BREAKING, BREAKING, null),
     METHOD_NOW_STATIC("java.method.nowStatic", NON_BREAKING, BREAKING, null),
+    METHOD_CHECKED_EXCEPTION_ADDED("java.method.exception.checkedAdded", BREAKING, NON_BREAKING, null),
+    METHOD_RUNTIME_EXCEPTION_ADDED("java.method.exception.runtimeAdded", NON_BREAKING, NON_BREAKING, null),
+    METHOD_CHECKED_EXCEPTION_REMOVED("java.method.exception.checkedRemoved", BREAKING, NON_BREAKING, null),
+    METHOD_RUNTIME_EXCEPTION_REMOVED("java.method.exception.runtimeRemoved", NON_BREAKING, NON_BREAKING, null),
 
     GENERICS_ELEMENT_NOW_PARAMETERIZED("java.generics.elementNowParameterized", NON_BREAKING, NON_BREAKING,
         POTENTIALLY_BREAKING),

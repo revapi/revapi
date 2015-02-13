@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.revapi.java;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.revapi.java.spi.Code;
 
 /**
@@ -136,5 +135,16 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_STATIC.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_STATIC.code()));
+    }
+
+    @Test
+    public void testExceptionsThrown() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/methods/Exceptions.java", "v2/methods/Exceptions.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_CHECKED_EXCEPTION_ADDED.code()));
+        Assert.assertEquals(3, (int) reporter.getProblemCounters().get(Code.METHOD_CHECKED_EXCEPTION_REMOVED.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_RUNTIME_EXCEPTION_ADDED.code()));
+        Assert.assertEquals(4, (int) reporter.getProblemCounters().get(Code.METHOD_RUNTIME_EXCEPTION_REMOVED.code()));
     }
 }
