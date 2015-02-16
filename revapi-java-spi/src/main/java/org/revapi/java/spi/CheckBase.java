@@ -16,28 +16,16 @@
 
 package org.revapi.java.spi;
 
-import java.io.Reader;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.revapi.AnalysisContext;
+import org.revapi.Difference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.SimpleElementVisitor7;
-
-import org.revapi.AnalysisContext;
-import org.revapi.Difference;
+import java.io.Reader;
+import java.util.*;
 
 /**
  * A basic implementation of the {@link Check} interface. This class easies the matching of the {@code visit*()}
@@ -326,7 +314,7 @@ public abstract class CheckBase implements Check {
     }
 
     @Nonnull
-    protected Difference createDifference(@Nonnull Code code, @Nonnull Object[] params, Object... attachments) {
+    protected Difference createDifference(@Nonnull Code code, @Nullable Object[] params, Object... attachments) {
         return code.createDifference(getAnalysisContext().getLocale(), params, attachments);
     }
 

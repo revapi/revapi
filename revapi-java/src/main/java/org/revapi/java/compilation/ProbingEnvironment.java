@@ -16,12 +16,11 @@
 
 package org.revapi.java.compilation;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import org.objectweb.asm.Type;
+import org.revapi.API;
+import org.revapi.java.model.*;
+import org.revapi.java.spi.*;
+import org.revapi.query.Filter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,32 +29,13 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.ErrorType;
-import javax.lang.model.type.IntersectionType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
-import javax.lang.model.type.WildcardType;
+import javax.lang.model.type.*;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleElementVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
-
-import org.objectweb.asm.Type;
-import org.revapi.API;
-import org.revapi.java.model.FieldElement;
-import org.revapi.java.model.JavaElementForest;
-import org.revapi.java.model.MethodElement;
-import org.revapi.java.model.MethodParameterElement;
-import org.revapi.java.model.MissingClassElement;
-import org.revapi.java.spi.JavaElement;
-import org.revapi.java.spi.JavaTypeElement;
-import org.revapi.java.spi.TypeEnvironment;
-import org.revapi.java.spi.UseSite;
-import org.revapi.java.spi.Util;
-import org.revapi.query.Filter;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Lukas Krejci
@@ -95,20 +75,29 @@ public final class ProbingEnvironment implements TypeEnvironment {
         this.processingEnvironment = env;
     }
 
+    public boolean hasProcessingEnvironment() {
+        return processingEnvironment != null;
+    }
+
     @Nonnull
     @Override
-    @SuppressWarnings("ConstantConditions")
     public Elements getElementUtils() {
-        return processingEnvironment == null ? null :
-            new MissingTypeAwareDelegatingElements(processingEnvironment.getElementUtils());
+        if (processingEnvironment == null) {
+            throw new IllegalStateException("Types instance not yet available. It is too early to call this method." +
+                    " Wait until after the archives are visited and the API model constructed.");
+        }
+        return new MissingTypeAwareDelegatingElements(processingEnvironment.getElementUtils());
     }
 
     @Nonnull
     @Override
     @SuppressWarnings("ConstantConditions")
     public Types getTypeUtils() {
-        return processingEnvironment == null ? null :
-            new MissingTypeAwareDelegatingTypes(processingEnvironment.getTypeUtils());
+        if (processingEnvironment == null) {
+            throw new IllegalStateException("Types instance not yet available. It is too early to call this method." +
+                    " Wait until after the archives are visited and the API model constructed.");
+        }
+        return new MissingTypeAwareDelegatingTypes(processingEnvironment.getTypeUtils());
     }
 
     /**

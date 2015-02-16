@@ -20,20 +20,13 @@ import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 
+import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
-import java.util.EnumMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.WeakHashMap;
+import java.util.*;
 
-import static org.revapi.CompatibilityType.BINARY;
-import static org.revapi.CompatibilityType.SEMANTIC;
-import static org.revapi.CompatibilityType.SOURCE;
-import static org.revapi.DifferenceSeverity.BREAKING;
-import static org.revapi.DifferenceSeverity.NON_BREAKING;
-import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
+import static org.revapi.CompatibilityType.*;
+import static org.revapi.DifferenceSeverity.*;
 
 /**
  * The is a list of all difference codes Revapi's Java extension can emit. This can be used by others when they want to
@@ -169,7 +162,7 @@ public enum Code {
         return code;
     }
 
-    public Difference createDifference(Locale locale) {
+    public Difference createDifference(@Nonnull Locale locale) {
         Message message = getMessages(locale).get(code);
         Difference.Builder bld = Difference.builder().withCode(code).withName(message.name)
             .withDescription(message.description);
@@ -180,7 +173,7 @@ public enum Code {
         return bld.build();
     }
 
-    public Difference createDifference(Locale locale, Object[] params, Object... attachments) {
+    public Difference createDifference(@Nonnull Locale locale, Object[] params, Object... attachments) {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, params);
         Difference.Builder bld = Difference.builder().withCode(code).withName(message.name)

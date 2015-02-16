@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package org.revapi.java.model;
 
-import javax.annotation.Nonnull;
-
 import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author Lukas Krejci
@@ -86,7 +86,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         //even though environment.getElementUtils() is marked @Nonnull, we do the check here, because
         //it actually IS null for a while during initialization of the forest during compilation.
         //we do this so that toString() works even under those conditions.
-        if (element == null && environment.getElementUtils() != null) {
+        if (element == null && environment.hasProcessingEnvironment()) {
             element = environment.getElementUtils().getTypeElement(canonicalName);
         }
         return element;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,19 @@
 
 package org.revapi.java.checks.classes;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.annotation.Nonnull;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
-
 import org.revapi.CoIterator;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
+
+import javax.annotation.Nonnull;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
+import java.util.*;
 
 /**
  * @author Lukas Krejci
@@ -152,7 +147,7 @@ public final class InheritanceChainChanged extends CheckBase {
                 //need to erase them all so that we get only true type changes. formal type parameter changes
                 //are captured by SuperTypeParametersChanged check
                 TypeMirror oldSuperClass = oldTypes.erasure(oldSuperTypes.get(i));
-                TypeMirror newSuperClass = oldTypes.erasure(newSuperTypes.get(i));
+                TypeMirror newSuperClass = newTypes.erasure(newSuperTypes.get(i));
 
                 if (!Util.isSameType(oldSuperClass, newSuperClass)) {
                     pushActive(oldType, newType, oldSuperTypes, newSuperTypes);
