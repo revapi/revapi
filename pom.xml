@@ -27,7 +27,7 @@
     <groupId>org.revapi</groupId>
     <artifactId>revapi-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.2.2</version>
 
     <properties>
         <findbugs.skip>true</findbugs.skip>
@@ -285,7 +285,7 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-      <tag>v0.2.0</tag>
+      <tag>v0.2.2</tag>
   </scm>
 
     <distributionManagement>
