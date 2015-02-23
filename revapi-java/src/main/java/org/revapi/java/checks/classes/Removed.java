@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 package org.revapi.java.checks.classes;
 
-import java.util.Collections;
-import java.util.List;
-
-import javax.lang.model.element.TypeElement;
-
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+
+import javax.lang.model.element.TypeElement;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Lukas Krejci
@@ -42,8 +41,12 @@ public final class Removed extends CheckBase {
     protected List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types != null) {
-            Difference difference = createDifference(Code.CLASS_REMOVED
-            );
+
+            TypeElement typeInNew = getNewTypeEnvironment().getElementUtils().getTypeElement(types.oldElement
+                    .getQualifiedName());
+
+            Difference difference = typeInNew == null ? createDifference(Code.CLASS_REMOVED) :
+                    createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API);
 
             return Collections.singletonList(difference);
         }

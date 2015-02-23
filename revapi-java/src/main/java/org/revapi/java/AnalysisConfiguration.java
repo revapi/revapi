@@ -16,11 +16,11 @@
 
 package org.revapi.java;
 
+import org.jboss.dmr.ModelNode;
+
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.jboss.dmr.ModelNode;
 
 /**
  * @author Lukas Krejci
@@ -110,6 +110,8 @@ public final class AnalysisConfiguration {
             ret.add("java.missing.oldClass");
             ret.add("java.missing.newClass");
             ret.add("java.class.nonPublicPartOfAPI");
+            ret.add("java.class.externalClassExposedInAPI");
+            ret.add("java.class.externalClassNoLongerExposedInAPI");
         }
 
         return ret;
