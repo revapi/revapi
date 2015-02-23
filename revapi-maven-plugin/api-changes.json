@@ -10,6 +10,12 @@
                        "These were not really removed but their signature changed slightly due to refactoring and generics. The code is still source compatible."
                 },
                 {
+                    "code" : "java.class.removed",
+                    "old" : "class org.revapi.Difference",
+                    "justification" :
+                       "In Revapi 0.3.0 this would be reported as java.class.externalClassNoLongerExposedInAPI. The report class was referenced through the chain of calls that changed due to the changes in the Difference.Builder."
+                },
+                {
                     "code" : "java.method.returnTypeChanged",
                     "old" : "method org.revapi.Difference.Builder org.revapi.Report.Builder::addProblem()",
                     "justification" : "Return type changed to better differentiate use cases."

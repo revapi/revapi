@@ -35,8 +35,8 @@
         <skip.site>false</skip.site>
         <skip.deploy>false</skip.deploy>
         <web.url>http://revapi.org</web.url>
-        <self-api-check.maven-version>0.2.1</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.2.1</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.2.2</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.2.2</self-api-check.java-extension-version>
     </properties>
 
     <dependencyManagement>
