@@ -1,5 +1,5 @@
 /*
- * Copyright $year Lukas Krejci
+ * Copyright 2015 Lukas Krejci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.revapi.java;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.revapi.java.spi.Code;
 
 /**
@@ -137,5 +136,13 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
         runAnalysis(reporter, "v1/fields/Serial.java", "v2/fields/Serial.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED.code()));
+    }
+
+    @Test
+    public void testEnumConstantOrderChanges() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/fields/EnumConstant.java", "v2/fields/EnumConstant.java");
+
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_ENUM_CONSTANT_ORDER_CHANGED.code()));
     }
 }

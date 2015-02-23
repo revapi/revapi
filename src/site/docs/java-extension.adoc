@@ -572,6 +572,18 @@ No API breakage, reported for completeness' sake.
 
 Field's visibility was reduced, which means that code that used to be able to access it might no longer be able to.
 
+=== Enum Constant Order Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.enumConstantOrderChanged+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+The constants of an enumeration were re-ordered. This can lead to problems in user code that uses the `Enum.ordinal()`
+method to determine the order of an enum constant and relies on a specific value.
+
 === Default Value Added To Method
 [cols="35s,<65d"]
 |=============

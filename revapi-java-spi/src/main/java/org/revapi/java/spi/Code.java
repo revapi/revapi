@@ -76,7 +76,6 @@ public enum Code {
 
     FIELD_ADDED_STATIC_FIELD("java.field.addedStaticField", NON_BREAKING, NON_BREAKING, null),
     FIELD_ADDED("java.field.added", NON_BREAKING, NON_BREAKING, null),
-
     FIELD_REMOVED("java.field.removed", BREAKING, BREAKING, null),
     FIELD_CONSTANT_REMOVED("java.field.removedWithConstant", BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     FIELD_CONSTANT_VALUE_CHANGED("java.field.constantValueChanged", NON_BREAKING, NON_BREAKING, BREAKING),
@@ -91,6 +90,8 @@ public enum Code {
         POTENTIALLY_BREAKING),
     FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", NON_BREAKING, NON_BREAKING, null),
     FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null),
+    FIELD_ENUM_CONSTANT_ORDER_CHANGED("java.field.enumConstantOrderChanged", NON_BREAKING, NON_BREAKING,
+            POTENTIALLY_BREAKING),
 
     METHOD_DEFAULT_VALUE_ADDED("java.method.defaultValueAdded", NON_BREAKING, NON_BREAKING, null),
     METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
