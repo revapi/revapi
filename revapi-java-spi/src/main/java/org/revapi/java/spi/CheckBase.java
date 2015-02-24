@@ -181,6 +181,8 @@ public abstract class CheckBase implements Check {
                     return null;
                 }
 
+                visitedElements.add(type);
+
                 final boolean validUse = uses.contains(use.getUseType());
 
                 if (validUse && use.getSite() instanceof JavaModelElement) {
@@ -258,8 +260,6 @@ public abstract class CheckBase implements Check {
                 return null;
             }
         }, null);
-
-        visitedElements.add(type);
 
         return isUsedSignificantly != null && isUsedSignificantly;
     }

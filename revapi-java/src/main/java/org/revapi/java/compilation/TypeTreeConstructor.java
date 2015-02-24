@@ -244,6 +244,10 @@ final class TypeTreeConstructor {
 
             TypeRecord rec = getOrCreateTypeRecord(usedTypeBinaryName);
 
+            if (LOG.isTraceEnabled() && apiType && !rec.isApiType()) {
+                LOG.trace("Class {} drags {} into API", classBinaryName, usedTypeBinaryName);
+            }
+
             //the used type is going to be part of the API if it is used
             //in a public position - i.e. by a class that is itself part of the API
             rec.setApiType(rec.isApiType() || apiType);
@@ -310,6 +314,8 @@ final class TypeTreeConstructor {
                             new RawUseSite(UseSite.Type.CONTAINS, RawUseSite.SiteType.CLASS, type.getBinaryName(), null,
                                 null));
                         initChildren(owner, nestingDepth);
+                    } else {
+                        initChildren(type, nestingDepth + 1);
                     }
 
                     owner = type;
@@ -364,6 +370,11 @@ final class TypeTreeConstructor {
                 }
 
                 TypeRecord rec = usedType.getKey();
+
+                if (LOG.isTraceEnabled() && !rec.isApiType()) {
+                    LOG.trace("Class {} drags {} into API", userType.getBinaryName(), rec.getBinaryName());
+                }
+
                 rec.setApiType(true);
                 rec.setApiThroughUse(true);
 
