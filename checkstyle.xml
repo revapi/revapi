@@ -22,7 +22,9 @@
     <module name="MissingDeprecated"/>
     <module name="MissingOverride"/>
     <module name="MutableException"/>
+    <module name="NeedBraces"/>
     <module name="OneTopLevelClass"/>
+    <module name="OneStatementPerLine"/>
     <module name="OuterTypeFilename"/>
     <module name="OuterTypeNumber"/>
     <module name="RedundantImport"/>

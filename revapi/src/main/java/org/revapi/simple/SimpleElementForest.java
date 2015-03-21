@@ -100,7 +100,9 @@ public class SimpleElementForest implements ElementForest {
     private void addToString(StringBuilder bld, int indent, SortedSet<? extends Element> elements) {
         for (Element e : elements) {
             bld.append("\n");
-            for (int i = 0; i < indent; ++i) bld.append("    ");
+            for (int i = 0; i < indent; ++i) {
+                bld.append("    ");
+            }
             bld.append(e.toString());
             addToString(bld, indent + 1, e.getChildren());
         }
