@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<module name="Checker">
+  <module name="NewlineAtEndOfFile">
+    <property name="lineSeparator" value="lf"/>
+  </module>
+  <module name="FileTabCharacter">
+    <property name="eachLine" value="true"/>
+  </module>
+  <module name="TreeWalker">
+    <property name="cacheFile" value="${checkstyle.cache.file}"/>
+    <module name="ArrayTypeStyle"/>
+    <module name="ConstantName"/>
+    <module name="CovariantEquals"/>
+    <module name="DefaultComesLast"/>
+    <module name="EmptyBlock"/>
+    <module name="EmptyCatchBlock"/>
+    <module name="EmptyStatement"/>
+    <module name="IllegalImport"/>
+    <module name="IllegalThrows"/>
+    <module name="LeftCurly"/>
+    <module name="MissingDeprecated"/>
+    <module name="MissingOverride"/>
+    <module name="MutableException"/>
+    <module name="NeedBraces"/>
+    <module name="OneTopLevelClass"/>
+    <module name="OneStatementPerLine"/>
+    <module name="OuterTypeFilename"/>
+    <module name="OuterTypeNumber"/>
+    <module name="RedundantImport"/>
+    <module name="RightCurly"/>
+    <module name="TodoComment"/>
+    <module name="UnnecessaryParentheses"/>
+    <module name="UnusedImports"/>
+    <module name="UpperEll"/>
+  </module>
+</module>

@@ -191,6 +191,24 @@
                     <artifactId>revapi-maven-plugin</artifactId>
                     <version>${self-api-check.maven-version}</version>
                 </plugin>
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-checkstyle-plugin</artifactId>
+                  <version>2.14</version>
+                  <dependencies>
+                    <dependency>
+                      <groupId>com.puppycrawl.tools</groupId>
+                      <artifactId>checkstyle</artifactId>
+                      <version>6.4</version>
+                    </dependency>
+                  </dependencies>
+                  <configuration>
+                    <consoleOutput>true</consoleOutput>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                  </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
 
