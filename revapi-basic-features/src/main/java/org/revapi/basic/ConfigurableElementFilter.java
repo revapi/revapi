@@ -18,6 +18,7 @@ package org.revapi.basic;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -76,7 +77,8 @@ public class ConfigurableElementFilter implements ElementFilter {
     @Override
     public Reader getJSONSchema(@Nonnull String configurationRootPath) {
         if ("revapi.filter".equals(configurationRootPath)) {
-            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/filter-schema.json"));
+            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/filter-schema.json"),
+                    Charset.forName("UTF-8"));
         } else {
             return null;
         }

@@ -1,0 +1,33 @@
+= Revapi Basic Features
+
+image:https://travis-ci.org/revapi/revapi-basic-features.svg[Build Status,link=https://travis-ci.org/revapi/revapi-basic-features]
+
+This is a module with general purpose features of Revapi, the API evolution checker.
+
+== About Revapi
+
+Revapi is a build tool that strives for easy integration of API evolution checks into the build process of your choice.
+It is mainly targeted at developers that want to make sure their code provides stable API for its users across different
+versions.
+
+See http://revapi.org[Revapi site] for details on how to use it.
+
+== About Revapi Basic Features
+
+The basic features module provides general purpose extensions to Revapi providing features like:
+
+* transforming classifications from one to another based on regexes
+* configurable element filter for leaving out certain elements from API check
+* ignoring specific found differences
+
+== Building
+
+This is a maven project, so a simple `mvn install` will suffice.
+
+== Getting in touch
+
+IRC:: #revapi @ freenode
+Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
+Issues:: individual subprojects under https://github.com/revapi
+Code:: https://github.com/revapi/
+

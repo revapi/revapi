@@ -13,7 +13,7 @@ module Awestruct
           site.pages.each do |page|
             title, href, index = nil
 
-            if (page.relative_source_path =~ /^#{@path_prefix}\//)
+            if page.relative_source_path =~ /^#{@path_prefix}\//
               page.href = page.relative_source_path
               docs << page
             end

@@ -1,0 +1,31 @@
+= Revapi Text Reporter
+
+image:https://travis-ci.org/revapi/revapi-text-reporter.svg[Build Status,link=https://travis-ci.org/revapi/revapi-text-reporter]
+
+A simple reporting extension for Revapi outputting the report to standard output as text.
+
+== About Revapi
+
+Revapi is a build tool that strives for easy integration of API evolution checks into the build process of your choice.
+It is mainly targeted at developers that want to make sure their code provides stable API for its users across different
+versions.
+
+See http://revapi.org[Revapi site] for details on how to use it.
+
+== About Revapi Text Reporter
+
+More than anything else, this is an example of a reporter extension for Revapi. It's not particularly powerful, but
+pull requests are more than welcome ;)
+
+== Building
+
+This is a maven project, so a simple `mvn install` will suffice.
+
+== Getting in touch
+
+IRC:: #revapi @ freenode
+Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
+Issues:: individual subprojects under https://github.com/revapi
+Code:: https://github.com/revapi/
+
+

@@ -1,0 +1,31 @@
+= Revapi Site
+
+image:https://travis-ci.org/revapi/revapi-site.svg[Build Status,link=https://travis-ci.org/revapi/revapi-site]
+
+A maven module with the source code of the http://revapi.org site.
+
+== About Revapi
+
+Revapi is a build tool that strives for easy integration of API evolution checks into the build process of your choice.
+It is mainly targeted at developers that want to make sure their code provides stable API for its users across different
+versions.
+
+See http://revapi.org[Revapi site] for details on how to use it.
+
+== About Revapi Site
+
+This uses http://awestruct.org[Awestruct] and AsciiDoc for site generation. Therefore it is required that you have
+Awestruct properly installed on your computer prior to being able to build this.
+
+== Building
+
+This is a maven project, so a simple `mvn install` will suffice.
+
+== Getting in touch
+
+IRC:: #revapi @ freenode
+Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
+Issues:: individual subprojects under https://github.com/revapi
+Code:: https://github.com/revapi/
+
+

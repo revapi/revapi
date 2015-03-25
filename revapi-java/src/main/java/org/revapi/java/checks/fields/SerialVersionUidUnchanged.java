@@ -424,6 +424,8 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
                 case VOLATILE:
                     mods |= java.lang.reflect.Modifier.VOLATILE;
                     break;
+                default:
+                    break;
                 }
             }
         }

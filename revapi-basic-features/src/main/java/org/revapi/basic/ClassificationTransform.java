@@ -18,6 +18,7 @@ package org.revapi.basic;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -114,7 +115,8 @@ public class ClassificationTransform
     @Override
     public Reader getJSONSchema(@Nonnull String configurationRootPath) {
         if ("revapi.reclassify".equals(configurationRootPath)) {
-            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/classification-schema.json"));
+            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/classification-schema.json"),
+                    Charset.forName("UTF-8"));
         } else {
             return null;
         }

@@ -23,6 +23,7 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.ref.WeakReference;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -194,7 +195,8 @@ public final class ConfigurationValidator {
     }
 
     private void initTv4(ScriptEngine engine, Bindings bindings) throws IOException, ScriptException {
-        try (Reader rdr = new InputStreamReader(getClass().getResourceAsStream("/tv4.min.js"))) {
+        try (Reader rdr = new InputStreamReader(getClass().getResourceAsStream("/tv4.min.js"),
+                Charset.forName("UTF-8"))) {
             engine.eval(rdr, bindings);
         }
     }

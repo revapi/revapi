@@ -1,0 +1,93 @@
+= Revapi
+
+Revapi is a tool for API analysis and change tracking. This is a parent module defining common definitions and
+configuration for building other Revapi modules.
+
+== Building
+
+This is a maven project, so to build you simply:
+
+ mvn install
+
+== Usage
+
+Revapi can be invoked in a couple of ways. It can be used as a standalone program, 
+as a maven plugin or it can also be embedded in your application and used as a library.
+
+=== Standalone
+
+Download the standalone distribution zip and
+
+ unzip rhq-revapi-XXX.zip
+ cd rhq-revapi-XXX
+ ./revapi.sh
+
+Read the usage info and go.
+
+=== Maven
+
+[source,xml]
+----
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-maven-plugin</artifactId>
+            <version>...</version>
+            <dependencies>
+                <dependency>
+                    <groupId>org.revapi</groupId>
+                    <artifactId>revapi-java</artifactId>
+                    <version>...</version>
+                </dependency>    
+                <dependency>
+                    <groupId>com.acme</groupId>
+                    <artifactId>my-extension</artifactId>
+                    <version>...</version>
+                </dependency>
+                ...
+            </dependencies>
+            <configuration>
+                ...
+            </configuration>
+            <executions>
+                <execution>
+                    <id>api-check</id>
+                    <goals><goal>check</goal></goals>
+                    ...
+                </execution>
+                ...
+            </executions>
+        </plugin>
+        ...
+    </plugins>    
+    ...
+</build>    
+----
+
+
+=== Embedding
+
+[source,java]
+----
+Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().build();
+
+AnalysisContext analysisContext = AnalysisContext.builder()
+    .withOldAPI(API.of(...))
+    .withNewAPI(API.of(...))
+    .withConfigurationFromJSON("json").build();
+
+revapi.analyze(analysisContext);
+----
+
+== Extending Revapi
+
+See the http://revapi.org/docs/architecture.html[site] for more info.
+
+== Getting in touch
+
+IRC:: #revapi @ freenode
+Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
+Issues:: individual subprojects under https://github.com/revapi
+Code:: https://github.com/revapi/
+
