@@ -56,7 +56,7 @@ public final class JSONUtil {
      * @return an input stream that strips comments from json data provided as an input stream.
      */
     public static InputStream stripComments(InputStream json, Charset charset) {
-        Reader rdr = stripComments(new InputStreamReader(json));
+        Reader rdr = stripComments(new InputStreamReader(json, Charset.forName("UTF-8")));
         return new ReaderInputStream(rdr, charset);
     }
 
@@ -134,6 +134,7 @@ public final class JSONUtil {
                             lastChar = -1;
                             cont = false;
                             break;
+                        default: break;
                         }
                         break;
                     case MULTI_LINE:

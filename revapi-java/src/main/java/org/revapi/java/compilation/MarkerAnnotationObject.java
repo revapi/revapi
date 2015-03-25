@@ -23,6 +23,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 
 import javax.lang.model.element.NestingKind;
 import javax.tools.SimpleJavaFileObject;
@@ -47,7 +48,7 @@ final class MarkerAnnotationObject extends SimpleJavaFileObject {
 
     @Override
     public InputStream openInputStream() throws IOException {
-        return new ByteArrayInputStream(SOURCE.getBytes());
+        return new ByteArrayInputStream(SOURCE.getBytes(Charset.forName("UTF-8")));
     }
 
     @Override
