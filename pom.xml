@@ -36,6 +36,7 @@
         <module>revapi-parent</module>
         <module>revapi-bom</module>
         <module>revapi-site-base</module>
+        <module>revapi-build-support</module>
         <module>revapi-build</module>
         <module>revapi</module>
         <module>revapi-basic-features</module>
