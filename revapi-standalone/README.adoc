@@ -1,0 +1,36 @@
+= Revapi Standalone
+
+image:https://travis-ci.org/revapi/revapi-standlone.svg[Build Status,link=https://travis-ci.org/revapi/revapi-standalone]
+
+Commandline executable API checks.
+
+== About Revapi
+
+Revapi is a build tool that strives for easy integration of API evolution checks into the build process of your choice.
+It is mainly targeted at developers that want to make sure their code provides stable API for its users across different
+versions.
+
+See http://revapi.org[Revapi site] for details on how to use it.
+
+== About Revapi Standalone
+
+Provides a command line executable to run Revapi API checks. Run
+
+  ./revapi.sh --help
+
+for usage help.
+
+In a nutshell, the utility enables to check API of jars on the filesystem or of maven modules specified by their GAVs.
+
+== Building
+
+This is a maven project, so a simple `mvn install` will suffice.
+
+== Getting in touch
+
+IRC:: #revapi @ freenode
+Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
+Issues:: individual subprojects under https://github.com/revapi
+Code:: https://github.com/revapi/
+
+

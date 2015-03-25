@@ -1,0 +1,57 @@
+= Revapi Maven Plugin
+
+image:https://travis-ci.org/revapi/revapi-maven-plugin.svg[Build Status,link=https://travis-ci.org/revapi/revapi-maven-plugin]
+
+This is a module with Revapi Maven plugin.
+
+== About Revapi
+
+Revapi is a build tool that strives for easy integration of API evolution checks into the build process of your choice.
+It is mainly targeted at developers that want to make sure their code provides stable API for its users across different
+versions.
+
+See http://revapi.org[Revapi site] for details on how to use it.
+
+== About Revapi Maven Plugin
+
+Revapi Maven plugin integrates Revapi API checks into the build.
+
+This is how you would integrate API checks of your library in its pom.xml:
+
+```xml
+<build>
+   ...
+   <plugins>
+        ...
+        <plugin>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-maven-plugin</artifactId>
+            <version>0.5.0</version>
+            <dependencies>
+                <dependency>
+                    <groupId>org.revapi</groupId>
+                    <artifactId>revapi-java</artifactId>
+                    <version>0.5.0</version>
+                </dependency>
+                ...
+            </dependencies>
+            <executions>
+                <execution>
+                    <id>check</id>
+                    <goals><goal>check</goal><goals>
+                </execution>
+            </executions>
+        </plugin>
+...
+```
+
+== Building
+
+This is a maven project, so a simple `mvn install` will suffice.
+
+== Getting in touch
+
+IRC:: #revapi @ freenode
+Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
+Issues:: individual subprojects under https://github.com/revapi
+Code:: https://github.com/revapi/
