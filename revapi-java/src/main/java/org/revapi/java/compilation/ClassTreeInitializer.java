@@ -175,7 +175,7 @@ final class ClassTreeInitializer {
 
         ClassReader classReader = new ClassReader(data);
 
-        classReader.accept(new ClassVisitor(Opcodes.ASM4) {
+        classReader.accept(new ClassVisitor(Opcodes.ASM5) {
 
             private String visitedClassInternalName;
             private String visitedClassBinaryName;
@@ -224,7 +224,7 @@ final class ClassTreeInitializer {
                 if (isAccessible(access)) {
                     reportUse(Type.getType(desc), UseSite.Type.HAS_TYPE, RawUseSite.SiteType.FIELD, name, desc, -1);
 
-                    return new FieldVisitor(Opcodes.ASM4) {
+                    return new FieldVisitor(Opcodes.ASM5) {
                         @Override
                         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                             reportUse(Type.getType(desc), UseSite.Type.ANNOTATES, RawUseSite.SiteType.FIELD, name, desc,
@@ -294,7 +294,7 @@ final class ClassTreeInitializer {
                         }
                     }
 
-                    return new MethodVisitor(Opcodes.ASM4) {
+                    return new MethodVisitor(Opcodes.ASM5) {
                         @Override
                         public AnnotationVisitor visitAnnotation(String annotationDesc, boolean visible) {
                             reportUse(Type.getType(annotationDesc), UseSite.Type.ANNOTATES, RawUseSite.SiteType.METHOD,
