@@ -77,7 +77,9 @@ final class ClassTreeInitializer {
             processArchive(a, context);
         }
 
-        if (context.typeTreeConstructor.hasUnknownClasses() && environment.getApi().getSupplementaryArchives() != null) {
+        if (context.typeTreeConstructor.hasUnknownClasses()
+                && environment.getApi().getSupplementaryArchives() != null) {
+
             context.processingSupplementaryArchives = true;
 
             for (Archive a : environment.getApi().getSupplementaryArchives()) {

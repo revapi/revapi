@@ -77,6 +77,7 @@ public enum Code {
     ANNOTATION_NO_LONGER_INHERITED("java.annotation.noLongerInherited", NON_BREAKING, NON_BREAKING,
         POTENTIALLY_BREAKING),
     ANNOTATION_NOW_INHERITED("java.annotation.nowInherited", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
+    ANNOTATION_NO_LONGER_PRESENT("java.annotation.noLongerPresent", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
 
     FIELD_ADDED_STATIC_FIELD("java.field.addedStaticField", NON_BREAKING, NON_BREAKING, null),
     FIELD_ADDED("java.field.added", NON_BREAKING, NON_BREAKING, null),
