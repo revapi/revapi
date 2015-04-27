@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
@@ -17,7 +15,7 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>1-SNAPSHOT</version>
+    <version>1</version>
     <packaging>pom</packaging>
 
     <dependencyManagement>
@@ -99,8 +97,7 @@
                         <goals><goal>run</goal></goals>
                         <configuration>
                             <target>
-                                <unzip src="${org.revapi:revapi-site-base:jar}"
-                                       dest="${project.build.directory}/site-base"/>
+                                <unzip src="${org.revapi:revapi-site-base:jar}" dest="${project.build.directory}/site-base" />
                             </target>
                         </configuration>
                     </execution>
@@ -211,6 +208,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-build-1</tag>
     </scm>
 </project>
