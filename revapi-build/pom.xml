@@ -5,7 +5,7 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>1-SNAPSHOT</version>
+        <version>1</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -25,13 +25,12 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-bom</artifactId>
-                <version>1-SNAPSHOT</version>
+                <version>1</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
-
 
     <dependencies>
         <dependency>
@@ -206,4 +205,11 @@
             </build>
         </profile>
     </profiles>
+
+    <scm>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <url>https://github.com/revapi/revapi</url>
+        <tag>HEAD</tag>
+    </scm>
 </project>
