@@ -131,7 +131,8 @@
                     <execution>
                         <id>generate-module-docs</id>
                         <goals><goal>process-asciidoc</goal></goals>
-                        <phase>site</phase>
+                        <!-- don't run this yet. The workflow has not been finalized. -->
+                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>
