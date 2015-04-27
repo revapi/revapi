@@ -220,12 +220,12 @@
 
     <issueManagement>
         <system>github-issues</system>
-        <url>https://github.com/revapi/${project.artifactId}/issues</url>
+        <url>https://github.com/revapi/revapi/issues</url>
     </issueManagement>
 
     <ciManagement>
         <system>travis</system>
-        <url>http://travis-ci.org/revapi/${project.artifactId}</url>
+        <url>http://travis-ci.org/revapi/revapi</url>
     </ciManagement>
 
     <mailingLists>
@@ -239,9 +239,9 @@
     </mailingLists>
 
     <scm>
-        <connection>scm:git:git://github.com/revapi/${project.artifactId}.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/revapi/${project.artifactId}.git</developerConnection>
-        <url>https://github.com/revapi/${project.artifactId}</url>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <url>https://github.com/revapi/revapi</url>
       <tag>HEAD</tag>
   </scm>
 
