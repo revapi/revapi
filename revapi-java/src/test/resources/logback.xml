@@ -22,7 +22,8 @@
         </encoder>
     </appender>
 
-    <root level="trace">
+    <!-- change to "trace" if AST debugging is needed -->
+    <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>
