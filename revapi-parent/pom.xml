@@ -141,7 +141,7 @@
                     <skip>${skip.deploy}</skip>
                     <outputDirectory>${project.build.directory}/staging</outputDirectory>
                     <branch>refs/heads/master</branch>
-                    <repositoryName>test-new-site</repositoryName>
+                    <repositoryName>revapi.github.io</repositoryName>
                     <repositoryOwner>revapi</repositoryOwner>
                     <merge>true</merge>
                 </configuration>
