@@ -23,7 +23,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-bom</artifactId>
-                <version>1</version>
+                <version>2</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -71,7 +71,7 @@
                     <dependency>
                         <groupId>org.revapi</groupId>
                         <artifactId>revapi-build-support</artifactId>
-                        <version>1-SNAPSHOT</version>
+                        <version>1</version>
                     </dependency>
                 </dependencies>
                 <configuration>
