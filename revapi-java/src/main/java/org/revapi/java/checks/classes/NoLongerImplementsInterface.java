@@ -16,16 +16,15 @@
 
 package org.revapi.java.checks.classes;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
-
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
+
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Lukas Krejci
@@ -39,15 +38,15 @@ public final class NoLongerImplementsInterface extends CheckBase {
             return;
         }
 
-        if (isBothPrivate(oldType, newType)) {
-            return;
-        }
+        List<TypeMirror> newInterfaces = Util.getAllSuperInterfaces(getNewTypeEnvironment().getTypeUtils(),
+                newType.asType());
 
-        List<? extends TypeMirror> newInterfaces = newType.getInterfaces();
+        List<TypeMirror> oldInterfaces = Util.getAllSuperInterfaces(getOldTypeEnvironment().getTypeUtils(),
+                oldType.asType());
 
-        for (TypeMirror oldIface : oldType.getInterfaces()) {
+        for (TypeMirror oldIface : oldInterfaces) {
             if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
-                pushActive(oldType, newType);
+                pushActive(oldType, newType, oldInterfaces, newInterfaces);
                 break;
             }
         }
@@ -62,9 +61,13 @@ public final class NoLongerImplementsInterface extends CheckBase {
 
         List<Difference> result = new ArrayList<>();
 
-        List<? extends TypeMirror> newInterfaces = types.newElement.getInterfaces();
+        @SuppressWarnings("unchecked")
+        List<TypeMirror> oldInterfaces = (List<TypeMirror>) types.context[0];
 
-        for (TypeMirror oldIface : types.oldElement.getInterfaces()) {
+        @SuppressWarnings("unchecked")
+        List<TypeMirror> newInterfaces = (List<TypeMirror>) types.context[1];
+
+        for (TypeMirror oldIface : oldInterfaces) {
             if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
                 result.add(createDifference(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE, new String[]{
                     Util.toHumanReadableString(oldIface)}, oldIface));

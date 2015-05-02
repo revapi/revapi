@@ -25,9 +25,11 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -49,6 +51,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import javax.lang.model.util.SimpleElementVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor7;
+import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 
 import org.slf4j.Logger;
@@ -600,9 +603,14 @@ public final class Util {
     }
 
     @Nonnull
-    public static String toHumanReadableString(@Nonnull Element element) {
+    public static String toHumanReadableString(@Nonnull AnnotatedConstruct construct) {
         StringBuilderAndState<TypeMirror> state = new StringBuilderAndState<>();
-        element.accept(toHumanReadableStringElementVisitor, state);
+
+        if (construct instanceof Element) {
+            ((Element) construct).accept(toHumanReadableStringElementVisitor, state);
+        } else if (construct instanceof TypeMirror) {
+            ((TypeMirror) construct).accept(toHumanReadableStringVisitor, state);
+        }
         return state.bld.toString();
     }
 
@@ -616,13 +624,6 @@ public final class Util {
     public static String toUniqueString(@Nonnull TypeMirror t) {
         StringBuilderAndState<TypeMirror> state = new StringBuilderAndState<>();
         t.accept(toUniqueStringVisitor, state);
-        return state.bld.toString();
-    }
-
-    @Nonnull
-    public static String toHumanReadableString(@Nonnull TypeMirror t) {
-        StringBuilderAndState<TypeMirror> state = new StringBuilderAndState<>();
-        t.accept(toHumanReadableStringVisitor, state);
         return state.bld.toString();
     }
 
@@ -657,7 +658,7 @@ public final class Util {
                 if (!a.getElementValues().isEmpty()) {
                     bld.append("(");
                     for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> e : a.getElementValues()
-                        .entrySet()) {
+                            .entrySet()) {
 
                         bld.append(e.getKey().getSimpleName().toString()).append(" = ");
                         bld.append(e.getValue().accept(this, null));
@@ -755,6 +756,37 @@ public final class Util {
         } catch (RuntimeException e) {
             LOG.debug("Failed to find all super types of type '" + toHumanReadableString(type) + ". Possibly " +
                 "missing classes?", e);
+        }
+    }
+
+    public static @Nonnull List<TypeMirror> getAllSuperInterfaces(@Nonnull Types types, @Nonnull TypeMirror type) {
+        List<TypeMirror> ret = new ArrayList<>();
+        fillAllSuperInterfaces(types, type, ret);
+        return ret;
+    }
+
+    public static void fillAllSuperInterfaces(@Nonnull Types types, @Nonnull TypeMirror type,
+            @Nonnull List<TypeMirror> result) {
+
+        try {
+            List<? extends TypeMirror> superTypes = types.directSupertypes(type);
+
+            SimpleTypeVisitor8<Boolean, Void> checker = new SimpleTypeVisitor8<Boolean, Void>(false) {
+                @Override
+                public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+                    return t.asElement().getKind() == ElementKind.INTERFACE;
+                }
+            };
+
+            for (TypeMirror t : superTypes) {
+                if (t.accept(checker, null)) {
+                    result.add(t);
+                }
+                fillAllSuperTypes(types, t, result);
+            }
+        } catch (RuntimeException e) {
+            LOG.debug("Failed to find all super interfaces of type '" + toHumanReadableString(type) + ". Possibly " +
+                    "missing classes?", e);
         }
     }
 
