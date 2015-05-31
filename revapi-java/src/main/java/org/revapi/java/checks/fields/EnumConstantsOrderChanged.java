@@ -66,7 +66,9 @@ public class EnumConstantsOrderChanged extends BothFieldsRequiringCheck {
 
         int newIdx = fields.indexOf(newField);
 
-        pushActive(oldField, newField, oldIdx, newIdx);
+        if (newIdx != oldIdx) {
+            pushActive(oldField, newField, oldIdx, newIdx);
+        }
     }
 
     @Nullable

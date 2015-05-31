@@ -145,4 +145,12 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_ENUM_CONSTANT_ORDER_CHANGED.code()));
     }
+
+    @Test
+    public void testEnumConstantOrderUnchanged() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/fields/EnumConstant.java", "v1/fields/EnumConstant.java");
+
+        Assert.assertNull(reporter.getProblemCounters().get(Code.FIELD_ENUM_CONSTANT_ORDER_CHANGED.code()));
+    }
 }
