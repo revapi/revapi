@@ -55,6 +55,8 @@ import org.jboss.forge.furnace.util.Addons;
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
 
+import static java.util.Collections.emptyList;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
@@ -239,7 +241,7 @@ public final class Main {
             oldSupplementaryArchives = res.supplementaryArchives;
         } else {
             oldArchives = convertPaths(oldArchivePaths, "Old API files");
-            oldSupplementaryArchives = oldSupplementaryArchivePaths == null ? null :
+            oldSupplementaryArchives = oldSupplementaryArchivePaths == null ? emptyList() :
                 convertPaths(oldSupplementaryArchivePaths, "Old API supplementary files");
         }
 
@@ -249,7 +251,7 @@ public final class Main {
             newSupplementaryArchives = res.supplementaryArchives;
         } else {
             newArchives = convertPaths(newArchivePaths, "New API files");
-            newSupplementaryArchives = newSupplementaryArchivePaths == null ? null :
+            newSupplementaryArchives = newSupplementaryArchivePaths == null ? emptyList() :
                 convertPaths(newSupplementaryArchivePaths, "New API supplementary files");
         }
 
