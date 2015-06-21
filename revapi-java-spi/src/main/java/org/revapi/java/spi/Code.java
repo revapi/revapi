@@ -102,6 +102,8 @@ public enum Code {
     METHOD_DEFAULT_VALUE_CHANGED("java.method.defaultValueChanged", NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     METHOD_DEFAULT_VALUE_REMOVED("java.method.defaultValueRemoved", BREAKING, NON_BREAKING, BREAKING),
     METHOD_ADDED_TO_INTERFACE("java.method.addedToInterface", BREAKING, POTENTIALLY_BREAKING, null),
+    METHOD_DEFAULT_METHOD_ADDED_TO_INTERFACE("java.method.defaultMethodAddedToInterface", NON_BREAKING, NON_BREAKING,
+            null),
     METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE("java.method.attributeWithNoDefaultAddedToAnnotationType",
         BREAKING, NON_BREAKING, BREAKING),
     METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE("java.method.attributeWithDefaultAddedToAnnotationType",
@@ -134,6 +136,8 @@ public enum Code {
     METHOD_RUNTIME_EXCEPTION_ADDED("java.method.exception.runtimeAdded", NON_BREAKING, NON_BREAKING, null),
     METHOD_CHECKED_EXCEPTION_REMOVED("java.method.exception.checkedRemoved", BREAKING, NON_BREAKING, null),
     METHOD_RUNTIME_EXCEPTION_REMOVED("java.method.exception.runtimeRemoved", NON_BREAKING, NON_BREAKING, null),
+    METHOD_NO_LONGER_DEFAULT("java.method.noLongerDefault", BREAKING, BREAKING, null),
+    METHOD_NOW_DEFAULT("java.method.nowDefault", NON_BREAKING, NON_BREAKING, null),
 
     GENERICS_ELEMENT_NOW_PARAMETERIZED("java.generics.elementNowParameterized", NON_BREAKING, NON_BREAKING,
         POTENTIALLY_BREAKING),

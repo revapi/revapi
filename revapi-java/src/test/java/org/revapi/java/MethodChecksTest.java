@@ -147,4 +147,15 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_RUNTIME_EXCEPTION_ADDED.code()));
         Assert.assertEquals(4, (int) reporter.getProblemCounters().get(Code.METHOD_RUNTIME_EXCEPTION_REMOVED.code()));
     }
+
+    @Test
+    public void testDefaultMethod() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/methods/DefaultMethod.java", "v2/methods/DefaultMethod.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_DEFAULT_METHOD_ADDED_TO_INTERFACE
+                .code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_DEFAULT.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_DEFAULT.code()));
+    }
 }
