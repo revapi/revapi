@@ -19,6 +19,7 @@ package org.revapi.maven;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
+import org.revapi.configuration.JSONUtil;
 import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.maven.utils.ScopeDependencySelector;
 import org.revapi.maven.utils.ScopeDependencyTraverser;
@@ -300,7 +302,7 @@ final class Analyzer {
                 }
 
                 try (FileInputStream in = new FileInputStream(f)) {
-                    ModelNode config = ModelNode.fromJSONStream(in);
+                    ModelNode config = ModelNode.fromJSONStream(JSONUtil.stripComments(in, Charset.forName("UTF-8")));
 
                     String[] roots = configFile.getRoots();
 
