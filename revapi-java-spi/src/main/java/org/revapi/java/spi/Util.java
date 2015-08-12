@@ -782,7 +782,7 @@ public final class Util {
                 if (t.accept(checker, null)) {
                     result.add(t);
                 }
-                fillAllSuperTypes(types, t, result);
+                fillAllSuperInterfaces(types, t, result);
             }
         } catch (RuntimeException e) {
             LOG.debug("Failed to find all super interfaces of type '" + toHumanReadableString(type) + ". Possibly " +

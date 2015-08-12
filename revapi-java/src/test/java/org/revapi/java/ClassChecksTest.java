@@ -101,7 +101,7 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
             (int) reporter.getProblemCounters().get(Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS.code()));
         Assert
             .assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
-        Assert.assertEquals(1,
+        Assert.assertEquals(3,
             (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_IMPLEMENTS_INTERFACE.code()));
     }
