@@ -26,7 +26,19 @@
                     "justification" : "This was made a private no-arg constructor because the user code is not meant to instantiate these directly."
                 }
             ]
-	}
+	    }
+    },
+    "0.4.0" : {
+        "revapi" : {
+            "filter" : {
+                "elements" : {
+                    "exclude": [
+                        ".* org\.apache\.maven\.*",
+                        ".* org\.codehaus\.plexus\.*"
+                    ]
+                }
+            }
+        }
     }
 }
 

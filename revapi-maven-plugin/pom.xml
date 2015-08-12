@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>2</version>
+        <version>3-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -43,6 +43,7 @@
         <skip.deploy>true</skip.deploy>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
+        <revapi-java.version>0.4.0-SNAPSHOT</revapi-java.version>
     </properties>
 
     <prerequisites>
@@ -96,12 +97,6 @@
             <groupId>org.eclipse.aether</groupId>
             <artifactId>aether-util</artifactId>
             <version>${aether.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-java</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
