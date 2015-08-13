@@ -19,7 +19,7 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>3-SNAPSHOT</version>
+        <version>3</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -31,7 +31,7 @@
     <url>http://revapi.org</url>
     
     <artifactId>revapi-java</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.0</version>
 
     <properties>
         <skip.awestruct.site>true</skip.awestruct.site>
@@ -130,6 +130,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-java-0.4.0</tag>
     </scm>
 </project>
