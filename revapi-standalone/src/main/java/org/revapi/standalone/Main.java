@@ -162,7 +162,7 @@ public final class Main {
         longOpts[4] = new LongOpt("new", LongOpt.REQUIRED_ARGUMENT, null, 'n');
         longOpts[5] = new LongOpt("old-supplementary", LongOpt.REQUIRED_ARGUMENT, null, 's');
         longOpts[6] = new LongOpt("new-supplementary", LongOpt.REQUIRED_ARGUMENT, null, 't');
-        longOpts[7] = null;
+        longOpts[7] = new LongOpt("D", LongOpt.REQUIRED_ARGUMENT, null, 'D');
         longOpts[8] = new LongOpt("config-files", LongOpt.REQUIRED_ARGUMENT, null, 'c');
         longOpts[9] = new LongOpt("cache-dir", LongOpt.REQUIRED_ARGUMENT, null, 'd');
         longOpts[10] = new LongOpt("old-gavs", LongOpt.REQUIRED_ARGUMENT, null, 'a');
