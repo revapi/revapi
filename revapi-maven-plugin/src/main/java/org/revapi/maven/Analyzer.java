@@ -207,7 +207,12 @@ final class Analyzer {
             @Override
             public FileArchive apply(String gav) {
                 try {
-                    return new FileArchive(resolver.resolveArtifact(gav).getFile());
+                    Artifact a = resolver.resolveArtifact(gav);
+                    File f = a.getFile();
+                    if (f == null) {
+                        throw new MarkerException("Failed to find the file of the artifact with GAV: " + gav);
+                    }
+                    return new FileArchive(f);
                 } catch (ArtifactResolutionException e) {
                     throw new MarkerException(e.getMessage());
                 }
@@ -217,6 +222,12 @@ final class Analyzer {
         Function<Artifact, FileArchive> artifactToFileArchive = new Function<Artifact, FileArchive>() {
             @Override
             public FileArchive apply(Artifact artifact) {
+                File f = artifact.getFile();
+                if (f == null) {
+                    throw new MarkerException("Failed to find the file of the artifact with GAV: "
+                            + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getClassifier()
+                        + ":" + artifact.getVersion());
+                }
                 return new FileArchive(artifact.getFile());
             }
         };
@@ -242,7 +253,7 @@ final class Analyzer {
             oldTransitiveDeps = (Set) resolver.collectTransitiveDeps(oldArtifacts).stream()
                 .map(artifactToFileArchive).collect(Collectors.toSet());
 
-        } catch (RepositoryException e) {
+        } catch (RepositoryException | MarkerException e) {
             log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() +
                 ". The API analysis might produce unexpected results.");
         }
