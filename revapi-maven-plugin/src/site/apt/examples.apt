@@ -71,12 +71,14 @@ the analysis respectively.
     <groupId>org.revapi</groupId>
     <artifactId>revapi-maven-plugin</artifactId>
     <version>0.1.0</version>
-    <oldArtifacts>
-        <artifact>${project.groupId}:${project.artifactId}:RELEASE</artifact>
-    </oldArtifacts>
-    <newArtifacts>
-        <artifact>BUILD</artifact>
-    </newArtifacts>
+    <configuration>
+        <oldArtifacts>
+            <artifact>${project.groupId}:${project.artifactId}:RELEASE</artifact>
+        </oldArtifacts>
+        <newArtifacts>
+            <artifact>BUILD</artifact>
+        </newArtifacts>
+    </configuration>
     <executions>
         <execution>
             <phase>verify</phase>
