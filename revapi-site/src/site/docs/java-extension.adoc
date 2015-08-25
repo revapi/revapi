@@ -630,20 +630,24 @@ attribute).
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.addedToInterface+
-| Binary severity   | potentially breaking
+| Binary severity   | non breaking
 | Source severity   | breaking
-| Semantic severity | NA
+| Semantic severity | potentially breaking
 |=============
 
 This is a source-incompatible change because all implementations that were written against the old version of the
 interface will not have the implementation of the new method and therefore will not compile.
 
-This might be binary compatible though. The code that used the old version of the interface will never call such new
-method and a missing method implementation is not checked for at link time. It might break though in situations where
-the interface serves the purpose of an SPI - a library declares an SPI interface to be implemented by users and then
+On contrary, this is binary compatible, because no code that used the old version of the interface could have called
+the method through the interface. The linker doesn't check for missing method implementations so the linkage also goes
+without a problem.
+
+There might be semantic problems though. It might break in situations where the interface serves the purpose of an SPI -
+a library declares an SPI interface to be implemented by users and then
 uses these SPI implementations inside the library. If the new version of the library assumes that the SPI
 implementations provide the impl of the new method and it is provided with the SPI implementation of the old version
-of the interface, things will break with `NoSuchMethodError`.
+of the interface, things will break with `NoSuchMethodError` when the caller tries to call the SPI method backed by the
+old SPI implementation.
 
 === Method With No Default Value Added To Annotation Type
 [cols="35s,<65d"]
