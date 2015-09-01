@@ -475,7 +475,7 @@ public final class Revapi {
                     // transforms want removed.
                     // This prevents 1 transformation from disallowing other transformation to do what it needs
                     // if both apply to the same difference.
-                    if (td != null && td != d) { //yes, reference equality is OK here
+                    if (td != null && !d.equals(td)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Difference transform {} transforms {} to {}", t.getClass(), d, td);
                         }
@@ -490,6 +490,12 @@ public final class Revapi {
             if (iteration % 100 == 0) {
                 LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration +
                     " times. Maybe we're in an infinite loop with differences transforming back and forth?");
+            }
+
+            if (iteration == Integer.MAX_VALUE) {
+                throw new IllegalStateException("Transformation failed to settle in " + Integer.MAX_VALUE +
+                        " iterations. This is most probably an error in difference transform configuration that" +
+                        " cycles between two or more changes back and forth.");
             }
         } while (changed);
 
