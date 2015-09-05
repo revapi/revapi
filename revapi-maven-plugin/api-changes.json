@@ -27,18 +27,6 @@
                 }
             ]
 	    }
-    },
-    "0.3.2" : {
-        "revapi" : {
-            "filter" : {
-                "elements" : {
-                    "exclude": [
-                        ".* org\.apache\.maven\.*",
-                        ".* org\.codehaus\.plexus\.*"
-                    ]
-                }
-            }
-        }
     }
 }
 

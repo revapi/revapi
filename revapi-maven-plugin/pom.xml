@@ -32,7 +32,7 @@
     <url>http://revapi.org</url>
     
     <artifactId>revapi-maven-plugin</artifactId>
-    <version>0.3.3-SNAPSHOT</version>
+    <version>0.3.3</version>
 
     <properties>
         <maven.version>3.1.1</maven.version>
@@ -108,6 +108,26 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <configuration>
+                    <analysisConfiguration><![CDATA[
+                        {
+                            "revapi" : {
+                                "filter" : {
+                                    "elements" : {
+                                        "exclude": [
+                                            ".* org\.apache\.maven\.*",
+                                            ".* org\.codehaus\.plexus\.*"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]]></analysisConfiguration>                  
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -311,6 +331,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-maven-plugin-0.3.3</tag>
     </scm>
 </project>
