@@ -31,7 +31,7 @@
     <url>http://revapi.org</url>
     
     <artifactId>revapi-java</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.2-SNAPSHOT</version>
 
     <properties>
         <skip.awestruct.site>true</skip.awestruct.site>
@@ -130,6 +130,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>revapi-java-0.4.1</tag>
+        <tag>HEAD</tag>
     </scm>
 </project>
