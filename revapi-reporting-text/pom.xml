@@ -32,7 +32,7 @@
     <url>http://revapi.org</url>
     
     <artifactId>revapi-reporting-text</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.3.2</version>
 
     <properties>
         <skip.awestruct.site>true</skip.awestruct.site>
@@ -57,6 +57,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-reporting-text-0.3.2</tag>
     </scm>
 </project>
