@@ -1,0 +1,18 @@
+{
+    "0.3.2": {
+        "revapi": {
+           "filter": {
+               "elements": {
+                   "exclude": [
+                       //there is no real change in the codebase but the new version of Revapi used for self-checks starting
+                       //with ant-task 0.3.2 is more clever. We need to exclude org.jboss.dmr stuff from API checks, because
+                       //ant task creates a fat jar with dmr inlined. We a) don't want to do API checks on DMR and b) there
+                       //is an API problem in it ;)
+                       ".* org\.jboss\.dmr\..*"
+                   ]
+               }
+           }
+        }
+    }
+}
+
