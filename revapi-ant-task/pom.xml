@@ -87,7 +87,9 @@
                         {
                             "revapi" : {
                                 "filter" : {
-                                    "include" : ["org\\.revapi\\..*"]
+                                    "elements": {
+                                       "include" : ["org\.revapi\..*"]
+                                    }
                                 },
                                 "java" : {
                                     "missing-classes" : {
