@@ -19,8 +19,8 @@
     <packaging>pom</packaging>
 
     <properties>
-        <self-api-check.maven-version>0.3.2</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.4.0</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.3.3</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.4.1</self-api-check.java-extension-version>
     </properties>
 
     <dependencyManagement>
