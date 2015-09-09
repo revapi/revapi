@@ -33,7 +33,7 @@ public abstract class DifferenceMatchRecipe {
         codeRegex = regex ? Pattern.compile(code) : null;
         oldElement = config.has("old") ? config.get("old").asString() : null;
         oldElementRegex = regex && oldElement != null ? Pattern.compile(oldElement) : null;
-        newElement = config.has("new") ? config.get("old").asString() : null;
+        newElement = config.has("new") ? config.get("new").asString() : null;
         newElementRegex = regex && newElement != null ? Pattern.compile(newElement) : null;
         this.config = config;
     }
