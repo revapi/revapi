@@ -32,7 +32,7 @@
     <url>http://revapi.org</url>
 
     <artifactId>revapi-bom</artifactId>
-    <version>5</version>
+    <version>6-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -128,6 +128,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>revapi-bom-5</tag>
+        <tag>HEAD</tag>
     </scm>
 </project>
