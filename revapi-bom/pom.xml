@@ -41,7 +41,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-ant-task</artifactId>
-                <version>0.3.2</version>
+                <version>0.3.3</version>
             </dependency>
 
             <dependency>
@@ -53,7 +53,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-basic-features</artifactId>
-                <version>0.3.2</version>
+                <version>0.3.3</version>
             </dependency>
 
             <dependency>
@@ -71,7 +71,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-plugin</artifactId>
-                <version>0.3.3</version>
+                <version>0.3.4</version>
             </dependency>
 
             <dependency>
@@ -89,7 +89,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-standalone</artifactId>
-                <version>0.3.3</version>
+                <version>0.3.4</version>
             </dependency>
 
             <dependency>
