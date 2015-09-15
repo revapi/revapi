@@ -4,3 +4,9 @@ jdk:
 notifications:
   email: false
 
+//this should make Travis run the build in Docker instead of a VM
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.m2
