@@ -19,6 +19,7 @@ package org.revapi.java.compilation;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +30,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -154,7 +156,8 @@ public final class Compiler {
             File f = new File(parentDir, name);
             if (f.exists()) {
                 LOG.warn(
-                    "File " + f.getAbsolutePath() + " already exists. Assume it already contains the bits we need.");
+                    "File " + f.getAbsolutePath() + " with the data of archive '" + a.getName() + "' already exists." +
+                            " Assume it already contains the bits we need.");
                 continue;
             }
 
@@ -185,6 +188,10 @@ public final class Compiler {
     }
 
     private String formatName(int idx, int prefixLength, String rootName) {
-        return String.format("%0" + prefixLength + "d-" + rootName, idx);
+        try {
+            return String.format("%0" + prefixLength + "d-%s", idx, UUID.nameUUIDFromBytes(rootName.getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 not supported.");
+        }
     }
 }
