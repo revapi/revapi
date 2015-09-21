@@ -203,36 +203,30 @@ final class Analyzer {
         //Hence, instead of a lambda, we use these Function instances and further below we need to make unsafe casts
         //that Java8 would have correctly figured out on its own. Yay.
 
-        Function<String, FileArchive> toFileArchive = new Function<String, FileArchive>() {
+        Function<String, MavenArchive> toFileArchive = new Function<String, MavenArchive>() {
             @Override
-            public FileArchive apply(String gav) {
+            public MavenArchive apply(String gav) {
                 try {
                     Artifact a = resolver.resolveArtifact(gav);
-                    File f = a.getFile();
-                    if (f == null) {
-                        throw new MarkerException("Failed to find the file of the artifact with GAV: " + gav);
-                    }
-                    return new FileArchive(f);
-                } catch (ArtifactResolutionException e) {
+                    return new MavenArchive(a);
+                } catch (ArtifactResolutionException | IllegalArgumentException e) {
                     throw new MarkerException(e.getMessage());
                 }
             }
         };
 
-        Function<Artifact, FileArchive> artifactToFileArchive = new Function<Artifact, FileArchive>() {
+        Function<Artifact, MavenArchive> artifactToFileArchive = new Function<Artifact, MavenArchive>() {
             @Override
-            public FileArchive apply(Artifact artifact) {
-                File f = artifact.getFile();
-                if (f == null) {
-                    throw new MarkerException("Failed to find the file of the artifact with GAV: "
-                            + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getClassifier()
-                        + ":" + artifact.getVersion());
+            public MavenArchive apply(Artifact artifact) {
+                try {
+                    return new MavenArchive(artifact);
+                } catch (IllegalArgumentException e) {
+                    throw new MarkerException(e.getMessage());
                 }
-                return new FileArchive(artifact.getFile());
             }
         };
 
-        List<FileArchive> oldArchives;
+        List<MavenArchive> oldArchives;
         try {
             oldArchives = (List) Arrays.asList(oldArtifacts).stream().map(toFileArchive).collect(Collectors.toList());
         } catch (MarkerException e) {
@@ -240,7 +234,7 @@ final class Analyzer {
             return;
         }
 
-        List<FileArchive> newArchives;
+        List<MavenArchive> newArchives;
         try {
             newArchives = (List) Arrays.asList(newArtifacts).stream().map(toFileArchive).collect(Collectors.toList());
         } catch (MarkerException e) {
@@ -248,7 +242,7 @@ final class Analyzer {
             return;
         }
 
-        Set<FileArchive> oldTransitiveDeps = Collections.emptySet();
+        Set<MavenArchive> oldTransitiveDeps = Collections.emptySet();
         try {
             oldTransitiveDeps = (Set) resolver.collectTransitiveDeps(oldArtifacts).stream()
                 .map(artifactToFileArchive).collect(Collectors.toSet());
@@ -258,7 +252,7 @@ final class Analyzer {
                 ". The API analysis might produce unexpected results.");
         }
 
-        Set<FileArchive> newTransitiveDeps = Collections.emptySet();
+        Set<MavenArchive> newTransitiveDeps = Collections.emptySet();
         try {
             newTransitiveDeps = (Set) resolver.collectTransitiveDeps(newArtifacts).stream()
                 .map(artifactToFileArchive).collect(Collectors.toSet());

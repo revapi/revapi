@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-java-spi</artifactId>
-            <version>@revapi-java.version@</version>
+            <version>@revapi-java-spi.version@</version>
         </dependency>
     </dependencies>
 </project>

@@ -23,27 +23,35 @@ import java.io.InputStream;
 
 import javax.annotation.Nonnull;
 
+import org.eclipse.aether.artifact.Artifact;
 import org.revapi.Archive;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-final class FileArchive implements Archive {
+final class MavenArchive implements Archive {
 
     private final File file;
+    private final String gav;
 
-    public FileArchive(File f) {
-        if (f == null) {
-            throw new IllegalArgumentException("file cannot be null");
+    public MavenArchive(Artifact artifact) {
+        if (artifact == null) {
+            throw new IllegalArgumentException("Artifact cannot be null");
         }
-        file = f;
+
+        file = artifact.getFile();
+        if (file == null) {
+            throw new IllegalArgumentException("Could not locate the file of the maven artifact: " + artifact);
+        }
+
+        this.gav = artifact.toString();
     }
 
     @Nonnull
     @Override
     public String getName() {
-        return file.getName();
+        return gav;
     }
 
     @Nonnull
@@ -61,13 +69,9 @@ final class FileArchive implements Archive {
             return false;
         }
 
-        FileArchive that = (FileArchive) o;
+        MavenArchive that = (MavenArchive) o;
 
-        if (!file.equals(that.file)) {
-            return false;
-        }
-
-        return true;
+        return file.equals(that.file);
     }
 
     @Override
@@ -77,6 +81,6 @@ final class FileArchive implements Archive {
 
     @Override
     public String toString() {
-        return "FileArchive[" + "file=" + file + ']';
+        return "MavenArchive[gav=" + gav + ", file=" + file + ']';
     }
 }

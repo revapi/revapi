@@ -69,9 +69,9 @@ final class BuildTimeReporter implements Reporter {
 
     @Override
     public void report(@Nonnull Report report) {
-        Element element = report.getOldElement();
+        Element element = report.getNewElement();
         if (element == null) {
-            element = report.getNewElement();
+            element = report.getOldElement();
         }
 
         if (element == null) {
@@ -88,7 +88,8 @@ final class BuildTimeReporter implements Reporter {
             }
 
             if (maxSeverity.compareTo(breakingSeverity) >= 0) {
-                allProblems.append("\n").append(element.getFullHumanReadableString()).append(": ").append(d.code)
+            String archive = element.getArchive() == null ? "<unknown-archive>" : element.getArchive().getName();
+            allProblems.append("\n[").append(archive).append("] ").append(element.getFullHumanReadableString()).append(": ").append(d.code)
                     .append(": ").append(d.description);
             }
         }
