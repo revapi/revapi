@@ -16,6 +16,7 @@
 
 package org.revapi.java.compilation;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -141,34 +142,42 @@ final class ClassTreeInitializer {
         }
     }
 
-    private void processArchive(Archive a, InitTreeContext context)
-        throws IOException {
-        if (a.getName().toLowerCase().endsWith(".jar")) {
-            processJarArchive(a, context);
-        } else if (a.getName().toLowerCase().endsWith(".class")) {
-            processClassFile(a, context);
-        }
-    }
+    private void processArchive(Archive a, InitTreeContext context) throws IOException {
+        try (BufferedInputStream buf = new BufferedInputStream(a.openStream())) {
 
-    private void processJarArchive(Archive a, InitTreeContext context) throws IOException {
-        try (ZipInputStream jar = new ZipInputStream(a.openStream())) {
+            //sniff what kind of file we're dealing with
+            buf.mark(4); //CA FE BA BE for class files, 50 4B 03 04 for jar archives (zip files)
+            byte[] magic = new byte[4];
+            int cnt = buf.read(magic);
+            if (cnt < 4) {
+                LOG.info("Unsupported type of data - neither a Java class file or a JAR file: " + a.getName());
+                return;
+            }
 
-            ZipEntry entry = jar.getNextEntry();
-
-            while (entry != null) {
-                if (!entry.isDirectory() && entry.getName().toLowerCase().endsWith(".class")) {
-                    processClassBytes(a, jar, context);
-                }
-
-                entry = jar.getNextEntry();
+            if (magic[0] == 0x50 && magic[1] == 0x4B && magic[2] == 3 && magic[3] == 4) {
+                buf.reset();
+                processJarArchive(a, buf, context);
+            } else if (((int)magic[0]) == 0xCA && ((int)magic[1]) == 0xFE && ((int)magic[2]) == 0xBA
+                    && ((int)magic[3]) == 0xBE) {
+                buf.reset();
+                processClassBytes(a, buf, context);
+            } else {
+                LOG.info("Unsupported type of data - neither a Java class file or a JAR file: " + a.getName());
             }
         }
     }
 
-    private void processClassFile(Archive a, InitTreeContext context)
-        throws IOException {
-        try (InputStream data = a.openStream()) {
-            processClassBytes(a, data, context);
+    private void processJarArchive(Archive a, InputStream openStream, InitTreeContext context) throws IOException {
+        ZipInputStream jar = new ZipInputStream(openStream);
+
+        ZipEntry entry = jar.getNextEntry();
+
+        while (entry != null) {
+            if (!entry.isDirectory() && entry.getName().toLowerCase().endsWith(".class")) {
+                processClassBytes(a, jar, context);
+            }
+
+            entry = jar.getNextEntry();
         }
     }
 
