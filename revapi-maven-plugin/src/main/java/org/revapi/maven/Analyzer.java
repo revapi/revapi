@@ -49,6 +49,8 @@ import org.revapi.maven.utils.ScopeDependencyTraverser;
 
 import org.jboss.dmr.ModelNode;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * @author Lukas Krejci
  * @since 0.1
@@ -228,7 +230,7 @@ final class Analyzer {
 
         List<MavenArchive> oldArchives;
         try {
-            oldArchives = (List) Arrays.asList(oldArtifacts).stream().map(toFileArchive).collect(Collectors.toList());
+            oldArchives = (List) Arrays.asList(oldArtifacts).stream().map(toFileArchive).collect(toList());
         } catch (MarkerException e) {
             log.warn("Failed to resolve old artifacts: " + e.getMessage() + ". The API analysis will not proceed.");
             return;
@@ -236,7 +238,7 @@ final class Analyzer {
 
         List<MavenArchive> newArchives;
         try {
-            newArchives = (List) Arrays.asList(newArtifacts).stream().map(toFileArchive).collect(Collectors.toList());
+            newArchives = (List) Arrays.asList(newArtifacts).stream().map(toFileArchive).collect(toList());
         } catch (MarkerException e) {
             log.warn("Failed to resolve new artifacts: " + e.getMessage() + ". The API analysis will not proceed.");
             return;
@@ -260,6 +262,15 @@ final class Analyzer {
             log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() +
                 ". The API analysis might produce unexpected results.");
         }
+
+        //This is useful so that users know what RELEASE and BUILD actually resolved to.
+        Function<MavenArchive, String> extractName = new Function<MavenArchive, String>() {
+            @Override public String apply(MavenArchive mavenArchive) {
+                return mavenArchive.getName();
+            }
+        };
+        log.info("Comparing " + oldArchives.stream().map(extractName).collect(toList()) + " against " +
+                newArchives.stream().map(extractName).collect(toList()) + " (including their transitive dependencies).");
 
         try {
             Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().withReporters(reporter)
