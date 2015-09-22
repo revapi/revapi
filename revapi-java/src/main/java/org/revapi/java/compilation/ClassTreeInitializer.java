@@ -160,7 +160,11 @@ final class ClassTreeInitializer {
             } else if (((int)magic[0]) == 0xCA && ((int)magic[1]) == 0xFE && ((int)magic[2]) == 0xBA
                     && ((int)magic[3]) == 0xBE) {
                 buf.reset();
-                processClassBytes(a, buf, context);
+                try {
+                    processClassBytes(a, buf, context);
+                } catch (Exception e) {
+                    LOG.error("Failed to process class '" + a.getName() + "'. This is a bug, please report it.", e);
+                }
             } else {
                 LOG.info("Unsupported type of data - neither a Java class file or a JAR file: " + a.getName());
             }
@@ -174,7 +178,12 @@ final class ClassTreeInitializer {
 
         while (entry != null) {
             if (!entry.isDirectory() && entry.getName().toLowerCase().endsWith(".class")) {
-                processClassBytes(a, jar, context);
+                try {
+                    processClassBytes(a, jar, context);
+                } catch (Exception e) {
+                    LOG.error("Failed to process class '" + entry.getName() + "' in archive '" + a.getName() + "'." +
+                            " This is a bug, please report it.", e);
+                }
             }
 
             entry = jar.getNextEntry();
