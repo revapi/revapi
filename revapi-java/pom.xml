@@ -19,7 +19,7 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>8</version>
+        <version>9</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
