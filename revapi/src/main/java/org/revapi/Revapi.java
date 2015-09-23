@@ -509,6 +509,7 @@ public final class Revapi {
                 Difference td = tt.transform(report.getOldElement(), report.getNewElement(), d);
                 if (td == null) {
                     it.remove();
+                    break;
                 }
             }
         }
