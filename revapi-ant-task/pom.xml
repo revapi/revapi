@@ -31,7 +31,7 @@
     <url>http://revapi.org</url>
 
     <artifactId>revapi-ant-task</artifactId>
-    <version>0.3.4-SNAPSHOT</version>
+    <version>0.3.4</version>
 
     <properties>
         <skip.awestruct.site>true</skip.awestruct.site>
@@ -108,6 +108,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-ant-task-0.3.4</tag>
     </scm>
 </project>
