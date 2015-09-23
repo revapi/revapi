@@ -16,6 +16,26 @@
 
 package org.revapi.maven;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositoryException;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
+import org.jboss.dmr.ModelNode;
+import org.revapi.API;
+import org.revapi.AnalysisContext;
+import org.revapi.Reporter;
+import org.revapi.Revapi;
+import org.revapi.configuration.JSONUtil;
+import org.revapi.maven.utils.ArtifactResolver;
+import org.revapi.maven.utils.ScopeDependencySelector;
+import org.revapi.maven.utils.ScopeDependencyTraverser;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,27 +47,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.project.MavenProject;
-import org.eclipse.aether.DefaultRepositorySystemSession;
-import org.eclipse.aether.RepositoryException;
-import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
-import org.revapi.API;
-import org.revapi.AnalysisContext;
-import org.revapi.Reporter;
-import org.revapi.Revapi;
-import org.revapi.configuration.JSONUtil;
-import org.revapi.maven.utils.ArtifactResolver;
-import org.revapi.maven.utils.ScopeDependencySelector;
-import org.revapi.maven.utils.ScopeDependencyTraverser;
-
-import org.jboss.dmr.ModelNode;
 
 import static java.util.stream.Collectors.toList;
 
@@ -217,7 +216,7 @@ final class Analyzer {
             }
         };
 
-        Function<Artifact, MavenArchive> artifactToFileArchive = new Function<Artifact, MavenArchive>() {
+        Function<Artifact, MavenArchive> artifactToMavenArchive = new Function<Artifact, MavenArchive>() {
             @Override
             public MavenArchive apply(Artifact artifact) {
                 try {
@@ -247,7 +246,7 @@ final class Analyzer {
         Set<MavenArchive> oldTransitiveDeps = Collections.emptySet();
         try {
             oldTransitiveDeps = (Set) resolver.collectTransitiveDeps(oldArtifacts).stream()
-                .map(artifactToFileArchive).collect(Collectors.toSet());
+                .map(artifactToMavenArchive).collect(Collectors.toSet());
 
         } catch (RepositoryException | MarkerException e) {
             log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() +
@@ -257,7 +256,7 @@ final class Analyzer {
         Set<MavenArchive> newTransitiveDeps = Collections.emptySet();
         try {
             newTransitiveDeps = (Set) resolver.collectTransitiveDeps(newArtifacts).stream()
-                .map(artifactToFileArchive).collect(Collectors.toSet());
+                .map(artifactToMavenArchive).collect(Collectors.toSet());
         } catch (RepositoryException e) {
             log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() +
                 ". The API analysis might produce unexpected results.");
@@ -357,7 +356,8 @@ final class Analyzer {
         protected void collectTransitiveDeps(String gav, Set<Artifact> resolvedArtifacts) throws RepositoryException {
 
             if (BUILD_COORDINATES.equals(gav)) {
-                addProjectDeps(resolvedArtifacts);
+                Artifact a = resolveArtifact(gav);
+                super.collectTransitiveDeps(a.toString(), resolvedArtifacts);
             } else {
                 super.collectTransitiveDeps(gav, resolvedArtifacts);
             }
@@ -365,8 +365,9 @@ final class Analyzer {
 
         @Override
         public Artifact resolveArtifact(String gav) throws ArtifactResolutionException {
+            Artifact ret;
             if (BUILD_COORDINATES.equals(gav)) {
-                Artifact ret = toAetherArtifact(project.getArtifact(), repositorySystemSession);
+                ret = toAetherArtifact(project.getArtifact(), repositorySystemSession);
 
                 //project.getArtifact().getFile() returns null for pom-packaged projects
                 if ("pom".equals(project.getArtifact().getType())) {
@@ -374,10 +375,15 @@ final class Analyzer {
                 } else {
                     ret = ret.setFile(project.getArtifact().getFile());
                 }
-
-                return ret;
             } else {
-                return super.resolveArtifact(gav);
+                ret = super.resolveArtifact(gav);
+            }
+
+            if ("war".equals(ret.getExtension())) {
+                return resolveArtifact(new DefaultArtifact(ret.getGroupId(), ret.getArtifactId(), ret.getClassifier(),
+                        "jar", ret.getVersion()).toString());
+            } else {
+                return ret;
             }
         }
 
@@ -385,28 +391,6 @@ final class Analyzer {
             String extension = session.getArtifactTypeRegistry().get(artifact.getType()).getExtension();
             return new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), extension,
                 artifact.getVersion());
-        }
-
-        private void addProjectDeps(Set<Artifact> resolvedArchives) throws RepositoryException {
-            for (org.apache.maven.model.Dependency dep : project.getDependencies()) {
-                String scope = dep.getScope();
-                if (scope == null || "compile".equals(scope) || "provided".equals(scope)) {
-                    String coords = dep.getGroupId() + ":" + dep.getArtifactId();
-                    if (dep.getType() != null) {
-                        coords += ":" + dep.getType();
-                    }
-                    if (dep.getClassifier() != null) {
-                        coords += ":" + dep.getClassifier();
-                    }
-                    coords += ":" + dep.getVersion();
-
-                    Artifact a = resolveArtifact(coords);
-
-                    resolvedArchives.add(a);
-
-                    collectTransitiveDeps(coords, resolvedArchives);
-                }
-            }
         }
     }
 
