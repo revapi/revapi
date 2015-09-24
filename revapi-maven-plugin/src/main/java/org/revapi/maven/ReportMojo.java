@@ -169,6 +169,13 @@ public class ReportMojo extends AbstractMavenReport {
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
     private RepositorySystemSession repositorySystemSession;
 
+    /**
+     * If true (the default) revapi will always download the information about the latest version from the remote
+     * repositories (instead of using locally cached info). This will respect the offline settings.
+     */
+    @Parameter(defaultValue = "true", property = "revapi.alwaysCheckForReleaseVersion")
+    private boolean alwaysCheckForReleaseVersion;
+
     @Override
     protected Renderer getSiteRenderer() {
         return siteRenderer;
@@ -197,7 +204,8 @@ public class ReportMojo extends AbstractMavenReport {
         ReportTimeReporter reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
 
         Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts,
-            project, repositorySystem, repositorySystemSession, reporter, locale, getLog(), failOnMissingConfigurationFiles);
+            project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
+                failOnMissingConfigurationFiles, alwaysCheckForReleaseVersion);
 
         try {
             analyzer.analyze();

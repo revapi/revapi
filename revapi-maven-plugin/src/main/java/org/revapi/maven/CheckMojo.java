@@ -154,6 +154,13 @@ public class CheckMojo extends AbstractMojo {
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
     private RepositorySystemSession repositorySystemSession;
 
+    /**
+     * If true (the default) revapi will always download the information about the latest version from the remote
+     * repositories (instead of using locally cached info). This will respect the offline settings.
+     */
+    @Parameter(defaultValue = "true", property = "revapi.alwaysCheckForReleaseVersion")
+    private boolean alwaysCheckForReleaseVersion;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
@@ -168,7 +175,7 @@ public class CheckMojo extends AbstractMojo {
 
         Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
             newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(), getLog(),
-            failOnMissingConfigurationFiles);
+            failOnMissingConfigurationFiles, alwaysCheckForReleaseVersion);
 
         analyzer.analyze();
 

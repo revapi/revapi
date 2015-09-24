@@ -25,6 +25,7 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.jboss.dmr.ModelNode;
 import org.revapi.API;
@@ -150,9 +151,9 @@ final class Analyzer {
     private final boolean failOnMissingConfigurationFiles;
 
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
-        String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
-        RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-        boolean failOnMissingConfigurationFiles) {
+             String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
+             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+             boolean failOnMissingConfigurationFiles, boolean alwaysUpdate) {
 
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
@@ -164,6 +165,10 @@ final class Analyzer {
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
         session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
         session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
+
+        if (alwaysUpdate) {
+            session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
+        }
 
         this.repositorySystemSession = session;
 
@@ -211,7 +216,7 @@ final class Analyzer {
                     Artifact a = resolver.resolveArtifact(gav);
                     return MavenArchive.of(a);
                 } catch (ArtifactResolutionException | IllegalArgumentException e) {
-                    throw new MarkerException(e.getMessage());
+                    throw new MarkerException(e.getMessage(), e);
                 }
             }
         };
@@ -222,7 +227,7 @@ final class Analyzer {
                 try {
                     return MavenArchive.of(artifact);
                 } catch (IllegalArgumentException e) {
-                    throw new MarkerException(e.getMessage());
+                    throw new MarkerException(e.getMessage(), e);
                 }
             }
         };
@@ -231,7 +236,7 @@ final class Analyzer {
         try {
             oldArchives = (List) Arrays.asList(oldArtifacts).stream().map(toFileArchive).collect(toList());
         } catch (MarkerException e) {
-            log.warn("Failed to resolve old artifacts: " + e.getMessage() + ". The API analysis will not proceed.");
+            log.warn("Failed to resolve old artifacts: " + e.getMessage() + ". The API analysis will not proceed.", e);
             return;
         }
 
@@ -239,7 +244,7 @@ final class Analyzer {
         try {
             newArchives = (List) Arrays.asList(newArtifacts).stream().map(toFileArchive).collect(toList());
         } catch (MarkerException e) {
-            log.warn("Failed to resolve new artifacts: " + e.getMessage() + ". The API analysis will not proceed.");
+            log.warn("Failed to resolve new artifacts: " + e.getMessage() + ". The API analysis will not proceed.", e);
             return;
         }
 
@@ -250,7 +255,7 @@ final class Analyzer {
 
         } catch (RepositoryException | MarkerException e) {
             log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() +
-                ". The API analysis might produce unexpected results.");
+                ". The API analysis might produce unexpected results.", e);
         }
 
         Set<MavenArchive> newTransitiveDeps = Collections.emptySet();
@@ -259,7 +264,7 @@ final class Analyzer {
                 .map(artifactToMavenArchive).collect(Collectors.toSet());
         } catch (RepositoryException e) {
             log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() +
-                ". The API analysis might produce unexpected results.");
+                ". The API analysis might produce unexpected results.", e);
         }
 
         //This is useful so that users know what RELEASE and BUILD actually resolved to.
