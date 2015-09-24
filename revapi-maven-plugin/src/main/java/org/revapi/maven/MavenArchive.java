@@ -16,26 +16,32 @@
 
 package org.revapi.maven;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.annotation.Nonnull;
-
 import org.eclipse.aether.artifact.Artifact;
 import org.revapi.Archive;
+
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-final class MavenArchive implements Archive {
+class MavenArchive implements Archive {
 
     private final File file;
     private final String gav;
 
-    public MavenArchive(Artifact artifact) {
+    private MavenArchive(Artifact artifact) {
         if (artifact == null) {
             throw new IllegalArgumentException("Artifact cannot be null");
         }
@@ -46,6 +52,19 @@ final class MavenArchive implements Archive {
         }
 
         this.gav = artifact.toString();
+    }
+
+    public static MavenArchive of(Artifact artifact) {
+        switch (artifact.getExtension()) {
+            case "war":
+                return new War(artifact);
+            case "ear":
+                return new Empty(artifact);
+            case "pom":
+                return new Empty(artifact);
+            default:
+                return new Jar(artifact);
+        }
     }
 
     @Nonnull
@@ -82,5 +101,81 @@ final class MavenArchive implements Archive {
     @Override
     public String toString() {
         return "MavenArchive[gav=" + gav + ", file=" + file + ']';
+    }
+
+    public static final class Jar extends MavenArchive {
+
+        public Jar(Artifact artifact) {
+            super(artifact);
+        }
+    }
+
+    public static final class War extends MavenArchive {
+
+        public War(Artifact artifact) {
+            super(artifact);
+        }
+
+        @Nonnull
+        @Override
+        public InputStream openStream() throws IOException {
+            final Path path = Files.createTempFile("revapi-maven-plugin", null);
+
+            try (ZipInputStream warZip = new ZipInputStream(super.openStream());
+                 ZipOutputStream croppedZip = new ZipOutputStream(new FileOutputStream(path.toFile()))) {
+
+                croppedZip.setLevel(Deflater.NO_COMPRESSION);
+                croppedZip.setMethod(ZipOutputStream.DEFLATED);
+
+                byte[] buf = new byte[32768];
+
+                ZipEntry inEntry = warZip.getNextEntry();
+                int prefixLen = "WEB-INF/classes/".length();
+                while (inEntry != null) {
+                    if (inEntry.getName().startsWith("WEB-INF/classes/") && inEntry.getName().length() > prefixLen) {
+                        ZipEntry outEntry = new ZipEntry(inEntry.getName().substring(prefixLen));
+
+                        croppedZip.putNextEntry(outEntry);
+
+                        if (!inEntry.isDirectory()) {
+                            int cnt;
+                            while ((cnt = warZip.read(buf)) != -1) {
+                                croppedZip.write(buf, 0, cnt);
+                            }
+                        }
+
+                        croppedZip.closeEntry();
+                    }
+
+                    inEntry = warZip.getNextEntry();
+                }
+            }
+
+            return new FileInputStream(path.toFile()) {
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    Files.delete(path);
+                }
+            };
+        }
+    }
+
+    public static final class Empty extends MavenArchive {
+
+        public Empty(Artifact artifact) {
+            super(artifact);
+        }
+
+        @Nonnull
+        @Override
+        public InputStream openStream() throws IOException {
+            return new InputStream() {
+                @Override
+                public int read() throws IOException {
+                    return -1;
+                }
+            };
+        }
     }
 }

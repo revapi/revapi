@@ -38,5 +38,7 @@
         <module>dep-in-parent/v2-parent</module>
         <module>maven-plugin-packaging/v1</module>
         <module>maven-plugin-packaging/v2</module>
+        <module>war/v1</module>
+        <module>war/v2</module>
     </modules>
 </project>

@@ -209,7 +209,7 @@ final class Analyzer {
             public MavenArchive apply(String gav) {
                 try {
                     Artifact a = resolver.resolveArtifact(gav);
-                    return new MavenArchive(a);
+                    return MavenArchive.of(a);
                 } catch (ArtifactResolutionException | IllegalArgumentException e) {
                     throw new MarkerException(e.getMessage());
                 }
@@ -220,7 +220,7 @@ final class Analyzer {
             @Override
             public MavenArchive apply(Artifact artifact) {
                 try {
-                    return new MavenArchive(artifact);
+                    return MavenArchive.of(artifact);
                 } catch (IllegalArgumentException e) {
                     throw new MarkerException(e.getMessage());
                 }
@@ -365,9 +365,8 @@ final class Analyzer {
 
         @Override
         public Artifact resolveArtifact(String gav) throws ArtifactResolutionException {
-            Artifact ret;
             if (BUILD_COORDINATES.equals(gav)) {
-                ret = toAetherArtifact(project.getArtifact(), repositorySystemSession);
+                Artifact ret = toAetherArtifact(project.getArtifact(), repositorySystemSession);
 
                 //project.getArtifact().getFile() returns null for pom-packaged projects
                 if ("pom".equals(project.getArtifact().getType())) {
@@ -375,15 +374,10 @@ final class Analyzer {
                 } else {
                     ret = ret.setFile(project.getArtifact().getFile());
                 }
-            } else {
-                ret = super.resolveArtifact(gav);
-            }
 
-            if ("war".equals(ret.getExtension())) {
-                return resolveArtifact(new DefaultArtifact(ret.getGroupId(), ret.getArtifactId(), ret.getClassifier(),
-                        "jar", ret.getVersion()).toString());
-            } else {
                 return ret;
+            } else {
+                return super.resolveArtifact(gav);
             }
         }
 
