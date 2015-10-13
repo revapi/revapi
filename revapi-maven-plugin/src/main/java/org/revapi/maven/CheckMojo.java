@@ -161,6 +161,12 @@ public class CheckMojo extends AbstractMojo {
     @Parameter(defaultValue = "true", property = "revapi.alwaysCheckForReleaseVersion")
     private boolean alwaysCheckForReleaseVersion;
 
+    /**
+     * If true (the default), the maven plugin will fail the build when it finds API problems.
+     */
+    @Parameter(defaultValue = "true", property="revapi.failBuildOnProblemsFound")
+    private boolean failBuildOnProblemsFound;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
@@ -180,7 +186,11 @@ public class CheckMojo extends AbstractMojo {
         analyzer.analyze();
 
         if (reporter.hasBreakingProblems()) {
-            throw new MojoFailureException(reporter.getAllProblemsMessage());
+            if (failBuildOnProblemsFound) {
+                throw new MojoFailureException(reporter.getAllProblemsMessage());
+            } else {
+                getLog().info("API problems found but letting the build pass as configured.");
+            }
         } else {
             getLog().info("API checks completed without failures.");
         }
