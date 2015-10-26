@@ -16,9 +16,16 @@
 
 package org.revapi.java;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.revapi.Report;
 import org.revapi.java.spi.Code;
+import org.revapi.simple.SimpleReporter;
 
 /**
  * @author Lukas Krejci
@@ -157,5 +164,68 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 .code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_DEFAULT.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_DEFAULT.code()));
+    }
+
+    @Test
+    public void testOverloadsResolution() throws Exception {
+        List<Report> reports = new ArrayList<>();
+        SimpleReporter reporter = new SimpleReporter() {
+            @Override
+            public void report(@Nonnull Report report) {
+                reports.add(report);
+            }
+
+            @Override
+            public String toString() {
+                final StringBuilder sb = new StringBuilder("Reports");
+                sb.append(reports);
+                return sb.toString();
+            }
+        };
+        runAnalysis(reporter, "v1/methods/Overloads.java", "v2/methods/Overloads.java");
+
+        Assert.assertEquals(6, reports.size());
+
+        Assert.assertTrue(reports.stream().anyMatch(r ->
+            "method int Overloads::a(int)".equals(r.getOldElement().toString())
+                    && "method double Overloads::a(int)".equals(r.getNewElement().toString())
+                    && r.getDifferences().size() == 1
+                    && r.getDifferences().stream().allMatch(d -> Code.METHOD_RETURN_TYPE_CHANGED.code().equals(d.code))
+        ));
+
+        Assert.assertTrue(reports.stream().anyMatch(r ->
+                        "method void Overloads::a()".equals(r.getOldElement().toString())
+                                && "method double Overloads::a()".equals(r.getNewElement().toString())
+                                && r.getDifferences().size() == 1
+                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_RETURN_TYPE_CHANGED.code().equals(d.code))
+        ));
+
+        Assert.assertTrue(reports.stream().anyMatch(r ->
+                        "method void Overloads::a(int, long)".equals(r.getOldElement().toString())
+                                && "method void Overloads::a(int, long, float)".equals(r.getNewElement().toString())
+                                && r.getDifferences().size() == 1
+                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED.code().equals(d.code))
+        ));
+
+        Assert.assertTrue(reports.stream().anyMatch(r ->
+                        "method parameter void Overloads::a(===int===, long, double, float)".equals(r.getOldElement().toString())
+                                && "method parameter void Overloads::a(===long===, int)".equals(r.getNewElement().toString())
+                                && r.getDifferences().size() == 1
+                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_CHANGED.code().equals(d.code))
+        ));
+
+        Assert.assertTrue(reports.stream().anyMatch(r ->
+                        "method parameter void Overloads::a(int, ===long===, double, float)".equals(r.getOldElement().toString())
+                                && "method parameter void Overloads::a(long, ===int===)".equals(r.getNewElement().toString())
+                                && r.getDifferences().size() == 1
+                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_CHANGED.code().equals(d.code))
+        ));
+
+        Assert.assertTrue(reports.stream().anyMatch(r ->
+                        "method void Overloads::a(int, long, double, float)".equals(r.getOldElement().toString())
+                                && "method void Overloads::a(long, int)".equals(r.getNewElement().toString())
+                                && r.getDifferences().size() == 1
+                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED.code().equals(d.code))
+        ));
     }
 }

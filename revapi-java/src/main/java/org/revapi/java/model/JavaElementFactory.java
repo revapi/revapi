@@ -58,7 +58,7 @@ public final class JavaElementFactory {
         return ar - br;
     }
 
-    private static int getModelTypeRank(Class<?> cls) {
+    public static int getModelTypeRank(Class<?> cls) {
         if (cls == AnnotationElement.class) {
             return 5;
         } else if (cls == FieldElement.class) {

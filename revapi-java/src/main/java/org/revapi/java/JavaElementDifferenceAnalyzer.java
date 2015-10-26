@@ -19,7 +19,6 @@ package org.revapi.java;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +40,6 @@ import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.model.FieldElement;
-import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.TypeElement;
@@ -95,41 +93,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         this.newEnvironment = newEnvironment;
     }
 
-
-    @Nonnull
-    @Override
-    public Comparator<? super Element> getCorrespondenceComparator() {
-        return new Comparator<Element>() {
-            @Override
-            public int compare(Element o1, Element o2) {
-                int ret = JavaElementFactory.compareByType(o1, o2);
-
-                if (ret != 0) {
-                    return ret;
-                }
-
-                //the only "special" treatment is required for methods, for which we need to detect return type
-                //changes and such, which requires pronouncing methods equal on type and name, excluding return and
-                //parameter types
-                if (o1 instanceof MethodElement) {
-                    MethodElement m1 = (MethodElement) o1;
-                    MethodElement m2 = (MethodElement) o2;
-
-                    @SuppressWarnings("ConstantConditions")
-                    String sig1 = ((TypeElement) m1.getParent()).getCanonicalName() + "::" +
-                        m1.getModelElement().getSimpleName().toString();
-
-                    @SuppressWarnings("ConstantConditions")
-                    String sig2 = ((TypeElement) m2.getParent()).getCanonicalName() + "::" +
-                        m2.getModelElement().getSimpleName().toString();
-
-                    return sig1.compareTo(sig2);
-                } else {
-                    return o1.compareTo(o2);
-                }
-            }
-        };
-    }
 
     @Override
     public void open() {
