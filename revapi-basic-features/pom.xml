@@ -32,7 +32,7 @@
     <url>http://revapi.org</url>
     
     <artifactId>revapi-basic-features</artifactId>
-    <version>0.3.5</version>
+    <version>0.3.6-SNAPSHOT</version>
 
     <properties>
         <skip.awestruct.site>true</skip.awestruct.site>
@@ -69,7 +69,7 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>revapi-basic-features-0.3.5</tag>
+        <tag>HEAD</tag>
     </scm>
 </project>
 
