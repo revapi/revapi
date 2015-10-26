@@ -158,9 +158,6 @@ public class ReportMojo extends AbstractMavenReport {
     private String outputDirectory;
 
     @Component
-    private MavenProject project;
-
-    @Component
     private Renderer siteRenderer;
 
     @Component

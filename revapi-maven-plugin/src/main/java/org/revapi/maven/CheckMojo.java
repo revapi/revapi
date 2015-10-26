@@ -145,7 +145,7 @@ public class CheckMojo extends AbstractMojo {
     @Parameter(defaultValue = "breaking", property = "revapi.failSeverity")
     private FailSeverity failSeverity;
 
-    @Component
+    @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
 
     @Component
