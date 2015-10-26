@@ -21,6 +21,27 @@
                 }
             ]
 	}
+    },
+    "0.4.0" : {
+        "revapi" : {
+            "ignore" : [
+                {
+                    "code" : "java.method.addedToInterface",
+                    "new" : "method org.revapi.CorrespondenceComparatorDeducer org.revapi.ApiAnalyzer::getCorrespondenceDeducer()",
+                    "justification" : "Method added to support the new more powerful contextual element sorting prior to analysis."
+                },
+                {
+                    "code" : "java.class.removed",
+                    "old" : "class org.revapi.CoIterator.NaturalOrderComparator",
+                    "justification" : "This was not meant for public consumption"
+                },
+                {
+                    "code" : "java.method.removed",
+                    "old" : "method java.util.Comparator<? super org.revapi.Element> org.revapi.DifferenceAnalyzer::getCorrespondenceComparator()",
+                    "justification" : "This has been replaced by the more powerful method in ApiAnalyzer"
+                }
+            ]
+        }
     }
 }
 

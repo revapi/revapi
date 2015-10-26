@@ -158,12 +158,4 @@ public final class CoIterator<E> {
     private E nextOrNull(Iterator<? extends E> it) {
         return it.hasNext() ? it.next() : null;
     }
-
-    private static final class NaturalOrderComparator implements Comparator<Object> {
-        @Override
-        @SuppressWarnings("unchecked")
-        public int compare(Object o1, Object o2) {
-            return ((Comparable<Object>) o1).compareTo(o2);
-        }
-    }
 }

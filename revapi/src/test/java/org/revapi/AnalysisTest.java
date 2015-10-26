@@ -26,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
@@ -132,6 +131,11 @@ public class AnalysisTest {
         }
 
         @Override
+        public @Nonnull CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
+            return CorrespondenceComparatorDeducer.naturalOrder();
+        }
+
+        @Override
         public @Nonnull ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
             return new DummyArchiveAnalyzer(api);
         }
@@ -196,11 +200,6 @@ public class AnalysisTest {
 
         private DummyDifferenceAnalyzer(BiFunction<Element, Element, Report> reportingFunction) {
             this.reportingFunction = reportingFunction;
-        }
-
-        @Override
-        public @Nonnull Comparator<? super Element> getCorrespondenceComparator() {
-            return (o1, o2) -> 0;
         }
 
         @Override

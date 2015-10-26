@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -406,15 +407,19 @@ public final class Revapi {
         }
 
         elementDifferenceAnalyzer.open();
-        analyze(elementDifferenceAnalyzer, as, bs);
+        analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs);
         elementDifferenceAnalyzer.close();
     }
 
-    private void analyze(DifferenceAnalyzer elementDifferenceAnalyzer,
+    private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
         SortedSet<? extends Element> as, SortedSet<? extends Element> bs) {
 
-        CoIterator<Element> it = new CoIterator<>(as.iterator(), bs.iterator(),
-            elementDifferenceAnalyzer.getCorrespondenceComparator());
+        List<Element> sortedAs = new ArrayList<>(as);
+        List<Element> sortedBs = new ArrayList<>(bs);
+
+        Comparator<? super Element> comp = deducer.sortAndGetCorrespondenceComparator(sortedAs, sortedBs);
+
+        CoIterator<Element> it = new CoIterator<>(sortedAs.iterator(), sortedBs.iterator(), comp);
 
         while (it.hasNext()) {
             it.next();
@@ -432,7 +437,7 @@ public final class Revapi {
             if (a != null && b != null && availableFilters.shouldDescendInto(a) &&
                 availableFilters.shouldDescendInto(b)) {
 
-                analyze(elementDifferenceAnalyzer, a.getChildren(), b.getChildren());
+                analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren());
             }
 
             if (analyzeThis) {

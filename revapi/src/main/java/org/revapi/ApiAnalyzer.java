@@ -56,4 +56,11 @@ public interface ApiAnalyzer extends AutoCloseable, Configurable {
     @Nonnull
     DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
         @Nonnull ArchiveAnalyzer newArchive);
+
+    /**
+     * The correspondence sorter to use when finalizing the comparison order of the elements in the element forest.
+     *
+     * @return the correspondence sorter, never null
+     */
+    @Nonnull CorrespondenceComparatorDeducer getCorrespondenceDeducer();
 }
