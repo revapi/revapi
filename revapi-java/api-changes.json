@@ -41,6 +41,27 @@
                 }
             ]
 	}
+    },
+    "0.5.0" : {
+        "revapi" : {
+            "ignore" : [
+                {
+                    "code" : "java.method.addedToInterface",
+                    "new" : "method org.revapi.CorrespondenceComparatorDeducer org.revapi.ApiAnalyzer::getCorrespondenceDeducer()",
+                    "justification" : "This is the new API from Revapi 0.4.0. We're using that now."
+                },
+                {
+                    "code" : "java.method.removed",
+                    "old" : "method java.util.Comparator<? super org.revapi.Element> org.revapi.DifferenceAnalyzer::getCorrespondenceComparator()",
+                    "justification" : "This is the new API from Revapi 0.4.0. We're using that now."
+                },
+                {
+                    "code": "java.method.removed",
+                    "old" : "method java.util.Comparator<? super org.revapi.Element> org.revapi.java.JavaElementDifferenceAnalyzer::getCorrespondenceComparator()",
+                    "justification" : "This was the implementation of the old Revapi 0.3.x API. We're now implementing 0.4.0 which no longer requires this method."
+                }
+            ]
+        }
     }
 }
 
