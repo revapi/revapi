@@ -47,7 +47,7 @@ public final class IgnoreByAnnotationFilter implements ElementFilter {
     private Pattern[] patterns;
     private boolean doNothing;
 
-    private final IdentityHashMap<Element, Boolean> elementResults = new IdentityHashMap<>();
+    private final IdentityHashMap<Object, Boolean> elementResults = new IdentityHashMap<>();
 
     @Override
     public void close() throws Exception {
@@ -106,9 +106,25 @@ public final class IgnoreByAnnotationFilter implements ElementFilter {
 
     @Override
     public boolean applies(@Nullable Element element) {
+        return decide(element);
+
+    }
+
+    @Override
+    public boolean shouldDescendInto(@Nullable Object element) {
+        return decide(element);
+    }
+
+    private boolean decide(@Nullable Object element) {
+        //we don't exclude anything that we don't handle...
         if (doNothing || !(element instanceof JavaModelElement)) {
-            //we don't exclude anything that we don't handle...
             return true;
+        }
+
+        @SuppressWarnings("SuspiciousMethodCalls")
+        Boolean ret = elementResults.get(element);
+        if (ret != null) {
+            return ret;
         }
 
         Predicate<String> test;
@@ -120,19 +136,10 @@ public final class IgnoreByAnnotationFilter implements ElementFilter {
 
         JavaModelElement javaElement = (JavaModelElement) element;
 
-        boolean ret = !javaElement.getModelElement().getAnnotationMirrors().stream().map(Util::toHumanReadableString)
+        ret = !javaElement.getModelElement().getAnnotationMirrors().stream().map(Util::toHumanReadableString)
                 .anyMatch(test);
 
         elementResults.put(element, ret);
         return ret;
-    }
-
-    @Override
-    public boolean shouldDescendInto(@Nullable Object element) {
-        if (doNothing || !(element instanceof JavaModelElement)) {
-            return true;
-        }
-
-        return elementResults.get(element);
     }
 }

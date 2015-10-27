@@ -42,9 +42,6 @@ public interface Filter<T> {
      * <p>Therefore the filter is given a chance to influence the decision even for elements of types that it is not
      * declared to filter.
      *
-     * <p>Revapi always calls {@link #applies(Object)} prior to calling this method (but multiple calls to
-     * {@code applies} might be made before calls into {@code shouldDescendInto} are made).
-     *
      * @param element the element to be descended into
      *
      * @return true if forest traversal should descend into the element, false otherwise
