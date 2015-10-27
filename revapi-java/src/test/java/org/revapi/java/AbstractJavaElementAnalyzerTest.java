@@ -219,21 +219,34 @@ public abstract class AbstractJavaElementAnalyzerTest {
     }
 
     protected void runAnalysis(Reporter testReporter, String v1Source, String v2Source) throws Exception {
-        runAnalysis(testReporter, new String[]{v1Source}, new String[]{v2Source});
+        runAnalysis(testReporter, null, v1Source, v2Source);
+    }
+
+    protected void runAnalysis(Reporter testReporter, String configJSON, String v1Source, String v2Source)
+            throws Exception {
+        runAnalysis(testReporter, configJSON, new String[]{v1Source}, new String[]{v2Source});
     }
 
     protected void runAnalysis(Reporter testReporter, String[] v1Source, String[] v2Source) throws Exception {
+        runAnalysis(testReporter, null, v1Source, v2Source);
+    }
+
+    protected void runAnalysis(Reporter testReporter, String configurationJSON, String[] v1Source, String[] v2Source)
+            throws Exception {
         ArchiveAndCompilationPath v1Archive = createCompiledJar("v1", v1Source);
         ArchiveAndCompilationPath v2Archive = createCompiledJar("v2", v2Source);
 
         Revapi revapi = createRevapi(testReporter);
 
-        revapi.analyze(
-            AnalysisContext.builder()
+        AnalysisContext.Builder bld = AnalysisContext.builder()
                 .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
-                .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build())
-                .build()
-        );
+                .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build());
+
+        if (configurationJSON != null) {
+            bld.withConfigurationFromJSON(configurationJSON);
+        }
+
+        revapi.analyze(bld.build());
 
         deleteDir(v1Archive.compilationPath);
         deleteDir(v2Archive.compilationPath);

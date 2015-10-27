@@ -39,7 +39,6 @@ import java.util.function.BiFunction;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
 import org.revapi.API;

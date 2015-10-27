@@ -79,8 +79,13 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
     }
 
     @Override
+    public @Nonnull String getFullHumanReadableString() {
+        return Util.toHumanReadableString(annotation);
+    }
+
+    @Override
     public String toString() {
-        return getComparableSignature();
+        return getFullHumanReadableString();
     }
 
     private String getComparableSignature() {

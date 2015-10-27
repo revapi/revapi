@@ -582,6 +582,69 @@ public final class Util {
         }
     };
 
+    private static SimpleAnnotationValueVisitor7<String, Void> annotationValueVisitor =
+            new SimpleAnnotationValueVisitor7<String, Void>() {
+
+        @Override
+        protected String defaultAction(Object o, Void ignored) {
+            return o.toString();
+        }
+
+        @Override
+        public String visitType(TypeMirror t, Void ignored) {
+            return toHumanReadableString(t) + ".class";
+        }
+
+        @Override
+        public String visitEnumConstant(VariableElement c, Void ignored) {
+            return toHumanReadableString(c.asType()) + "." + c.getSimpleName().toString();
+        }
+
+        @Override
+        public String visitAnnotation(AnnotationMirror a, Void ignored) {
+            StringBuilder bld = new StringBuilder("@").append(toHumanReadableString(a.getAnnotationType()));
+
+            Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = a.getElementValues();
+
+            if (!attributes.isEmpty()) {
+                bld.append("(");
+                boolean single = attributes.size() == 1;
+
+                for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> e : attributes.entrySet()) {
+                    String name = e.getKey().getSimpleName().toString();
+                    if (single && "value".equals(name)) {
+                        bld.append(e.getValue().accept(this, null));
+                    } else {
+                        bld.append(name).append(" = ");
+                        bld.append(e.getValue().accept(this, null));
+                    }
+                    bld.append(", ");
+                }
+                bld.replace(bld.length() - 2, bld.length(), "");
+                bld.append(")");
+            }
+            return bld.toString();
+        }
+
+        @Override
+        public String visitArray(List<? extends AnnotationValue> vals, Void ignored) {
+            StringBuilder bld = new StringBuilder("{");
+
+            Iterator<? extends AnnotationValue> it = vals.iterator();
+            if (it.hasNext()) {
+                bld.append(it.next().accept(this, null));
+            }
+
+            while (it.hasNext()) {
+                bld.append(", ").append(it.next().accept(this, null));
+            }
+
+            bld.append("}");
+
+            return bld.toString();
+        }
+    };
+
     private Util() {
 
     }
@@ -634,60 +697,12 @@ public final class Util {
 
     @Nonnull
     public static String toHumanReadableString(@Nonnull AnnotationValue v) {
-        return v.accept(new SimpleAnnotationValueVisitor7<String, Void>() {
+        return v.accept(annotationValueVisitor, null);
+    }
 
-            @Override
-            protected String defaultAction(Object o, Void ignored) {
-                return o.toString();
-            }
-
-            @Override
-            public String visitType(TypeMirror t, Void ignored) {
-                return toHumanReadableString(t) + ".class";
-            }
-
-            @Override
-            public String visitEnumConstant(VariableElement c, Void ignored) {
-                return toHumanReadableString(c.asType()) + "." + c.getSimpleName().toString();
-            }
-
-            @Override
-            public String visitAnnotation(AnnotationMirror a, Void ignored) {
-                StringBuilder bld = new StringBuilder("@").append(toHumanReadableString(a.getAnnotationType()));
-
-                if (!a.getElementValues().isEmpty()) {
-                    bld.append("(");
-                    for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> e : a.getElementValues()
-                            .entrySet()) {
-
-                        bld.append(e.getKey().getSimpleName().toString()).append(" = ");
-                        bld.append(e.getValue().accept(this, null));
-                        bld.append(", ");
-                    }
-                    bld.replace(bld.length() - 2, bld.length(), "");
-                    bld.append(")");
-                }
-                return bld.toString();
-            }
-
-            @Override
-            public String visitArray(List<? extends AnnotationValue> vals, Void ignored) {
-                StringBuilder bld = new StringBuilder("[");
-
-                Iterator<? extends AnnotationValue> it = vals.iterator();
-                if (it.hasNext()) {
-                    bld.append(it.next().accept(this, null));
-                }
-
-                while (it.hasNext()) {
-                    bld.append(", ").append(it.next().accept(this, null));
-                }
-
-                bld.append("]");
-
-                return bld.toString();
-            }
-        }, null);
+    @Nonnull
+    public static String toHumanReadableString(@Nonnull AnnotationMirror v) {
+        return annotationValueVisitor.visitAnnotation(v, null);
     }
 
     /**
