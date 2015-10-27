@@ -35,10 +35,12 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.BiFunction;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -217,12 +219,17 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         float maxScore = 0;
         int bestIdx = -1;
 
-        List<String> blueprintSignature = methodParamsSignature(blueprint);
-        String blueprintReturnType = Util.toUniqueString(blueprint.getModelElement().getReturnType());
+        List<String> fullBlueprintSignature = methodParamsSignature(blueprint, false);
+        List<String> erasedBlueprintSignature = methodParamsSignature(blueprint, true);
+
+        String fullBlueprintReturnType = Util.toUniqueString(blueprint.getModelElement().getReturnType());
+        String erasedBlueprintReturnType = Util.toUniqueString(blueprint.getTypeEnvironment().getTypeUtils()
+                .erasure(blueprint.getModelElement().getReturnType()));
 
         int idx = 0;
         for (MethodElement candidate : candidates) {
-            float score = computeMatchScore(blueprintReturnType, blueprintSignature, candidate);
+            float score = computeMatchScore(fullBlueprintReturnType, fullBlueprintSignature,
+                    erasedBlueprintReturnType, erasedBlueprintSignature, candidate);
             if (maxScore <= score) {
                 best = candidate;
                 maxScore = score;
@@ -238,48 +245,77 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         return best;
     }
 
-    private static List<String> methodParamsSignature(MethodElement method) {
-        return method.getModelElement().getParameters().stream().map(p -> Util.toUniqueString(p.asType()))
-                .collect(toList());
+    private static List<String> methodParamsSignature(MethodElement method, boolean erased) {
+        if (erased) {
+            Types types = method.getTypeEnvironment().getTypeUtils();
+            return method.getModelElement().getParameters().stream().map(p ->
+                    Util.toUniqueString(types.erasure(p.asType()))).collect(toList());
+        } else {
+            return method.getModelElement().getParameters().stream().map(p -> Util.toUniqueString(p.asType()))
+                    .collect(toList());
+        }
     }
 
     private static float computeMatchScore(String blueprintReturnType, List<String> blueprintParamSignature,
-                                           MethodElement method) {
-        TypeMirror mRt = method.getModelElement().getReturnType();
+                                           String erasedReturnType, List<String> erasedParamSignature, MethodElement method) {
 
-        List<String> mPs = methodParamsSignature(method);
+        String mRt = Util.toUniqueString(method.getModelElement().getReturnType());
+        String emRt = Util.toUniqueString(method.getTypeEnvironment().getTypeUtils().erasure(method.getModelElement()
+                .getReturnType()));
+
+        List<String> mPs = methodParamsSignature(method, false);
+        List<String> emPs = methodParamsSignature(method, true);
+
 
         //consider the return type as if it was another parameter
         int maxParams = Math.max(blueprintParamSignature.size(), mPs.size()) + 1;
 
-        int commonParams = longestCommonSubsequenceLength(blueprintParamSignature, mPs);
+        int commonParams = longestCommonSubsequenceLength(blueprintParamSignature, mPs,
+                (blueprintIndex, methodIndex) -> {
+
+                    String fullBlueprintSig = blueprintParamSignature.get(blueprintIndex);
+                    String erasedBlueprintSig = erasedParamSignature.get(blueprintIndex);
+
+                    String fullMethodSig = mPs.get(methodIndex);
+                    String erasedMethodSig = emPs.get(methodIndex);
+
+                    if (fullBlueprintSig.equals(fullMethodSig)) {
+                        return 2;
+                    } else if (erasedBlueprintSig.equals(erasedMethodSig)) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                });
 
         //consider the return type as if it was another matching parameter
-        if (blueprintReturnType.equals(Util.toUniqueString(mRt))) {
+        if (blueprintReturnType.equals(mRt)) {
+            commonParams += 2;
+        } else if (erasedReturnType.equals(emRt)) {
             commonParams += 1;
         }
 
         if (maxParams == 1) {
             //both methods have no parameters
             //we consider that fact a "complete match"
-            return commonParams + 1;
+            return commonParams + 2;
         } else {
             //just consider the return type as one of parameters
             return ((float) commonParams) / maxParams;
         }
     }
 
-    private static int longestCommonSubsequenceLength(List<?> as, List<?> bs) {
+    private static int longestCommonSubsequenceLength(List<?> as, List<?> bs, BiFunction<Integer, Integer, Integer>
+            matchScoreFunction) {
         int[][] lengths = new int[as.size() + 1][bs.size() + 1];
         int maxLen = 0;
         // row 0 and column 0 are initialized to 0 already
         for (int i = 0; i < as.size(); i++) {
             for (int j = 0; j < bs.size(); j++) {
-                Object a = as.get(i);
-                Object b = bs.get(j);
+                int matchScore = matchScoreFunction.apply(i, j);
 
-                if (a.equals(b)) {
-                    maxLen = lengths[i + 1][j + 1] = lengths[i][j] + 1;
+                if (matchScore > 0) {
+                    maxLen = lengths[i + 1][j + 1] = lengths[i][j] + matchScore;
                 } else {
                     lengths[i + 1][j + 1] =
                             Math.max(lengths[i + 1][j], lengths[i][j + 1]);
@@ -291,7 +327,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     }
 
     private static void addAllMethods(Collection<? extends Element> els, TreeMap<String,
-        List<MethodElement>> methods) {
+            List<MethodElement>> methods) {
 
         els.forEach(e -> {
             if (e instanceof MethodElement) {
@@ -335,7 +371,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     public Reader getJSONSchema(@Nonnull String configurationRootPath) {
         if ("revapi.java".equals(configurationRootPath)) {
             return new InputStreamReader(getClass().getResourceAsStream("/META-INF/config-schema.json"),
-                Charset.forName("UTF-8"));
+                    Charset.forName("UTF-8"));
         }
 
         for (Check check : checks) {
@@ -364,18 +400,18 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Override
     public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
         Set<File> bootstrapClasspath =
-            api == analysisContext.getOldApi() ? configuration.getOldApiBootstrapClasspath() :
-                configuration.getNewApiBootstrapClasspath();
+                api == analysisContext.getOldApi() ? configuration.getOldApiBootstrapClasspath() :
+                        configuration.getNewApiBootstrapClasspath();
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
 
         return new JavaArchiveAnalyzer(api, compilationExecutor, configuration.getMissingClassReporting(),
-            ignoreMissingAnnotations, bootstrapClasspath);
+                ignoreMissingAnnotations, bootstrapClasspath);
     }
 
     @Nonnull
     @Override
     public DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
-        @Nonnull ArchiveAnalyzer newArchive) {
+                                                    @Nonnull ArchiveAnalyzer newArchive) {
         JavaArchiveAnalyzer oldA = (JavaArchiveAnalyzer) oldArchive;
         JavaArchiveAnalyzer newA = (JavaArchiveAnalyzer) newArchive;
 
@@ -385,7 +421,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         CompilationValve newValve = newA.getCompilationValve();
 
         return new JavaElementDifferenceAnalyzer(analysisContext, oldEnvironment, oldValve, newEnvironment, newValve,
-            checks, configuration);
+                checks, configuration);
     }
 
     @Override
