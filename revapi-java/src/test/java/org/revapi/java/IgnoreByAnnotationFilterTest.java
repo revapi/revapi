@@ -39,7 +39,7 @@ public class IgnoreByAnnotationFilterTest extends AbstractJavaElementAnalyzerTes
 
     @Test
     public void testIgnoreByAnnotationPresence() throws Exception {
-        testWith("{\"revapi\":{\"java\":{\"ignore\":{\"annotations\":{\"annotations\":" +
+        testWith("{\"revapi\":{\"java\":{\"ignore\":{\"annotated\":{\"annotations\":" +
                 "[\"@java.lang.Deprecated\"]}}}}}", results -> {
 
             Assert.assertEquals(4, results.size());
@@ -54,7 +54,7 @@ public class IgnoreByAnnotationFilterTest extends AbstractJavaElementAnalyzerTes
 
     @Test
     public void testIgnoreByAnnotationWithAttributeValues() throws Exception {
-        testWith("{\"revapi\":{\"java\":{\"ignore\":{\"annotations\":{\"annotations\":" +
+        testWith("{\"revapi\":{\"java\":{\"ignore\":{\"annotated\":{\"annotations\":" +
                 "[\"@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)\"]}}}}}", results -> {
 
             Assert.assertEquals(3, results.size());

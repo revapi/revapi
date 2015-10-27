@@ -56,7 +56,7 @@ public final class IgnoreByAnnotationFilter implements ElementFilter {
 
     @Override
     public @Nullable String[] getConfigurationRootPaths() {
-        return new String[]{"revapi.java.ignore.annotations"};
+        return new String[]{"revapi.java.ignore.annotated"};
     }
 
     @Override
@@ -71,7 +71,7 @@ public final class IgnoreByAnnotationFilter implements ElementFilter {
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
-        ModelNode root = analysisContext.getConfiguration().get("revapi", "java", "ignore", "annotations");
+        ModelNode root = analysisContext.getConfiguration().get("revapi", "java", "ignore", "annotated");
         if (!root.isDefined()) {
             doNothing = true;
             return;
