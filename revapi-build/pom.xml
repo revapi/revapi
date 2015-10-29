@@ -19,8 +19,8 @@
     <packaging>pom</packaging>
 
     <properties>
-        <self-api-check.maven-version>0.3.9</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.5.0</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.3.8</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.4.4</self-api-check.java-extension-version>
     </properties>
 
     <dependencyManagement>
@@ -28,7 +28,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-bom</artifactId>
-                <version>12</version>
+                <version>13</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
