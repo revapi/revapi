@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>12</version>
+        <version>14</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -44,8 +44,8 @@
         <skip.deploy>true</skip.deploy>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi-java.version>0.5.0</revapi-java.version>
-        <revapi-java-spi.version>0.4.3</revapi-java-spi.version>
+        <revapi-java.version>0.5.1</revapi-java.version>
+        <revapi-java-spi.version>0.4.4</revapi-java-spi.version>
     </properties>
 
     <prerequisites>
