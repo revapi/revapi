@@ -5,6 +5,11 @@ image:https://travis-ci.org/revapi/revapi.svg[Build Status,link=https://travis-c
 
 Revapi is a tool for API analysis and change tracking.
 
+WARNING: Do not use `revapi-maven-plugin` version `0.3.9` and below with `revapi-java` version 
+`0.5.x` (`revapi-maven-plugin:0.3.10` is OK). These are incompatible due to overriding of versions of 
+dependencies to be used by `revapi-java` and `revapi-maven-plugin`.
+
+
 == Summary
 
 While Revapi is designed to be extensible and in theory should support API checks in other languages
