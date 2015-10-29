@@ -65,13 +65,13 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-java</artifactId>
-                <version>0.5.1</version>
+                <version>0.5.2</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-plugin</artifactId>
-                <version>0.3.9</version>
+                <version>0.3.10</version>
             </dependency>
 
             <dependency>
