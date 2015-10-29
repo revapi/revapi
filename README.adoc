@@ -5,6 +5,28 @@ image:https://travis-ci.org/revapi/revapi.svg[Build Status,link=https://travis-c
 
 Revapi is a tool for API analysis and change tracking.
 
+== Summary
+
+While Revapi is designed to be extensible and in theory should support API checks in other languages
+than Java (not just programming languages but anything that can be decomposed to a tree structure)
+the only extension in existence today is the Java API checker.
+
+The main distinguishing features of the Java API checker include:
+
+* large number of http://revapi.org/docs/java-extension.html[API checks]
+** categorized by their influence on source, binary and "semantical" compatibility
+* support for computing the API "surface" by tracking usages of types across the checked library
+and also its dependencies (ability to report type "leakage" from deps)
+* support for Java8 constructs (default methods in particular)
+* powerful filtering stuff to check and reclassification of found problems
+* ability to filter by annotation presence (new as of java extension `0.5.2`)
+* Maven plugin automatically includes depenendcies in the check
+
+Other features:
+
+* pluggable reporting (standard output, maven site generation, 
+https://github.com/revapi/revapi/issues/11[JUnit report] generator (TBD))
+
 == Building
 
 This is a maven project, so to build you simply:
