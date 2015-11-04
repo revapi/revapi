@@ -37,7 +37,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.configuration.Configurable;
-import org.revapi.configuration.ConfigurationException;
 import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.ValidationResult;
 import org.slf4j.Logger;
@@ -332,19 +331,30 @@ public final class Revapi {
         this.configurationValidator = new ConfigurationValidator();
     }
 
-    public void analyze(@Nonnull AnalysisContext analysisContext) throws Exception {
+    /**
+     * Validates the configuration of the analysis context.
+     *
+     * @param analysisContext the analysis context
+     * @return the validation result
+     */
+    public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
         ValidationResult validation = ValidationResult.success();
 
-        validation = initialize(analysisContext, validation, availableFilters);
-        validation = initialize(analysisContext, validation, availableReporters);
-        validation = initialize(analysisContext, validation, availableApiAnalyzers);
-        validation = initialize(analysisContext, validation, availableTransforms);
+        validation = validate(analysisContext, validation, availableFilters);
+        validation = validate(analysisContext, validation, availableReporters);
+        validation = validate(analysisContext, validation, availableApiAnalyzers);
+        validation = validate(analysisContext, validation, availableTransforms);
+
+        return validation;
+    }
+
+    public void analyze(@Nonnull AnalysisContext analysisContext) throws Exception {
+        initialize(analysisContext, availableFilters);
+        initialize(analysisContext, availableReporters);
+        initialize(analysisContext, availableApiAnalyzers);
+        initialize(analysisContext, availableTransforms);
 
         matchingTransformsCache.clear();
-
-        if (!validation.isSuccessful()) {
-            throw new ConfigurationException(validation.toString());
-        }
 
         try {
             for (ApiAnalyzer analyzer : availableApiAnalyzers) {
@@ -358,15 +368,17 @@ public final class Revapi {
         }
     }
 
-    private ValidationResult initialize(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
-        Iterable<? extends Configurable> configurables) {
+    private void initialize(@Nonnull AnalysisContext analysisContext, Iterable<? extends Configurable> configurables) {
+        for (Configurable c : configurables) {
+            c.initialize(analysisContext);
+        }
+    }
+
+    private ValidationResult validate(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
+                                        Iterable<? extends Configurable> configurables) {
         for (Configurable c : configurables) {
             ValidationResult partial = configurationValidator.validate(analysisContext.getConfiguration(), c);
             validationResult = validationResult.merge(partial);
-
-            if (validationResult.isSuccessful()) {
-                c.initialize(analysisContext);
-            }
         }
 
         return validationResult;
