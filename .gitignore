@@ -1,6 +1,18 @@
-.idea/
-*.iml
-*.uml
-*.log
+# virtual machine crash logs
+hs_err_pid*
+
+# maven target directories
 target/
-*.swp
+pom.xml.releaseBackup
+release.properties
+pom.xml.versionsBackup
+
+# IDE files
+.project
+.classpath
+.settings
+.idea
+*.ipr
+*.iml
+*.iws
+nb-configuration.xml
