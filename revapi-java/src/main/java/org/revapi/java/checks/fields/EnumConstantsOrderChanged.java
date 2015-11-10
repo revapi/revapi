@@ -25,6 +25,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -34,6 +35,11 @@ import java.util.function.Predicate;
  */
 public class EnumConstantsOrderChanged extends BothFieldsRequiringCheck {
     private boolean isEnumClass;
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS, Type.FIELD);
+    }
 
     @Override
     protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {

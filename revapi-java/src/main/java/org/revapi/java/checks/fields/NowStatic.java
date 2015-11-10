@@ -16,6 +16,8 @@
 
 package org.revapi.java.checks.fields;
 
+import java.util.EnumSet;
+
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
@@ -29,6 +31,11 @@ import org.revapi.java.spi.Code;
 public final class NowStatic extends ModifierChanged {
     public NowStatic() {
         super(true, Code.FIELD_NOW_STATIC, Modifier.STATIC);
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.FIELD);
     }
 
     @Override

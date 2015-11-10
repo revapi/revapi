@@ -23,6 +23,7 @@ import org.revapi.java.spi.Code;
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -30,6 +31,11 @@ import java.util.List;
  * @since 0.4.0
  */
 public class NoLongerDefault extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.METHOD);
+    }
 
     @Override
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {

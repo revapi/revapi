@@ -16,6 +16,8 @@
 
 package org.revapi.java.checks.fields;
 
+import java.util.EnumSet;
+
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.java.spi.CheckBase;
@@ -26,6 +28,11 @@ import org.revapi.java.spi.TypeEnvironment;
  * @since 0.1
  */
 abstract class BothFieldsRequiringCheck extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.FIELD);
+    }
 
     protected boolean shouldCheck(VariableElement oldField, VariableElement newField) {
         return shouldCheck(oldField, getOldTypeEnvironment(), newField, getNewTypeEnvironment());

@@ -22,6 +22,7 @@ import org.revapi.java.spi.Code;
 
 import javax.lang.model.element.TypeElement;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -50,5 +51,10 @@ public final class Added extends CheckBase {
         if (oldType == null && newType != null && isAccessible(newType)) {
             pushActive(null, newType);
         }
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
     }
 }

@@ -17,6 +17,7 @@
 package org.revapi.java.checks.annotations;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -90,5 +91,10 @@ public final class AttributeValueChanged extends CheckBase {
         }
 
         return result.isEmpty() ? null : result;
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.ANNOTATION);
     }
 }

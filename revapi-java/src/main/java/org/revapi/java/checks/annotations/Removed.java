@@ -17,6 +17,7 @@
 package org.revapi.java.checks.annotations;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -43,5 +44,10 @@ public final class Removed extends CheckBase {
         }
 
         return null;
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.ANNOTATION);
     }
 }

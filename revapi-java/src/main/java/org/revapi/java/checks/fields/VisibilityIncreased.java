@@ -16,6 +16,8 @@
 
 package org.revapi.java.checks.fields;
 
+import java.util.EnumSet;
+
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.java.checks.common.VisibilityChanged;
@@ -28,6 +30,11 @@ import org.revapi.java.spi.Code;
 public final class VisibilityIncreased extends VisibilityChanged {
     public VisibilityIncreased() {
         super(Code.FIELD_VISIBILITY_INCREASED, true);
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.FIELD);
     }
 
     @Override

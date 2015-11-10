@@ -17,6 +17,7 @@
 package org.revapi.java.checks.methods;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -31,6 +32,11 @@ import org.revapi.java.spi.Code;
  * @since 0.1
  */
 public final class NumberOfParametersChanged extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.METHOD);
+    }
 
     @Override
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {

@@ -17,6 +17,7 @@
 package org.revapi.java.checks.methods;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -40,6 +41,11 @@ import org.revapi.java.spi.Util;
  * @since 0.1
  */
 public final class Removed extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.METHOD);
+    }
 
     @Override
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {

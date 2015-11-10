@@ -24,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -54,6 +55,11 @@ import org.revapi.java.spi.TypeEnvironment;
 public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
 
     private static final String SERIAL_VERSION_UID_FIELD_NAME = "serialVersionUID";
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.FIELD);
+    }
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {

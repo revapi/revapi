@@ -16,6 +16,8 @@
 
 package org.revapi.java.checks.fields;
 
+import java.util.EnumSet;
+
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
@@ -29,6 +31,11 @@ import org.revapi.java.spi.Code;
 public final class NoLongerFinal extends ModifierChanged {
     public NoLongerFinal() {
         super(false, Code.FIELD_NO_LONGER_FINAL, Modifier.FINAL);
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.FIELD);
     }
 
     @Override

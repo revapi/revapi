@@ -16,6 +16,8 @@
 
 package org.revapi.java.checks.methods;
 
+import java.util.EnumSet;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -30,6 +32,11 @@ import org.revapi.java.spi.Code;
 public final class NoLongerFinal extends ModifierChanged {
     public NoLongerFinal() {
         super(false, Code.METHOD_NO_LONGER_FINAL, Modifier.FINAL);
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.METHOD);
     }
 
     @Override
