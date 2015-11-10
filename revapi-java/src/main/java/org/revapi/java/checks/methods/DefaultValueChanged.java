@@ -17,6 +17,7 @@
 package org.revapi.java.checks.methods;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.lang.model.element.AnnotationValue;
@@ -33,6 +34,11 @@ import org.revapi.java.spi.Util;
  * @since 0.1
  */
 public final class DefaultValueChanged extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.METHOD);
+    }
 
     @Override
     protected List<Difference> doEnd() {

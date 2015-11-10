@@ -24,6 +24,7 @@ import org.revapi.java.spi.Util;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -31,6 +32,11 @@ import java.util.List;
  * @since 0.1
  */
 public final class NoLongerImplementsInterface extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
+    }
 
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {

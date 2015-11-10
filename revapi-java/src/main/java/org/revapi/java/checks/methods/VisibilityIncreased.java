@@ -16,6 +16,8 @@
 
 package org.revapi.java.checks.methods;
 
+import java.util.EnumSet;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 
@@ -29,6 +31,11 @@ import org.revapi.java.spi.Code;
 public final class VisibilityIncreased extends VisibilityChanged {
     public VisibilityIncreased() {
         super(Code.METHOD_VISIBILITY_INCREASED, true);
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.METHOD);
     }
 
     @Override

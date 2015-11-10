@@ -17,6 +17,7 @@
 package org.revapi.java.checks.classes;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.lang.model.element.TypeElement;
@@ -32,6 +33,11 @@ import org.revapi.java.spi.Util;
  * @since 0.1
  */
 public final class NowImplementsInterface extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
+    }
 
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {

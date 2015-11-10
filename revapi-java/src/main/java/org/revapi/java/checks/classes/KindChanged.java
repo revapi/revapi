@@ -17,6 +17,7 @@
 package org.revapi.java.checks.classes;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.lang.model.element.TypeElement;
@@ -30,6 +31,12 @@ import org.revapi.java.spi.Code;
  * @since 0.1
  */
 public final class KindChanged extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
+    }
+
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
         if (oldType != null && newType != null && oldType.getKind() != newType.getKind() && isBothAccessible(oldType,

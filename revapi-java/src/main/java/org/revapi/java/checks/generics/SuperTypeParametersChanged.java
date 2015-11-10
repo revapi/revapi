@@ -17,6 +17,7 @@
 package org.revapi.java.checks.generics;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,11 @@ import org.revapi.java.spi.Util;
  * @since 0.1
  */
 public class SuperTypeParametersChanged extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
+    }
 
     @Override
     protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {

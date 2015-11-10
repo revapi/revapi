@@ -16,6 +16,8 @@
 
 package org.revapi.java.checks.classes;
 
+import java.util.EnumSet;
+
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
@@ -29,6 +31,11 @@ import org.revapi.java.spi.Code;
 public final class NoLongerAbstract extends ModifierChanged {
     public NoLongerAbstract() {
         super(false, Code.CLASS_NO_LONGER_ABSTRACT, Modifier.ABSTRACT);
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
     }
 
     @Override

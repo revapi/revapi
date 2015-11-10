@@ -17,6 +17,7 @@
 package org.revapi.java.checks.methods;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.lang.model.element.Element;
@@ -51,6 +52,11 @@ public final class Added extends CheckBase {
             return e;
         }
     };
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.METHOD);
+    }
 
     @Override
     protected void doVisitMethod(ExecutableElement oldMethod, ExecutableElement newMethod) {

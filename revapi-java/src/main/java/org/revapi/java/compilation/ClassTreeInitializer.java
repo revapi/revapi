@@ -58,6 +58,7 @@ final class ClassTreeInitializer {
     private final AnalysisConfiguration.MissingClassReporting reporting;
     private final boolean ignoreMissingAnnotations;
     private final Set<File> bootstrapClasspath;
+    private final boolean skipUseTracking = false;
 
     public ClassTreeInitializer(ProbingEnvironment environment,
         AnalysisConfiguration.MissingClassReporting missingClassReporting, boolean ignoreMissingAnnotations,
@@ -347,6 +348,11 @@ final class ClassTreeInitializer {
 
             private void reportUse(Type t, UseSite.Type useType, RawUseSite.SiteType siteType, String siteName,
                 String siteDescriptor, int sitePosition) {
+
+                if (skipUseTracking) {
+                    return;
+                }
+
                 if (t.getSort() < Type.ARRAY) {
                     //primitive type
                     return;

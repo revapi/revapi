@@ -35,6 +35,12 @@ import java.util.*;
  * @since 0.1
  */
 public final class InheritanceChainChanged extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
+    }
+
     @Override
     protected List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();

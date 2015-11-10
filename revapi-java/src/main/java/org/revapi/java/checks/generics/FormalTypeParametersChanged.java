@@ -17,6 +17,7 @@
 package org.revapi.java.checks.generics;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,6 +39,12 @@ import org.revapi.java.spi.Util;
  * @since 0.1
  */
 public final class FormalTypeParametersChanged extends CheckBase {
+
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS, Type.METHOD);
+    }
 
     @Override
     protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {

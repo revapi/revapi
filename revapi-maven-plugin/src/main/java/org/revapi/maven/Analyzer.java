@@ -196,6 +196,19 @@ final class Analyzer {
         }
     }
 
+    void validateConfiguration() throws MojoExecutionException {
+        try {
+            Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().build();
+
+            AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withLocale(locale);
+            gatherConfig(ctxBuilder);
+
+            revapi.validateConfiguration(ctxBuilder.build());
+        } catch (Exception e) {
+            throw new MojoExecutionException("Failed to validate analysis configuration.", e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     void analyze() throws MojoExecutionException {
         final BuildAwareArtifactResolver resolver = new BuildAwareArtifactResolver();
@@ -351,7 +364,7 @@ final class Analyzer {
         }
     }
 
-    private class BuildAwareArtifactResolver extends ArtifactResolver {
+    class BuildAwareArtifactResolver extends ArtifactResolver {
 
         public BuildAwareArtifactResolver() {
             super(repositorySystem, repositorySystemSession, project.getRemoteProjectRepositories());

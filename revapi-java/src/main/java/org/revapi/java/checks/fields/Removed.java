@@ -17,6 +17,7 @@
 package org.revapi.java.checks.fields;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.lang.model.element.VariableElement;
@@ -30,6 +31,11 @@ import org.revapi.java.spi.Code;
  * @since 0.1
  */
 public final class Removed extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.FIELD);
+    }
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {

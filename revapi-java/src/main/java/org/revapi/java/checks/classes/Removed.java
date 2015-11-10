@@ -22,6 +22,7 @@ import org.revapi.java.spi.Code;
 
 import javax.lang.model.element.TypeElement;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -29,6 +30,11 @@ import java.util.List;
  * @since 0.1
  */
 public final class Removed extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
+    }
 
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {

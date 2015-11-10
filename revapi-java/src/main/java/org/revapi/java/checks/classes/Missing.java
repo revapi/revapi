@@ -1,6 +1,7 @@
 package org.revapi.java.checks.classes;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -15,6 +16,11 @@ import org.revapi.java.spi.Code;
  * @since 0.1
  */
 public final class Missing extends CheckBase {
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
+    }
 
     @Override
     protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {

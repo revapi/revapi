@@ -16,6 +16,7 @@
 
 package org.revapi.java.spi;
 
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -80,6 +81,17 @@ public interface Check extends Configurable {
     void setNewTypeEnvironment(@Nonnull TypeEnvironment env);
 
     /**
+     * Each check typically checks only a single type of java element - a method or an annotation - but may be
+     * interested in more.
+     *
+     * <p>This method must be used by the implementations to advertise what type of checks they are interested in.
+     * Only the appropriate {@code visit*} calls will then be made on the check instances.
+     *
+     * @return the set of check types this instance is interested in performing
+     */
+    EnumSet<Type> getInterest();
+
+    /**
      * Each of the other visit* calls is followed by a corresponding call to this method in a stack-like
      * manner.
      * 
@@ -120,4 +132,8 @@ public interface Check extends Configurable {
     @Nullable
     List<Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
         @Nullable AnnotationMirror newAnnotation);
+
+    enum Type {
+        CLASS, METHOD, METHOD_PARAMETER, FIELD, ANNOTATION
+    }
 }

@@ -16,6 +16,8 @@
 
 package org.revapi.java.checks.classes;
 
+import java.util.EnumSet;
+
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
@@ -30,6 +32,11 @@ public final class NoLongerFinal extends ModifierChanged {
 
     public NoLongerFinal() {
         super(false, Code.CLASS_NO_LONGER_FINAL, Modifier.FINAL);
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
     }
 
     @Override
