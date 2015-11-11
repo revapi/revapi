@@ -67,6 +67,8 @@ public class ConfigurableElementFilter implements ElementFilter {
     private final List<Pattern> archiveIncludes = new ArrayList<>();
     private final List<Pattern> archiveExcludes = new ArrayList<>();
 
+    private boolean doNothing;
+
     @Nullable
     @Override
     public String[] getConfigurationRootPaths() {
@@ -88,6 +90,7 @@ public class ConfigurableElementFilter implements ElementFilter {
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         ModelNode root = analysisContext.getConfiguration().get("revapi", "filter");
         if (!root.isDefined()) {
+            doNothing = true;
             return;
         }
 
@@ -100,10 +103,17 @@ public class ConfigurableElementFilter implements ElementFilter {
         if (archives.isDefined()) {
             readFilter(archives, archiveIncludes, archiveExcludes);
         }
+
+        doNothing = elementIncludes.isEmpty() && elementExcludes.isEmpty() && archiveIncludes.isEmpty() &&
+                archiveExcludes.isEmpty();
     }
 
     @Override
     public boolean applies(@Nullable Element element) {
+        if (doNothing) {
+            return true;
+        }
+
         String archive = element == null ? null : (element.getArchive() == null ? null :
             element.getArchive().getName());
 
