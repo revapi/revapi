@@ -16,19 +16,20 @@
 
 package org.revapi.java.transforms.methods;
 
-import org.revapi.AnalysisContext;
-import org.revapi.Difference;
-import org.revapi.DifferenceTransform;
-import org.revapi.java.spi.Code;
-import org.revapi.java.spi.JavaModelElement;
+import java.io.Reader;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
-import java.io.Reader;
-import java.util.Locale;
-import java.util.regex.Pattern;
+
+import org.revapi.AnalysisContext;
+import org.revapi.Difference;
+import org.revapi.DifferenceTransform;
+import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci

@@ -18,7 +18,6 @@ package org.revapi.java;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.revapi.java.spi.Code;
 
 /**

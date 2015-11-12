@@ -16,11 +16,13 @@
 
 package org.revapi.java.checks.methods;
 
-import org.revapi.CoIterator;
-import org.revapi.Difference;
-import org.revapi.java.spi.CheckBase;
-import org.revapi.java.spi.Code;
-import org.revapi.java.spi.Util;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
@@ -30,13 +32,12 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleElementVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor7;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+
+import org.revapi.CoIterator;
+import org.revapi.Difference;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci

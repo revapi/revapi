@@ -16,12 +16,12 @@
 
 package org.revapi.java.model;
 
+import javax.annotation.Nonnull;
+
 import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
-
-import javax.annotation.Nonnull;
 
 /**
  * @author Lukas Krejci

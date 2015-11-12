@@ -16,11 +16,12 @@
 
 package org.revapi.java.compilation;
 
-import org.objectweb.asm.Type;
-import org.revapi.API;
-import org.revapi.java.model.*;
-import org.revapi.java.spi.*;
-import org.revapi.query.Filter;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -29,13 +30,32 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.*;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ErrorType;
+import javax.lang.model.type.IntersectionType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleElementVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
+
+import org.objectweb.asm.Type;
+import org.revapi.API;
+import org.revapi.java.model.FieldElement;
+import org.revapi.java.model.JavaElementForest;
+import org.revapi.java.model.MethodElement;
+import org.revapi.java.model.MethodParameterElement;
+import org.revapi.java.model.MissingClassElement;
+import org.revapi.java.spi.JavaElement;
+import org.revapi.java.spi.JavaTypeElement;
+import org.revapi.java.spi.TypeEnvironment;
+import org.revapi.java.spi.UseSite;
+import org.revapi.java.spi.Util;
+import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci

@@ -14,8 +14,6 @@
  * limitations under the License
  */
 
-import java.lang.Cloneable;
-
 public class ImplementedInterfaces {
 
     public class A implements java.io.Serializable {

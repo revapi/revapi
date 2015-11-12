@@ -16,15 +16,16 @@
  */
 package org.revapi.java.checks.methods;
 
-import org.revapi.Difference;
-import org.revapi.java.spi.CheckBase;
-import org.revapi.java.spi.Code;
-
-import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+
+import javax.annotation.Nullable;
+import javax.lang.model.element.ExecutableElement;
+
+import org.revapi.Difference;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci

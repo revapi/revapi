@@ -16,18 +16,19 @@
 
 package org.revapi.java.checks.fields;
 
-import org.revapi.Difference;
-import org.revapi.java.spi.Code;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.function.Predicate;
+
+import org.revapi.Difference;
+import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
