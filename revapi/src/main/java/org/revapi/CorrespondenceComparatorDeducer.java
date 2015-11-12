@@ -37,7 +37,7 @@ public interface CorrespondenceComparatorDeducer {
      */
     static CorrespondenceComparatorDeducer naturalOrder() {
         return (c1, c2) -> {
-            Comparator<? super Element> ret = new NaturalOrderComparator<>();
+            Comparator<? super Element> ret = Comparator.naturalOrder();
 
             Collections.sort(c1, ret);
             Collections.sort(c2, ret);
