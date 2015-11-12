@@ -136,7 +136,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                     Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                    null), Executors.newSingleThreadExecutor(), null, false, Collections.<File>emptySet());
+                    null), Executors.newSingleThreadExecutor(), null, false, false, Collections.<File>emptySet());
 
             JavaElementForest forest = analyzer.analyze();
 

@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 
 import org.revapi.API;
 import org.revapi.Element;
+import org.revapi.java.Timing;
 import org.revapi.query.Filter;
 import org.revapi.simple.SimpleElementForest;
 
@@ -112,6 +113,10 @@ public final class JavaElementForest extends SimpleElementForest {
         try {
             if (compilation != null && !UNSAFE_MODE.get()) {
                 compilation.get();
+                compilation = null;
+                if (Timing.LOG.isDebugEnabled()) {
+                    Timing.LOG.debug("Compilation completed for " + getApi());
+                }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

@@ -21,6 +21,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
@@ -34,16 +35,24 @@ import org.revapi.java.spi.Util;
  */
 public final class ParameterTypeChanged extends CheckBase {
 
+    private boolean skip;
+
     @Override
     public EnumSet<Type> getInterest() {
-        return EnumSet.of(Type.METHOD_PARAMETER);
+        return EnumSet.of(Type.METHOD, Type.METHOD_PARAMETER);
+    }
+
+    @Override
+    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
+        skip = oldMethod == null || newMethod == null || oldMethod.getParameters().size() != newMethod.getParameters
+                ().size();
     }
 
     @Override
     protected void doVisitMethodParameter(@Nullable VariableElement oldParameter,
         @Nullable VariableElement newParameter) {
 
-        if (oldParameter == null || newParameter == null) {
+        if (skip || oldParameter == null || newParameter == null) {
             //will be handled by nof parameters changed...
             return;
         }

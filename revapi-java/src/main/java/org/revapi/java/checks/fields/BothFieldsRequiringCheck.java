@@ -20,6 +20,7 @@ import java.util.EnumSet;
 
 import javax.lang.model.element.VariableElement;
 
+import org.revapi.java.checks.ConfigurationAwareCheckBase;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.TypeEnvironment;
 
@@ -27,7 +28,7 @@ import org.revapi.java.spi.TypeEnvironment;
  * @author Lukas Krejci
  * @since 0.1
  */
-abstract class BothFieldsRequiringCheck extends CheckBase {
+abstract class BothFieldsRequiringCheck extends ConfigurationAwareCheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -35,17 +36,17 @@ abstract class BothFieldsRequiringCheck extends CheckBase {
     }
 
     protected boolean shouldCheck(VariableElement oldField, VariableElement newField) {
-        return shouldCheck(oldField, getOldTypeEnvironment(), newField, getNewTypeEnvironment());
+        return shouldCheck(this, oldField, getOldTypeEnvironment(), newField, getNewTypeEnvironment());
     }
 
-    protected static boolean shouldCheck(VariableElement oldField, TypeEnvironment oldEnvironment,
+    protected static boolean shouldCheck(CheckBase check, VariableElement oldField, TypeEnvironment oldEnvironment,
         VariableElement newField, TypeEnvironment newEnvironment) {
         if (oldField == null || newField == null) {
             return false;
         }
 
-        return !(isBothPrivate(oldField, newField) ||
-            !isBothAccessibleOrInApi(oldField.getEnclosingElement(), oldEnvironment,
+        return !(check.isBothPrivate(oldField, newField) ||
+            !check.isBothAccessibleOrInApi(oldField.getEnclosingElement(), oldEnvironment,
                 newField.getEnclosingElement(), newEnvironment));
     }
 }

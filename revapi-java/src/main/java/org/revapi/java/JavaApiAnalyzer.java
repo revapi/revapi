@@ -402,9 +402,10 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                 api == analysisContext.getOldApi() ? configuration.getOldApiBootstrapClasspath() :
                         configuration.getNewApiBootstrapClasspath();
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
+        boolean skipUseTracking = !configuration.isDeepUseChainAnalysis();
 
         return new JavaArchiveAnalyzer(api, compilationExecutor, configuration.getMissingClassReporting(),
-                ignoreMissingAnnotations, bootstrapClasspath);
+                ignoreMissingAnnotations, skipUseTracking, bootstrapClasspath);
     }
 
     @Nonnull

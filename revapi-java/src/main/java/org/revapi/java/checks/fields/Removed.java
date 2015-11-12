@@ -23,6 +23,7 @@ import java.util.List;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
+import org.revapi.java.checks.ConfigurationAwareCheckBase;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 
@@ -30,7 +31,7 @@ import org.revapi.java.spi.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class Removed extends CheckBase {
+public final class Removed extends ConfigurationAwareCheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {

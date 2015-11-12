@@ -17,20 +17,16 @@
 package org.revapi.java.compilation;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.revapi.Archive;
 import org.revapi.java.model.TypeElement;
@@ -159,50 +155,58 @@ final class TypeTreeConstructor {
             return true;
         }
 
-        if (bootstrapClasses == null) {
-            long time = 0;
-
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Building bootstrap classes cache");
-                time = System.currentTimeMillis();
-            }
-
-            bootstrapClasses = new HashSet<>();
-            for (File f : bootstrapClasspath) {
-                ZipFile jar = null;
-                try {
-                    jar = new ZipFile(f);
-                    Enumeration<? extends ZipEntry> entries = jar.entries();
-                    while (entries.hasMoreElements()) {
-                        ZipEntry entry = entries.nextElement();
-                        String name = entry.getName();
-                        if (name.endsWith(".class")) {
-                            name = name.substring(0, name.length() - 6).replace('/', '.');
-                            bootstrapClasses.add(name);
-                        }
-                    }
-                    jar.close();
-                } catch (IOException e) {
-                    LOG.error("Failed to analyze bootstrap class path entry at " + f.getAbsolutePath(), e);
-                } finally {
-                    try {
-                        if (jar != null) {
-                            jar.close();
-                        }
-                    } catch (IOException e) {
-                        LOG.warn("Failed to close bootstrap classpath entry (" + f.getAbsolutePath() + ").", e);
-                    }
-                }
-            }
-
-
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Bootstrap classpath cache built in " + (System.currentTimeMillis() - time) +
-                    "ms containing " + bootstrapClasses.size() + " entries.");
-            }
+        try {
+            Class<?> cls = Class.forName(typeBinaryName);
+            ClassLoader cl = cls.getClassLoader();
+            return cl == null || cl.equals(ClassLoader.getSystemClassLoader());
+        } catch (ClassNotFoundException e) {
+            return false;
         }
-
-        return bootstrapClasses.contains(typeBinaryName);
+//
+//        if (bootstrapClasses == null) {
+//            long time = 0;
+//
+//            if (LOG.isTraceEnabled()) {
+//                LOG.trace("Building bootstrap classes cache");
+//                time = System.currentTimeMillis();
+//            }
+//
+//            bootstrapClasses = new HashSet<>();
+//            for (File f : bootstrapClasspath) {
+//                ZipFile jar = null;
+//                try {
+//                    jar = new ZipFile(f);
+//                    Enumeration<? extends ZipEntry> entries = jar.entries();
+//                    while (entries.hasMoreElements()) {
+//                        ZipEntry entry = entries.nextElement();
+//                        String name = entry.getName();
+//                        if (name.endsWith(".class")) {
+//                            name = name.substring(0, name.length() - 6).replace('/', '.');
+//                            bootstrapClasses.add(name);
+//                        }
+//                    }
+//                    jar.close();
+//                } catch (IOException e) {
+//                    LOG.error("Failed to analyze bootstrap class path entry at " + f.getAbsolutePath(), e);
+//                } finally {
+//                    try {
+//                        if (jar != null) {
+//                            jar.close();
+//                        }
+//                    } catch (IOException e) {
+//                        LOG.warn("Failed to close bootstrap classpath entry (" + f.getAbsolutePath() + ").", e);
+//                    }
+//                }
+//            }
+//
+//
+//            if (LOG.isTraceEnabled()) {
+//                LOG.trace("Bootstrap classpath cache built in " + (System.currentTimeMillis() - time) +
+//                    "ms containing " + bootstrapClasses.size() + " entries.");
+//            }
+//        }
+//
+//        return bootstrapClasses.contains(typeBinaryName);
     }
 
     public final static class Results {

@@ -17,6 +17,7 @@
 package org.revapi.java;
 
 import java.text.MessageFormat;
+import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import org.revapi.Difference;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
 import org.revapi.Report;
+import org.revapi.Stats;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.AnnotationElement;
@@ -114,24 +116,30 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
     @Override
     public void open() {
+        Timing.LOG.debug("Opening difference analyzer.");
     }
 
     @Override
     public void close() {
-        LOG.trace("Tearing down compilation results");
+        Timing.LOG.debug("About to close difference analyzer.");
         oldCompilationValve.removeCompiledResults();
         newCompilationValve.removeCompiledResults();
+        Timing.LOG.debug("Difference analyzer closed.");
     }
 
     @Override
     public void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
-        LOG.trace("Beginning analysis of {} and {}.", oldElement, newElement);
+        Timing.LOG.trace("Beginning analysis of {} and {}.", oldElement, newElement);
+
+        Map.Entry<Element, Element> cause = new AbstractMap.SimpleImmutableEntry<>(oldElement, newElement);
 
         if (conforms(oldElement, newElement, TypeElement.class)) {
             checkTypeStack.push(Check.Type.CLASS);
             for (Check c : checksByInterest.get(Check.Type.CLASS)) {
+                Stats.of(c.getClass().getName()).start();
                 c.visitClass(oldElement == null ? null : ((TypeElement) oldElement).getModelElement(),
                     newElement == null ? null : ((TypeElement) newElement).getModelElement());
+                Stats.of(c.getClass().getName()).end(cause);
             }
         } else if (conforms(oldElement, newElement, AnnotationElement.class)) {
             // annotation are always terminal elements and they also always sort as last elements amongst siblings, so
@@ -141,31 +149,39 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             }
             checkTypeStack.push(Check.Type.ANNOTATION);
             for (Check c : checksByInterest.get(Check.Type.ANNOTATION)) {
+                Stats.of(c.getClass().getName()).start();
                 List<Difference> cps = c
                     .visitAnnotation(oldElement == null ? null : ((AnnotationElement) oldElement).getAnnotation(),
                         newElement == null ? null : ((AnnotationElement) newElement).getAnnotation());
                 if (cps != null) {
                     lastAnnotationResults.addAll(cps);
                 }
+                Stats.of(c.getClass().getName()).end(cause);
             }
         } else if (conforms(oldElement, newElement, FieldElement.class)) {
             checkTypeStack.push(Check.Type.FIELD);
             for (Check c : checksByInterest.get(Check.Type.FIELD)) {
+                Stats.of(c.getClass().getName()).start();
                 c.visitField(oldElement == null ? null : ((FieldElement) oldElement).getModelElement(),
                     newElement == null ? null : ((FieldElement) newElement).getModelElement());
+                Stats.of(c.getClass().getName()).end(cause);
             }
         } else if (conforms(oldElement, newElement, MethodElement.class)) {
             checkTypeStack.push(Check.Type.METHOD);
             for (Check c : checksByInterest.get(Check.Type.METHOD)) {
+                Stats.of(c.getClass().getName()).start();
                 c.visitMethod(oldElement == null ? null : ((MethodElement) oldElement).getModelElement(),
                     newElement == null ? null : ((MethodElement) newElement).getModelElement());
+                Stats.of(c.getClass().getName()).end(cause);
             }
         } else if (conforms(oldElement, newElement, MethodParameterElement.class)) {
             checkTypeStack.push(Check.Type.METHOD_PARAMETER);
             for (Check c : checksByInterest.get(Check.Type.METHOD_PARAMETER)) {
+                Stats.of(c.getClass().getName()).start();
                 c.visitMethodParameter(
                     oldElement == null ? null : ((MethodParameterElement) oldElement).getModelElement(),
                     newElement == null ? null : ((MethodParameterElement) newElement).getModelElement());
+                Stats.of(c.getClass().getName()).end(cause);
             }
         }
     }
@@ -193,7 +209,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         if (!differences.isEmpty()) {
             LOG.trace("Detected following problems: {}", differences);
         }
-        LOG.trace("Ended analysis of {} and {}.", oldElement, newElement);
+        Timing.LOG.trace("Ended analysis of {} and {}.", oldElement, newElement);
 
         ListIterator<Difference> it = differences.listIterator();
         while (it.hasNext()) {

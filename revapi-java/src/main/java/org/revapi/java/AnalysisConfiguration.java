@@ -16,11 +16,11 @@
 
 package org.revapi.java;
 
-import org.jboss.dmr.ModelNode;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.jboss.dmr.ModelNode;
 
 /**
  * @author Lukas Krejci
@@ -33,16 +33,18 @@ public final class AnalysisConfiguration {
     private final Set<File> oldApiBootstrapClasspath;
     private final Set<File> newApiBootstrapClasspath;
     private final boolean ignoreMissingAnnotations;
+    private final boolean deepUseChainAnalysis;
 
     public AnalysisConfiguration(MissingClassReporting missingClassReporting,
         Set<String> useReportingCodes, Set<File> oldApiBootstrapClasspath,
-        Set<File> newApiBootstrapClasspath, boolean ignoreMissingAnnotations) {
+        Set<File> newApiBootstrapClasspath, boolean ignoreMissingAnnotations, boolean deepUseChainAnalysis) {
 
         this.missingClassReporting = missingClassReporting;
         this.useReportingCodes = useReportingCodes;
         this.oldApiBootstrapClasspath = oldApiBootstrapClasspath;
         this.newApiBootstrapClasspath = newApiBootstrapClasspath;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
+        this.deepUseChainAnalysis = deepUseChainAnalysis;
     }
 
     public static AnalysisConfiguration fromModel(ModelNode node) {
@@ -51,9 +53,10 @@ public final class AnalysisConfiguration {
         Set<File> oldApiBootstrapClasspath = readBootstrapClasspath(node, "old");
         Set<File> newApiBootstrapClasspath = readBootstrapClasspath(node, "new");
         boolean ignoreMissingAnnotations = readIgnoreMissingAnnotations(node);
+        boolean deepUseChainAnalysis = readDeepUseChainAnalysis(node);
 
         return new AnalysisConfiguration(reporting, useReportingCodes, oldApiBootstrapClasspath,
-            newApiBootstrapClasspath, ignoreMissingAnnotations);
+            newApiBootstrapClasspath, ignoreMissingAnnotations, deepUseChainAnalysis);
     }
 
     public MissingClassReporting getMissingClassReporting() {
@@ -74,6 +77,10 @@ public final class AnalysisConfiguration {
 
     public boolean isIgnoreMissingAnnotations() {
         return ignoreMissingAnnotations;
+    }
+
+    public boolean isDeepUseChainAnalysis() {
+        return deepUseChainAnalysis;
     }
 
     private static MissingClassReporting readMissingClassReporting(ModelNode analysisConfig) {
@@ -172,7 +179,12 @@ public final class AnalysisConfiguration {
         return javaHome;
     }
 
-    public static enum MissingClassReporting {
+    private static boolean readDeepUseChainAnalysis(ModelNode analysisConfig) {
+        ModelNode config = analysisConfig.get("revapi", "java", "deepUseChainAnalysis");
+        return config.isDefined() && config.asBoolean();
+    }
+
+    public enum MissingClassReporting {
         IGNORE, ERROR, REPORT
     }
 }

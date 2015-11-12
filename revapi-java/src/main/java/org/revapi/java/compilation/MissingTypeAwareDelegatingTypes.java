@@ -16,6 +16,8 @@
 
 package org.revapi.java.compilation;
 
+import static org.revapi.java.model.MissingTypeElement.isMissing;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -36,8 +38,6 @@ import javax.lang.model.util.Types;
 
 import org.revapi.java.model.MissingTypeElement;
 import org.revapi.java.spi.IgnoreCompletionFailures;
-
-import static org.revapi.java.model.MissingTypeElement.isMissing;
 
 /**
  * @author Lukas Krejci

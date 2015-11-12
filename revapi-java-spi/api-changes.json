@@ -48,5 +48,22 @@
                 }
             ]
         }
+    },
+    "0.5.0": {
+        "revapi": {
+            "ignore": [
+                {
+                    "code": "java.method.addedToInterface",
+                    "new": "method java.util.EnumSet<org.revapi.java.spi.Check.Type> org.revapi.java.spi.Check::getInterest()",
+                    "justification": "Optimization of the number of checks needed to be performed per element."
+                },
+                {
+                    "code": "java.method.noLongerStatic",
+                    "regex": true,
+                    "old": "method boolean org\\.revapi\\.java\\.spi\\.CheckBase::is.*",
+                    "justification": "Had to make these instance methods instead of static so that their behavior is overridable in the subclasses."
+                }
+            ]
+        }
     }
 }
