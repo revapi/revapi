@@ -62,6 +62,49 @@
                 }
             ]
         }
+    },
+    "0.5.3": {
+        "revapi": {
+            "ignore": [
+                {
+                    "code": "java.method.addedToInterface",
+                    "new": "method java.util.EnumSet<org.revapi.java.spi.Check.Type> org.revapi.java.spi.Check::getInterest()",
+                    "justification": "Optimization of the number of checks needed to be performed per element."
+                },
+                {
+                    "code": "java.method.noLongerStatic",
+                    "regex": true,
+                    "old": "method boolean org\\.revapi\\.java\\.spi\\.CheckBase::is.*",
+                    "justification": "Had to make these instance methods instead of static so that their behavior is overridable in the subclasses."
+                },
+                {
+                    "code": "java.method.numberOfParametersChanged",
+                    "new": "method void org.revapi.java.AnalysisConfiguration::<init>(org.revapi.java.AnalysisConfiguration.MissingClassReporting, java.util.Set<java.lang.String>, java.util.Set<java.io.File>, java.util.Set<java.io.File>, boolean, boolean)",
+                    "justification": "New parameter to skip deep use chain analysis."
+                },
+                {
+                    "code": "java.method.numberOfParametersChanged",
+                    "new": "method org.revapi.java.compilation.CompilationValve org.revapi.java.compilation.Compiler::compile(org.revapi.java.compilation.ProbingEnvironment, org.revapi.java.AnalysisConfiguration.MissingClassReporting, boolean, boolean, java.util.Set<java.io.File>) throws java.lang.Exception",
+                    "justification": "New parameter to skip deep use chain analysis."
+                },
+                {
+                    "code": "java.method.numberOfParametersChanged",
+                    "new": "method void org.revapi.java.JavaArchiveAnalyzer::<init>(org.revapi.API, java.util.concurrent.ExecutorService, org.revapi.java.AnalysisConfiguration.MissingClassReporting, boolean, boolean, java.util.Set<java.io.File>)",
+                    "justification": "New parameter to skip deep use chain analysis."
+                },
+                {
+                    "code": "java.method.numberOfParametersChanged",
+                    "new": "method boolean org.revapi.java.checks.fields.BothFieldsRequiringCheck::shouldCheck(org.revapi.java.spi.CheckBase, javax.lang.model.element.VariableElement, org.revapi.java.spi.TypeEnvironment, javax.lang.model.element.VariableElement, org.revapi.java.spi.TypeEnvironment)",
+                    "justification": "CheckBase is* methods are no longer static, which required changing this method's signature."
+                },
+                {
+                    "code": "java.method.parameterTypeChanged",
+                    "regex": true,
+                    "old": ".*",
+                    "justification": "All these are handled by the number-of-params-changed, but revapi 0.3.10 is not smart enough to see that."
+                }
+            ]
+        }
     }
 }
 

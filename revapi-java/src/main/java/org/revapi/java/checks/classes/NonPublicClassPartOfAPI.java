@@ -23,7 +23,7 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.Difference;
-import org.revapi.java.spi.CheckBase;
+import org.revapi.java.checks.ConfigurationAwareCheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
 
@@ -31,11 +31,11 @@ import org.revapi.java.spi.Util;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class NonPublicClassPartOfAPI extends CheckBase {
+public final class NonPublicClassPartOfAPI extends ConfigurationAwareCheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {
-        return EnumSet.of(Type.CLASS);
+        return isSkipUseTracking() ? EnumSet.noneOf(Type.class) : EnumSet.of(Type.CLASS);
     }
 
     @Override

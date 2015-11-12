@@ -26,16 +26,15 @@ import java.util.concurrent.Executors;
 
 import javax.annotation.Nonnull;
 
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.Archive;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
-
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
 
 /**
@@ -72,7 +71,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null, false, Collections.<File>emptySet());
+                null), Executors.newSingleThreadExecutor(), null, false, false, Collections.<File>emptySet());
 
             JavaElementForest forest = analyzer.analyze();
 
@@ -99,7 +98,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
-                false, Collections.<File>emptySet());
+                false, false, Collections.<File>emptySet());
 
             JavaElementForest forest = analyzer.analyze();
 

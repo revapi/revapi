@@ -184,7 +184,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         };
         runAnalysis(reporter, "v1/methods/Overloads.java", "v2/methods/Overloads.java");
 
-        Assert.assertEquals(9, reports.size());
+        Assert.assertEquals(7, reports.size());
 
         Assert.assertTrue(reports.stream().anyMatch(r ->
                         "method int Overloads::a(int)".equals(r.getOldElement().toString())
@@ -208,26 +208,6 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                                 && r.getDifferences().size() == 1
                                 && r.getDifferences().stream()
                                 .allMatch(d -> Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED.code().equals(d.code))
-        ));
-
-        Assert.assertTrue(reports.stream().anyMatch(r ->
-                        "method parameter void Overloads::a(===int===, long, double, float)"
-                                .equals(r.getOldElement().toString())
-                                && "method parameter void Overloads::a(===long===, int)"
-                                .equals(r.getNewElement().toString())
-                                && r.getDifferences().size() == 1
-                                && r.getDifferences().stream()
-                                .allMatch(d -> Code.METHOD_PARAMETER_TYPE_CHANGED.code().equals(d.code))
-        ));
-
-        Assert.assertTrue(reports.stream().anyMatch(r ->
-                        "method parameter void Overloads::a(int, ===long===, double, float)"
-                                .equals(r.getOldElement().toString())
-                                && "method parameter void Overloads::a(long, ===int===)"
-                                .equals(r.getNewElement().toString())
-                                && r.getDifferences().size() == 1
-                                && r.getDifferences().stream()
-                                .allMatch(d -> Code.METHOD_PARAMETER_TYPE_CHANGED.code().equals(d.code))
         ));
 
         Assert.assertTrue(reports.stream().anyMatch(r ->

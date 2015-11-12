@@ -36,6 +36,9 @@ import javax.annotation.Nullable;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
@@ -50,10 +53,6 @@ import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
 /**
  * @author Lukas Krejci
@@ -246,7 +245,10 @@ public abstract class AbstractJavaElementAnalyzerTest {
             bld.withConfigurationFromJSON(configurationJSON);
         }
 
-        revapi.analyze(bld.build());
+        AnalysisContext ctx = bld.build();
+
+        revapi.validateConfiguration(ctx);
+        revapi.analyze(ctx);
 
         deleteDir(v1Archive.compilationPath);
         deleteDir(v2Archive.compilationPath);

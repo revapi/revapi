@@ -58,15 +58,17 @@ final class ClassTreeInitializer {
     private final AnalysisConfiguration.MissingClassReporting reporting;
     private final boolean ignoreMissingAnnotations;
     private final Set<File> bootstrapClasspath;
-    private final boolean skipUseTracking = false;
+    private final boolean skipUseTracking;
 
     public ClassTreeInitializer(ProbingEnvironment environment,
-        AnalysisConfiguration.MissingClassReporting missingClassReporting, boolean ignoreMissingAnnotations,
-        Set<File> bootstrapClasspath) {
+                                AnalysisConfiguration.MissingClassReporting missingClassReporting,
+                                boolean ignoreMissingAnnotations,
+                                boolean skipUseTracking, Set<File> bootstrapClasspath) {
         this.environment = environment;
         this.reporting = missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.bootstrapClasspath = bootstrapClasspath;
+        this.skipUseTracking = skipUseTracking;
     }
 
     public void initTree() throws IOException {

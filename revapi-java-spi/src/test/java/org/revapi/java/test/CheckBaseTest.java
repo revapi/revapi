@@ -16,6 +16,8 @@
 
 package org.revapi.java.test;
 
+import java.util.EnumSet;
+
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
@@ -52,12 +54,12 @@ public class CheckBaseTest {
             .addUseSite(method, UseSite.Type.RETURN_TYPE, InnerClassesA)
             .build();
 
-        boolean isUsed = CheckBase.isPubliclyUsedAs(InnerClassesB, typeEnv,
+        boolean isUsed = new DummyCheck().isPubliclyUsedAs(InnerClassesB, typeEnv,
             UseSite.Type.allBut(UseSite.Type.IS_INHERITED, UseSite.Type.CONTAINS));
 
         Assert.assertFalse(isUsed);
 
-        isUsed = CheckBase.isPubliclyUsedAs(InnerClassesA, typeEnv,
+        isUsed = new DummyCheck().isPubliclyUsedAs(InnerClassesA, typeEnv,
             UseSite.Type.allBut(UseSite.Type.IS_INHERITED, UseSite.Type.CONTAINS));
 
         Assert.assertTrue(isUsed);
@@ -74,9 +76,16 @@ public class CheckBaseTest {
             .addUseSite(selfReturningMethod, UseSite.Type.RETURN_TYPE, SelfReference)
             .build();
 
-        boolean isUsed = CheckBase
+        boolean isUsed = new DummyCheck()
             .isPubliclyUsedAs(SelfReference, typeEnv, UseSite.Type.all());
 
         Assert.assertTrue(isUsed);
+    }
+
+    private static class DummyCheck extends CheckBase {
+
+        @Override public EnumSet<Type> getInterest() {
+            return EnumSet.noneOf(Type.class);
+        }
     }
 }

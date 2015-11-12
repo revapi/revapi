@@ -8,6 +8,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,9 +20,6 @@ import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.java.spi.Code;
-
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
 /**
  * @author Lukas Krejci
@@ -127,13 +126,15 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testReportsMissingClasses() throws Exception {
-        revapi.analyze(
-            AnalysisContext.builder()
+        AnalysisContext ctx = AnalysisContext.builder()
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
                 .withConfigurationFromJSON(
-                    "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }}}}").build()
-        );
+                        "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }, " +
+                                "\"deepUseChainAnalysis\": true}}}").build();
+
+        revapi.validateConfiguration(ctx);
+        revapi.analyze(ctx);
 
         Assert.assertEquals(3, allReports.size());
         Assert.assertTrue(containsDifference(allReports, "missing-class B$T$2", "missing-class B$T$2",

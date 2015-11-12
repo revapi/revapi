@@ -17,6 +17,7 @@
 package org.revapi;
 
 import java.io.Reader;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,6 +52,304 @@ import org.slf4j.LoggerFactory;
  */
 public final class Revapi {
     private static final Logger LOG = LoggerFactory.getLogger(Revapi.class);
+    static final Logger TIMING_LOG = LoggerFactory.getLogger("revapi.analysis.timing");
+    private final Set<ApiAnalyzer> availableApiAnalyzers;
+    private final Set<Reporter> availableReporters;
+    private final Set<DifferenceTransform<?>> availableTransforms;
+    private final CompoundFilter availableFilters;
+    private final ConfigurationValidator configurationValidator;
+    private final Map<String, List<DifferenceTransform<?>>> matchingTransformsCache = new HashMap<>();
+
+    /**
+     * Use the {@link #builder()} instead.
+     *
+     * @param availableApiAnalyzers the set of analyzers to use
+     * @param availableReporters    the set of reporters to use
+     * @param availableTransforms   the set of transforms to use
+     * @param elementFilters        the set of element filters to use
+     * @throws java.lang.IllegalArgumentException if any of the parameters is null
+     */
+    public Revapi(@Nonnull Set<ApiAnalyzer> availableApiAnalyzers, @Nonnull Set<Reporter> availableReporters,
+                  @Nonnull Set<DifferenceTransform<?>> availableTransforms,
+                  @Nonnull Set<ElementFilter> elementFilters) {
+
+        this.availableApiAnalyzers = availableApiAnalyzers;
+        this.availableReporters = availableReporters;
+        this.availableTransforms = availableTransforms;
+        this.availableFilters = new CompoundFilter(elementFilters);
+        this.configurationValidator = new ConfigurationValidator();
+    }
+
+    @Nonnull
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Validates the configuration of the analysis context.
+     *
+     * @param analysisContext the analysis context
+     * @return the validation result
+     */
+    public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
+        ValidationResult validation = ValidationResult.success();
+
+        validation = validate(analysisContext, validation, availableFilters);
+        validation = validate(analysisContext, validation, availableReporters);
+        validation = validate(analysisContext, validation, availableApiAnalyzers);
+        validation = validate(analysisContext, validation, availableTransforms);
+
+        return validation;
+    }
+
+    public void analyze(@Nonnull AnalysisContext analysisContext) throws Exception {
+        TIMING_LOG.debug("Analysis starts");
+
+        initialize(analysisContext, availableFilters);
+        initialize(analysisContext, availableReporters);
+        initialize(analysisContext, availableApiAnalyzers);
+        initialize(analysisContext, availableTransforms);
+
+        TIMING_LOG.debug("Initialization complete.");
+
+        matchingTransformsCache.clear();
+
+        try {
+            for (ApiAnalyzer analyzer : availableApiAnalyzers) {
+                analyzeWith(analyzer, analysisContext.getOldApi(), analysisContext.getNewApi());
+            }
+        } finally {
+            TIMING_LOG.debug("Closing all extensions");
+            closeAll(availableTransforms, "problem transform");
+            closeAll(availableFilters, "element filters");
+            closeAll(availableApiAnalyzers, "api analyzer");
+            closeAll(availableReporters, "reporter");
+            TIMING_LOG.debug("Extensions closed. Analysis complete.");
+            TIMING_LOG.debug(Stats.asString());
+        }
+    }
+
+    private void initialize(@Nonnull AnalysisContext analysisContext, Iterable<? extends Configurable> configurables) {
+        for (Configurable c : configurables) {
+            c.initialize(analysisContext);
+        }
+    }
+
+    private ValidationResult validate(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
+                                      Iterable<? extends Configurable> configurables) {
+        for (Configurable c : configurables) {
+            ValidationResult partial = configurationValidator.validate(analysisContext.getConfiguration(), c);
+            validationResult = validationResult.merge(partial);
+        }
+
+        return validationResult;
+    }
+
+    private void closeAll(Iterable<? extends AutoCloseable> closeables, String type) {
+        for (AutoCloseable c : closeables) {
+            try {
+                c.close();
+            } catch (Exception e) {
+                LOG.warn("Failed to close " + type + " " + c, e);
+            }
+        }
+    }
+
+    private void analyzeWith(ApiAnalyzer apiAnalyzer, API oldApi, API newApi)
+            throws Exception {
+
+        if (TIMING_LOG.isDebugEnabled()) {
+            TIMING_LOG.debug("Commencing analysis using " + apiAnalyzer + " on:\nOld API:\n" + oldApi + "\n\nNew API:\n"
+                    + newApi);
+        }
+
+        ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
+        ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
+
+        TIMING_LOG.debug("Obtaining API trees.");
+        ElementForest oldTree = oldAnalyzer.analyze();
+        ElementForest newTree = newAnalyzer.analyze();
+        TIMING_LOG.debug("API trees obtained");
+
+        DifferenceAnalyzer elementDifferenceAnalyzer = apiAnalyzer.getDifferenceAnalyzer(oldAnalyzer, newAnalyzer);
+
+        TIMING_LOG.debug("Obtaining API roots");
+        SortedSet<? extends Element> as = oldTree.getRoots();
+        SortedSet<? extends Element> bs = newTree.getRoots();
+        TIMING_LOG.debug("API roots obtained");
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Old tree: {}", oldTree);
+            LOG.debug("New tree: {}", newTree);
+        }
+
+        TIMING_LOG.debug("Opening difference analyzer");
+        elementDifferenceAnalyzer.open();
+        analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs);
+        TIMING_LOG.debug("Closing difference analyzer");
+        elementDifferenceAnalyzer.close();
+        TIMING_LOG.debug("Difference analyzer closed");
+    }
+
+    private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
+                         SortedSet<? extends Element> as, SortedSet<? extends Element> bs) {
+
+        List<Element> sortedAs = new ArrayList<>(as);
+        List<Element> sortedBs = new ArrayList<>(bs);
+
+        Stats.of("sorts").start();
+        Comparator<? super Element> comp = deducer.sortAndGetCorrespondenceComparator(sortedAs, sortedBs);
+        Stats.of("sorts").end(new AbstractMap.SimpleEntry<>(sortedAs, sortedBs));
+
+        CoIterator<Element> it = new CoIterator<>(sortedAs.iterator(), sortedBs.iterator(), comp);
+
+        while (it.hasNext()) {
+            it.next();
+
+            Element a = it.getLeft();
+            Element b = it.getRight();
+
+            Map.Entry<Element, Element> pair = new AbstractMap.SimpleEntry<>(a, b);
+
+
+            Stats.of("filters").start();
+            boolean analyzeThis =
+                    (a == null || availableFilters.applies(a)) && (b == null || availableFilters.applies(b));
+            Stats.of("filters").end(pair);
+
+            long beginDuration = 0;
+            if (analyzeThis) {
+                Stats.of("analyses").start();
+                Stats.of("analysisBegins").start();
+                elementDifferenceAnalyzer.beginAnalysis(a, b);
+                Stats.of("analysisBegins").end(pair);
+                beginDuration = Stats.of("analyses").reset();
+            }
+
+            Stats.of("descends").start();
+            boolean shouldDescend = a != null && b != null && availableFilters.shouldDescendInto(a) &&
+                    availableFilters.shouldDescendInto(b);
+            Stats.of("descends").end(new AbstractMap.SimpleEntry<>(a, b));
+
+            if (shouldDescend) {
+                analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren());
+            }
+
+            if (analyzeThis) {
+                Stats.of("analyses").start();
+                Stats.of("analysisEnds").start();
+                Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
+                Stats.of("analysisEnds").end(pair);
+                Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
+                transformAndReport(r);
+            }
+        }
+    }
+
+    private void transformAndReport(Report report) {
+        if (report == null) {
+            return;
+        }
+
+        Stats.of("transforms").start();
+
+        int iteration = 0;
+        boolean changed;
+        do {
+            changed = false;
+
+            ListIterator<Difference> it = report.getDifferences().listIterator();
+            while (it.hasNext()) {
+                Difference d = it.next();
+                for (DifferenceTransform<?> t : getTransformsForDifference(d)) {
+                    // it is the responsibility of the transform to declare the proper type.
+                    // it will get a ClassCastException if it fails to declare a type that is common to all differences
+                    // it can handle
+                    @SuppressWarnings("unchecked")
+                    DifferenceTransform<Element> tt = (DifferenceTransform<Element>) t;
+
+                    Difference td = d;
+                    try {
+                        td = tt.transform(report.getOldElement(), report.getNewElement(), d);
+                    } catch (Exception e) {
+                        LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an exception" +
+                                " while processing difference " + d + " on old element " + report.getOldElement() +
+                                " and" +
+                                " new element " + report.getNewElement(), e);
+                    }
+
+                    // ignore if transformation returned null, meaning that it "swallowed" the difference..
+                    // once the changes are done, we'll loop through once more and remove the differences that the
+                    // transforms want removed.
+                    // This prevents 1 transformation from disallowing other transformation to do what it needs
+                    // if both apply to the same difference.
+                    if (td != null && !d.equals(td)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Difference transform {} transforms {} to {}", t.getClass(), d, td);
+                        }
+                        it.set(td);
+                        changed = true;
+                    }
+                }
+            }
+
+            iteration++;
+
+            if (iteration % 100 == 0) {
+                LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration +
+                        " times. Maybe we're in an infinite loop with differences transforming back and forth?");
+            }
+
+            if (iteration == Integer.MAX_VALUE) {
+                throw new IllegalStateException("Transformation failed to settle in " + Integer.MAX_VALUE +
+                        " iterations. This is most probably an error in difference transform configuration that" +
+                        " cycles between two or more changes back and forth.");
+            }
+        } while (changed);
+
+        //now remove the differences that the transforms want removed
+        ListIterator<Difference> it = report.getDifferences().listIterator();
+        while (it.hasNext()) {
+            Difference d = it.next();
+            for (DifferenceTransform<?> t : getTransformsForDifference(d)) {
+                @SuppressWarnings("unchecked")
+                DifferenceTransform<Element> tt = (DifferenceTransform<Element>) t;
+                Difference td = tt.transform(report.getOldElement(), report.getNewElement(), d);
+                if (td == null) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+
+        Stats.of("transforms").end(report);
+
+        if (!report.getDifferences().isEmpty()) {
+            Stats.of("reports").start();
+            for (Reporter reporter : availableReporters) {
+                reporter.report(report);
+            }
+            Stats.of("reports").end(report);
+        }
+    }
+
+    private List<DifferenceTransform<?>> getTransformsForDifference(Difference diff) {
+        List<DifferenceTransform<?>> ret = matchingTransformsCache.get(diff.code);
+        if (ret == null) {
+            ret = new ArrayList<>();
+            for (DifferenceTransform<?> t : availableTransforms) {
+                for (Pattern p : t.getDifferenceCodePatterns()) {
+                    if (p.matcher(diff.code).matches()) {
+                        ret.add(t);
+                        break;
+                    }
+                }
+            }
+            matchingTransformsCache.put(diff.code, ret);
+        }
+
+        return ret;
+    }
 
     public static final class Builder {
         private Set<ApiAnalyzer> analyzers = null;
@@ -188,7 +487,7 @@ public final class Revapi {
         @Nonnull
         public Builder withAllExtensionsFrom(@Nonnull ClassLoader cl) {
             return withAnalyzersFrom(cl).withFiltersFrom(cl).withReportersFrom(cl)
-                .withTransformsFrom(cl);
+                    .withTransformsFrom(cl);
         }
 
         @Nonnull
@@ -270,7 +569,11 @@ public final class Revapi {
         @Override
         public boolean applies(@Nullable Element element) {
             for (ElementFilter f : filters) {
-                if (!f.applies(element)) {
+                String name = f.getClass().getName() + ".applies";
+                Stats.of(name).start();
+                boolean applies = f.applies(element);
+                Stats.of(name).end(element);
+                if (!applies) {
                     return false;
                 }
             }
@@ -283,7 +586,12 @@ public final class Revapi {
             boolean hasNoFilters = !it.hasNext();
 
             while (it.hasNext()) {
-                if (it.next().shouldDescendInto(element)) {
+                ElementFilter f = it.next();
+                String name = f.getClass().getName() + ".shouldDescendInto";
+                Stats.of(name).start();
+                boolean should = f.shouldDescendInto(element);
+                Stats.of(name).end(element);
+                if (should) {
                     return true;
                 }
             }
@@ -296,263 +604,5 @@ public final class Revapi {
         public Iterator<ElementFilter> iterator() {
             return (Iterator<ElementFilter>) filters.iterator();
         }
-    }
-
-    private final Set<ApiAnalyzer> availableApiAnalyzers;
-    private final Set<Reporter> availableReporters;
-    private final Set<DifferenceTransform<?>> availableTransforms;
-    private final CompoundFilter availableFilters;
-    private final ConfigurationValidator configurationValidator;
-
-    private final Map<String, List<DifferenceTransform<?>>> matchingTransformsCache = new HashMap<>();
-
-    @Nonnull
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * Use the {@link #builder()} instead.
-     *
-     * @param availableApiAnalyzers the set of analyzers to use
-     * @param availableReporters the set of reporters to use
-     * @param availableTransforms the set of transforms to use
-     * @param elementFilters the set of element filters to use
-     *
-     * @throws java.lang.IllegalArgumentException if any of the parameters is null
-     */
-    public Revapi(@Nonnull Set<ApiAnalyzer> availableApiAnalyzers, @Nonnull Set<Reporter> availableReporters,
-        @Nonnull Set<DifferenceTransform<?>> availableTransforms, @Nonnull Set<ElementFilter> elementFilters) {
-
-        this.availableApiAnalyzers = availableApiAnalyzers;
-        this.availableReporters = availableReporters;
-        this.availableTransforms = availableTransforms;
-        this.availableFilters = new CompoundFilter(elementFilters);
-        this.configurationValidator = new ConfigurationValidator();
-    }
-
-    /**
-     * Validates the configuration of the analysis context.
-     *
-     * @param analysisContext the analysis context
-     * @return the validation result
-     */
-    public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
-        ValidationResult validation = ValidationResult.success();
-
-        validation = validate(analysisContext, validation, availableFilters);
-        validation = validate(analysisContext, validation, availableReporters);
-        validation = validate(analysisContext, validation, availableApiAnalyzers);
-        validation = validate(analysisContext, validation, availableTransforms);
-
-        return validation;
-    }
-
-    public void analyze(@Nonnull AnalysisContext analysisContext) throws Exception {
-        initialize(analysisContext, availableFilters);
-        initialize(analysisContext, availableReporters);
-        initialize(analysisContext, availableApiAnalyzers);
-        initialize(analysisContext, availableTransforms);
-
-        matchingTransformsCache.clear();
-
-        try {
-            for (ApiAnalyzer analyzer : availableApiAnalyzers) {
-                analyzeWith(analyzer, analysisContext.getOldApi(), analysisContext.getNewApi());
-            }
-        } finally {
-            closeAll(availableTransforms, "problem transform");
-            closeAll(availableFilters, "element filters");
-            closeAll(availableApiAnalyzers, "api analyzer");
-            closeAll(availableReporters, "reporter");
-        }
-    }
-
-    private void initialize(@Nonnull AnalysisContext analysisContext, Iterable<? extends Configurable> configurables) {
-        for (Configurable c : configurables) {
-            c.initialize(analysisContext);
-        }
-    }
-
-    private ValidationResult validate(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
-                                        Iterable<? extends Configurable> configurables) {
-        for (Configurable c : configurables) {
-            ValidationResult partial = configurationValidator.validate(analysisContext.getConfiguration(), c);
-            validationResult = validationResult.merge(partial);
-        }
-
-        return validationResult;
-    }
-
-    private void closeAll(Iterable<? extends AutoCloseable> closeables, String type) {
-        for (AutoCloseable c : closeables) {
-            try {
-                c.close();
-            } catch (Exception e) {
-                LOG.warn("Failed to close " + type + " " + c, e);
-            }
-        }
-    }
-
-    private void analyzeWith(ApiAnalyzer apiAnalyzer, API oldApi, API newApi)
-        throws Exception {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Starting analysis using " + apiAnalyzer + " on:\nOld API:\n" + oldApi + "\n\nNew API:\n"
-                + newApi);
-        }
-
-        ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
-        ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
-
-        ElementForest oldTree = oldAnalyzer.analyze();
-        ElementForest newTree = newAnalyzer.analyze();
-
-        DifferenceAnalyzer elementDifferenceAnalyzer = apiAnalyzer.getDifferenceAnalyzer(oldAnalyzer, newAnalyzer);
-
-        SortedSet<? extends Element> as = oldTree.getRoots();
-        SortedSet<? extends Element> bs = newTree.getRoots();
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Old tree: {}", oldTree);
-            LOG.debug("New tree: {}", newTree);
-        }
-
-        elementDifferenceAnalyzer.open();
-        analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs);
-        elementDifferenceAnalyzer.close();
-    }
-
-    private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
-        SortedSet<? extends Element> as, SortedSet<? extends Element> bs) {
-
-        List<Element> sortedAs = new ArrayList<>(as);
-        List<Element> sortedBs = new ArrayList<>(bs);
-
-        Comparator<? super Element> comp = deducer.sortAndGetCorrespondenceComparator(sortedAs, sortedBs);
-
-        CoIterator<Element> it = new CoIterator<>(sortedAs.iterator(), sortedBs.iterator(), comp);
-
-        while (it.hasNext()) {
-            it.next();
-
-            Element a = it.getLeft();
-            Element b = it.getRight();
-
-            boolean analyzeThis =
-                (a == null || availableFilters.applies(a)) && (b == null || availableFilters.applies(b));
-
-            if (analyzeThis) {
-                elementDifferenceAnalyzer.beginAnalysis(a, b);
-            }
-
-            if (a != null && b != null && availableFilters.shouldDescendInto(a) &&
-                availableFilters.shouldDescendInto(b)) {
-
-                analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren());
-            }
-
-            if (analyzeThis) {
-                transformAndReport(elementDifferenceAnalyzer.endAnalysis(a, b));
-            }
-        }
-    }
-
-    private void transformAndReport(Report report) {
-        if (report == null) {
-            return;
-        }
-
-        int iteration = 0;
-        boolean changed;
-        do {
-            changed = false;
-
-            ListIterator<Difference> it = report.getDifferences().listIterator();
-            while (it.hasNext()) {
-                Difference d = it.next();
-                for (DifferenceTransform<?> t : getTransformsForDifference(d)) {
-                    // it is the responsibility of the transform to declare the proper type.
-                    // it will get a ClassCastException if it fails to declare a type that is common to all differences
-                    // it can handle
-                    @SuppressWarnings("unchecked")
-                    DifferenceTransform<Element> tt = (DifferenceTransform<Element>) t;
-
-                    Difference td = d;
-                    try {
-                        td = tt.transform(report.getOldElement(), report.getNewElement(), d);
-                    } catch (Exception e) {
-                        LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an exception" +
-                            " while processing difference " + d + " on old element " + report.getOldElement() + " and" +
-                            " new element " + report.getNewElement(), e);
-                    }
-
-                    // ignore if transformation returned null, meaning that it "swallowed" the difference..
-                    // once the changes are done, we'll loop through once more and remove the differences that the
-                    // transforms want removed.
-                    // This prevents 1 transformation from disallowing other transformation to do what it needs
-                    // if both apply to the same difference.
-                    if (td != null && !d.equals(td)) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Difference transform {} transforms {} to {}", t.getClass(), d, td);
-                        }
-                        it.set(td);
-                        changed = true;
-                    }
-                }
-            }
-
-            iteration++;
-
-            if (iteration % 100 == 0) {
-                LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration +
-                    " times. Maybe we're in an infinite loop with differences transforming back and forth?");
-            }
-
-            if (iteration == Integer.MAX_VALUE) {
-                throw new IllegalStateException("Transformation failed to settle in " + Integer.MAX_VALUE +
-                        " iterations. This is most probably an error in difference transform configuration that" +
-                        " cycles between two or more changes back and forth.");
-            }
-        } while (changed);
-
-        //now remove the differences that the transforms want removed
-        ListIterator<Difference> it = report.getDifferences().listIterator();
-        while (it.hasNext()) {
-            Difference d = it.next();
-            for (DifferenceTransform<?> t : getTransformsForDifference(d)) {
-                @SuppressWarnings("unchecked")
-                DifferenceTransform<Element> tt = (DifferenceTransform<Element>) t;
-                Difference td = tt.transform(report.getOldElement(), report.getNewElement(), d);
-                if (td == null) {
-                    it.remove();
-                    break;
-                }
-            }
-        }
-
-        if (!report.getDifferences().isEmpty()) {
-            for (Reporter reporter : availableReporters) {
-                reporter.report(report);
-            }
-        }
-    }
-
-    private List<DifferenceTransform<?>> getTransformsForDifference(Difference diff) {
-        List<DifferenceTransform<?>> ret = matchingTransformsCache.get(diff.code);
-        if (ret == null) {
-            ret = new ArrayList<>();
-            for (DifferenceTransform<?> t : availableTransforms) {
-                for (Pattern p : t.getDifferenceCodePatterns()) {
-                    if (p.matcher(diff.code).matches()) {
-                        ret.add(t);
-                        break;
-                    }
-                }
-            }
-            matchingTransformsCache.put(diff.code, ret);
-        }
-
-        return ret;
     }
 }

@@ -41,16 +41,19 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final ProbingEnvironment probingEnvironment;
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
     private final boolean ignoreMissingAnnotations;
+    private final boolean skipUseTracking;
     private final Set<File> bootstrapClasspath;
     private CompilationValve compilationValve;
 
     public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
-        AnalysisConfiguration.MissingClassReporting missingClassReporting, boolean ignoreMissingAnnotations,
-        Set<File> bootstrapClasspath) {
+                               AnalysisConfiguration.MissingClassReporting missingClassReporting,
+                               boolean ignoreMissingAnnotations,
+                               boolean skipUseTracking, Set<File> bootstrapClasspath) {
         this.api = api;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
+        this.skipUseTracking = skipUseTracking;
         this.probingEnvironment = new ProbingEnvironment(api);
         this.bootstrapClasspath = bootstrapClasspath;
     }
@@ -58,15 +61,23 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     @Nonnull
     @Override
     public JavaElementForest analyze() {
+        if (Timing.LOG.isDebugEnabled()) {
+            Timing.LOG.debug("Starting analysis of " + api);
+        }
+
         StringWriter output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives());
         try {
             compilationValve = compiler
-                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, bootstrapClasspath);
+                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, skipUseTracking,
+                        bootstrapClasspath);
 
             probingEnvironment.getTree()
                 .setCompilationFuture(new CompilationFuture(compilationValve, output));
 
+            if (Timing.LOG.isDebugEnabled()) {
+                Timing.LOG.debug("Preliminary API tree produced for " + api);
+            }
             return probingEnvironment.getTree();
         } catch (Exception e) {
             throw new IllegalStateException("Failed to analyze archives in api " + api, e);

@@ -51,7 +51,7 @@ public abstract class CheckBase implements Check {
      *
      * @return true if both elements are not null and are private or package private
      */
-    public static boolean isBothPrivate(@Nullable Element a, @Nullable Element b) {
+    public boolean isBothPrivate(@Nullable Element a, @Nullable Element b) {
         if (a == null || b == null) {
             return false;
         }
@@ -68,7 +68,7 @@ public abstract class CheckBase implements Check {
      *
      * @return true if both elements are not null and accessible (i.e. public or protected)
      */
-    public static boolean isBothAccessible(@Nullable Element a, @Nullable Element b) {
+    public boolean isBothAccessible(@Nullable Element a, @Nullable Element b) {
         if (a == null || b == null) {
             return false;
         }
@@ -80,7 +80,7 @@ public abstract class CheckBase implements Check {
      * @param e the element to check
      * @return true if the provided element is public or protected, false otherwise.
      */
-    public static boolean isAccessible(@Nonnull Element e) {
+    public boolean isAccessible(@Nonnull Element e) {
         return !isMissing(e) && e.getModifiers().contains(Modifier.PUBLIC) ||
             e.getModifiers().contains(Modifier.PROTECTED);
     }
@@ -92,7 +92,7 @@ public abstract class CheckBase implements Check {
      * @param e the element to check
      * @return true if the element and all its enclosing elements are accessible, false otherwise
      */
-    public static boolean isEffectivelyAccessible(@Nonnull Element e) {
+    public boolean isEffectivelyAccessible(@Nonnull Element e) {
         //IntelliJ is wrong about the below. e definitely CAN be null...
         //noinspection ConstantConditions
         while (e != null) {
@@ -114,7 +114,7 @@ public abstract class CheckBase implements Check {
      *
      * @return true if the element is missing, false otherwise
      */
-    public static boolean isMissing(@Nonnull Element e) {
+    public boolean isMissing(@Nonnull Element e) {
         return e.asType().getKind() == TypeKind.ERROR;
     }
 
@@ -131,7 +131,7 @@ public abstract class CheckBase implements Check {
      *
      * @return true if the element is accessible or is an explicit part of the API
      */
-    public static boolean isAccessibleOrInAPI(@Nonnull Element e, @Nonnull TypeEnvironment env) {
+    public boolean isAccessibleOrInAPI(@Nonnull Element e, @Nonnull TypeEnvironment env) {
         if (isAccessible(e)) {
             return true;
         }
@@ -148,7 +148,7 @@ public abstract class CheckBase implements Check {
      * @param uses the use types to check for
      * @return true if the type is used at least once as any of the provided use types, false otherwise
      */
-    public static boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
+    public boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
         final Collection<UseSite.Type> uses) {
 
         return isPubliclyUsedAs(type, env, uses, new HashSet<TypeElement>(), new UseSite.Visitor<Boolean, Void>() {
@@ -166,7 +166,7 @@ public abstract class CheckBase implements Check {
         });
     }
 
-    private static boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
+    private boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
     final Collection<UseSite.Type> uses, final Set<TypeElement> visitedElements, final UseSite.Visitor<Boolean, Void> noUseCheck) {
 
         final Boolean isUsedSignificantly = env.visitUseSites(type, new UseSite.Visitor<Boolean, Void>() {
@@ -274,7 +274,7 @@ public abstract class CheckBase implements Check {
      *
      * @return true if both elements are accessible or an explicit part of their respective APIs.
      */
-    public static boolean isBothAccessibleOrInApi(@Nonnull Element a, @Nonnull TypeEnvironment envA, @Nonnull Element b,
+    public boolean isBothAccessibleOrInApi(@Nonnull Element a, @Nonnull TypeEnvironment envA, @Nonnull Element b,
         @Nonnull TypeEnvironment envB) {
 
         return isAccessibleOrInAPI(a, envA) && isAccessibleOrInAPI(b, envB);

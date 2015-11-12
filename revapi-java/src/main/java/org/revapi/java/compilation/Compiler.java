@@ -40,6 +40,7 @@ import javax.tools.ToolProvider;
 
 import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
+import org.revapi.java.Timing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +73,7 @@ public final class Compiler {
 
     public CompilationValve compile(final ProbingEnvironment environment,
         final AnalysisConfiguration.MissingClassReporting missingClassReporting, final boolean ignoreMissingAnnotations,
-        final Set<File> bootstrapClasspath) throws Exception {
+        final boolean skipUseTracking, final Set<File> bootstrapClasspath) throws Exception {
 
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
 
@@ -110,9 +111,16 @@ public final class Compiler {
         task.setProcessors(Arrays.asList(processor));
 
         Future<Boolean> future = processor.submitWithCompilationAwareness(executor, () -> {
-            new ClassTreeInitializer(environment, missingClassReporting, ignoreMissingAnnotations,
-                bootstrapClasspath).initTree();
+            if (Timing.LOG.isDebugEnabled()) {
+                Timing.LOG.debug("About to crawl " + environment.getApi());
+            }
 
+            new ClassTreeInitializer(environment, missingClassReporting, ignoreMissingAnnotations,
+                    skipUseTracking, bootstrapClasspath).initTree();
+
+            if (Timing.LOG.isDebugEnabled()) {
+                Timing.LOG.debug("Crawl finished for " + environment.getApi());
+            }
             return task.call();
         });
 

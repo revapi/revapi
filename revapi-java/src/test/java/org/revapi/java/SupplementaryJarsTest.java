@@ -24,6 +24,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
@@ -32,9 +34,6 @@ import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.java.spi.Code;
-
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
 /**
  * @author Lukas Krejci
@@ -115,7 +114,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             AnalysisContext.builder()
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
-                .build()
+                .withConfigurationFromJSON("{\"revapi\": {\"java\": {\"deepUseChainAnalysis\": true}}}").build()
         );
 
         Assert.assertEquals(5, allReports.size());
