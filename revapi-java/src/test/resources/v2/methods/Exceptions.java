@@ -14,8 +14,6 @@
  * limitations under the License
  */
 
-import java.io.IOException;
-
 public class Exceptions {
 
     public void methodChecked1() throws RuntimeException {}

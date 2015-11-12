@@ -16,19 +16,25 @@
 
 package org.revapi.java.checks.classes;
 
-import org.revapi.CoIterator;
-import org.revapi.Difference;
-import org.revapi.java.spi.CheckBase;
-import org.revapi.java.spi.Code;
-import org.revapi.java.spi.TypeEnvironment;
-import org.revapi.java.spi.Util;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
-import java.util.*;
+
+import org.revapi.CoIterator;
+import org.revapi.Difference;
+import org.revapi.java.spi.CheckBase;
+import org.revapi.java.spi.Code;
+import org.revapi.java.spi.TypeEnvironment;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
