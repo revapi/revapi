@@ -1,7 +1,7 @@
 = Revapi
 :toc:
 
-image:https://travis-ci.org/revapi/revapi.svg[Build Status,link=https://travis-ci.org/revapi/revapi]
+image:https://travis-ci.org/revapi/revapi.svg?branch=master[Build Status,link=https://travis-ci.org/revapi/revapi]
 
 Revapi is a tool for API analysis and change tracking.
 
