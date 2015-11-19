@@ -62,6 +62,17 @@
                 }
             ]
         }
+    },
+    "0.6.0" : {
+        "revapi" : {
+            "ignore" : [
+                {
+                    "code"  :"java.class.removed",
+                    "old" : "class org.revapi.java.filters.IgnoreByAnnotationFilter",
+                    "justification" : "Renamed to AnnotatedElementFilter and functionally enhanced."
+                }
+            ]
+        }
     }
 }
 

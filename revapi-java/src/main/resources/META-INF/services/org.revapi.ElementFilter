@@ -1,1 +1,1 @@
-org.revapi.java.filters.IgnoreByAnnotationFilter
+org.revapi.java.filters.AnnotatedElementFilter
