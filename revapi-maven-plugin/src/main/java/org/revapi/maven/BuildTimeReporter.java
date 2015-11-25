@@ -18,6 +18,7 @@ package org.revapi.maven;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Locale;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,6 +38,7 @@ final class BuildTimeReporter implements Reporter {
 
     private final DifferenceSeverity breakingSeverity;
     private StringBuilder allProblems;
+    private Locale locale;
 
     public BuildTimeReporter(DifferenceSeverity breakingSeverity) {
         this.breakingSeverity = breakingSeverity;
@@ -65,6 +67,7 @@ final class BuildTimeReporter implements Reporter {
 
     @Override
     public void initialize(@Nonnull AnalysisContext properties) {
+        locale = properties.getLocale();
     }
 
     @Override
@@ -88,14 +91,30 @@ final class BuildTimeReporter implements Reporter {
             }
 
             if (maxSeverity.compareTo(breakingSeverity) >= 0) {
-            String archive = element.getArchive() == null ? "<unknown-archive>" : element.getArchive().getName();
-            allProblems.append("\n[").append(archive).append("] ").append(element.getFullHumanReadableString()).append(": ").append(d.code)
-                    .append(": ").append(d.description);
+                String archive = element.getArchive() == null ? "<unknown-archive>" : element.getArchive().getName();
+                allProblems.append("\n[").append(archive).append("] ").append(element.getFullHumanReadableString()).append(": ").append(d.code)
+                        .append(": ").append(d.description);
+                appendIgnoreRecipe(allProblems, report, d);
             }
         }
     }
 
     @Override
     public void close() throws IOException {
+    }
+
+    private void appendIgnoreRecipe(StringBuilder bld, Report report, Difference difference) {
+        bld.append("\nTo ignore this problem, add the following JSON snippet to your Revapi configuration under " +
+                "\"revapi.ignore\" path:\n");
+        bld.append("{\n");
+        bld.append("  \"code\": \"").append(difference.code).append("\",\n");
+        if (report.getOldElement() != null) {
+            bld.append("  \"old\": \"").append(report.getOldElement()).append("\",\n");
+        }
+        if (report.getNewElement() != null) {
+            bld.append("  \"new\": \"").append(report.getNewElement()).append("\",\n");
+        }
+        bld.append("  \"justification\": <<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE >>>>>\n");
+        bld.append("}");
     }
 }
