@@ -1,0 +1,14 @@
+== Extensions
+
+Revapi has been written in extensibility in mind. Everything from API scanning, filtering to report generation is
+extensible. Revapi comes with a couple of extensions that make it useful without a need to write any code yourself
+(even though writing an extension is super simple and fun ;) ).
+
+== link:../modules/revapi-basic-features/index.html[Basic Features]
+This is a collection of the most basic and rudimentary extensions that make the work with an evolving API useful.
+Included are extensible filtering, reclassification of found problems, etc.
+
+== link:../modules/revapi-java/index.html[Java Extension]
+Revapi itself is written in Java so it would be strange for it not to have a Java API checker. The java extension is
+just that - a full featured Java API checker checking both source and binary compatibility and even some hints of
+behavioral compatibility (veeery simple so far - don't get too excited ;) ).

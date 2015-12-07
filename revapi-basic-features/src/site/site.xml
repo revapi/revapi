@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Revapi Basic Features">
+  <bannerLeft>
+    <name>${project.name}</name>
+    <href>${project.url}</href>
+  </bannerLeft>
+
+  <body>
+    <menu name="Project Details">
+      <item name="Filter Extension" href="extensions/filter.html"/>
+      <item name="Ignore Extension" href="extensions/ignore.html"/>
+      <item name="Reclassify Extension" href="extensions/reclassify.html"/>
+    </menu>
+  </body>
+
+  <custom>
+    <reflowSkin>
+      <slogan>${project.description}</slogan>
+      <bottomDescription>${project.name}</bottomDescription>
+    </reflowSkin>
+  </custom>
+</project>

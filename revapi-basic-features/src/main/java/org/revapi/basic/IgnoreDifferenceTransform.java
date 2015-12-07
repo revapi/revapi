@@ -43,6 +43,7 @@ import org.jboss.dmr.ModelNode;
  *                  "code" : "PROBLEM_CODE",
  *                  "old" : "FULL_REPRESENTATION_OF_THE_OLD_ELEMENT",
  *                  "new" : "FULL_REPRESENTATION_OF_THE_NEW_ELEMENT",
+ *                  "justification": "blah"
  *              },
  *              ...
  *          ]

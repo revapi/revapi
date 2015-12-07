@@ -1,0 +1,61 @@
+Revapi is an API analysis and change tracking tool written in Java.
+
+Its focus is mainly on Java language itself but it has been specifically designed to not be limited to just Java. API is
+*much more* than just java classes - also various configuration files, schemas, etc. can contribute to it and users can
+become reliant on them.
+
+NOTE: Revapi is still in early stages of development. The Java API checker is fairly capable and can track both
+binary and source compatibility and the maven plugin and ant task are fairly useful but there is still many things to
+be done and polished. Your help is greatly appreciated.
+
+=== Why?
+
+Because surprisingly there doesn't seem to exist a simple yet extensible, developer-oriented tool that could be used to
+check the APIs and, more importantly, track their evolution. APIs are not static, they evolve to accomodate new features
+and past mistakes but at the same time, each change in the APIs potentially breaks the code of the users of the APIs.
+
+It is therefore important for the tool to do 2 things right:
+
+. correctly identify all changes in an API, be it Java code, configuration files, descriptor files of any sort, etc.
+. allow the developer to mark selected changes as intentional (unavoidable changes in API are sometimes necessary).
+
+=== Prior Art
+
+==== https://sigtest.java.net/[SigTest]
+
+SigTest is a tool from Oracle itself to track API coverage and API evolution. It is functionally very close to what
+revapi aims to be but has a couple of drawbacks that make revapi worthwhile to look at:
+
+* while there is a maven plugin for SigTest, it is not available in Maven Central
+* the maven plugin cannot check api changes (yet)
+* it cannot track intentional API changes
+* it relies on generated "signature" files instead of directly comparing jars
+
+==== http://clirr.sourceforge.net/[Clirr]
+
+Clirr is another tool, that is functionally quite close to what revapi aims to be. It has a nice maven plugin (developed
+separately, working around limitations of the stale Clirr library itself), it is able to directly compare 2 jar files
+for changes and it is even possible to ignore the intentional API changes.
+
+The main drawback of Clirr is that it is essentially dead with last release in 2005. Also, it is tightly coupled to Java
+and has no abstraction over language or "structure" it can check.
+
+==== http://mojo.codehaus.org/animal-sniffer/[Animal Sniffer]
+
+While Animal Sniffer in essence does API checks, it's intended for different purpose than API change tracking. Animal
+Sniffer is meant to check that a codebase doesn't call API methods not present in a library it uses. While this may
+sound strange, this happens if you compile against a new version of a library but use an old version of it at runtime.
+Typically, this happens with Java runtime library itself, when a Jar is compiled against a later version of JRE than
+it is then run on.
+
+=== Getting Involved
+
+Your contributions of any kind, be it a bug report, idea or even code contribution, are greatly appreciated. You can
+get in touch on the following places:
+
+Code:: https://github.com/revapi/revapi[GitHub]
+Documentation:: link:docs/[here]
+IRC:: #revapi on freenode.net
+Forum:: http://stackoverflow.com[stackoverflow]
+Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
+

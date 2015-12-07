@@ -29,12 +29,18 @@
     <description>
         Bill of Materials for Revapi.
     </description>
-    <url>http://revapi.org</url>
+    <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-bom</artifactId>
     <version>14-SNAPSHOT</version>
 
     <packaging>pom</packaging>
+
+    <properties>
+        <skip.site>true</skip.site>
+        <skip.deploy>true</skip.deploy>
+    </properties>
+
 
     <dependencyManagement>
         <dependencies>
@@ -94,7 +100,7 @@
 
             <dependency>
                 <groupId>org.revapi</groupId>
-                <artifactId>revapi-site-base</artifactId>
+                <artifactId>revapi-site-shared</artifactId>
                 <version>1</version>
             </dependency>
 

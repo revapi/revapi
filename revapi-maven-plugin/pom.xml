@@ -29,7 +29,7 @@
     <description>
         Maven integration for Revapi.
     </description>
-    <url>http://revapi.org</url>
+    <url>${web.url}/modules/${project.artifactId}</url>
     
     <artifactId>revapi-maven-plugin</artifactId>
     <version>0.3.11-SNAPSHOT</version>
@@ -229,27 +229,8 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>license</report>
-                            <report>mailing-list</report>
-                            <report>issue-tracking</report>
-                            <report>scm</report>
-                            <report>project-team</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
                 <version>3.4</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
         </plugins>
     </reporting>
@@ -257,7 +238,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.url}/generated/${project.artifactId}</url>
+            <url>${web.url}/modules/${project.artifactId}</url>
         </site>
     </distributionManagement>
 

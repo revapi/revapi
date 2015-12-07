@@ -28,7 +28,7 @@
     <description>
         Revapi extension to check API of java classes in jar archives.
     </description>
-    <url>http://revapi.org</url>
+    <url>${web.url}/modules/${project.artifactId}</url>
     
     <artifactId>revapi-java</artifactId>
     <version>0.6.0-SNAPSHOT</version>
@@ -97,10 +97,9 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.url}/generated/${project.artifactId}</url>
+            <url>${web.url}/modules/${project.artifactId}</url>
         </site>
     </distributionManagement>
-
 
     <build>
         <plugins>

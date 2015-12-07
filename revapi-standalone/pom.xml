@@ -26,17 +26,12 @@
 
     <name>Revapi Standalone</name>
     <description>
-        Revapi CLI.
+        Revapi CLI
     </description>
-    <url>http://revapi.org</url>
+    <url>${web.url}/modules/${project.artifactId}</url>
     
     <artifactId>revapi-standalone</artifactId>
     <version>0.3.7-SNAPSHOT</version>
-
-    <properties>
-        <skip.awestruct.site>true</skip.awestruct.site>
-        <skip.deploy>true</skip.deploy>
-    </properties>
 
     <dependencies>
 
@@ -119,7 +114,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.url}/generated/${project.artifactId}</url>
+            <url>${web.url}/modules/${project.artifactId}</url>
         </site>
     </distributionManagement>
 

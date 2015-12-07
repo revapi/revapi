@@ -28,13 +28,12 @@
     <description>
         Maven utilities for Revapi.
     </description>
-    <url>http://revapi.org</url>
+    <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-maven-utils</artifactId>
     <version>0.3.3-SNAPSHOT</version>
 
     <properties>
-        <skip.awestruct.site>true</skip.awestruct.site>
         <skip.site>true</skip.site>
         <skip.deploy>true</skip.deploy>
         <aether.version>0.9.1.v20140329</aether.version>

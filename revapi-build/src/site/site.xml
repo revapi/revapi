@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="Revapi">
+  <bannerLeft>
+    <name>${project.name}</name>
+    <href>${project.url}</href>
+  </bannerLeft>
+
+  <skin>
+    <groupId>lt.velykis.maven.skins</groupId>
+    <artifactId>reflow-maven-skin</artifactId>
+    <version>1.1.1</version>
+  </skin>
+
+  <body>
+    <menu name="Documentation" inherit="top">
+      <item name="Getting Started" href="${web.url}/getting-started.html"/>
+      <item name="Architecture" href="${web.url}/architecture.html"/>
+      <item name="Building" href="${web.url}/building.html"/>
+      <item name="Extensions" href="${web.url}/extensions.html"/>
+      <item name="Sub Projects">
+        <item name="Revapi API" href="${web.url}/modules/revapi/index.html"/>
+        <item name="Ant Task" href="${web.url}/modules/revapi-ant-task/index.html"/>
+        <item name="Basic Features" href="${web.url}/modules/revapi-basic-features/index.html"/>
+        <item name="Java Extension" href="${web.url}/modules/revapi-java/index.html"/>
+        <item name="Java Extension SPI" href="${web.url}/modules/revapi-java-spi/index.html"/>
+        <item name="Maven Plugin" href="${web.url}/modules/revapi-maven-plugin/index.html"/>
+      </item>
+    </menu>
+
+    <menu name="Maven Documentation" ref="reports" inherit="bottom"/>
+  </body>
+
+  <custom>
+    <reflowSkin>
+      <theme>bootswatch-cosmo</theme>
+      <highlightJs>true</highlightJs>
+      <toc>sidebar</toc>
+      <slogan>${project.description}</slogan>
+      <breadcrumbs>false</breadcrumbs>
+      <topNav>Documentation|Project Details</topNav>
+      <bottomNav>
+        <column>Documentation</column>
+        <column>Project Details</column>
+        <column>Maven Documentation</column>
+      </bottomNav>
+      <bottomDescription>Revapi</bottomDescription>
+      <brand>
+        <name>Revapi</name>
+        <href>${web.url}</href>
+      </brand>
+    </reflowSkin>
+  </custom>
+
+  <publishDate position="navigation-bottom"/>
+  <version position="navigation-bottom"/>
+</project>

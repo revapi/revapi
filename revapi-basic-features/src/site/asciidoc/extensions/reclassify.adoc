@@ -1,0 +1,44 @@
+== Reclassify Transformation
+
+*Configuration Root*: `revapi.reclassify`
+
+Using this extension one can reclassify certain API problems found during the analysis to become something else or
+for example reduce their severity.
+
+=== Sample Configuration
+
+```javascript
+{
+  "revapi" : {
+    "reclassify" : [
+    {
+      "regex" : false,
+      "code" : "PROBLEM_CODE",
+      "old" : "FULL_REPRESENTATION_OF_THE_OLD_ELEMENT",
+      "new" : "FULL_REPRESENTATION_OF_THE_NEW_ELEMENT",
+      "classify" : {
+        "NEW_COMPATIBILITY_TYPE": "NEW_SEVERITY",
+        "NEW_COMPATIBILITY_TYPE_2": "NEW_SEVERITY_2",
+      }
+    },
+    ...
+    ]
+  }
+}
+```
+
+=== Properties
+
+`regex`::
+If `true` (the default is `false`), the `code`, `old` and `new` values are understood to be java regular expressions.
+`code`::
+Specifies the API problem code to reclassify. This is property mandatory.
+`old`::
+Specifies the old element of the problem. Only if the problem's old element matches this, the reclassification takes
+place. This property is optional.
+`new`::
+Specifies the new element of the problem. Only if the problem's new element matches this, the reclassification takes
+place. This property is optional.
+`classify`::
+Specifies the new classification matrix of the problem. The keys are compatibility types, i.e. one of `SOURCE`,
+`BINARY`, `SEMANTIC` or `OTHER` and severities are one of `NON_BREAKING`, `POTENTIALLY_BREAKING` or `BREAKING`.

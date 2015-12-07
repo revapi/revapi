@@ -28,16 +28,10 @@
     <description>
         Ant integration for Revapi.
     </description>
-    <url>http://revapi.org</url>
+    <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-ant-task</artifactId>
     <version>0.3.6-SNAPSHOT</version>
-
-    <properties>
-        <skip.awestruct.site>true</skip.awestruct.site>
-        <skip.site>true</skip.site>
-        <skip.deploy>true</skip.deploy>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -88,7 +82,7 @@
                             "revapi" : {
                                 "filter" : {
                                     "elements": {
-                                       "include" : ["org\.revapi\..*"]
+                                       "include" : ["\\w+ (.+ )?org\.revapi\..*"]
                                     }
                                 },
                                 "java" : {
@@ -103,6 +97,40 @@
             </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <version>${self-api-check.maven-version}</version>
+                <configuration>
+                    <analysisConfiguration><![CDATA[
+                        {
+                            "revapi" : {
+                                "filter" : {
+                                    "elements": {
+                                       "include" : ["\\w+ (.+ )?org\.revapi\..*"]
+                                    }
+                                },
+                                "java" : {
+                                    "missing-classes" : {
+                                        "behavior" : "report"
+                                    }
+                                }
+                            }
+                        }
+                    ]]></analysisConfiguration>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>${web.url}/modules/${project.artifactId}</url>
+        </site>
+    </distributionManagement>
 
     <scm>
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>

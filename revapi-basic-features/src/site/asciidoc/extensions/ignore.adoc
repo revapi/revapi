@@ -1,0 +1,38 @@
+== Ignore Transformation
+
+*Configuration Root*: `revapi.ignore`
+
+Using this extension one can ignore certain API problems found during the analysis so that they don't appear in the
+reported output.
+
+=== Sample Configuration
+
+```javascript
+{
+  "revapi" : {
+    "ignore" : [
+      {
+        "regex" : false,
+        "code" : "PROBLEM_CODE",
+        "old" : "FULL_REPRESENTATION_OF_THE_OLD_ELEMENT",
+        "new" : "FULL_REPRESENTATION_OF_THE_NEW_ELEMENT",
+        "justification": "free form text to justify why this change was necessary"
+      },
+      ...
+    ]
+  }
+}
+```
+
+=== Properties
+
+`regex`::
+If `true` (the default is `false`), the `code`, `old` and `new` values are understood to be java regular expressions.
+`code`::
+Specifies the API problem code to ignore. This is property mandatory.
+`old`::
+Specifies the old element of the problem to ignore. This property is optional.
+`new`::
+Specifies the new element of the problem to ignore. This property is optional.
+`justification`::
+This can used to describe why this change was necessary and hence why it should be ignored by the API checker.

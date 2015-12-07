@@ -1,0 +1,64 @@
+== Java Extension Configuration
+
+*Configuration Root*: `revapi.java`
+
+Java extension is the actual thing that performs the API checks of the Java code. It can detect a large number of
+checks for binary, source and also some rudimentary semantic (or behavioral) analysis. For the list of checks, please
+consult the link:../index.html[homepage] of the extension.
+
+On this page you can learn about the possible configuration options of the Java extension.
+
+=== Sample Configuration
+
+```javascript
+{
+  "revapi": {
+    "java": {
+      "missing-classes": {
+        "behavior": "report",
+        "ignoreMissingAnnotations": false
+      },
+      "reportUsesFor": ["java.missing.newClass", "java.class.nonPublicPartOfAPI"],
+      "classpath": {
+        "bootstrap": {
+          "old": {
+            "java-home": "/opt/java7",
+            "jars": ["rt.jar"]
+          },
+          "new": {
+            "java-home": "/opt/java8",
+            "jars": ["rt.jar"]
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+=== Properties
+
+`missing-classes.behavior`::
+This tells the checker what to do when a class is found in the API that is not found in any of the provided jars. The
+possible values are: `error`, `ignore` or `report` (the default). If `report` is chosen then the missing class is
+reported as a problem with either `java.missing.oldClass` code or `java.missing.newClass` depending on whether the
+class was found missing in the old or new version of the API.
+`missing-classes.ignoreMissingAnnotations`::
+If `true` (the default is `false`) the usage chain of annotation classes will not be tracked.
+The end result of this is that annotation classes will not be considered part of the API and thus missing annotation
+classes will not be reported.
+`reportUsesFor`::
+Revapi is able to track usage chains of the classes it finds in the API. For some problems you may want to know how and
+where a certain class is used to be able to determine if that's something wrong or not. By default the usage chains 
+are reported for the following problem codes: `java.missing.newClass`, `java.missing.oldClass`,
+`java.class.nonPublicPartOfAPI`, `java.class.externalClassNoLongerExposedInAPI`, `java.class.externalClassExposedInAPI`.
+`classpath.bootstrap`::
+The `old` and `new` elements declare an array of the jars that are to be considered implicitly present on the
+classpath. This is to support API-checking across different versions of JRE for example. The classes on the bootstrap
+classpath are considered compatible and are not checked for (beyond their presence).
+[]
+NOTE: Currently, the class parsing backend used by Revapi Java is being rewritten to use http://www.javassist
+.org[javassist] and this capability might be lost. This should be outweighed by the performance increase that move
+should bring.
+
+

@@ -1,0 +1,46 @@
+== Element Filter
+
+*Configuration Root*: `revapi.filter`
+
+This extension provides a highly configurable element filter (see link:../../../architecture.html[architecture]) that
+can be used to either filter out certain elements in the APIs from the analysis or to actually restrict the analysis
+only to configured elements.
+
+If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
+the matching elements are included. Out of the included elements, some may be futher excluded by the provided exclude
+filters (if any). If only exclude filters are defined, everything but the elements matching the exclude filters is
+included.
+
+=== Sample Configuration
+
+```javascript
+{
+  "revapi" : {
+    "filter" : {
+      "elements" : {
+        "include" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"],
+        "exclude" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"]
+      },
+      "archives" : {
+        "include" : ["REGEX_ON_ARCHIVE_NAMES", "ANOTHER_REGEX_ON_ARCHIVE_NAMES"],
+        "exclude" : ["REGEX_ON_ARCHIVE_NAMES", "ANOTHER_REGEX_ON_ARCHIVE_NAMES"]
+      }
+    }
+  }
+}
+```
+
+=== Properties
+
+`elements`::
+This provides the include/exclude configuration on the individual API elements level.
+`archives`::
+This provides a way to include/exclude whole archives or elements (i.e. whole maven modules)
+`include`::
+The array of (java) regular expressions that the elements or archives need to match to be included in the analysis.
+`exclude`::
+The array of (java) regular expressions that the elements or archives need to match to be excluded from the analysis.
+
+
+
+

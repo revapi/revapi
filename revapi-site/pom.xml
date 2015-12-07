@@ -17,111 +17,38 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>revapi-parent</artifactId>
-        <groupId>org.revapi</groupId>
-        <version>1</version>
-        <relativePath>../revapi-parent</relativePath>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-build</artifactId>
+    <version>15-SNAPSHOT</version>
+    <relativePath>../revapi-build</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
 
-    <name>Revapi Site</name>
-    <description>
-        Web presence of Revapi.
-    </description>
-    <url>http://revapi.org</url>
+  <name>Revapi Site</name>
+  <description>API checker for the masses.</description>
+  <url>${web.url}</url>
 
-    <artifactId>revapi-site</artifactId>
-    <version>1-SNAPSHOT</version>
+  <artifactId>revapi-site</artifactId>
+  <version>0</version>
+  <packaging>pom</packaging>
 
-    <properties>
-        <skip.awestruct.site>false</skip.awestruct.site>
-        <skip.deploy>false</skip.deploy>
-    </properties>
+  <properties>
+    <skip.deploy>false</skip.deploy>
+    <revapi.skip>true</revapi.skip>
+  </properties>
 
-    <build>
-        <resources>
-            <resource>
-                <filtering>true</filtering>
-                <directory>${project.basedir}/src/site/</directory>
-            </resource>
-            <resource>
-                <directory>${project.basedir}/src/main/resources</directory>
-            </resource>
-        </resources>
+  <distributionManagement>
+    <site>
+      <id>site</id>
+      <url>${web.url}</url>
+    </site>
+  </distributionManagement>
 
-        <plugins>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>site</id>
-                        <goals>
-                            <goal>resources</goal>
-                        </goals>
-                        <phase>pre-site</phase>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/_site</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>site</id>
-                        <phase>site</phase>
-                        <configuration>
-                            <skip>${skip.awestruct.site}</skip>
-                            <target>
-                                <!-- The root model generates a maven-site, but we'll be replacing it completely.
-                                     The submodules' site outputs are redirected under "generated" in the resulting
-                                     site -->
-                                <delete dir="${project.build.directory}/site/" excludes="generated/* css/* js/*"/>
-                                <exec command="rake update" dir="${project.build.directory}/_site"/>
-                                <exec command="awestruct -P production -g -w" dir="${project.build.directory}/_site"/>
-                                <copy todir="${project.build.directory}/site">
-                                    <fileset dir="${project.build.directory}/_site" includes=".nojekyll"/>
-                                    <fileset dir="${project.build.directory}/_site" includes="CNAME"/>
-                                    <fileset dir="${project.build.directory}/_site/_site" excludes="apt/**"/>
-                                </copy>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>site-cleanup</id>
-                        <phase>post-site</phase>
-                        <configuration>
-                            <target>
-                                <delete dir="${project.build.directory}/_site"/>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.github.github</groupId>
-                <artifactId>site-maven-plugin</artifactId>
-                <configuration>
-                    <message>Committing site for version ${project.version}.</message>
-                    <outputDirectory>${project.build.directory}/site</outputDirectory>
-                </configuration>
-            </plugin>
-
-        </plugins>
-    </build>
-
-    <scm>
-        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
-        <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
-    </scm>
+  <scm>
+    <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+    <url>https://github.com/revapi/revapi</url>
+    <tag>HEAD</tag>
+  </scm>
 </project>

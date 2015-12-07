@@ -1,0 +1,933 @@
+== Java Extension
+
+The Java extension somewhat obviously provides API checking capability for Java libraries. It contains a large number
+of checks that check different aspects of changes in the API, but it, too, is extensible. That is useful in cases where
+Java methods are annotated using annotations like JPA or JAXB. One can imagine new checks on methods and fields
+annotated by those annotations to perform additional analysis for DB schema changes or XML serialization changes.
+
+=== SPI
+
+The Java extension can be augmented through its small
+link:../revapi-java-spi/apidocs/org/revapi/java/spi/package-summary.html[SPI] that declares a
+link:../revapi-java-spi/apidocs/org/revapi/java/spi/Check.html[hook interface] into the java checking process that
+represents the Revapi's API elements as Java's own
+http://docs.oracle.com/javase/7/docs/api/javax/lang/model/package-summary.html[model elements]. The checking framework
+then can use the Java plaform's own rich functionality for examining the classes in the checked libraries (note, that
+this API is NOT the reflection API, because it actually doesn't load the library classes into Java runtime).
+
+You can walk through the <<enhance-java-checks.adoc#, example Java check>> to see how to extend the Java checks.
+
+=== Detected Differences
+All the differences detected by the extension are defined in the
+link:../revapi-java-spi/apidocs/org/revapi/java/spi/Code.html[Code] enumeration. Below, you can find a short discussion
+of each type of the difference.
+
+==== Missing API Class
+[cols="35s,<65d"]
+|=============
+| Code              | +java.missing.oldClass+ or +java.missing.newClass+
+| Binary severity   | potentially breaking
+| Source severity   | potentially breaking
+| Semantic severity | NA
+|=============
+
+By default, Revapi will abort the API check if it encounters a type that should belong to the API but that cannot be
+found neither in the API libraries themselves or in the supporting libraries. It can also be configured to ignore such
+missing classes or to report them. If it is configured to report them, one of the above codes will be emitted
+depending on whether the missing class is found in the old version of the API or the new one.
+
+The missing class behavior can be configured by the `revapi.java.missing-classes` configuration property with the
+possible values of `ignore`, `report` and `error`, e.g.:
+
+[source,javascript]
+----
+{
+    "revapi" : {
+        "java" : {
+            "missing-classes" : "report"
+        }
+    }
+}
+----
+
+==== Element No Longer Deprecated
+[cols="35s,<65d"]
+|=============
+| Code              | +java.element.noLongerDeprecated+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+An element (class, method or field) is marked as deprecated in the old version of the API but not in the new version.
+This represents no danger in terms of API breakage and is reported only because it is useful to know for the library
+users to know about such cases.
+
+==== Element Now Deprecated
+[cols="35s,<65d"]
+|=============
+| Code              | +java.element.nowDeprecated+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+An element (class, method or field) is marked as deprecated in the new version of the API but not in the old version.
+This represents no danger in terms of API breakage and is reported only because it is useful to know for the library
+users to know about such cases.
+
+==== Class Visibility Increased
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.visibilityIncreased+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+The class is more visible in the new version of the API than it used to be in the old version. This is no API breakage
+and is reported for completeness sake. The visibility is ordered as follows: +private+ < +package private+ < +protected+
+< +public+.
+
+==== Class Visibility Reduced
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.visibilityReduced+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+Reducing the visibility of an API class is a breaking change. It means that classes that could inherit or use the class
+might no longer be able to. Thus a library user might face compilation errors at compile time or linkage errors at
+runtime when trying to use the new version of the library.
+
+==== Class Kind Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.kindChanged+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+There are 4 kinds of java classes: +class+, +interface+, +annotation type+, +enum+. This difference is reported when
+a class changes from one to the other. This is of course incompatible change and will break the library users at both
+compile time and at runtime.
+
+==== Class No Longer Final
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.noLongerFinal+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+A class that used to be final is now not. This is no API breakage and is reported for completeness sake.
+
+==== Class Now Final
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.nowFinal+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A class became final in the new version of the library. This is a breaking change because any library user that extended
+the class will no longer be compatible with the new version of the library, in which the class cannot be extended.
+
+==== Class No Longer Abstract
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.noLongerAbstract+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+A class that used to be abstract is now not. This is no API breakage and is reported for completeness sake.
+
+==== Class Now Abstract
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.nowAbstract+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A concrete class became abstract in the new version of the library. This is a breaking change because it is no longer
+possible to create instances of such class.
+
+==== Class Added
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.added+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+A new class appeared in the new version of the API. This is a non-breaking change reported for completeness sake.
+
+==== Class Removed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.removed+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A class present in the old version of the library is no longer present. This is of course a breaking change because
+the users of the API will no longer be able to use that class in any capacity.
+
+==== Class No Longer Implements Interface
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.noLongerImplementsInterface+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+This is a breaking change because it is no longer possible to cast the class to the no longer implemented interface.
+
+==== Class Now Implements Interface
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.nowImplementsInterface+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+No API breakage reported for the completeness sake.
+
+==== Final Class Inherits From New Class
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.finalClassInheritsFromNewClass+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+A final class inherits from a new class. This represents no API breakage and is reported for completeness sake.
+Inheriting from a new class may introduce new methods or fields to the class but cannot remove any (method changes are
+reported separately).
+
+==== Non-final Class Inherits From New Class
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.nonFinalClassInheritsFromNewClass+
+| Binary severity   | potentially breaking
+| Source severity   | potentially breaking
+| Semantic severity | NA
+|=============
+
+While this change is usually OK, it might cause trouble to the users of the API if the newly inherited class contains
+final methods. If the users of the library happen to define methods of the same name in the class that inherits from the
+checked one, they will get compilation or linkage errors.
+
+==== Class Now Checked Exception
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.nowCheckedException+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A class newly inherits from +java.lang.Exception+. This is a source incompatibility because such exceptions need to be
+declared in the +throws+ declarations of the methods.
+
+==== Class No Longer Inherits From Class
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.noLongerInheritsFromClass+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+The checked class no longer inherits from a super class that it used to. This means that it can no longer be cast to
+that super class nor can the methods declared in the super class be called using the instance of the checked class.
+
+==== Class Is Non-Public Part of API
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.nonPublicPartOfAPI+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | breaking
+|=============
+
+While this is non-breaking from the pure API compatibility point of view, it is a very strange design decision.
+This means that a class that is not publicly accessible (i.e. is private or package private) is used in a public
+capacity (i.e. return type of a method, type of a method parameter, type of an accessible field, implemented interface).
+
+NOTE: This is NOT reported on a non-accessible class that is used solely as a super class of another API classes or that
+is only implemented by other API classes. An implementation of a private interface or inheriting from a non-public
+super class is a valid design decision.
+
+==== Type Parameters of The Super Type Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.superTypeTypeParametersChanged+
+| Binary severity   | potentially breaking
+| Source severity   | potentially breaking
+| Semantic severity | NA
+|=============
+
+The checked class inherits from a generic class. The type parameters used on the generic super class changed between old
+and new version. Because of type erasure, this might not cause any binary incompatibility (but it can) and it can
+potentially break the compilation, too.
+
+This is generally a quite dangerous thing to do, because it can change the erased signatures of the methods or fields
+inherited from the super class (which would be the cause of the binary and source incompatibilities).
+
+==== Annotation Added
+[cols="35s,<65d"]
+|=============
+| Code              | +java.annotation.added+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+An element is newly annotated by given annotation. This poses no risk during compilation or at linkage time but may
+cause semantic differences between the versions because of the way the annotations can be used (code generation,
+processing, reflection, etc.).
+
+==== Annotation Removed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.annotation.removed+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+An element is no longer annotated by given annotation. This poses no risk during compilation or at linkage time but may
+cause semantic differences between the versions because of the way the annotations can be used (code generation,
+processing, reflection, etc.).
+
+==== Annotation Attribute Value Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.annotation.attributeValueChanged+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+An attribute of some annotation on some element changed its value. This poses no risk during compilation or at linkage
+time but may cause semantic differences between the versions because of the way the annotations can be used (code
+generation, processing, reflection, etc.).
+
+==== Annotation Attribute Added
+[cols="35s,<65d"]
+|=============
+| Code              | +java.annotation.attributeAdded+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+An annotation on some element newly specifies an explicit value of an attribute. This poses no risk during compilation
+or at linkage time but may cause semantic differences between the versions because of the way the annotations can be
+used (code generation, processing, reflection, etc.).
+
+==== Annotation Attribute Removed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.annotation.attributeRemoved+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+An annotation on some element no longer specifies an explicit value of an attribute. This poses no risk during
+compilation or at linkage time but may cause semantic differences between the versions because of the way the
+annotations can be used (code generation, processing, reflection, etc.).
+
+==== Annotation No Longer Inherited
+[cols="35s,<65d"]
+|=============
+| Code              | +java.annotation.noLongerInherited+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+An annotation type used to be annotated with the `@Inherited` annotation but is no more. This poses no risk during
+compilation or at linkage time but may cause semantic differences between the versions because of the way the
+annotations can be used (code generation, processing, reflection, etc.).
+
+==== Annotation Now Inherited
+[cols="35s,<65d"]
+|=============
+| Code              | +java.annotation.nowInherited+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+An annotation type is now annotated with the `@Inherited` annotation. This poses no risk during
+compilation or at linkage time but may cause semantic differences between the versions because of the way the
+annotations can be used (code generation, processing, reflection, etc.).
+
+==== Static Field Added
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.addedStaticField+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+No API breakage, provided for completeness sake. Note that this si reported only for publicly accessible fields.
+
+==== Field Added
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.added+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+No API breakage, provided for completeness sake. Note that this si reported only for publicly accessible fields.
+
+==== Field Removed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.removed+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+The field was removed from the class. This is an API breakage because the field can no longer be accessed.
+Note that this si reported only for publicly accessible fields.
+
+==== Constant Field Removed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.removed+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | potentially breaking
+|=============
+
+An accessible static final field (i.e. a constant) was removed from the class. This breaks compilation but actually
+causes no problem at runtime (i.e. when the new API is swapped for the old API without recompiling the users of the
+API). This is because the constants are inlined during compilation. Because the value is no longer declared or used
+in the API but the user of the API still can operate with the value, this is also reported as potentially breaking the
+semantics.
+
+==== Constant Field Changed Value
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.constantValueChanged+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | breaking
+|=============
+
+A constant field changed its value. At compilation time, the new value is used, but at runtime (i.e. when the new API is
+swapped for the old API without recompiling the users of the API) the users of the API will still use the old value,
+because the constant values are inlined. This is therefore reported as breaking the semantics.
+
+==== Field Now Constant
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.nowConstant+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This is no API breakage and is reported only for completeness' sake.
+
+==== Field No Longer Constant
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.nowConstant+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | breaking
+|=============
+
+When compiling an API user against the new version of the API, the value of the field is taken. When swapping the new
+version of the API for the old version of the API without recompiling the *old value* coming from the inlined constant
+value from the old version of the API is used. I.e. the code works and therefore this is neither a source nor binary
+incompatibility, but it is marked as a semantic incompatibility, because the behavior described above is most probably
+NOT what the API author had in mind when making the change.
+
+==== Field Now Final
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.nowFinal+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A field that could previously be assigned to is now final and cannot be changed. This is therefore both source and
+binary incompatibility.
+
+==== Field No Longer Final
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.noLongerFinal+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This is no API breakage and is reported for completeness' sake.
+
+==== Field No Longer Static
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.noLongerStatic+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A static field has become an instance field. Accessing the field is no longer possible through its class and therefore
+this is both source and binary incompatibility.
+
+==== Field Now Static
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.nowStatic+
+| Binary severity   | breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+According to the Java specification, the Java runtime will throw `IncompatibleClassChangeError` when an instance field
+has become static and the new version of API is used against the user code compiled against the old version of API.
+When recompiling the user code against the new version, everything works fine.
+
+==== Field Type Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.typeChanged+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+The field has a different type than it used to in the old version of the API. This is incompatible change.
+
+==== Field `serialVersionUID` Unchanged
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.serialVersionUIDUnchanged+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+This is reported on the `serialVersionUID` fields of classes that didn't change between the versions even though the
+default UIDs would be different for the two versions of the the class. While this doesn't break the compilation nor does
+it break binary compatibility, it possibly may cause semantic problems because serialization may misbehave. This
+depends on if and how the `readObject` and `writeObject` methods on the class are implemented, which is beyond the scope
+of this check.
+
+==== Field Visibility Increased
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.visibilityIncreased+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+No API breakage, reported for completeness' sake.
+
+==== Field Visibility Reduced
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.visibilityReduced+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+Field's visibility was reduced, which means that code that used to be able to access it might no longer be able to.
+
+==== Enum Constant Order Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.enumConstantOrderChanged+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+The constants of an enumeration were re-ordered. This can lead to problems in user code that uses the `Enum.ordinal()`
+method to determine the order of an enum constant and relies on a specific value.
+
+==== Default Value Added To Method
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.defaultValueAdded+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This is only relevant on annotation types, of which the attributes are represented by method declarations.
+Declaring a default value to an annotation attribute is not an API breakage and is only reported for completeness' sake.
+
+==== Method's Default Value Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.defaultValueChanged+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+This is only relevant on annotation types, of which the attributes are represented by method declarations.
+Changing a default value is both source and binary compatible but might cause a semantic incompatibility (depending on
+how the annotation is used). Elements annotated using this annotation that didn't provide an explicit value for this
+attribute will suddenly be understood to have the new default value of the attribute when used with the new version of
+the API. This might or might not be a problem.
+
+==== Default Value Removed From Method
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.defaultValueRemoved+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | breaking
+|=============
+
+An annotation attribute no longer declares a default value. This is source incompatible change because elements
+annotated without explicitly specifying the value for the attribute will no longer compile. This also breaks semantics
+because annotation processor that relies on the new version of the annotation type will break with a user library that
+was compiled against the old version of the API (and therefore didn't have to declare the default value of the
+attribute).
+
+==== Method Added To Interface
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.addedToInterface+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | potentially breaking
+|=============
+
+This is a source-incompatible change because all implementations that were written against the old version of the
+interface will not have the implementation of the new method and therefore will not compile.
+
+On contrary, this is binary compatible, because no code that used the old version of the interface could have called
+the method through the interface. The linker doesn't check for missing method implementations so the linkage also goes
+without a problem.
+
+There might be semantic problems though. It might break in situations where the interface serves the purpose of an SPI -
+a library declares an SPI interface to be implemented by users and then
+uses these SPI implementations inside the library. If the new version of the library assumes that the SPI
+implementations provide the impl of the new method and it is provided with the SPI implementation of the old version
+of the interface, things will break with `NoSuchMethodError` when the caller tries to call the SPI method backed by the
+old SPI implementation.
+
+==== Method With No Default Value Added To Annotation Type
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.attributeWithNoDefaultAddedToAnnotationType+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | breaking
+|=============
+
+While technically a variant of <<method-added-to-interface, Method Added To Interface>>, this is similar in consequences
+to <<default-value-removed-from-method, Default Value Removed From Method>>. This is not binary incompatible, there can
+be no code compiled against the previous version of the API that would try to access or use the new attribute in any
+way. This is source incompatible though, because any code that declares annotations according to the old version of the
+API will fail to compile against the new version of the API because it will not define explicit value for the new
+attribute. This also breaks semantics because any element annotated without such attribute won't be possible to process
+using a processor that depends on the new version of the API and therefore assumes an explicit value for the annotation
+attribute.
+
+==== Method With Default Value Added To Annotation Type
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.attributeWithDefaultAddedToAnnotationType+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This does not break compatibility and is reported for completeness' sake.
+
+==== Abstract Method Added
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.abstractMethodAdded+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+Abstract method added to a class. All the code compiled against the old version of the API will not provide a concrete
+implementation of it and will therefore break.
+
+==== Method Added
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.added+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+A new concrete method added to a concrete class. This is always safe.
+
+==== Final Method Added To Non-final Class
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.finalMethodAddedToNonFinalClass+
+| Binary severity   | potentially breaking
+| Source severity   | potentially breaking
+| Semantic severity | NA
+|=============
+
+This will break user code if the a subclass of the checked class declared a method that happens to have a same signature
+as the newly introduced final method.
+
+==== Method Removed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.removed+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+Removing a method from a class is an incompatible change.
+
+==== Overriding Method Removed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.overridingMethodRemoved+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+A method that overrode a method in a super class has been removed. This is a compatible change and is reported for
+completeness' sake.
+
+==== Method Replaced By Abstract In Superclass
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.replacedByAbstractMethodInSuperClass+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A variant of <<overriding-method-removed, Overriding Method Removed>>, but the method in the super class is abstract.
+Therefore, it would no longer be possible to call the method.
+
+==== Non-final Method Replaced By Final In Superclass
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.nonFinalReplacedByFinalInSuperclass+
+| Binary severity   | potentially breaking
+| Source severity   | potentially breaking
+| Semantic severity | NA
+|=============
+
+As with <<final-method-added-to-non-final-class, Final Method Added To Non-final Class>>, this can break if a subclass
+in user code overrides the method.
+
+==== Attribute Removed From Annotation Type
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.attributeRemovedFromAnnotationType+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+This is identical to <<method-removed, Method Removed>> but specialized for annotation types.
+
+==== Method No Longer Final
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.noLongerFinal+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+No API breakage, reported for completeness' sake.
+
+==== Method Now Final
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.nowFinal+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+Any subclasses that overrode the method will break both at compile time and at runtime.
+
+==== Method No Longer Static
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.noLongerStatic+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+When a method becomes a member method, it no longer can be called from the static context. This breaks both binary
+and source compatibility.
+
+==== Method Now Static
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.nowStatic+
+| Binary severity   | breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+A static method can be called in the same way as member method, so on the source level, this change is compatible.
+It is not binary compatible though because static methods are called using a different bytecode instruction.
+
+==== Method Visibility Increased
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.visibilityIncreased+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+No API breakage, reported for completeness' sake.
+
+==== Method Visibility Reduced
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.visibilityIncreased+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A method might no longer be visible to code that used to call it. This is a breaking change.
+
+==== Method Return Type Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.returnTypeChanged+
+| Binary severity   | breaking
+| Source severity   | potentially breaking
+| Semantic severity | NA
+|=============
+
+While changing the return type always breaks at runtime (i.e. when swapping the new API for the old API without
+recompiling the user code), it might be OK at compile time due to implicit conversions of primitive types.
+
+==== Type Parameters of The Return Type Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.returnTypeTypeParametersChanged+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+If the return type of the method is a generic type and its type parameters change between old and new version of the API
+it is a source incompatible change. It is binary compatible because of type erasure.
+
+==== Number of Method Parameters Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.numberOfParametersChanged+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+Obviously, this is a breaking change - you can no longer call the method with the same parameters.
+
+==== Method Parameter Type Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.parameterTypeChanged+
+| Binary severity   | breaking
+| Source severity   | potentially breaking
+| Semantic severity | NA
+|=============
+
+This is a binary incompatibility but may be source compatible if the changed types are primitive and the new one
+is strictly bigger than the old one and the old one is implicitly convertible to it.
+
+==== Element Now Parameterized
+[cols="35s,<65d"]
+|=============
+| Code              | +java.generics.elementNowParameterized+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+In and of itself, this is a compatible change but may cause semantic confusion if the user code compiled against the old
+API wasn't honoring the new semantics introduced with the generic type parameter (e.g. old code was using raw `List` and
+the new version of the API parameterized the list to `List<E>`. The old code used to insert variety of types into the
+list but the new version of the API suggests it is not possible. Everything will still work correctly, but new user code
+might start assuming uniform types in the list).
+
+==== Formal Type Parameter Added
+[cols="35s,<65d"]
+|=============
+| Code              | +java.generics.formalTypeParameterAdded+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+This is not a binary incompatibility due to type erasure but it is a source incompatible change. Classes declared
+against the old version of the API will no longer compile with the new version because they will be missing the
+definition of the formal type parameter.
+
+==== Formal Type Parameter Removed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.generics.formalTypeParameterRemoved+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+This is not a binary incompatibility due to type erasure but it is a source incompatible change. Classes declared
+against the old version of the API will no longer compile with the new version because they will be declaring a type
+parameter that is no longer required.
+
+==== Formal Type Parameter Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.generics.formalTypeParameterChanged+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+The constraints on the formal type parameter have changed. This is again source incompatible because the user code
+declared against the old version of the API will use wrong constraints.
+

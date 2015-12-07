@@ -1,0 +1,170 @@
+== Multi-file Configuration
+
+Sometimes it can be handy to split the configuration of Revapi analysis in separate files - this can be done for various
+reasons - you might want to keep the config of different extensions separate or you want to compose the config from
+various contributing locations, etc.
+
+For Revapi, this can be achieved by using the `analysisConfigurationFiles` configuration element instead of (or in
+addition to) the `analysisConfiguration` element which provides the in-POM way of configuring Revapi.
+
+```xml
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    ...
+    <configuration>
+        <analysisConfigurationFiles>
+            <file>${project.basedir}/config/filter.json</file>
+            <file>${project.basedir}/config/ignore.json</file>
+        </analysisConfigurationFiles>
+    </configuration>
+    <executions>
+        <execution>
+            <goals><goal>check</goal></goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+Each of the configuration files (e.g. `filter.json` and `ignore.json` in the above example) contain the JSON document
+with the configuration. The maven plugin then merges the files together (in an unspecified order) and uses the
+result as the final configuration for the analysis.
+
+=== Custom Root Element of Configuration
+
+It might sometimes be useful to be able to only use a part of a JSON document as configuration for Revapi. This might be
+because the same file might be used for holding other data, too, or because the file(s) contain(s) multiple
+Revapi configurations. Note that the custom root is only applicable to configuration files, not the in-POM
+configuration.
+
+The below example illustrates the usage of the custom configuration root.
+```xml
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    ...
+    <configuration>
+        <analysisConfigurationFiles>
+            <file>${project.basedir}/config/filter.json</file>
+            <file>${project.basedir}/config/ignore.json</file>
+            <file>
+              <path>${project.basedir}/config/json-data-for-many-things.json</path>
+              <roots>
+                <root>configuration/revapi</root>
+              </roots>
+            </file>
+        </analysisConfigurationFiles>
+    </configuration>
+    <executions>
+        <execution>
+            <goals><goal>check</goal></goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+The above would read the configuration from the `filter.json` and `ignore.json` files. In addition it would also read
+the configuration from the `json-data-for-many-things.json` file but would only consider the data from the
+"configuration.data" subpath in that file. E.g. if the file looked like:
+
+```javascript
+{
+  "itest-setup": {...},
+  "configuration": {
+    "our-custom-tool": {
+    },
+    "revapi": {
+      ... HERE WE ARE ...
+    }
+  }
+}
+```
+
+The Revapi configuration would only be read from the "... HERE WE ARE ..." part of the document.
+
+Revapi itself uses this approach to track the changes made to its API across the versions using a single file. Each
+Revapi module can have a "api-changes.json" file in its base directory. The contents of this file follow this pattern:
+
+```javascript
+{
+  "version1": {
+    "revapi": {
+      "ignore": [
+        ...
+      ]
+    }
+  },
+  "version2": {
+    "revapi": {
+      "ignore": [
+        ...
+      ]
+    }
+  },
+  ...
+}
+```
+
+I.e. in that file, the root elements are the released versions of revapi and under them there are configurations for
+revapi for the particular version to pass the build. Usually, this is just a list of ignored API changes - i.e. the
+API changes made in that release that are to be purposefully ignored by the tool so that the build passes. To make
+this work, revapi build contains this profile:
+
+```xml
+<profile>
+    <id>api-check</id>
+    <activation>
+        <activeByDefault>true</activeByDefault>
+    </activation>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>parse-version</id>
+                        <goals>
+                            <goal>parse-version</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <version>${self-api-check.maven-version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.revapi</groupId>
+                        <artifactId>revapi-java</artifactId>
+                        <version>${self-api-check.java-extension-version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <failOnMissingConfigurationFiles>false</failOnMissingConfigurationFiles>
+                    <analysisConfigurationFiles>
+                        <configurationFile>
+                            <path>api-changes.json</path>
+                            <roots>
+                                <root>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</root>
+                            </roots>
+                        </configurationFile>
+                    </analysisConfigurationFiles>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>api-check</id>
+                        <goals><goal>check</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</profile>
+```

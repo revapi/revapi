@@ -1,0 +1,34 @@
+== Annotated Element Filter
+
+*Configuration Root*: `revapi.java.filter.annotated`
+
+The annotated element filter is able to include or exclude java elements based on the presence of certain annotation
+on them. This also works for annotations with certain attributes having certain values, because the match is done on
+the "standard" annotation notation.
+
+=== Sample Configuration
+
+```javascript
+{
+  "revapi": {
+    "java": {
+      "filter": {
+        "annotated": {
+          "regex": false,
+          "exclude": ["@java.lang.Deprecated"]
+        }
+      }
+    }
+  }
+}
+```
+=== Properties
+`regex`::
+TODO
+`exclude`::
+TODO
+`include`::
+TODO
+
+=== Notation
+TODO

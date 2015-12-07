@@ -17,8 +17,10 @@
     <artifactId>revapi-build</artifactId>
     <version>15-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <url>${web.url}</url>
 
     <properties>
+        <skip.deploy>false</skip.deploy>
         <self-api-check.maven-version>0.3.10</self-api-check.maven-version>
         <self-api-check.java-extension-version>0.5.2</self-api-check.java-extension-version>
     </properties>
@@ -37,6 +39,15 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-site-shared</artifactId>
+            <classifier>resources</classifier>
+            <type>zip</type>
+            <scope>provided</scope>
+            <version>1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>annotations</artifactId>
             <scope>provided</scope>
@@ -46,12 +57,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-site-base</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -94,52 +99,111 @@
             </plugin>
 
             <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
+                <artifactId>maven-site-plugin</artifactId>
+                <configuration>
+                    <relativizeDecorationLinks>false</relativizeDecorationLinks>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>unpack-site-base</id>
-                        <phase>pre-site</phase>
-                        <goals><goal>run</goal></goals>
-                        <configuration>
-                            <target>
-                                <unzip src="${org.revapi:revapi-site-base:jar}" dest="${project.build.directory}/site-base" />
-                            </target>
-                        </configuration>
+                        <id>attach-sitexml</id>
+                        <phase>package</phase>
+                        <goals><goal>attach-descriptor</goal></goals>
                     </execution>
                 </executions>
             </plugin>
 
             <plugin>
-                <groupId>org.asciidoctor</groupId>
-                <artifactId>asciidoctor-maven-plugin</artifactId>
-                <configuration>
-                    <sourceDirectory>${project.basedir}/src/site/asciidoc</sourceDirectory>
-                    <outputDirectory>${project.build.directory}/staging/docs/${project.artifactId}</outputDirectory>
-                    <preserveDirectories>true</preserveDirectories>
-                    <backend>html5</backend>
-                    <sourceHighlighter>coderay</sourceHighlighter>
-                    <templateDir>${project.build.directory}/site-base</templateDir>
-                    <templateEngine>haml</templateEngine>
-                    <attributes>
-                        <endpoint-url>http://revapi.org</endpoint-url>
-                        <linkcss>true</linkcss>
-                        <stylesheet>blah.css</stylesheet>
-                        <coderay-css>style</coderay-css>
-                        <icons>font</icons>
-                        <iconfont-remote>true</iconfont-remote>
-                    </attributes>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>generate-module-docs</id>
-                        <goals><goal>process-asciidoc</goal></goals>
-                        <!-- don't run this yet. The workflow has not been finalized. -->
-                        <phase>none</phase>
+                        <id>unpack-site-shared</id>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <phase>site</phase>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/site</outputDirectory>
+                            <includeArtifactIds>revapi-site-shared</includeArtifactIds>
+                            <includeGroupIds>org.revapi</includeGroupIds>
+                            <includeClassifiers>resources</includeClassifiers>
+                            <includeTypes>zip</includeTypes>
+                            <excludeTransitive>true</excludeTransitive>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                            <report>license</report>
+                            <report>mailing-list</report>
+                            <report>issue-tracking</report>
+                            <report>scm</report>
+                            <report>project-team</report>
+                            <report>cim</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <configuration>
+                    <sourceHighlighter>highlightjs</sourceHighlighter>
+                    <attributes>
+                        <base_url>${web.url}</base_url>
+                        <scm>${project.scm.url}</scm>
+                    </attributes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <version>${self-api-check.maven-version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+                <configuration>
+                    <analysisConfiguration><![CDATA[
+                       {
+                         "revapi": {
+                           "filter": {
+                             "archives": {
+                               "include": ["${project.groupId}:${project.artifactId}:.*"]
+                             }
+                           }
+                         }
+                       }
+                    ]]></analysisConfiguration>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <profiles>
         <profile>
@@ -208,6 +272,13 @@
             </build>
         </profile>
     </profiles>
+
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>${web.url}</url>
+        </site>
+    </distributionManagement>
 
     <scm>
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>

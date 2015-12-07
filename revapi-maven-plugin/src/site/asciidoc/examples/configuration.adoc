@@ -1,0 +1,49 @@
+== How to Configure Revapi
+
+The maven plugin itself is configured using the properties of the link:../plugin-info.html[goals]. The configuration
+the API analysis is a matter of configuring different Revapi extensions that are to be run. This is done using the
+`analysisConfiguration` element in the Maven plugin's configuration. This element contains the JSON-based
+configuration of the individual extensions.
+
+The JSON data contains the configuration of all the extensions. Each of the extensions declares a "root" in the JSON
+data from which it reads its configuration (for example, ignoring specific problems found during the analysis can be
+done using the `IgnoreDifferenceTransform` extension from the link:../../revapi-basic-features/index.html[basic
+features] under the root `revapi.ignore`).
+
+So, without further ado, let's configure the java extension to report the classes it finds missing from the API
+rather than failing the analysis upon encountering them and also only include the archives with `com.acme` groupId in
+the analysis:
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <version>...</version>
+  <configuration>
+    <analysisConfiguration><![CDATA[
+      {
+        "revapi": {
+          "java": {
+            "missing-classes": {
+              "behavior": "report"
+            }
+          },
+          "filter": {
+            "archives": {
+              "include": ["com\\.acme:.*"]
+            }
+          }
+        }
+      }
+    ]]></analysisConfiguration>
+  </configuration>
+  <executions>
+    <execution>
+      <goals><goal>check</goal></goals>
+    </execution>
+  </executions>
+```
+
+The configuration options of the various extensions can be found in their respective docs:
+link:../../revapi-basic-features/index.html[basic features documentation], link:../../revapi-java/index.html[java
+extension documentation].

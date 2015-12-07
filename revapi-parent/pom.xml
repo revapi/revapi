@@ -22,7 +22,7 @@
     <description>
         Parent POM for revapi projects. Common deps and site.
     </description>
-    <url>http://revapi.org</url>
+    <url>${web.url}/modules/${project.artifactId}</url>
 
     <groupId>org.revapi</groupId>
     <artifactId>revapi-parent</artifactId>
@@ -31,7 +31,7 @@
 
     <properties>
         <skip.site>false</skip.site>
-        <skip.deploy>false</skip.deploy>
+        <skip.deploy>true</skip.deploy>
         <web.url>http://revapi.org</web.url>
     </properties>
 
@@ -102,12 +102,12 @@
                 <plugin>
                     <groupId>com.github.github</groupId>
                     <artifactId>site-maven-plugin</artifactId>
-                    <version>0.10</version>
+                    <version>0.12</version>
                 </plugin>
                 <plugin>
                     <groupId>org.asciidoctor</groupId>
                     <artifactId>asciidoctor-maven-plugin</artifactId>
-                    <version>1.5.2</version>
+                    <version>1.5.2.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -139,7 +139,7 @@
                     <skip>${skip.deploy}</skip>
                     <outputDirectory>${project.build.directory}/staging</outputDirectory>
                     <branch>refs/heads/master</branch>
-                    <repositoryName>revapi.github.io</repositoryName>
+                    <repositoryName>test-new-site</repositoryName>
                     <repositoryOwner>revapi</repositoryOwner>
                     <merge>true</merge>
                 </configuration>
@@ -159,6 +159,7 @@
                 <configuration>
                     <skip>${skip.site}</skip>
                     <skipDeploy>true</skipDeploy>
+                    <relativizeDecorationLinks>false</relativizeDecorationLinks>
                 </configuration>
                 <executions>
                     <execution>
@@ -172,6 +173,24 @@
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctor-maven-plugin</artifactId>
+                        <version>1.5.2.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>lt.velykis.maven.skins</groupId>
+                        <artifactId>reflow-velocity-tools</artifactId>
+                        <version>1.1.1</version>
+                    </dependency>
+                    <!-- Reflow skin requires Velocity >= 1.7  -->
+                    <dependency>
+                        <groupId>org.apache.velocity</groupId>
+                        <artifactId>velocity</artifactId>
+                        <version>1.7</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
@@ -183,16 +202,6 @@
                 <reportSets>
                     <reportSet>
                         <reports />
-                    </reportSet>
-                </reportSets>
-            </plugin>
-            <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>javadoc</report>
-                        </reports>
                     </reportSet>
                 </reportSets>
             </plugin>

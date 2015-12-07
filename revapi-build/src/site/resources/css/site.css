@@ -1,0 +1,11 @@
+div.note td.icon {
+    font-size: 20pt;
+}
+
+div.note td.icon > div.title {
+    display: none;
+}
+
+div.note td.icon > div.title::before {
+    content: "\f05a";
+}

@@ -10,9 +10,15 @@
 
     <artifactId>revapi-build-support</artifactId>
     <version>2-SNAPSHOT</version>
+    <url>${web.url}/modules/${project.artifactId}</url>
 
     <name>Revapi Build Support</name>
     <description>Support library for build. As of now it contains checkstyle definitions.</description>
+
+    <properties>
+        <skip.site>true</skip.site>
+        <skip.deploy>true</skip.deploy>
+    </properties>
 
     <scm>
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>

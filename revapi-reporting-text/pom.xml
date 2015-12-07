@@ -29,15 +29,10 @@
         Super simple Revapi reporter outputting a textual representation of
         the differences to a file or on standard output.
     </description>
-    <url>http://revapi.org</url>
+    <url>${web.url}/modules/${project.artifactId}</url>
     
     <artifactId>revapi-reporting-text</artifactId>
     <version>0.3.5-SNAPSHOT</version>
-
-    <properties>
-        <skip.awestruct.site>true</skip.awestruct.site>
-        <skip.deploy>true</skip.deploy>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -49,7 +44,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.url}/generated/${project.artifactId}</url>
+            <url>${web.url}/modules/${project.artifactId}</url>
         </site>
     </distributionManagement>
 

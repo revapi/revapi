@@ -35,7 +35,6 @@
     <modules>
         <module>revapi-parent</module>
         <module>revapi-bom</module>
-        <module>revapi-site-base</module>
         <module>revapi-build-support</module>
         <module>revapi-build</module>
         <module>revapi</module>
@@ -48,6 +47,7 @@
         <module>revapi-reporting-text</module>
         <module>revapi-standalone</module>
         <module>revapi-site</module>
+        <module>revapi-site-shared</module>
     </modules>
 </project>
 
