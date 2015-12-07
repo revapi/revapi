@@ -36,7 +36,7 @@ public final class MissingClassElement extends TypeElement {
             return JavaElementFactory.compareByType(this, o);
         }
 
-        return super.compareTo(o);
+        return getBinaryName().compareTo(((MissingClassElement) o).getBinaryName());
     }
 
 }

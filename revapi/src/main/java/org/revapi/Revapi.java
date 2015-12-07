@@ -199,7 +199,7 @@ public final class Revapi {
 
         Stats.of("sorts").start();
         Comparator<? super Element> comp = deducer.sortAndGetCorrespondenceComparator(sortedAs, sortedBs);
-        Stats.of("sorts").end(new AbstractMap.SimpleEntry<>(sortedAs, sortedBs));
+        Stats.of("sorts").end(sortedAs, sortedBs);
 
         CoIterator<Element> it = new CoIterator<>(sortedAs.iterator(), sortedBs.iterator(), comp);
 
@@ -209,27 +209,24 @@ public final class Revapi {
             Element a = it.getLeft();
             Element b = it.getRight();
 
-            Map.Entry<Element, Element> pair = new AbstractMap.SimpleEntry<>(a, b);
-
-
             Stats.of("filters").start();
             boolean analyzeThis =
                     (a == null || availableFilters.applies(a)) && (b == null || availableFilters.applies(b));
-            Stats.of("filters").end(pair);
+            Stats.of("filters").end(a, b);
 
             long beginDuration = 0;
             if (analyzeThis) {
                 Stats.of("analyses").start();
                 Stats.of("analysisBegins").start();
                 elementDifferenceAnalyzer.beginAnalysis(a, b);
-                Stats.of("analysisBegins").end(pair);
+                Stats.of("analysisBegins").end(a, b);
                 beginDuration = Stats.of("analyses").reset();
             }
 
             Stats.of("descends").start();
             boolean shouldDescend = a != null && b != null && availableFilters.shouldDescendInto(a) &&
                     availableFilters.shouldDescendInto(b);
-            Stats.of("descends").end(new AbstractMap.SimpleEntry<>(a, b));
+            Stats.of("descends").end(a, b);
 
             if (shouldDescend) {
                 analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren());
@@ -239,7 +236,7 @@ public final class Revapi {
                 Stats.of("analyses").start();
                 Stats.of("analysisEnds").start();
                 Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
-                Stats.of("analysisEnds").end(pair);
+                Stats.of("analysisEnds").end(a, b);
                 Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
                 transformAndReport(r);
             }

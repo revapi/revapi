@@ -88,6 +88,10 @@ public final class Stats {
             end(0, cause);
         }
 
+        public void end(Object cause1, Object cause2) {
+            end(0, new Tuple2(cause1, cause2));
+        }
+
         public void end(long additionalDuration, Object cause) {
             long duration = System.currentTimeMillis() - currentStartTime + additionalDuration;
             totalTime += duration;
@@ -96,6 +100,10 @@ public final class Stats {
                 worstTime = duration;
                 offender = cause;
             }
+        }
+
+        public void end(long additionalDuration, Object cause1, Object cause2) {
+            end(additionalDuration, new Tuple2(cause1, cause2));
         }
 
         public long reset() {
@@ -118,7 +126,15 @@ public final class Stats {
         }
 
         @Override
+        public void end(long additionalDuration, Object cause1, Object cause2) {
+        }
+
+        @Override
         public void end(Object cause) {
+        }
+
+        @Override
+        public void end(Object cause1, Object cause2) {
         }
 
         @Override
@@ -126,8 +142,24 @@ public final class Stats {
             return 0;
         }
 
-        @Override public long start() {
+        @Override
+        public long start() {
             return 0;
+        }
+    }
+
+    private static final class Tuple2 {
+        private final Object a;
+        private final Object b;
+
+        private Tuple2(Object a, Object b) {
+            this.a = a;
+            this.b = b;
+        }
+
+        @Override
+        public String toString() {
+            return "[" + a + ", " + b + "]";
         }
     }
 }

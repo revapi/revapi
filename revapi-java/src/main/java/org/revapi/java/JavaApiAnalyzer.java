@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +54,7 @@ import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.MethodElement;
+import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Check;
 import org.revapi.java.spi.Util;
 
@@ -89,8 +91,19 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
             //so, we have to come up with some correspondence order... This is pretty easy for all java elements
             //but methods.
 
-            IdentityHashMap<MethodElement, Integer> c1MethodOrder = new IdentityHashMap<>();
-            IdentityHashMap<MethodElement, Integer> c2MethodOrder = new IdentityHashMap<>();
+            if (l1.isEmpty() || l2.isEmpty()) {
+                return Comparator.naturalOrder();
+            }
+
+            //quickly peek inside to see if there even can be methods in the lists - all of the elements in either list
+            //will have a common parent and parents of both lists will have the same type or be both null.
+            Element parent = l1.get(0).getParent();
+            if (!(parent instanceof TypeElement)) {
+                return Comparator.naturalOrder();
+            }
+
+            IdentityHashMap<MethodElement, Integer> c1MethodOrder = new IdentityHashMap<>(l1.size());
+            IdentityHashMap<MethodElement, Integer> c2MethodOrder = new IdentityHashMap<>(l2.size());
 
             //this will reorder the methods in the lists and will also fill in the method order indices in the maps
             //so that they can be used for comparisons below

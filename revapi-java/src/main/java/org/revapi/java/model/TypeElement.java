@@ -102,7 +102,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
     @Override
     public int compareTo(@Nonnull org.revapi.Element o) {
-        if (!(o instanceof TypeElement)) {
+        if (!(o.getClass().equals(TypeElement.class))) {
             return JavaElementFactory.compareByType(this, o);
         }
 
