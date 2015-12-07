@@ -91,10 +91,15 @@ public final class AnalysisConfiguration {
                 return MissingClassReporting.REPORT;
             case "ignore":
                 return MissingClassReporting.IGNORE;
+            case "error":
+                return MissingClassReporting.ERROR;
+            default:
+                throw new IllegalArgumentException("Unsupported value of revapi.java.missing-classes.behavior: '" +
+                        config.asString() + "'. Only 'report', 'ignore' and 'error' are recognized.");
             }
         }
 
-        return MissingClassReporting.ERROR;
+        return MissingClassReporting.REPORT;
     }
 
     private static boolean readIgnoreMissingAnnotations(ModelNode analysisConfig) {
