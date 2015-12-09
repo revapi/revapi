@@ -34,12 +34,6 @@
     <artifactId>revapi-basic-features</artifactId>
     <version>0.3.6-SNAPSHOT</version>
 
-    <properties>
-        <skip.awestruct.site>true</skip.awestruct.site>
-        <skip.site>false</skip.site>
-        <skip.deploy>true</skip.deploy>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>

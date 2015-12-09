@@ -40,8 +40,6 @@
         <maven-invoker.version>1.9</maven-invoker.version>
         <aether.version>0.9.1.v20140329</aether.version>
         <skipTests>false</skipTests>
-        <skip.awestruct.site>true</skip.awestruct.site>
-        <skip.deploy>true</skip.deploy>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
         <revapi-java.version>0.5.1</revapi-java.version>
