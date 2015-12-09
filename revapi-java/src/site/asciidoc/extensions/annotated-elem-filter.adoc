@@ -6,6 +6,12 @@ The annotated element filter is able to include or exclude java elements based o
 on them. This also works for annotations with certain attributes having certain values, because the match is done on
 the "standard" annotation notation.
 
+If no `include` filter is specified, all elements are included, otherwise only the elements annotated with one of the
+`included` annotations are API checked.
+
+The `exclude` filter narrows down the included elements - i.e. if an element is to be included according to the
+include filter (or lack thereof), the exclude filter is consulted whether that really should be the case.
+
 === Sample Configuration
 
 ```javascript
@@ -14,8 +20,9 @@ the "standard" annotation notation.
     "java": {
       "filter": {
         "annotated": {
-          "regex": false,
-          "exclude": ["@java.lang.Deprecated"]
+          "regex": true,
+          "include": ["@java\\.lang\\.annotation\\.Target.*"]
+          "exclude": ["@java\\.lang\\.annotation\\.Target\\(\\{java\\.lang\\.annotation\\.ElementType\\.TYPE_USE\\}\\)"]
         }
       }
     }
@@ -24,11 +31,21 @@ the "standard" annotation notation.
 ```
 === Properties
 `regex`::
-TODO
+Specifies whether to consider the strings in `exclude` and `include` lists as regular expressions or not. The default
+value is `false`, meaning the strings are not considered as regular expressions.
 `exclude`::
-TODO
+Elements annotated with annotation that matches at least one from this list will be excluded from the API check.
 `include`::
-TODO
+Elements annotated with annotation that matches at least one from this list will be included from the API check.
 
 === Notation
-TODO
+The string formatting of the annotations with values follows that of Java8. Notably:
+
+* The full canonical class names are used for every type.
+* If the annotation specifies only the value of the `value` attribute, the name, `value`, must not be included in the
+ notation. I.e. `@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)`, not
+ `@java.lang.annotation.Retention(value = java.lang.annotation.RetentionPolicy.RUNTIME)`.
+* Array attributes are always enclosed in curly braces even if only a single element is present, i.e. `@java.lang
+.annotation.Target({java.lang.annotation.ElementType.METHOD})`, not
+`@java.lang.annotation.Target(java.lang.annotation.ElementType.METHOD)`.
+* Equals sign is always surrounded by a single space from each side.
