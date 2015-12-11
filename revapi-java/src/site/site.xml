@@ -6,6 +6,7 @@
   </bannerLeft>
   <body>
     <menu name="Project Details">
+      <item name="Detected API differences" href="differences.html"/>
       <item name="Extending Java API Checks" href="enhance-java-checks.html"/>
       <item name="Java Extension Configuration" href="extensions/java.html"/>
       <item name="Annotated Element Filter Extension Configuration" href="extensions/annotated-elem-filter.html"/>
