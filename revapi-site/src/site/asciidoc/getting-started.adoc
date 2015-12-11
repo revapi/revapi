@@ -27,9 +27,8 @@ revapi.bat
 and you will be presented with the usual usage information.
 
 ----
-revapi.sh [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]*
-          [-s <FILE>[,<FILE>]*] [-t <FILE>[,<FILE>]*] [-D<CONFIG_OPTION>=<VALUE>]*
-          [-c <FILE>[,<FILE>]*] [-r <DIR>]
+revapi.sh [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]* [-s <FILE>[,<FILE>]*] [-t <FILE>[,<FILE>]*]
+          [-D<CONFIG_OPTION>=<VALUE>]* [-c <FILE>[,<FILE>]*] [-r <DIR>]
 
           -u
           -h
@@ -42,25 +41,37 @@ revapi.sh [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]*
           -o
           --old=<FILE>[,<FILE>]*
              Comma-separated list of files of the old version of API
+          -a
+          --old-gavs=<FILE>[,<FILE>]*
+             Comma-separated list of GAVs of the old version of API
           -s
           --old-supplementary=<FILE>[,<FILE>]*
              Comma-separated list of files that supplement the old version of API
           -n
           --new=<FILE>[,<FILE>]*
              Comma-separated list of files of the new version of API
+          -b
+          --new-gavs=<FILE>[,<FILE>]*
+             Comma-separated list of GAVs of the new version of API
           -t
           --new-supplementary=<FILE>[,<FILE>]*
              Comma-separated list of files that supplement the new version of API
           -D
-             A key-value pair representing a single configuration option of revapi
-             or one of the loaded extensions
+             A key-value pair representing a single configuration option of revapi or one of the loaded extensions
           -c
           --config-files=<FILE>[,<FILE>]*
              Comma-separated list of configuration files in Java properties format.
           -d
           --cache-dir=<DIR>
-             The location of local cache of extensions to use to locate artifacts.
-             Defaults to 'extensions' directory under revapi installation dir.
+             The location of local cache of extensions to use to locate artifacts. Defaults to 'extensions' directory
+             under revapi installation dir.
+
+You can specify the old API either using -o and -s where you specify the filesystem paths to the archives and
+supplementary archives respectively or you can use -a to specify the GAVs of the old API archives and the supplementary
+archives (i.e. their transitive dependencies) will be determined automatically using Maven. But you cannot do both
+obviously.
+
+Of course you can do the same for the new version of the API by using -n and -t for file paths or -b for GAVs.
 ----
 
 An invocation of Revapi could look like this:

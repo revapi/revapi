@@ -4,9 +4,9 @@ Its focus is mainly on Java language itself but it has been specifically designe
 *much more* than just java classes - also various configuration files, schemas, etc. can contribute to it and users can
 become reliant on them.
 
-NOTE: Revapi is still in early stages of development. The Java API checker is fairly capable and can track both
-binary and source compatibility and the maven plugin and ant task are fairly useful but there is still many things to
-be done and polished. Your help is greatly appreciated.
+NOTE: Revapi is in beta. The Java API checker is fairly capable and can track both binary and source compatibility
+and the maven plugin and ant task are fairly useful but there is still many things to be done and polished. Your help
+is greatly appreciated.
 
 === Why?
 
@@ -48,13 +48,19 @@ sound strange, this happens if you compile against a new version of a library bu
 Typically, this happens with Java runtime library itself, when a Jar is compiled against a later version of JRE than
 it is then run on.
 
+==== https://github.com/siom79/japicmp[japicmp]
+
+A new kid on the block, conceived at roughly the same time as Revapi. Currently (version 0.6.1) only supports
+checking for binary compatibility of Java archives. It has a Maven plugin and a CLI and is able to produce HTML reports
+of found differences.
+
 === Getting Involved
 
 Your contributions of any kind, be it a bug report, idea or even code contribution, are greatly appreciated. You can
 get in touch on the following places:
 
 Code:: https://github.com/revapi/revapi[GitHub]
-Documentation:: link:docs/[here]
+Documentation:: link:getting-started.html/[here]
 IRC:: #revapi on freenode.net
 Forum:: http://stackoverflow.com[stackoverflow]
 Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com

@@ -47,3 +47,7 @@ the analysis:
 The configuration options of the various extensions can be found in their respective docs:
 link:../../revapi-basic-features/index.html[basic features documentation], link:../../revapi-java/index.html[java
 extension documentation].
+
+NOTE: Currently, all the configuration has to be specified using JSON, including the configuration specified in the
+POM files. This is not user friendly very much and work is underway to enable XML-based configuration, too (or maybe
+even exclusively just XML).

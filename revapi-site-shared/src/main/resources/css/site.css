@@ -1,3 +1,5 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto+Mono:400,700);
+
 @font-face {
     font-family: 'fontawesomeselection';
     src: url('../font/fontawesomeselection.eot?8658514');
@@ -18,7 +20,7 @@
 }
 
 .icon:before {
-    font-family: "fontawesomeselection";
+    font-family: "fontawesomeselection", serif;
     font-style: normal;
     font-weight: normal;
 
@@ -73,4 +75,38 @@ div.warning td.icon:before {
 
 div.tip td.icon:before {
     content: "\e806";
+}
+
+div.admonitionblock {
+    padding: 8px 35px 8px 14px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+div.note {
+    color: #FFF;
+    background-color: #3FB618;
+}
+
+div.tip {
+    color: #FFF;
+    background-color: #3FB618;
+}
+
+div.important {
+    color: #FFF;
+    background-color: #9954BB;}
+
+div.caution {
+    color: #FFF;
+    background-color: #FF7518;
+}
+
+div.warning {
+    color: #FFF;
+    background-color: #FF0039;
+}
+
+code {
+    font-family: "Roboto Mono", monospace;
 }

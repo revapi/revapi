@@ -8,9 +8,10 @@ annotated by those annotations to perform additional analysis for DB schema chan
 === Detected differences
 
 The Revapi java extension performs a thorough class and method signature analysis and detects quite a large number of
-(potential) problems and changes of the code in the two versions of the API. There are over *80* (!) detected
-conditions of which some don't represent an actual problem with the API but merely a compatible change (a change
-nevertheless).
+(potential) problems and changes of the code in the two versions of the API.
+
+NOTE: There are over *80* kinds of detected changes (of which some don't represent an actual problem with the API but
+merely a compatible change (a change nevertheless)).
 
 You can review all the detected differences link:difference.html[here], but as a sneak peak consider the following
 detected changes:
