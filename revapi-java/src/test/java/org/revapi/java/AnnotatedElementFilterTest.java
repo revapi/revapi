@@ -39,99 +39,55 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
 
     @Test
     public void testExcludeByAnnotationPresence() throws Exception {
-        testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"exclude\":" +
-                "[\"@java.lang.Deprecated\"]}}}}}", results -> {
+        testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"regex\": true, \"exclude\":" +
+                "[\"@annotationfilter.NonPublic.*\"]}}}}}", results -> {
 
-            Assert.assertEquals(5, results.size());
-            Assert.assertEquals("class misc.AnnotationFilter", results.get(0).getFullHumanReadableString());
-            Assert.assertEquals("class misc.AnnotationFilter.A", results.get(1).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)",
-                    results.get(2).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Target({java.lang.annotation.ElementType.TYPE})",
-                    results.get(3).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.Deprecated", results.get(4).getFullHumanReadableString());
+            Assert.assertEquals(14, results.size());
         });
     }
 
     @Test
     public void testExcludeByAnnotationWithAttributeValues() throws Exception {
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"exclude\":" +
-                "[\"@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)\"]}}}}}", results -> {
+                "[\"@annotationfilter.NonPublic(since = \\\"2.0\\\")\"]}}}}}", results -> {
 
-            Assert.assertEquals(5, results.size());
-            Assert.assertEquals("class misc.AnnotationFilter", results.get(0).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)",
-                    results.get(1).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Target({java.lang.annotation.ElementType.TYPE})",
-                    results.get(2).getFullHumanReadableString());
-            Assert.assertEquals("method void misc.AnnotationFilter::a()", results.get(3).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.Deprecated", results.get(4).getFullHumanReadableString());
-        });
-
-        testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"exclude\":" +
-                "[\"@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.SOURCE)\"]}}}}}", results -> {
-
-            Assert.assertEquals(6, results.size());
-            Assert.assertEquals("class misc.AnnotationFilter", results.get(0).getFullHumanReadableString());
-            Assert.assertEquals("class misc.AnnotationFilter.A", results.get(1).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)",
-                    results.get(2).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Target({java.lang.annotation.ElementType.TYPE})",
-                    results.get(3).getFullHumanReadableString());
-            Assert.assertEquals("method void misc.AnnotationFilter::a()", results.get(4).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.Deprecated", results.get(5).getFullHumanReadableString());
+            Assert.assertEquals(22, results.size());
         });
     }
 
     @Test
     public void testIncludeByAnnotationPresence() throws Exception {
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"include\":" +
-                "[\"@java.lang.Deprecated\"]}}}}}", results -> {
+                "[\"@annotationfilter.Public\"]}}}}}", results -> {
 
-            Assert.assertEquals(4, results.size());
-            Assert.assertEquals("@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)",
-                    results.get(0).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Target({java.lang.annotation.ElementType.TYPE})",
-                    results.get(1).getFullHumanReadableString());
-            Assert.assertEquals("method void misc.AnnotationFilter::a()", results.get(2).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.Deprecated", results.get(3).getFullHumanReadableString());
+            Assert.assertEquals(9, results.size());
         });
     }
 
     @Test
     public void testIncludeByAnnotationWithAttributeValues() throws Exception {
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"include\":" +
-                "[\"@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)\"]}}}}}", results -> {
+                "[\"@annotationfilter.NonPublic(since = \\\"2.0\\\")\"]}}}}}", results -> {
 
-            Assert.assertEquals(4, results.size());
-            Assert.assertEquals("class misc.AnnotationFilter.A", results.get(0).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)",
-                    results.get(1).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Target({java.lang.annotation.ElementType.TYPE})",
-                    results.get(2).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.Deprecated", results.get(3).getFullHumanReadableString());
+            Assert.assertEquals(1, results.size());
         });
     }
 
     @Test
     public void testIncludeAndExclude() throws Exception {
-        testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"exclude\":" +
-                "[\"@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)\"]," +
-                "\"include\": [\"@java.lang.Deprecated\"]}}}}}", results
+        testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"regex\" : true, \"exclude\":" +
+                "[\"@annotationfilter.NonPublic.*\"]," +
+                "\"include\": [\"@annotationfilter.Public\"]}}}}}", results
                 -> {
 
-            Assert.assertEquals(4, results.size());
-            Assert.assertEquals("@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)",
-                    results.get(0).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.annotation.Target({java.lang.annotation.ElementType.TYPE})",
-                    results.get(1).getFullHumanReadableString());
-            Assert.assertEquals("method void misc.AnnotationFilter::a()", results.get(2).getFullHumanReadableString());
-            Assert.assertEquals("@java.lang.Deprecated", results.get(3).getFullHumanReadableString());
+            Assert.assertEquals(6, results.size());
         });
     }
 
     private void testWith(String configJSON, Consumer<List<Element>> test) throws Exception {
-        ArchiveAndCompilationPath archive = createCompiledJar("test.jar", "misc/AnnotationFilter.java");
+        ArchiveAndCompilationPath archive = createCompiledJar("test.jar", "annotationfilter/NonPublic.java",
+                "annotationfilter/NonPublicClass.java", "annotationfilter/Public.java",
+                "annotationfilter/PublicClass.java", "annotationfilter/UndecisiveClass.java");
 
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(

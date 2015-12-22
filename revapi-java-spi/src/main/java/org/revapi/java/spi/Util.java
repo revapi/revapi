@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.AnnotatedConstruct;
@@ -587,7 +588,13 @@ public final class Util {
 
         @Override
         protected String defaultAction(Object o, Void ignored) {
-            return o.toString();
+            if (o instanceof String) {
+                return "\"" + o.toString() + "\"";
+            } else if (o instanceof Character) {
+                return "'" + o.toString() + "'";
+            } else {
+                return o.toString();
+            }
         }
 
         @Override

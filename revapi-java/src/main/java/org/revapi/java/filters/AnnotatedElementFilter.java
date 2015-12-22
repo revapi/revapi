@@ -36,6 +36,7 @@ import org.jboss.dmr.ModelNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementFilter;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
@@ -120,9 +121,10 @@ public final class AnnotatedElementFilter implements ElementFilter {
         return doNothing || (element instanceof JavaTypeElement || element instanceof JavaMethodElement);
     }
 
+    @SuppressWarnings("ConstantConditions")
     private boolean decide(@Nullable Object element) {
         //we don't exclude anything that we don't handle...
-        if (doNothing || !(element instanceof JavaModelElement)) {
+        if (doNothing || !(element instanceof JavaElement)) {
             return true;
         }
 
@@ -132,19 +134,48 @@ public final class AnnotatedElementFilter implements ElementFilter {
             return ret;
         }
 
+        JavaElement el = (JavaElement) element;
+
+        //exploit the fact that parent elements are always filtered before the children
+        Element parent = el.getParent();
+        Boolean parentIncludedTmp = parent == null ? true : elementResults.get(parent);
+
+        //if we have no record of the parent inclusion, then this is a top-level class. Assume it wants to be included.
+        boolean parentIncluded = (parentIncludedTmp == null && includeTest == null)
+                || (parentIncludedTmp != null && parentIncludedTmp);
+
+        //this is a java element, but not a model-based element - i.e. this is most probably an annotation. Annotations
+        //can never be annotated (as opposed to annotation types), so this can never return anything but false.
+        if (!(element instanceof JavaModelElement)) {
+            return parentIncluded && includeTest == null;
+        }
+
         JavaModelElement javaElement = (JavaModelElement) element;
 
         List<? extends AnnotationMirror> annos = javaElement.getModelElement().getAnnotationMirrors();
 
-        if (annos.isEmpty()) {
-            return includeTest == null;
+        if (parentIncluded && annos.isEmpty()) {
+            //k, in here we know that the parent was included, but there are no annotations to filter by on this element
+            //this element cannot be excluded because there are no annotations to match, so it is implicitly included
+            //because of the parent.
+            ret = parent != null;
+            elementResults.put(element, ret);
+            return ret;
         }
 
-        List<String> includedAnnos = annos.stream().map(Util::toHumanReadableString)
-                .filter(s -> includeTest == null || includeTest.test(s)).collect(toList());
+        if (parent == null || !parentIncluded) {
+            //top level class - we need to decide whether it should be included or not
+            List<String> includedAnnos = annos.stream().map(Util::toHumanReadableString)
+                    .filter(s -> includeTest == null || includeTest.test(s)).collect(toList());
 
-        ret = !includedAnnos.isEmpty() && includedAnnos.stream().noneMatch(s -> excludeTest != null &&
-                        excludeTest.test(s));
+            ret = !includedAnnos.isEmpty() && includedAnnos.stream().noneMatch(s -> excludeTest != null &&
+                    excludeTest.test(s));
+        } else {
+            //non-top level element. If we got here, the parent was included and so we only have to decide whether or
+            //not to exclude this particular element.
+            ret = annos.stream().map(Util::toHumanReadableString)
+                    .noneMatch(s -> excludeTest != null && excludeTest.test(s));
+        }
 
         elementResults.put(element, ret);
         return ret;
