@@ -10,9 +10,9 @@
   </body>
 
   <custom>
-    <reflowSkin>
+    <msb3Skin>
       <slogan>${project.description}</slogan>
-    </reflowSkin>
+    </msb3Skin>
   </custom>
 
   <publishDate position="none"/>

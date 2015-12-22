@@ -139,7 +139,7 @@
                     <skip>${skip.deploy}</skip>
                     <outputDirectory>${project.build.directory}/staging</outputDirectory>
                     <branch>refs/heads/master</branch>
-                    <repositoryName>test-new-site</repositoryName>
+                    <repositoryName>revapi.github.io</repositoryName>
                     <repositoryOwner>revapi</repositoryOwner>
                     <merge>true</merge>
                 </configuration>
@@ -180,9 +180,9 @@
                         <version>1.5.2.1</version>
                     </dependency>
                     <dependency>
-                        <groupId>lt.velykis.maven.skins</groupId>
-                        <artifactId>reflow-velocity-tools</artifactId>
-                        <version>1.1.1</version>
+                        <groupId>pl.matsuo.maven.skins</groupId>
+                        <artifactId>msb3-velocity-tools</artifactId>
+                        <version>0.1.1</version>
                     </dependency>
                     <!-- Reflow skin requires Velocity >= 1.7  -->
                     <dependency>

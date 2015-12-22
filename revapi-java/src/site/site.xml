@@ -14,9 +14,9 @@
   </body>
 
   <custom>
-    <reflowSkin>
+    <msb3Skin>
       <slogan>${project.description}</slogan>
       <bottomDescription>${project.name}</bottomDescription>
-    </reflowSkin>
+    </msb3Skin>
   </custom>
 </project>

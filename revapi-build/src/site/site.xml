@@ -6,9 +6,9 @@
   </bannerLeft>
 
   <skin>
-    <groupId>lt.velykis.maven.skins</groupId>
-    <artifactId>reflow-maven-skin</artifactId>
-    <version>1.1.1</version>
+    <groupId>pl.matsuo.maven.skins</groupId>
+    <artifactId>msb3-maven-skin</artifactId>
+    <version>0.1.1</version>
   </skin>
 
   <body>
@@ -31,7 +31,7 @@
   </body>
 
   <custom>
-    <reflowSkin>
+    <msb3Skin>
       <theme>bootswatch-cosmo</theme>
       <highlightJs>true</highlightJs>
       <toc>sidebar</toc>
@@ -48,7 +48,7 @@
         <name>Revapi</name>
         <href>${web.url}</href>
       </brand>
-    </reflowSkin>
+    </msb3Skin>
   </custom>
 
   <publishDate position="navigation-bottom"/>
