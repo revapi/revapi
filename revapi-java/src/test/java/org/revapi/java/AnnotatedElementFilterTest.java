@@ -16,12 +16,16 @@
  */
 package org.revapi.java;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,6 +47,11 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 "[\"@annotationfilter.NonPublic.*\"]}}}}}", results -> {
 
             Assert.assertEquals(14, results.size());
+            assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
+                    "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
+                    "method void annotationfilter.NonPublicClass::m()",
+                    "method void annotationfilter.PublicClass::implDetail()",
+                    "class annotationfilter.PublicClass.NonPublicInnerClass");
         });
     }
 
@@ -52,6 +61,8 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 "[\"@annotationfilter.NonPublic(since = \\\"2.0\\\")\"]}}}}}", results -> {
 
             Assert.assertEquals(22, results.size());
+            assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
+                    "method void annotationfilter.PublicClass::implDetail()");
         });
     }
 
@@ -61,6 +72,12 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 "[\"@annotationfilter.Public\"]}}}}}", results -> {
 
             Assert.assertEquals(9, results.size());
+            assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
+                    "class annotationfilter.NonPublic", "method java.lang.String annotationfilter.NonPublic::since()",
+                    "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
+                    "method void annotationfilter.NonPublicClass::m()", "class annotationfilter.Public",
+                    "class annotationfilter.UndecisiveClass", "field annotationfilter.UndecisiveClass.f",
+                    "method void annotationfilter.UndecisiveClass::m()");
         });
     }
 
@@ -70,6 +87,8 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 "[\"@annotationfilter.NonPublic(since = \\\"2.0\\\")\"]}}}}}", results -> {
 
             Assert.assertEquals(1, results.size());
+            Assert.assertEquals("method void annotationfilter.PublicClass::implDetail()",
+                    results.get(0).getFullHumanReadableString());
         });
     }
 
@@ -81,6 +100,17 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 -> {
 
             Assert.assertEquals(6, results.size());
+            assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
+                    "class annotationfilter.NonPublic",
+                    "method java.lang.String annotationfilter.NonPublic::since()",
+                    "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
+                    "method void annotationfilter.NonPublicClass::m()",
+                    "class annotationfilter.Public",
+                    "method void annotationfilter.PublicClass::implDetail()",
+                    "class annotationfilter.PublicClass.NonPublicInnerClass",
+                    "class annotationfilter.UndecisiveClass", "field annotationfilter.UndecisiveClass.f",
+                    "method void annotationfilter.UndecisiveClass::m()");
+
         });
     }
 
@@ -105,6 +135,15 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
             test.accept(results);
         } finally {
             deleteDir(archive.compilationPath);
+        }
+    }
+
+    private <T> void assertNotContains(List<T> list, T... elements) {
+        ArrayList<T> intersection = new ArrayList<>(list);
+        intersection.retainAll(Arrays.asList(elements));
+
+        if (!intersection.isEmpty()) {
+            Assert.fail("List " + list + " shouldn't have contained any of the " + Arrays.asList(elements));
         }
     }
 }
