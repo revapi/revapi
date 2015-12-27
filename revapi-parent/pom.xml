@@ -33,6 +33,9 @@
         <skip.site>false</skip.site>
         <skip.deploy>true</skip.deploy>
         <web.url>http://revapi.org</web.url>
+        <web.repo>revapi.github.io</web.repo>
+        <web.repo.owner>revapi</web.repo.owner>
+        <web.repo.branch>refs/heads/master</web.repo.branch>
     </properties>
 
     <build>
@@ -138,9 +141,9 @@
                     <server>github</server>
                     <skip>${skip.deploy}</skip>
                     <outputDirectory>${project.build.directory}/staging</outputDirectory>
-                    <branch>refs/heads/master</branch>
-                    <repositoryName>revapi.github.io</repositoryName>
-                    <repositoryOwner>revapi</repositoryOwner>
+                    <branch>${web.repo.branch}</branch>
+                    <repositoryName>${web.repo}</repositoryName>
+                    <repositoryOwner>${web.repo.owner}</repositoryOwner>
                     <merge>true</merge>
                 </configuration>
                 <executions>
