@@ -48,7 +48,7 @@ import org.revapi.java.spi.Util;
  */
 public final class AnnotatedElementFilter implements ElementFilter {
     private static final String CONFIG_ROOT_PATH = "revapi.java.filter.annotated";
-    private final IdentityHashMap<Object, Boolean> elementResults = new IdentityHashMap<>();
+    private final IdentityHashMap<Object, InclusionState> elementResults = new IdentityHashMap<>();
     private Predicate<String> includeTest;
     private Predicate<String> excludeTest;
     private boolean doNothing;
@@ -128,57 +128,87 @@ public final class AnnotatedElementFilter implements ElementFilter {
             return true;
         }
 
-        @SuppressWarnings("SuspiciousMethodCalls")
-        Boolean ret = elementResults.get(element);
+        InclusionState ret = elementResults.get(element);
         if (ret != null) {
-            return ret;
+            return ret.toBoolean();
         }
 
         JavaElement el = (JavaElement) element;
 
         //exploit the fact that parent elements are always filtered before the children
         Element parent = el.getParent();
-        Boolean parentIncludedTmp = parent == null ? true : elementResults.get(parent);
+        InclusionState parentInclusionState = parent == null ? InclusionState.UNDECIDED
+                : elementResults.get(parent);
 
         //if we have no record of the parent inclusion, then this is a top-level class. Assume it wants to be included.
-        boolean parentIncluded = (parentIncludedTmp == null && includeTest == null)
-                || (parentIncludedTmp != null && parentIncludedTmp);
+        if (parentInclusionState == null) {
+            parentInclusionState = InclusionState.UNDECIDED;
+        }
 
         //this is a java element, but not a model-based element - i.e. this is most probably an annotation. Annotations
-        //can never be annotated (as opposed to annotation types), so this can never return anything but false.
+        //can never be annotated (as opposed to annotation types), so include this if there are no explicit inclusion
+        //tests (which can never be satisfied) and the parent is included.
         if (!(element instanceof JavaModelElement)) {
-            return parentIncluded && includeTest == null;
+            return parentInclusionState.toBoolean() && includeTest == null;
         }
 
         JavaModelElement javaElement = (JavaModelElement) element;
 
         List<? extends AnnotationMirror> annos = javaElement.getModelElement().getAnnotationMirrors();
 
-        if (parentIncluded && annos.isEmpty()) {
-            //k, in here we know that the parent was included, but there are no annotations to filter by on this element
-            //this element cannot be excluded because there are no annotations to match, so it is implicitly included
-            //because of the parent.
-            ret = parent != null;
-            elementResults.put(element, ret);
-            return ret;
-        }
+        //let's first assume we're going to inherit the parent's inclusion state
+        ret = parentInclusionState;
 
-        if (parent == null || !parentIncluded) {
-            //top level class - we need to decide whether it should be included or not
-            List<String> includedAnnos = annos.stream().map(Util::toHumanReadableString)
-                    .filter(s -> includeTest == null || includeTest.test(s)).collect(toList());
+        //now see if we need to change that assumption
+        switch (parentInclusionState) {
+            case INCLUDED:
+                //the parent was explicitly included in the results. We therefore only need to check if the annotations
+                //on this element should be excluded
+                if (excludeTest != null) {
+                    if (annos.stream().map(Util::toHumanReadableString).anyMatch(s -> excludeTest.test(s))) {
+                        ret = InclusionState.EXCLUDED;
+                    }
+                }
+                break;
+            case EXCLUDED:
+                //the child element can be re-included, so the full suite of tests need to be run.
+                //i.e. this fall-through is intentional.
+            case UNDECIDED:
+                //ok, the parent is undecided. This means we have to do the full checks on this element.
+                List<String> stringAnnos = null;
+                if (includeTest != null || excludeTest != null) {
+                    stringAnnos = annos.stream().map(Util::toHumanReadableString).collect(toList());
+                }
 
-            ret = !includedAnnos.isEmpty() && includedAnnos.stream().noneMatch(s -> excludeTest != null &&
-                    excludeTest.test(s));
-        } else {
-            //non-top level element. If we got here, the parent was included and so we only have to decide whether or
-            //not to exclude this particular element.
-            ret = annos.stream().map(Util::toHumanReadableString)
-                    .noneMatch(s -> excludeTest != null && excludeTest.test(s));
+                if (includeTest != null) {
+                    //ok, there is an include test but the parent is undecided. This means that the parent actually
+                    //didn't match the include test. Let's check with this element.
+
+                    //only bother with this if there are some annos to check
+                    if (!annos.isEmpty()) {
+                        if (stringAnnos.stream().anyMatch(s -> includeTest.test(s))) {
+                            ret = InclusionState.INCLUDED;
+                        } else {
+                            ret = InclusionState.EXCLUDED;
+                        }
+                    } else {
+                        ret = InclusionState.EXCLUDED;
+                    }
+                }
+
+                if (excludeTest != null) {
+                    //there is an exclude test but the parent is undecided. This means that the exclude check didn't
+                    //match the parent. Let's check again with this element.
+
+                    if (stringAnnos.stream().anyMatch(s -> excludeTest.test(s))) {
+                        ret = InclusionState.EXCLUDED;
+                    }
+                }
+                break;
         }
 
         elementResults.put(element, ret);
-        return ret;
+        return ret.toBoolean();
     }
 
     private void readAnnotations(ModelNode array, boolean regexes, List<String> fullMatches, List<Pattern> patterns) {
@@ -198,6 +228,34 @@ public final class AnnotatedElementFilter implements ElementFilter {
 
         if (!regexes) {
             Collections.sort(fullMatches);
+        }
+    }
+
+    private enum InclusionState {
+        /**
+         * The element was explicitly determined to be included
+         */
+        INCLUDED,
+
+        /**
+         * The element was explicitly determined to be excluded
+         */
+        EXCLUDED,
+
+        /**
+         * There was no precise decision possible on the element
+         */
+        UNDECIDED;
+
+
+        boolean toBoolean() {
+            switch (this) {
+                case INCLUDED:
+                case UNDECIDED:
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }
