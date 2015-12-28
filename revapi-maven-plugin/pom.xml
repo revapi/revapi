@@ -35,6 +35,7 @@
     <version>0.3.11-SNAPSHOT</version>
 
     <properties>
+        <skip.site>false</skip.site>
         <maven.version>3.1.1</maven.version>
         <maven-plugin-plugin.version>3.4</maven-plugin-plugin.version>
         <maven-invoker.version>1.9</maven-invoker.version>
@@ -212,14 +213,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <configuration>
-                    <skip>false</skip>
-                    <skipDeploy>true</skipDeploy>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
@@ -236,7 +229,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.url}/modules/${project.artifactId}</url>
+            <url>${web.repo}</url>
         </site>
     </distributionManagement>
 

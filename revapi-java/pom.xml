@@ -33,6 +33,10 @@
     <artifactId>revapi-java</artifactId>
     <version>0.6.0-SNAPSHOT</version>
 
+    <properties>
+        <skip.site>false</skip.site>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -92,7 +96,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.url}/modules/${project.artifactId}</url>
+            <url>${web.repo}</url>
         </site>
     </distributionManagement>
 

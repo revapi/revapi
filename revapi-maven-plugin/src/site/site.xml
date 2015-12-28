@@ -7,7 +7,7 @@
   <body>
     <menu name="Project Details">
       <item name="Goals" href="plugin-info.html"/>
-      <item name="Examples">
+      <item name="Examples" href="javascript:undefined">
         <item name="Configuration" href="examples/configuration.html"/>
         <item name="Multi-file Configuration" href="examples/multi-file-configuration.html"/>
         <item name="Report" href="examples/report.html"/>

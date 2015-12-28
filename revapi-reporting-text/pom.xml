@@ -34,6 +34,10 @@
     <artifactId>revapi-reporting-text</artifactId>
     <version>0.3.5-SNAPSHOT</version>
 
+    <properties>
+        <skip.site>false</skip.site>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
@@ -44,7 +48,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.url}/modules/${project.artifactId}</url>
+            <url>${web.repo}</url>
         </site>
     </distributionManagement>
 

@@ -123,7 +123,7 @@
                         </goals>
                         <phase>site</phase>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/site</outputDirectory>
+                            <outputDirectory>${project.build.directory}/site/modules/${project.artifactId}</outputDirectory>
                             <includeArtifactIds>revapi-site-shared</includeArtifactIds>
                             <includeGroupIds>org.revapi</includeGroupIds>
                             <includeClassifiers>resources</includeClassifiers>
@@ -276,7 +276,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.url}</url>
+            <url>${web.repo}</url>
         </site>
     </distributionManagement>
 

@@ -17,7 +17,7 @@
       <item name="Architecture" href="${web.url}/architecture.html"/>
       <item name="Building" href="${web.url}/building.html"/>
       <item name="Extensions" href="${web.url}/extensions.html"/>
-      <item name="Sub Projects">
+      <item name="Sub Projects" href="javascript:undefined">
         <item name="Revapi API" href="${web.url}/modules/revapi/index.html"/>
         <item name="Ant Task" href="${web.url}/modules/revapi-ant-task/index.html"/>
         <item name="Basic Features" href="${web.url}/modules/revapi-basic-features/index.html"/>

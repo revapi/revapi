@@ -17,6 +17,13 @@
   <name>Revapi Shared Site Content</name>
   <description>Content shared amongst different sites of Revapi modules.</description>
 
+  <distributionManagement>
+    <site>
+      <id>site</id>
+      <url>${web.repo}</url>
+    </site>
+  </distributionManagement>
+
   <build>
     <plugins>
       <plugin>

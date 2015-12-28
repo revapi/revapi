@@ -26,7 +26,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <name>Revapi Site</name>
-  <description>API checker for the masses.</description>
+  <description>Full-featured API checker for Java and beyond.</description>
   <url>${web.url}</url>
 
   <artifactId>revapi-site</artifactId>
@@ -34,16 +34,49 @@
   <packaging>pom</packaging>
 
   <properties>
-    <skip.deploy>false</skip.deploy>
+    <skip.site>false</skip.site>
     <revapi.skip>true</revapi.skip>
   </properties>
 
   <distributionManagement>
     <site>
       <id>site</id>
-      <url>${web.url}</url>
+      <url>${web.repo}</url>
     </site>
   </distributionManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-site-shared</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <phase>site</phase>
+            <configuration>
+              <outputDirectory>${project.build.directory}/site</outputDirectory>
+              <includeArtifactIds>revapi-site-shared</includeArtifactIds>
+              <includeGroupIds>org.revapi</includeGroupIds>
+              <includeClassifiers>resources</includeClassifiers>
+              <includeTypes>zip</includeTypes>
+              <excludeTransitive>true</excludeTransitive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
   <scm>
     <connection>scm:git:git://github.com/revapi/revapi.git</connection>

@@ -30,12 +30,11 @@
     <version>3-SNAPSHOT</version>
 
     <properties>
-        <skip.site>false</skip.site>
+        <skip.site>true</skip.site>
         <skip.deploy>true</skip.deploy>
         <web.url>http://revapi.org</web.url>
-        <web.repo>revapi.github.io</web.repo>
-        <web.repo.owner>revapi</web.repo.owner>
-        <web.repo.branch>refs/heads/master</web.repo.branch>
+        <web.repo>scm:git:ssh://github.com/revapi/revapi.github.io.git</web.repo>
+        <web.repo.branch>master</web.repo.branch>
     </properties>
 
     <build>
@@ -75,6 +74,9 @@
                 <plugin>
                     <artifactId>maven-site-plugin</artifactId>
                     <version>3.4</version>
+                    <configuration>
+                        <skipDeploy>true</skipDeploy>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
@@ -103,9 +105,9 @@
                     <version>2.5.1</version>
                 </plugin>
                 <plugin>
-                    <groupId>com.github.github</groupId>
-                    <artifactId>site-maven-plugin</artifactId>
-                    <version>0.12</version>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-scm-publish-plugin</artifactId>
+                    <version>1.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.asciidoctor</groupId>
@@ -134,24 +136,22 @@
             </plugin>
 
             <plugin>
-                <groupId>com.github.github</groupId>
-                <artifactId>site-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-publish-plugin</artifactId>
                 <configuration>
-                    <message>Committing ${project.name} docs for version ${project.version}.</message>
-                    <server>github</server>
-                    <skip>${skip.deploy}</skip>
-                    <outputDirectory>${project.build.directory}/staging</outputDirectory>
-                    <branch>${web.repo.branch}</branch>
-                    <repositoryName>${web.repo}</repositoryName>
-                    <repositoryOwner>${web.repo.owner}</repositoryOwner>
-                    <merge>true</merge>
+                    <scmBranch>${web.repo.branch}</scmBranch>
+                    <checkinComment>Committing ${project.name} docs for version ${project.version}.</checkinComment>
+                    <ignorePathsToDelete>
+                        <ignore>*</ignore>
+                    </ignorePathsToDelete>
                 </configuration>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>site</goal>
-                        </goals>
+                        <id>scm-publish</id>
                         <phase>site-deploy</phase>
+                        <goals>
+                            <goal>publish-scm</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -161,15 +161,14 @@
                 <artifactId>maven-site-plugin</artifactId>
                 <configuration>
                     <skip>${skip.site}</skip>
-                    <skipDeploy>true</skipDeploy>
+                    <inputDirectory>${project.reporting.outputDirectory}</inputDirectory>
+                    <outputDirectory>${project.reporting.outputDirectory}/modules/${project.artifactId}</outputDirectory>
                     <relativizeDecorationLinks>false</relativizeDecorationLinks>
+                    <!--<stagingDirectory>${web.stagingDir}</stagingDirectory>-->
                 </configuration>
                 <executions>
                     <execution>
-                        <configuration>
-                            <skip>${skip.deploy}</skip>
-                            <skipDeploy>true</skipDeploy>
-                        </configuration>
+                        <id>stage-for-scm-publish</id>
                         <phase>post-site</phase>
                         <goals>
                             <goal>stage</goal>
@@ -258,7 +257,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.url}</url>
+            <url>${web.repo}</url>
         </site>
         <snapshotRepository>
             <id>ossrh</id>
