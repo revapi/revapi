@@ -20,6 +20,7 @@ import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -36,6 +37,8 @@ import org.apache.maven.reporting.AbstractMavenReport;
 import org.apache.maven.reporting.MavenReportException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.revapi.API;
+import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
@@ -173,6 +176,10 @@ public class ReportMojo extends AbstractMavenReport {
     @Parameter(defaultValue = "true", property = "revapi.alwaysCheckForReleaseVersion")
     private boolean alwaysCheckForReleaseVersion;
 
+    private API oldAPI;
+    private API newAPI;
+    private ReportTimeReporter reporter;
+
     @Override
     protected Renderer getSiteRenderer() {
         return siteRenderer;
@@ -194,21 +201,7 @@ public class ReportMojo extends AbstractMavenReport {
             return;
         }
 
-        if (oldArtifacts == null || oldArtifacts.length == 0) {
-            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, "RELEASE")};
-        }
-
-        ReportTimeReporter reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
-
-        Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts,
-            project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
-                failOnMissingConfigurationFiles, alwaysCheckForReleaseVersion);
-
-        try {
-            analyzer.analyze();
-        } catch (MojoExecutionException e) {
-            throw new MavenReportException("Failed to generate report.", e);
-        }
+        ensureAnalyzed(locale);
 
         Sink sink = getSink();
         ResourceBundle bundle = getBundle(locale);
@@ -223,7 +216,7 @@ public class ReportMojo extends AbstractMavenReport {
 
         sink.section1();
         sink.sectionTitle1();
-        sink.text(bundle.getString("report.revapi.title"));
+        sink.rawText(bundle.getString("report.revapi.title"));
         sink.sectionTitle1_();
         sink.paragraph();
         sink.text(getDescription(locale));
@@ -252,25 +245,51 @@ public class ReportMojo extends AbstractMavenReport {
 
     @Override
     public String getDescription(Locale locale) {
+        ensureAnalyzed(locale);
         String message = getBundle(locale).getString("report.revapi.description");
-        return MessageFormat.format(message, niceList(oldArtifacts), niceList(newArtifacts));
+        return MessageFormat.format(message, niceList(oldAPI.getArchives()), niceList(newAPI.getArchives()));
     }
 
+    private void ensureAnalyzed(Locale locale) {
+        if (reporter == null) {
+            if (oldArtifacts == null || oldArtifacts.length == 0) {
+                oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession,
+                        "RELEASE")};
+            }
+
+            reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
+
+            Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
+                    newArtifacts, project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
+                    failOnMissingConfigurationFiles, alwaysCheckForReleaseVersion);
+
+            try {
+                analyzer.analyze();
+
+                oldAPI = analyzer.getResolvedOldApi();
+                newAPI = analyzer.getResolvedNewApi();
+            } catch (MojoExecutionException e) {
+                throw new IllegalStateException("Failed to generate report.", e);
+            }
+        }
+    }
     private ResourceBundle getBundle(Locale locale) {
         return ResourceBundle.getBundle("revapi-report", locale, this.getClass().getClassLoader());
     }
 
-    private String niceList(String... strings) {
+    private String niceList(Iterable<? extends Archive> archives) {
         StringBuilder bld = new StringBuilder();
 
-        if (strings.length == 0) {
-            return bld.toString();
+        Iterator<? extends Archive> it = archives.iterator();
+
+        if (it.hasNext()) {
+            bld.append(it.next().getName());
+        } else {
+            return "";
         }
 
-        bld.append(strings[0]);
-
-        for (int i = 1; i < strings.length; ++i) {
-            bld.append(", ").append(strings[i]);
+        while (it.hasNext()) {
+            bld.append(", ").append(it.next().getName());
         }
 
         return bld.toString();

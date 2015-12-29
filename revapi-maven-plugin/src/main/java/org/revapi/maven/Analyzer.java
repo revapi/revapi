@@ -150,6 +150,9 @@ final class Analyzer {
 
     private final boolean failOnMissingConfigurationFiles;
 
+    private API resolvedOldApi;
+    private API resolvedNewApi;
+
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
              String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
              RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
@@ -280,16 +283,25 @@ final class Analyzer {
             Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().withReporters(reporter)
                 .build();
 
-            AnalysisContext.Builder ctxBuilder = AnalysisContext.builder()
-                .withOldAPI(API.of(oldArchives).supportedBy(oldTransitiveDeps).build())
-                .withNewAPI(API.of(newArchives).supportedBy(newTransitiveDeps).build())
-                .withLocale(locale);
+            resolvedOldApi = API.of(oldArchives).supportedBy(oldTransitiveDeps).build();
+            resolvedNewApi = API.of(newArchives).supportedBy(newTransitiveDeps).build();
+
+            AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withOldAPI(resolvedOldApi)
+                    .withNewAPI(resolvedNewApi).withLocale(locale);
             gatherConfig(ctxBuilder);
 
             revapi.analyze(ctxBuilder.build());
         } catch (Exception e) {
             throw new MojoExecutionException("Failed to analyze archives", e);
         }
+    }
+
+    public API getResolvedNewApi() {
+        return resolvedNewApi;
+    }
+
+    public API getResolvedOldApi() {
+        return resolvedOldApi;
     }
 
     @SuppressWarnings("unchecked")
