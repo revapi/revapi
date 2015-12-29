@@ -36,3 +36,28 @@ Specifies the old element of the problem to ignore. This property is optional.
 Specifies the new element of the problem to ignore. This property is optional.
 `justification`::
 This can used to describe why this change was necessary and hence why it should be ignored by the API checker.
+
+=== Example
+
+By specifying the following configuration:
+
+```javascript
+{
+    "revapi" : {
+        "ignore" : [
+            {
+                "code" : "java.method.addedToInterface",
+                "new" : "class my.great.app.Context",
+                "justification" : "I thought this would be a good idea."
+            }
+        ]
+    }
+}
+```
+
+any new method in the `my.great.app.Context` java interface will not be reported as an API breakage. While adding a
+new method to an interface is generally a breaking change, because any implementation of such interface that would not
+have such new method would become invalid, this can be OK if you control all the implementations of the interface and
+don't allow or support user implementations of it. A nice link:../../revapi-java/enhance-java-checks.html[example] are
+Java's EJB interfaces - these are used by the users to invoke methods on your EJBs but the users aren't supposed to
+implement those interfaces, merely use them.

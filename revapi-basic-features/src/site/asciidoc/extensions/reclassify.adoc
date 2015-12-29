@@ -42,3 +42,25 @@ place. This property is optional.
 `classify`::
 Specifies the new classification matrix of the problem. The keys are compatibility types, i.e. one of `SOURCE`,
 `BINARY`, `SEMANTIC` or `OTHER` and severities are one of `NON_BREAKING`, `POTENTIALLY_BREAKING` or `BREAKING`.
+
+=== Example
+
+By specifying the following configuration:
+
+```javascript
+{
+    "revapi" : {
+        "reclassify" : {
+            "code" : "java.class.added",
+            "new" : "class my.great.app.ForbiddenClass",
+            "classify" : {
+                "BINARY" : "BREAKING"
+            }
+        }
+    }
+}
+```
+
+it will be an API error if the class `my.great.app.ForbiddenClass` appears in the new version of a java library (granted
+this rule is somewhat weird and maybe not entirely useful, but it illustrates the purpose - you can come up with
+different policies that your code should follow and enforce them through such rules).

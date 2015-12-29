@@ -12,19 +12,19 @@
   </skin>
 
   <body>
-    <menu name="Documentation" inherit="top">
+    <menu name="Basic Info" inherit="top">
       <item name="Getting Started" href="${web.url}/getting-started.html"/>
       <item name="Architecture" href="${web.url}/architecture.html"/>
       <item name="Building" href="${web.url}/building.html"/>
       <item name="Extensions" href="${web.url}/extensions.html"/>
-      <item name="Sub Projects" href="javascript:undefined">
-        <item name="Revapi API" href="${web.url}/modules/revapi/index.html"/>
-        <item name="Ant Task" href="${web.url}/modules/revapi-ant-task/index.html"/>
-        <item name="Basic Features" href="${web.url}/modules/revapi-basic-features/index.html"/>
-        <item name="Java Extension" href="${web.url}/modules/revapi-java/index.html"/>
-        <item name="Java Extension SPI" href="${web.url}/modules/revapi-java-spi/index.html"/>
-        <item name="Maven Plugin" href="${web.url}/modules/revapi-maven-plugin/index.html"/>
-      </item>
+    </menu>
+    <menu name="Sub Projects" inherit="top">
+      <item name="Revapi API" href="${web.url}/modules/revapi/index.html"/>
+      <item name="Ant Task" href="${web.url}/modules/revapi-ant-task/index.html"/>
+      <item name="Basic Features" href="${web.url}/modules/revapi-basic-features/index.html"/>
+      <item name="Java Extension" href="${web.url}/modules/revapi-java/index.html"/>
+      <item name="Java Extension SPI" href="${web.url}/modules/revapi-java-spi/index.html"/>
+      <item name="Maven Plugin" href="${web.url}/modules/revapi-maven-plugin/index.html"/>
     </menu>
 
     <menu name="Maven Documentation" ref="reports" inherit="bottom"/>
@@ -37,9 +37,9 @@
       <toc>sidebar</toc>
       <slogan>${project.description}</slogan>
       <breadcrumbs>false</breadcrumbs>
-      <topNav>Documentation|Project Details</topNav>
+      <topNav>Basic Info|Sub Projects|Project Details</topNav>
       <bottomNav>
-        <column>Documentation</column>
+        <column>Basic Info|Sub Projects</column>
         <column>Project Details</column>
         <column>Maven Documentation</column>
       </bottomNav>

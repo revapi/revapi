@@ -41,6 +41,30 @@ The array of (java) regular expressions that the elements or archives need to ma
 `exclude`::
 The array of (java) regular expressions that the elements or archives need to match to be excluded from the analysis.
 
+=== Example
+
+By specifying the following configuration:
+
+```javascript
+{
+    "revapi" : {
+        "filter" : {
+            "elements": {
+                "exclude" : ["class my\\.great\\.app\\..*\\.impl\\..*"]
+            },
+            "archives": {
+                "include" : ["com\\.acme:acme-foo:.*"]
+            }
+        }
+    }
+}
+```
+
+all the java classes in any of the `impl` packages under `my.great.app` package will be excluded from API checking.
+In addition, the analysis will only check elements from the archive specified archive. In this example we're
+supposing the configuration is for the maven plugin which recognizes archives by GAVs. In the example therefore we're
+limiting the checks to the archive with the `groupId` `com.acme` and `artifactId` `acme-foo` in any packaging type
+and version.
 
 
 

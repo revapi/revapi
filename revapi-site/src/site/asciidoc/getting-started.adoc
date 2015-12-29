@@ -5,12 +5,16 @@ library.
 
 === Standalone Usage
 
-First you need to download the standalone distribution of Revapi, say `revapi-standalone-{version}.zip`. Now you have to:
+NOTE: More information about the Revapi's CLI tool, can be obtained from its
+link:modules/revapi-standalone/index.html[dedicated section].
 
-====
+First you need to download the standalone distribution of Revapi, say `revapi-standalone-{version}.zip`.
+Now you have to:
+
+----
 unzip revapi-standalone-{version}.zip
 cd revapi-standalone-{version}
-====
+----
 
 Your installation is now ready. To start using it, you can simply invoke
 
@@ -26,54 +30,6 @@ revapi.bat
 
 and you will be presented with the usual usage information.
 
-----
-revapi.sh [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]* [-s <FILE>[,<FILE>]*] [-t <FILE>[,<FILE>]*]
-          [-D<CONFIG_OPTION>=<VALUE>]* [-c <FILE>[,<FILE>]*] [-r <DIR>]
-
-          -u
-          -h
-          --usage
-          --help
-              Prints this message and exits.
-          -e
-          --extensions=<GAV>[,<GAV>]*
-              Comma-separated list of maven GAVs of revapi extensions.
-          -o
-          --old=<FILE>[,<FILE>]*
-             Comma-separated list of files of the old version of API
-          -a
-          --old-gavs=<FILE>[,<FILE>]*
-             Comma-separated list of GAVs of the old version of API
-          -s
-          --old-supplementary=<FILE>[,<FILE>]*
-             Comma-separated list of files that supplement the old version of API
-          -n
-          --new=<FILE>[,<FILE>]*
-             Comma-separated list of files of the new version of API
-          -b
-          --new-gavs=<FILE>[,<FILE>]*
-             Comma-separated list of GAVs of the new version of API
-          -t
-          --new-supplementary=<FILE>[,<FILE>]*
-             Comma-separated list of files that supplement the new version of API
-          -D
-             A key-value pair representing a single configuration option of revapi or one of the loaded extensions
-          -c
-          --config-files=<FILE>[,<FILE>]*
-             Comma-separated list of configuration files in Java properties format.
-          -d
-          --cache-dir=<DIR>
-             The location of local cache of extensions to use to locate artifacts. Defaults to 'extensions' directory
-             under revapi installation dir.
-
-You can specify the old API either using -o and -s where you specify the filesystem paths to the archives and
-supplementary archives respectively or you can use -a to specify the GAVs of the old API archives and the supplementary
-archives (i.e. their transitive dependencies) will be determined automatically using Maven. But you cannot do both
-obviously.
-
-Of course you can do the same for the new version of the API by using -n and -t for file paths or -b for GAVs.
-----
-
 An invocation of Revapi could look like this:
 
 ----
@@ -81,14 +37,12 @@ An invocation of Revapi could look like this:
    --old=my-lib-0.1.0.jar --new=my-lib-0.2.0.jar -D revapi.reporter.text.minSeverity=BREAKING
 ----
 
-The supplementary archives, in case of java, are additional jars defining classes that classes in your "main" jar "leak"
-into the API, i.e. if some of your classes inherit from one defined in the additional jar, or if one of your API
-method's return type or parameter comes from the additional jar.
-
 Different extensions might define different configuration options that you might supply to them using either the `-D`
-command line parameter or they can be read from a java property file(s) specified by the `-c` option.
+command line parameter or they can be read from configuration file(s) specified by the `-c` option.
 
 === Maven
+
+NOTE: You can read more about the maven plugin in its link:modules/revapi-maven-plugin/index.html[dedicated section].
 
 Revapi's main purpose is to track API changes between releases. This is ideally done during build and so the maven
 integration is essential.
@@ -126,16 +80,18 @@ The basic usage of the Revapi's maven plugin is quite simple. In your `pom.xml`,
 </build>
 ----
 
-By default, Revapi only bundles the <<extension-basic.adoc#, basic extensions>> so in order to check your java code,
-you need to add the Revapi's java extension as a dependency to the maven plugin.
+By default, Revapi only bundles the link:modules/revapi-basic-features/index.html[basic features] so in order to
+check your java code, you need to add the Revapi's java extension as a dependency to the maven plugin.
 
-For more detailed info, check the maven plugin's link:../generated/revapi-maven-plugin/plugin-info.html[site].
+For more detailed info, check the maven plugin's link:modules/revapi-maven-plugin/index.html[site].
 
 === Ant
 
+NOTE: You can read more about the Revapi's Ant task in its link:modules/revapi-ant-task/index.html[dedicated section].
+
 There is also an Ant task to invoke Revapi analysis on arbitrary archives.
-The task implicitly supports the <<extension-basic.adoc#, basic extensions>>
-but other extensions need to be added.
+The task implicitly supports the link:modules/revapi-basic-features/index.html[basic features] but other extensions
+need to be added.
 
 The following attributes are supported:
 
@@ -183,4 +139,4 @@ AnalysisContext analysisContext = AnalysisContext.builder()
 revapi.analyze(analysisContext);
 ----
 
-For more details, see link:../generated/index.html[javadoc].
+For more details, see link:modules/revapi/index.html[dedicated section].

@@ -5,7 +5,7 @@ Its focus is mainly on Java language itself but it has been specifically designe
 become reliant on them.
 
 NOTE: Revapi is in beta. The Java API checker is fairly capable and can track both binary and source compatibility
-and the maven plugin and ant task are fairly useful but there is still many things to be done and polished. Your help
+and the maven plugin and ant task are fairly useful but there are still many things to be done and polished. Your help
 is greatly appreciated.
 
 === Why?
@@ -60,7 +60,7 @@ Your contributions of any kind, be it a bug report, idea or even code contributi
 get in touch on the following places:
 
 Code:: https://github.com/revapi/revapi[GitHub]
-Documentation:: link:getting-started.html/[here]
+Documentation:: link:getting-started.html[here]
 IRC:: #revapi on freenode.net
 Forum:: http://stackoverflow.com[stackoverflow]
 Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com

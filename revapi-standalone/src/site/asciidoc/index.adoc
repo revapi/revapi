@@ -30,8 +30,8 @@ revapi.sh
 ```
 
 <1> This is a comma-separated list of extensions to use - in here we're using the java extension to check the API
-changes in the java code in the archives and a simple reporter that outputs the changes to standard output.
-
+changes in the java code in the archives and a simple reporter that outputs the changes to standard output. The
+extensions are identified by their Maven GAVs.
 <2> The path to the old version of the API, in our case Guava 17.0.
 <3> The path to the new version of the API, in our case Guava 18.0.
 <4> This is a little bit of configuration required for the API check to not fail on the missing classes. We're not

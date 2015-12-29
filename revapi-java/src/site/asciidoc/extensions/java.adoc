@@ -57,8 +57,8 @@ The `old` and `new` elements declare an array of the jars that are to be conside
 classpath. This is to support API-checking across different versions of JRE for example. The classes on the bootstrap
 classpath are considered compatible and are not checked for (beyond their presence).
 []
-NOTE: Currently, the class parsing backend used by Revapi Java is being rewritten to use http://www.javassist
-.org[javassist] and this capability might be lost. This should be outweighed by the performance increase that move
-should bring.
+NOTE: Currently, the class parsing backend used by Revapi Java is being rewritten to use
+http://www.javassist.org[javassist] and this capability might be lost. This should be outweighed by the performance
+increase that move should bring.
 
 

@@ -1,0 +1,5 @@
+== Revapi Java SPI
+
+The SPI of the Revapi's Java extension exists so that other extensions can take advantage of the capabilities of the
+java extension - namely to analyze the java classes. The most interesting part of this section is therefore the
+link:apidocs/index.html[javadoc] of the SPI.

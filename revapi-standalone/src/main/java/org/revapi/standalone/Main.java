@@ -108,7 +108,7 @@ public final class Main {
                 "the loaded extensions");
         System.out.println(pad + " -c");
         System.out.println(pad + " --config-files=<FILE>[,<FILE>]*");
-        System.out.println(pad + "    Comma-separated list of configuration files in Java properties format.");
+        System.out.println(pad + "    Comma-separated list of configuration files in JSON format.");
         System.out.println(pad + " -d");
         System.out.println(pad + " --cache-dir=<DIR>");
         System.out.println(pad + "    The location of local cache of extensions to use to locate artifacts. " +

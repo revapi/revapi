@@ -33,4 +33,4 @@ The above example implies a couple of things:
 * you don't have to specify the "supplementary archives" - the dependencies of the artifacts are automatically
 obtained from Maven and used during the analysis so that the complete classpath is used
 * you're not constrained to check the artifacts of the current project - in fact you could have a separate "check"
-module that would API checks completely separately from other modules in the project.
+module that would perform API checks completely separately from other modules in the project.

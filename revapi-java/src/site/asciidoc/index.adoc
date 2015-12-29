@@ -13,7 +13,7 @@ The Revapi java extension performs a thorough class and method signature analysi
 NOTE: There are over *80* kinds of detected changes (of which some don't represent an actual problem with the API but
 merely a compatible change (a change nevertheless)).
 
-You can review all the detected differences link:difference.html[here], but as a sneak peak consider the following
+You can review all the detected differences link:differences.html[here], but as a sneak peak consider the following
 detected changes:
 
 * _checked exception added/removed to/from method signature_ - both of these are source incompatible but binary
@@ -61,7 +61,7 @@ extend and use the `Model` class at which point he'd be unable to use the correc
 === SPI
 
 The Java extension can be augmented through its small
-link:../revapi-java-spi/apidocs/org/revapi/java/spi/package-summary.html[SPI] that declares a
+link:../revapi-java-spi/index.html[SPI] that declares a
 link:../revapi-java-spi/apidocs/org/revapi/java/spi/Check.html[hook interface] into the java checking process that
 represents the Revapi's API elements as Java's own
 http://docs.oracle.com/javase/7/docs/api/javax/lang/model/package-summary.html[model elements]. The checking framework

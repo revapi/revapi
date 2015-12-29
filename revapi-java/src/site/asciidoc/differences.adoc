@@ -631,14 +631,14 @@ old SPI implementation.
 | Semantic severity | breaking
 |=============
 
-While technically a variant of <<method-added-to-interface, Method Added To Interface>>, this is similar in consequences
-to <<default-value-removed-from-method, Default Value Removed From Method>>. This is not binary incompatible, there can
-be no code compiled against the previous version of the API that would try to access or use the new attribute in any
-way. This is source incompatible though, because any code that declares annotations according to the old version of the
-API will fail to compile against the new version of the API because it will not define explicit value for the new
-attribute. This also breaks semantics because any element annotated without such attribute won't be possible to process
-using a processor that depends on the new version of the API and therefore assumes an explicit value for the annotation
-attribute.
+While technically a variant of <<a_method_added_to_interface, Method Added To Interface>>, this is similar in
+consequences to <<a_default_value_removed_from_method, Default Value Removed From Method>>. This is not binary
+incompatible, there can be no code compiled against the previous version of the API that would try to access or use
+the new attribute in any way. This is source incompatible though, because any code that declares annotations
+according to the old version of the API will fail to compile against the new version of the API because it will not
+define explicit value for the new attribute. This also breaks semantics because any element annotated without such
+attribute won't be possible to process using a processor that depends on the new version of the API and therefore
+assumes an explicit value for the annotation attribute.
 
 === Method With Default Value Added To Annotation Type
 [cols="35s,<65d"]
@@ -718,7 +718,7 @@ completeness' sake.
 | Semantic severity | NA
 |=============
 
-A variant of <<overriding-method-removed, Overriding Method Removed>>, but the method in the super class is abstract.
+A variant of <<a_overriding_method_removed, Overriding Method Removed>>, but the method in the super class is abstract.
 Therefore, it would no longer be possible to call the method.
 
 === Non-final Method Replaced By Final In Superclass
@@ -730,7 +730,7 @@ Therefore, it would no longer be possible to call the method.
 | Semantic severity | NA
 |=============
 
-As with <<final-method-added-to-non-final-class, Final Method Added To Non-final Class>>, this can break if a subclass
+As with <<a_final_method_added_to_non_final_class, Final Method Added To Non-final Class>>, this can break if a subclass
 in user code overrides the method.
 
 === Attribute Removed From Annotation Type
@@ -742,7 +742,7 @@ in user code overrides the method.
 | Semantic severity | NA
 |=============
 
-This is identical to <<method-removed, Method Removed>> but specialized for annotation types.
+This is identical to <<a_method_removed, Method Removed>> but specialized for annotation types.
 
 === Method No Longer Final
 [cols="35s,<65d"]
