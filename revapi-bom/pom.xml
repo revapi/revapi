@@ -71,7 +71,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-plugin</artifactId>
-                <version>0.3.10</version>
+                <version>0.3.11</version>
             </dependency>
 
             <dependency>
