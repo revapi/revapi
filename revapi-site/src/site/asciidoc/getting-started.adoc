@@ -33,7 +33,7 @@ and you will be presented with the usual usage information.
 An invocation of Revapi could look like this:
 
 ----
-./revapi.sh -extensions=org.revapi:revapi-java:{version},org.revapi:revapi-text-reporter:{version} \
+./revapi.sh --extensions=org.revapi:revapi-java:{version},org.revapi:revapi-reporting-text:{version} \
    --old=my-lib-0.1.0.jar --new=my-lib-0.2.0.jar -D revapi.reporter.text.minSeverity=BREAKING
 ----
 
