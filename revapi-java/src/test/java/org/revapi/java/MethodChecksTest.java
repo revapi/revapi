@@ -40,6 +40,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(5, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED_TO_INTERFACE.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_STATIC_METHOD_ADDED_TO_INTERFACE.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_ABSTRACT_METHOD_ADDED.code()));
     }
 
@@ -53,7 +54,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(1, (int) reporter.getProblemCounters()
             .get(Code.METHOD_NON_FINAL_METHOD_REPLACED_BY_FINAL_IN_SUPERCLASS.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_OVERRIDING_METHOD_REMOVED.code()));
-        Assert.assertEquals(4, (int) reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
+        Assert.assertEquals(5, (int) reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
     }
 
     @Test

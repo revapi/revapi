@@ -90,6 +90,8 @@ public final class Added extends CheckBase {
         if (enclosingClass.getKind() == ElementKind.INTERFACE) {
             if (method.isDefault()) {
                 difference = createDifference(Code.METHOD_DEFAULT_METHOD_ADDED_TO_INTERFACE);
+            } else if (method.getModifiers().contains(Modifier.STATIC)) {
+                difference = createDifference(Code.METHOD_STATIC_METHOD_ADDED_TO_INTERFACE);
             } else {
                 difference = createDifference(Code.METHOD_ADDED_TO_INTERFACE);
             }

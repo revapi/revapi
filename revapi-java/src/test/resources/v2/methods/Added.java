@@ -18,6 +18,10 @@ public final class Added {
 
     public interface Iface {
         void newMethod();
+
+        static void newStaticMethod() {
+
+        }
     }
 
     public static abstract class Abstract {
