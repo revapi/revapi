@@ -80,22 +80,21 @@ window.addEventListener("load", function() {
             var link = document.getElementById("link-" + dg + "-" + da);
             link.href =
                 "http://search.maven.org/remotecontent?filepath=" + gp + "/" + ap + "/" +
-                v + "/" + artifactId + "-" + v + "." +
-                downloadableType;
+                v + "/" + artifactId + "-" + v + downloadableType;
         }).fail(function (data, status) {
             console.log("URL failed with status " + status + ": " + url)
         })
     }
 
-    fillIn("org.revapi", "revapi", "jar")
-    fillIn("org.revapi", "revapi-ant-task", "jar")
-    fillIn("org.revapi", "revapi-basic-features", "jar")
-    fillIn("org.revapi", "revapi-bom", "jar")
-    fillIn("org.revapi", "revapi-java", "jar")
-    fillIn("org.revapi", "revapi-java-spi", "jar")
-    fillIn("org.revapi", "revapi-maven-plugin", "jar")
-    fillIn("org.revapi", "revapi-reporting-text", "jar")
-    fillIn("org.revapi", "revapi-standalone", "zip")
+    fillIn("org.revapi", "revapi", ".jar")
+    fillIn("org.revapi", "revapi-ant-task", ".jar")
+    fillIn("org.revapi", "revapi-basic-features", ".jar")
+    fillIn("org.revapi", "revapi-bom", ".jar")
+    fillIn("org.revapi", "revapi-java", ".jar")
+    fillIn("org.revapi", "revapi-java-spi", ".jar")
+    fillIn("org.revapi", "revapi-maven-plugin", ".jar")
+    fillIn("org.revapi", "revapi-reporting-text", ".jar")
+    fillIn("org.revapi", "revapi-standalone", "-standalone.zip")
 })
 </script>
 ++++
