@@ -18,6 +18,7 @@ package test;
 
 import java.lang.Override;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.lang.model.element.TypeElement;
@@ -46,5 +47,10 @@ public class Extension extends org.revapi.java.spi.CheckBase {
         }
 
         return null;
+    }
+
+    @Override
+    public EnumSet<Type> getInterest() {
+        return EnumSet.of(Type.CLASS);
     }
 }
