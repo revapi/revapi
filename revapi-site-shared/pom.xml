@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>revapi-parent</artifactId>
     <groupId>org.revapi</groupId>
-    <version>3-SNAPSHOT</version>
+    <version>3</version>
     <relativePath>../revapi-parent</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>revapi-site-shared</artifactId>
-  <version>1-SNAPSHOT</version>
+  <version>1</version>
   <packaging>pom</packaging>
 
   <name>Revapi Shared Site Content</name>
@@ -46,4 +44,8 @@
       </plugin>
     </plugins>
   </build>
+
+  <scm>
+    <tag>revapi-site-shared-1</tag>
+  </scm>
 </project>
