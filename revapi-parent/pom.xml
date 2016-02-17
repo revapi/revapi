@@ -128,7 +128,6 @@
                     <tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
                     <releaseProfiles>release,release-profile</releaseProfiles>
                     <pushChanges>false</pushChanges>
-                    <arguments>-P release-prepare</arguments>
                     <preparationGoals>clean verify</preparationGoals>
                 </configuration>
             </plugin>
