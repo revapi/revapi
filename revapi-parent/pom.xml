@@ -31,7 +31,7 @@
 
     <properties>
         <skip.site>true</skip.site>
-        <web.url>file:///home/lkrejci/tmp/revapi-site</web.url>
+        <web.url>http://revapi.org</web.url>
         <web.repo>scm:git:git@github.com:revapi/revapi.github.io.git</web.repo>
         <web.repo.branch>master</web.repo.branch>
     </properties>
