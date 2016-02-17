@@ -3,11 +3,10 @@
 
 image:https://travis-ci.org/revapi/revapi.svg?branch=master[Build Status,link=https://travis-ci.org/revapi/revapi]
 
-Revapi is a tool for API analysis and change tracking.
+http://revapi.org[Revapi] is a tool for API analysis and change tracking.
 
 WARNING: Do not use `revapi-maven-plugin` version `0.3.9` and below with `revapi-java` version 
-`0.5.x` (`revapi-maven-plugin:0.3.10` is OK). These are incompatible due to overriding of versions of 
-dependencies to be used by `revapi-java` and `revapi-maven-plugin`.
+`0.5.x` (`revapi-maven-plugin:0.3.10` is OK). These are incompatible.
 
 
 == Summary
@@ -18,7 +17,7 @@ the only extension in existence today is the Java API checker.
 
 The main distinguishing features of the Java API checker include:
 
-* large number of http://revapi.org/docs/java-extension.html[API checks]
+* large number of http://revapi.org/modules/revapi-java/differences.html[API checks]
 ** categorized by their influence on source, binary and "semantical" compatibility
 * support for computing the API "surface" by tracking usages of types across the checked library
 and also its dependencies (ability to report type "leakage" from deps)
@@ -29,6 +28,10 @@ and also its dependencies (ability to report type "leakage" from deps)
 
 Other features:
 
+* ability to judge the severity of changes based on semver rules (see 
+http://revapi.org/modules/revapi-basic-features/extensions/semver-ignore.html[here])
+* automatic updates of pom.xml or release.properties versions according to semver rules (see 
+http://revapi.org/modules/revapi-maven-plugin/examples/updating-versions.html[here])
 * pluggable reporting (standard output, maven site generation, 
 https://github.com/revapi/revapi/issues/11[JUnit report] generator (TBD))
 
@@ -45,10 +48,10 @@ as a maven plugin or it can also be embedded in your application and used as a l
 
 === Standalone
 
-Download the standalone distribution zip and
+http://revapi.org/downloads.html[Download] the standalone distribution zip and
 
- unzip rhq-revapi-XXX.zip
- cd rhq-revapi-XXX
+ unzip revapi-XXX-standalone.zip
+ cd revapi-XXX-standalone
  ./revapi.sh
 
 Read the usage info and go.
@@ -111,7 +114,7 @@ revapi.analyze(analysisContext);
 
 == Extending Revapi
 
-See the http://revapi.org/docs/architecture.html[site] for more info.
+See the http://revapi.org/architecture.html[site] for more info.
 
 == Getting in touch
 
