@@ -41,7 +41,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-ant-task</artifactId>
-                <version>0.3.5</version>
+                <version>0.3.6</version>
             </dependency>
 
             <dependency>
@@ -96,6 +96,8 @@
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-site-shared</artifactId>
                 <version>1</version>
+                <type>zip</type>
+                <classifier>resources</classifier>
             </dependency>
 
             <dependency>
