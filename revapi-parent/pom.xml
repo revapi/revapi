@@ -30,7 +30,6 @@
     <version>3-SNAPSHOT</version>
 
     <properties>
-        <skip.site>true</skip.site>
         <web.url>http://revapi.org</web.url>
         <web.repo>scm:git:git@github.com:revapi/revapi.github.io.git</web.repo>
         <web.repo.branch>master</web.repo.branch>
@@ -132,65 +131,6 @@
                     <arguments>-P release-prepare</arguments>
                     <preparationGoals>clean verify</preparationGoals>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-scm-publish-plugin</artifactId>
-                <configuration>
-                    <scmBranch>${web.repo.branch}</scmBranch>
-                    <checkinComment>Committing ${project.name} docs for version ${project.version}.</checkinComment>
-                    <ignorePathsToDelete>
-                        <ignore>*</ignore>
-                    </ignorePathsToDelete>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>scm-publish</id>
-                        <phase>site-deploy</phase>
-                        <goals>
-                            <goal>publish-scm</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <configuration>
-                    <skip>${skip.site}</skip>
-                    <inputDirectory>${project.reporting.outputDirectory}</inputDirectory>
-                    <outputDirectory>${project.reporting.outputDirectory}/modules/${project.artifactId}</outputDirectory>
-                    <relativizeDecorationLinks>false</relativizeDecorationLinks>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>stage-for-scm-publish</id>
-                        <phase>post-site</phase>
-                        <goals>
-                            <goal>stage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.asciidoctor</groupId>
-                        <artifactId>asciidoctor-maven-plugin</artifactId>
-                        <version>1.5.2.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>pl.matsuo.maven.skins</groupId>
-                        <artifactId>msb3-velocity-tools</artifactId>
-                        <version>0.1.1</version>
-                    </dependency>
-                    <!-- MSB3 skin requires Velocity >= 1.7  -->
-                    <dependency>
-                        <groupId>org.apache.velocity</groupId>
-                        <artifactId>velocity</artifactId>
-                        <version>1.7</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>
@@ -298,6 +238,73 @@
                                 <phase>verify</phase>
                                 <goals>
                                     <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>site-publishing</id>
+            <activation>
+                <file><exists>${basedir}/src/site/site.xml</exists></file>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-site-plugin</artifactId>
+                        <configuration>
+                            <inputDirectory>${project.reporting.outputDirectory}</inputDirectory>
+                            <outputDirectory>${project.reporting.outputDirectory}/modules/${project.artifactId}</outputDirectory>
+                            <relativizeDecorationLinks>false</relativizeDecorationLinks>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>stage-for-scm-publish</id>
+                                <phase>post-site</phase>
+                                <goals>
+                                    <goal>stage</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.asciidoctor</groupId>
+                                <artifactId>asciidoctor-maven-plugin</artifactId>
+                                <version>1.5.2.1</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>pl.matsuo.maven.skins</groupId>
+                                <artifactId>msb3-velocity-tools</artifactId>
+                                <version>0.1.1</version>
+                            </dependency>
+                            <!-- MSB3 skin requires Velocity >= 1.7  -->
+                            <dependency>
+                                <groupId>org.apache.velocity</groupId>
+                                <artifactId>velocity</artifactId>
+                                <version>1.7</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-scm-publish-plugin</artifactId>
+                        <configuration>
+                            <scmBranch>${web.repo.branch}</scmBranch>
+                            <checkinComment>Committing ${project.name} docs for version ${project.version}.</checkinComment>
+                            <ignorePathsToDelete>
+                                <ignore>*</ignore>
+                            </ignorePathsToDelete>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>scm-publish</id>
+                                <phase>site-deploy</phase>
+                                <goals>
+                                    <goal>publish-scm</goal>
                                 </goals>
                             </execution>
                         </executions>

@@ -20,7 +20,6 @@
     <url>${web.url}</url>
 
     <properties>
-        <skip.deploy>false</skip.deploy>
         <self-api-check.maven-version>0.3.11</self-api-check.maven-version>
         <self-api-check.java-extension-version>0.5.2</self-api-check.java-extension-version>
     </properties>

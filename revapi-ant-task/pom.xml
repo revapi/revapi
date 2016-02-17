@@ -33,10 +33,6 @@
     <artifactId>revapi-ant-task</artifactId>
     <version>0.3.6-SNAPSHOT</version>
 
-    <properties>
-        <skip.site>false</skip.site>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>

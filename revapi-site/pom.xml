@@ -34,7 +34,6 @@
   <packaging>pom</packaging>
 
   <properties>
-    <skip.site>false</skip.site>
     <revapi.skip>true</revapi.skip>
   </properties>
 
