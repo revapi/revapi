@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Revapi BOM">
+  <bannerLeft>
+    <name>${project.name}</name>
+    <href>${project.url}</href>
+  </bannerLeft>
+
+  <skin>
+    <groupId>pl.matsuo.maven.skins</groupId>
+    <artifactId>msb3-maven-skin</artifactId>
+    <version>0.1.1</version>
+  </skin>
+
+  <custom>
+    <msb3Skin>
+      <theme>bootswatch-cosmo</theme>
+      <highlightJs>true</highlightJs>
+      <toc>sidebar</toc>
+      <slogan>${project.description}</slogan>
+      <breadcrumbs>false</breadcrumbs>
+      <topNav>Basic Info|Sub Projects|Project Details</topNav>
+      <bottomNav>
+        <column>Basic Info|Sub Projects</column>
+        <column>Project Details</column>
+        <column>Maven Documentation</column>
+      </bottomNav>
+      <bottomDescription>Revapi</bottomDescription>
+      <brand>
+        <name>Revapi</name>
+        <href>${web.url}</href>
+      </brand>
+    </msb3Skin>
+  </custom>
+
+  <version position="navigation-bottom"/>
+</project>

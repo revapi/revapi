@@ -1,0 +1,1 @@
+This is really just so that we can read the version of the BOM from the generated HTML in the downloads section.

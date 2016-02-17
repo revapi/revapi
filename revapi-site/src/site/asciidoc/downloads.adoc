@@ -1,0 +1,101 @@
+== Downloads
+
+Revapi doesn't maintain its own downloadable archives because all the artifacts are stored in the Maven Central
+repository.
+
+Here are the links to the latest versions of the individual artifacts.
+
+|===
+|Name|Artifact|Version|Link
+
+|Revapi API
+|`org.revapi:revapi`
+|+++<div id="version-org.revapi-revapi"></div>+++
+|+++<a id="link-org.revapi-revapi">here</a>+++
+
+|Revapi Maven Plugin
+|`org.revapi:revapi-maven-plugin`
+|+++<div id="version-org.revapi-revapi-maven-plugin"></div>+++
+|+++<a id="link-org.revapi-revapi-maven-plugin">here</a>+++
+
+|Revapi Ant Task
+|`org.revapi:revapi-ant-task`
+|+++<div id="version-org.revapi-revapi-ant-task"></div>+++
+|+++<a id="link-org.revapi-revapi-ant-task">here</a>+++
+
+|Revapi Standalone
+|`org.revapi:revapi-standalone`
+|+++<div id="version-org.revapi-revapi-standalone"></div>+++
+|+++<a id="link-org.revapi-revapi-standalone">here</a>+++
+
+|Revapi Basic Features Extension
+|`org.revapi:revapi-basic-features`
+|+++<div id="version-org.revapi-revapi-basic-features"></div>+++
+|+++<a id="link-org.revapi-revapi-basic-features">here</a>+++
+
+|Revapi Java Extension
+|`org.revapi:revapi-java`
+|+++<div id="version-org.revapi-revapi-java"></div>+++
+|+++<a id="link-org.revapi-revapi-java">here</a>+++
+
+|Revapi Java Extension SPI
+|`org.revapi:revapi-java-spi`
+|+++<div id="version-org.revapi-revapi-java-spi"></div>+++
+|+++<a id="link-org.revapi-revapi-java-spi">here</a>+++
+
+|Revapi Text Reporting Extension
+|`org.revapi:revapi-reporting-text`
+|+++<div id="version-org.revapi-revapi-reporting-text"></div>+++
+|+++<a id="link-org.revapi-revapi-reporting-text">here</a>+++
+
+|Revapi BOM
+|`org.revapi:revapi-bom`
+|+++<div id="version-org.revapi-revapi-bom"></div>+++
+|+++<a id="link-org.revapi-revapi-bom">here</a>+++
+
+|===
+
+[pass]
+++++
+  <script type="text/javascript">
+window.addEventListener("load", function() {
+    function fillIn(groupId, artifactId, downloadableType) {
+        var url = "modules/" + artifactId + "/index.html"
+        $.ajax(url, {
+          "cache": false,
+          "dataType": "html"
+        }).done(function(data) {
+            var doc = $("<div/>").append(data);
+
+            var v = doc.find(".projectVersion").text().substring("Version: ".length)
+
+            var dg = groupId.replace(/\./g, "")
+            var da = artifactId.replace(/\./g, "")
+
+            document.getElementById("version-" + dg + "-" + da).textContent = v;
+
+            var gp = groupId.replace(/\./g, "/")
+            var ap = artifactId.replace(/\./g, "/")
+
+            var link = document.getElementById("link-" + dg + "-" + da);
+            link.href =
+                "http://search.maven.org/remotecontent?filepath=" + gp + "/" + ap + "/" +
+                v + "/" + artifactId + "-" + v + "." +
+                downloadableType;
+        }).fail(function (data, status) {
+            console.log("URL failed with status " + status + ": " + url)
+        })
+    }
+
+    fillIn("org.revapi", "revapi", "jar")
+    fillIn("org.revapi", "revapi-ant-task", "jar")
+    fillIn("org.revapi", "revapi-basic-features", "jar")
+    fillIn("org.revapi", "revapi-bom", "jar")
+    fillIn("org.revapi", "revapi-java", "jar")
+    fillIn("org.revapi", "revapi-java-spi", "jar")
+    fillIn("org.revapi", "revapi-maven-plugin", "jar")
+    fillIn("org.revapi", "revapi-reporting-text", "jar")
+    fillIn("org.revapi", "revapi-standalone", "zip")
+})
+</script>
+++++

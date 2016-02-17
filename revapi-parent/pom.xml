@@ -216,6 +216,11 @@
         </license>
     </licenses>
 
+    <organization>
+        <name>Lukas Krejci</name>
+        <url>http://lukas.krejci.pw</url>
+    </organization>
+
     <developers>
         <developer>
             <name>Lukas Krejci</name>
