@@ -23,3 +23,12 @@ This can be used to ignore certain differences before they are sent to the repor
 
 More on the link:extensions/ignore.html[detail page] or in the
 link:apidocs/org/revapi/basic/IgnoreDifferenceTransform.html[javadoc].
+
+=== Ignore Differences Based On Version Changes
+
+This takes into account the http://semver.org[semver] versioning rules and will automatically ignore found problems
+that are allowed for given version change. I.e. it will allow breaking changes if the major version of the new
+artifact is greater than the major version of the old artifact, etc.
+
+More on the link:extensions/semver-ignore.html[detail page] or in the
+link:apidocs/org/revapi/basic/SemverIgnoreTransform.html[javadoc].

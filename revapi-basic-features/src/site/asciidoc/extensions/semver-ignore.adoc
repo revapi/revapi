@@ -1,0 +1,41 @@
+== Version-based Ignore Transformation
+
+*Configuration root*: `revapi.semver.ignore`
+
+Using this extension one can automatically ignore API changes that are allowed for a given version delta based on the
+rules of semantic versioning (http://semver.org).
+
+This extension doesn't have any extensive configuration - it can merely be enabled or disabled.
+
+=== Sample Configuration
+
+```javascript
+{
+  "revapi" : {
+    "semver" : {
+      "ignore" : {
+        "enabled" : true
+      }
+    }
+  }
+}
+```
+
+=== Properties
+
+`enabled`::
+If true, the transformation is in effect and ignores API differences according to the version delta. If false, which
+is the default, the transformation does nothing.
+
+==== Implementation Note
+
+This extension requires that the archives supplied to the analysis implement the
+link:../../revapi/apidocs/org/revapi/Archive.Versioned.html[Archive.Versioned] interface. This is true for archives used
+when analyzing using the Revapi maven plugin but if Revapi is used in the standalone mode or in some embedded situation
+this might not be the case.
+
+It is the responsibility of the caller of Revapi to supply the correct archive implementations, because Revapi in and
+on itself doesn't know how to extract a version from an archive.
+
+NOTE: It should be possible to implement a helper and/or a specialized archive decorating implementation that would
+read the version from the jar manifest for example, but that work hasn't been done yet.

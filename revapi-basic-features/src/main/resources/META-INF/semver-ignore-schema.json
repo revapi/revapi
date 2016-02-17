@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "description": "Whether the semver ignore should be applied or not. By default it is NOT enabled.",
+      "type": "boolean",
+      "default": "false"
+    }
+  }
+}

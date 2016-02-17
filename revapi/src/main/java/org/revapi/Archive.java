@@ -33,4 +33,16 @@ public interface Archive {
 
     @Nonnull
     InputStream openStream() throws IOException;
+
+    /**
+     * Extension of the archive interface that can also provide the version of the archive. This can be used by
+     * certain extensions like the {@code SemverIgnoreTransform}.
+     * <p>
+     * Note that it is the responsibility of the caller of Revapi to provide archives which implement this interface.
+     *
+     * @since 0.4.1
+     */
+    interface Versioned extends Archive {
+        @Nonnull String getVersion();
+    }
 }

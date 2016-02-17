@@ -36,10 +36,11 @@ import java.util.zip.ZipOutputStream;
  * @author Lukas Krejci
  * @since 0.1
  */
-class MavenArchive implements Archive {
+class MavenArchive implements Archive.Versioned {
 
     private final File file;
     private final String gav;
+    private final String version;
 
     private MavenArchive(Artifact artifact) {
         if (artifact == null) {
@@ -52,6 +53,7 @@ class MavenArchive implements Archive {
         }
 
         this.gav = artifact.toString();
+        this.version = artifact.getBaseVersion();
     }
 
     public static MavenArchive of(Artifact artifact) {
@@ -77,6 +79,11 @@ class MavenArchive implements Archive {
     @Override
     public InputStream openStream() throws IOException {
         return new FileInputStream(file);
+    }
+
+    @Override
+    public @Nonnull String getVersion() {
+        return version;
     }
 
     @Override
