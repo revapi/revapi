@@ -27,7 +27,7 @@ import org.apache.maven.plugins.annotations.Mojo;
  * @author Lukas Krejci
  * @since 0.4.0
  */
-@Mojo(name = "validateConfiguration", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+@Mojo(name = "validate-configuration", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
 public class ValidateConfigurationMojo extends AbstractRevapiMojo {
 
     @Override
@@ -37,7 +37,8 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
         }
 
         if (oldArtifacts == null || oldArtifacts.length == 0) {
-            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, "RELEASE")};
+            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession,
+                    "RELEASE")};
         }
 
         Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,

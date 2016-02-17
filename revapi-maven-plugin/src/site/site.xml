@@ -8,9 +8,12 @@
     <menu name="Project Details">
       <item name="Goals" href="plugin-info.html"/>
       <item name="Configuration" href="examples/configuration.html"/>
+      <item name="Evolving With Semver Versioning Rules" href="examples/evolving-with-semver.html"/>
       <item name="Multi-file Configuration" href="examples/multi-file-configuration.html"/>
       <item name="Report" href="examples/report.html"/>
       <item name="Comparing Specific Artifacts" href="examples/comparing-specific-artifacts.html"/>
+      <item name="Determining New Version String" href="examples/updating-versions.html"/>
+      <item name="Setting Versions In release.properties" href="examples/updating-release-properties.html"/>
     </menu>
     <menu ref="reports"/>
   </body>

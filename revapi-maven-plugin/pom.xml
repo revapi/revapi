@@ -106,6 +106,12 @@
             <artifactId>maven-reporting-impl</artifactId>
             <version>2.4</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.ximpleware</groupId>
+            <artifactId>vtd-xml</artifactId>
+            <version>2.11</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -119,15 +125,14 @@
                             "revapi" : {
                                 "filter" : {
                                     "elements" : {
-                                        "exclude": [
-                                            ".* org\.apache\.maven\.*",
-                                            ".* org\.codehaus\.plexus\.*"
+                                        "include": [
+                                            ".* org\.revapi\.maven\.*"
                                         ]
                                     }
                                 }
                             }
                         }
-                    ]]></analysisConfiguration>                  
+                    ]]></analysisConfiguration>
                 </configuration>
             </plugin>
             <plugin>
@@ -172,7 +177,6 @@
                         <goal>clean</goal>
                         <goal>install</goal>
                     </goals>
-
                     <mavenOpts>${itest.maven-opts}</mavenOpts>
                     <debug>${itest.debug-output}</debug>
                 </configuration>
@@ -277,7 +281,8 @@
             <id>itest.debug</id>
 
             <properties>
-                <itest.maven-opts>-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</itest.maven-opts>
+                <itest.maven-opts>-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y
+                </itest.maven-opts>
                 <itest.debug-output>true</itest.debug-output>
             </properties>
         </profile>

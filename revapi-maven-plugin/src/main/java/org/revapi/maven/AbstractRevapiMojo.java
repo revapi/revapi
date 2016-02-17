@@ -34,6 +34,10 @@ import org.revapi.Reporter;
  */
 abstract class AbstractRevapiMojo extends AbstractMojo {
 
+    public static final String BUILD_COORDINATES = "BUILD";
+    public static final String REVAPI_GROUP_ID = "org.revapi";
+    public static final String REVAPI_MAVEN_PLUGIN_ARTIFACT_ID = "revapi-maven-plugin";
+
     /**
      * The JSON configuration of various analysis options. The available options depend on what
      * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
@@ -122,7 +126,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * The coordinates of the new artifacts. Defaults to single artifact with the artifacts from the build.
      * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
      */
-    @Parameter(defaultValue = CheckMojo.BUILD_COORDINATES, property = "revapi.newArtifacts")
+    @Parameter(defaultValue = AbstractRevapiMojo.BUILD_COORDINATES, property = "revapi.newArtifacts")
     protected String[] newArtifacts;
 
     /**

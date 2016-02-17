@@ -30,7 +30,6 @@ import org.apache.maven.plugins.annotations.Mojo;
  */
 @Mojo(name = "check", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
 public class CheckMojo extends AbstractRevapiMojo {
-    public static final String BUILD_COORDINATES = "BUILD";
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {

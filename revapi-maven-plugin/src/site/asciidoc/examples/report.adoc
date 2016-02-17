@@ -1,5 +1,7 @@
 == Reporting With Revapi
 
+NOTE: Goal details page: link:../report-mojo.html[here]
+
 The Revapi Maven plugin offers the possibility to create simple reports of the API changes found in the analysis. The
 link:../report-mojo.html[report goal] offers the same configuration properties as the analysis itself. Just include
 the following snippet in `reporting/plugins` of your POM:

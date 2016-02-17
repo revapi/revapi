@@ -46,8 +46,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.Spliterator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 
@@ -150,6 +153,8 @@ final class Analyzer {
 
     private final boolean failOnMissingConfigurationFiles;
 
+    private final Supplier<Revapi.Builder> revapiConstructor;
+
     private API resolvedOldApi;
     private API resolvedNewApi;
 
@@ -157,6 +162,20 @@ final class Analyzer {
              String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
              RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
              boolean failOnMissingConfigurationFiles, boolean alwaysUpdate) {
+
+        this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, project, repositorySystem,
+                repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles, alwaysUpdate,
+                new Supplier<Revapi.Builder>() {
+                    @Override public Revapi.Builder get() {
+                        return Revapi.builder().withAllExtensionsFromThreadContextClassLoader();
+                    }
+                });
+    }
+
+    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
+             String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
+             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+             boolean failOnMissingConfigurationFiles, boolean alwaysUpdate, Supplier<Revapi.Builder> revapiConstructor) {
 
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
@@ -179,6 +198,7 @@ final class Analyzer {
         this.locale = locale;
         this.log = log;
         this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
+        this.revapiConstructor = revapiConstructor;
     }
 
     public static String getProjectArtifactCoordinates(MavenProject project, RepositorySystemSession session,
@@ -212,92 +232,110 @@ final class Analyzer {
         }
     }
 
+    @SuppressWarnings("unchecked") void resolveArtifacts() {
+        if (resolvedOldApi == null) {
+            final BuildAwareArtifactResolver resolver = new BuildAwareArtifactResolver();
+
+            //Ok, what on Earth is this?
+            //We're building with Java8 and I really like lambdas but Maven in the version we're using doesn't like
+            //lambdas in the bytecode of the plugin - it'll actually fail to scan the archive for the annotations and
+            //therefore will not properly build the maven plugin we're implementing here.
+
+            //Sooo, we're building with Java8, so we have access to Java8 classes but cannot use Java8 features at all here.
+            //Hence, instead of a lambda, we use these Function instances and further below we need to make unsafe casts
+            //that Java8 would have correctly figured out on its own. Yay.
+
+            Function<String, MavenArchive> toFileArchive = new Function<String, MavenArchive>() {
+                @Override
+                public MavenArchive apply(String gav) {
+                    try {
+                        Artifact a = resolver.resolveArtifact(gav);
+                        return MavenArchive.of(a);
+                    } catch (ArtifactResolutionException | IllegalArgumentException e) {
+                        throw new MarkerException(e.getMessage(), e);
+                    }
+                }
+            };
+
+            Function<Artifact, MavenArchive> artifactToMavenArchive = new Function<Artifact, MavenArchive>() {
+                @Override
+                public MavenArchive apply(Artifact artifact) {
+                    try {
+                        return MavenArchive.of(artifact);
+                    } catch (IllegalArgumentException e) {
+                        throw new MarkerException(e.getMessage(), e);
+                    }
+                }
+            };
+
+            List<MavenArchive> oldArchives;
+            try {
+                oldArchives = (List) Arrays.asList(oldArtifacts).stream().map(toFileArchive).collect(toList());
+            } catch (MarkerException e) {
+                log.warn("Failed to resolve old artifacts: " + e.getMessage() + ". The API analysis will not proceed.", e);
+                return;
+            }
+
+            List<MavenArchive> newArchives;
+            try {
+                newArchives = (List) Arrays.asList(newArtifacts).stream().map(toFileArchive).collect(toList());
+            } catch (MarkerException e) {
+                log.warn("Failed to resolve new artifacts: " + e.getMessage() + ". The API analysis will not proceed.", e);
+                return;
+            }
+
+            Set<MavenArchive> oldTransitiveDeps = Collections.emptySet();
+            try {
+                oldTransitiveDeps = (Set) resolver.collectTransitiveDeps(oldArtifacts).stream()
+                        .map(artifactToMavenArchive).collect(Collectors.toSet());
+
+            } catch (RepositoryException | MarkerException e) {
+                log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() +
+                        ". The API analysis might produce unexpected results.", e);
+            }
+
+            Set<MavenArchive> newTransitiveDeps = Collections.emptySet();
+            try {
+                newTransitiveDeps = (Set) resolver.collectTransitiveDeps(newArtifacts).stream()
+                        .map(artifactToMavenArchive).collect(Collectors.toSet());
+            } catch (RepositoryException e) {
+                log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() +
+                        ". The API analysis might produce unexpected results.", e);
+            }
+
+            resolvedOldApi = API.of(oldArchives).supportedBy(oldTransitiveDeps).build();
+            resolvedNewApi = API.of(newArchives).supportedBy(newTransitiveDeps).build();
+        }
+    }
+
     @SuppressWarnings("unchecked")
     void analyze() throws MojoExecutionException {
-        final BuildAwareArtifactResolver resolver = new BuildAwareArtifactResolver();
-
-        //Ok, what on Earth is this?
-        //We're building with Java8 and I really like lambdas but Maven in the version we're using doesn't like
-        //lambdas in the bytecode of the plugin - it'll actually fail to scan the archive for the annotations and
-        //therefore will not properly build the maven plugin we're implementing here.
-
-        //Sooo, we're building with Java8, so we have access to Java8 classes but cannot use Java8 features at all here.
-        //Hence, instead of a lambda, we use these Function instances and further below we need to make unsafe casts
-        //that Java8 would have correctly figured out on its own. Yay.
-
-        Function<String, MavenArchive> toFileArchive = new Function<String, MavenArchive>() {
-            @Override
-            public MavenArchive apply(String gav) {
-                try {
-                    Artifact a = resolver.resolveArtifact(gav);
-                    return MavenArchive.of(a);
-                } catch (ArtifactResolutionException | IllegalArgumentException e) {
-                    throw new MarkerException(e.getMessage(), e);
-                }
-            }
-        };
-
-        Function<Artifact, MavenArchive> artifactToMavenArchive = new Function<Artifact, MavenArchive>() {
-            @Override
-            public MavenArchive apply(Artifact artifact) {
-                try {
-                    return MavenArchive.of(artifact);
-                } catch (IllegalArgumentException e) {
-                    throw new MarkerException(e.getMessage(), e);
-                }
-            }
-        };
-
-        List<MavenArchive> oldArchives;
-        try {
-            oldArchives = (List) Arrays.asList(oldArtifacts).stream().map(toFileArchive).collect(toList());
-        } catch (MarkerException e) {
-            log.warn("Failed to resolve old artifacts: " + e.getMessage() + ". The API analysis will not proceed.", e);
-            return;
-        }
-
-        List<MavenArchive> newArchives;
-        try {
-            newArchives = (List) Arrays.asList(newArtifacts).stream().map(toFileArchive).collect(toList());
-        } catch (MarkerException e) {
-            log.warn("Failed to resolve new artifacts: " + e.getMessage() + ". The API analysis will not proceed.", e);
-            return;
-        }
-
-        Set<MavenArchive> oldTransitiveDeps = Collections.emptySet();
-        try {
-            oldTransitiveDeps = (Set) resolver.collectTransitiveDeps(oldArtifacts).stream()
-                .map(artifactToMavenArchive).collect(Collectors.toSet());
-
-        } catch (RepositoryException | MarkerException e) {
-            log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() +
-                ". The API analysis might produce unexpected results.", e);
-        }
-
-        Set<MavenArchive> newTransitiveDeps = Collections.emptySet();
-        try {
-            newTransitiveDeps = (Set) resolver.collectTransitiveDeps(newArtifacts).stream()
-                .map(artifactToMavenArchive).collect(Collectors.toSet());
-        } catch (RepositoryException e) {
-            log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() +
-                ". The API analysis might produce unexpected results.", e);
-        }
-
         //This is useful so that users know what RELEASE and BUILD actually resolved to.
         Function<MavenArchive, String> extractName = new Function<MavenArchive, String>() {
             @Override public String apply(MavenArchive mavenArchive) {
                 return mavenArchive.getName();
             }
         };
-        log.info("Comparing " + oldArchives.stream().map(extractName).collect(toList()) + " against " +
-                newArchives.stream().map(extractName).collect(toList()) + " (including their transitive dependencies).");
+
+        resolveArtifacts();
+
+        if (resolvedOldApi == null || resolvedNewApi == null) {
+            return;
+        }
+
+        List<?> oldArchives = StreamSupport.stream(
+                (Spliterator<MavenArchive>) resolvedOldApi.getArchives().spliterator(), false)
+                .map(extractName).collect(toList());
+
+        List<?> newArchives =  StreamSupport.stream(
+                (Spliterator<MavenArchive>) resolvedNewApi.getArchives().spliterator(), false)
+                .map(extractName).collect(toList());
+
+        log.info("Comparing " + oldArchives + " against " + newArchives +
+                " (including their transitive dependencies).");
 
         try {
-            Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().withReporters(reporter)
-                .build();
-
-            resolvedOldApi = API.of(oldArchives).supportedBy(oldTransitiveDeps).build();
-            resolvedNewApi = API.of(newArchives).supportedBy(newTransitiveDeps).build();
+            Revapi revapi = revapiConstructor.get().withReporters(reporter).build();
 
             AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withOldAPI(resolvedOldApi)
                     .withNewAPI(resolvedNewApi).withLocale(locale);

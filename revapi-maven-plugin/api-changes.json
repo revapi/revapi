@@ -27,6 +27,17 @@
                 }
             ]
 	    }
+    },
+    "0.4.0" : {
+        "revapi" : {
+            "ignore" : [
+                {
+                    "code" : "java.field.removedWithConstant",
+                    "old" : "field org.revapi.maven.CheckMojo.BUILD_COORDINATES",
+                    "justification" : "Moved to AbstractRevapiMojo class."
+                }
+            ]
+        }
     }
 }
 

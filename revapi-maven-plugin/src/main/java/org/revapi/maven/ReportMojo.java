@@ -140,7 +140,7 @@ public class ReportMojo extends AbstractMavenReport {
      * The coordinates of the new artifacts. Defaults to single artifact with the artifacts from the build.
      * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
      */
-    @Parameter(defaultValue = CheckMojo.BUILD_COORDINATES, property = "revapi.newArtifacts")
+    @Parameter(defaultValue = AbstractRevapiMojo.BUILD_COORDINATES, property = "revapi.newArtifacts")
     private String[] newArtifacts;
 
     /**
