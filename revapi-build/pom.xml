@@ -20,7 +20,7 @@
     <url>${web.url}</url>
 
     <properties>
-        <self-api-check.maven-version>0.4.0</self-api-check.maven-version>
+        <self-api-check.maven-version>0.4.1</self-api-check.maven-version>
         <self-api-check.java-extension-version>0.6.0</self-api-check.java-extension-version>
     </properties>
 
@@ -246,18 +246,15 @@
                                             "missing-classes" : {
                                                 "behavior" : "report"
                                             }
+                                        },
+                                        "semver": {
+                                          "ignore": {
+                                            "enabled": true
+                                          }
                                         }
                                     }
                                 }
                             ]]></analysisConfiguration>
-                            <analysisConfigurationFiles>
-                                <configurationFile>
-                                    <path>api-changes.json</path>
-                                    <roots>
-                                        <root>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</root>
-                                    </roots>
-                                </configurationFile>
-                            </analysisConfigurationFiles>
                         </configuration>
                         <executions>
                             <execution>
