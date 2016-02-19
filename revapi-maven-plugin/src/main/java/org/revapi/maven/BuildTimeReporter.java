@@ -104,8 +104,10 @@ final class BuildTimeReporter implements Reporter {
     }
 
     private void appendIgnoreRecipe(StringBuilder bld, Report report, Difference difference) {
-        bld.append("\nTo ignore this problem, add the following JSON snippet to your Revapi configuration under " +
-                "\"revapi.ignore\" path:\n");
+        bld.append("\nIf you're using the semver-ignore extension, update your module's version to one compatible " +
+                "with the current changes (e.g. mvn package revapi:update-versions). If you want to " +
+                "explicitly ignore this change and provide a justification for it, add the following JSON snippet " +
+                "to your Revapi configuration under \"revapi.ignore\" path:\n");
         bld.append("{\n");
         bld.append("  \"code\": \"").append(difference.code).append("\",\n");
         if (report.getOldElement() != null) {
