@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>16-SNAPSHOT</version>
+        <version>16</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -32,7 +32,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-maven-plugin</artifactId>
-    <version>0.4.1-SNAPSHOT</version>
+    <version>0.4.1</version>
 
     <properties>
         <maven.version>3.1.1</maven.version>
@@ -308,6 +308,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-maven-plugin-0.4.1</tag>
     </scm>
 </project>
