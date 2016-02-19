@@ -155,7 +155,7 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
 
     private static final class Version {
         private static final Pattern SEMVER_PATTERN =
-                Pattern.compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?)?");
+                Pattern.compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*))?(\\.|-|\\+)?([0-9A-Za-z-.]*)?");
 
         final int major;
         final int minor;
@@ -171,7 +171,8 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
             }
 
             int major = Integer.valueOf(m.group(1));
-            int minor = Integer.valueOf(m.group(3));
+            String minorMatch = m.group(3);
+            int minor = minorMatch == null || minorMatch.isEmpty() ? 0 : Integer.valueOf(minorMatch);
             int patch = 0;
             String patchMatch = m.group(4);
             if (patchMatch != null && !patchMatch.isEmpty()) {
@@ -179,6 +180,14 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
             }
             String sep = m.group(5);
             String suffix = m.group(6);
+
+            if (sep != null && sep.isEmpty()) {
+                sep = null;
+            }
+
+            if (suffix != null && suffix.isEmpty()) {
+                suffix = null;
+            }
 
             return new Version(major, minor, patch, sep, suffix);
         }
