@@ -20,6 +20,12 @@ void checkVersion(File pom, String... versions) throws Exception {
 }
 
 File v2Dir = new File("target/it/build/version-handling-simple/v2");
+if (!v2Dir.exists()) {
+    //the top level build might be running
+    String path = "revapi-maven-plugin/" + v2Dir.getPath()
+    v2Dir = new File(path)
+}
+
 File v2Pom = new File(v2Dir, "pom.xml");
 
-checkVersion(v2Pom, "2.0.0");
+checkVersion(v2Pom, "1.1.0");

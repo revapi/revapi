@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import org.jboss.dmr.ModelNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
+import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.DifferenceTransform;
@@ -48,20 +49,30 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
 
     @Nullable @Override public Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
                                                     @Nonnull Difference difference) {
-        if (!enabled || allowedSeverity == null) {
+        if (!enabled) {
             return difference;
         }
 
-        if (allowedSeverity == DifferenceSeverity.BREAKING) {
+        if (allowedSeverity == null) {
+            return asBreaking(difference);
+        } else if (allowedSeverity == DifferenceSeverity.BREAKING) {
             return null;
         } else {
             DifferenceSeverity diffSeverity = getMaxSeverity(difference);
             if (allowedSeverity.ordinal() - diffSeverity.ordinal() >= 0) {
                 return null;
             } else {
-                return difference;
+                return asBreaking(difference);
             }
         }
+    }
+
+    private Difference asBreaking(Difference d) {
+        return Difference.builder().withCode("semver.incompatibleWithCurrentVersion")
+                .withDescription(d.description + " (original difference code: " + d.code + ")")
+                .withName("Incompatible with the current version: " + d.name)
+                .addAttachments(d.attachments).addClassifications(d.classification)
+                .addClassification(CompatibilityType.OTHER, DifferenceSeverity.BREAKING).build();
     }
 
     private DifferenceSeverity getMaxSeverity(Difference diff) {
@@ -115,7 +126,7 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
                 if (newVersion.minor > oldVersion.minor) {
                     allowedSeverity = DifferenceSeverity.BREAKING;
                 } else if (newVersion.minor == oldVersion.minor && newVersion.patch > oldVersion.patch) {
-                    allowedSeverity = DifferenceSeverity.POTENTIALLY_BREAKING;
+                    allowedSeverity = DifferenceSeverity.NON_BREAKING;
                 } else {
                     allowedSeverity = null;
                 }
@@ -123,7 +134,7 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
                 if (newVersion.major > oldVersion.major) {
                     allowedSeverity = DifferenceSeverity.BREAKING;
                 } else if (newVersion.major == oldVersion.major && newVersion.minor > oldVersion.minor) {
-                    allowedSeverity = DifferenceSeverity.POTENTIALLY_BREAKING;
+                    allowedSeverity = DifferenceSeverity.NON_BREAKING;
                 } else {
                     allowedSeverity = null;
                 }
@@ -144,7 +155,7 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
 
     private static final class Version {
         private static final Pattern SEMVER_PATTERN =
-                Pattern.compile("(\\d+)\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?");
+                Pattern.compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?)?");
 
         final int major;
         final int minor;
@@ -156,18 +167,18 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
             Matcher m = SEMVER_PATTERN.matcher(version);
             if (!m.matches()) {
                 throw new IllegalArgumentException("Could not parse the version string '" + version
-                        + ". It does not follow semver schema.");
+                        + "'. It does not follow the semver schema.");
             }
 
             int major = Integer.valueOf(m.group(1));
-            int minor = Integer.valueOf(m.group(2));
+            int minor = Integer.valueOf(m.group(3));
             int patch = 0;
-            String patchMatch = m.group(3);
+            String patchMatch = m.group(4);
             if (patchMatch != null && !patchMatch.isEmpty()) {
                 patch = Integer.valueOf(patchMatch);
             }
-            String sep = m.group(4);
-            String suffix = m.group(5);
+            String sep = m.group(5);
+            String suffix = m.group(6);
 
             return new Version(major, minor, patch, sep, suffix);
         }

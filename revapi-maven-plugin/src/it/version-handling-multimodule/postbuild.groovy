@@ -20,6 +20,11 @@ void checkVersion(File pom, String... versions) throws Exception {
 }
 
 File topDir = new File("target/it/build/version-handling-multimodule");
+if (!topDir.exists()) {
+    //the top level build might be running
+    String path = "revapi-maven-plugin/" + topDir.getPath()
+    topDir = new File(path)
+}
 File topPom = new File(topDir, "pom.xml");
 File v2aDir = new File(topDir, "a");
 File v2aPom = new File(v2aDir, "pom.xml");

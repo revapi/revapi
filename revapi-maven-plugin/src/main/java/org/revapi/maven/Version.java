@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  */
 final class Version implements Cloneable {
     private static final Pattern SEMVER_PATTERN =
-            Pattern.compile("(\\d+)\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?");
+            Pattern.compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?)?");
 
     private int major;
     private int minor;
@@ -41,14 +41,14 @@ final class Version implements Cloneable {
         }
 
         int major = Integer.valueOf(m.group(1));
-        int minor = Integer.valueOf(m.group(2));
+        int minor = Integer.valueOf(m.group(3));
         int patch = 0;
-        String patchMatch = m.group(3);
+        String patchMatch = m.group(4);
         if (patchMatch != null && !patchMatch.isEmpty()) {
             patch = Integer.valueOf(patchMatch);
         }
-        String sep = m.group(4);
-        String suffix = m.group(5);
+        String sep = m.group(5);
+        String suffix = m.group(6);
 
         return new Version(major, minor, patch, sep, suffix);
     }
