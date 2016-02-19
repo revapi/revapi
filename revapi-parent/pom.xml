@@ -32,7 +32,7 @@
     <properties>
         <web.url>http://revapi.org</web.url>
         <web.repo>scm:git:git@github.com:revapi/revapi.github.io.git</web.repo>
-        <web.repo.branch>master</web.repo.branch>
+        <web.repo.branch>staging</web.repo.branch>
     </properties>
 
     <build>

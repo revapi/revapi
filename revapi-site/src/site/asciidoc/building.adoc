@@ -48,5 +48,13 @@ repository):
 
 . Release the artifacts from http://oss.sonatype.org.
 
-Many of the modules contain parts of the site specific to them. These are published as part of the release process
-automatically.
+. Many of the modules contain parts of the site specific to them. These are published as part of the release process
+  automatically. To make the staged site changes public:
+
+  cd $REVAPI_GITHUB_IO_CHECKOUT #this is the repo on https://github.com/revapi/revapi.github.io
+  git checkout master
+  git pull origin master #assumes that the origin remote points to the github repo
+  git fetch --all
+  git merge origin/staging
+  git push origin
+
