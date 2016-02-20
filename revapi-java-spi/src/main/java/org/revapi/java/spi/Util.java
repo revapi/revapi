@@ -457,16 +457,42 @@ public final class Util {
 
                     int paramStart = openPar + 1;
                     int curParIdx = -1;
+                    int parsingState = 0; //0 = normal, 1 = inside type param
+                    int typeParamDepth = 0;
                     for (int i = openPar + 1; i < closePar; ++i) {
-                        if (state.bld.charAt(i) == ',') {
-                            curParIdx++;
-                            if (curParIdx == paramIdx) {
-                                String par = state.bld.substring(paramStart, i);
-                                state.bld.replace(paramStart, i, "===" + par + "===");
-                            } else {
-                                //accommodate for the space after commas for the second and further parameters
-                                paramStart = i + (paramIdx == 0 ? 1 : 2);
-                            }
+                        char c = state.bld.charAt(i);
+                        switch (parsingState) {
+                            case 0: //normal type
+                                switch (c) {
+                                    case ',':
+                                        curParIdx++;
+                                        if (curParIdx == paramIdx) {
+                                            String par = state.bld.substring(paramStart, i);
+                                            state.bld.replace(paramStart, i, "===" + par + "===");
+                                        } else {
+                                            //accommodate for the space after commas for the second and further parameters
+                                            paramStart = i + (paramIdx == 0 ? 1 : 2);
+                                        }
+                                        break;
+                                    case '<':
+                                        parsingState = 1;
+                                        typeParamDepth = 1;
+                                        break;
+                                }
+                                break;
+                            case 1: //inside type param
+                                switch (c) {
+                                    case '<':
+                                        typeParamDepth++;
+                                        break;
+                                    case '>':
+                                        typeParamDepth--;
+                                        if (typeParamDepth == 0) {
+                                            parsingState = 0;
+                                        }
+                                        break;
+                                }
+                                break;
                         }
                     }
 
