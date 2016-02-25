@@ -267,6 +267,11 @@ final class ExtensionResolver extends MavenAddonDependencyResolver {
             Dependency dependency = child.getDependency();
             Artifact artifact = dependency.getArtifact();
 
+            if (!"jar".equals(artifact.getExtension())) {
+                //skip non-jar dependencies - furnace doesn't work with them and they do not provide code (hopefully)
+                continue;
+            }
+
             AddonId childId = toAddonId(artifact);
             boolean exported = false;
             boolean optional = dependency.isOptional();
