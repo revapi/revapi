@@ -5,53 +5,75 @@ repository.
 
 Here are the links to the latest versions of the individual artifacts.
 
+NOTE: Please allow a day or so for the links to start working after a release. That is the delay between the actual
+release and the time the artifacts are replicated into Maven Central. If you'd like to download an older version of the
+artifacts, use the link to "All Versions" and pick the one you like.
+
 |===
-|Name|Artifact|Version|Link
+|Name|Artifact|Version|Release Date|Link|All Versions
 
 |Revapi API
 |`org.revapi:revapi`
 |+++<div id="version-org.revapi-revapi"></div>+++
+|+++<div id="release-date-org.revapi-revapi"></div>+++
 |+++<a id="link-org.revapi-revapi">here</a>+++
+|+++<a id="all-link-org.revapi-revapi">here</a>+++
 
 |Revapi Maven Plugin
 |`org.revapi:revapi-maven-plugin`
 |+++<div id="version-org.revapi-revapi-maven-plugin"></div>+++
+|+++<div id="release-date-org.revapi-revapi-maven-plugin"></div>+++
 |+++<a id="link-org.revapi-revapi-maven-plugin">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-maven-plugin">here</a>+++
 
 |Revapi Ant Task
 |`org.revapi:revapi-ant-task`
 |+++<div id="version-org.revapi-revapi-ant-task"></div>+++
+|+++<div id="release-date-org.revapi-revapi-ant-task"></div>+++
 |+++<a id="link-org.revapi-revapi-ant-task">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-ant-task">here</a>+++
 
-|Revapi Standalone
+|Revapi Standalone CLI
 |`org.revapi:revapi-standalone`
 |+++<div id="version-org.revapi-revapi-standalone"></div>+++
+|+++<div id="release-date-org.revapi-revapi-standalone"></div>+++
 |+++<a id="link-org.revapi-revapi-standalone">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-standalone">here</a>+++
 
 |Revapi Basic Features Extension
 |`org.revapi:revapi-basic-features`
 |+++<div id="version-org.revapi-revapi-basic-features"></div>+++
+|+++<div id="release-date-org.revapi-revapi-basic-features"></div>+++
 |+++<a id="link-org.revapi-revapi-basic-features">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-basic-features">here</a>+++
 
 |Revapi Java Extension
 |`org.revapi:revapi-java`
 |+++<div id="version-org.revapi-revapi-java"></div>+++
+|+++<div id="release-date-org.revapi-revapi-java"></div>+++
 |+++<a id="link-org.revapi-revapi-java">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-java">here</a>+++
 
 |Revapi Java Extension SPI
 |`org.revapi:revapi-java-spi`
 |+++<div id="version-org.revapi-revapi-java-spi"></div>+++
+|+++<div id="release-date-org.revapi-revapi-java-spi"></div>+++
 |+++<a id="link-org.revapi-revapi-java-spi">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-java-spi">here</a>+++
 
 |Revapi Text Reporting Extension
 |`org.revapi:revapi-reporting-text`
 |+++<div id="version-org.revapi-revapi-reporting-text"></div>+++
+|+++<div id="release-date-org.revapi-revapi-reporting-text"></div>+++
 |+++<a id="link-org.revapi-revapi-reporting-text">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-reporting-text">here</a>+++
 
 |Revapi BOM
 |`org.revapi:revapi-bom`
 |+++<div id="version-org.revapi-revapi-bom"></div>+++
+|+++<div id="release-date-org.revapi-revapi-bom"></div>+++
 |+++<a id="link-org.revapi-revapi-bom">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-bom">here</a>+++
 
 |===
 
@@ -68,11 +90,13 @@ window.addEventListener("load", function() {
             var doc = $("<div/>").append(data);
 
             var v = doc.find(".projectVersion").text().substring("Version: ".length)
+            var date = doc.find(".publishDate").text().substring("Last Published: ".length)
 
             var dg = groupId.replace(/\./g, "")
             var da = artifactId.replace(/\./g, "")
 
             document.getElementById("version-" + dg + "-" + da).textContent = v;
+            document.getElementById("release-date-" + dg + "-" + da).textContent = date;
 
             var gp = groupId.replace(/\./g, "/")
             var ap = artifactId.replace(/\./g, "/")
@@ -81,6 +105,10 @@ window.addEventListener("load", function() {
             link.href =
                 "http://search.maven.org/remotecontent?filepath=" + gp + "/" + ap + "/" +
                 v + "/" + artifactId + "-" + v + downloadableType;
+
+            var allLink = document.getElementById("all-link-" + dg + "-" + da);
+            allLink.href = "http://search.maven.org/#search|gav|1|g%3A%22" + groupId + "%22%20AND%20a%3A%22"
+             + artifactId + "%22"
         }).fail(function (data, status) {
             console.log("URL failed with status " + status + ": " + url)
         })

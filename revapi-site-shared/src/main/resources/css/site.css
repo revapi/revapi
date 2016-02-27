@@ -11,7 +11,7 @@
     font-style: normal;
 }
 
-* {
+p {
     text-align: justify;
 }
 
@@ -109,4 +109,8 @@ div.warning {
 
 code {
     font-family: "Roboto Mono", monospace;
+}
+
+table.tableblock {
+    padding: 2px;
 }
