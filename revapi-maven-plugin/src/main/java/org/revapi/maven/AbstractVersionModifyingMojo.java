@@ -84,13 +84,13 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
 
     /**
      * A comma-separated list of extensions (fully-qualified class names thereof) that are not taken into account during
-     * API analysis for versioning purposes. By default, the 2 basic transformations that can ignore certain
-     * differences are disallowed, so that the version is determined using the full set of differences found.
+     * API analysis for versioning purposes. By default, only the semver-ignore transform is not taken into account so
+     * that it does not interfere with the purpose of modifying the version based on the semver rules.
      * <p>
      * You can modify this set if you use another extensions that change the found differences in a way that the
      * determined new version would not correspond to what it should be.
      */
-    @Parameter(defaultValue = "org.revapi.basic.IgnoreDifferenceTransform,org.revapi.basic.SemverIgnoreTransform",
+    @Parameter(defaultValue = "org.revapi.basic.SemverIgnoreTransform",
         property = "revapi.disallowedExtensions")
     private String disallowedExtensions;
 
