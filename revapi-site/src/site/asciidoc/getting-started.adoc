@@ -1,48 +1,13 @@
 == Getting Started
 
-Revapi can be used in 3 ways. Either as a standalone java program, using its maven plugin during build or as an embedded
-library.
-
-=== Standalone Usage
-
-NOTE: More information about the Revapi's CLI tool, can be obtained from its
-link:modules/revapi-standalone/index.html[dedicated section].
-
-First you need to download the standalone distribution of Revapi, say `revapi-standalone-{version}.zip`.
-Now you have to:
-
-----
-unzip revapi-standalone-{version}.zip
-cd revapi-standalone-{version}
-----
-
-Your installation is now ready. To start using it, you can simply invoke
-
-----
-./revapi.sh
-----
-
-(or if you're unfortunate enough to be on windows)
-
-----
-revapi.bat
-----
-
-and you will be presented with the usual usage information.
-
-An invocation of Revapi could look like this:
-
-----
-./revapi.sh --extensions=org.revapi:revapi-java:{version},org.revapi:revapi-reporting-text:{version} \
-   --old=my-lib-0.1.0.jar --new=my-lib-0.2.0.jar -D revapi.reporter.text.minSeverity=BREAKING
-----
-
-Different extensions might define different configuration options that you might supply to them using either the `-D`
-command line parameter or they can be read from configuration file(s) specified by the `-c` option.
+Revapi can be used in 4 ways. Either as a standalone java program, using its maven plugin or ant task during build or as
+an embedded library.
 
 === Maven
 
 NOTE: You can read more about the maven plugin in its link:modules/revapi-maven-plugin/index.html[dedicated section].
+
+NOTE: You can find the latest versions of the various Revapi components in the link:downloads.html[downloads section].
 
 Revapi's main purpose is to track API changes between releases. This is ideally done during build and so the maven
 integration is essential.
@@ -84,6 +49,43 @@ By default, Revapi only bundles the link:modules/revapi-basic-features/index.htm
 check your java code, you need to add the Revapi's java extension as a dependency to the maven plugin.
 
 For more detailed info, check the maven plugin's link:modules/revapi-maven-plugin/index.html[site].
+
+=== Standalone Usage
+
+NOTE: More information about the Revapi's CLI tool, can be obtained from its
+link:modules/revapi-standalone/index.html[dedicated section].
+
+First you need to download the standalone distribution of Revapi, say `revapi-standalone-{version}.zip`.
+Now you have to:
+
+----
+unzip revapi-standalone-{version}.zip
+cd revapi-standalone-{version}
+----
+
+Your installation is now ready. To start using it, you can simply invoke
+
+----
+./revapi.sh
+----
+
+(or if you're unfortunate enough to be on windows)
+
+----
+revapi.bat
+----
+
+and you will be presented with the usual usage information.
+
+An invocation of Revapi could look like this:
+
+----
+./revapi.sh --extensions=org.revapi:revapi-java:{version},org.revapi:revapi-reporting-text:{version} \
+   --old=my-lib-0.1.0.jar --new=my-lib-0.2.0.jar -D revapi.reporter.text.minSeverity=BREAKING
+----
+
+Different extensions might define different configuration options that you might supply to them using either the `-D`
+command line parameter or they can be read from configuration file(s) specified by the `-c` option.
 
 === Ant
 
