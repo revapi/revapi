@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-parent</artifactId>
-        <version>4-SNAPSHOT</version>
+        <version>3</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
 
@@ -32,7 +32,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-bom</artifactId>
-    <version>16-SNAPSHOT</version>
+    <version>16</version>
 
     <packaging>pom</packaging>
 
@@ -137,6 +137,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-bom-16</tag>
     </scm>
 </project>
