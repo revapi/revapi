@@ -24,7 +24,6 @@ import java.util.concurrent.Future;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 
@@ -35,7 +34,6 @@ import org.slf4j.LoggerFactory;
  * @author Lukas Krejci
  * @since 0.1
  */
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 @SupportedAnnotationTypes(MarkerAnnotationObject.CLASS_NAME)
 final class ProbingAnnotationProcessor extends AbstractProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ProbingAnnotationProcessor.class);
@@ -66,7 +64,7 @@ final class ProbingAnnotationProcessor extends AbstractProcessor {
     }
 
     public <T> Future<T> submitWithCompilationAwareness(ExecutorService executor, final Callable<T> task)
-    throws Exception {
+            throws Exception {
 
         return executor.submit(new Callable<T>() {
             @Override
@@ -85,5 +83,10 @@ final class ProbingAnnotationProcessor extends AbstractProcessor {
             LOG.trace("Releasing compilation progress for " + environment.getApi());
         }
         environment.getCompilationProgressLatch().countDown();
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latestSupported();
     }
 }
