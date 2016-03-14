@@ -1,0 +1,47 @@
+== Class Filter
+
+*Configuration Root*: `revapi.java.filter.classes`
+
+Given Java's lacking modularity (prior to Java9), authors are often forced to make classes that are essentially an
+implementation detail of a library public. Such classes are often included in packages like `impl` or `internal` to
+hint at their non-public nature.
+
+While Revapi offers the basic filtering capabilities using the
+link:../../revapi-basic-features/extensions/filter.html[basic filter], it often is much simpler to exclude classes or
+packages like that using this filter (or the link:package-filter.html[package filter]), specifically made for this
+purpose (if for nothing else then for the simpler configuration).
+
+By default, all classes are included. If the include filter is specified, only the classes matching the include
+filter are included in the API check. The exclude filter can take out classes that would otherwise be included.
+
+It is not possible include a class that matches an exclude filter (i.e. if include and exclude filter match the same
+class, the class is not included) but it is possible to include an inner classes while its parent class is excluded.
+
+=== Sample Configuration
+
+```javascript
+{
+  "revapi": {
+    "java": {
+      "filter": {
+        "classes": {
+          "regex": true,
+          "include": ["com\\.acme\\.api\\..*"]
+          "exclude": ["com\\.acme\\.api\\.WeRegretWePlacedThisInApi"]
+        }
+      }
+    }
+  }
+}
+```
+
+=== Properties
+`regex`::
+Specifies whether to consider the strings in `exclude` and `include` lists as regular expressions or not. The default
+value is `false`, meaning the strings are not considered as regular expressions.
+`exclude`::
+List of strings representing FQCNs or regular expressions matching FQCNs. Classes with the matching fully qualified
+names (and the members of those classes) will be excluded from the API check.
+`include`::
+List of strings representing FQCNs or regular expressions matching FQCNs. Only classes with the matching fully qualified
+names (and their members) will be included in the API check.

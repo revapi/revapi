@@ -28,7 +28,7 @@ import javax.tools.SimpleJavaFileObject;
 
 /**
  * @author Lukas Krejci
- * @since $MODULE_VERSION
+ * @since 0.1.0
  */
 class SourceInClassLoader extends SimpleJavaFileObject {
     URL url;
