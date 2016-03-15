@@ -20,6 +20,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
  * Runs the API check of old and new artifacts using the specified configuration of extensions declared as dependencies
@@ -28,7 +29,8 @@ import org.apache.maven.plugins.annotations.Mojo;
  * @author Lukas Krejci
  * @since 0.1
  */
-@Mojo(name = "check", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+@Mojo(name = "check", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true,
+        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class CheckMojo extends AbstractRevapiMojo {
 
     @Override

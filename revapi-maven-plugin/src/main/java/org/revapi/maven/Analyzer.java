@@ -61,83 +61,12 @@ import static java.util.stream.Collectors.toList;
 final class Analyzer {
     private static final String BUILD_COORDINATES = "BUILD";
 
-    /**
-     * The JSON configuration of various analysis options. The available options depend on what
-     * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
-     *
-     * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
-     */
     private final String analysisConfiguration;
 
-    /**
-     * The list of files containing the configuration of various analysis options.
-     * The available options depend on what analyzers are present on the plugins classpath through the
-     * {@code &lt;dependencies&gt;}.
-     *
-     * <p>The {@code analysisConfiguration} can override the settings present in the files.
-     *
-     * <p>The list is either a list of strings or has the following form:
-     * <pre><code>
-     *    &lt;analysisConfigurationFiles&gt;
-     *        &lt;configurationFile&gt;
-     *            &lt;path&gt;path/to/the/file/relative/to/project/base/dir&lt;/path&gt;
-     *            &lt;roots&gt;
-     *                &lt;root&gt;configuration/root1&lt;/root&gt;
-     *                &lt;root&gt;configuration/root2&lt;/root&gt;
-     *                ...
-     *            &lt;/roots&gt;
-     *        &lt;/configurationFile&gt;
-     *        ...
-     *    &lt;/analysisConfigurationFiles&gt;
-     * </code></pre>
-     *
-     * where
-     * <ul>
-     *     <li>{@code path} is mandatory,</li>
-     *     <li>{@code roots} is optional and specifies the subtrees of the JSON config that should be used for
-     *     configuration. If not specified, the whole file is taken into account.</li>
-     * </ul>
-     * The {@code configuration/root1} and {@code configuration/root2} are JSON paths to the roots of the
-     * configuration inside that JSON config file. This might be used in cases where multiple configurations are stored
-     * within a single file and you want to use a particular one.
-     *
-     * <p>An example of this might be a config file which contains API changes to be ignored in all past versions of a
-     * library. The classes to be ignored are specified in a configuration that is specific for each version:
-     * <pre><code>
-     *     {
-     *         "0.1.0" : {
-     *             "revapi" : {
-     *                 "ignore" : [
-     *                     {
-     *                         "code" : "java.method.addedToInterface",
-     *                         "new" : "method void com.example.MyInterface::newMethod()",
-     *                         "justification" : "This interface is not supposed to be implemented by clients."
-     *                     },
-     *                     ...
-     *                 ]
-     *             }
-     *         },
-     *         "0.2.0" : {
-     *             ...
-     *         }
-     *     }
-     * </code></pre>
-     */
     private final Object[] analysisConfigurationFiles;
 
-    /**
-     * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
-     * current
-     * project.
-     *
-     * <p>If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
-     */
     private final String[] oldArtifacts;
 
-    /**
-     * The coordinates of the new artifacts. Defaults to single artifact with the artifacts from the build.
-     * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
-     */
     private final String[] newArtifacts;
 
     private final MavenProject project;
@@ -153,6 +82,10 @@ final class Analyzer {
 
     private final boolean failOnMissingConfigurationFiles;
 
+    private final boolean failOnMissingArchives;
+
+    private final boolean failOnMissingSupportArchives;
+
     private final Supplier<Revapi.Builder> revapiConstructor;
 
     private API resolvedOldApi;
@@ -161,10 +94,12 @@ final class Analyzer {
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
              String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
              RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-             boolean failOnMissingConfigurationFiles, boolean alwaysUpdate) {
+             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+             boolean failOnMissingSupportArchives, boolean alwaysUpdate) {
 
         this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, project, repositorySystem,
-                repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles, alwaysUpdate,
+                repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles, failOnMissingArchives,
+                failOnMissingSupportArchives, alwaysUpdate,
                 new Supplier<Revapi.Builder>() {
                     @Override public Revapi.Builder get() {
                         return Revapi.builder().withAllExtensionsFromThreadContextClassLoader();
@@ -175,7 +110,8 @@ final class Analyzer {
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
              String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
              RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-             boolean failOnMissingConfigurationFiles, boolean alwaysUpdate, Supplier<Revapi.Builder> revapiConstructor) {
+             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+             boolean failOnMissingSupportArchives, boolean alwaysUpdate, Supplier<Revapi.Builder> revapiConstructor) {
 
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
@@ -198,6 +134,8 @@ final class Analyzer {
         this.locale = locale;
         this.log = log;
         this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
+        this.failOnMissingArchives = failOnMissingArchives;
+        this.failOnMissingSupportArchives = failOnMissingSupportArchives;
         this.revapiConstructor = revapiConstructor;
     }
 
@@ -272,16 +210,28 @@ final class Analyzer {
             try {
                 oldArchives = (List) Arrays.asList(oldArtifacts).stream().map(toFileArchive).collect(toList());
             } catch (MarkerException e) {
-                log.warn("Failed to resolve old artifacts: " + e.getMessage() + ". The API analysis will not proceed.", e);
-                return;
+                String message = "Failed to resolve old artifacts: " + e.getMessage() + ".";
+
+                if (failOnMissingArchives) {
+                    throw new IllegalStateException(message, e);
+                } else {
+                    log.warn(message + " The API analysis will not proceed.", e);
+                    return;
+                }
             }
 
             List<MavenArchive> newArchives;
             try {
                 newArchives = (List) Arrays.asList(newArtifacts).stream().map(toFileArchive).collect(toList());
             } catch (MarkerException e) {
-                log.warn("Failed to resolve new artifacts: " + e.getMessage() + ". The API analysis will not proceed.", e);
-                return;
+                String message = "Failed to resolve new artifacts: " + e.getMessage() + ".";
+
+                if (failOnMissingArchives) {
+                    throw new IllegalStateException(message, e);
+                } else {
+                    log.warn(message + " The API analysis will not proceed.", e);
+                    return;
+                }
             }
 
             Set<MavenArchive> oldTransitiveDeps = Collections.emptySet();
@@ -290,8 +240,13 @@ final class Analyzer {
                         .map(artifactToMavenArchive).collect(Collectors.toSet());
 
             } catch (RepositoryException | MarkerException e) {
-                log.warn("Failed to resolve dependencies of old artifacts: " + e.getMessage() +
-                        ". The API analysis might produce unexpected results.", e);
+                String message = "Failed to resolve dependencies of old artifacts: " + e.getMessage() +
+                        ".";
+                if (failOnMissingSupportArchives) {
+                    throw new IllegalArgumentException(message, e);
+                } else {
+                    log.warn(message + ". The API analysis might produce unexpected results.", e);
+                }
             }
 
             Set<MavenArchive> newTransitiveDeps = Collections.emptySet();
@@ -299,8 +254,13 @@ final class Analyzer {
                 newTransitiveDeps = (Set) resolver.collectTransitiveDeps(newArtifacts).stream()
                         .map(artifactToMavenArchive).collect(Collectors.toSet());
             } catch (RepositoryException e) {
-                log.warn("Failed to resolve dependencies of new artifacts: " + e.getMessage() +
-                        ". The API analysis might produce unexpected results.", e);
+                String message = "Failed to resolve dependencies of new artifacts: " + e.getMessage() +
+                        ".";
+                if (failOnMissingSupportArchives) {
+                    throw new IllegalArgumentException(message, e);
+                } else {
+                    log.warn(message + ". The API analysis might produce unexpected results.", e);
+                }
             }
 
             resolvedOldApi = API.of(oldArchives).supportedBy(oldTransitiveDeps).build();

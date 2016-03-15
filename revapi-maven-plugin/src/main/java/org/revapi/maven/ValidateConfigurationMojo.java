@@ -43,7 +43,8 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
 
         Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, project, repositorySystem, repositorySystemSession, null, Locale.getDefault(), getLog(),
-                failOnMissingConfigurationFiles, alwaysCheckForReleaseVersion);
+                failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
+                alwaysCheckForReleaseVersion);
 
         analyzer.validateConfiguration();
     }

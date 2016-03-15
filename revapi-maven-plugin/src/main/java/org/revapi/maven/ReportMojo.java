@@ -32,6 +32,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reporting.AbstractMavenReport;
 import org.apache.maven.reporting.MavenReportException;
@@ -47,7 +48,8 @@ import org.revapi.Element;
  * @author Lukas Krejci
  * @since 0.1
  */
-@Mojo(name = "report", defaultPhase = LifecyclePhase.SITE, threadSafe = true)
+@Mojo(name = "report", defaultPhase = LifecyclePhase.SITE, threadSafe = true,
+        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class ReportMojo extends AbstractMavenReport {
 
     /**
@@ -176,6 +178,19 @@ public class ReportMojo extends AbstractMavenReport {
     @Parameter(defaultValue = "true", property = "revapi.alwaysCheckForReleaseVersion")
     private boolean alwaysCheckForReleaseVersion;
 
+    /**
+     * If true, the build will fail if one of the old or new artifacts fails to be resolved. Defaults to false.
+     */
+    @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedArtifacts")
+    private boolean failOnUnresolvedArtifacts;
+
+    /**
+     * If true, the build will fail if some of the dependencies of the old or new artifacts fail to be resolved.
+     * Defaults to false.
+     */
+    @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedDependencies")
+    private boolean failOnUnresolvedDependencies;
+
     private API oldAPI;
     private API newAPI;
     private ReportTimeReporter reporter;
@@ -261,7 +276,8 @@ public class ReportMojo extends AbstractMavenReport {
 
             Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                     newArtifacts, project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
-                    failOnMissingConfigurationFiles, alwaysCheckForReleaseVersion);
+                    failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
+                    alwaysCheckForReleaseVersion);
 
             try {
                 analyzer.analyze();

@@ -355,7 +355,8 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
 
         Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(),
-                getLog(), failOnMissingConfigurationFiles, alwaysCheckForReleaseVersion, ctor);
+                getLog(), failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
+                alwaysCheckForReleaseVersion, ctor);
 
         analyzer.resolveArtifacts();
 

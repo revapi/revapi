@@ -164,6 +164,18 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     @Parameter(defaultValue = "true", property="revapi.failBuildOnProblemsFound")
     protected boolean failBuildOnProblemsFound;
 
+    /**
+     * If true, the build will fail if one of the old or new artifacts fails to be resolved. Defaults to false.
+     */
+    @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedArtifacts")
+    protected boolean failOnUnresolvedArtifacts;
+
+    /**
+     * If true, the build will fail if some of the dependencies of the old or new artifacts fail to be resolved.
+     * Defaults to false.
+     */
+    @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedDependencies")
+    protected boolean failOnUnresolvedDependencies;
 
     protected void analyze(Reporter reporter) throws MojoExecutionException, MojoFailureException {
         if (skip) {
@@ -176,7 +188,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
 
         Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(), getLog(),
-                failOnMissingConfigurationFiles, alwaysCheckForReleaseVersion);
+                failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
+                alwaysCheckForReleaseVersion);
 
         analyzer.analyze();
     }
