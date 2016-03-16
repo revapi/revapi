@@ -32,5 +32,6 @@
     </msb3Skin>
   </custom>
 
+  <publishDate position="navigation-bottom"/>
   <version position="navigation-bottom"/>
 </project>
