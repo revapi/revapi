@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 import org.revapi.java.spi.JavaAnnotationElement;
-import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
