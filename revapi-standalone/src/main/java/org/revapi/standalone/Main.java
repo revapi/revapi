@@ -16,6 +16,8 @@
 
 package org.revapi.standalone;
 
+import static java.util.Collections.emptyList;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -32,14 +34,6 @@ import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.revapi.API;
-import org.revapi.AnalysisContext;
-import org.revapi.Revapi;
-import org.revapi.maven.utils.ArtifactResolver;
-import org.revapi.maven.utils.ScopeDependencySelector;
-import org.revapi.maven.utils.ScopeDependencyTraverser;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-
 import org.jboss.dmr.ModelNode;
 import org.jboss.forge.furnace.Furnace;
 import org.jboss.forge.furnace.addons.Addon;
@@ -51,17 +45,25 @@ import org.jboss.forge.furnace.manager.impl.AddonManagerImpl;
 import org.jboss.forge.furnace.manager.maven.MavenContainer;
 import org.jboss.forge.furnace.manager.request.InstallRequest;
 import org.jboss.forge.furnace.util.Addons;
+import org.revapi.API;
+import org.revapi.AnalysisContext;
+import org.revapi.Revapi;
+import org.revapi.maven.utils.ArtifactResolver;
+import org.revapi.maven.utils.ScopeDependencySelector;
+import org.revapi.maven.utils.ScopeDependencyTraverser;
+import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
-
-import static java.util.Collections.emptyList;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public final class Main {
+
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Main.class);
 
     private static void usage(@Nullable String progName) {
         if (progName == null) {
@@ -377,7 +379,13 @@ public final class Main {
         for (String gav : gavs) {
             try {
                 archives.add(new FileArchive(resolver.resolveArtifact(gav).getFile()));
-                resolver.collectTransitiveDeps(gav).forEach(a -> supplementaryArchives.add(new FileArchive(a.getFile())));
+                ArtifactResolver.CollectionResult res = resolver.collectTransitiveDeps(gav);
+
+                res.getResolvedArtifacts().
+                        forEach(a -> supplementaryArchives.add(new FileArchive(a.getFile())));
+                if (!res.getFailures().isEmpty()) {
+                    LOG.warn("Failed to resolve some transitive dependencies: " + res.getFailures().toString());
+                }
             } catch (RepositoryException e) {
                 throw new IllegalArgumentException(errorMessagePrefix + " " + e.getMessage());
             }
