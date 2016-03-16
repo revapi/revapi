@@ -487,12 +487,27 @@ public final class Revapi {
                     .withTransformsFrom(cl);
         }
 
+        /**
+         * @throws IllegalStateException if there are no api analyzers or no reporters added.
+         * @return a new Revapi instance
+         */
         @Nonnull
-        public Revapi build() {
+        public Revapi build() throws IllegalStateException {
             analyzers = analyzers == null ? Collections.<ApiAnalyzer>emptySet() : analyzers;
             reporters = reporters == null ? Collections.<Reporter>emptySet() : reporters;
             transforms = transforms == null ? Collections.<DifferenceTransform<?>>emptySet() : transforms;
             filters = filters == null ? Collections.<ElementFilter>emptySet() : filters;
+
+            if (analyzers.isEmpty()) {
+                throw new IllegalStateException(
+                        "No API analyzers defined. The analysis cannot run without an analyzer.");
+            }
+
+            if (reporters.isEmpty()) {
+                throw new IllegalStateException(
+                        "No reporters defined. There is no way how to obtain the results of the analysis without" +
+                                " a reporter.");
+            }
 
             return new Revapi(analyzers, reporters, transforms, filters);
         }

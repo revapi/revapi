@@ -42,7 +42,7 @@ public class AnalysisTest {
                 .addProblem().withCode("code").done().build();
 
         Revapi r = Revapi.builder().withAnalyzers(new DummyAnalyzer(diffAnalyzer))
-                .withTransforms(new CloningDifferenceTransform()).build();
+                .withTransforms(new CloningDifferenceTransform()).withReporters(new DummyReporter()).build();
 
         AnalysisContext ctx = AnalysisContext.builder().withNewAPI(API.of().build()).withOldAPI(API.of().build())
                 .build();
@@ -217,6 +217,33 @@ public class AnalysisTest {
 
         @Override
         public void close() throws Exception {
+        }
+    }
+
+    private static final class DummyReporter implements Reporter {
+
+        @Override
+        public void report(@Nonnull Report report) {
+        }
+
+        @Override
+        public void close() throws Exception {
+        }
+
+        @Nullable
+        @Override
+        public String[] getConfigurationRootPaths() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+            return null;
+        }
+
+        @Override
+        public void initialize(@Nonnull AnalysisContext analysisContext) {
         }
     }
 }
