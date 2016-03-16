@@ -32,7 +32,6 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reporting.AbstractMavenReport;
 import org.apache.maven.reporting.MavenReportException;
@@ -48,8 +47,7 @@ import org.revapi.Element;
  * @author Lukas Krejci
  * @since 0.1
  */
-@Mojo(name = "report", defaultPhase = LifecyclePhase.SITE, threadSafe = true,
-        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Mojo(name = "report", defaultPhase = LifecyclePhase.SITE, threadSafe = true)
 public class ReportMojo extends AbstractMavenReport {
 
     /**

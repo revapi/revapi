@@ -27,15 +27,13 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 /**
  * @author Lukas Krejci
  * @since 0.4.0
  */
-@Mojo(name = "update-release-properties", requiresDirectInvocation = true,
-        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Mojo(name = "update-release-properties", requiresDirectInvocation = true)
 public class UpdateReleasePropertiesMojo extends AbstractVersionModifyingMojo {
 
     /**

@@ -16,10 +16,6 @@
 
 package org.revapi.maven;
 
-import org.eclipse.aether.artifact.Artifact;
-import org.revapi.Archive;
-
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,6 +27,11 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import javax.annotation.Nonnull;
+
+import org.eclipse.aether.artifact.Artifact;
+import org.revapi.Archive;
 
 /**
  * @author Lukas Krejci

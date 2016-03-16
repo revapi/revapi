@@ -65,6 +65,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
+            <version>0.5.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -113,25 +114,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.revapi</groupId>
-                <artifactId>revapi-maven-plugin</artifactId>
-                <configuration>
-                    <analysisConfiguration><![CDATA[
-                        {
-                            "revapi" : {
-                                "filter" : {
-                                    "elements" : {
-                                        "include": [
-                                            ".* org\.revapi\.maven\.*"
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    ]]></analysisConfiguration>
-                </configuration>
-            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>

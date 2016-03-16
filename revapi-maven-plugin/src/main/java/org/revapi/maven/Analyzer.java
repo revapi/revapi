@@ -16,6 +16,23 @@
 
 package org.revapi.maven;
 
+import static java.util.stream.Collectors.toList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.StreamSupport;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -36,23 +53,6 @@ import org.revapi.configuration.JSONUtil;
 import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.maven.utils.ScopeDependencySelector;
 import org.revapi.maven.utils.ScopeDependencyTraverser;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Lukas Krejci
@@ -170,7 +170,8 @@ final class Analyzer {
         }
     }
 
-    @SuppressWarnings("unchecked") void resolveArtifacts() {
+    @SuppressWarnings("unchecked")
+    void resolveArtifacts() {
         if (resolvedOldApi == null) {
             final BuildAwareArtifactResolver resolver = new BuildAwareArtifactResolver();
 
@@ -190,17 +191,6 @@ final class Analyzer {
                         Artifact a = resolver.resolveArtifact(gav);
                         return MavenArchive.of(a);
                     } catch (ArtifactResolutionException | IllegalArgumentException e) {
-                        throw new MarkerException(e.getMessage(), e);
-                    }
-                }
-            };
-
-            Function<Artifact, MavenArchive> artifactToMavenArchive = new Function<Artifact, MavenArchive>() {
-                @Override
-                public MavenArchive apply(Artifact artifact) {
-                    try {
-                        return MavenArchive.of(artifact);
-                    } catch (IllegalArgumentException e) {
                         throw new MarkerException(e.getMessage(), e);
                     }
                 }
@@ -234,37 +224,52 @@ final class Analyzer {
                 }
             }
 
-            Set<MavenArchive> oldTransitiveDeps = Collections.emptySet();
-            try {
-                oldTransitiveDeps = (Set) resolver.collectTransitiveDeps(oldArtifacts).stream()
-                        .map(artifactToMavenArchive).collect(Collectors.toSet());
-
-            } catch (RepositoryException | MarkerException e) {
-                String message = "Failed to resolve dependencies of old artifacts: " + e.getMessage() +
-                        ".";
-                if (failOnMissingSupportArchives) {
-                    throw new IllegalArgumentException(message, e);
-                } else {
-                    log.warn(message + ". The API analysis might produce unexpected results.", e);
-                }
-            }
-
-            Set<MavenArchive> newTransitiveDeps = Collections.emptySet();
-            try {
-                newTransitiveDeps = (Set) resolver.collectTransitiveDeps(newArtifacts).stream()
-                        .map(artifactToMavenArchive).collect(Collectors.toSet());
-            } catch (RepositoryException e) {
-                String message = "Failed to resolve dependencies of new artifacts: " + e.getMessage() +
-                        ".";
-                if (failOnMissingSupportArchives) {
-                    throw new IllegalArgumentException(message, e);
-                } else {
-                    log.warn(message + ". The API analysis might produce unexpected results.", e);
-                }
-            }
+            Set<MavenArchive> oldTransitiveDeps = collectDeps("old", resolver, oldArtifacts);
+            Set<MavenArchive> newTransitiveDeps = collectDeps("new", resolver, newArtifacts);
 
             resolvedOldApi = API.of(oldArchives).supportedBy(oldTransitiveDeps).build();
             resolvedNewApi = API.of(newArchives).supportedBy(newTransitiveDeps).build();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<MavenArchive> collectDeps(String depDescription, ArtifactResolver resolver, String... gavs) {
+        Set<MavenArchive> ret = null;
+        try {
+            ArtifactResolver.CollectionResult res = resolver.collectTransitiveDeps(gavs);
+
+            ret = new HashSet<>();
+            for (Artifact a : res.getResolvedArtifacts()) {
+                try {
+                    ret.add(MavenArchive.of(a));
+                } catch (IllegalArgumentException e) {
+                    res.getFailures().add(e);
+                }
+            }
+
+            if (!res.getFailures().isEmpty()) {
+                StringBuilder bld = new StringBuilder();
+                for (Exception e : res.getFailures()) {
+                    bld.append(e.getMessage()).append(", ");
+                }
+                bld.replace(bld.length() - 2, bld.length(), "");
+                throw new MarkerException("Resolution of some artifacts failed: " + bld.toString());
+            } else {
+                return ret;
+            }
+        } catch (RepositoryException | MarkerException e) {
+            String message = "Failed to resolve dependencies of " + depDescription + " artifacts: " + e.getMessage() +
+                    ".";
+            if (failOnMissingSupportArchives) {
+                throw new IllegalArgumentException(message, e);
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.warn(message + ". The API analysis might produce unexpected results.", e);
+                } else {
+                    log.warn(message + ". The API analysis might produce unexpected results.");
+                }
+                return ret == null ? Collections.<MavenArchive>emptySet() : ret;
+            }
         }
     }
 
@@ -381,13 +386,14 @@ final class Analyzer {
         }
 
         @Override
-        protected void collectTransitiveDeps(String gav, Set<Artifact> resolvedArtifacts) throws RepositoryException {
+        protected void collectTransitiveDeps(String gav, Set<Artifact> resolvedArtifacts, Set<Exception> exceptions)
+                throws RepositoryException {
 
             if (BUILD_COORDINATES.equals(gav)) {
                 Artifact a = resolveArtifact(gav);
-                super.collectTransitiveDeps(a.toString(), resolvedArtifacts);
+                super.collectTransitiveDeps(a.toString(), resolvedArtifacts, exceptions);
             } else {
-                super.collectTransitiveDeps(gav, resolvedArtifacts);
+                super.collectTransitiveDeps(gav, resolvedArtifacts, exceptions);
             }
         }
 

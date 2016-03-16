@@ -34,6 +34,7 @@ import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.util.graph.visitor.TreeDependencyVisitor;
 
@@ -63,18 +64,20 @@ public class ArtifactResolver {
         return result.getArtifact();
     }
 
-    public Set<Artifact> collectTransitiveDeps(String... gavs) throws RepositoryException {
+    public CollectionResult collectTransitiveDeps(String... gavs) throws RepositoryException {
 
-        Set<Artifact> result = new HashSet<>();
+        Set<Artifact> artifacts = new HashSet<>();
+        Set<Exception> failures = new HashSet<>();
 
         for (String gav : gavs) {
-            collectTransitiveDeps(gav, result);
+            collectTransitiveDeps(gav, artifacts, failures);
         }
 
-        return result;
+        return new CollectionResult(failures, artifacts);
     }
 
-    protected void collectTransitiveDeps(String gav, Set<Artifact> resolvedArtifacts) throws RepositoryException {
+    protected void collectTransitiveDeps(String gav, Set<Artifact> resolvedArtifacts, Set<Exception> failures)
+            throws RepositoryException {
 
         final Artifact rootArtifact = resolveArtifact(gav);
 
@@ -82,7 +85,14 @@ public class ArtifactResolver {
 
         DependencyRequest request = new DependencyRequest(collectRequest, null);
 
-        DependencyResult result = repositorySystem.resolveDependencies(session, request);
+        DependencyResult result;
+
+        try {
+            result = repositorySystem.resolveDependencies(session, request);
+        } catch (DependencyResolutionException dre) {
+            result = dre.getResult();
+        }
+
         result.getRoot().accept(new TreeDependencyVisitor(new DependencyVisitor() {
             @Override
             public boolean visitEnter(DependencyNode node) {
@@ -101,5 +111,25 @@ public class ArtifactResolver {
                 return true;
             }
         }));
+
+        failures.addAll(result.getCollectExceptions());
+    }
+
+    public static final class CollectionResult {
+        private final Set<Artifact> resolvedArtifacts;
+        private final Set<Exception> failures;
+
+        private CollectionResult(Set<Exception> failures, Set<Artifact> resolvedArtifacts) {
+            this.failures = failures;
+            this.resolvedArtifacts = resolvedArtifacts;
+        }
+
+        public Set<Exception> getFailures() {
+            return failures;
+        }
+
+        public Set<Artifact> getResolvedArtifacts() {
+            return resolvedArtifacts;
+        }
     }
 }
