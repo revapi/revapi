@@ -177,19 +177,32 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                 List<MethodElement> l1Overloads = l1e.getValue();
                 List<MethodElement> l2Overloads = l2e.getValue();
 
-                for (MethodElement c1Method : l1Overloads) {
-                    MethodElement c2Method = removeBestMatch(c1Method, l2Overloads);
-                    if (c2Method != null) {
-                        l2MethodOrder.put(c2Method, index);
-                        l2MethodsInOrder.add(c2Method);
-                    }
-                    l1MethodOrder.put(c1Method, index++);
-                }
+                if (l1Overloads.size() == 1 && l2Overloads.size() == 1) {
+                    //fast path for hopefully the vast majority of cases
+                    //just indicate the same order for both methods from l1 and l2
+                    MethodElement m1 = l1Overloads.get(0);
+                    MethodElement m2 = l2Overloads.get(0);
 
-                //add the rest
-                for (MethodElement m : l2Overloads) {
-                    l2MethodOrder.put(m, index++);
-                    l2MethodsInOrder.add(m);
+                    l2MethodsInOrder.add(m2);
+                    l2MethodOrder.put(m2, index);
+                    l1MethodOrder.put(m1, index++);
+                } else {
+                    //slow path - for each overload in l1, we need to pick the appropriate one from l2 and put it in the
+                    //same place
+                    for (MethodElement c1Method : l1Overloads) {
+                        MethodElement c2Method = removeBestMatch(c1Method, l2Overloads);
+                        if (c2Method != null) {
+                            l2MethodOrder.put(c2Method, index);
+                            l2MethodsInOrder.add(c2Method);
+                        }
+                        l1MethodOrder.put(c1Method, index++);
+                    }
+
+                    //add the rest
+                    for (MethodElement m : l2Overloads) {
+                        l2MethodOrder.put(m, index++);
+                        l2MethodsInOrder.add(m);
+                    }
                 }
             }
         }
