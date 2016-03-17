@@ -46,7 +46,9 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> impl
 
     @Override
     protected String createComparableSignature() {
-        return getModelElement().getSimpleName() + ":" +
+        //the choice of '#' for a separator between the name and signature is because it precedes both '(' and any
+        //legal character in a method name in the ASCII table
+        return getModelElement().getSimpleName() + "#" +
             Util.toUniqueString(getTypeEnvironment().getTypeUtils().erasure(getModelElement().asType()));
     }
 
