@@ -26,6 +26,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import javax.tools.JavaFileManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +41,15 @@ public final class CompilationValve {
     private final Future<Boolean> compilationResult;
     private final File dirToCleanup;
     private final ProbingEnvironment environment;
+    private final JavaFileManager fileManager;
 
-    /* package private */ CompilationValve(Future<Boolean> results, File dirToCleanup, ProbingEnvironment env) {
+    /* package private */ CompilationValve(Future<Boolean> results, File dirToCleanup, ProbingEnvironment env,
+            JavaFileManager fileManager) {
+
         this.compilationResult = results;
         this.dirToCleanup = dirToCleanup;
         this.environment = env;
+        this.fileManager = fileManager;
     }
 
     ProbingEnvironment getEnvironment() {
@@ -71,6 +77,12 @@ public final class CompilationValve {
                 throw new IllegalStateException("Exception thrown while waiting for compilation to end for clean up",
                     e);
             }
+        }
+
+        try {
+            fileManager.close();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to close the file manager used by the compiler.", e);
         }
 
         try {

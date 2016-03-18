@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -36,6 +38,7 @@ import java.util.concurrent.Future;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import org.revapi.Archive;
@@ -102,13 +105,19 @@ public final class Compiler {
             new ArchiveProbeObject()
         );
 
+        //the locale and charset are actually not important, because the only sources we're providing
+        //are not file-based. The rest of the stuff the compiler will be touching is already compiled
+        //and therefore not affected by the charset.
+        StandardJavaFileManager fileManager = compiler
+                .getStandardFileManager(null, Locale.getDefault(), Charset.forName("UTF-8"));
+
         final JavaCompiler.CompilationTask task = compiler
-            .getTask(output, null, null, options, Arrays.asList(ArchiveProbeObject.CLASS_NAME),
+            .getTask(output, fileManager, null, options, Collections.singletonList(ArchiveProbeObject.CLASS_NAME),
                 sources);
 
         ProbingAnnotationProcessor processor = new ProbingAnnotationProcessor(environment);
 
-        task.setProcessors(Arrays.asList(processor));
+        task.setProcessors(Collections.singletonList(processor));
 
         Future<Boolean> future = processor.submitWithCompilationAwareness(executor, () -> {
             if (Timing.LOG.isDebugEnabled()) {
@@ -124,7 +133,7 @@ public final class Compiler {
             return task.call();
         });
 
-        return new CompilationValve(future, targetPath, environment);
+        return new CompilationValve(future, targetPath, environment, fileManager);
     }
 
     private String composeClassPath(File classPathDir) {
