@@ -20,8 +20,8 @@
     <url>${web.url}</url>
 
     <properties>
-        <self-api-check.maven-version>0.4.1</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.6.1</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.4.2</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.6.3</self-api-check.java-extension-version>
     </properties>
 
     <dependencyManagement>
@@ -29,7 +29,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-bom</artifactId>
-                <version>17</version>
+                <version>19-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -255,6 +255,15 @@
                                     }
                                 }
                             ]]></analysisConfiguration>
+                            <analysisConfigurationFiles>
+                                <configurationFile>
+                                    <path>api-changes.json</path>
+                                    <roots>
+                                        <!--suppress MavenModelInspection -->
+                                        <root>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</root>
+                                    </roots>
+                                </configurationFile>
+                            </analysisConfigurationFiles>
                         </configuration>
                         <executions>
                             <execution>
