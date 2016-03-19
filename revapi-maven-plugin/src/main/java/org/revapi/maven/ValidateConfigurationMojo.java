@@ -16,12 +16,11 @@
  */
 package org.revapi.maven;
 
-import java.util.Locale;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.revapi.simple.SimpleReporter;
 
 /**
  * @author Lukas Krejci
@@ -32,20 +31,10 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (skip) {
-            return;
+        Analyzer analyzer = prepareAnalyzer(new SimpleReporter());
+
+        if (analyzer != null) {
+            analyzer.validateConfiguration();
         }
-
-        if (oldArtifacts == null || oldArtifacts.length == 0) {
-            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession,
-                    "RELEASE")};
-        }
-
-        Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
-                newArtifacts, project, repositorySystem, repositorySystemSession, null, Locale.getDefault(), getLog(),
-                failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion);
-
-        analyzer.validateConfiguration();
     }
 }

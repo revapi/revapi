@@ -41,7 +41,6 @@ import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.jboss.dmr.ModelNode;
@@ -59,8 +58,6 @@ import org.revapi.maven.utils.ScopeDependencyTraverser;
  * @since 0.1
  */
 final class Analyzer {
-    private static final String BUILD_COORDINATES = "BUILD";
-
     private final String analysisConfiguration;
 
     private final Object[] analysisConfigurationFiles;
@@ -173,7 +170,8 @@ final class Analyzer {
     @SuppressWarnings("unchecked")
     void resolveArtifacts() {
         if (resolvedOldApi == null) {
-            final BuildAwareArtifactResolver resolver = new BuildAwareArtifactResolver();
+            final ArtifactResolver resolver = new ArtifactResolver(repositorySystem, repositorySystemSession,
+                    project.getRemoteProjectRepositories());
 
             //Ok, what on Earth is this?
             //We're building with Java8 and I really like lambdas but Maven in the version we're using doesn't like
@@ -344,7 +342,7 @@ final class Analyzer {
                     if (failOnMissingConfigurationFiles) {
                         throw new MojoExecutionException(message);
                     } else {
-                        log.warn(message);
+                        log.debug(message);
                         continue;
                     }
                 }
@@ -379,67 +377,13 @@ final class Analyzer {
         }
     }
 
-    class BuildAwareArtifactResolver extends ArtifactResolver {
-
-        public BuildAwareArtifactResolver() {
-            super(repositorySystem, repositorySystemSession, project.getRemoteProjectRepositories());
-        }
-
-        @Override
-        protected void collectTransitiveDeps(String gav, Set<Artifact> resolvedArtifacts, Set<Exception> exceptions)
-                throws RepositoryException {
-
-            if (BUILD_COORDINATES.equals(gav)) {
-                Artifact a = resolveArtifact(gav);
-                super.collectTransitiveDeps(a.toString(), resolvedArtifacts, exceptions);
-            } else {
-                super.collectTransitiveDeps(gav, resolvedArtifacts, exceptions);
-            }
-        }
-
-        @Override
-        public Artifact resolveArtifact(String gav) throws ArtifactResolutionException {
-            if (BUILD_COORDINATES.equals(gav)) {
-                Artifact ret = toAetherArtifact(project.getArtifact(), repositorySystemSession);
-
-                //project.getArtifact().getFile() returns null for pom-packaged projects
-                if ("pom".equals(project.getArtifact().getType())) {
-                    ret = ret.setFile(new File(project.getBasedir(), "pom.xml"));
-                } else {
-                    ret = ret.setFile(project.getArtifact().getFile());
-                }
-
-                return ret;
-            } else {
-                return super.resolveArtifact(gav);
-            }
-        }
-
-        private Artifact toAetherArtifact(org.apache.maven.artifact.Artifact artifact, RepositorySystemSession session) {
-            String extension = session.getArtifactTypeRegistry().get(artifact.getType()).getExtension();
-            return new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), extension,
-                artifact.getVersion());
-        }
-    }
-
     private static class MarkerException extends RuntimeException {
-        public MarkerException() {
-        }
-
-        public MarkerException(Throwable cause) {
-            super(cause);
-        }
-
         public MarkerException(String message) {
             super(message);
         }
 
         public MarkerException(String message, Throwable cause) {
             super(message, cause);
-        }
-
-        public MarkerException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-            super(message, cause, enableSuppression, writableStackTrace);
         }
     }
 }

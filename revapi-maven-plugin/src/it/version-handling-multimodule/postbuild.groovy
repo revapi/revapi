@@ -7,15 +7,15 @@ void checkVersion(File pom, String... versions) throws Exception {
         if (line.startsWith("<version>") && versionCount < versions.length) {
             String version = versions[versionCount++];
             assert line.equals("<version>" + version + "</version>") :
-                    "The " + versionCount + "th version tag in v2 pom should have been changed to " + version +
-                            " but the line reads: " + line;
+                    "The " + versionCount + "th version tag in v2 pom (" + pom.getAbsolutePath() + ") should have" +
+                            " been changed to version  but the line reads: " + line;
             found = true;
             return;
         }
     }
 
     if (!found) {
-        throw new AssertionError("Failed to find the <version> tag in v2 pom.xml");
+        throw new AssertionError("Failed to find the <version> tag in v2 pom.xml (" + pom.getAbsolutePath() + ")");
     }
 }
 

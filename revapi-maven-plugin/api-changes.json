@@ -1,0 +1,14 @@
+{
+  "0.4.4": {
+    "revapi": {
+      "ignore": [
+        {
+          "code": "java.annotation.attributeRemoved",
+          "old": "field org.revapi.maven.ReportMojo.newArtifacts",
+          "new": "field org.revapi.maven.ReportMojo.newArtifacts",
+          "justification": "'defaultValue' of @Parameter has been removed. That is completely safe."
+        }
+      ]
+    }
+  }
+}

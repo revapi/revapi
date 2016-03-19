@@ -44,6 +44,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.artifact.DefaultArtifact;
 import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
 import org.revapi.ElementFilter;
@@ -121,13 +122,16 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         if (skip) {
             return;
         }
+        AnalysisResults analysisResults;
 
-        if (oldArtifacts == null || oldArtifacts.length == 0) {
-            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession,
-                    "RELEASE")};
+        if (!initializeComparisonArtifacts()) {
+            //we've got non-file artifacts, for which there is no reason to run analysis
+            DefaultArtifact oldArtifact = new DefaultArtifact(oldArtifacts[0]);
+            analysisResults = new AnalysisResults(ApiChangeLevel.NO_CHANGE, oldArtifact.getVersion());
+        } else {
+            analysisResults = analyzeProject(project);
         }
 
-        AnalysisResults analysisResults = analyzeProject(project);
         if (analysisResults == null) {
             return;
         }

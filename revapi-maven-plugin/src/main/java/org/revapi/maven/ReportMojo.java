@@ -128,20 +128,41 @@ public class ReportMojo extends AbstractMavenReport {
 
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
-     * current
-     * project.
+     * current project.
+     * <p/>
+     * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
+     * <p/>
+     * If the this property is null, the {@link #oldVersion} property is checked for a value of the old version of the
+     * artifact being built.
      *
-     * <p>If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
+     * @see #oldVersion
      */
     @Parameter(property = "revapi.oldArtifacts")
     private String[] oldArtifacts;
 
     /**
-     * The coordinates of the new artifacts. Defaults to single artifact with the artifacts from the build.
-     * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
+     * If you don't want to compare a different artifact than the one being built, specifying the just the old version
+     * is simpler way of specifying the old artifact.
+     * <p/>
+     * The default value is "RELEASE" meaning that the old version is the last released version of the artifact being
+     * built.
      */
-    @Parameter(defaultValue = AbstractRevapiMojo.BUILD_COORDINATES, property = "revapi.newArtifacts")
+    @Parameter(defaultValue = "RELEASE", property = "revapi.oldVersion")
+    private String oldVersion;
+
+    /**
+     * The coordinates of the new artifacts. These are the full GAVs of the artifacts, which means that you can compare
+     * different artifacts than the one being built. If you merely want to specify the artifact being built, use
+     * {@link #newVersion} property instead.
+     */
+    @Parameter(property = "revapi.newArtifacts")
     private String[] newArtifacts;
+
+    /**
+     * The new version of the artifact. Defaults to "${project.version}".
+     */
+    @Parameter(defaultValue = "${project.version}", property = "revapi.newVersion")
+    private String newVersion;
 
     /**
      * Problems with this or higher severity will be included in the report.
@@ -265,12 +286,34 @@ public class ReportMojo extends AbstractMavenReport {
 
     private void ensureAnalyzed(Locale locale) {
         if (reporter == null) {
+            reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
+
             if (oldArtifacts == null || oldArtifacts.length == 0) {
-                oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession,
-                        "RELEASE")};
+                //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
+                //analyze there
+                //only do it here, because oldArtifacts might point to another artifact.
+                //if we end up here in this branch, we know we'll be comparing the current artifact with something.
+                if (project.getArtifact().getFile() == null) {
+                    return;
+                }
+
+                oldArtifacts = new String[]{
+                        Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, oldVersion)};
             }
 
-            reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
+            if (newArtifacts == null || newArtifacts.length == 0) {
+                //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
+                //analyze there
+                //again, do this check only here, because oldArtifact might point elsewhere. But if we end up here, it
+                //means that oldArtifacts would be compared against the current artifact (in some version). Comparing
+                //against a POM artifact is always no-op.
+                if (project.getArtifact().getFile() == null) {
+                    return;
+                }
+
+                newArtifacts = new String[]{
+                        Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, newVersion)};
+            }
 
             Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                     newArtifacts, project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
@@ -287,6 +330,7 @@ public class ReportMojo extends AbstractMavenReport {
             }
         }
     }
+
     private ResourceBundle getBundle(Locale locale) {
         return ResourceBundle.getBundle("revapi-report", locale, this.getClass().getClassLoader());
     }

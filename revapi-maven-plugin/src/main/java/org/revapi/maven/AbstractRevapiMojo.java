@@ -33,11 +33,6 @@ import org.revapi.Reporter;
  * @since 0.3.11
  */
 abstract class AbstractRevapiMojo extends AbstractMojo {
-
-    public static final String BUILD_COORDINATES = "BUILD";
-    public static final String REVAPI_GROUP_ID = "org.revapi";
-    public static final String REVAPI_MAVEN_PLUGIN_ARTIFACT_ID = "revapi-maven-plugin";
-
     /**
      * The JSON configuration of various analysis options. The available options depend on what
      * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
@@ -116,18 +111,38 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
      * current project.
+     * <p/>
+     * If the this property is null, the {@link #oldVersion} property is checked for a value of the old version of the
+     * artifact being built.
      *
-     * <p>If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
+     * @see #oldVersion
      */
     @Parameter(property = "revapi.oldArtifacts")
     protected String[] oldArtifacts;
 
     /**
-     * The coordinates of the new artifacts. Defaults to single artifact with the artifacts from the build.
-     * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
+     * If you don't want to compare a different artifact than the one being built, specifying the just the old version
+     * is simpler way of specifying the old artifact.
+     * <p/>
+     * The default value is "RELEASE" meaning that the old version is the last released version of the artifact being
+     * built.
      */
-    @Parameter(defaultValue = AbstractRevapiMojo.BUILD_COORDINATES, property = "revapi.newArtifacts")
+    @Parameter(defaultValue = "RELEASE", property = "revapi.oldVersion")
+    protected String oldVersion;
+
+    /**
+     * The coordinates of the new artifacts. These are the full GAVs of the artifacts, which means that you can compare
+     * different artifacts than the one being built. If you merely want to specify the artifact being built, use
+     * {@link #newVersion} property instead.
+     */
+    @Parameter(property = "revapi.newArtifacts")
     protected String[] newArtifacts;
+
+    /**
+     * The new version of the artifact. Defaults to "${project.version}".
+     */
+    @Parameter(defaultValue = "${project.version}", property = "revapi.newVersion")
+    protected String newVersion;
 
     /**
      * Whether to skip the mojo execution.
@@ -178,19 +193,62 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean failOnUnresolvedDependencies;
 
     protected void analyze(Reporter reporter) throws MojoExecutionException, MojoFailureException {
+        Analyzer analyzer = prepareAnalyzer(reporter);
+
+        if (analyzer != null) {
+            analyzer.analyze();
+        }
+    }
+
+    protected Analyzer prepareAnalyzer(Reporter reporter) {
         if (skip) {
-            return;
+            return null;
         }
 
-        if (oldArtifacts == null || oldArtifacts.length == 0) {
-            oldArtifacts = new String[]{Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, "RELEASE")};
+        if (!initializeComparisonArtifacts()) {
+            return null;
         }
 
-        Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
+        return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(), getLog(),
                 failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
                 alwaysCheckForReleaseVersion);
+    }
 
-        analyzer.analyze();
+    /**
+     * @return true if artifacts are initialized, false if not and the analysis should not proceed
+     */
+    protected boolean initializeComparisonArtifacts() {
+        if (oldArtifacts == null || oldArtifacts.length == 0) {
+            //non-intuitively, we need to initialize the artifacts even if we will not proceed with the analysis itself
+            //that's because we need know the versions when figuring out the version modifications -
+            //see AbstractVersionModifyingMojo
+            oldArtifacts = new String[]{
+                    Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, oldVersion)};
+
+            //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
+            //analyze there
+            //only do it here, because oldArtifacts might point to another artifact.
+            //if we end up here in this branch, we know we'll be comparing the current artifact with something.
+            if (project.getArtifact().getFile() == null) {
+                return false;
+            }
+        }
+
+        if (newArtifacts == null || newArtifacts.length == 0) {
+            newArtifacts = new String[]{
+                    Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, newVersion)};
+
+            //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
+            //analyze there
+            //again, do this check only here, because oldArtifact might point elsewhere. But if we end up here, it
+            //means that oldArtifacts would be compared against the current artifact (in some version). Comparing
+            //against a POM artifact is always no-op.
+            if (project.getArtifact().getFile() == null) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
