@@ -251,13 +251,17 @@ public final class Revapi {
         Stats.of("transforms").start();
 
         int iteration = 0;
-        boolean changed;
+        boolean listChanged;
         do {
-            changed = false;
+            listChanged = false;
 
             ListIterator<Difference> it = report.getDifferences().listIterator();
+            List<Difference> transformed = new ArrayList<>(1); //this will hopefully be the max of transforms
             while (it.hasNext()) {
                 Difference d = it.next();
+                transformed.clear();
+                boolean shouldBeRemoved = false;
+                boolean differenceChanged = false;
                 for (DifferenceTransform<?> t : getTransformsForDifference(d)) {
                     // it is the responsibility of the transform to declare the proper type.
                     // it will get a ClassCastException if it fails to declare a type that is common to all differences
@@ -276,16 +280,33 @@ public final class Revapi {
                     }
 
                     // ignore if transformation returned null, meaning that it "swallowed" the difference..
-                    // once the changes are done, we'll loop through once more and remove the differences that the
-                    // transforms want removed.
-                    // This prevents 1 transformation from disallowing other transformation to do what it needs
-                    // if both apply to the same difference.
-                    if (td != null && !d.equals(td)) {
+                    if (td == null) {
+                        shouldBeRemoved = true;
+                        listChanged = true;
+                        differenceChanged = true;
+                    } else if (!d.equals(td)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Difference transform {} transforms {} to {}", t.getClass(), d, td);
                         }
-                        it.set(td);
-                        changed = true;
+
+                        transformed.add(td);
+                        listChanged = true;
+                        differenceChanged = true;
+                    }
+                }
+
+                if (differenceChanged) {
+                    //we need to remove the element in either case
+                    it.remove();
+                    if (!shouldBeRemoved) {
+                        //if it was not removed, but transformed, let's add the transformed difference in the place of
+                        //our currently removed element
+                        for (Difference td : transformed) {
+                            //this adds the new element *before* the currently pointed to index...
+                            it.add(td);
+                            //we want to check the newly added difference, so we need the iterator to point at it...
+                            it.previous();
+                        }
                     }
                 }
             }
@@ -302,22 +323,7 @@ public final class Revapi {
                         " iterations. This is most probably an error in difference transform configuration that" +
                         " cycles between two or more changes back and forth.");
             }
-        } while (changed);
-
-        //now remove the differences that the transforms want removed
-        ListIterator<Difference> it = report.getDifferences().listIterator();
-        while (it.hasNext()) {
-            Difference d = it.next();
-            for (DifferenceTransform<?> t : getTransformsForDifference(d)) {
-                @SuppressWarnings("unchecked")
-                DifferenceTransform<Element> tt = (DifferenceTransform<Element>) t;
-                Difference td = tt.transform(report.getOldElement(), report.getNewElement(), d);
-                if (td == null) {
-                    it.remove();
-                    break;
-                }
-            }
-        }
+        } while (listChanged);
 
         Stats.of("transforms").end(report);
 
