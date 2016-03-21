@@ -237,6 +237,11 @@ public class ReportMojo extends AbstractMavenReport {
 
         ensureAnalyzed(locale);
 
+        if (oldAPI == null || newAPI == null) {
+            throw new MavenReportException("Could not determine the artifacts to compare. If you're comparing the" +
+                    " currently built version, have you run the package goal?");
+        }
+
         Sink sink = getSink();
         ResourceBundle bundle = getBundle(locale);
 
@@ -280,8 +285,15 @@ public class ReportMojo extends AbstractMavenReport {
     @Override
     public String getDescription(Locale locale) {
         ensureAnalyzed(locale);
-        String message = getBundle(locale).getString("report.revapi.description");
-        return MessageFormat.format(message, niceList(oldAPI.getArchives()), niceList(newAPI.getArchives()));
+
+        if (oldAPI == null || newAPI == null) {
+            getLog().debug("Was unable to determine the old and new artifacts to compare while determining" +
+                    " the report description.");
+            return null;
+        } else {
+            String message = getBundle(locale).getString("report.revapi.description");
+            return MessageFormat.format(message, niceList(oldAPI.getArchives()), niceList(newAPI.getArchives()));
+        }
     }
 
     private void ensureAnalyzed(Locale locale) {
