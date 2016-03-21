@@ -32,7 +32,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-maven-plugin</artifactId>
-    <version>0.4.3</version>
+    <version>0.4.4-SNAPSHOT</version>
 
     <properties>
         <maven.version>3.1.1</maven.version>
@@ -289,6 +289,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>revapi-maven-plugin-0.4.3</tag>
+        <tag>HEAD</tag>
     </scm>
 </project>
