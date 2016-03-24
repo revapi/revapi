@@ -18,12 +18,14 @@ package org.revapi.maven;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
+import org.revapi.Archive;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
@@ -37,20 +39,66 @@ import org.revapi.Reporter;
 final class BuildTimeReporter implements Reporter {
 
     private final DifferenceSeverity breakingSeverity;
-    private StringBuilder allProblems;
-    private Locale locale;
+    private List<Report> allProblems;
+    private List<Archive> oldApi;
+    private List<Archive> newApi;
 
     public BuildTimeReporter(DifferenceSeverity breakingSeverity) {
         this.breakingSeverity = breakingSeverity;
-        allProblems = new StringBuilder();
     }
 
     public boolean hasBreakingProblems() {
-        return allProblems.length() > 0;
+        return allProblems != null && !allProblems.isEmpty();
     }
 
     public String getAllProblemsMessage() {
-        return "The following API problems caused the build to fail:" + allProblems.toString();
+        StringBuilder errors = new StringBuilder("The following API problems caused the build to fail:\n");
+        StringBuilder ignores = new StringBuilder();
+        for (Report r : allProblems) {
+            Element element = r.getOldElement();
+            Archive archive;
+            if (element == null) {
+                element = r.getNewElement();
+                assert element != null;
+                archive = shouldOutputArchive(newApi, element.getArchive()) ? element.getArchive() : null;
+            } else {
+                archive = shouldOutputArchive(oldApi, element.getArchive()) ? element.getArchive() : null;
+            }
+
+            for (Difference d : r.getDifferences()) {
+                if (isReportable(d)) {
+                    errors.append(d.code).append(": ").append(element.getFullHumanReadableString()).append(": ")
+                            .append(d.description);
+                    if (archive != null) {
+                        errors.append("[").append(archive.getName()).append("]");
+                    }
+                    errors.append("\n");
+
+                    ignores.append("{\n");
+                    ignores.append("  \"code\": \"").append(d.code).append("\",\n");
+                    if (r.getOldElement() != null) {
+                        ignores.append("  \"old\": \"").append(r.getOldElement()).append("\",\n");
+                    }
+                    if (r.getNewElement() != null) {
+                        ignores.append("  \"new\": \"").append(r.getNewElement()).append("\",\n");
+                    }
+                    ignores.append("  \"justification\": <<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE" +
+                            " >>>>>\n");
+                    ignores.append("},\n");
+                }
+            }
+        }
+
+        if (errors.length() == 0) {
+            return null;
+        } else {
+            ignores.replace(ignores.length() - 2, ignores.length(), "");
+            return errors.toString() +
+                    "\nIf you're using the semver-ignore extension, update your module's version to one compatible " +
+                    "with the current changes (e.g. mvn package revapi:update-versions). If you want to " +
+                    "explicitly ignore this change and provide a justification for it, add the following JSON snippet " +
+                    "to your Revapi configuration under \"revapi.ignore\" path:\n" + ignores.toString();
+        }
     }
 
     @Nullable
@@ -66,8 +114,16 @@ final class BuildTimeReporter implements Reporter {
     }
 
     @Override
-    public void initialize(@Nonnull AnalysisContext properties) {
-        locale = properties.getLocale();
+    public void initialize(@Nonnull AnalysisContext context) {
+        allProblems = new ArrayList<>();
+        oldApi = new ArrayList<>();
+        for (Archive a : context.getOldApi().getArchives()) {
+            oldApi.add(a);
+        }
+        newApi = new ArrayList<>();
+        for (Archive a : context.getNewApi().getArchives()) {
+            newApi.add(a);
+        }
     }
 
     @Override
@@ -83,20 +139,26 @@ final class BuildTimeReporter implements Reporter {
         }
 
         for (Difference d : report.getDifferences()) {
-            DifferenceSeverity maxSeverity = DifferenceSeverity.NON_BREAKING;
-            for (DifferenceSeverity s : d.classification.values()) {
-                if (maxSeverity.compareTo(s) < 0) {
-                    maxSeverity = s;
-                }
-            }
-
-            if (maxSeverity.compareTo(breakingSeverity) >= 0) {
-                String archive = element.getArchive() == null ? "<unknown-archive>" : element.getArchive().getName();
-                allProblems.append("\n[").append(archive).append("] ").append(element.getFullHumanReadableString()).append(": ").append(d.code)
-                        .append(": ").append(d.description);
-                appendIgnoreRecipe(allProblems, report, d);
+            if (isReportable(d)) {
+                allProblems.add(report);
+                break;
             }
         }
+    }
+
+    private boolean isReportable(Difference d) {
+        DifferenceSeverity maxSeverity = DifferenceSeverity.NON_BREAKING;
+        for (DifferenceSeverity s : d.classification.values()) {
+            if (maxSeverity.compareTo(s) < 0) {
+                maxSeverity = s;
+            }
+        }
+
+        return maxSeverity.compareTo(breakingSeverity) >= 0;
+    }
+
+    private boolean shouldOutputArchive(List<Archive> primaryApi, Archive archive) {
+        return !primaryApi.contains(archive) || primaryApi.size() > 1;
     }
 
     @Override
