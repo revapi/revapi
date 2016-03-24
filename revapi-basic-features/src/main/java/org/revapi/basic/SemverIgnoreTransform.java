@@ -68,8 +68,8 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
     }
 
     private Difference asBreaking(Difference d) {
-        return Difference.builder().withCode("semver.incompatibleWithCurrentVersion")
-                .withDescription(d.description + " (original difference code: " + d.code + ")")
+        return Difference.builder().withCode(d.code)
+                .withDescription(d.description + " (breaks semantic versioning)")
                 .withName("Incompatible with the current version: " + d.name)
                 .addAttachments(d.attachments).addClassifications(d.classification)
                 .addClassification(CompatibilityType.OTHER, DifferenceSeverity.BREAKING).build();
