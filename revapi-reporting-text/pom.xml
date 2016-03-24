@@ -27,17 +27,23 @@
     <name>Revapi Text Reporter</name>
     <description>
         Super simple Revapi reporter outputting a textual representation of
-        the differences to a file or on standard output.
+        the differences to a file or on standard output. Takes Freemarker templates for formatting the output.
     </description>
     <url>${web.url}/modules/${project.artifactId}</url>
     
     <artifactId>revapi-reporting-text</artifactId>
-    <version>0.4.2-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.23</version>
         </dependency>
     </dependencies>
 
