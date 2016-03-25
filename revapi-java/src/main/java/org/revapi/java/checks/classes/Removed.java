@@ -39,7 +39,7 @@ public final class Removed extends CheckBase {
 
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType != null && newType == null && isEffectivelyAccessible(oldType)) {
+        if (oldType != null && newType == null && isAccessible(oldType, getOldTypeEnvironment())) {
             pushActive(oldType, null);
         }
     }

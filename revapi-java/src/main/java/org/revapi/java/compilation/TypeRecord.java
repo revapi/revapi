@@ -1,8 +1,10 @@
 package org.revapi.java.compilation;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +33,7 @@ final class TypeRecord {
     private TypeElement type;
     private TypeRecord owner;
     private int nestingDepth;
+    private List<String> accessibleSubclasses;
 
     TypeRecord(String binaryName) {
         this.binaryName = binaryName;
@@ -136,6 +139,25 @@ final class TypeRecord {
 
     public void setNestingDepth(int nestingDepth) {
         this.nestingDepth = nestingDepth;
+    }
+
+    /**
+     * True if some subclass of the class represented by this type record is found to be accessible
+     */
+    public boolean isSomeSubclassAccessible() {
+        return accessibleSubclasses != null && accessibleSubclasses.size() > 0;
+    }
+
+    public List<String> getAccessibleSubclasses() {
+        if (accessibleSubclasses == null) {
+            accessibleSubclasses = new ArrayList<>();
+        }
+
+        return accessibleSubclasses;
+    }
+
+    public void addAccessibleSubclass(TypeRecord type) {
+        getAccessibleSubclasses().add(type.binaryName);
     }
 
     @Override

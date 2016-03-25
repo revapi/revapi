@@ -49,7 +49,7 @@ public final class Added extends CheckBase {
 
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType == null && newType != null && isAccessible(newType)) {
+        if (oldType == null && newType != null && isAccessible(newType, getNewTypeEnvironment())) {
             pushActive(null, newType);
         }
     }

@@ -1,12 +1,7 @@
 package org.revapi.java;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -75,34 +70,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         compileJars();
         allReports.clear();
 
-        Reporter reporter = new Reporter() {
-            @Nullable
-            @Override
-            public String[] getConfigurationRootPaths() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-                return null;
-            }
-
-            @Override
-            public void initialize(@Nonnull AnalysisContext properties) {
-            }
-
-            @Override
-            public void report(@Nonnull Report report) {
-                if (!report.getDifferences().isEmpty()) {
-                    allReports.add(report);
-                }
-            }
-
-            @Override
-            public void close() throws IOException {
-            }
-        };
+        Reporter reporter = new CollectingReporter(allReports);
 
         revapi = createRevapi(reporter);
     }
@@ -176,4 +144,5 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(1, allReports.size());
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
     }
+
 }

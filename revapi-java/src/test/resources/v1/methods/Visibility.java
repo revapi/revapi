@@ -23,4 +23,22 @@ public class Visibility {
     public void publicMethod() {
 
     }
+
+    private class SuperClass {
+        public void publicMethod() {
+
+        }
+    }
+
+    public class SubClass extends SuperClass {
+        private void privateMethod() {
+
+        }
+    }
+
+    private static class PrivateClass {
+        public void publicMethod() {
+
+        }
+    }
 }

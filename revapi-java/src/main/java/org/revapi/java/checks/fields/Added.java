@@ -24,14 +24,14 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.ConfigurationAwareCheckBase;
+import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class Added extends ConfigurationAwareCheckBase {
+public final class Added extends CheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -40,9 +40,7 @@ public final class Added extends ConfigurationAwareCheckBase {
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null && newField != null && isAccessible(newField) &&
-            isAccessibleOrInAPI(newField.getEnclosingElement(), getNewTypeEnvironment())) {
-
+        if (oldField == null && newField != null && isAccessible(newField, getNewTypeEnvironment())) {
             pushActive(null, newField);
         }
     }

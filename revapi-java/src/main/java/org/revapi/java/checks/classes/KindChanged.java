@@ -40,7 +40,7 @@ public final class KindChanged extends CheckBase {
     @Override
     protected void doVisitClass(TypeElement oldType, TypeElement newType) {
         if (oldType != null && newType != null && oldType.getKind() != newType.getKind() && isBothAccessible(oldType,
-            newType)) {
+                getOldTypeEnvironment(), newType, getNewTypeEnvironment())) {
             pushActive(oldType, newType);
         }
     }

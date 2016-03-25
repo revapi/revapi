@@ -42,7 +42,8 @@ public final class ReturnTypeChanged extends CheckBase {
 
     @Override
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
-        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
+        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, getOldTypeEnvironment(), newMethod,
+                getNewTypeEnvironment())) {
             return;
         }
 

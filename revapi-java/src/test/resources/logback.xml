@@ -23,7 +23,7 @@
     </appender>
 
     <!-- change to "trace" if AST debugging is needed -->
-    <root level="info">
+    <root level="trace">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

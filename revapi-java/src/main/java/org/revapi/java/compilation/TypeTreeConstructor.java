@@ -109,6 +109,10 @@ final class TypeTreeConstructor {
                     environment.getUseSiteMap().put(t.getBinaryName(), significantUseSites);
                 }
             }
+
+            if (t.isSomeSubclassAccessible()) {
+                environment.setAccessibleSubclasses(t.getBinaryName(), t.getAccessibleSubclasses());
+            }
         }
 
         return new Results(unknownTypes);
@@ -249,7 +253,7 @@ final class TypeTreeConstructor {
             TypeRecord rec = getOrCreateTypeRecord(usedTypeBinaryName);
 
             if (LOG.isTraceEnabled() && apiType && !rec.isApiType()) {
-                LOG.trace("Class {} drags {} into API", classBinaryName, usedTypeBinaryName);
+                LOG.trace("Class {} drags {} into API by use {}", classBinaryName, usedTypeBinaryName, useSite);
             }
 
             //the used type is going to be part of the API if it is used
@@ -284,7 +288,7 @@ final class TypeTreeConstructor {
             rec.setApiType(rec.isApiType() || apiType);
 
             if (rec.isApiType()) {
-                addUsedTypesToApi(rec, new HashSet<TypeRecord>());
+                addUsedTypesToApi(rec, new HashSet<>());
             }
 
             if (rec.getType() != null) {
@@ -376,11 +380,17 @@ final class TypeTreeConstructor {
                 TypeRecord rec = usedType.getKey();
 
                 if (LOG.isTraceEnabled() && !rec.isApiType()) {
-                    LOG.trace("Class {} drags {} into API", userType.getBinaryName(), rec.getBinaryName());
+                    LOG.trace("Class {} drags {} into API because of use types {}", userType.getBinaryName(),
+                            rec.getBinaryName(), usedType.getValue());
                 }
 
                 rec.setApiType(true);
                 rec.setApiThroughUse(true);
+
+                if (usedType.getValue().contains(UseSite.Type.IS_INHERITED) ||
+                        usedType.getValue().contains(UseSite.Type.IS_IMPLEMENTED)) {
+                    rec.addAccessibleSubclass(userType);
+                }
 
                 if (!visitedTypes.contains(rec)) {
                     visitedTypes.add(rec);

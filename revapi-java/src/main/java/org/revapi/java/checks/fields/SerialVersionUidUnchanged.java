@@ -64,7 +64,7 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
         if (oldField == null || newField == null ||
-            !isBothAccessibleOrInApi(oldField.getEnclosingElement(), getOldTypeEnvironment(),
+            !isBothAccessible(oldField.getEnclosingElement(), getOldTypeEnvironment(),
                 newField.getEnclosingElement(), getNewTypeEnvironment())) {
 
             return;

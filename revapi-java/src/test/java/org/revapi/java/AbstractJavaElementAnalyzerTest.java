@@ -286,4 +286,39 @@ public abstract class AbstractJavaElementAnalyzerTest {
             throw new IllegalStateException("Failed to remove compiled results", e);
         }
     }
+
+    protected static class CollectingReporter implements Reporter {
+        private final List<Report> allReports;
+
+        protected CollectingReporter(List<Report> allReports) {
+            this.allReports = allReports;
+        }
+
+        @Nullable
+        @Override
+        public String[] getConfigurationRootPaths() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+            return null;
+        }
+
+        @Override
+        public void initialize(@Nonnull AnalysisContext properties) {
+        }
+
+        @Override
+        public void report(@Nonnull Report report) {
+            if (!report.getDifferences().isEmpty()) {
+                allReports.add(report);
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
+    }
 }

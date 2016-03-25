@@ -16,6 +16,7 @@
 
 package org.revapi.java.test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -82,6 +83,12 @@ public class TestTypeEnvironment implements TypeEnvironment {
         }
 
         return visitor.end(type, parameter);
+    }
+
+    @Nonnull
+    @Override
+    public Set<TypeElement> getAccessibleSubclasses(@Nonnull TypeElement type) {
+        return Collections.emptySet();
     }
 
     public static class Builder {

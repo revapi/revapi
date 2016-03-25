@@ -44,7 +44,7 @@ public class SuperTypeParametersChanged extends CheckBase {
 
     @Override
     protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
-        if (oldType == null || newType == null || !isBothAccessible(oldType, newType)) {
+        if (!isBothAccessible(oldType, getOldTypeEnvironment(), newType, getNewTypeEnvironment())) {
             return;
         }
 

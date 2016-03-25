@@ -140,7 +140,7 @@ public final class InheritanceChainChanged extends CheckBase {
             return;
         }
 
-        if (isBothPrivate(oldType, newType)) {
+        if (isBothPrivate(oldType, getOldTypeEnvironment(), newType, getNewTypeEnvironment())) {
             return;
         }
 

@@ -30,7 +30,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.ConfigurationAwareCheckBase;
+import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
 
@@ -38,7 +38,7 @@ import org.revapi.java.spi.Util;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class FormalTypeParametersChanged extends ConfigurationAwareCheckBase {
+public final class FormalTypeParametersChanged extends CheckBase {
 
 
     @Override
@@ -58,7 +58,7 @@ public final class FormalTypeParametersChanged extends ConfigurationAwareCheckBa
 
     private void doVisit(@Nullable Parameterizable oldElement, @Nullable Parameterizable newElement) {
         if (oldElement == null || newElement == null ||
-            !isBothAccessibleOrInApi(oldElement, getOldTypeEnvironment(), newElement, getNewTypeEnvironment())) {
+            !isBothAccessible(oldElement, getOldTypeEnvironment(), newElement, getNewTypeEnvironment())) {
             return;
         }
 

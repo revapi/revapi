@@ -16,6 +16,8 @@
 
 package org.revapi.java.spi;
 
+import java.util.Set;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.TypeElement;
@@ -61,4 +63,12 @@ public interface TypeEnvironment {
      */
     @Nullable
     <R, P> R visitUseSites(@Nonnull TypeElement type, @Nonnull UseSite.Visitor<R, P> visitor, @Nullable P parameter);
+
+    /**
+     * Returns the set of subclasses of given type that are declared public.
+     * @param type the class
+     * @return the set of subclasses or empty set if no (accessible) subclasses are known
+     */
+    @Nonnull
+    Set<TypeElement> getAccessibleSubclasses(@Nonnull TypeElement type);
 }

@@ -351,7 +351,10 @@ final class ClassTreeInitializer {
             private void reportUse(Type t, UseSite.Type useType, RawUseSite.SiteType siteType, String siteName,
                 String siteDescriptor, int sitePosition) {
 
-                if (skipUseTracking) {
+                //we need to keep track of who inherits what regardless of whether we skip use tracking or not...
+                //this info is crucial
+                if (skipUseTracking && useType != UseSite.Type.IS_IMPLEMENTED && useType != UseSite.Type.IS_INHERITED
+                        && useType != UseSite.Type.CONTAINS) {
                     return;
                 }
 

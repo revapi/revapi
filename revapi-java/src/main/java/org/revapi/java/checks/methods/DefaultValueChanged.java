@@ -71,7 +71,8 @@ public final class DefaultValueChanged extends CheckBase {
 
     @Override
     protected void doVisitMethod(ExecutableElement oldMethod, ExecutableElement newMethod) {
-        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
+        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, getOldTypeEnvironment(), newMethod,
+                getNewTypeEnvironment())) {
             return;
         }
 

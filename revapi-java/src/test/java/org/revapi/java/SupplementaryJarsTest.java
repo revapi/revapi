@@ -76,37 +76,11 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             .addAsResource(compRes2.compilationPath.resolve("B$T$1$Private.class").toFile(), "B$T$1$Private.class")
             .addAsResource(compRes2.compilationPath.resolve("B$T$3.class").toFile(), "B$T$3.class")
             .addAsResource(compRes2.compilationPath.resolve("B$PrivateSuperClass.class").toFile(), "B$PrivateSuperClass.class")
+            .addAsResource(compRes2.compilationPath.resolve("B$PrivateUsedClass.class").toFile(), "B$PrivateUsedClass.class")
             .addAsResource(compRes2.compilationPath.resolve("C.class").toFile(), "C.class");
 
-        final List<Report> allReports = new ArrayList<>();
-        Reporter reporter = new Reporter() {
-            @Nullable
-            @Override
-            public String[] getConfigurationRootPaths() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-                return null;
-            }
-
-            @Override
-            public void initialize(@Nonnull AnalysisContext properties) {
-            }
-
-            @Override
-            public void report(@Nonnull Report report) {
-                if (!report.getDifferences().isEmpty()) {
-                    allReports.add(report);
-                }
-            }
-
-            @Override
-            public void close() throws IOException {
-            }
-        };
+        List<Report> allReports = new ArrayList<>();
+        Reporter reporter = new CollectingReporter(allReports);
 
         Revapi revapi = createRevapi(reporter);
 
@@ -117,21 +91,17 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .withConfigurationFromJSON("{\"revapi\": {\"java\": {\"deepUseChainAnalysis\": true}}}").build()
         );
 
-        Assert.assertEquals(5, allReports.size());
-        Assert
-            .assertTrue(
-                containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
-        Assert
-            .assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
-        Assert
-            .assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
-        Assert
-            .assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert
-            .assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
+        Assert.assertEquals(6, allReports.size());
+        Assert.assertTrue(containsDifference(allReports, null, "class B.T$1.Private",
+                Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
+                Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
 
         deleteDir(compRes1.compilationPath);
         deleteDir(compRes2.compilationPath);
     }
-
 }

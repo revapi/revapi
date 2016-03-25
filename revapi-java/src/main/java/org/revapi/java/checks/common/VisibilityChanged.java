@@ -23,7 +23,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.ConfigurationAwareCheckBase;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 
@@ -31,7 +30,7 @@ import org.revapi.java.spi.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public abstract class VisibilityChanged extends ConfigurationAwareCheckBase {
+public abstract class VisibilityChanged extends CheckBase {
     private final Code code;
     private final boolean reportIncrease;
 
@@ -42,7 +41,12 @@ public abstract class VisibilityChanged extends ConfigurationAwareCheckBase {
 
     protected final void doVisit(Element oldElement, Element newElement) {
         if (oldElement != null && newElement != null) {
-            pushActive(oldElement, newElement);
+            boolean oldAccessible = isAccessible(oldElement, getOldTypeEnvironment());
+            boolean newAccessible = isAccessible(newElement, getNewTypeEnvironment());
+            //check if both are accessible or if they differ.. don't check if they're both private
+            if (oldAccessible || newAccessible) {
+                pushActive(oldElement, newElement);
+            }
         }
     }
 

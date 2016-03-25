@@ -119,7 +119,7 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v1/fields/Visibility.java", "v2/fields/Visibility.java");
 
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_VISIBILITY_REDUCED.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_VISIBILITY_REDUCED.code()));
     }
 
     @Test
@@ -127,7 +127,7 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v2/fields/Visibility.java", "v1/fields/Visibility.java");
 
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_VISIBILITY_INCREASED.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_VISIBILITY_INCREASED.code()));
     }
 
     @Test

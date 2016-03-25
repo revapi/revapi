@@ -33,7 +33,20 @@ public class B {
         public T$1.Private f2;
     };
 
-    private static class PrivateSuperClass {}
+    private static class PrivateUsedClass {
+
+    }
+
+    private static class PrivateSuperClass {
+
+        /**
+         * This will be reported as a usage of private class in a public capacity, because T$3 is in the API and
+         * inherits this public method.
+         */
+        public PrivateUsedClass getThat() {
+            return null;
+        }
+    }
 
     /**
      * This will NOT be reported as a usage of a private class in a public capacity. Inheriting from a

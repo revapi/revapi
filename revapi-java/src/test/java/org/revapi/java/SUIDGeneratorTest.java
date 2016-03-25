@@ -19,6 +19,7 @@ package org.revapi.java;
 import java.io.File;
 import java.io.ObjectStreamClass;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -81,6 +82,12 @@ public class SUIDGeneratorTest {
                 public <R, P> R visitUseSites(@Nonnull TypeElement type, @Nonnull UseSite.Visitor<R, P> visitor,
                     @Nullable P parameter) {
                     return null;
+                }
+
+                @Nonnull
+                @Override
+                public Set<TypeElement> getAccessibleSubclasses(@Nonnull TypeElement type) {
+                    return Collections.emptySet();
                 }
             });
 

@@ -59,7 +59,7 @@ public final class Added extends CheckBase {
 
     @Override
     protected void doVisitMethod(ExecutableElement oldMethod, ExecutableElement newMethod) {
-        if (oldMethod == null && newMethod != null && isAccessible(newMethod)) {
+        if (oldMethod == null && newMethod != null && isAccessible(newMethod, getNewTypeEnvironment())) {
             pushActive(null, newMethod);
         }
     }

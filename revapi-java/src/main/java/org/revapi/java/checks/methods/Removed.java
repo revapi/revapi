@@ -49,7 +49,7 @@ public final class Removed extends CheckBase {
 
     @Override
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
-        if (oldMethod != null && newMethod == null && isAccessible(oldMethod)) {
+        if (oldMethod != null && newMethod == null && isAccessible(oldMethod, getOldTypeEnvironment())) {
             pushActive(oldMethod, null);
         }
     }

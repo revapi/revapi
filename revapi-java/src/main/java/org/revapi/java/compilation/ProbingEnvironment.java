@@ -16,12 +16,15 @@
 
 package org.revapi.java.compilation;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -69,6 +72,7 @@ public final class ProbingEnvironment implements TypeEnvironment {
     private final JavaElementForest tree;
     private final Map<String, Set<RawUseSite>> useSiteMap = new HashMap<>();
     private final HashMap<RawUseSite, UseSite> useSiteCache = new HashMap<>();
+    private final Map<String, Set<String>> accessibleSubclasses = new HashMap<>();
 
     public ProbingEnvironment(API api) {
         this.api = api;
@@ -161,6 +165,25 @@ public final class ProbingEnvironment implements TypeEnvironment {
         }
 
         return ret;
+    }
+
+    @Nonnull
+    @Override
+    public Set<TypeElement> getAccessibleSubclasses(@Nonnull TypeElement type) {
+        Set<String> binaryNames = accessibleSubclasses.get(getElementUtils().getBinaryName(type).toString());
+
+        if (binaryNames == null) {
+            return Collections.emptySet();
+        } else {
+            return binaryNames.stream().map(binaryName -> Util.findTypeByBinaryName(getElementUtils(), binaryName))
+                    .collect(Collectors.toSet());
+        }
+    }
+
+    public void setAccessibleSubclasses(@Nonnull String binaryName,
+            Collection<String> accessibleSubclassesBinaryNames) {
+
+        accessibleSubclasses.put(binaryName, new HashSet<>(accessibleSubclassesBinaryNames));
     }
 
     private <R, P> R visitRawUseSites(String binaryName, Set<RawUseSite> sites, RawUseSiteVisitor<R, P> visitor,

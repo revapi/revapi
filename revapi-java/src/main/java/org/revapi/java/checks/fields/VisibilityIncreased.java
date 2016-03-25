@@ -39,13 +39,6 @@ public final class VisibilityIncreased extends VisibilityChanged {
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null || newField == null ||
-            !isBothAccessibleOrInApi(oldField.getEnclosingElement(), getOldTypeEnvironment(),
-                newField.getEnclosingElement(), getNewTypeEnvironment())) {
-
-            return;
-        }
-
         super.doVisit(oldField, newField);
     }
 }

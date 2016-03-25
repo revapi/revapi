@@ -20,10 +20,12 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.ConfigurationAwareCheckBase;
+import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.Util;
 
@@ -31,7 +33,7 @@ import org.revapi.java.spi.Util;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class NonPublicClassPartOfAPI extends ConfigurationAwareCheckBase {
+public final class NonPublicClassPartOfAPI extends CheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -44,7 +46,7 @@ public final class NonPublicClassPartOfAPI extends ConfigurationAwareCheckBase {
             return;
         }
 
-        if (!isAccessible(newType) && isAccessibleOrInAPI(newType, getNewTypeEnvironment())) {
+        if (isAccessible(newType, getNewTypeEnvironment()) && !isAccessibleByModifier(newType)) {
             pushActive(oldType, newType);
         }
     }
@@ -61,4 +63,8 @@ public final class NonPublicClassPartOfAPI extends ConfigurationAwareCheckBase {
             .singletonList(createDifference(Code.CLASS_NON_PUBLIC_PART_OF_API, new Object[]{types.newElement},
                 Util.toHumanReadableString(types.newElement)));
     }
+
+    private boolean isAccessibleByModifier(Element e) {
+        return !isMissing(e) && (e.getModifiers().contains(Modifier.PUBLIC) ||
+                e.getModifiers().contains(Modifier.PROTECTED));    }
 }

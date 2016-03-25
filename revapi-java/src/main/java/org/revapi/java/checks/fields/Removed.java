@@ -23,7 +23,6 @@ import java.util.List;
 import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
-import org.revapi.java.checks.ConfigurationAwareCheckBase;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 
@@ -31,7 +30,7 @@ import org.revapi.java.spi.Code;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class Removed extends ConfigurationAwareCheckBase {
+public final class Removed extends CheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -40,8 +39,7 @@ public final class Removed extends ConfigurationAwareCheckBase {
 
     @Override
     protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField != null && newField == null && isAccessible(oldField) &&
-            isAccessibleOrInAPI(oldField.getEnclosingElement(), getOldTypeEnvironment())) {
+        if (oldField != null && newField == null && isAccessible(oldField, getOldTypeEnvironment())) {
 
             pushActive(oldField, null);
         }
