@@ -44,6 +44,20 @@ import java.util.*;
  */
 public abstract class CheckBase implements Check {
 
+    private static final UseSite.Visitor<Boolean, Void> NOOP_USE_CHECK = new UseSite.Visitor<Boolean, Void>() {
+        @Nullable
+        @Override
+        public Boolean visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable Void parameter) {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Boolean end(TypeElement type, @Nullable Void parameter) {
+            return false;
+        }
+    };
+
     /**
      * Checks whether both provided elements are (package) private. If one of them is null, the fact cannot be
      * determined and therefore this method would return false.
@@ -87,9 +101,14 @@ public abstract class CheckBase implements Check {
      * @return true if the provided element is public or protected, false otherwise.
      */
     public boolean isAccessible(@Nonnull Element e, @Nonnull  TypeEnvironment env) {
+        //large number of cases will not use the visitedTypes, so let's conserve some memory
+        return isAccessible(e, env, skipUseTracking ? Collections.emptySet() : new HashSet<>(1));
+    }
+
+    private boolean isAccessible(Element e, TypeEnvironment env, Set<TypeElement> visitedTypes) {
         //rule out missing, private and package private elements - those are never accessible.
         if (!isAccessibleByModifier(e)) {
-            return e instanceof TypeElement && isUsedSignificantly((TypeElement) e, env);
+            return (e instanceof TypeElement && isUsedSignificantly((TypeElement) e, env, visitedTypes));
         } else {
             //ok, we have something that is public or protected...
             return e.accept(new SimpleElementVisitor8<Boolean, Void>(true) {
@@ -106,7 +125,7 @@ public abstract class CheckBase implements Check {
                     //   b) its enclosing type is not accessible but at least one of its subclasses is and all the enclosing
                     //      types of that subclass (if any) are accessible
                     //
-                    if (isAllEnclosersAccessible(e, env) || isUsedSignificantly(e, env)) {
+                    if (isAllEnclosersAccessible(e, env) || isUsedSignificantly(e, env, visitedTypes)) {
                         return true;
                     } else {
                         Element parent = e.getEnclosingElement();
@@ -116,12 +135,13 @@ public abstract class CheckBase implements Check {
                             return true;
                         } else if (parent instanceof TypeElement) {
                             TypeElement tp = (TypeElement) parent;
-                            if (isAllEnclosersAccessible(tp, env) || isUsedSignificantly(tp, env)) {
+                            if (isAllEnclosersAccessible(tp, env) || isUsedSignificantly(tp, env, visitedTypes)) {
                                 return true;
                             }
                             Set<TypeElement> subclasses = env.getAccessibleSubclasses(tp);
                             return subclasses.stream()
-                                    .filter(t -> isAllEnclosersAccessible(t, env) || isUsedSignificantly(t, env))
+                                    .filter(t -> isAllEnclosersAccessible(t, env)
+                                            || isUsedSignificantly(t, env, visitedTypes))
                                     .findAny().isPresent();
                         } else {
                             //we shouldn't even get here, because anonymous or method-local classes should be
@@ -150,12 +170,13 @@ public abstract class CheckBase implements Check {
 
                     //if we reach this method, we know the method or field is accessible and we're checking if the type
                     //satisfies one of the conditions above
-                    if (isAllEnclosersAccessible(type, env) || isUsedSignificantly(type, env)) {
+                    if (isAllEnclosersAccessible(type, env) || isUsedSignificantly(type, env, visitedTypes)) {
                         return true;
                     } else {
                         Set<TypeElement> subclasses = env.getAccessibleSubclasses(type);
                         return subclasses.stream()
-                                .filter(t -> isAllEnclosersAccessible(t, env) || isUsedSignificantly(t, env))
+                                .filter(t -> isAllEnclosersAccessible(t, env)
+                                        || isUsedSignificantly(t, env, visitedTypes))
                                 .findAny().isPresent();
                     }
                 }
@@ -199,9 +220,11 @@ public abstract class CheckBase implements Check {
         return e.asType().getKind() == TypeKind.ERROR;
     }
 
-    private boolean isUsedSignificantly(@Nonnull TypeElement type, @Nonnull TypeEnvironment env) {
+    private boolean isUsedSignificantly(@Nonnull TypeElement type, @Nonnull TypeEnvironment env,
+            Set<TypeElement> visitedTypes) {
         return !skipUseTracking && isPubliclyUsedAs(type, env,
-                UseSite.Type.allBut(UseSite.Type.IS_IMPLEMENTED, UseSite.Type.IS_INHERITED, UseSite.Type.CONTAINS));
+                UseSite.Type.allBut(UseSite.Type.IS_IMPLEMENTED, UseSite.Type.IS_INHERITED, UseSite.Type.CONTAINS),
+                visitedTypes, NOOP_USE_CHECK);
     }
 
     /**
@@ -215,19 +238,7 @@ public abstract class CheckBase implements Check {
     public boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
         final Collection<UseSite.Type> uses) {
 
-        return isPubliclyUsedAs(type, env, uses, new HashSet<TypeElement>(), new UseSite.Visitor<Boolean, Void>() {
-            @Nullable
-            @Override
-            public Boolean visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable Void parameter) {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public Boolean end(TypeElement type, @Nullable Void parameter) {
-                return false;
-            }
-        });
+        return isPubliclyUsedAs(type, env, uses, new HashSet<>(), NOOP_USE_CHECK);
     }
 
     private boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
