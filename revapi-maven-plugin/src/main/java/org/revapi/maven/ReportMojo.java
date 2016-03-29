@@ -174,7 +174,7 @@ public class ReportMojo extends AbstractMavenReport {
     /**
      * Whether to skip the mojo execution.
      */
-    @Parameter
+    @Parameter(defaultValue = "false", property = "revapi.skip")
     private boolean skip;
 
     @Parameter(property = "revapi.outputDirectory", defaultValue = "${project.reporting.outputDirectory}",
@@ -231,11 +231,11 @@ public class ReportMojo extends AbstractMavenReport {
 
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
+        ensureAnalyzed(locale);
+
         if (skip) {
             return;
         }
-
-        ensureAnalyzed(locale);
 
         if (oldAPI == null || newAPI == null) {
             throw new MavenReportException("Could not determine the artifacts to compare. If you're comparing the" +
@@ -297,15 +297,17 @@ public class ReportMojo extends AbstractMavenReport {
     }
 
     private void ensureAnalyzed(Locale locale) {
-        if (reporter == null) {
+        if (!skip && reporter == null) {
             reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
 
+            //noinspection Duplicates
             if (oldArtifacts == null || oldArtifacts.length == 0) {
                 //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
                 //analyze there
                 //only do it here, because oldArtifacts might point to another artifact.
                 //if we end up here in this branch, we know we'll be comparing the current artifact with something.
                 if (project.getArtifact().getFile() == null) {
+                    skip = true;
                     return;
                 }
 
@@ -313,13 +315,10 @@ public class ReportMojo extends AbstractMavenReport {
                         Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, oldVersion)};
             }
 
+            //noinspection Duplicates
             if (newArtifacts == null || newArtifacts.length == 0) {
-                //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
-                //analyze there
-                //again, do this check only here, because oldArtifact might point elsewhere. But if we end up here, it
-                //means that oldArtifacts would be compared against the current artifact (in some version). Comparing
-                //against a POM artifact is always no-op.
                 if (project.getArtifact().getFile() == null) {
+                    skip = true;
                     return;
                 }
 

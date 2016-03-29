@@ -10,5 +10,17 @@
         }
       ]
     }
+  },
+  "0.4.5": {
+    "revapi": {
+      "ignore": [
+        {
+          "code": "java.annotation.attributeAdded",
+          "old": "field org.revapi.maven.ReportMojo.skip",
+          "new": "field org.revapi.maven.ReportMojo.skip",
+          "justification": "Just adding some attribs to @Parameter. This is safe."
+        }
+      ]
+    }
   }
 }
