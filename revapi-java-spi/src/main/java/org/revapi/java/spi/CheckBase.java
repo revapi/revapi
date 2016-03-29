@@ -108,7 +108,7 @@ public abstract class CheckBase implements Check {
     private boolean isAccessible(Element e, TypeEnvironment env, Set<TypeElement> visitedTypes) {
         //rule out missing, private and package private elements - those are never accessible.
         if (!isAccessibleByModifier(e)) {
-            return (e instanceof TypeElement && isUsedSignificantly((TypeElement) e, env, visitedTypes));
+            return e instanceof TypeElement && isUsedSignificantly((TypeElement) e, env, visitedTypes);
         } else {
             //ok, we have something that is public or protected...
             return e.accept(new SimpleElementVisitor8<Boolean, Void>(true) {
