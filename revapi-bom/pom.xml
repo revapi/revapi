@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Lukas Krejci
+  ~ Copyright 2015-2016 Lukas Krejci
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -53,25 +53,25 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-basic-features</artifactId>
-                <version>0.4.2</version>
+                <version>0.4.3</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-java-spi</artifactId>
-                <version>0.5.1</version>
+                <version>0.6.0</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-java</artifactId>
-                <version>0.6.3</version>
+                <version>0.7.0</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-plugin</artifactId>
-                <version>0.4.3</version>
+                <version>0.4.4</version>
             </dependency>
 
             <dependency>
