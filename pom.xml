@@ -48,7 +48,7 @@
         <module>revapi-java</module> 
         <module>revapi-maven-utils</module>
         <module>revapi-maven-plugin</module>
-        <module>revapi-reporting-text</module>
+        <module>revapi-reporter-text</module>
         <module>revapi-standalone</module>
         <module>revapi-site</module>
         <module>revapi-site-shared</module>
