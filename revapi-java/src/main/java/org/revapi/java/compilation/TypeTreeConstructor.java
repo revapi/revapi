@@ -163,7 +163,7 @@ final class TypeTreeConstructor {
             Class<?> cls = Class.forName(typeBinaryName);
             ClassLoader cl = cls.getClassLoader();
             return cl == null || cl.equals(ClassLoader.getSystemClassLoader());
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | LinkageError e) {
             return false;
         }
 //
