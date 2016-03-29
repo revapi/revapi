@@ -42,8 +42,8 @@
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi-java.version>0.6.3</revapi-java.version>
-        <revapi-java-spi.version>0.5.1</revapi-java-spi.version>
+        <revapi-java.version>0.7.0</revapi-java.version>
+        <revapi-java-spi.version>0.6.0</revapi-java-spi.version>
     </properties>
 
     <prerequisites>
