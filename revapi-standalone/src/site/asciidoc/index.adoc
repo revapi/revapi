@@ -23,7 +23,7 @@ First, let's try that using the file-based approach:
 
 ```
 revapi.sh
-    --extensions=org.revapi:revapi-java:0.5.2,org.revapi:revapi-reporting-text:0.3.4 <1>
+    --extensions=org.revapi:revapi-java:0.7.0,org.revapi:revapi-reporter-text:0.5.0  <1>
     --old path/to/guava-17.0.jar                                                     <2>
     --new path/to/guava-18.0.jar                                                     <3>
     -Drevapi.java.missing-classes.behavior=report                                    <4>

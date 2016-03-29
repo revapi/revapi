@@ -20,7 +20,7 @@ add the extension as a dependency of the maven plugin like so:
       <dependencies>
          <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi-reporting-text</artifactId>
+            <artifactId>revapi-reporter-text</artifactId>
             <version>...</version>
          </dependency>
          ...

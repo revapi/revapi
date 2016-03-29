@@ -61,12 +61,12 @@ artifacts, use the link to "All Versions" and pick the one you like.
 |+++<a id="link-org.revapi-revapi-java-spi">here</a>+++
 |+++<a id="all-link-org.revapi-revapi-java-spi">here</a>+++
 
-|Revapi Text Reporting Extension
-|`org.revapi:revapi-reporting-text`
-|+++<div id="version-org.revapi-revapi-reporting-text"></div>+++
-|+++<div id="release-date-org.revapi-revapi-reporting-text"></div>+++
-|+++<a id="link-org.revapi-revapi-reporting-text">here</a>+++
-|+++<a id="all-link-org.revapi-revapi-reporting-text">here</a>+++
+|Revapi Text Reporter Extension
+|`org.revapi:revapi-reporter-text`
+|+++<div id="version-org.revapi-revapi-reporter-text"></div>+++
+|+++<div id="release-date-org.revapi-revapi-reporter-text"></div>+++
+|+++<a id="link-org.revapi-revapi-reporter-text">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-reporter-text">here</a>+++
 
 |Revapi BOM
 |`org.revapi:revapi-bom`
@@ -121,7 +121,7 @@ window.addEventListener("load", function() {
     fillIn("org.revapi", "revapi-java", ".jar")
     fillIn("org.revapi", "revapi-java-spi", ".jar")
     fillIn("org.revapi", "revapi-maven-plugin", ".jar")
-    fillIn("org.revapi", "revapi-reporting-text", ".jar")
+    fillIn("org.revapi", "revapi-reporter-text", ".jar")
     fillIn("org.revapi", "revapi-standalone", "-standalone.zip")
 })
 </script>

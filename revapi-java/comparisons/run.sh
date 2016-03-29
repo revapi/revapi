@@ -45,10 +45,10 @@ cd "$INST_DIR"
 unzip "$DIR"/../../revapi-standalone/target/revapi-${REVAPI_VERSION}-standalone.zip
 cd revapi-${REVAPI_VERSION}
 # dry run so that revapi downloads its extensions and so we have a fair comparison of times
-./revapi.sh -e org.revapi:revapi-java:${REVAPI_JAVA_VERSION},org.revapi:revapi-reporting-text:${REVAPI_REPORT_VERSION} \
+./revapi.sh -e org.revapi:revapi-java:${REVAPI_JAVA_VERSION},org.revapi:revapi-reporter-text:${REVAPI_REPORT_VERSION} \
   -o "$DIR"/v1.jar -n "$DIR"/v2.jar > /dev/null 2>&1
 start=$(($(date +%s%N)/1000000))
-./revapi.sh -e org.revapi:revapi-java:${REVAPI_JAVA_VERSION},org.revapi:revapi-reporting-text:${REVAPI_REPORT_VERSION} \
+./revapi.sh -e org.revapi:revapi-java:${REVAPI_JAVA_VERSION},org.revapi:revapi-reporter-text:${REVAPI_REPORT_VERSION} \
   -o "$DIR"/v1.jar -n "$DIR"/v2.jar -D revapi.reporter.text.minSeverity=NON_BREAKING > "$DIR"/revapi.report 2>/dev/null
 end=$(($(date +%s%N)/1000000))
 revapi_time=$(($end - $start))

@@ -82,8 +82,8 @@
 
             <dependency>
                 <groupId>org.revapi</groupId>
-                <artifactId>revapi-reporting-text</artifactId>
-                <version>0.4.1</version>
+                <artifactId>revapi-reporter-text</artifactId>
+                <version>0.5.0</version>
             </dependency>
 
             <dependency>
