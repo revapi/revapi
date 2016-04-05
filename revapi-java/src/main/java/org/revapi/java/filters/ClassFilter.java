@@ -16,8 +16,11 @@
  */
 package org.revapi.java.filters;
 
+import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -50,6 +53,28 @@ public final class ClassFilter extends AbstractIncludeExcludeFilter {
 
         //include both the FQCN (which is always without type params) and the full name including the type parameters
         return Stream.of(type.getQualifiedName().toString(), Util.toHumanReadableString(type));
+    }
+
+    @Override
+    protected void validateConfiguration(boolean excludes, List<String> fullMatches, List<Pattern> patterns,
+            boolean regexes) {
+        if (!regexes) {
+            validateFullMatches(excludes, fullMatches);
+        }
+    }
+
+    static void validateFullMatches(boolean excludes, List<String> fullMatches) {
+        if (fullMatches.stream().filter(n -> !SourceVersion.isName(n)).findAny().isPresent()) {
+            String message = excludes
+                    ? "Excludes contain full matches on illegal Java names. This would" +
+                    " effectively do nothing and is most probably a typo or misconfiguration on your side. If you" +
+                    " intended to use regular expressions, you forgot to specify it."
+                    : "Includes contain full matches on illegal Java names. This would" +
+                    " effectively filter everything out and is most probably a typo or misconfiguration on your side." +
+                    " If you intended to use regular expressions, you forgot to specify it.";
+
+            throw new IllegalArgumentException(message);
+        }
     }
 
     private TypeElement getTypeOf(Element element) {

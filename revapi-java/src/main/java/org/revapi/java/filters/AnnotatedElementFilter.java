@@ -16,6 +16,8 @@
  */
 package org.revapi.java.filters;
 
+import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -55,5 +57,11 @@ public final class AnnotatedElementFilter extends AbstractIncludeExcludeFilter {
             AbstractIncludeExcludeFilter.InclusionState parentInclusionState) {
         //annotations cannot be annotated, so include this only if there is no explicit inclusion filter
         return parentInclusionState.toBoolean() && includeTest == null;
+    }
+
+    @Override
+    protected void validateConfiguration(boolean excludes, List<String> fullMatches, List<Pattern> patterns,
+            boolean regexes) {
+        //XXX probably we should do something here, but the check would be a little bit complex so let's not ;)
     }
 }

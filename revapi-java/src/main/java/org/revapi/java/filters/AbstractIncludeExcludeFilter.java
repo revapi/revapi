@@ -106,6 +106,8 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
 
         readMatches(root.get("exclude"), regexes, fullMatches, patterns);
 
+        validateConfiguration(true, fullMatches, patterns, regexes);
+
         this.excludeTest = composeTest(fullMatches, patterns);
 
         fullMatches = new ArrayList<>();
@@ -113,10 +115,15 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
 
         readMatches(root.get("include"), regexes, fullMatches, patterns);
 
+        validateConfiguration(false, fullMatches, patterns, regexes);
+
         this.includeTest = composeTest(fullMatches, patterns);
 
         doNothing = includeTest == null && excludeTest == null;
     }
+
+    protected abstract void validateConfiguration(boolean excludes, List<String> fullMatches, List<Pattern> patterns,
+            boolean regexes);
 
     private void readMatches(ModelNode array, boolean regexes, List<String> fullMatches, List<Pattern> patterns) {
         if (!array.isDefined()) {

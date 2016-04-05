@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
@@ -77,6 +78,14 @@ public class PackageFilter extends AbstractIncludeExcludeFilter {
     @Override
     protected Stream<String> getTestedElementRepresentations(JavaModelElement element) {
         return Stream.of(getPackageOf(element.getModelElement()).getQualifiedName().toString());
+    }
+
+    @Override
+    protected void validateConfiguration(boolean excludes, List<String> fullMatches, List<Pattern> patterns,
+            boolean regexes) {
+        if (!regexes) {
+            ClassFilter.validateFullMatches(excludes, fullMatches);
+        }
     }
 
     @Override
