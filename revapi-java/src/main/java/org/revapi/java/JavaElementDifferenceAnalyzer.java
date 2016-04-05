@@ -176,7 +176,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             if (lastAnnotationResults == null) {
                 lastAnnotationResults = new ArrayList<>();
             }
-            checkTypeStack.push(Check.Type.ANNOTATION);
+            //DO NOT push the ANNOTATION type to the checkTypeStack. Annotations are handled differently and this would
+            //lead to the stack corruption and missed problems!!!
             for (Check c : checksByInterest.get(Check.Type.ANNOTATION)) {
                 Stats.of(c.getClass().getName()).start();
                 List<Difference> cps = c
