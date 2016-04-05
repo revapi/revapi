@@ -1,0 +1,13 @@
+{
+  "0.7.1": {
+    "revapi": {
+      "ignore": [
+	{
+	  "code": "java.method.abstractMethodAdded",
+	  "new": "method void org.revapi.java.filters.AbstractIncludeExcludeFilter::validateConfiguration(boolean, java.util.List<java.lang.String>, java.util.List<java.util.regex.Pattern>, boolean)",
+	  "justification": "This is incorrectly marked as a breakage. This change is made in a private class that is only inherited by final subclasses."
+	}
+      ]
+    }
+  }
+}

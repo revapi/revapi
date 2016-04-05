@@ -45,7 +45,7 @@ import org.revapi.query.Filter;
  * @author Lukas Krejci
  * @since 0.7.0
  */
-public class PackageFilter extends AbstractIncludeExcludeFilter {
+public final class PackageFilter extends AbstractIncludeExcludeFilter {
 
     //the purpose of this map is to have a package represented by a SINGLE object
     private final Map<String, JavaPackageElement> packageElements = new HashMap<>();
