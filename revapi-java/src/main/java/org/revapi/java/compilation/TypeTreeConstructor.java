@@ -331,9 +331,16 @@ final class TypeTreeConstructor {
                 innerClassHierarchy = innerClassHierarchyConstructor.process();
             }
 
-            String canonicalName = innerClassHierarchyConstructor == null
-                    ? classBinaryName
-                    : innerClassHierarchy.get(innerClassHierarchy.size() - 1).getCanonicalName();
+            String canonicalName;
+
+            if (innerClassHierarchyConstructor == null) {
+                canonicalName = classBinaryName;
+            } else if (!innerClassHierarchy.isEmpty()) {
+                canonicalName = innerClassHierarchy.get(innerClassHierarchy.size() - 1).getCanonicalName();
+            } else {
+                //anonymous inner class or a member class.. we don't consider those.
+                return;
+            }
 
             if (inclusionFilter.rejects(classBinaryName, canonicalName)) {
                 rec.setExplicitlyExcluded(true);
