@@ -28,6 +28,7 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.java.compilation.CompilationFuture;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.Compiler;
+import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementForest;
 
@@ -44,11 +45,11 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final boolean skipUseTracking;
     private final Set<File> bootstrapClasspath;
     private CompilationValve compilationValve;
+    private InclusionFilter inclusionFilter;
 
     public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
-                               AnalysisConfiguration.MissingClassReporting missingClassReporting,
-                               boolean ignoreMissingAnnotations,
-                               boolean skipUseTracking, Set<File> bootstrapClasspath) {
+            AnalysisConfiguration.MissingClassReporting missingClassReporting, boolean ignoreMissingAnnotations,
+            boolean skipUseTracking, Set<File> bootstrapClasspath, InclusionFilter inclusionFilter) {
         this.api = api;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
@@ -56,6 +57,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         this.skipUseTracking = skipUseTracking;
         this.probingEnvironment = new ProbingEnvironment(api);
         this.bootstrapClasspath = bootstrapClasspath;
+        this.inclusionFilter = inclusionFilter;
     }
 
     @Nonnull
@@ -70,7 +72,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         try {
             compilationValve = compiler
                 .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, skipUseTracking,
-                        bootstrapClasspath);
+                        bootstrapClasspath, inclusionFilter);
 
             probingEnvironment.getTree()
                 .setCompilationFuture(new CompilationFuture(compilationValve, output));

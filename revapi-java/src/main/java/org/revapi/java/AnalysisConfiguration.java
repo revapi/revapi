@@ -17,8 +17,11 @@
 package org.revapi.java;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.jboss.dmr.ModelNode;
 
@@ -34,17 +37,25 @@ public final class AnalysisConfiguration {
     private final Set<File> newApiBootstrapClasspath;
     private final boolean ignoreMissingAnnotations;
     private final boolean deepUseChainAnalysis;
+    private final Set<Pattern> classInclusionFilters;
+    private final Set<Pattern> classExclusionFilters;
+    private final Set<Pattern> packageInclusionFilters;
+    private final Set<Pattern> packageExclusionFilters;
 
-    public AnalysisConfiguration(MissingClassReporting missingClassReporting,
-        Set<String> useReportingCodes, Set<File> oldApiBootstrapClasspath,
-        Set<File> newApiBootstrapClasspath, boolean ignoreMissingAnnotations, boolean deepUseChainAnalysis) {
-
+    public AnalysisConfiguration(MissingClassReporting missingClassReporting, Set<String> useReportingCodes,
+            Set<File> oldApiBootstrapClasspath, Set<File> newApiBootstrapClasspath, boolean ignoreMissingAnnotations,
+            boolean deepUseChainAnalysis, Set<Pattern> classInclusionFilters, Set<Pattern> classExclusionFilters,
+            Set<Pattern> packageInclusionFilters, Set<Pattern> packageExclusionFilters) {
         this.missingClassReporting = missingClassReporting;
         this.useReportingCodes = useReportingCodes;
         this.oldApiBootstrapClasspath = oldApiBootstrapClasspath;
         this.newApiBootstrapClasspath = newApiBootstrapClasspath;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.deepUseChainAnalysis = deepUseChainAnalysis;
+        this.classInclusionFilters = classInclusionFilters;
+        this.classExclusionFilters = classExclusionFilters;
+        this.packageInclusionFilters = packageInclusionFilters;
+        this.packageExclusionFilters = packageExclusionFilters;
     }
 
     public static AnalysisConfiguration fromModel(ModelNode node) {
@@ -55,8 +66,21 @@ public final class AnalysisConfiguration {
         boolean ignoreMissingAnnotations = readIgnoreMissingAnnotations(node);
         boolean deepUseChainAnalysis = readDeepUseChainAnalysis(node);
 
+        ModelNode classesRegex = node.get("revapi", "java", "filter", "classes", "regex");
+        ModelNode packagesRegex = node.get("revapi", "java", "filter", "packages", "regex");
+
+        Set<Pattern> classInclusionFilters = readFilter(node.get("revapi", "java", "filter", "classes", "include"),
+                classesRegex);
+        Set<Pattern> classExclusionFilters = readFilter(node.get("revapi", "java", "filter", "classes", "exclude"),
+                classesRegex);
+        Set<Pattern> packageInclusionFilters = readFilter(node.get("revapi", "java", "filter", "packages", "include"),
+                packagesRegex);
+        Set<Pattern> packageExclusionFilters = readFilter(node.get("revapi", "java", "filter", "packages", "exclude"),
+                packagesRegex);
+
         return new AnalysisConfiguration(reporting, useReportingCodes, oldApiBootstrapClasspath,
-            newApiBootstrapClasspath, ignoreMissingAnnotations, deepUseChainAnalysis);
+            newApiBootstrapClasspath, ignoreMissingAnnotations, deepUseChainAnalysis, classInclusionFilters,
+                classExclusionFilters, packageInclusionFilters, packageExclusionFilters);
     }
 
     public MissingClassReporting getMissingClassReporting() {
@@ -81,6 +105,22 @@ public final class AnalysisConfiguration {
 
     public boolean isDeepUseChainAnalysis() {
         return deepUseChainAnalysis;
+    }
+
+    public Set<Pattern> getClassExclusionFilters() {
+        return classExclusionFilters;
+    }
+
+    public Set<Pattern> getClassInclusionFilters() {
+        return classInclusionFilters;
+    }
+
+    public Set<Pattern> getPackageExclusionFilters() {
+        return packageExclusionFilters;
+    }
+
+    public Set<Pattern> getPackageInclusionFilters() {
+        return packageInclusionFilters;
     }
 
     private static MissingClassReporting readMissingClassReporting(ModelNode analysisConfig) {
@@ -187,6 +227,24 @@ public final class AnalysisConfiguration {
     private static boolean readDeepUseChainAnalysis(ModelNode analysisConfig) {
         ModelNode config = analysisConfig.get("revapi", "java", "deepUseChainAnalysis");
         return config.isDefined() && config.asBoolean();
+    }
+
+    private static Set<Pattern> readFilter(ModelNode filterNode, ModelNode regexNode) {
+        if (!filterNode.isDefined()) {
+            return Collections.emptySet();
+        }
+
+        boolean isRegex = regexNode.isDefined() && regexNode.asBoolean();
+
+        return filterNode.asList().stream()
+                .map(filter -> {
+                    if (isRegex) {
+                        return Pattern.compile(filter.asString());
+                    } else {
+                        return Pattern.compile(Pattern.quote(filter.asString()));
+                    }
+                })
+                .collect(Collectors.toSet());
     }
 
     public enum MissingClassReporting {

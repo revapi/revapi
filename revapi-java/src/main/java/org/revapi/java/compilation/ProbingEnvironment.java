@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
@@ -73,6 +74,8 @@ public final class ProbingEnvironment implements TypeEnvironment {
     private final Map<String, Set<RawUseSite>> useSiteMap = new HashMap<>();
     private final HashMap<RawUseSite, UseSite> useSiteCache = new HashMap<>();
     private final Map<String, Set<String>> accessibleSubclasses = new HashMap<>();
+    private final Set<String> explicitExclusions = new HashSet<>();
+    private final Set<String> explicitInclusions = new HashSet<>();
 
     public ProbingEnvironment(API api) {
         this.api = api;
@@ -101,6 +104,14 @@ public final class ProbingEnvironment implements TypeEnvironment {
 
     public boolean hasProcessingEnvironment() {
         return processingEnvironment != null;
+    }
+
+    public boolean isExplicitlyIncluded(Element element) {
+        return explicitInclusions.contains(Util.toHumanReadableString(element));
+    }
+
+    public boolean isExplicitlyExcluded(Element element) {
+        return explicitExclusions.contains(Util.toHumanReadableString(element));
     }
 
     @Nonnull
@@ -184,6 +195,14 @@ public final class ProbingEnvironment implements TypeEnvironment {
             Collection<String> accessibleSubclassesBinaryNames) {
 
         accessibleSubclasses.put(binaryName, new HashSet<>(accessibleSubclassesBinaryNames));
+    }
+
+    public void addExplicitExclusion(String canonicalName) {
+        explicitExclusions.add(canonicalName);
+    }
+
+    public void addExplicitInclusion(String canonicalName) {
+        explicitInclusions.add(canonicalName);
     }
 
     private <R, P> R visitRawUseSites(String binaryName, Set<RawUseSite> sites, RawUseSiteVisitor<R, P> visitor,

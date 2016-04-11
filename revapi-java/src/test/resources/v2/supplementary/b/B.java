@@ -15,6 +15,12 @@
  */
 
 public class B {
+    /**
+     * This changed from class to interface, but if the class C, which uses this, is ignored, we should get no
+     * problem reported.
+     */
+    public static interface UsedByIgnoredClass {}
+
     public static class T$1 {
         /** this change should be ignored, because it is not "visible" from the API defined by A. */
         private static interface TT$1 {

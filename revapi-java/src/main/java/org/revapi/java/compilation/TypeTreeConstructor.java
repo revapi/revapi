@@ -17,6 +17,7 @@
 package org.revapi.java.compilation;
 
 import java.io.File;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,10 +51,19 @@ final class TypeTreeConstructor {
     private final ProbingEnvironment environment;
     private final Set<File> bootstrapClasspath;
     private Set<String> bootstrapClasses;
+    private final InclusionFilter inclusionFilter;
 
-    TypeTreeConstructor(ProbingEnvironment environment, Set<File> bootstrapClasspath) {
+    /**
+     * @param environment the type environment we're operating in
+     * @param bootstrapClasspath the jars of the bootstrap classpath
+     * @param inclusionFilter a filter on canonical class name deciding whether to include the class in the API or not
+     *                        This is meant to come from user configuration.
+     */
+    TypeTreeConstructor(ProbingEnvironment environment, Set<File> bootstrapClasspath,
+            InclusionFilter inclusionFilter) {
         this.environment = environment;
         this.bootstrapClasspath = bootstrapClasspath;
+        this.inclusionFilter = inclusionFilter;
     }
 
     public ClassProcessor createApiClassProcessor(Archive classArchive, String classBinaryName, boolean apiType) {
@@ -80,6 +90,15 @@ final class TypeTreeConstructor {
 
         for (TypeRecord t : allTypes) {
             if (t.isApiType()) {
+                if (t.isExplicitlyExcluded()) {
+                    environment.addExplicitExclusion(t.getType().getCanonicalName());
+                    continue;
+                }
+
+                if (!inclusionFilter.defaultCase() && !t.isExplicitlyIncluded()) {
+                    continue;
+                }
+
                 if (t.getType() == null) {
                     unknownTypes.add(t.getBinaryName());
                     continue;
@@ -92,8 +111,23 @@ final class TypeTreeConstructor {
                 //before their children.
                 if (t.getOwner() == null) {
                     environment.getTree().getRootsUnsafe().add(t.getType());
-                } else if (t.isApiThroughUse() && checkInTree(t.getOwner()) == null) {
-                    environment.getTree().getRootsUnsafe().add(t.getType());
+                } else if (checkInTree(t.getOwner()) == null) {
+                    boolean include = true;
+                    if (!t.isExplicitlyIncluded()) {
+                        //check if there was an explicit exclusion of one of the parent
+                        TypeRecord parent = t.getOwner();
+                        while (parent != null) {
+                            if (parent.isExplicitlyExcluded()) {
+                                include = false;
+                                break;
+                            }
+                            parent = parent.getOwner();
+                        }
+                    }
+
+                    if (include) {
+                        environment.getTree().getRootsUnsafe().add(t.getType());
+                    }
                 }
 
                 if (t.hasUseSites()) {
@@ -230,6 +264,7 @@ final class TypeTreeConstructor {
         private final String classBinaryName;
         private final boolean apiType;
         private InnerClassHierarchyConstructor innerClassHierarchyConstructor;
+        private final List<AbstractMap.SimpleEntry<String, RawUseSite>> detectedUses = new ArrayList<>();
 
         private ClassProcessor(Archive archive, String classBinaryName, boolean apiType) {
             this.archive = archive;
@@ -246,6 +281,13 @@ final class TypeTreeConstructor {
         }
 
         public void addUse(String usedTypeBinaryName, RawUseSite useSite) {
+            detectedUses.add(new AbstractMap.SimpleEntry<>(usedTypeBinaryName, useSite));
+        }
+
+        private void processUse(Map.Entry<String, RawUseSite> usedTypeAndUseSite) {
+            String usedTypeBinaryName = usedTypeAndUseSite.getKey();
+            RawUseSite useSite = usedTypeAndUseSite.getValue();
+
             if (isOnBootstrapClasspath(usedTypeBinaryName)) {
                 return;
             }
@@ -284,6 +326,23 @@ final class TypeTreeConstructor {
             TypeRecord rec = getOrCreateTypeRecord(classBinaryName);
             unseenClassesBinaryNames.remove(classBinaryName);
 
+            List<InnerClass> innerClassHierarchy = null;
+            if (innerClassHierarchyConstructor != null) {
+                innerClassHierarchy = innerClassHierarchyConstructor.process();
+            }
+
+            String canonicalName = innerClassHierarchyConstructor == null
+                    ? classBinaryName
+                    : innerClassHierarchy.get(innerClassHierarchy.size() - 1).getCanonicalName();
+
+            if (inclusionFilter.rejects(classBinaryName, canonicalName)) {
+                rec.setExplicitlyExcluded(true);
+            } else {
+                detectedUses.forEach(this::processUse);
+            }
+
+            rec.setExplicitlyIncluded(inclusionFilter.accepts(classBinaryName, canonicalName));
+
             //if this was determined as part of API, don't reset it back (potentially)
             rec.setApiType(rec.isApiType() || apiType);
 
@@ -295,7 +354,7 @@ final class TypeTreeConstructor {
                 return;
             }
 
-            if (innerClassHierarchyConstructor == null) {
+            if (innerClassHierarchy == null) {
                 TypeElement type = createTypeElement(archive, classBinaryName, classBinaryName);
                 rec.setType(type);
                 initChildren(rec, 1);
@@ -304,7 +363,6 @@ final class TypeTreeConstructor {
                 //for the current class, we already did it above, but we don't
                 //do anything for the parents - their apiType flag will be set
                 //when their classes are processed.
-                List<InnerClass> innerClassHierarchy = innerClassHierarchyConstructor.process();
                 if (innerClassHierarchy.isEmpty()) {
                     //anonymous inner class most probably
                     return;

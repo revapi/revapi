@@ -28,6 +28,8 @@ final class TypeRecord {
 
     private boolean apiType;
     private boolean apiThroughUse;
+    private boolean explicitlyExcluded;
+    private boolean explicitlyIncluded;
     private Set<RawUseSite> useSites;
     private Map<TypeRecord, EnumSet<UseSite.Type>> usedTypes;
     private TypeElement type;
@@ -70,6 +72,26 @@ final class TypeRecord {
 
     public void setApiThroughUse(boolean apiThroughUse) {
         this.apiThroughUse = apiThroughUse;
+    }
+
+    /**
+     * User can configure the analyzer to explicitly exclude some classes from analysis. Such classes are
+     * marked by this property set to true.
+     */
+    public boolean isExplicitlyExcluded() {
+        return explicitlyExcluded;
+    }
+
+    public void setExplicitlyExcluded(boolean explicitlyExcluded) {
+        this.explicitlyExcluded = explicitlyExcluded;
+    }
+
+    public boolean isExplicitlyIncluded() {
+        return explicitlyIncluded;
+    }
+
+    public void setExplicitlyIncluded(boolean explicitlyIncluded) {
+        this.explicitlyIncluded = explicitlyIncluded;
     }
 
     /**

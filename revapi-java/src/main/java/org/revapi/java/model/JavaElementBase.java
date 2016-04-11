@@ -100,6 +100,10 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
             }
 
             for (Element e : getModelElement().getEnclosedElements()) {
+                if (e instanceof javax.lang.model.element.TypeElement && environment.isExplicitlyExcluded(e)) {
+                    continue;
+                }
+
                 JavaModelElement child = JavaElementFactory.elementFor(e, environment, archive);
                 if (child != null) {
                     child.setParent(this);

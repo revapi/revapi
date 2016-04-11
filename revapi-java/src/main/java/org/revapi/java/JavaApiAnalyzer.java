@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.BiFunction;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,6 +52,7 @@ import org.revapi.CorrespondenceComparatorDeducer;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
 import org.revapi.java.compilation.CompilationValve;
+import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.MethodElement;
@@ -429,9 +431,10 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                         configuration.getNewApiBootstrapClasspath();
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
         boolean skipUseTracking = !configuration.isDeepUseChainAnalysis();
+        InclusionFilter inclusionFilter = composeInclusionFilter(configuration);
 
         return new JavaArchiveAnalyzer(api, compilationExecutor, configuration.getMissingClassReporting(),
-                ignoreMissingAnnotations, skipUseTracking, bootstrapClasspath);
+                ignoreMissingAnnotations, skipUseTracking, bootstrapClasspath, inclusionFilter);
     }
 
     @Nonnull
@@ -453,5 +456,60 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Override
     public void close() {
         compilationExecutor.shutdown();
+    }
+
+    private static InclusionFilter composeInclusionFilter(AnalysisConfiguration config) {
+        final Set<Pattern> inclClasses = config.getClassInclusionFilters();
+        final Set<Pattern> exclClasses = config.getClassExclusionFilters();
+        final Set<Pattern> inclPkgs = config.getPackageInclusionFilters();
+        final Set<Pattern> exclPkgs = config.getPackageExclusionFilters();
+
+        return new InclusionFilter() {
+            @Override
+            public boolean accepts(String typeBinaryName, String typeCanonicalName) {
+                for (Pattern p : inclClasses) {
+                    if (p.matcher(typeCanonicalName).matches()) {
+                        return true;
+                    }
+                }
+
+                int lastDot = typeBinaryName.lastIndexOf('.');
+                String pkg = lastDot == -1 ? "" : typeBinaryName.substring(0, lastDot);
+
+
+                for (Pattern p : inclPkgs) {
+                    if (p.matcher(pkg).matches()) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            @Override
+            public boolean rejects(String typeBinaryName, String typeCanonicalName) {
+                for (Pattern p : exclClasses) {
+                    if (p.matcher(typeCanonicalName).matches()) {
+                        return true;
+                    }
+                }
+
+                int lastDot = typeBinaryName.lastIndexOf('.');
+                String pkg = lastDot == -1 ? "" : typeBinaryName.substring(0, lastDot);
+
+                for (Pattern p : exclPkgs) {
+                    if (p.matcher(pkg).matches()) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            @Override
+            public boolean defaultCase() {
+                return inclClasses.isEmpty() && inclPkgs.isEmpty();
+            }
+        };
     }
 }

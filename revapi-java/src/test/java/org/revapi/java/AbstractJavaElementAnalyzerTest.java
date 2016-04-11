@@ -254,7 +254,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         deleteDir(v2Archive.compilationPath);
     }
 
-    protected void deleteDir(final Path path) throws IOException {
+    protected static void deleteDir(final Path path) throws IOException {
         try {
             Files.walkFileTree(path, new FileVisitor<Path>() {
                 @Override

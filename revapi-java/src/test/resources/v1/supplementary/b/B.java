@@ -16,6 +16,8 @@
 
 public class B {
 
+    public static class UsedByIgnoredClass {}
+
     public static class T$1 {
         private static class TT$1 {
             public static final T$2 f = null;

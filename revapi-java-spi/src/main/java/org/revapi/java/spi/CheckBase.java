@@ -362,6 +362,7 @@ public abstract class CheckBase implements Check {
     private TypeEnvironment oldTypeEnvironment;
     private TypeEnvironment newTypeEnvironment;
     private int depth;
+    private boolean dummyRun;
     private final Deque<ActiveElements<?>> activations = new ArrayDeque<>();
     private AnalysisContext analysisContext;
 
@@ -453,7 +454,7 @@ public abstract class CheckBase implements Check {
     @Override
     public final List<Difference> visitEnd() {
         try {
-            return doEnd();
+            return dummyRun ? null : doEnd();
         } finally {
             //defensive pop if the doEnd "forgets" to do it.
             //this is to prevent accidental retrieval of wrong data in the case the last active element was pushed
@@ -461,6 +462,7 @@ public abstract class CheckBase implements Check {
             //even if the visit call didn't push anything to the stack.
             popIfActive();
             depth--;
+            dummyRun = false;
         }
     }
 
@@ -478,7 +480,11 @@ public abstract class CheckBase implements Check {
     @Override
     public final void visitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
         depth++;
-        doVisitClass(oldType, newType);
+        if (isPotentiallyInApi(oldType, newType)) {
+            doVisitClass(oldType, newType);
+        } else {
+            dummyRun = true;
+        }
     }
 
     protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
@@ -494,7 +500,11 @@ public abstract class CheckBase implements Check {
     @Override
     public final void visitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
         depth++;
-        doVisitMethod(oldMethod, newMethod);
+        if (isPotentiallyInApi(oldMethod, newMethod)) {
+            doVisitMethod(oldMethod, newMethod);
+        } else {
+            dummyRun = true;
+        }
     }
 
     protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
@@ -504,7 +514,11 @@ public abstract class CheckBase implements Check {
     public final void visitMethodParameter(@Nullable VariableElement oldParameter,
         @Nullable VariableElement newParameter) {
         depth++;
-        doVisitMethodParameter(oldParameter, newParameter);
+        if (isPotentiallyInApi(oldParameter, newParameter)) {
+            doVisitMethodParameter(oldParameter, newParameter);
+        } else {
+            dummyRun = true;
+        }
     }
 
     @SuppressWarnings("UnusedParameters")
@@ -522,7 +536,11 @@ public abstract class CheckBase implements Check {
     @Override
     public final void visitField(@Nullable VariableElement oldField, @Nullable VariableElement newField) {
         depth++;
-        doVisitField(oldField, newField);
+        if (isPotentiallyInApi(oldField, newField)) {
+            doVisitField(oldField, newField);
+        } else {
+            dummyRun = true;
+        }
     }
 
     protected void doVisitField(@Nullable VariableElement oldField, @Nullable VariableElement newField) {
@@ -586,5 +604,9 @@ public abstract class CheckBase implements Check {
     protected <T extends Element> ActiveElements<T> popIfActive() {
         return (ActiveElements<T>) (!activations.isEmpty() && activations.peek().depth == depth ? activations.pop() :
             null);
+    }
+
+    private boolean isPotentiallyInApi(Element oldEl, Element newEl) {
+        return !(oldTypeEnvironment.isExplicitlyExcluded(oldEl) && newTypeEnvironment.isExplicitlyExcluded(newEl));
     }
 }

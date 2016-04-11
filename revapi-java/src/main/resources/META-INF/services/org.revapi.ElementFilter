@@ -1,3 +1,1 @@
 org.revapi.java.filters.AnnotatedElementFilter
-org.revapi.java.filters.ClassFilter
-org.revapi.java.filters.PackageFilter

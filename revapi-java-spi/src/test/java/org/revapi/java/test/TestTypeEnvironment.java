@@ -91,6 +91,16 @@ public class TestTypeEnvironment implements TypeEnvironment {
         return Collections.emptySet();
     }
 
+    @Override
+    public boolean isExplicitlyIncluded(Element element) {
+        return true;
+    }
+
+    @Override
+    public boolean isExplicitlyExcluded(Element element) {
+        return false;
+    }
+
     public static class Builder {
         private Elements elements;
         private Types types;

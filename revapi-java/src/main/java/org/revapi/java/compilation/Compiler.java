@@ -76,7 +76,8 @@ public final class Compiler {
 
     public CompilationValve compile(final ProbingEnvironment environment,
         final AnalysisConfiguration.MissingClassReporting missingClassReporting, final boolean ignoreMissingAnnotations,
-        final boolean skipUseTracking, final Set<File> bootstrapClasspath) throws Exception {
+        final boolean skipUseTracking, final Set<File> bootstrapClasspath, final InclusionFilter inclusionFilter)
+            throws Exception {
 
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
 
@@ -125,7 +126,7 @@ public final class Compiler {
             }
 
             new ClassTreeInitializer(environment, missingClassReporting, ignoreMissingAnnotations,
-                    skipUseTracking, bootstrapClasspath).initTree();
+                    skipUseTracking, bootstrapClasspath, inclusionFilter).initTree();
 
             if (Timing.LOG.isDebugEnabled()) {
                 Timing.LOG.debug("Crawl finished for " + environment.getApi());

@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
+import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.filters.AnnotatedElementFilter;
 import org.revapi.java.model.JavaElementForest;
 
@@ -118,9 +119,10 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 "annotationfilter/PublicClass.java", "annotationfilter/UndecisiveClass.java");
 
         try {
-            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
-                    Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                    null), Executors.newSingleThreadExecutor(), null, false, false, Collections.<File>emptySet());
+            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(
+                    new API(Arrays.asList(new ShrinkwrapArchive(archive.archive)), null),
+                    Executors.newSingleThreadExecutor(), null, false, false, Collections.<File>emptySet(),
+                    InclusionFilter.acceptAll());
 
             JavaElementForest forest = analyzer.analyze();
 

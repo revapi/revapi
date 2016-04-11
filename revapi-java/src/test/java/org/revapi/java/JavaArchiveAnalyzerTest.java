@@ -33,6 +33,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.Archive;
+import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
 
@@ -71,7 +72,8 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null, false, false, Collections.<File>emptySet());
+                null), Executors.newSingleThreadExecutor(), null, false, false, Collections.<File>emptySet(),
+                    InclusionFilter.acceptAll());
 
             JavaElementForest forest = analyzer.analyze();
 
@@ -84,7 +86,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testWithSupplementary() throws Exception {
         ArchiveAndCompilationPath compRes = createCompiledJar("a.jar", "v1/supplementary/a/A.java",
-            "v1/supplementary/b/B.java", "v1/supplementary/b/C.java");
+            "v1/supplementary/b/B.java", "v1/supplementary/a/C.java");
 
         JavaArchive api = ShrinkWrap.create(JavaArchive.class, "api.jar")
             .addAsResource(compRes.compilationPath.resolve("A.class").toFile(), "A.class");
@@ -98,7 +100,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
-                false, false, Collections.<File>emptySet());
+                false, false, Collections.<File>emptySet(), InclusionFilter.acceptAll());
 
             JavaElementForest forest = analyzer.analyze();
 

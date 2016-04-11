@@ -32,7 +32,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         //compile all the classes we need in 1 go
         AbstractJavaElementAnalyzerTest.ArchiveAndCompilationPath compRes1 = createCompiledJar("tmp1",
             "v1/supplementary/a/A.java",
-            "v1/supplementary/b/B.java", "v1/supplementary/b/C.java");
+            "v1/supplementary/b/B.java", "v1/supplementary/a/C.java");
 
         //now, create 2 jars out of them. Class A will be our "api" jar and the rest of the classes will form the
         //supplementary jar that needs to be present as a runtime dep of the API but isn't itself considered an API of
@@ -52,7 +52,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         //now do the same for v2
         AbstractJavaElementAnalyzerTest.ArchiveAndCompilationPath compRes2 = createCompiledJar("tmp2",
             "v2/supplementary/a/A.java",
-            "v2/supplementary/b/B.java", "v2/supplementary/b/C.java");
+            "v2/supplementary/b/B.java", "v2/supplementary/a/C.java");
 
         apiV2 = ShrinkWrap.create(JavaArchive.class, "apiV2.jar")
             .addAsResource(compRes2.compilationPath.resolve("A.class").toFile(), "A.class");

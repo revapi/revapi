@@ -16,23 +16,25 @@
  */
 package org.revapi.java;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
-import org.revapi.java.filters.ClassFilter;
-import org.revapi.java.model.JavaElementForest;
+import org.revapi.ElementForest;
+import org.revapi.simple.SimpleElementFilter;
 
 /**
  * @author Lukas Krejci
@@ -42,104 +44,100 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testSimpleFilterByName() throws Exception {
         testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"exclude\": [\"classfilter.A\"]}}}}}",
-                elements -> {
-                    Set<String> expected = Stream.of(
-                            "class classfilter.B",
-                            "field classfilter.B.field",
-                            "method void classfilter.B::m()",
-                            "method void classfilter.B::<init>()",
-                            "class classfilter.B.BA",
-                            "method void classfilter.B.BA::<init>()",
-                            "class classfilter.B.BB",
-                            "method void classfilter.B.BB::<init>()"
-                    ).collect(toSet());
-
-                    Assert.assertEquals(expected, elements.stream().map(Element::getFullHumanReadableString)
-                            .collect(toSet()));
-                });
+                Stream.of(
+                        "class classfilter.B",
+                        "field classfilter.B.field",
+                        "method void classfilter.B::m()",
+                        "method void classfilter.B::<init>()",
+                        "class classfilter.B.BA",
+                        "method void classfilter.B.BA::<init>()",
+                        "class classfilter.B.BB",
+                        "method void classfilter.B.BB::<init>()").collect(toSet()));
 
         testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"include\": [\"classfilter.A\"]}}}}}",
-                elements -> {
-                    Set<String> expected = Stream.of(
-                            "class classfilter.A",
-                            "method void classfilter.A::m()",
-                            "method void classfilter.A::<init>()",
-                            "class classfilter.A.AA",
-                            "method void classfilter.A.AA::<init>()",
-                            "class classfilter.A.AA.AAA",
-                            "method void classfilter.A.AA.AAA::<init>()",
-                            "class classfilter.A.AB",
-                            "method void classfilter.A.AB::<init>()"
-                    ).collect(toSet());
-
-                    Assert.assertEquals(expected, elements.stream().map(Element::getFullHumanReadableString)
-                            .collect(toSet()));
-                });
+                Stream.of(
+                        "class classfilter.A",
+                        "method void classfilter.A::m()",
+                        "method void classfilter.A::<init>()",
+                        "class classfilter.A.AA",
+                        "method void classfilter.A.AA::<init>()",
+                        "class classfilter.A.AA.AAA",
+                        "method void classfilter.A.AA.AAA::<init>()",
+                        "class classfilter.A.AB",
+                        "method void classfilter.A.AB::<init>()").collect(toSet()));
     }
 
     @Test
     public void testInnerClassExclusionOverride() throws Exception {
         testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"exclude\": [\"classfilter.A\"]," +
                 " \"include\": [\"classfilter.A.AA.AAA\", \"classfilter.B\"]}}}}}",
-                elements -> {
-                    Set<String> expected = Stream.of(
-                            "class classfilter.A.AA.AAA",
-                            "method void classfilter.A.AA.AAA::<init>()",
-                            "class classfilter.B",
-                            "field classfilter.B.field",
-                            "method void classfilter.B::m()",
-                            "method void classfilter.B::<init>()",
-                            "class classfilter.B.BA",
-                            "method void classfilter.B.BA::<init>()",
-                            "class classfilter.B.BB",
-                            "method void classfilter.B.BB::<init>()"
-                    ).collect(toSet());
-
-                    Assert.assertEquals(expected, elements.stream().map(Element::getFullHumanReadableString)
-                            .collect(toSet()));
-                });
-
+                Stream.of(
+                        "class classfilter.A.AA.AAA",
+                        "method void classfilter.A.AA.AAA::<init>()",
+                        "class classfilter.B",
+                        "field classfilter.B.field",
+                        "method void classfilter.B::m()",
+                        "method void classfilter.B::<init>()",
+                        "class classfilter.B.BA",
+                        "method void classfilter.B.BA::<init>()",
+                        "class classfilter.B.BB",
+                        "method void classfilter.B.BB::<init>()").collect(toSet()));
     }
 
     @Test
     public void testRegexFilter() throws Exception {
         testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"regex\": true," +
                 " \"exclude\": [\"classfilter\\.(A|B\\.BB)\"]}}}}}",
-                elements -> {
-                    Set<String> expected = Stream.of(
-                            "class classfilter.B",
-                            "field classfilter.B.field",
-                            "method void classfilter.B::m()",
-                            "method void classfilter.B::<init>()",
-                            "class classfilter.B.BA",
-                            "method void classfilter.B.BA::<init>()"
-                    ).collect(toSet());
-
-                    Assert.assertEquals(expected, elements.stream().map(Element::getFullHumanReadableString)
-                            .collect(toSet()));
-                });
+                Stream.of(
+                        "class classfilter.B",
+                        "field classfilter.B.field",
+                        "method void classfilter.B::m()",
+                        "method void classfilter.B::<init>()",
+                        "class classfilter.B.BA",
+                        "method void classfilter.B.BA::<init>()").collect(toSet()));
     }
 
 
-    private void testWith(String configJSON, Consumer<List<Element>> test) throws Exception {
+    private void testWith(String configJSON, Set<String> expectedResults) throws Exception {
         ArchiveAndCompilationPath archive = createCompiledJar("test.jar", "classfilter/A.java", "classfilter/B.java");
+        testWith(archive, configJSON, expectedResults);
+    }
 
+    static void testWith(ArchiveAndCompilationPath archive, String configJSON, Set<String> expectedResults)
+            throws Exception {
         try {
-            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(
-                    new API(Collections.singletonList(new ShrinkwrapArchive(archive.archive)), null),
-                    Executors.newSingleThreadExecutor(), null, false, false, Collections.<File>emptySet());
-
-            JavaElementForest forest = analyzer.analyze();
-
-            ClassFilter filter = new ClassFilter();
+            JavaApiAnalyzer apiAnalyzer = new JavaApiAnalyzer(Collections.emptyList());
             AnalysisContext ctx = AnalysisContext.builder().withConfigurationFromJSON(configJSON).build();
-            filter.initialize(ctx);
+            apiAnalyzer.initialize(ctx);
 
-            List<Element> results = forest.search(Element.class, true, filter, null);
+            ArchiveAnalyzer archiveAnalyzer = apiAnalyzer.getArchiveAnalyzer(
+                    new API(Collections.singletonList(new ShrinkwrapArchive(archive.archive)), null));
 
-            test.accept(results);
+            ElementForest forest = archiveAnalyzer.analyze();
+
+            List<Element> results = forest.search(Element.class, true, new AcceptingFilter(), null);
+
+            List<String> expected = new ArrayList<>(expectedResults);
+            List<String> actual = results.stream().map(Element::getFullHumanReadableString).collect(toList());
+
+            Collections.sort(expected);
+            Collections.sort(actual);
+
+            Assert.assertEquals(expected, actual);
         } finally {
             deleteDir(archive.compilationPath);
+        }
+    }
+
+    private static class AcceptingFilter extends SimpleElementFilter {
+        @Override
+        public boolean applies(@Nullable Element element) {
+            return true;
+        }
+
+        @Override
+        public boolean shouldDescendInto(@Nullable Object element) {
+            return true;
         }
     }
 }
