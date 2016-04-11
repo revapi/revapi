@@ -15,7 +15,7 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>21-SNAPSHOT</version>
+    <version>21</version>
     <packaging>pom</packaging>
     <url>${web.url}</url>
 
@@ -288,6 +288,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-build-21</tag>
     </scm>
 </project>
