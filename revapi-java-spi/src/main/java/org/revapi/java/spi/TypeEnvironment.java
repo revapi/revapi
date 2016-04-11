@@ -76,7 +76,7 @@ public interface TypeEnvironment {
     /**
      * This returns true for elements that are included by the means of configuration. I.e. even though they could
      * otherwise be excluded from the API, the user chose to include them.
-     * <p/>
+     * <p>
      * Note that this is not a mere opposite of {@link #isExplicitlyExcluded(Element)}. Both methods can return false
      * for a single element, which means that the inclusion state of that element is implicit. Usually this means that
      * the inclusion is dependent on the parent element.
@@ -89,7 +89,7 @@ public interface TypeEnvironment {
     /**
      * This returns true for elements that are excluded by the means of configuration. I.e. even though they would
      * otherwise be included in the API, they are excluded by the user.
-     * <p/>
+     * <p>
      * It does not mean that the element is to be included in the API checks if this method returns false. That merely
      * means that the user didn't explicitly exclude it and further checks need to be made to establish whether to check
      * the element or not (see for example {@link CheckBase#isAccessible(Element, TypeEnvironment)}).
