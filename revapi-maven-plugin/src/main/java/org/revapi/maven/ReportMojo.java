@@ -181,6 +181,18 @@ public class ReportMojo extends AbstractMavenReport {
         required = true, readonly = true)
     private String outputDirectory;
 
+    /**
+     * Whether to include the dependencies in the API checks. This is the default thing to do because your API might
+     * be exposing classes from the dependencies and thus classes from your dependencies could become part of your API.
+     * <p>
+     * However, setting this to false might be useful in situations where you have checked your dependencies in another
+     * module and don't want do that again. In that case, you might want to configure Revapi to ignore missing classes
+     * because it might find the classes from your dependencies as used in your API and would complain that it could not
+     * find it. See <a href="http://revapi.org/modules/revapi-java/extensions/java.html">the docs</a>.
+     */
+    @Parameter(defaultValue = "true", property = "revapi.checkDependencies")
+    private boolean checkDependencies;
+
     @Component
     private Renderer siteRenderer;
 
@@ -329,7 +341,7 @@ public class ReportMojo extends AbstractMavenReport {
             Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                     newArtifacts, project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
                     failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                    alwaysCheckForReleaseVersion);
+                    alwaysCheckForReleaseVersion, checkDependencies);
 
             try {
                 analyzer.analyze();

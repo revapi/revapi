@@ -85,6 +85,8 @@ final class Analyzer {
 
     private final Supplier<Revapi.Builder> revapiConstructor;
 
+    private final boolean resolveDependencies;
+
     private API resolvedOldApi;
     private API resolvedNewApi;
 
@@ -92,11 +94,11 @@ final class Analyzer {
              String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
              RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
              boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-             boolean failOnMissingSupportArchives, boolean alwaysUpdate) {
+             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies) {
 
         this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, project, repositorySystem,
                 repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles, failOnMissingArchives,
-                failOnMissingSupportArchives, alwaysUpdate,
+                failOnMissingSupportArchives, alwaysUpdate, resolveDependencies,
                 new Supplier<Revapi.Builder>() {
                     @Override public Revapi.Builder get() {
                         return Revapi.builder().withAllExtensionsFromThreadContextClassLoader();
@@ -108,7 +110,8 @@ final class Analyzer {
              String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
              RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
              boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-             boolean failOnMissingSupportArchives, boolean alwaysUpdate, Supplier<Revapi.Builder> revapiConstructor) {
+             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+            Supplier<Revapi.Builder> revapiConstructor) {
 
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
@@ -116,6 +119,8 @@ final class Analyzer {
         this.newArtifacts = newArtifacts;
         this.project = project;
         this.repositorySystem = repositorySystem;
+
+        this.resolveDependencies = resolveDependencies;
 
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
         session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
@@ -222,8 +227,13 @@ final class Analyzer {
                 }
             }
 
-            Set<MavenArchive> oldTransitiveDeps = collectDeps("old", resolver, oldArtifacts);
-            Set<MavenArchive> newTransitiveDeps = collectDeps("new", resolver, newArtifacts);
+            Set<MavenArchive> oldTransitiveDeps = resolveDependencies
+                    ? collectDeps("old", resolver, oldArtifacts)
+                    : Collections.emptySet();
+
+            Set<MavenArchive> newTransitiveDeps = resolveDependencies
+                    ? collectDeps("new", resolver, newArtifacts)
+                    : Collections.emptySet();
 
             resolvedOldApi = API.of(oldArchives).supportedBy(oldTransitiveDeps).build();
             resolvedNewApi = API.of(newArchives).supportedBy(newTransitiveDeps).build();
@@ -295,7 +305,7 @@ final class Analyzer {
                 .map(extractName).collect(toList());
 
         log.info("Comparing " + oldArchives + " against " + newArchives +
-                " (including their transitive dependencies).");
+                (resolveDependencies ? " (including their transitive dependencies)." : "."));
 
         try {
             Revapi revapi = revapiConstructor.get().withReporters(reporter).build();

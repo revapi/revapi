@@ -192,6 +192,18 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedDependencies")
     protected boolean failOnUnresolvedDependencies;
 
+    /**
+     * Whether to include the dependencies in the API checks. This is the default thing to do because your API might
+     * be exposing classes from the dependencies and thus classes from your dependencies could become part of your API.
+     * <p>
+     * However, setting this to false might be useful in situations where you have checked your dependencies in another
+     * module and don't want do that again. In that case, you might want to configure Revapi to ignore missing classes
+     * because it might find the classes from your dependencies as used in your API and would complain that it could not
+     * find it. See <a href="http://revapi.org/modules/revapi-java/extensions/java.html">the docs</a>.
+     */
+    @Parameter(defaultValue = "true", property = "revapi.checkDependencies")
+    protected boolean checkDependencies;
+
     protected void analyze(Reporter reporter) throws MojoExecutionException, MojoFailureException {
         Analyzer analyzer = prepareAnalyzer(reporter);
 
@@ -212,7 +224,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(), getLog(),
                 failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion);
+                alwaysCheckForReleaseVersion, checkDependencies);
     }
 
     /**

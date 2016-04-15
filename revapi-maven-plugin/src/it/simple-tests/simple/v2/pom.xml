@@ -50,7 +50,7 @@
                 </dependencies>
                 <executions>
                     <execution>
-                        <id>api-check</id>
+                        <id>api-check-with-deps</id>
                         <goals>
                             <goal>check</goal>
                             <goal>report</goal>
@@ -65,7 +65,10 @@
                                                 "old" : "class test.Dep",
                                                 "justification" : "foo"
                                             }
-                                        ]
+                                        ],
+                                        "java": {
+                                          "deepUseChainAnalysis": true
+                                        }
                                     }
                                 }
                             ]]></analysisConfiguration>
@@ -80,6 +83,16 @@
                             </analysisConfigurationFiles>
                             <reportSeverity>nonBreaking</reportSeverity>
                         </configuration>
+                    </execution>
+                    <execution>
+                        <id>api-check-without-deps</id>
+                        <configuration>
+                            <checkDependencies>false</checkDependencies>
+                            <analysisConfigurationFiles>
+                                <file>analysis-config2.json</file>
+                            </analysisConfigurationFiles>
+                        </configuration>
+                        <goals><goal>check</goal></goals>
                     </execution>
                 </executions>
             </plugin>
