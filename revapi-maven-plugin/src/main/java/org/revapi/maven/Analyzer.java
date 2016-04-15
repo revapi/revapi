@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -43,6 +44,7 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
+import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.jboss.dmr.ModelNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -87,31 +89,30 @@ final class Analyzer {
 
     private final boolean resolveDependencies;
 
+    private final Pattern versionRegex;
+
     private API resolvedOldApi;
     private API resolvedNewApi;
 
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
-             String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
-             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies) {
+            String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
+            RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+            boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+            boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+            String versionRegex) {
 
         this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, project, repositorySystem,
                 repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles, failOnMissingArchives,
-                failOnMissingSupportArchives, alwaysUpdate, resolveDependencies,
-                new Supplier<Revapi.Builder>() {
-                    @Override public Revapi.Builder get() {
-                        return Revapi.builder().withAllExtensionsFromThreadContextClassLoader();
-                    }
-                });
+                failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
+                () -> Revapi.builder().withAllExtensionsFromThreadContextClassLoader());
     }
 
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
-             String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
-             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-            Supplier<Revapi.Builder> revapiConstructor) {
+            String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
+            RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+            boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+            boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+            String versionRegex, Supplier<Revapi.Builder> revapiConstructor) {
 
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
@@ -121,6 +122,8 @@ final class Analyzer {
         this.repositorySystem = repositorySystem;
 
         this.resolveDependencies = resolveDependencies;
+
+        this.versionRegex = versionRegex == null ? null : Pattern.compile(versionRegex);
 
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
         session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
@@ -178,24 +181,18 @@ final class Analyzer {
             final ArtifactResolver resolver = new ArtifactResolver(repositorySystem, repositorySystemSession,
                     project.getRemoteProjectRepositories());
 
-            //Ok, what on Earth is this?
-            //We're building with Java8 and I really like lambdas but Maven in the version we're using doesn't like
-            //lambdas in the bytecode of the plugin - it'll actually fail to scan the archive for the annotations and
-            //therefore will not properly build the maven plugin we're implementing here.
-
-            //Sooo, we're building with Java8, so we have access to Java8 classes but cannot use Java8 features at all here.
-            //Hence, instead of a lambda, we use these Function instances and further below we need to make unsafe casts
-            //that Java8 would have correctly figured out on its own. Yay.
-
-            Function<String, MavenArchive> toFileArchive = new Function<String, MavenArchive>() {
-                @Override
-                public MavenArchive apply(String gav) {
-                    try {
-                        Artifact a = resolver.resolveArtifact(gav);
-                        return MavenArchive.of(a);
-                    } catch (ArtifactResolutionException | IllegalArgumentException e) {
-                        throw new MarkerException(e.getMessage(), e);
+            Function<String, MavenArchive> toFileArchive = gav -> {
+                try {
+                    Artifact a;
+                    if (versionRegex != null && (gav.endsWith(":RELEASE") || gav.endsWith(":LATEST"))) {
+                        a = resolver.resolveNewestMatching(gav, versionRegex);
+                    } else {
+                        a = resolver.resolveArtifact(gav);
                     }
+
+                    return MavenArchive.of(a);
+                } catch (ArtifactResolutionException | VersionRangeResolutionException | IllegalArgumentException e) {
+                    throw new MarkerException(e.getMessage(), e);
                 }
             };
 
@@ -208,7 +205,7 @@ final class Analyzer {
                 if (failOnMissingArchives) {
                     throw new IllegalStateException(message, e);
                 } else {
-                    log.warn(message + " The API analysis will not proceed.", e);
+                    log.warn(message + " The API analysis will not proceed.");
                     return;
                 }
             }
@@ -222,10 +219,17 @@ final class Analyzer {
                 if (failOnMissingArchives) {
                     throw new IllegalStateException(message, e);
                 } else {
-                    log.warn(message + " The API analysis will not proceed.", e);
+                    log.warn(message + " The API analysis will not proceed.");
                     return;
                 }
             }
+
+            //now we need to be a little bit clever. When using RELEASE or LATEST as the version of the old artifact
+            //it might happen that it gets resolved to the same version as the new artifacts - this notoriously happens
+            //when releasing using the release plugin - you first build your artifacts, put them into the local repo
+            //and then do the site updates for the released version. When you do the site, maven will find the released
+            //version in the repo and resolve RELEASE to it. You compare it against what you just built, i.e. the same
+            //code, et voila, the site report doesn't ever contain any found differences...
 
             Set<MavenArchive> oldTransitiveDeps = resolveDependencies
                     ? collectDeps("old", resolver, oldArtifacts)

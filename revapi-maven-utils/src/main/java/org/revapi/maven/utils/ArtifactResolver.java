@@ -16,9 +16,12 @@
 
 package org.revapi.maven.utils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
@@ -36,7 +39,11 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.resolution.VersionRangeRequest;
+import org.eclipse.aether.resolution.VersionRangeResolutionException;
+import org.eclipse.aether.resolution.VersionRangeResult;
 import org.eclipse.aether.util.graph.visitor.TreeDependencyVisitor;
+import org.eclipse.aether.version.Version;
 
 /**
  * @author Lukas Krejci
@@ -62,6 +69,41 @@ public class ArtifactResolver {
 
         ArtifactResult result = repositorySystem.resolveArtifact(session, request);
         return result.getArtifact();
+    }
+
+    /**
+     * Tries to find the newest version of the artifact that matches given regular expression.
+     *
+     * @param gav the coordinates of the artifact. The version part is ignored
+     * @param versionMatcher the matcher to match the version
+     * @return
+     * @throws VersionRangeResolutionException
+     */
+    public Artifact resolveNewestMatching(String gav, Pattern versionMatcher) throws VersionRangeResolutionException {
+        DefaultArtifact artifact = new DefaultArtifact(gav);
+        artifact.setVersion("[,)");
+        VersionRangeRequest rangeRequest = new VersionRangeRequest(artifact, null, null);
+
+        VersionRangeResult result = repositorySystem.resolveVersionRange(session, rangeRequest);
+
+        List<Version> versions = new ArrayList<>(result.getVersions());
+        Collections.reverse(versions);
+
+        for(Version v : versions) {
+            if (versionMatcher.matcher(v.toString()).matches()) {
+                artifact.setVersion(v.toString());
+                return artifact;
+            }
+        }
+
+
+        throw new VersionRangeResolutionException(result) {
+            @Override
+            public String getMessage() {
+                return "Failed to find a version of artifact '" + gav + "' that would correspond to an expression '"
+                        + versionMatcher + "'. The versions found were: " + versions;
+            }
+        };
     }
 
     public CollectionResult collectTransitiveDeps(String... gavs) throws RepositoryException {

@@ -204,6 +204,21 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     @Parameter(defaultValue = "true", property = "revapi.checkDependencies")
     protected boolean checkDependencies;
 
+    /**
+     * If set, this property demands a format of the version string when the {@link #oldVersion} or {@link #newVersion}
+     * parameters are set to {@code RELEASE} or {@code LATEST} special version strings.
+     * <p>
+     * Because Maven will report the newest non-snapshot version as the latest release, we might end up comparing a
+     * {@code .Beta} or other pre-release versions with the new version. This might not be what you want and setting the
+     * versionFormat will make sure that a newest version conforming to the version format is used instead of the one
+     * resolved by Maven by default.
+     * <p>
+     * This parameter is a regular expression pattern that the version string needs to match in order to be considered
+     * a {@code RELEASE}.
+     */
+    @Parameter(property = "revapi.versionFormat")
+    protected String versionFormat;
+
     protected void analyze(Reporter reporter) throws MojoExecutionException, MojoFailureException {
         Analyzer analyzer = prepareAnalyzer(reporter);
 
@@ -224,7 +239,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(), getLog(),
                 failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies);
+                alwaysCheckForReleaseVersion, checkDependencies, versionFormat);
     }
 
     /**
