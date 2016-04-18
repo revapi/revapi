@@ -337,22 +337,20 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     private AnalysisResults analyzeProject(MavenProject project) throws MojoExecutionException {
         final List<String> disallowedExtensions = Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
 
-        Supplier<Revapi.Builder> ctor = new Supplier<Revapi.Builder>() {
-            @Override public Revapi.Builder get() {
-                Revapi.Builder bld = Revapi.builder();
+        Supplier<Revapi.Builder> ctor = () -> {
+            Revapi.Builder bld = Revapi.builder();
 
-                List<ApiAnalyzer> analyzers = new ArrayList<>();
-                List<ElementFilter> filters = new ArrayList<>();
-                List<DifferenceTransform<?>> transforms = new ArrayList<>();
+            List<ApiAnalyzer> analyzers = new ArrayList<>();
+            List<ElementFilter> filters = new ArrayList<>();
+            List<DifferenceTransform<?>> transforms = new ArrayList<>();
 
-                addAllAllowed(analyzers, ServiceLoader.load(ApiAnalyzer.class), disallowedExtensions);
-                addAllAllowed(filters, ServiceLoader.load(ElementFilter.class), disallowedExtensions);
-                addAllAllowed(transforms, ServiceLoader.load(DifferenceTransform.class), disallowedExtensions);
+            addAllAllowed(analyzers, ServiceLoader.load(ApiAnalyzer.class), disallowedExtensions);
+            addAllAllowed(filters, ServiceLoader.load(ElementFilter.class), disallowedExtensions);
+            addAllAllowed(transforms, ServiceLoader.load(DifferenceTransform.class), disallowedExtensions);
 
-                bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(transforms);
+            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(transforms);
 
-                return bld;
-            }
+            return bld;
         };
 
         ApiBreakageHintingReporter reporter = new ApiBreakageHintingReporter();

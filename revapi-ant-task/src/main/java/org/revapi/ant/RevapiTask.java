@@ -66,10 +66,9 @@ public final class RevapiTask extends Task {
     @Override
     public void execute() throws BuildException {
 
-        Revapi revapi = initRevapi();
-        AnalysisContext context = initAnalysisContext();
+        try(Revapi revapi = initRevapi()) {
+            AnalysisContext context = initAnalysisContext();
 
-        try {
             log("Running API analysis");
             log("Old API: " + context.getOldApi().toString());
             log("New API: " + context.getNewApi().toString());

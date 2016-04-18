@@ -235,23 +235,25 @@ public abstract class AbstractJavaElementAnalyzerTest {
         ArchiveAndCompilationPath v1Archive = createCompiledJar("v1", v1Source);
         ArchiveAndCompilationPath v2Archive = createCompiledJar("v2", v2Source);
 
-        Revapi revapi = createRevapi(testReporter);
+        try (Revapi revapi = createRevapi(testReporter)) {
 
-        AnalysisContext.Builder bld = AnalysisContext.builder()
-                .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
-                .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build());
+            AnalysisContext.Builder bld = AnalysisContext.builder()
+                    .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
+                    .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build());
 
-        if (configurationJSON != null) {
-            bld.withConfigurationFromJSON(configurationJSON);
+            if (configurationJSON != null) {
+                bld.withConfigurationFromJSON(configurationJSON);
+            }
+
+            AnalysisContext ctx = bld.build();
+
+            revapi.validateConfiguration(ctx);
+            revapi.analyze(ctx);
+
+        } finally {
+            deleteDir(v1Archive.compilationPath);
+            deleteDir(v2Archive.compilationPath);
         }
-
-        AnalysisContext ctx = bld.build();
-
-        revapi.validateConfiguration(ctx);
-        revapi.analyze(ctx);
-
-        deleteDir(v1Archive.compilationPath);
-        deleteDir(v2Archive.compilationPath);
     }
 
     protected static void deleteDir(final Path path) throws IOException {

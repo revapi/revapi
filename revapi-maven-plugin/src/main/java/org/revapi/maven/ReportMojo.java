@@ -236,6 +236,16 @@ public class ReportMojo extends AbstractMavenReport {
     @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedDependencies")
     private boolean failOnUnresolvedDependencies;
 
+    /**
+     * Setting this parameter to true, one can create aggregate reports out of the individual reports of the child
+     * modules.
+     * <p>
+     * The reporting in the child modules is skipped and only performed at the parent level. I.e. the report is done
+     * using on a couple of modules using
+     */
+    @Parameter(defaultValue = "false", property = "revapi.aggregateReports")
+    private boolean aggregateReports;
+
     private API oldAPI;
     private API newAPI;
     private ReportTimeReporter reporter;

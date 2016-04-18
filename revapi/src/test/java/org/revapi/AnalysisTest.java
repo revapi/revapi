@@ -41,14 +41,14 @@ public class AnalysisTest {
         BiFunction<Element, Element, Report> diffAnalyzer = (o, n) -> Report.builder().withNew(n).withOld(o)
                 .addProblem().withCode("code").done().build();
 
-        Revapi r = Revapi.builder().withAnalyzers(new DummyAnalyzer(diffAnalyzer))
-                .withTransforms(new CloningDifferenceTransform()).withReporters(new DummyReporter()).build();
+        try (Revapi r = Revapi.builder().withAnalyzers(new DummyAnalyzer(diffAnalyzer))
+                .withTransforms(new CloningDifferenceTransform()).withReporters(new DummyReporter()).build()) {
 
-        AnalysisContext ctx = AnalysisContext.builder().withNewAPI(API.of().build()).withOldAPI(API.of().build())
-                .build();
+            AnalysisContext ctx = AnalysisContext.builder().withNewAPI(API.of().build()).withOldAPI(API.of().build()).build();
 
-        //should not throw exception
-        r.analyze(ctx);
+            //should not throw exception
+            r.analyze(ctx);
+        }
     }
 
     private static final class CloningDifferenceTransform implements DifferenceTransform<Element> {

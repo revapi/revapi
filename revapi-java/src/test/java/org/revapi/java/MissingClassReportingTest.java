@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,6 +74,11 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         Reporter reporter = new CollectingReporter(allReports);
 
         revapi = createRevapi(reporter);
+    }
+
+    @After
+    public void teardown() throws Exception {
+        revapi.close();
     }
 
     @Test

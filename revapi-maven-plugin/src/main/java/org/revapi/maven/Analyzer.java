@@ -163,9 +163,7 @@ final class Analyzer {
     }
 
     void validateConfiguration() throws MojoExecutionException {
-        try {
-            Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().build();
-
+        try (Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().build()) {
             AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withLocale(locale);
             gatherConfig(ctxBuilder);
 
@@ -311,9 +309,7 @@ final class Analyzer {
         log.info("Comparing " + oldArchives + " against " + newArchives +
                 (resolveDependencies ? " (including their transitive dependencies)." : "."));
 
-        try {
-            Revapi revapi = revapiConstructor.get().withReporters(reporter).build();
-
+        try (Revapi revapi = revapiConstructor.get().withReporters(reporter).build()) {
             AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withOldAPI(resolvedOldApi)
                     .withNewAPI(resolvedNewApi).withLocale(locale);
             gatherConfig(ctxBuilder);

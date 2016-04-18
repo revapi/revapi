@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * @author Lukas Krejci
  * @since 1.0
  */
-public final class Revapi {
+public final class Revapi implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(Revapi.class);
     static final Logger TIMING_LOG = LoggerFactory.getLogger("revapi.analysis.timing");
     private final Set<ApiAnalyzer> availableApiAnalyzers;
@@ -102,6 +102,14 @@ public final class Revapi {
         return validation;
     }
 
+    /**
+     * Performs the analysis configured by the given analysis context.
+     * <p>
+     * Make sure to call the {@link #close()} method (or perform the analysis in try-with-resources block).
+     *
+     * @param analysisContext describes the analysis to be performed
+     * @throws Exception
+     */
     public void analyze(@Nonnull AnalysisContext analysisContext) throws Exception {
         TIMING_LOG.debug("Analysis starts");
 
@@ -114,19 +122,19 @@ public final class Revapi {
 
         matchingTransformsCache.clear();
 
-        try {
-            for (ApiAnalyzer analyzer : availableApiAnalyzers) {
-                analyzeWith(analyzer, analysisContext.getOldApi(), analysisContext.getNewApi());
-            }
-        } finally {
-            TIMING_LOG.debug("Closing all extensions");
-            closeAll(availableTransforms, "problem transform");
-            closeAll(availableFilters, "element filters");
-            closeAll(availableApiAnalyzers, "api analyzer");
-            closeAll(availableReporters, "reporter");
-            TIMING_LOG.debug("Extensions closed. Analysis complete.");
-            TIMING_LOG.debug(Stats.asString());
+        for (ApiAnalyzer analyzer : availableApiAnalyzers) {
+            analyzeWith(analyzer, analysisContext.getOldApi(), analysisContext.getNewApi());
         }
+    }
+
+    public void close() throws Exception {
+        TIMING_LOG.debug("Closing all extensions");
+        closeAll(availableTransforms, "problem transform");
+        closeAll(availableFilters, "element filters");
+        closeAll(availableApiAnalyzers, "api analyzer");
+        closeAll(availableReporters, "reporter");
+        TIMING_LOG.debug("Extensions closed. Analysis complete.");
+        TIMING_LOG.debug(Stats.asString());
     }
 
     private void initialize(@Nonnull AnalysisContext analysisContext, Iterable<? extends Configurable> configurables) {

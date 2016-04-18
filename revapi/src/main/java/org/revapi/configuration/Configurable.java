@@ -58,6 +58,8 @@ public interface Configurable {
      * <p>The configuration contained in the context is the FULL configuration of all extensions. I.e. it contains also
      * configuration not intended for this configurable. When reading from the configuration one therefore needs to
      * use the full path to the configuration properties, including the root paths.
+     * <p>
+     * Note that this method can be called multiple times, each time for a different analysis run.
      *
      * @param analysisContext the context of the upcoming analysis
      */
