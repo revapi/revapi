@@ -63,12 +63,7 @@ public class ArtifactResolver {
 
 
     public Artifact resolveArtifact(String gav) throws ArtifactResolutionException {
-        DefaultArtifact artifact = new DefaultArtifact(gav);
-        ArtifactRequest request = new ArtifactRequest().setArtifact(artifact)
-            .setRepositories(repositories);
-
-        ArtifactResult result = repositorySystem.resolveArtifact(session, request);
-        return result.getArtifact();
+        return resolveArtifact(new DefaultArtifact(gav));
     }
 
     /**
@@ -79,9 +74,10 @@ public class ArtifactResolver {
      * @return
      * @throws VersionRangeResolutionException
      */
-    public Artifact resolveNewestMatching(String gav, Pattern versionMatcher) throws VersionRangeResolutionException {
-        DefaultArtifact artifact = new DefaultArtifact(gav);
-        artifact.setVersion("[,)");
+    public Artifact resolveNewestMatching(String gav, Pattern versionMatcher)
+            throws VersionRangeResolutionException, ArtifactResolutionException {
+        Artifact artifact = new DefaultArtifact(gav);
+        artifact = artifact.setVersion("[,)");
         VersionRangeRequest rangeRequest = new VersionRangeRequest(artifact, null, null);
 
         VersionRangeResult result = repositorySystem.resolveVersionRange(session, rangeRequest);
@@ -91,8 +87,7 @@ public class ArtifactResolver {
 
         for(Version v : versions) {
             if (versionMatcher.matcher(v.toString()).matches()) {
-                artifact.setVersion(v.toString());
-                return artifact;
+                return resolveArtifact(artifact.setVersion(v.toString()));
             }
         }
 
@@ -173,5 +168,13 @@ public class ArtifactResolver {
         public Set<Artifact> getResolvedArtifacts() {
             return resolvedArtifacts;
         }
+    }
+
+    private Artifact resolveArtifact(Artifact artifact) throws ArtifactResolutionException {
+        ArtifactRequest request = new ArtifactRequest().setArtifact(artifact)
+                .setRepositories(repositories);
+
+        ArtifactResult result = repositorySystem.resolveArtifact(session, request);
+        return result.getArtifact();
     }
 }

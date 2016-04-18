@@ -42,6 +42,6 @@
         <module>war/v2</module>
         <module>version-matching/v1.0.GA</module>
         <module>version-matching/v2.0.Beta</module>
-        <module>version-matching/v2.0.GA</module>
+        <module>version-matching/v2.0-SNAPSHOT</module>
     </modules>
 </project>

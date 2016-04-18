@@ -7,7 +7,7 @@
   <body>
     <menu name="Project Details">
       <item name="Goals" href="plugin-info.html"/>
-      <item name="Specifying Versions To Check" href="examples/specifying-version.html"/>
+      <item name="Specifying Versions To Check" href="examples/specifying-versions.html"/>
       <item name="Configuration" href="examples/configuration.html"/>
       <item name="Evolving With Semver Versioning Rules" href="examples/evolving-with-semver.html"/>
       <item name="Multi-file Configuration" href="examples/multi-file-configuration.html"/>
