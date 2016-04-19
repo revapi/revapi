@@ -1,4 +1,10 @@
 <#-- @ftlvariable name="reports" type="java.util.Collection<org.revapi.Report>" -->
+<#-- @ftlvariable name="analysis" type="org.revapi.AnalysisContext" -->
+Analysis results
+----------------
+
+Old API: <#list analysis.oldApi.archives as archive>${archive.name}<#sep>, </#list>
+New API: <#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>
 <#list reports as report>
 old: ${report.oldElement!"<none>"}
 new: ${report.newElement!"<none>"}

@@ -51,8 +51,9 @@ add the extension as a dependency of the maven plugin like so:
     "reporter" : {
       "text" : {
         "minSeverity": "POTENTIALLY_BREAKING",
-        "output" : "out"
-        "template": "my-template.ftl"
+        "output" : "out",
+        "template": "my-template.ftl",
+        "append": false
       }
     }
   }
@@ -69,27 +70,36 @@ The path to the output file. Two special values are recongized: `out` (which is 
 `err` which represent standard output or standard error output respectively.
 `template`::
 A relative path to a FreeMarker template to format the output with. If not specified a built-in simple template is used.
+`append`::
+Whether to append to the chosen output or whether to overwrite it (doesn't make sense for standard (error) output).
+The default value is `false` meaning the output file will be overwritten if it already exists.
 
 === Example Template
 
 This is actually the default template used by the extension if you don't configure your own template.
 
 ```ftl
-<#list reports as report> <1>
+=== Analysis results
+
+Old API: <#list analysis.oldApi.archives as archive>${archive.name}<#sep>, </#list> <1>
+New API: <#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>
+<#list reports as report> <2>
 old: ${report.oldElement!"<none>"}
 new: ${report.newElement!"<none>"}
 <#list report.differences as diff>
 ${diff.code}<#if diff.description??>: ${diff.description}</#if>
-<#list diff.classification?keys as compat>${compat}: ${diff.classification?api.get(compat)}<#sep>, </#list> <2>
+<#list diff.classification?keys as compat>${compat}: ${diff.classification?api.get(compat)}<#sep>, </#list> <3>
 </#list>
 <#sep>
 
 </#sep>
 </#list>
 ```
-<1> The results of the analysis are made available to the template in the `reports` variable which is a list of
+<1> The analysis configuration is made available in the `analysis` variable which is an object with type
+link:../revapi/apidocs/org/revapi/AnalysisContext.html[`AnalysisContext`].
+<2> The results of the analysis are made available to the template in the `reports` variable which is a list of
 link:../revapi/apidocs/org/revapi/Report.html[`Report`] objects.
-<2> The `classification` map of a difference uses an enum as a key. To be able to access the values by keys, one has to
+<3> The `classification` map of a difference uses an enum as a key. To be able to access the values by keys, one has to
 use the `?api` construct and use the native method to access the value. Using `classification[compat]` is not possible
 in the example above. This is a limitation of FreeMarker.
 

@@ -38,6 +38,7 @@ import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 import org.revapi.Report;
+import org.revapi.simple.FileArchive;
 import org.revapi.simple.SimpleElement;
 
 /**
@@ -50,7 +51,10 @@ public class TextReporterTest {
     public void testDefaultTemplate() throws Exception {
         TextReporter reporter = new TextReporter();
 
-        AnalysisContext ctx = AnalysisContext.builder().build();
+        AnalysisContext ctx = AnalysisContext.builder()
+                .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
+                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build())
+                .build();
 
         reporter.initialize(ctx);
 
@@ -63,7 +67,12 @@ public class TextReporterTest {
 
         reporter.close();
 
-        String expected = "old: old1\n" +
+        String expected = "Analysis results\n" +
+                "----------------\n" +
+                "\n" +
+                "Old API: old-dummy.archive\n" +
+                "New API: new-dummy.archive\n" +
+                "old: old1\n" +
                 "new: new1\n" +
                 "code1: descr1\n" +
                 "SOURCE: BREAKING\n" +
@@ -85,10 +94,10 @@ public class TextReporterTest {
 
             TextReporter reporter = new TextReporter();
 
-            AnalysisContext ctx = AnalysisContext.builder()
-                    .withConfigurationFromJSON("{\"revapi\": {\"reporter\": {\"text\": {\"template\": \""
-                            + tempFile.toString() + "\"}}}}")
-                    .build();
+            AnalysisContext ctx = AnalysisContext.builder().withConfigurationFromJSON(
+                    "{\"revapi\": {\"reporter\": {\"text\": {\"template\": \"" + tempFile.toString() + "\"}}}}")
+                    .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
+                    .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
             reporter.initialize(ctx);
 
@@ -113,14 +122,14 @@ public class TextReporterTest {
         List<Report> ret = new ArrayList<>();
 
         Report report = Report.builder().withOld(new DummyElement("old2")).withNew(new DummyElement("new2"))
-                .addProblem().withCode("code2").withDescription("descr2").withName("name2").addClassification(
-                        CompatibilityType.BINARY, DifferenceSeverity.BREAKING).done().build();
+                .addProblem().withCode("code2").withDescription("descr2").withName("name2")
+                .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).done().build();
 
         ret.add(report);
 
-        report = Report.builder().withOld(new DummyElement("old1")).withNew(new DummyElement("new1"))
-                .addProblem().withCode("code1").withDescription("descr1").withName("name1").addClassification(
-                        CompatibilityType.SOURCE, DifferenceSeverity.BREAKING).done().build();
+        report = Report.builder().withOld(new DummyElement("old1")).withNew(new DummyElement("new1")).addProblem()
+                .withCode("code1").withDescription("descr1").withName("name1")
+                .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING).done().build();
 
         ret.add(report);
 

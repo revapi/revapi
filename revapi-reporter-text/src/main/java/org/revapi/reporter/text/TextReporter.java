@@ -64,8 +64,9 @@ public class TextReporter implements Reporter {
 
     private SortedSet<Report> reports;
 
-    private Configuration freeMarker;
     private Template template;
+
+    private AnalysisContext analysis;
 
     @Nullable
     @Override
@@ -95,15 +96,28 @@ public class TextReporter implements Reporter {
     }
 
     @Override
-    public void initialize(@Nonnull AnalysisContext config) {
-        String minLevel = config.getConfiguration().get("revapi", "reporter", "text", "minSeverity").asString();
-        String output = config.getConfiguration().get("revapi", "reporter", "text", "output").asString();
+    public void initialize(@Nonnull AnalysisContext analysis) {
+        //noinspection ConstantConditions
+        if (analysis != null) {
+            try {
+                flushReports();
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to output previous analysis report.");
+            }
+        }
+
+        this.analysis = analysis;
+
+        String minLevel = analysis.getConfiguration().get("revapi", "reporter", "text", "minSeverity").asString();
+        String output = analysis.getConfiguration().get("revapi", "reporter", "text", "output").asString();
         output = "undefined".equals(output) ? "out" : output;
 
-        String templatePath = config.getConfiguration().get("revapi", "reporter", "text", "template").asString();
+        String templatePath = analysis.getConfiguration().get("revapi", "reporter", "text", "template").asString();
         if ("undefined".equals(templatePath)) {
             templatePath = null;
         }
+
+        boolean append = analysis.getConfiguration().get("revapi", "reporter", "text", "append").asBoolean(false);
 
         this.minLevel = "undefined".equals(minLevel) ? DifferenceSeverity.POTENTIALLY_BREAKING :
                 DifferenceSeverity.valueOf(minLevel);
@@ -131,7 +145,7 @@ public class TextReporter implements Reporter {
                     out = System.out;
                 } else {
                     try {
-                        out = new FileOutputStream(output);
+                        out = new FileOutputStream(output, append);
                     } catch (FileNotFoundException e) {
                         LOG.warn("Failed to create the configured output file '" + f.getAbsolutePath() + "'." +
                                 " Defaulting the output to standard output.", e);
@@ -153,7 +167,7 @@ public class TextReporter implements Reporter {
             return r1El.compareTo(r2El);
         });
 
-        freeMarker = createFreeMarkerConfiguration();
+        Configuration freeMarker = createFreeMarkerConfiguration();
 
         template = null;
         try {
@@ -216,17 +230,23 @@ public class TextReporter implements Reporter {
 
     @Override
     public void close() throws IOException {
-        try {
-            HashMap<String, Object> root = new HashMap<>();
-            root.put("reports", reports);
-            template.process(root, output);
-        } catch (TemplateException e) {
-            throw new IOException("Failed to output the reports.", e);
-        }
+        flushReports();
 
         if (shouldClose) {
             output.close();
         }
     }
 
+    private void flushReports() throws IOException {
+        try {
+            if (output != null && template != null) {
+                HashMap<String, Object> root = new HashMap<>();
+                root.put("reports", reports);
+                root.put("analysis", analysis);
+                template.process(root, output);
+            }
+        } catch (TemplateException e) {
+            throw new IOException("Failed to output the reports.", e);
+        }
+    }
 }

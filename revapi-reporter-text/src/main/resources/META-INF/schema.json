@@ -20,6 +20,11 @@
             "description": "The path to a Freemarker template file to use for outputting the report. If not given a \
                             default template is used.",
             "type": "string"
+        },
+        "append": {
+            "description": "Whether to append to the output or whether to overwrite it.",
+            "type": "boolean",
+            "default": false
         }
     }
 }
