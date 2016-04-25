@@ -237,14 +237,12 @@ public class ReportMojo extends AbstractMavenReport {
     private boolean failOnUnresolvedDependencies;
 
     /**
-     * Setting this parameter to true, one can create aggregate reports out of the individual reports of the child
-     * modules.
-     * <p>
-     * The reporting in the child modules is skipped and only performed at the parent level. I.e. the report is done
-     * using on a couple of modules using
+     * Set this to false if you want to use the goal to generate other kind of output than the default report for the
+     * Maven-generated site. You can generate such output by using different reporting extensions (like
+     * revapi-reporter-text).
      */
-    @Parameter(defaultValue = "false", property = "revapi.aggregateReports")
-    private boolean aggregateReports;
+    @Parameter(defaultValue = "true", property = "revapi.generateSiteReport")
+    private boolean generateSiteReport;
 
     private API oldAPI;
     private API newAPI;
@@ -278,34 +276,36 @@ public class ReportMojo extends AbstractMavenReport {
                     " currently built version, have you run the package goal?");
         }
 
-        Sink sink = getSink();
-        ResourceBundle bundle = getBundle(locale);
+        if (generateSiteReport) {
+            Sink sink = getSink();
+            ResourceBundle bundle = getBundle(locale);
 
-        sink.head();
-        sink.title();
-        sink.text(bundle.getString("report.revapi.title"));
-        sink.title_();
-        sink.head_();
+            sink.head();
+            sink.title();
+            sink.text(bundle.getString("report.revapi.title"));
+            sink.title_();
+            sink.head_();
 
-        sink.body();
+            sink.body();
 
-        sink.section1();
-        sink.sectionTitle1();
-        sink.rawText(bundle.getString("report.revapi.title"));
-        sink.sectionTitle1_();
-        sink.paragraph();
-        sink.text(getDescription(locale));
-        sink.paragraph_();
+            sink.section1();
+            sink.sectionTitle1();
+            sink.rawText(bundle.getString("report.revapi.title"));
+            sink.sectionTitle1_();
+            sink.paragraph();
+            sink.text(getDescription(locale));
+            sink.paragraph_();
 
-        reportDifferences(reporter.reportsBySeverity.get(DifferenceSeverity.BREAKING), sink, bundle,
-            "report.revapi.changes.breaking");
-        reportDifferences(reporter.reportsBySeverity.get(DifferenceSeverity.POTENTIALLY_BREAKING), sink, bundle,
-            "report.revapi.changes.potentiallyBreaking");
-        reportDifferences(reporter.reportsBySeverity.get(DifferenceSeverity.NON_BREAKING), sink, bundle,
-            "report.revapi.changes.nonBreaking");
+            reportDifferences(reporter.reportsBySeverity.get(DifferenceSeverity.BREAKING), sink, bundle,
+                    "report.revapi.changes.breaking");
+            reportDifferences(reporter.reportsBySeverity.get(DifferenceSeverity.POTENTIALLY_BREAKING), sink, bundle,
+                    "report.revapi.changes.potentiallyBreaking");
+            reportDifferences(reporter.reportsBySeverity.get(DifferenceSeverity.NON_BREAKING), sink, bundle,
+                    "report.revapi.changes.nonBreaking");
 
-        sink.section1_();
-        sink.body_();
+            sink.section1_();
+            sink.body_();
+        }
     }
 
     @Override
@@ -334,7 +334,9 @@ public class ReportMojo extends AbstractMavenReport {
 
     private void ensureAnalyzed(Locale locale) {
         if (!skip && reporter == null) {
-            reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
+            if (generateSiteReport) {
+                reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
+            }
 
             //noinspection Duplicates
             if (oldArtifacts == null || oldArtifacts.length == 0) {

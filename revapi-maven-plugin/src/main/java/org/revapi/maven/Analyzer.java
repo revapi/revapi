@@ -309,7 +309,12 @@ final class Analyzer {
         log.info("Comparing " + oldArchives + " against " + newArchives +
                 (resolveDependencies ? " (including their transitive dependencies)." : "."));
 
-        try (Revapi revapi = revapiConstructor.get().withReporters(reporter).build()) {
+        Revapi.Builder builder = revapiConstructor.get();
+        if (reporter != null) {
+            builder.withReporters(reporter);
+        }
+
+        try (Revapi revapi = builder.build()) {
             AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withOldAPI(resolvedOldApi)
                     .withNewAPI(resolvedNewApi).withLocale(locale);
             gatherConfig(ctxBuilder);
