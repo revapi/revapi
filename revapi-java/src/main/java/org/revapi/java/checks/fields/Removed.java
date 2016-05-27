@@ -20,11 +20,17 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import javax.annotation.Nullable;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -32,9 +38,16 @@ import org.revapi.java.spi.Code;
  */
 public final class Removed extends CheckBase {
 
+    private TypeElement activeNewType;
+
     @Override
     public EnumSet<Type> getInterest() {
-        return EnumSet.of(Type.FIELD);
+        return EnumSet.of(Type.CLASS, Type.FIELD);
+    }
+
+    @Override
+    protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
+        activeNewType = newType;
     }
 
     @Override
@@ -54,6 +67,42 @@ public final class Removed extends CheckBase {
         }
 
         boolean isConstant = fields.oldElement.getConstantValue() != null;
+
+        //check if the field exists in a super-class in the new type environment
+        if (activeNewType != null) {
+            String oldFieldType = Util.toUniqueString(fields.oldElement.asType());
+
+            //we know that the new type doesn't contain the field, so let's search its super classes
+            for (TypeMirror superType : Util.getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(),
+                    activeNewType.asType())) {
+
+                if (!(superType instanceof DeclaredType)) {
+                    continue;
+                }
+
+                DeclaredType st = (DeclaredType) superType;
+
+                List<VariableElement> superFields = ElementFilter.fieldsIn(st.asElement().getEnclosedElements());
+
+                for (VariableElement superField : superFields) {
+                    if (superField.getSimpleName().contentEquals(fields.oldElement.getSimpleName())) {
+                        if (!isAccessible(superField, getNewTypeEnvironment())) {
+                            continue;
+                        }
+
+                        String newFieldType = Util.toUniqueString(superField.asType());
+
+                        if (oldFieldType.equals(newFieldType)) {
+                            //so the field with the same name and type exists in one of the super classes in the
+                            //new type environment... This is compatible...
+                            return Collections.singletonList(createDifference(Code.FIELD_MOVED_TO_SUPER_CLASS,
+                                    Util.toHumanReadableString(fields.oldElement.getEnclosingElement()),
+                                    Util.toHumanReadableString(st.asElement())));
+                        }
+                    }
+                }
+            }
+        }
 
         return Collections
             .singletonList(createDifference(isConstant ? Code.FIELD_CONSTANT_REMOVED : Code.FIELD_REMOVED));

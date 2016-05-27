@@ -14,6 +14,9 @@
  * limitations under the License
  */
 
-public class Added {
+public class Added extends SuperClass {
+}
 
+class SuperClass {
+    public int movingFromSuperclass;
 }

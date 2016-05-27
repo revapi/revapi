@@ -15,6 +15,7 @@
  */
 
 public class Added {
+    public int movingFromSuperclass;
     public int f1;
     protected int f2;
     int f3;

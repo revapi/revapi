@@ -16,17 +16,26 @@
 
 package org.revapi.java.spi;
 
+import static org.revapi.CompatibilityType.BINARY;
+import static org.revapi.CompatibilityType.SEMANTIC;
+import static org.revapi.CompatibilityType.SOURCE;
+import static org.revapi.DifferenceSeverity.BREAKING;
+import static org.revapi.DifferenceSeverity.NON_BREAKING;
+import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
+
+import java.lang.ref.WeakReference;
+import java.text.MessageFormat;
+import java.util.EnumMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.WeakHashMap;
+
+import javax.annotation.Nonnull;
+
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
-
-import javax.annotation.Nonnull;
-import java.lang.ref.WeakReference;
-import java.text.MessageFormat;
-import java.util.*;
-
-import static org.revapi.CompatibilityType.*;
-import static org.revapi.DifferenceSeverity.*;
 
 /**
  * The is a list of all difference codes Revapi's Java extension can emit. This can be used by others when they want to
@@ -82,6 +91,7 @@ public enum Code {
     FIELD_ADDED_STATIC_FIELD("java.field.addedStaticField", NON_BREAKING, NON_BREAKING, null),
     FIELD_ADDED("java.field.added", NON_BREAKING, NON_BREAKING, null),
     FIELD_REMOVED("java.field.removed", BREAKING, BREAKING, null),
+    FIELD_MOVED_TO_SUPER_CLASS("java.field.movedToSuperClass", NON_BREAKING, NON_BREAKING, null),
     FIELD_CONSTANT_REMOVED("java.field.removedWithConstant", BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     FIELD_CONSTANT_VALUE_CHANGED("java.field.constantValueChanged", NON_BREAKING, NON_BREAKING, BREAKING),
     FIELD_NOW_CONSTANT("java.field.nowConstant", NON_BREAKING, NON_BREAKING, null),
