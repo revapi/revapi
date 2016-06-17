@@ -36,6 +36,15 @@ public class NaiveFileTemplateLoader implements TemplateLoader {
     @Override
     public Object findTemplateSource(String name) throws IOException {
         File ret = new File(name);
+        if (ret.exists()) {
+            return ret;
+        }
+
+        //freemarker removes the leading / from the paths and cannot be told otherwise.
+        //We are not in a web environment and we actually do want to resolve the templates using absolute paths
+        //so let's just try and see if the template cannot be reached using an absolute path...
+        ret = new File("/" + name);
+
         return ret.exists() ? ret : null;
     }
 

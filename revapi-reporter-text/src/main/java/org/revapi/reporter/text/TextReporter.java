@@ -139,18 +139,22 @@ public class TextReporter implements Reporter {
                                 " Defaulting the output to standard output.");
                 out = System.out;
             } else {
-                if (!f.getParentFile().mkdirs()) {
-                    LOG.warn("Failed to create directory structure to write to the configured output file '" +
-                            f.getAbsolutePath() + "'. Defaulting the output to standard output.");
-                    out = System.out;
-                } else {
-                    try {
-                        out = new FileOutputStream(output, append);
-                    } catch (FileNotFoundException e) {
-                        LOG.warn("Failed to create the configured output file '" + f.getAbsolutePath() + "'." +
-                                " Defaulting the output to standard output.", e);
+                File parent = f.getParentFile();
+                if (!parent.exists()) {
+                    if (!parent.mkdirs()) {
+                        LOG.warn("Failed to create directory structure to write to the configured output file '" +
+                                f.getAbsolutePath() + "'. Defaulting the output to standard output.");
                         out = System.out;
+                        break;
                     }
+                }
+
+                try {
+                    out = new FileOutputStream(output, append);
+                } catch (FileNotFoundException e) {
+                    LOG.warn("Failed to create the configured output file '" + f.getAbsolutePath() + "'." +
+                            " Defaulting the output to standard output.", e);
+                    out = System.out;
                 }
             }
         }

@@ -16,3 +16,6 @@ ${diff.code}<#if diff.description??>: ${diff.description}</#if>
 
 </#sep>
 </#list>
+<#-- force an empty line at the end -->
+<#nt/>
+<#t/>

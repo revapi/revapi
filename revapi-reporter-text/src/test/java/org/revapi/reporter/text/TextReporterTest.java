@@ -80,7 +80,7 @@ public class TextReporterTest {
                 "old: old2\n" +
                 "new: new2\n" +
                 "code2: descr2\n" +
-                "BINARY: BREAKING\n";
+                "BINARY: BREAKING\n\n";
 
         Assert.assertEquals(expected, out.toString());
     }
