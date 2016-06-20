@@ -59,7 +59,7 @@ import org.revapi.maven.utils.ScopeDependencyTraverser;
  * @author Lukas Krejci
  * @since 0.1
  */
-final class Analyzer {
+final class Analyzer implements AutoCloseable {
     private final String analysisConfiguration;
 
     private final Object[] analysisConfigurationFiles;
@@ -93,6 +93,8 @@ final class Analyzer {
 
     private API resolvedOldApi;
     private API resolvedNewApi;
+
+    private Revapi revapi;
 
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
             String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
@@ -144,6 +146,44 @@ final class Analyzer {
         this.revapiConstructor = revapiConstructor;
     }
 
+    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
+            String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
+            RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+            boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+            boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+            String versionRegex, Revapi sharedRevapi) {
+
+        this.analysisConfiguration = analysisConfiguration;
+        this.analysisConfigurationFiles = analysisConfigurationFiles;
+        this.oldArtifacts = oldArtifacts;
+        this.newArtifacts = newArtifacts;
+        this.project = project;
+        this.repositorySystem = repositorySystem;
+
+        this.resolveDependencies = resolveDependencies;
+
+        this.versionRegex = versionRegex == null ? null : Pattern.compile(versionRegex);
+
+        DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
+        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
+        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
+
+        if (alwaysUpdate) {
+            session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
+        }
+
+        this.repositorySystemSession = session;
+
+        this.reporter = reporter;
+        this.locale = locale;
+        this.log = log;
+        this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
+        this.failOnMissingArchives = failOnMissingArchives;
+        this.failOnMissingSupportArchives = failOnMissingSupportArchives;
+        this.revapiConstructor = null;
+        this.revapi = sharedRevapi;
+    }
+
     public static String getProjectArtifactCoordinates(MavenProject project, RepositorySystemSession session,
         String versionOverride) {
 
@@ -173,6 +213,15 @@ final class Analyzer {
         }
     }
 
+    static Artifact resolve(String gav, Pattern versionRegex, ArtifactResolver resolver)
+            throws VersionRangeResolutionException, ArtifactResolutionException {
+        if (versionRegex != null && (gav.endsWith(":RELEASE") || gav.endsWith(":LATEST"))) {
+            return resolver.resolveNewestMatching(gav, versionRegex);
+        } else {
+            return resolver.resolveArtifact(gav);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     void resolveArtifacts() {
         if (resolvedOldApi == null) {
@@ -181,13 +230,7 @@ final class Analyzer {
 
             Function<String, MavenArchive> toFileArchive = gav -> {
                 try {
-                    Artifact a;
-                    if (versionRegex != null && (gav.endsWith(":RELEASE") || gav.endsWith(":LATEST"))) {
-                        a = resolver.resolveNewestMatching(gav, versionRegex);
-                    } else {
-                        a = resolver.resolveArtifact(gav);
-                    }
-
+                    Artifact a = resolve(gav, versionRegex, resolver);
                     return MavenArchive.of(a);
                 } catch (ArtifactResolutionException | VersionRangeResolutionException | IllegalArgumentException e) {
                     throw new MarkerException(e.getMessage(), e);
@@ -309,12 +352,9 @@ final class Analyzer {
         log.info("Comparing " + oldArchives + " against " + newArchives +
                 (resolveDependencies ? " (including their transitive dependencies)." : "."));
 
-        Revapi.Builder builder = revapiConstructor.get();
-        if (reporter != null) {
-            builder.withReporters(reporter);
-        }
+        try {
+            buildRevapi();
 
-        try (Revapi revapi = builder.build()) {
             AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withOldAPI(resolvedOldApi)
                     .withNewAPI(resolvedNewApi).withLocale(locale);
             gatherConfig(ctxBuilder);
@@ -331,6 +371,28 @@ final class Analyzer {
 
     public API getResolvedOldApi() {
         return resolvedOldApi;
+    }
+
+    public Revapi getRevapi() {
+        buildRevapi();
+        return revapi;
+    }
+
+    /**
+     * Closes Revapi iff it was instantiated by this analyzer (using an implicit or explicit revapi constructor
+     * supplier). If a pre-instantiated Revapi instance was supplied to the constructor of this analyzer, the Revapi
+     * instance is NOT closed by this call. It is the responsibility of the "owner" of that Revapi instance to properly
+     * close it.
+     *
+     * @throws Exception
+     */
+    @Override
+    public void close() throws Exception {
+        //if revapiConstructor == null, we obtained the revapi instance from outside... The caller is therefore
+        //responsible for closing it.
+        if (revapi != null && revapiConstructor != null) {
+            revapi.close();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -392,6 +454,16 @@ final class Analyzer {
         }
     }
 
+    private void buildRevapi() {
+        if (revapi == null) {
+            Revapi.Builder builder = revapiConstructor.get();
+            if (reporter != null) {
+                builder.withReporters(reporter);
+            }
+
+            revapi = builder.build();
+        }
+    }
     private static class MarkerException extends RuntimeException {
         public MarkerException(String message) {
             super(message);

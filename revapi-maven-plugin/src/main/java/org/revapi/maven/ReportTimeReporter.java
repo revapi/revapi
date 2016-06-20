@@ -57,6 +57,7 @@ final class ReportTimeReporter implements Reporter {
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
+        reportsBySeverity.clear();
     }
 
     private void addDifference(Element oldElement, Element newElement, Difference difference) {

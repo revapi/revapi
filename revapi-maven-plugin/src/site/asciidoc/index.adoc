@@ -9,8 +9,10 @@ The plugin offers the following goals:
 
 * link:check-mojo.html[revapi:check] is used as part of the build to ensure a configurable level of compatibility.
 * link:report-mojo.html[revapi:report] generates a simple report for the project's maven-generated site.
+* link:report-aggregate-mojo.html[revapi:report-aggregate] runs a report on all projects in a reactor using a
+configuration supplied at the top-level aggregator project.
 * link:validate-configuration-mojo.html[revapi:validate-configuration] validates the configuration of Revapi (use
-this to debug problems with the configuration)
+this to debug problems with the configuration).
 * link:update-versions-mojo.html[revapi:update-versions] updates the version string in pom.xml according to
 http://semver.org[semver] rules.
 * link:update-release-properties-mojo.html[revapi:update-release-properties] updates the `release.properties` file

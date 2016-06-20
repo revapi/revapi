@@ -355,23 +355,26 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
 
         ApiBreakageHintingReporter reporter = new ApiBreakageHintingReporter();
 
-        Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
+        try (Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(),
                 getLog(), failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies, versionFormat, ctor);
+                alwaysCheckForReleaseVersion, checkDependencies, versionFormat, ctor)) {
 
-        analyzer.resolveArtifacts();
+            analyzer.resolveArtifacts();
 
-        if (analyzer.getResolvedOldApi() == null) {
-            return null;
-        } else {
-            analyzer.analyze();
+            if (analyzer.getResolvedOldApi() == null) {
+                return null;
+            } else {
+                analyzer.analyze();
 
-            ApiChangeLevel level = reporter.getChangeLevel();
-            String baseVersion = ((MavenArchive) analyzer.getResolvedOldApi().getArchives().iterator().next())
-                    .getVersion();
+                ApiChangeLevel level = reporter.getChangeLevel();
+                String baseVersion = ((MavenArchive) analyzer.getResolvedOldApi().getArchives().iterator().next())
+                        .getVersion();
 
-            return new AnalysisResults(level, baseVersion);
+                return new AnalysisResults(level, baseVersion);
+            }
+        } catch (Exception e) {
+            throw new MojoExecutionException("Analysis failure", e);
         }
     }
 

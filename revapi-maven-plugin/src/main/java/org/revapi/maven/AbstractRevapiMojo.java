@@ -220,10 +220,14 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected String versionFormat;
 
     protected void analyze(Reporter reporter) throws MojoExecutionException, MojoFailureException {
-        Analyzer analyzer = prepareAnalyzer(reporter);
-
-        if (analyzer != null) {
-            analyzer.analyze();
+        try (Analyzer analyzer = prepareAnalyzer(reporter)) {
+            if (analyzer != null) {
+                analyzer.analyze();
+            }
+        } catch (MojoExecutionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MojoExecutionException("Failed to close the API analyzer.", e);
         }
     }
 

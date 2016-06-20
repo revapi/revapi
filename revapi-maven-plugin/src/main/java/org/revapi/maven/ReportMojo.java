@@ -27,7 +27,6 @@ import java.util.ResourceBundle;
 
 import org.apache.maven.doxia.sink.Sink;
 import org.apache.maven.doxia.siterenderer.Renderer;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -57,7 +56,7 @@ public class ReportMojo extends AbstractMavenReport {
      * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
     @Parameter
-    private String analysisConfiguration;
+    protected String analysisConfiguration;
 
     /**
      * The list of files containing the configuration of various analysis options.
@@ -114,7 +113,7 @@ public class ReportMojo extends AbstractMavenReport {
      * </code></pre>
      */
     @Parameter(property = "revapi.analysisConfigurationFiles")
-    private Object[] analysisConfigurationFiles;
+    protected Object[] analysisConfigurationFiles;
 
     /**
      * Set to false if you want to tolerate files referenced in the {@code analysisConfigurationFiles} missing on the
@@ -123,7 +122,7 @@ public class ReportMojo extends AbstractMavenReport {
      * <p>The default is {@code true}, which means that a missing analysis configuration file will fail the build.
      */
     @Parameter(property = "revapi.failOnMissingConfigurationFiles", defaultValue = "true")
-    private boolean failOnMissingConfigurationFiles;
+    protected boolean failOnMissingConfigurationFiles;
 
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
@@ -137,7 +136,7 @@ public class ReportMojo extends AbstractMavenReport {
      * @see #oldVersion
      */
     @Parameter(property = "revapi.oldArtifacts")
-    private String[] oldArtifacts;
+    protected String[] oldArtifacts;
 
     /**
      * If you don't want to compare a different artifact than the one being built, specifying the just the old version
@@ -147,7 +146,7 @@ public class ReportMojo extends AbstractMavenReport {
      * built.
      */
     @Parameter(defaultValue = "RELEASE", property = "revapi.oldVersion")
-    private String oldVersion;
+    protected String oldVersion;
 
     /**
      * The coordinates of the new artifacts. These are the full GAVs of the artifacts, which means that you can compare
@@ -155,30 +154,30 @@ public class ReportMojo extends AbstractMavenReport {
      * {@link #newVersion} property instead.
      */
     @Parameter(property = "revapi.newArtifacts")
-    private String[] newArtifacts;
+    protected String[] newArtifacts;
 
     /**
      * The new version of the artifact. Defaults to "${project.version}".
      */
     @Parameter(defaultValue = "${project.version}", property = "revapi.newVersion")
-    private String newVersion;
+    protected String newVersion;
 
     /**
      * Problems with this or higher severity will be included in the report.
      * Possible values: nonBreaking, potentiallyBreaking, breaking.
      */
     @Parameter(defaultValue = "potentiallyBreaking", property = "revapi.reportSeverity")
-    private FailSeverity reportSeverity;
+    protected FailSeverity reportSeverity;
 
     /**
      * Whether to skip the mojo execution.
      */
     @Parameter(defaultValue = "false", property = "revapi.skip")
-    private boolean skip;
+    protected boolean skip;
 
     @Parameter(property = "revapi.outputDirectory", defaultValue = "${project.reporting.outputDirectory}",
         required = true, readonly = true)
-    private String outputDirectory;
+    protected String outputDirectory;
 
     /**
      * Whether to include the dependencies in the API checks. This is the default thing to do because your API might
@@ -190,7 +189,7 @@ public class ReportMojo extends AbstractMavenReport {
      * find it. See <a href="http://revapi.org/modules/revapi-java/extensions/java.html">the docs</a>.
      */
     @Parameter(defaultValue = "true", property = "revapi.checkDependencies")
-    private boolean checkDependencies;
+    protected boolean checkDependencies;
 
     /**
      * If set, this property demands a format of the version string when the {@link #oldVersion} or {@link #newVersion}
@@ -205,36 +204,36 @@ public class ReportMojo extends AbstractMavenReport {
      * a {@code RELEASE}.
      */
     @Parameter(property = "revapi.versionFormat")
-    private String versionFormat;
+    protected String versionFormat;
 
     @Component
-    private Renderer siteRenderer;
+    protected Renderer siteRenderer;
 
     @Component
-    private RepositorySystem repositorySystem;
+    protected RepositorySystem repositorySystem;
 
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
-    private RepositorySystemSession repositorySystemSession;
+    protected RepositorySystemSession repositorySystemSession;
 
     /**
      * If true (the default) revapi will always download the information about the latest version from the remote
      * repositories (instead of using locally cached info). This will respect the offline settings.
      */
     @Parameter(defaultValue = "true", property = "revapi.alwaysCheckForReleaseVersion")
-    private boolean alwaysCheckForReleaseVersion;
+    protected boolean alwaysCheckForReleaseVersion;
 
     /**
      * If true, the build will fail if one of the old or new artifacts fails to be resolved. Defaults to false.
      */
     @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedArtifacts")
-    private boolean failOnUnresolvedArtifacts;
+    protected boolean failOnUnresolvedArtifacts;
 
     /**
      * If true, the build will fail if some of the dependencies of the old or new artifacts fail to be resolved.
      * Defaults to false.
      */
     @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedDependencies")
-    private boolean failOnUnresolvedDependencies;
+    protected boolean failOnUnresolvedDependencies;
 
     /**
      * Set this to false if you want to use the goal to generate other kind of output than the default report for the
@@ -242,7 +241,7 @@ public class ReportMojo extends AbstractMavenReport {
      * revapi-reporter-text).
      */
     @Parameter(defaultValue = "true", property = "revapi.generateSiteReport")
-    private boolean generateSiteReport;
+    protected boolean generateSiteReport;
 
     private API oldAPI;
     private API newAPI;
@@ -280,32 +279,44 @@ public class ReportMojo extends AbstractMavenReport {
             Sink sink = getSink();
             ResourceBundle bundle = getBundle(locale);
 
-            sink.head();
-            sink.title();
-            sink.text(bundle.getString("report.revapi.title"));
-            sink.title_();
-            sink.head_();
-
-            sink.body();
-
-            sink.section1();
-            sink.sectionTitle1();
-            sink.rawText(bundle.getString("report.revapi.title"));
-            sink.sectionTitle1_();
-            sink.paragraph();
-            sink.text(getDescription(locale));
-            sink.paragraph_();
-
-            reportDifferences(reporter.reportsBySeverity.get(DifferenceSeverity.BREAKING), sink, bundle,
-                    "report.revapi.changes.breaking");
-            reportDifferences(reporter.reportsBySeverity.get(DifferenceSeverity.POTENTIALLY_BREAKING), sink, bundle,
-                    "report.revapi.changes.potentiallyBreaking");
-            reportDifferences(reporter.reportsBySeverity.get(DifferenceSeverity.NON_BREAKING), sink, bundle,
-                    "report.revapi.changes.nonBreaking");
-
-            sink.section1_();
-            sink.body_();
+            startReport(sink, bundle);
+            reportBody(reporter, oldAPI, newAPI, sink, bundle);
+            endReport(sink);
         }
+    }
+
+    protected void startReport(Sink sink, ResourceBundle messages) {
+        sink.head();
+        sink.title();
+        sink.text(messages.getString("report.revapi.title"));
+        sink.title_();
+        sink.head_();
+
+        sink.body();
+
+        sink.section1();
+        sink.sectionTitle1();
+        sink.rawText(messages.getString("report.revapi.title"));
+        sink.sectionTitle1_();
+    }
+
+    protected void endReport(Sink sink) {
+        sink.section1_();
+        sink.body_();
+    }
+
+    protected void reportBody(ReportTimeReporter reporterWithResults, API oldAPI, API newAPI, Sink sink,
+            ResourceBundle messages) {
+        sink.paragraph();
+        sink.text(getDescription(messages, oldAPI, newAPI));
+        sink.paragraph_();
+
+        reportDifferences(reporterWithResults.reportsBySeverity.get(DifferenceSeverity.BREAKING), sink, messages,
+                "report.revapi.changes.breaking");
+        reportDifferences(reporterWithResults.reportsBySeverity.get(DifferenceSeverity.POTENTIALLY_BREAKING), sink,
+                messages, "report.revapi.changes.potentiallyBreaking");
+        reportDifferences(reporterWithResults.reportsBySeverity.get(DifferenceSeverity.NON_BREAKING), sink, messages,
+                "report.revapi.changes.nonBreaking");
     }
 
     @Override
@@ -327,9 +338,50 @@ public class ReportMojo extends AbstractMavenReport {
                     " the report description.");
             return null;
         } else {
-            String message = getBundle(locale).getString("report.revapi.description");
-            return MessageFormat.format(message, niceList(oldAPI.getArchives()), niceList(newAPI.getArchives()));
+            return getDescription(getBundle(locale), oldAPI, newAPI);
         }
+    }
+
+    private String getDescription(ResourceBundle messages, API oldAPI, API newAPI) {
+        String message = messages.getString("report.revapi.description");
+        return MessageFormat.format(message, niceList(oldAPI.getArchives()), niceList(newAPI.getArchives()));
+    }
+
+    protected Analyzer prepareAnalyzer(Locale locale) {
+        if (generateSiteReport) {
+            reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
+        }
+
+        //noinspection Duplicates
+        if (oldArtifacts == null || oldArtifacts.length == 0) {
+            //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
+            //analyze there
+            //only do it here, because oldArtifacts might point to another artifact.
+            //if we end up here in this branch, we know we'll be comparing the current artifact with something.
+            if (project.getArtifact().getFile() == null) {
+                skip = true;
+                return null;
+            }
+
+            oldArtifacts = new String[]{
+                    Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, oldVersion)};
+        }
+
+        //noinspection Duplicates
+        if (newArtifacts == null || newArtifacts.length == 0) {
+            if (project.getArtifact().getFile() == null) {
+                skip = true;
+                return null;
+            }
+
+            newArtifacts = new String[]{
+                    Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, newVersion)};
+        }
+
+        return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
+                newArtifacts, project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
+                failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
+                alwaysCheckForReleaseVersion, checkDependencies, versionFormat);
     }
 
     private void ensureAnalyzed(Locale locale) {
@@ -364,27 +416,26 @@ public class ReportMojo extends AbstractMavenReport {
                         Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, newVersion)};
             }
 
-            Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
-                    newArtifacts, project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
-                    failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                    alwaysCheckForReleaseVersion, checkDependencies, versionFormat);
+            try (Analyzer analyzer = prepareAnalyzer(locale)) {
+                if (analyzer == null) {
+                    return;
+                }
 
-            try {
                 analyzer.analyze();
 
                 oldAPI = analyzer.getResolvedOldApi();
                 newAPI = analyzer.getResolvedNewApi();
-            } catch (MojoExecutionException e) {
+            } catch (Exception e) {
                 throw new IllegalStateException("Failed to generate report.", e);
             }
         }
     }
 
-    private ResourceBundle getBundle(Locale locale) {
+    protected ResourceBundle getBundle(Locale locale) {
         return ResourceBundle.getBundle("revapi-report", locale, this.getClass().getClassLoader());
     }
 
-    private String niceList(Iterable<? extends Archive> archives) {
+    protected String niceList(Iterable<? extends Archive> archives) {
         StringBuilder bld = new StringBuilder();
 
         Iterator<? extends Archive> it = archives.iterator();
