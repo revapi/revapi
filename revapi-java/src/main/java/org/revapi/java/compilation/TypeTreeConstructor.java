@@ -342,7 +342,8 @@ final class TypeTreeConstructor {
                 return;
             }
 
-            if (inclusionFilter.rejects(classBinaryName, canonicalName)) {
+            if (inclusionFilter.rejects(classBinaryName, canonicalName)
+                    || (!inclusionFilter.defaultCase() && !inclusionFilter.accepts(classBinaryName, canonicalName))) {
                 rec.setExplicitlyExcluded(true);
             } else {
                 detectedUses.forEach(this::processUse);
