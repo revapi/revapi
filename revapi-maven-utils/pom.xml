@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>22-SNAPSHOT</version>
+        <version>22</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -31,7 +31,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-maven-utils</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>0.6.0</version>
 
     <properties>
         <aether.version>0.9.1.v20140329</aether.version>
@@ -67,6 +67,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-maven-utils-0.6.0</tag>
     </scm>
 </project>
