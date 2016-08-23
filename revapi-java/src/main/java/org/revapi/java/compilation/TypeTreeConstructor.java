@@ -342,14 +342,16 @@ final class TypeTreeConstructor {
                 return;
             }
 
-            if (inclusionFilter.rejects(classBinaryName, canonicalName)
-                    || (!inclusionFilter.defaultCase() && !inclusionFilter.accepts(classBinaryName, canonicalName))) {
+            boolean explicitInclude = inclusionFilter.accepts(classBinaryName, canonicalName);
+
+            if (inclusionFilter.rejects(classBinaryName, canonicalName)) {
                 rec.setExplicitlyExcluded(true);
-            } else {
+            } else if (inclusionFilter.defaultCase() || explicitInclude) {
+                //only add uses if this class is going to end up in the model...
                 detectedUses.forEach(this::processUse);
             }
 
-            rec.setExplicitlyIncluded(inclusionFilter.accepts(classBinaryName, canonicalName));
+            rec.setExplicitlyIncluded(explicitInclude);
 
             //if this was determined as part of API, don't reset it back (potentially)
             rec.setApiType(rec.isApiType() || apiType);
