@@ -1,7 +1,11 @@
 public final class Added {
 
-    public interface Iface {
+    public interface SuperIface {
+        void childMethod();
+    }
 
+    public interface Iface extends SuperIface {
+        void superMethod();
     }
 
     public static abstract class Abstract {

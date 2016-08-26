@@ -16,8 +16,14 @@
 
 public final class Added {
 
-    public interface Iface {
+    public interface SuperIface {
+        void superMethod();
+    }
+
+    public interface Iface extends SuperIface {
         void newMethod();
+
+        void childMethod();
 
         static void newStaticMethod() {
 

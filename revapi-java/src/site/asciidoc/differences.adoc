@@ -686,6 +686,18 @@ A new concrete method added to a concrete class. This is always safe.
 This will break user code if the a subclass of the checked class declared a method that happens to have a same signature
 as the newly introduced final method.
 
+=== Inherited Method Moved To Class
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.inheritedMovedToClass+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+A method that was inherited in the old version is now declared in the class (or interface). This is a compatible change.
+Note that if the super class is part of the API, the removal of the method from that class will be reported separately.
+
 === Method Removed
 [cols="35s,<65d"]
 |=============
@@ -697,17 +709,19 @@ as the newly introduced final method.
 
 Removing a method from a class is an incompatible change.
 
-=== Overriding Method Removed
+=== Method Moved To Superclass
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.overridingMethodRemoved+
+| Code              | +java.method.movedToSuperClass+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
 |=============
 
-A method that overrode a method in a super class has been removed. This is a compatible change and is reported for
-completeness' sake.
+A method that was declared in the class in the old version is now declared in one of its super types.
+If such move should represent a compatibility breakage it is reported differently, like for example
+<<a_method_replaced_by_abstract_in_superclass, Method Replaced By Abstract In Superclass>>.
+Otherwise this is a compatible change and is reported for completeness' sake.
 
 === Method Replaced By Abstract In Superclass
 [cols="35s,<65d"]
@@ -789,6 +803,29 @@ and source compatibility.
 
 A static method can be called in the same way as member method, so on the source level, this change is compatible.
 It is not binary compatible though because static methods are called using a different bytecode instruction.
+
+=== Method Now Abstract
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.nowAbstract+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+If a method becomes abstract, all the inheriting classes will have to implement it even though they didn't have
+to before.
+
+=== Method No Longer Abstract
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.noLongerAbstract+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This is a compatible change reported for the completeness' sake.
 
 === Method Visibility Increased
 [cols="35s,<65d"]

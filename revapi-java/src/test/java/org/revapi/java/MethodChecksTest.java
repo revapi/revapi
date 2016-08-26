@@ -38,8 +38,9 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v1/methods/Added.java", "v2/methods/Added.java");
 
-        Assert.assertEquals(5, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED.code()));
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED_TO_INTERFACE.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED.code()));
+        Assert.assertEquals(4, (int) reporter.getProblemCounters().get(Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED_TO_INTERFACE.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_STATIC_METHOD_ADDED_TO_INTERFACE.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_ABSTRACT_METHOD_ADDED.code()));
     }
@@ -53,8 +54,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
             (int) reporter.getProblemCounters().get(Code.METHOD_REPLACED_BY_ABSTRACT_METHOD_IN_SUPERCLASS.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters()
             .get(Code.METHOD_NON_FINAL_METHOD_REPLACED_BY_FINAL_IN_SUPERCLASS.code()));
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_OVERRIDING_METHOD_REMOVED.code()));
-        Assert.assertEquals(5, (int) reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_MOVED_TO_SUPERCLASS.code()));
+        Assert.assertEquals(6, (int) reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
     }
 
     @Test
@@ -245,5 +246,14 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                                 && r.getDifferences().size() == 1
                                 && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_CHANGED.code().equals(d.code))
         ));
+    }
+
+    @Test
+    public void testAbstractMethod() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/methods/Abstract.java", "v2/methods/Abstract.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_ABSTRACT.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_ABSTRACT.code()));
     }
 }

@@ -125,12 +125,13 @@ public enum Code {
     METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS("java.method.finalMethodAddedToNonFinalClass", POTENTIALLY_BREAKING,
         POTENTIALLY_BREAKING, null),
     METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null),
-    METHOD_OVERRIDING_METHOD_REMOVED("java.method.overridingMethodRemoved", NON_BREAKING, NON_BREAKING, null),
     METHOD_REPLACED_BY_ABSTRACT_METHOD_IN_SUPERCLASS("java.method.replacedByAbstractMethodInSuperClass", BREAKING,
         BREAKING, null),
     METHOD_NON_FINAL_METHOD_REPLACED_BY_FINAL_IN_SUPERCLASS("java.method.nonFinalReplacedByFinalInSuperclass",
         POTENTIALLY_BREAKING,
         POTENTIALLY_BREAKING, null),
+    METHOD_MOVED_TO_SUPERCLASS("java.method.movedToSuperClass", NON_BREAKING, NON_BREAKING, null),
+    METHOD_INHERITED_METHOD_MOVED_TO_CLASS("java.method.inheritedMovedToClass", NON_BREAKING, NON_BREAKING, null),
     METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE(
         "java.method.attributeRemovedFromAnnotationType", BREAKING, BREAKING, null),
     METHOD_NO_LONGER_FINAL("java.method.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
@@ -150,6 +151,8 @@ public enum Code {
     METHOD_RUNTIME_EXCEPTION_REMOVED("java.method.exception.runtimeRemoved", NON_BREAKING, NON_BREAKING, null),
     METHOD_NO_LONGER_DEFAULT("java.method.noLongerDefault", BREAKING, BREAKING, null),
     METHOD_NOW_DEFAULT("java.method.nowDefault", NON_BREAKING, NON_BREAKING, null),
+    METHOD_NOW_ABSTRACT("java.method.nowAbstract", BREAKING, BREAKING, null),
+    METHOD_NO_LONGER_ABSTRACT("java.method.noLongerAbstract", NON_BREAKING, NON_BREAKING, null),
 
     GENERICS_ELEMENT_NOW_PARAMETERIZED("java.generics.elementNowParameterized", NON_BREAKING, NON_BREAKING,
         POTENTIALLY_BREAKING),

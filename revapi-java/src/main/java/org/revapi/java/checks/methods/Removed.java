@@ -34,6 +34,7 @@ import javax.lang.model.util.ElementFilter;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 
 /**
@@ -41,6 +42,38 @@ import org.revapi.java.spi.Util;
  * @since 0.1
  */
 public final class Removed extends CheckBase {
+
+    static ExecutableElement getAccessiblyInheritedFromSuperTypesOf(CheckBase self, String methodSignature,
+                                                                            TypeElement type, TypeEnvironment env) {
+        return Util.getAllSuperTypes(env.getTypeUtils(), type.asType()).stream()
+                .map(t -> ((DeclaredType) t).asElement())
+                .flatMap(e -> ElementFilter.methodsIn(e.getEnclosedElements()).stream())
+                .filter(m -> {
+                    if (!self.isAccessible(m, env)) {
+                        return false;
+                    }
+
+                    String oldSig = getMethodSignature(m.getSimpleName(),
+                            (ExecutableType) env.getTypeUtils().erasure(m.asType()));
+
+                    return methodSignature.equals(oldSig);
+                })
+                .findFirst().orElse(null);
+    }
+
+    static String getMethodSignature(@Nonnull CharSequence methodName, @Nonnull ExecutableType erasedMethod) {
+        StringBuilder bld = new StringBuilder(methodName);
+
+        bld.append("(");
+        for (TypeMirror p : erasedMethod.getParameterTypes()) {
+            bld.append(Util.toUniqueString(p)).append(";");
+        }
+        bld.append(")");
+
+        bld.append(Util.toUniqueString(erasedMethod.getReturnType()));
+
+        return bld.toString();
+    }
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -85,7 +118,7 @@ public final class Removed extends CheckBase {
         }
 
         List<TypeMirror> superClasses = Util
-            .getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(), newType.asType());
+            .getAllSuperTypes(getNewTypeEnvironment().getTypeUtils(), newType.asType());
 
         outer:
         for (TypeMirror superClass : superClasses) {
@@ -108,7 +141,8 @@ public final class Removed extends CheckBase {
                         difference = createDifference(Code.METHOD_NON_FINAL_METHOD_REPLACED_BY_FINAL_IN_SUPERCLASS,
                             new String[]{Util.toHumanReadableString(superClass)}, superMethod);
                     } else {
-                        difference = createDifference(Code.METHOD_OVERRIDING_METHOD_REMOVED);
+                        difference = createDifference(Code.METHOD_MOVED_TO_SUPERCLASS,
+                                new String[]{Util.toHumanReadableString(superClass)}, superMethod);
                     }
 
                     break outer;
@@ -121,19 +155,5 @@ public final class Removed extends CheckBase {
         }
 
         return Collections.singletonList(difference);
-    }
-
-    private String getMethodSignature(@Nonnull CharSequence methodName, @Nonnull ExecutableType erasedMethod) {
-        StringBuilder bld = new StringBuilder(methodName);
-
-        bld.append("(");
-        for (TypeMirror p : erasedMethod.getParameterTypes()) {
-            bld.append(Util.toUniqueString(p)).append(";");
-        }
-        bld.append(")");
-
-        bld.append(Util.toUniqueString(erasedMethod.getReturnType()));
-
-        return bld.toString();
     }
 }

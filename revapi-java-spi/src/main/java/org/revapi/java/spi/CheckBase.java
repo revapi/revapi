@@ -16,18 +16,31 @@
 
 package org.revapi.java.spi;
 
-import org.jboss.dmr.ModelNode;
-import org.revapi.AnalysisContext;
-import org.revapi.Difference;
+import java.io.Reader;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.SimpleElementVisitor7;
 import javax.lang.model.util.SimpleElementVisitor8;
-import java.io.Reader;
-import java.util.*;
+
+import org.jboss.dmr.ModelNode;
+import org.revapi.AnalysisContext;
+import org.revapi.Difference;
 
 /**
  * A basic implementation of the {@link Check} interface. This class easies the matching of the {@code visit*()}
