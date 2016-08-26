@@ -20,8 +20,8 @@
     <url>${web.url}</url>
 
     <properties>
-        <self-api-check.maven-version>0.4.5</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.8.0</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.5.0</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.10.0</self-api-check.java-extension-version>
     </properties>
 
     <dependencyManagement>
