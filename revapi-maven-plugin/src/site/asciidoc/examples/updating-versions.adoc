@@ -3,19 +3,16 @@
 NOTE: Goal details page: link:../update-versions-mojo.html[here]
 
 Revapi needs two artifacts to compare against each other to determine the API differences and therefore the required
-version changes. If the new artifact is the default `BUILD`, i.e. the result of the building of the current project,
-then prior to running revapi, the artifacts must be built. This is usually done in the `package` phase.
+version changes. By default the new artifact is the project being built so the artifacts need to be actually produced
+prior to running revapi. This is usually done in the `package` phase.
 
 When updating the version, the plugin takes into consideration the configuration of Revapi as declared in the
 `pom.xml` but does not use certain extensions that would make some of the differences disappear (like
-the link:../../revapi-basic-features/extensions/ignore.html[ignore extension] or link:../.
-./revapi-basic-features/extensions/semver-ignore.html[semver-ignore extension]). This list of extensions is
+the link:../../revapi-basic-features/extensions/semver-ignore.html[semver-ignore extension]). This list of extensions is
 configurable using the `disallowedExtensions` configuration property, see the goal's
-link:../update-versions-mojo.html[detail page] for further info. This is so that the true difference can be computed,
-the fact that the developers made changes that they want ignore (i.e. they find them valid) should not make those
-changes disappear.
+link:../update-versions-mojo.html[detail page] for further info.
 
-For a single-module project, this is very simple:
+For a single-module project, updating the versions is very simple:
 
 ```
 mvn package revapi:update-versions
@@ -26,13 +23,13 @@ The `version` in `pom.xml` will be updated according to the API changes and the 
 For multi-module project, one has more options. If each of the modules in the project is independently versioned,
 then the invocation is the same as for the single-module project, but if you version the child modules uniformly with
 the parent (i.e. you set `autoVersionSubmodules` to `true` when releasing using the maven release plugin), you should
-set the `singleVersionForAllModules` to `true`, too. Generally, `autoVersionSubmodules` and `singleVersionForAllModules`
-should be set to the same value.
+set the `singleVersionForAllModules` of revapi to `true`, too. Generally, `autoVersionSubmodules` and
+`singleVersionForAllModules` should be set to the same value.
 
 ```
 mvn package revapi:update-versions -Drevapi.singleVersionForAllModules=true
 ```
 
 This will check the API differences in all the child modules and will determine the version of the whole based on the
-"biggest" change. I.e. if one module breaks the API then the major version will be increased even though the rest of
-the child modules might not have changed at all.
+"biggest" change. I.e. if one child module breaks the API then the major version will be increased in all modules even
+though the rest of the child modules might not have changed at all.

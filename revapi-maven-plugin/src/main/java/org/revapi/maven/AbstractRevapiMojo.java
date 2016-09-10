@@ -250,6 +250,13 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * @return true if artifacts are initialized, false if not and the analysis should not proceed
      */
     protected boolean initializeComparisonArtifacts() {
+        if (newArtifacts != null && newArtifacts.length == 1 && "BUILD".equals(newArtifacts[0])) {
+            getLog().warn("\"BUILD\" coordinates are deprecated. Just leave \"newArtifacts\" undefined and specify" +
+                    " \"${project.version}\" as the value for \"newVersion\" (which is the default, so you don't" +
+                    " actually have to do that either).");
+            oldArtifacts = null;
+        }
+
         if (oldArtifacts == null || oldArtifacts.length == 0) {
             //non-intuitively, we need to initialize the artifacts even if we will not proceed with the analysis itself
             //that's because we need know the versions when figuring out the version modifications -

@@ -13,7 +13,7 @@ equivalent to running the maven plugin with the following set up:
         <artifact>${project.groupId}:${project.artifactId}:RELEASE</artifact>
     </oldArtifacts>
     <newArtifacts>
-        <artifact>BUILD</artifact>
+        <artifact>${project.groupId}:${project.artifactId}:${project.version}</artifact>
     </newArtifacts>
   </configuration>
   <executions>
@@ -24,8 +24,7 @@ equivalent to running the maven plugin with the following set up:
 ```
 
 I.e. the `oldArtifacts` are set up to include the current project with the `RELEASE` version, which is Maven's way of
-saying "this project in the latest released version". The `newArtifacts` include the special `BUILD` value which
-Revapi maven plugin translates to the currently built project.
+saying "this project in the latest released version". The `newArtifacts` specifies the currently built project.
 
 The above example implies a couple of things:
 

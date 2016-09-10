@@ -328,7 +328,7 @@ final class Analyzer implements AutoCloseable {
 
     @SuppressWarnings("unchecked")
     void analyze() throws MojoExecutionException {
-        //This is useful so that users know what RELEASE and BUILD actually resolved to.
+        //This is useful so that users know what RELEASE actually resolved to.
         Function<MavenArchive, String> extractName = new Function<MavenArchive, String>() {
             @Override public String apply(MavenArchive mavenArchive) {
                 return mavenArchive.getName();

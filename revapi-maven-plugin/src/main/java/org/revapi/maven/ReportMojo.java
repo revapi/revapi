@@ -128,8 +128,6 @@ public class ReportMojo extends AbstractMavenReport {
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
      * current project.
      * <p/>
-     * If the coordinates are exactly "BUILD" (without quotes) the build artifacts are used.
-     * <p/>
      * If the this property is null, the {@link #oldVersion} property is checked for a value of the old version of the
      * artifact being built.
      *
@@ -388,6 +386,13 @@ public class ReportMojo extends AbstractMavenReport {
         if (!skip && reporter == null) {
             if (generateSiteReport) {
                 reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
+            }
+
+            if (newArtifacts != null && newArtifacts.length == 1 && "BUILD".equals(newArtifacts[0])) {
+                getLog().warn("\"BUILD\" coordinates are deprecated. Just leave \"newArtifacts\" undefined and" +
+                        " specify \"${project.version}\" as the value for \"newVersion\" (which is the default, so" +
+                        " you don't actually have to do that either).");
+                oldArtifacts = null;
             }
 
             //noinspection Duplicates
