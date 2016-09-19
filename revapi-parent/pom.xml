@@ -182,10 +182,10 @@
     <mailingLists>
         <mailingList>
             <name>Revapi</name>
-            <subscribe>https://groups.google.com/groups/revapi</subscribe>
-            <unsubscribe>https://groups.google.com/groups/revapi</unsubscribe>
+            <subscribe>https://groups.google.com/forum/#!forum/revapi</subscribe>
+            <unsubscribe>https://groups.google.com/forum/#!forum/revapi</unsubscribe>
             <post>mailto:revapi@googlegroups.com</post>
-            <archive>https://groups.google.com/groups/revapi</archive>
+            <archive>https://groups.google.com/forum/#!forum/revapi</archive>
         </mailingList>
     </mailingLists>
 
