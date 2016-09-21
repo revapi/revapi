@@ -27,6 +27,7 @@ import javax.lang.model.element.TypeElement;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -46,7 +47,9 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
             return;
         }
 
-        if (isAccessible(newType, getNewTypeEnvironment()) && !isAccessibleByModifier(newType)) {
+        JavaTypeElement model = getNewTypeEnvironment().getModelElement(newType);
+
+        if (model != null && model.isInAPI() && !isAccessibleByModifier(newType)) {
             pushActive(oldType, newType);
         }
     }

@@ -16,8 +16,6 @@
 
 package org.revapi.java.spi;
 
-import java.util.Set;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
@@ -51,29 +49,6 @@ public interface TypeEnvironment {
     Types getTypeUtils();
 
     /**
-     * Visits the uses of the provided type. The visit will stop as soon as a non-null value is returned
-     * from the visitor, even if some use sites are left unvisited.
-     *
-     * @param <R>       the return type (use {@link java.lang.Void} for no return type)
-     * @param <P>       the type of the parameter (use {@link java.lang.Void} for no particular type)
-     * @param type      the type to visit uses of
-     * @param visitor   the visitor
-     * @param parameter the parameter to supply to the visitor
-     *
-     * @return the value returned by the visitor
-     */
-    @Nullable
-    <R, P> R visitUseSites(@Nonnull TypeElement type, @Nonnull UseSite.Visitor<R, P> visitor, @Nullable P parameter);
-
-    /**
-     * Returns the set of subclasses of given type that are declared public.
-     * @param type the class
-     * @return the set of subclasses or empty set if no (accessible) subclasses are known
-     */
-    @Nonnull
-    Set<TypeElement> getAccessibleSubclasses(@Nonnull TypeElement type);
-
-    /**
      * This returns true for elements that are included by the means of configuration. I.e. even though they could
      * otherwise be excluded from the API, the user chose to include them.
      * <p>
@@ -98,4 +73,16 @@ public interface TypeEnvironment {
      * @return true if the the user explicitly excluded this element from the API checks, false otherwise.
      */
     boolean isExplicitlyExcluded(Element element);
+
+    /**
+     * Converts between the javax.lang.model and revapi representation of the type. The revapi representation contains
+     * some useful methods with "results" computed during the analysis.
+     *
+     * <p>Note that this will return {@code null} for types that are not part of the revapi representation - namely
+     * the types on the bootstrap classpath.
+     *
+     * @param type the javax.lang.model representation of a type
+     * @return the revapi representation type
+     */
+    @Nullable JavaTypeElement getModelElement(TypeElement type);
 }

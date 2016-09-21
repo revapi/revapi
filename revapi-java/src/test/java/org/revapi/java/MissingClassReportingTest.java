@@ -111,11 +111,11 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         revapi.analyze(ctx);
 
         Assert.assertEquals(3, allReports.size());
-        Assert.assertTrue(containsDifference(allReports, "missing-class B$T$2", "missing-class B$T$2",
+        Assert.assertTrue(containsDifference(allReports, "missing-class B.T$2", "missing-class B.T$2",
             Code.MISSING_IN_NEW_API.code()));
-        Assert.assertTrue(containsDifference(allReports, "missing-class B$T$2", "missing-class B$T$2",
+        Assert.assertTrue(containsDifference(allReports, "missing-class B.T$2", "missing-class B.T$2",
             Code.MISSING_IN_OLD_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "missing-class B$T$3",
+        Assert.assertTrue(containsDifference(allReports, null, "missing-class B.T$3",
             Code.MISSING_IN_NEW_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3",
             Code.FIELD_ADDED.code()));

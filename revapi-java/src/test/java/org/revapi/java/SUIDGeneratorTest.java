@@ -19,11 +19,9 @@ package org.revapi.java;
 import java.io.File;
 import java.io.ObjectStreamClass;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -39,8 +37,8 @@ import javax.tools.ToolProvider;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.java.checks.fields.SerialVersionUidUnchanged;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
-import org.revapi.java.spi.UseSite;
 import org.revapi.java.suid.TestClass;
 
 /**
@@ -77,17 +75,8 @@ public class SUIDGeneratorTest {
                     return processingEnv.getTypeUtils();
                 }
 
-                @Nullable
-                @Override
-                public <R, P> R visitUseSites(@Nonnull TypeElement type, @Nonnull UseSite.Visitor<R, P> visitor,
-                    @Nullable P parameter) {
+                @Override public JavaTypeElement getModelElement(TypeElement type) {
                     return null;
-                }
-
-                @Nonnull
-                @Override
-                public Set<TypeElement> getAccessibleSubclasses(@Nonnull TypeElement type) {
-                    return Collections.emptySet();
                 }
 
                 @Override

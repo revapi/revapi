@@ -24,15 +24,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -93,8 +85,8 @@ public final class Compiler {
 
         int prefixLength = (int) Math.log10(nofArchives) + 1;
 
-        copyArchives(classPath, lib, 0, prefixLength);
-        copyArchives(additionalClassPath, lib, classPathSize, prefixLength);
+        IdentityHashMap<Archive, File> classPathFiles = copyArchives(classPath, lib, 0, prefixLength);
+        IdentityHashMap<Archive, File> additionClassPathFiles = copyArchives(additionalClassPath, lib, classPathSize, prefixLength);
 
         List<String> options = Arrays.asList(
             "-d", sourceDir.toString(),
@@ -120,19 +112,40 @@ public final class Compiler {
 
         task.setProcessors(Collections.singletonList(processor));
 
-        Future<Boolean> future = processor.submitWithCompilationAwareness(executor, () -> {
+//        Future<Boolean> future = processor.submitWithCompilationAwareness(executor, task, () -> {
+//            if (Timing.LOG.isDebugEnabled()) {
+//                Timing.LOG.debug("About to crawl " + environment.getApi());
+//            }
+//
+//            try {
+//                new ClassTreeInitializer(environment, missingClassReporting, ignoreMissingAnnotations,
+//                        skipUseTracking, bootstrapClasspath, inclusionFilter).initTree();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//
+//            if (Timing.LOG.isDebugEnabled()) {
+//                Timing.LOG.debug("Crawl finished for " + environment.getApi());
+//            }
+//        });
+
+        Future<Boolean> future = processor.submitWithCompilationAwareness(executor, task, () -> {
             if (Timing.LOG.isDebugEnabled()) {
                 Timing.LOG.debug("About to crawl " + environment.getApi());
             }
 
-            new ClassTreeInitializer(environment, missingClassReporting, ignoreMissingAnnotations,
-                    skipUseTracking, bootstrapClasspath, inclusionFilter).initTree();
+            try {
+                new ClasspathScanner(fileManager, environment, classPathFiles, additionClassPathFiles,
+                        missingClassReporting, ignoreMissingAnnotations, inclusionFilter).initTree();
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to scan the classpath.", e);
+            }
 
             if (Timing.LOG.isDebugEnabled()) {
                 Timing.LOG.debug("Crawl finished for " + environment.getApi());
             }
-            return task.call();
         });
+
 
         return new CompilationValve(future, targetPath, environment, fileManager);
     }
@@ -164,14 +177,19 @@ public final class Compiler {
         return bld.toString();
     }
 
-    private void copyArchives(Iterable<? extends Archive> archives, File parentDir, int startIdx, int prefixLength) {
+    private IdentityHashMap<Archive, File>
+    copyArchives(Iterable<? extends Archive> archives, File parentDir, int startIdx, int prefixLength) {
+        IdentityHashMap<Archive, File> ret = new IdentityHashMap<>();
         if (archives == null) {
-            return;
+            return ret;
         }
 
         for (Archive a : archives) {
             String name = formatName(startIdx++, prefixLength, a.getName());
             File f = new File(parentDir, name);
+
+            ret.put(a, f);
+
             if (f.exists()) {
                 LOG.warn(
                     "File " + f.getAbsolutePath() + " with the data of archive '" + a.getName() + "' already exists." +
@@ -188,6 +206,8 @@ public final class Compiler {
                     "Failed to copy class path element: " + a.getName() + " to " + f.getAbsolutePath(), e);
             }
         }
+
+        return ret;
     }
 
     private int size(Iterable<?> collection) {

@@ -307,21 +307,14 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         if (element instanceof JavaTypeElement) {
             bld.append("\n");
             LOG.trace("Reporting uses of {}", element);
-            javax.lang.model.element.TypeElement type = ((JavaTypeElement) element).getModelElement();
 
-            environment.visitUseSites(type, new UseSite.Visitor<Void, Void>() {
-                boolean first = true;
-
+            ((JavaTypeElement) element).visitUseSites(new UseSite.Visitor<Object, Void>() {
                 @Nullable
                 @Override
-                public Void visit(@Nonnull javax.lang.model.element.TypeElement type, @Nonnull UseSite use,
+                public Object visit(@Nonnull javax.lang.model.element.TypeElement type, @Nonnull UseSite use,
                     @Nullable Void parameter) {
-                    if (first) {
-                        appendUse(bld, type, use, environment);
-                        first = false;
-                    } else {
-                        bld.append(", ");
-                        appendUse(bld, type, use, environment);
+                    if (appendUse(bld, type, use, environment)) {
+                        return Boolean.TRUE; //just a non-null values
                     }
 
                     return null;
@@ -329,7 +322,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
                 @Nullable
                 @Override
-                public Void end(javax.lang.model.element.TypeElement type, @Nullable Void parameter) {
+                public Object end(javax.lang.model.element.TypeElement type, @Nullable Void parameter) {
                     return null;
                 }
             }, null);
@@ -337,8 +330,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
 
-    private void appendUse(StringBuilder bld, javax.lang.model.element.TypeElement type, UseSite use,
+    private boolean appendUse(StringBuilder bld, javax.lang.model.element.TypeElement type, UseSite use,
         ProbingEnvironment environment) {
+
+        if (!use.getUseType().isMovingToApi()) {
+            return false;
+        }
 
         List<TypeAndUseSite> chain = getExamplePathToApiArchive(type, use, environment);
         Iterator<TypeAndUseSite> chainIt = chain.iterator();
@@ -348,7 +345,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 LOG.debug("Could not find example path to API element for type {} starting with use {}",
                     type.getQualifiedName().toString(), use);
             }
-            return;
+            return false;
         }
 
         TypeAndUseSite last = null;
@@ -367,6 +364,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             last.useSite.getSite().getFullHumanReadableString());
 
         bld.append(" (").append(message).append(")");
+
+        return true;
     }
 
     private List<TypeAndUseSite> getExamplePathToApiArchive(javax.lang.model.element.TypeElement type,
@@ -383,7 +382,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         final List<TypeAndUseSite> path, final ProbingEnvironment environment, final
     Set<javax.lang.model.element.TypeElement> visitedTypes) {
 
-        javax.lang.model.element.TypeElement useType = findClassOf(currentUse.getSite()).getModelElement();
+        JavaTypeElement ut = findClassOf(currentUse.getSite());
+        javax.lang.model.element.TypeElement useType = ut.getModelElement();
 
         if (visitedTypes.contains(useType)) {
             return false;
@@ -399,7 +399,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             path.add(0, new TypeAndUseSite(type, currentUse));
             return true;
         } else {
-            Boolean ret = environment.visitUseSites(useType, new UseSite.Visitor<Boolean, Void>() {
+            Boolean ret = ut.visitUseSites(new UseSite.Visitor<Boolean, Void>() {
                 @Nullable
                 @Override
                 public Boolean visit(@Nonnull javax.lang.model.element.TypeElement visitedType, @Nonnull UseSite use,

@@ -84,6 +84,19 @@ public final class UseSite {
             ret.removeAll(Arrays.asList(types));
             return ret;
         }
+
+        /**
+         * @return true if this type of use makes the used type part of the API even if it wasn't originally part
+         * of it.
+         */
+        public boolean isMovingToApi() {
+            switch (this) {
+                case ANNOTATES: case CONTAINS: case IS_INHERITED: case IS_IMPLEMENTED:
+                    return false;
+                default:
+                    return true;
+            }
+        }
     }
 
     /**

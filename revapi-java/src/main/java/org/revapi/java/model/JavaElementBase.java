@@ -36,7 +36,7 @@ import org.revapi.simple.SimpleElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-abstract class JavaElementBase<T extends Element> extends SimpleElement implements JavaModelElement {
+public abstract class JavaElementBase<T extends Element> extends SimpleElement implements JavaModelElement {
 
     protected final ProbingEnvironment environment;
     protected T element;
@@ -44,7 +44,7 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
     private final Archive archive;
     private String comparableSignature;
 
-    public JavaElementBase(ProbingEnvironment env, Archive archive, T element) {
+    JavaElementBase(ProbingEnvironment env, Archive archive, T element) {
         this.environment = env;
         this.element = element;
         this.archive = archive;
@@ -85,6 +85,11 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
         return element;
     }
 
+    @SuppressWarnings("unchecked")
+    public SortedSet<JavaElement> getUninitializedChildren() {
+        return (SortedSet<JavaElement>) super.getChildren();
+    }
+
     @Nonnull
     @Override
     @SuppressWarnings({"unchecked", "ConstantConditions"})
@@ -106,9 +111,9 @@ abstract class JavaElementBase<T extends Element> extends SimpleElement implemen
 
                 JavaModelElement child = JavaElementFactory.elementFor(e, environment, archive);
                 if (child != null) {
-                    child.setParent(this);
-
-                    set.add(child);
+                    if (set.add(child)) {
+                        child.setParent(this);
+                    }
                 }
             }
 

@@ -146,13 +146,13 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
         return type == NO_TYPE || type instanceof ErrorType;
     }
 
-    public MissingTypeElement(String qualifiedName) {
-        this.qualifiedName = qualifiedName;
-    }
-
     @Override
     public List<? extends Element> getEnclosedElements() {
         return Collections.emptyList();
+    }
+
+    public MissingTypeElement(String qualifiedName) {
+        this.qualifiedName = qualifiedName;
     }
 
     @Override

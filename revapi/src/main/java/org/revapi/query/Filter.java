@@ -16,6 +16,8 @@
 
 package org.revapi.query;
 
+import java.util.function.Function;
+
 import javax.annotation.Nullable;
 
 /**
@@ -25,6 +27,18 @@ import javax.annotation.Nullable;
  * @since 0.1
  */
 public interface Filter<T> {
+
+    static <T> Filter<T> flat(Function<T, Boolean> filter) {
+        return new Filter<T>() {
+            @Override public boolean applies(@Nullable T element) {
+                return filter.apply(element);
+            }
+
+            @Override public boolean shouldDescendInto(@Nullable Object element) {
+                return false;
+            }
+        };
+    }
 
     /**
      * If an element in a forest is of compatible type, does the filter apply to it?

@@ -131,37 +131,8 @@ public abstract class CheckBase implements Check {
 
                 @Override
                 public Boolean visitType(TypeElement e, Void v) {
-                    //the type is accessible iff:
-                    //1) it is a top-level type and is accessible
-                    //2) it is an inner type and:
-                    //   a) its enclosing type and all its enclosing types are accessible
-                    //   b) its enclosing type is not accessible but at least one of its subclasses is and all the enclosing
-                    //      types of that subclass (if any) are accessible
-                    //
-                    if (isAllEnclosersAccessible(e, env) || isUsedSignificantly(e, env, visitedTypes)) {
-                        return true;
-                    } else {
-                        Element parent = e.getEnclosingElement();
-                        if (parent instanceof PackageElement) {
-                            //we know the element is accessible by modifier and now we know its enclosing element is not
-                            //a type, i.e. the element is a top-level class and no further checks are necessary.
-                            return true;
-                        } else if (parent instanceof TypeElement) {
-                            TypeElement tp = (TypeElement) parent;
-                            if (isAllEnclosersAccessible(tp, env) || isUsedSignificantly(tp, env, visitedTypes)) {
-                                return true;
-                            }
-                            Set<TypeElement> subclasses = env.getAccessibleSubclasses(tp);
-                            return subclasses.stream()
-                                    .filter(t -> isAllEnclosersAccessible(t, env)
-                                            || isUsedSignificantly(t, env, visitedTypes))
-                                    .findAny().isPresent();
-                        } else {
-                            //we shouldn't even get here, because anonymous or method-local classes should be
-                            //part of the model.
-                            return false;
-                        }
-                    }
+                    JavaTypeElement t = env.getModelElement(e);
+                    return t == null || t.isMembersAccessible();
                 }
 
                 @Override
@@ -175,23 +146,10 @@ public abstract class CheckBase implements Check {
                 }
 
                 private boolean isAccessibleOrHasAccessibleSubclasses(TypeElement type) {
-                    //a method or field is accessible iff:
-                    //It is accessible and:
-                    //1) All its enclosing types are accessible, or
-                    //2) Its immediately enclosing type is not accessible but
-                    //   has at least one subclass that is accessible and all its enclosing types are accessible, too
-
                     //if we reach this method, we know the method or field is accessible and we're checking if the type
-                    //satisfies one of the conditions above
-                    if (isAllEnclosersAccessible(type, env) || isUsedSignificantly(type, env, visitedTypes)) {
-                        return true;
-                    } else {
-                        Set<TypeElement> subclasses = env.getAccessibleSubclasses(type);
-                        return subclasses.stream()
-                                .filter(t -> isAllEnclosersAccessible(t, env)
-                                        || isUsedSignificantly(t, env, visitedTypes))
-                                .findAny().isPresent();
-                    }
+                    //that contains it has accessible members
+                    JavaTypeElement t = env.getModelElement(type);
+                    return t == null || t.isMembersAccessible();
                 }
             }, null);
         }
@@ -240,24 +198,10 @@ public abstract class CheckBase implements Check {
                 visitedTypes, NOOP_USE_CHECK);
     }
 
-    /**
-     * Checks if the type is publicly used as any of the provided use types.
-     *
-     * @param type the type
-     * @param env the environment in which the type exists
-     * @param uses the use types to check for
-     * @return true if the type is used at least once as any of the provided use types, false otherwise
-     */
-    public boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
-        final Collection<UseSite.Type> uses) {
-
-        return isPubliclyUsedAs(type, env, uses, new HashSet<>(), NOOP_USE_CHECK);
-    }
-
     private boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
     final Collection<UseSite.Type> uses, final Set<TypeElement> visitedElements, final UseSite.Visitor<Boolean, Void> noUseCheck) {
 
-        final Boolean isUsedSignificantly = env.visitUseSites(type, new UseSite.Visitor<Boolean, Void>() {
+        final Boolean isUsedSignificantly = env.getModelElement(type).visitUseSites(new UseSite.Visitor<Boolean, Void>() {
 
             private int nofUses;
 

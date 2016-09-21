@@ -39,6 +39,7 @@ final class ProbingAnnotationProcessor extends AbstractProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ProbingAnnotationProcessor.class);
 
     private final ProbingEnvironment environment;
+    private Runnable postCompilationPayload;
 
     public ProbingAnnotationProcessor(ProbingEnvironment env) {
         this.environment = env;
@@ -48,6 +49,8 @@ final class ProbingAnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) {
             environment.setProcessingEnvironment(processingEnv);
+
+            postCompilationPayload.run();
 
             releaseCompilationProgress();
 
@@ -63,14 +66,15 @@ final class ProbingAnnotationProcessor extends AbstractProcessor {
         return false;
     }
 
-    public <T> Future<T> submitWithCompilationAwareness(ExecutorService executor, final Callable<T> task)
+    public <T> Future<T> submitWithCompilationAwareness(ExecutorService executor, final Callable<T> compilation, final Runnable postCompilePayload)
             throws Exception {
 
         return executor.submit(new Callable<T>() {
             @Override
             public T call() throws Exception {
                 try {
-                    return task.call();
+                    ProbingAnnotationProcessor.this.postCompilationPayload = postCompilePayload;
+                    return compilation.call();
                 } finally {
                     releaseCompilationProgress();
                 }

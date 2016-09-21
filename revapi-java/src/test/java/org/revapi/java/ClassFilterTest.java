@@ -42,7 +42,7 @@ import org.revapi.simple.SimpleElementFilter;
  */
 public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     @Test
-    public void testSimpleFilterByName() throws Exception {
+    public void testSimpleFilterByName_exclude() throws Exception {
         testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"exclude\": [\"classfilter.A\"]}}}}}",
                 Stream.of(
                         "class classfilter.B",
@@ -53,7 +53,10 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
                         "method void classfilter.B.BA::<init>()",
                         "class classfilter.B.BB",
                         "method void classfilter.B.BB::<init>()").collect(toSet()));
+    }
 
+    @Test
+    public void testSimpleFilterByName_include() throws Exception {
         testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"include\": [\"classfilter.A\"]}}}}}",
                 Stream.of(
                         "class classfilter.A",
