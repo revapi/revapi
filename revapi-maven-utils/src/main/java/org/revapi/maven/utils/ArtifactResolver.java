@@ -82,7 +82,7 @@ public class ArtifactResolver {
             throws VersionRangeResolutionException, ArtifactResolutionException {
         Artifact artifact = new DefaultArtifact(gav);
         artifact = artifact.setVersion(upToVersion == null ? "[,)" : "[," + upToVersion + ")");
-        VersionRangeRequest rangeRequest = new VersionRangeRequest(artifact, null, null);
+        VersionRangeRequest rangeRequest = new VersionRangeRequest(artifact, repositories, null);
 
         VersionRangeResult result = repositorySystem.resolveVersionRange(session, rangeRequest);
 
