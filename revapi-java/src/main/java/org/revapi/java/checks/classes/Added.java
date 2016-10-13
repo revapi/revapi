@@ -35,11 +35,13 @@ public final class Added extends CheckBase {
     protected List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types != null) {
-            TypeElement typeInOld = getOldTypeEnvironment().getElementUtils().getTypeElement(types.newElement
-                    .getQualifiedName());
-
-            Difference difference = typeInOld == null ? createDifference(Code.CLASS_ADDED) :
-                    createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API);
+//TODO The heuristics of figuring out if a class is external is flawed.
+//            TypeElement typeInOld = getOldTypeEnvironment().getElementUtils().getTypeElement(types.newElement
+//                    .getQualifiedName());
+//
+//            Difference difference = typeInOld == null ? createDifference(Code.CLASS_ADDED) :
+//                    createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API);
+            Difference difference = createDifference(Code.CLASS_ADDED);
 
             return Collections.singletonList(difference);
         }
