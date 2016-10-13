@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.io.ModelWriter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -68,9 +67,6 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     @Component
     protected MavenSession mavenSession;
 
-    @Component
-    private ModelWriter modelWriter;
-
     /**
      * Set to true if all the projects in the current build should share a single version (the default is false).
      * This is useful if your distribution consists of several modules that make up one logical unit that is always
@@ -80,7 +76,7 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
      * "biggest" API change found in all the projects. I.e. if just a single module breaks API then all of the
      * modules will get the major version incremented.
      */
-    @Parameter(defaultValue = "false", property = "revapi.singleVersionForAllModules")
+    @Parameter(property = Props.singleVersionForAllModules.NAME, defaultValue = Props.singleVersionForAllModules.DEFAULT_VALUE)
     private boolean singleVersionForAllModules;
 
     /**
@@ -91,8 +87,7 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
      * You can modify this set if you use another extensions that change the found differences in a way that the
      * determined new version would not correspond to what it should be.
      */
-    @Parameter(defaultValue = "org.revapi.basic.SemverIgnoreTransform",
-        property = "revapi.disallowedExtensions")
+    @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
     private String disallowedExtensions;
 
     private boolean preserveSuffix;

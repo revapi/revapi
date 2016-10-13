@@ -3,7 +3,7 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>4</version>
+        <version>5</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -15,13 +15,13 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>24-SNAPSHOT</version>
+    <version>26-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>${web.url}</url>
 
     <properties>
-        <self-api-check.maven-version>0.5.0</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.10.0</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.6.0</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.10.2</self-api-check.java-extension-version>
     </properties>
 
     <dependencyManagement>
@@ -29,7 +29,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-bom</artifactId>
-                <version>27-SNAPSHOT</version>
+                <version>29-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -79,7 +79,7 @@
                     <dependency>
                         <groupId>org.revapi</groupId>
                         <artifactId>revapi-build-support</artifactId>
-                        <version>3</version>
+                        <version>4</version>
                     </dependency>
                 </dependencies>
                 <configuration>

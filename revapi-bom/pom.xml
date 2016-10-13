@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-parent</artifactId>
-        <version>4</version>
+        <version>5</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
 
@@ -32,7 +32,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-bom</artifactId>
-    <version>27-SNAPSHOT</version>
+    <version>29-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -41,19 +41,19 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-ant-task</artifactId>
-                <version>0.4.0</version>
+                <version>0.4.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi</artifactId>
-                <version>0.6.1-SNAPSHOT</version>
+                <version>0.6.2-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-basic-features</artifactId>
-                <version>0.4.3</version>
+                <version>0.4.4</version>
             </dependency>
 
             <dependency>
@@ -71,31 +71,31 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-plugin</artifactId>
-                <version>0.5.2-SNAPSHOT</version>
+                <version>0.6.2-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-utils</artifactId>
-                <version>0.6.0</version>
+                <version>0.7.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-reporter-text</artifactId>
-                <version>0.6.0</version>
+                <version>0.6.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-standalone</artifactId>
-                <version>0.5.0</version>
+                <version>0.5.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-site-shared</artifactId>
-                <version>2</version>
+                <version>3</version>
                 <type>zip</type>
                 <classifier>resources</classifier>
             </dependency>

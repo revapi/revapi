@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>24-SNAPSHOT</version>
+        <version>26-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -32,7 +32,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-maven-plugin</artifactId>
-    <version>0.5.2-SNAPSHOT</version>
+    <version>0.6.2-SNAPSHOT</version>
 
     <properties>
         <maven.version>3.2.5</maven.version>
@@ -42,8 +42,8 @@
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi-java.version>0.10.0</revapi-java.version>
-        <revapi-java-spi.version>0.8.0</revapi-java-spi.version>
+        <revapi-java.version>0.10.2</revapi-java.version>
+        <revapi-java-spi.version>0.9.1</revapi-java-spi.version>
         <revapi-reporter-text.version>0.6.0</revapi-reporter-text.version>
     </properties>
 
@@ -145,20 +145,6 @@
             <plugin>
                 <artifactId>maven-invoker-plugin</artifactId>
                 <version>${maven-invoker.version}</version>
-                <configuration>
-                    <skipInstallation>${skipTests}</skipInstallation>
-                    <skipInvocation>${skipTests}</skipInvocation>
-                    <cloneProjectsTo>${project.build.directory}/it/build</cloneProjectsTo>
-                    <localRepositoryPath>${project.build.directory}/it/repo</localRepositoryPath>
-                    <settingsFile>src/it/settings.xml</settingsFile>
-                    <streamLogs>true</streamLogs>
-                    <goals>
-                        <goal>clean</goal>
-                        <goal>install</goal>
-                    </goals>
-                    <mavenOpts>${itest.maven-opts}</mavenOpts>
-                    <debug>${itest.debug-output}</debug>
-                </configuration>
                 <executions>
                     <execution>
                         <id>integration-test</id>
@@ -166,6 +152,44 @@
                             <goal>install</goal>
                             <goal>run</goal>
                         </goals>
+                        <configuration>
+                            <skipInstallation>${skipTests}</skipInstallation>
+                            <skipInvocation>${skipTests}</skipInvocation>
+                            <cloneProjectsTo>${project.build.directory}/it/build</cloneProjectsTo>
+                            <localRepositoryPath>${project.build.directory}/it/repo</localRepositoryPath>
+                            <settingsFile>src/it/settings.xml</settingsFile>
+                            <streamLogs>true</streamLogs>
+                            <projectsDirectory>${basedir}/src/it/build</projectsDirectory>
+                            <goals>
+                                <goal>clean</goal>
+                                <goal>install</goal>
+                            </goals>
+                            <mavenOpts>${itest.maven-opts}</mavenOpts>
+                            <debug>${itest.debug-output}</debug>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>site-integration-test</id>
+                        <goals>
+                            <goal>install</goal>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <skipInstallation>${skipTests}</skipInstallation>
+                            <skipInvocation>${skipTests}</skipInvocation>
+                            <cloneProjectsTo>${project.build.directory}/it/build</cloneProjectsTo>
+                            <localRepositoryPath>${project.build.directory}/it/repo</localRepositoryPath>
+                            <settingsFile>src/it/settings.xml</settingsFile>
+                            <streamLogs>true</streamLogs>
+                            <projectsDirectory>${basedir}/src/it/site</projectsDirectory>
+                            <goals>
+                                <goal>clean</goal>
+                                <goal>install</goal>
+                                <goal>site</goal>
+                            </goals>
+                            <mavenOpts>${itest.maven-opts}</mavenOpts>
+                            <debug>${itest.debug-output}</debug>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -49,13 +49,11 @@ increase (like an API breaking change when you only increased a micro version si
 build. At that moment, it is enough to invoke:
 
 ```
-mvn package revapi:update-versions
+mvn revapi:update-versions
 ```
 
 and the version will be updated to reflect the API changes made. When you build the project again, the build should
 pass.
 
-NOTE: It is still necessary to run the package phase so that the code is actually compiled and revapi can compare the
-built artifacts with the last released artifacts. On the other hand, you can even embed the `update-versions` goal in
-your regular build and have the versions increase automagically (at the cost of having to run the build twice when an
-incompatible change is made).
+NOTE: You can even embed the `update-versions` goal in your regular build and have the versions increase automagically
+(at the cost of having to run the build twice when an incompatible change is made).

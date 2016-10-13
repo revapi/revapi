@@ -3,13 +3,13 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>4</version>
+        <version>5</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>revapi-build-support</artifactId>
-    <version>4-SNAPSHOT</version>
+    <version>5-SNAPSHOT</version>
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <name>Revapi Build Support</name>

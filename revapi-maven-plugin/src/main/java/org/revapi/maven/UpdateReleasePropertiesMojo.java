@@ -25,6 +25,8 @@ import java.util.Properties;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -34,6 +36,7 @@ import org.apache.maven.project.MavenProject;
  * @since 0.4.0
  */
 @Mojo(name = "update-release-properties", requiresDirectInvocation = true)
+@Execute(phase = LifecyclePhase.PACKAGE)
 public class UpdateReleasePropertiesMojo extends AbstractVersionModifyingMojo {
 
     /**

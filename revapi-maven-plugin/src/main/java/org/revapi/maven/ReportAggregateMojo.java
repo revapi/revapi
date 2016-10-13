@@ -17,54 +17,65 @@
 
 package org.revapi.maven;
 
+import static org.apache.maven.plugins.annotations.LifecyclePhase.PACKAGE;
+import static org.apache.maven.plugins.annotations.LifecyclePhase.SITE;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.maven.doxia.sink.Sink;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reporting.MavenReportException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.revapi.API;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.maven.utils.ArtifactResolver;
+import org.revapi.maven.utils.ScopeDependencySelector;
+import org.revapi.maven.utils.ScopeDependencyTraverser;
 
 /**
  * Uses the configuration supplied at the top level aggregator project to run analysis on all sub-projects.
  * <p>
  * The artifacts to compare are taken from the configurations of the child projects while the configuration of Revapi
  * and the extensions to use are taken from the aggregator project. The analyses are run in succession using a single
- * instance of Revapi. Therefore you need to configure your reporter(s) to somehow not overwrite the report, but append
- * to it (the {@code revapi-reporter-text} reporter has an {@code append} boolean parameter for this, for example).
+ * instance of Revapi. Therefore you need to configure your custom Revapi reporter(s) to somehow not overwrite their
+ * reports, but append to it. The default site page generator can do this and the {@code revapi-reporter-text} reporter
+ * has an {@code append} boolean parameter for this. If you're using some other reporter, consult its documentation on
+ * how to append to a report instead of overwriting it.
  *
  * @author Lukas Krejci
  * @since 0.5.0
  */
-@Mojo(name = "report-aggregate", aggregator = true)
+@Mojo(name = "report-aggregate", aggregator = true, defaultPhase = SITE)
+@Execute(phase = PACKAGE)
 public class ReportAggregateMojo extends ReportMojo {
 
     @Component
     private MavenSession mavenSession;
+
+    @Override public String getOutputName() {
+        return "revapi-aggregate-report";
+    }
 
     @Override
     public File getReportOutputDirectory() {
@@ -83,34 +94,35 @@ public class ReportAggregateMojo extends ReportMojo {
         super.setReportOutputDirectory(getReportOutputDirectory());
     }
 
+    @Override public String getDescription(Locale locale) {
+        return null;
+    }
+
+    @Override public boolean canGenerateReport() {
+        //aggregate report makes sense only for POM
+        return "pom".equals(project.getArtifact().getArtifactHandler().getPackaging());
+    }
+
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
         if (skip) {
             return;
         }
 
-        //we need to resolve the old and new artifacts at the build time of the individual projects, but do the report
-        //generation only after all the projects have been built.
-        //so, for each project we record the resolved versions and then, when the last project is being built we trigger
-        //the full report generation
-        storeRunConfig();
-
-        //we need to execute as the very last thing in this reactor
-        List<MavenProject> projects = mavenSession.getProjects();
-        MavenProject project = mavenSession.getCurrentProject();
-
-        if (!projects.get(projects.size() - 1).equals(project)) {
-            getLog().info("Skipping aggregate report generation. Some projects have not been built yet.");
+        if (!canGenerateReport()) {
             return;
         }
 
-        //ok, we're at the last project in the reactor.. we have all the information to run the analyses.
-        Properties runConfig = loadRunConfig();
+        List<MavenProject> dependents = mavenSession.getProjectDependencyGraph().getDownstreamProjects(project, true);
+        Collections.sort(dependents, (a, b) -> {
+            String as = a.getArtifact().toString();
+            String bs = b.getArtifact().toString();
+            return as.compareTo(bs);
+        });
 
-        MavenProject topProject = mavenSession.getTopLevelProject();
-
-        getLog().info("Generating aggregate report using the configuration from the top level project: "
-                + topProject.getArtifact());
+        Map<MavenProject, ProjectVersions> projectVersions = dependents.stream().collect(
+                Collectors.toMap(Function.identity(), this::getRunConfig));
+        projectVersions.put(project, getRunConfig(project));
 
         ResourceBundle messages = getBundle(locale);
         Sink sink = getSink();
@@ -121,11 +133,13 @@ public class ReportAggregateMojo extends ReportMojo {
             reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
         }
 
-        try (Analyzer topAnalyzer = prepareAnalyzer(null, topProject, locale, topProject, reporter, runConfig)) {
+        try (Analyzer topAnalyzer = prepareAnalyzer(null, project, locale, reporter,
+                projectVersions.get(project))) {
             Revapi sharedRevapi = topAnalyzer == null ? null : topAnalyzer.getRevapi();
 
-            for (MavenProject p : projects) {
-                try (Analyzer projectAnalyzer = prepareAnalyzer(sharedRevapi, p, locale, topProject, null, runConfig)) {
+            for (MavenProject p : dependents) {
+                try (Analyzer projectAnalyzer = prepareAnalyzer(sharedRevapi, p, locale, reporter,
+                        projectVersions.get(p))) {
                     if (projectAnalyzer != null) {
                         projectAnalyzer.analyze();
 
@@ -148,6 +162,10 @@ public class ReportAggregateMojo extends ReportMojo {
     @Override
     protected void reportBody(ReportTimeReporter reporterWithResults, API oldAPI, API newAPI, Sink sink,
             ResourceBundle messages) {
+        if (oldAPI == null || newAPI == null) {
+            return;
+        }
+
         sink.section2();
         sink.sectionTitle2();
         String title = messages.getString("report.revapi.aggregate.subTitle");
@@ -159,156 +177,85 @@ public class ReportAggregateMojo extends ReportMojo {
         sink.section2_();
     }
 
-    private void storeRunConfig() {
+    private ProjectVersions getRunConfig(MavenProject project) {
+        ProjectVersions ret = new ProjectVersions();
         Plugin revapiPlugin = findRevapi(project);
         if (revapiPlugin == null) {
-            return;
+            return ret;
         }
 
-        Properties runConfig = loadRunConfig();
         Xpp3Dom pluginConfig = (Xpp3Dom) revapiPlugin.getConfiguration();
 
         String[] oldArtifacts = getArtifacts(pluginConfig, "oldArtifacts");
         String[] newArtifacts = getArtifacts(pluginConfig, "newArtifacts");
         String oldVersion = getValueOfChild(pluginConfig, "oldVersion");
         if (oldVersion == null) {
-            oldVersion = "RELEASE";
+            oldVersion = System.getProperties().getProperty(Props.oldVersion.NAME, Props.oldVersion.DEFAULT_VALUE);
         }
         String newVersion = getValueOfChild(pluginConfig, "newVersion");
         if (newVersion == null) {
-            newVersion = project.getVersion();
+            newVersion = System.getProperties().getProperty(Props.newVersion.NAME, project.getVersion());
         }
 
+        String defaultOldArtifact = Analyzer.getProjectArtifactCoordinates(project, oldVersion);
+        String defaultNewArtifact = Analyzer.getProjectArtifactCoordinates(project, newVersion);
+
         if (oldArtifacts == null || oldArtifacts.length == 0) {
-            //we'd be analyzing a non-file artifact (pom packaging), bail out quickly...
-            if (project.getArtifact().getFile() == null) {
-                return;
+            if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
+                return ret;
             }
-            oldArtifacts = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, oldVersion)};
+            oldArtifacts = new String[]{defaultOldArtifact};
         }
         if (newArtifacts == null || newArtifacts.length == 0) {
-            //we'd be analyzing a non-file artifact (pom packaging), bail out quickly...
-            if (project.getArtifact().getFile() == null) {
-                return;
+            if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
+                return ret;
             }
-            newArtifacts = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, newVersion)};
+            newArtifacts = new String[]{defaultNewArtifact};
         }
         String versionRegexString = getValueOfChild(pluginConfig, "versionFormat");
         Pattern versionRegex = versionRegexString == null ? null : Pattern.compile(versionRegexString);
 
-        ArtifactResolver resolver = new ArtifactResolver(repositorySystem, repositorySystemSession,
-                project.getRemotePluginRepositories());
+        DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
+        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
+        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
 
-        final String[] os = oldArtifacts;
-        final String[] ns = newArtifacts;
+        if (alwaysCheckForReleaseVersion) {
+            session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
+        }
 
-        Arrays.setAll(os, i -> {
+        ArtifactResolver resolver = new ArtifactResolver(repositorySystem, session,
+                mavenSession.getCurrentProject().getRemoteProjectRepositories());
+
+        Function<String, Artifact> resolve = gav -> {
             try {
-                return Analyzer.resolve(os[i], versionRegex, resolver).toString();
+                return Analyzer.resolveConstrained(project, gav, versionRegex, resolver);
             } catch (VersionRangeResolutionException | ArtifactResolutionException e) {
-                throw new IllegalStateException("Could not resolve artifact " + os[i]);
+                getLog().warn("Could not resolve artifact '" + gav + "' with message: " + e.getMessage());
+                return null;
             }
-        });
+        };
 
-        Arrays.setAll(ns, i -> {
-            try {
-                return Analyzer.resolve(ns[i], versionRegex, resolver).toString();
-            } catch (VersionRangeResolutionException | ArtifactResolutionException e) {
-                throw new IllegalStateException("Could not resolve artifact " + ns[i]);
-            }
-        });
+        ret.oldGavs = Stream.of(oldArtifacts).map(resolve).filter(f -> f != null).toArray(Artifact[]::new);
+        ret.newGavs = Stream.of(newArtifacts).map(resolve).filter(f -> f != null).toArray(Artifact[]::new);
 
-        addValues(runConfig, getKey(project) + ".old", oldArtifacts);
-        addValues(runConfig, getKey(project) + ".new", newArtifacts);
-
-        try (Writer wrt = new OutputStreamWriter(new FileOutputStream(getRunConfigFile()), "UTF-8")) {
-            runConfig.store(wrt, null);
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to store resolved artifacts versions file.", e);
-        }
+        return ret;
     }
 
-    private void addValues(Properties props, String key, String[] values) {
-        for (int i = 0; i < values.length; ++i) {
-            props.put(key + "." + i, values[i]);
-        }
-    }
-
-    private String[] readValues(Properties props, String key) {
-        ArrayList<String> values = new ArrayList<>(1);
-        for(String prop : props.stringPropertyNames()) {
-            if (!prop.startsWith(key)) {
-                continue;
-            }
-
-            if (prop.charAt(key.length()) != '.') {
-                continue;
-            }
-
-            String idx = prop.length() > key.length() + 1 ? prop.substring(key.length() + 1) : null;
-            if (idx == null) {
-                continue;
-            }
-
-            boolean isNumeric = true;
-            for (int i = 0; i < idx.length(); ++i) {
-                if (!Character.isDigit(idx.charAt(i))) {
-                    isNumeric = false;
-                    break;
-                }
-            }
-            if (!isNumeric) {
-                continue;
-            }
-
-            values.add(props.getProperty(prop));
-        }
-
-        return values.toArray(new String[values.size()]);
-    }
-
-    private Properties loadRunConfig() {
-        if (!getRunConfigFile().exists()) {
-            return new Properties();
-        }
-
-        try (Reader rdr = new InputStreamReader(new FileInputStream(getRunConfigFile()), "UTF-8")) {
-            Properties ret = new Properties();
-            ret.load(rdr);
-            return ret;
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to access resolved artifact versions file.", e);
-        }
-    }
-
-    private File getRunConfigFile() {
-        return new File(mavenSession.getTopLevelProject().getBasedir(),
-                "target" + File.separator + "revapi-report-aggregate-resolved-versions.properties");
-    }
-
-    private Analyzer prepareAnalyzer(Revapi revapi, MavenProject project, Locale locale, MavenProject configProject,
-            Reporter defaultReporter, Properties storedVersions) {
+    private Analyzer prepareAnalyzer(Revapi revapi, MavenProject project, Locale locale,
+                                     Reporter defaultReporter, ProjectVersions storedVersions) {
 
         Plugin runPluginConfig = findRevapi(project);
-
-        Plugin configPluginConfig = findRevapi(configProject);
 
         if (runPluginConfig == null) {
             return null;
         }
 
         Xpp3Dom runConfig = (Xpp3Dom) runPluginConfig.getConfiguration();
-        Xpp3Dom configConfig = (Xpp3Dom) configPluginConfig.getConfiguration();
 
-        String analysisConfiguration = getValueOfChild(configConfig, "analysisConfiguration");
-        Object[] analysisConfigurationFiles = extractConfigFiles(configConfig);
+        Artifact[] oldArtifacts = storedVersions.oldGavs;
+        Artifact[] newArtifacts = storedVersions.newGavs;
 
-        String[] oldArtifacts = readValues(storedVersions, getKey(project) + ".old");
-        String[] newArtifacts = readValues(storedVersions, getKey(project) + ".new");
-
-        if (oldArtifacts.length == 0 || newArtifacts.length == 0) {
+        if (oldArtifacts == null || oldArtifacts.length == 0 || newArtifacts == null || newArtifacts.length == 0) {
             return null;
         }
 
@@ -320,59 +267,24 @@ public class ReportAggregateMojo extends ReportMojo {
         String versionRegex = getValueOfChild(runConfig, "versionFormat");
 
         return revapi == null
-                ? new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts,
+                ? new Analyzer(this.analysisConfiguration, this.analysisConfigurationFiles, oldArtifacts, newArtifacts,
                 project, repositorySystem, repositorySystemSession, defaultReporter, locale, getLog(),
                 failOnMissingConfigurationFiles, failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate,
                 resolveDependencies, versionRegex)
-                : new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts,
+                : new Analyzer(this.analysisConfiguration, this.analysisConfigurationFiles, oldArtifacts, newArtifacts,
                 project, repositorySystem, repositorySystemSession, null, locale, getLog(),
                 failOnMissingConfigurationFiles, failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate,
                 resolveDependencies, versionRegex, revapi);
     }
 
-    private Object[] extractConfigFiles(Xpp3Dom pluginConfiguration) {
-        Xpp3Dom files = pluginConfiguration.getChild("analysisConfigurationFiles");
-
-        if (files == null) {
-            return new Object[0];
-        }
-
-        Object[] ret = new Object[files.getChildCount()];
-
-        for (int i = 0; i < ret.length; ++i) {
-            Xpp3Dom file = files.getChild(i);
-            if (file.getChildCount() == 0) {
-                ret[i] = file.getValue();
-            } else {
-                ConfigurationFile f = new ConfigurationFile();
-                Xpp3Dom path = file.getChild("path");
-                if (path != null) {
-                    f.setPath(path.getValue());
-                }
-
-                Xpp3Dom roots = file.getChild("roots");
-                if (roots != null) {
-                    if (roots.getChildCount() == 0) {
-                        f.setRoots(new String[] {roots.getValue()});
-                    } else {
-                        String[] rs = new String[roots.getChildCount()];
-                        for (int j = 0; j < rs.length; ++j) {
-                            rs[j] = roots.getChild(i).getValue();
-                        }
-
-                        f.setRoots(rs);
-                    }
-                }
-
-                ret[i] = f;
-            }
-        }
-
-        return ret;
+    protected static Plugin findRevapi(MavenProject project) {
+        return project.getBuildPlugins().stream()
+                .filter(p -> "org.revapi:revapi-maven-plugin".equals(p.getKey()))
+                .findAny().orElse(null);
     }
 
-    private static String[] getArtifacts(Xpp3Dom config, String artifactTag) {
-        Xpp3Dom oldArtifactsXml = config.getChild(artifactTag);
+    protected static String[] getArtifacts(Xpp3Dom config, String artifactTag) {
+        Xpp3Dom oldArtifactsXml = config == null ? null : config.getChild(artifactTag);
 
         if (oldArtifactsXml == null) {
             return new String[0];
@@ -392,17 +304,12 @@ public class ReportAggregateMojo extends ReportMojo {
     }
 
     private static String getValueOfChild(Xpp3Dom element, String childName) {
-        Xpp3Dom child = element.getChild(childName);
+        Xpp3Dom child = element == null ? null : element.getChild(childName);
         return child == null ? null : child.getValue();
     }
 
-    private static Plugin findRevapi(MavenProject project) {
-        return project.getBuildPlugins().stream()
-                .filter(p -> "org.revapi:revapi-maven-plugin".equals(p.getKey()))
-                .findAny().orElse(null);
-    }
-
-    private static String getKey(MavenProject p) {
-        return p.getGroupId() + ":" + p.getArtifact() + ":" + p.getVersion();
+    private static final class ProjectVersions {
+        Artifact[] oldGavs;
+        Artifact[] newGavs;
     }
 }

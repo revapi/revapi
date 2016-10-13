@@ -48,12 +48,13 @@ public final class Removed extends CheckBase {
     protected List<Difference> doEnd() {
         ActiveElements<TypeElement> types = popIfActive();
         if (types != null) {
-
-            TypeElement typeInNew = getNewTypeEnvironment().getElementUtils().getTypeElement(types.oldElement
-                    .getQualifiedName());
-
-            Difference difference = typeInNew == null ? createDifference(Code.CLASS_REMOVED) :
-                    createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API);
+//TODO The heuristics of figuring out if a class is external is flawed.
+//            TypeElement typeInNew = getNewTypeEnvironment().getElementUtils().getTypeElement(types.oldElement
+//                    .getQualifiedName());
+//
+//            Difference difference = typeInNew == null ? createDifference(Code.CLASS_REMOVED) :
+//                    createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API);
+            Difference difference = createDifference(Code.CLASS_REMOVED);
 
             return Collections.singletonList(difference);
         }
