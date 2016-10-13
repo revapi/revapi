@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>revapi-build-support</artifactId>
-    <version>4</version>
+    <version>5-SNAPSHOT</version>
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <name>Revapi Build Support</name>
@@ -26,6 +26,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>revapi-build-support-4</tag>
+        <tag>HEAD</tag>
     </scm>
 </project>
