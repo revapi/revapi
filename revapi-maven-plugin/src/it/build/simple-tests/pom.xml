@@ -47,6 +47,7 @@
         <!-- the order of the below 3 modules IS SIGNIFICANT -->
         <module>version-precedence/1.0</module>
         <module>version-precedence/2.0</module>
-        <module>version-precedence/1.1</module>
+        <module>version-precedence/1.1-SNAPSHOT</module>
+        <module>version-precedence/1.2</module>
     </modules>
 </project>

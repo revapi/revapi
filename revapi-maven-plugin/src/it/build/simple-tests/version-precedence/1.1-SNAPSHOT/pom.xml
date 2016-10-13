@@ -22,7 +22,7 @@
 
   <groupId>simple.group</groupId>
   <artifactId>precedence.artifact</artifactId>
-  <version>1.1</version>
+  <version>1.1-SNAPSHOT</version>
 
   <build>
     <plugins>

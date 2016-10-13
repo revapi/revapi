@@ -63,7 +63,7 @@ import org.revapi.maven.utils.ScopeDependencyTraverser;
  * @since 0.1
  */
 final class Analyzer implements AutoCloseable {
-    private static final Pattern ACCEPT_ALL = Pattern.compile(".*");
+    private static final Pattern ANY_NON_SNAPSHOT = Pattern.compile("^.*(?<!-SNAPSHOT)$");
 
     private final String analysisConfiguration;
 
@@ -244,7 +244,7 @@ final class Analyzer implements AutoCloseable {
             throws VersionRangeResolutionException, ArtifactResolutionException {
         if (gav.endsWith(":RELEASE") || gav.endsWith(":LATEST")) {
 
-            versionRegex = versionRegex == null ? ACCEPT_ALL : versionRegex;
+            versionRegex = versionRegex == null ? ANY_NON_SNAPSHOT : versionRegex;
 
             Artifact a = new DefaultArtifact(gav);
 
