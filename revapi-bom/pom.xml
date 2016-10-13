@@ -71,13 +71,13 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-plugin</artifactId>
-                <version>0.6.0</version>
+                <version>0.6.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-utils</artifactId>
-                <version>0.7.0</version>
+                <version>0.7.1</version>
             </dependency>
 
             <dependency>
