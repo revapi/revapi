@@ -16,14 +16,18 @@
  */
 package org.revapi.maven;
 
+import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
  * @author Lukas Krejci
  * @since 0.4.0
  */
-@Mojo(name = "update-versions", defaultPhase = LifecyclePhase.PACKAGE)
+@Mojo(name = "update-versions", defaultPhase = LifecyclePhase.PACKAGE,
+        requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Execute(phase = LifecyclePhase.PACKAGE)
 public class UpdateVersionsMojo extends AbstractVersionModifyingMojo {
 
     public UpdateVersionsMojo() {

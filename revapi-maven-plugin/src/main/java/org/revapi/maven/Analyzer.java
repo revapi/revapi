@@ -22,7 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -32,8 +32,10 @@ import java.util.Spliterator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.maven.RepositoryUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -64,9 +66,13 @@ final class Analyzer implements AutoCloseable {
 
     private final Object[] analysisConfigurationFiles;
 
-    private final String[] oldArtifacts;
+    private final String[] oldGavs;
 
-    private final String[] newArtifacts;
+    private final String[] newGavs;
+
+    private final Artifact[] oldArtifacts;
+
+    private final Artifact[] newArtifacts;
 
     private final MavenProject project;
 
@@ -96,28 +102,67 @@ final class Analyzer implements AutoCloseable {
 
     private Revapi revapi;
 
-    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
-            String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
-            RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-            boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-            boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-            String versionRegex) {
+    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldGavs,
+             String[] newGavs, MavenProject project, RepositorySystem repositorySystem,
+             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+             String versionRegex) {
 
-        this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, project, repositorySystem,
+        this(analysisConfiguration, analysisConfigurationFiles, oldGavs, newGavs, project, repositorySystem,
                 repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles, failOnMissingArchives,
                 failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
                 () -> Revapi.builder().withAllExtensionsFromThreadContextClassLoader());
     }
 
-    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
-            String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
-            RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-            boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-            boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-            String versionRegex, Supplier<Revapi.Builder> revapiConstructor) {
+    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
+             Artifact[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
+             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+             String versionRegex) {
+
+        this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, null, null, project,
+                repositorySystem, repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles,
+                failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
+                () -> Revapi.builder().withAllExtensionsFromThreadContextClassLoader(), null);
+    }
+
+    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldGavs,
+             String[] newGavs, MavenProject project, RepositorySystem repositorySystem,
+             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+             String versionRegex, Supplier<Revapi.Builder> revapiConstructor) {
+        this(analysisConfiguration, analysisConfigurationFiles, null, null, oldGavs, newGavs, project,
+                repositorySystem, repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles,
+                failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
+                revapiConstructor, null);
+    }
+
+    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
+             Artifact[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
+             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
+             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+             String versionRegex, Revapi sharedRevapi) {
+        this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, null, null, project,
+                repositorySystem, repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles,
+                failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
+                null, sharedRevapi);
+    }
+
+    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
+             Artifact[] newArtifacts, String[] oldGavs, String[] newGavs, MavenProject project,
+             RepositorySystem repositorySystem, RepositorySystemSession repositorySystemSession, Reporter reporter,
+             Locale locale, Log log, boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
+             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+             String versionRegex, Supplier<Revapi.Builder> revapiConstructor, Revapi sharedRevapi) {
 
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
+        this.oldGavs = oldGavs;
+        this.newGavs = newGavs;
         this.oldArtifacts = oldArtifacts;
         this.newArtifacts = newArtifacts;
         this.project = project;
@@ -143,53 +188,15 @@ final class Analyzer implements AutoCloseable {
         this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
         this.failOnMissingArchives = failOnMissingArchives;
         this.failOnMissingSupportArchives = failOnMissingSupportArchives;
+        this.revapi = sharedRevapi;
         this.revapiConstructor = revapiConstructor;
     }
 
-    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldArtifacts,
-            String[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
-            RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-            boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-            boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-            String versionRegex, Revapi sharedRevapi) {
-
-        this.analysisConfiguration = analysisConfiguration;
-        this.analysisConfigurationFiles = analysisConfigurationFiles;
-        this.oldArtifacts = oldArtifacts;
-        this.newArtifacts = newArtifacts;
-        this.project = project;
-        this.repositorySystem = repositorySystem;
-
-        this.resolveDependencies = resolveDependencies;
-
-        this.versionRegex = versionRegex == null ? null : Pattern.compile(versionRegex);
-
-        DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
-        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
-        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
-
-        if (alwaysUpdate) {
-            session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
-        }
-
-        this.repositorySystemSession = session;
-
-        this.reporter = reporter;
-        this.locale = locale;
-        this.log = log;
-        this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
-        this.failOnMissingArchives = failOnMissingArchives;
-        this.failOnMissingSupportArchives = failOnMissingSupportArchives;
-        this.revapiConstructor = null;
-        this.revapi = sharedRevapi;
-    }
-
-    public static String getProjectArtifactCoordinates(MavenProject project, RepositorySystemSession session,
-        String versionOverride) {
+    public static String getProjectArtifactCoordinates(MavenProject project, String versionOverride) {
 
         org.apache.maven.artifact.Artifact artifact = project.getArtifact();
 
-        String extension = session.getArtifactTypeRegistry().get(artifact.getType()).getExtension();
+        String extension = artifact.getArtifactHandler().getExtension();
 
         String version = versionOverride == null ? project.getVersion() : versionOverride;
 
@@ -213,12 +220,32 @@ final class Analyzer implements AutoCloseable {
         }
     }
 
-    static Artifact resolve(String gav, Pattern versionRegex, ArtifactResolver resolver)
+    static Artifact resolve(MavenProject project, String gav, Pattern versionRegex, ArtifactResolver resolver)
             throws VersionRangeResolutionException, ArtifactResolutionException {
         if (versionRegex != null && (gav.endsWith(":RELEASE") || gav.endsWith(":LATEST"))) {
             return resolver.resolveNewestMatching(gav, versionRegex);
         } else {
-            return resolver.resolveArtifact(gav);
+            String projectGav = getProjectArtifactCoordinates(project, null);
+            Artifact ret = null;
+
+            if (projectGav.equals(gav)) {
+                ret = findProjectArtifact(project);
+            }
+
+            return ret == null ? resolver.resolveArtifact(gav) : ret;
+        }
+    }
+
+    private static Artifact findProjectArtifact(MavenProject project) {
+        String extension = project.getArtifact().getArtifactHandler().getExtension();
+
+        String fileName = project.getModel().getBuild().getFinalName() + "." + extension;
+        File f = new File(new File(project.getBasedir(), "target"), fileName);
+        if (f.exists()) {
+            Artifact ret = RepositoryUtils.toArtifact(project.getArtifact());
+            return ret.setFile(f);
+        } else {
+            return null;
         }
     }
 
@@ -230,17 +257,22 @@ final class Analyzer implements AutoCloseable {
 
             Function<String, MavenArchive> toFileArchive = gav -> {
                 try {
-                    Artifact a = resolve(gav, versionRegex, resolver);
+                    Artifact a = resolve(project, gav, versionRegex, resolver);
                     return MavenArchive.of(a);
                 } catch (ArtifactResolutionException | VersionRangeResolutionException | IllegalArgumentException e) {
                     throw new MarkerException(e.getMessage(), e);
                 }
             };
 
-            List<MavenArchive> oldArchives;
+            List<MavenArchive> oldArchives = new ArrayList<>(1);
             try {
-                oldArchives = (List) Arrays.asList(oldArtifacts).stream().map(toFileArchive).collect(toList());
-            } catch (MarkerException e) {
+                if (oldGavs != null) {
+                    oldArchives = Stream.of(oldGavs).map(toFileArchive).collect(toList());
+                }
+                if (oldArtifacts != null) {
+                    oldArchives.addAll(Stream.of(oldArtifacts).map(MavenArchive::of).collect(toList()));
+                }
+            } catch (MarkerException | IllegalArgumentException e) {
                 String message = "Failed to resolve old artifacts: " + e.getMessage() + ".";
 
                 if (failOnMissingArchives) {
@@ -251,10 +283,15 @@ final class Analyzer implements AutoCloseable {
                 }
             }
 
-            List<MavenArchive> newArchives;
+            List<MavenArchive> newArchives = new ArrayList<>(1);
             try {
-                newArchives = (List) Arrays.asList(newArtifacts).stream().map(toFileArchive).collect(toList());
-            } catch (MarkerException e) {
+                if (newGavs != null) {
+                    newArchives = Stream.of(newGavs).map(toFileArchive).collect(toList());
+                }
+                if (newArtifacts != null) {
+                    newArchives.addAll(Stream.of(newArtifacts).map(MavenArchive::of).collect(toList()));
+                }
+            } catch (MarkerException | IllegalArgumentException e) {
                 String message = "Failed to resolve new artifacts: " + e.getMessage() + ".";
 
                 if (failOnMissingArchives) {
@@ -272,25 +309,50 @@ final class Analyzer implements AutoCloseable {
             //version in the repo and resolve RELEASE to it. You compare it against what you just built, i.e. the same
             //code, et voila, the site report doesn't ever contain any found differences...
 
-            Set<MavenArchive> oldTransitiveDeps = resolveDependencies
-                    ? collectDeps("old", resolver, oldArtifacts)
-                    : Collections.emptySet();
+            Set<MavenArchive> oldTransitiveDeps = new HashSet<>();
+            Set<MavenArchive> newTransitiveDeps = new HashSet<>();
 
-            Set<MavenArchive> newTransitiveDeps = resolveDependencies
-                    ? collectDeps("new", resolver, newArtifacts)
-                    : Collections.emptySet();
+            if (resolveDependencies) {
+                oldTransitiveDeps.addAll(collectDeps("old", resolver, oldGavs));
+                oldTransitiveDeps.addAll(collectDeps("old", resolver, oldArtifacts));
+                newTransitiveDeps.addAll(collectDeps("new", resolver, newGavs));
+                newTransitiveDeps.addAll(collectDeps("new", resolver, newArtifacts));
+            }
 
             resolvedOldApi = API.of(oldArchives).supportedBy(oldTransitiveDeps).build();
             resolvedNewApi = API.of(newArchives).supportedBy(newTransitiveDeps).build();
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Set<MavenArchive> collectDeps(String depDescription, ArtifactResolver resolver, String... gavs) {
+        try {
+            if (gavs == null) {
+                return Collections.emptySet();
+            }
+            ArtifactResolver.CollectionResult res = resolver.collectTransitiveDeps(gavs);
+            return collectDeps(depDescription, res);
+        } catch (RepositoryException e) {
+            return handleResolutionError(e, depDescription, null);
+        }
+    }
+
+    private Set<MavenArchive> collectDeps(String depDescription, ArtifactResolver resolver, Artifact... gavs) {
+        try {
+            if (gavs == null) {
+                return Collections.emptySet();
+            }
+            ArtifactResolver.CollectionResult res = resolver.collectTransitiveDeps(Stream.of(gavs).map(Object::toString)
+                    .toArray(String[]::new));
+            return collectDeps(depDescription, res);
+        } catch (RepositoryException e) {
+            return handleResolutionError(e, depDescription, null);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<MavenArchive> collectDeps(String depDescription, ArtifactResolver.CollectionResult res) {
         Set<MavenArchive> ret = null;
         try {
-            ArtifactResolver.CollectionResult res = resolver.collectTransitiveDeps(gavs);
-
             ret = new HashSet<>();
             for (Artifact a : res.getResolvedArtifacts()) {
                 try {
@@ -310,19 +372,23 @@ final class Analyzer implements AutoCloseable {
             } else {
                 return ret;
             }
-        } catch (RepositoryException | MarkerException e) {
-            String message = "Failed to resolve dependencies of " + depDescription + " artifacts: " + e.getMessage() +
-                    ".";
-            if (failOnMissingSupportArchives) {
-                throw new IllegalArgumentException(message, e);
+        } catch (MarkerException e) {
+            return handleResolutionError(e, depDescription, ret);
+        }
+    }
+
+    private Set<MavenArchive> handleResolutionError(Exception e, String depDescription, Set<MavenArchive> toReturn) {
+        String message = "Failed to resolve dependencies of " + depDescription + " artifacts: " + e.getMessage() +
+                ".";
+        if (failOnMissingSupportArchives) {
+            throw new IllegalArgumentException(message, e);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.warn(message + ". The API analysis might produce unexpected results.", e);
             } else {
-                if (log.isDebugEnabled()) {
-                    log.warn(message + ". The API analysis might produce unexpected results.", e);
-                } else {
-                    log.warn(message + ". The API analysis might produce unexpected results.");
-                }
-                return ret == null ? Collections.<MavenArchive>emptySet() : ret;
+                log.warn(message + ". The API analysis might produce unexpected results.");
             }
+            return toReturn == null ? Collections.<MavenArchive>emptySet() : toReturn;
         }
     }
 

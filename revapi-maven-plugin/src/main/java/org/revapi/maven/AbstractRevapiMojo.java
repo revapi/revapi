@@ -39,8 +39,17 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      *
      * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
-    @Parameter
+    @Parameter(property = Props.analysisConfiguration.NAME, defaultValue = Props.analysisConfiguration.DEFAULT_VALUE)
     protected String analysisConfiguration;
+
+    /**
+     * Set to false if you want to tolerate files referenced in the {@code analysisConfigurationFiles} missing on the
+     * filesystem and therefore not contributing to the analysis configuration.
+     *
+     * <p>The default is {@code true}, which means that a missing analysis configuration file will fail the build.
+     */
+    @Parameter(property = Props.failOnMissingConfigurationFiles.NAME, defaultValue = Props.failOnMissingConfigurationFiles.DEFAULT_VALUE)
+    protected boolean failOnMissingConfigurationFiles;
 
     /**
      * The list of files containing the configuration of various analysis options.
@@ -96,17 +105,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      *     }
      * </code></pre>
      */
-    @Parameter(property = "revapi.analysisConfigurationFiles")
+    @Parameter(property = Props.analysisConfigurationFiles.NAME, defaultValue = Props.analysisConfigurationFiles.DEFAULT_VALUE)
     protected Object[] analysisConfigurationFiles;
-
-    /**
-     * Set to false if you want to tolerate files referenced in the {@code analysisConfigurationFiles} missing on the
-     * filesystem and therefore not contributing to the analysis configuration.
-     *
-     * <p>The default is {@code true}, which means that a missing analysis configuration file will fail the build.
-     */
-    @Parameter(property = "revapi.failOnMissingConfigurationFiles", defaultValue = "true")
-    protected boolean failOnMissingConfigurationFiles;
 
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
@@ -117,7 +117,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      *
      * @see #oldVersion
      */
-    @Parameter(property = "revapi.oldArtifacts")
+    @Parameter(property = Props.oldArtifacts.NAME, defaultValue = Props.oldArtifacts.DEFAULT_VALUE)
     protected String[] oldArtifacts;
 
     /**
@@ -127,7 +127,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * The default value is "RELEASE" meaning that the old version is the last released version of the artifact being
      * built.
      */
-    @Parameter(defaultValue = "RELEASE", property = "revapi.oldVersion")
+    @Parameter(property = Props.oldVersion.NAME, defaultValue = Props.oldVersion.DEFAULT_VALUE)
     protected String oldVersion;
 
     /**
@@ -135,26 +135,26 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * different artifacts than the one being built. If you merely want to specify the artifact being built, use
      * {@link #newVersion} property instead.
      */
-    @Parameter(property = "revapi.newArtifacts")
+    @Parameter(property = Props.newArtifacts.NAME, defaultValue = Props.newArtifacts.DEFAULT_VALUE)
     protected String[] newArtifacts;
 
     /**
      * The new version of the artifact. Defaults to "${project.version}".
      */
-    @Parameter(defaultValue = "${project.version}", property = "revapi.newVersion")
+    @Parameter(property = Props.newVersion.NAME, defaultValue = Props.newVersion.DEFAULT_VALUE)
     protected String newVersion;
 
     /**
      * Whether to skip the mojo execution.
      */
-    @Parameter(defaultValue = "false", property = "revapi.skip")
+    @Parameter(property = Props.skip.NAME, defaultValue = Props.skip.DEFAULT_VALUE)
     protected boolean skip;
 
     /**
      * The severity of found problems at which to break the build. Defaults to API breaking changes.
      * Possible values: nonBreaking, potentiallyBreaking, breaking.
      */
-    @Parameter(defaultValue = "breaking", property = "revapi.failSeverity")
+    @Parameter(property = Props.failSeverity.NAME, defaultValue = Props.failSeverity.DEFAULT_VALUE)
     protected FailSeverity failSeverity;
 
     @Parameter(defaultValue = "${project}", readonly = true)
@@ -170,26 +170,26 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * If true (the default) revapi will always download the information about the latest version from the remote
      * repositories (instead of using locally cached info). This will respect the offline settings.
      */
-    @Parameter(defaultValue = "true", property = "revapi.alwaysCheckForReleaseVersion")
+    @Parameter(property = Props.alwaysCheckForReleaseVersion.NAME, defaultValue = Props.alwaysCheckForReleaseVersion.DEFAULT_VALUE)
     protected boolean alwaysCheckForReleaseVersion;
 
     /**
      * If true (the default), the maven plugin will fail the build when it finds API problems.
      */
-    @Parameter(defaultValue = "true", property="revapi.failBuildOnProblemsFound")
+    @Parameter(property = Props.failBuildOnProblemsFound.NAME, defaultValue = Props.failBuildOnProblemsFound.DEFAULT_VALUE)
     protected boolean failBuildOnProblemsFound;
 
     /**
      * If true, the build will fail if one of the old or new artifacts fails to be resolved. Defaults to false.
      */
-    @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedArtifacts")
+    @Parameter(property = Props.failOnUnresolvedArtifacts.NAME, defaultValue = Props.failOnUnresolvedArtifacts.DEFAULT_VALUE)
     protected boolean failOnUnresolvedArtifacts;
 
     /**
      * If true, the build will fail if some of the dependencies of the old or new artifacts fail to be resolved.
      * Defaults to false.
      */
-    @Parameter(defaultValue = "false", property = "revapi.failOnUnresolvedDependencies")
+    @Parameter(property = Props.failOnUnresolvedDependencies.NAME, defaultValue = Props.failOnUnresolvedDependencies.DEFAULT_VALUE)
     protected boolean failOnUnresolvedDependencies;
 
     /**
@@ -201,7 +201,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * because it might find the classes from your dependencies as used in your API and would complain that it could not
      * find it. See <a href="http://revapi.org/modules/revapi-java/extensions/java.html">the docs</a>.
      */
-    @Parameter(defaultValue = "true", property = "revapi.checkDependencies")
+    @Parameter(property = Props.checkDependencies.NAME, defaultValue = Props.checkDependencies.DEFAULT_VALUE)
     protected boolean checkDependencies;
 
     /**
@@ -216,7 +216,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * This parameter is a regular expression pattern that the version string needs to match in order to be considered
      * a {@code RELEASE}.
      */
-    @Parameter(property = "revapi.versionFormat")
+    @Parameter(property = Props.versionFormat.NAME, defaultValue = Props.versionFormat.DEFAULT_VALUE)
     protected String versionFormat;
 
     protected void analyze(Reporter reporter) throws MojoExecutionException, MojoFailureException {
@@ -262,27 +262,27 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
             //that's because we need know the versions when figuring out the version modifications -
             //see AbstractVersionModifyingMojo
             oldArtifacts = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, oldVersion)};
+                    Analyzer.getProjectArtifactCoordinates(project, oldVersion)};
 
             //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
             //analyze there
             //only do it here, because oldArtifacts might point to another artifact.
             //if we end up here in this branch, we know we'll be comparing the current artifact with something.
-            if (project.getArtifact().getFile() == null) {
+            if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
                 return false;
             }
         }
 
         if (newArtifacts == null || newArtifacts.length == 0) {
             newArtifacts = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, repositorySystemSession, newVersion)};
+                    Analyzer.getProjectArtifactCoordinates(project, newVersion)};
 
             //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
             //analyze there
             //again, do this check only here, because oldArtifact might point elsewhere. But if we end up here, it
             //means that oldArtifacts would be compared against the current artifact (in some version). Comparing
             //against a POM artifact is always no-op.
-            if (project.getArtifact().getFile() == null) {
+            if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
                 return false;
             }
         }

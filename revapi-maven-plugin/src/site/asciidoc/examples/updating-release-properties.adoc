@@ -9,7 +9,7 @@ maven release plugin during the release process.
 Thus, running:
 
 ```
-mvn package revapi:update-release-properties && mvn release:prepare
+mvn revapi:update-release-properties && mvn release:prepare
 ```
 
 will automatically set the release and development versions for you according to the http://semver.org[semver]

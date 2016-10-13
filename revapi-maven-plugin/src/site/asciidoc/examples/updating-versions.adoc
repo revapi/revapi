@@ -4,7 +4,7 @@ NOTE: Goal details page: link:../update-versions-mojo.html[here]
 
 Revapi needs two artifacts to compare against each other to determine the API differences and therefore the required
 version changes. By default the new artifact is the project being built so the artifacts need to be actually produced
-prior to running revapi. This is usually done in the `package` phase.
+prior to running revapi. This is usually done in the `package` phase, which is therefore run prior to any Revapi goal.
 
 When updating the version, the plugin takes into consideration the configuration of Revapi as declared in the
 `pom.xml` but does not use certain extensions that would make some of the differences disappear (like
@@ -15,7 +15,7 @@ link:../update-versions-mojo.html[detail page] for further info.
 For a single-module project, updating the versions is very simple:
 
 ```
-mvn package revapi:update-versions
+mvn revapi:update-versions
 ```
 
 The `version` in `pom.xml` will be updated according to the API changes and the semantic versioning rules.
@@ -27,7 +27,7 @@ set the `singleVersionForAllModules` of revapi to `true`, too. Generally, `autoV
 `singleVersionForAllModules` should be set to the same value.
 
 ```
-mvn package revapi:update-versions -Drevapi.singleVersionForAllModules=true
+mvn revapi:update-versions -Drevapi.singleVersionForAllModules=true
 ```
 
 This will check the API differences in all the child modules and will determine the version of the whole based on the
