@@ -7,10 +7,6 @@ http://revapi.org[Revapi] is a tool for API analysis and change tracking.
 
 INFO: Revapi requires Java8 update 40 (1.8.0_40) or later to run. Older versions may produce wrong results.
 
-WARNING: Do not use `revapi-maven-plugin` version `0.3.9` and below with `revapi-java` version 
-`0.5.x` (`revapi-maven-plugin:0.3.10` is OK). These are incompatible.
-
-
 == Summary
 
 While Revapi is designed to be extensible and in theory should support API checks in other languages
@@ -25,7 +21,7 @@ The main distinguishing features of the Java API checker include:
 and also its dependencies (ability to report type "leakage" from deps)
 * support for Java8 constructs (default methods in particular)
 * powerful filtering stuff to check and reclassification of found problems
-* ability to filter by annotation presence (new as of java extension `0.5.2`)
+* ability to filter by annotation presence
 * Maven plugin automatically includes depenendcies in the check
 
 Other features:
