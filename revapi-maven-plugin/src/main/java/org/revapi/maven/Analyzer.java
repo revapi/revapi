@@ -44,6 +44,7 @@ import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
@@ -62,6 +63,8 @@ import org.revapi.maven.utils.ScopeDependencyTraverser;
  * @since 0.1
  */
 final class Analyzer implements AutoCloseable {
+    private static final Pattern ACCEPT_ALL = Pattern.compile(".*");
+
     private final String analysisConfiguration;
 
     private final Object[] analysisConfigurationFiles;
@@ -220,10 +223,36 @@ final class Analyzer implements AutoCloseable {
         }
     }
 
-    static Artifact resolve(MavenProject project, String gav, Pattern versionRegex, ArtifactResolver resolver)
+    /**
+     * Resolves the gav using the resolver. If the gav corresponds to the project artifact and is an unresolved version
+     * for a RELEASE or LATEST, the gav is resolved such it a release not newer than the project version is found that
+     * optionally corresponds to the provided version regex, if provided.
+     *
+     * <p>If the gav exactly matches the current project, the file of the artifact is found on the filesystem in
+     * target directory and the resolver is ignored.
+     *
+     * @param project the project to restrict by, if applicable
+     * @param gav the gav to resolve
+     * @param versionRegex the optional regex the version must match to be considered.
+     * @param resolver the version resolver to use
+     * @return the resolved artifact matching the criteria.
+     *
+     * @throws VersionRangeResolutionException on error
+     * @throws ArtifactResolutionException on error
+     */
+    static Artifact resolveConstrained(MavenProject project, String gav, Pattern versionRegex, ArtifactResolver resolver)
             throws VersionRangeResolutionException, ArtifactResolutionException {
-        if (versionRegex != null && (gav.endsWith(":RELEASE") || gav.endsWith(":LATEST"))) {
-            return resolver.resolveNewestMatching(gav, versionRegex);
+        if (gav.endsWith(":RELEASE") || gav.endsWith(":LATEST")) {
+
+            versionRegex = versionRegex == null ? ACCEPT_ALL : versionRegex;
+
+            Artifact a = new DefaultArtifact(gav);
+
+            String upTo = project.getGroupId().equals(a.getGroupId()) && project.getArtifactId().equals(a.getArtifactId())
+                    ? project.getVersion()
+                    : null;
+
+            return resolver.resolveNewestMatching(gav, upTo, versionRegex);
         } else {
             String projectGav = getProjectArtifactCoordinates(project, null);
             Artifact ret = null;
@@ -257,7 +286,7 @@ final class Analyzer implements AutoCloseable {
 
             Function<String, MavenArchive> toFileArchive = gav -> {
                 try {
-                    Artifact a = resolve(project, gav, versionRegex, resolver);
+                    Artifact a = resolveConstrained(project, gav, versionRegex, resolver);
                     return MavenArchive.of(a);
                 } catch (ArtifactResolutionException | VersionRangeResolutionException | IllegalArgumentException e) {
                     throw new MarkerException(e.getMessage(), e);

@@ -43,5 +43,10 @@
         <module>version-matching/v1.0.GA</module>
         <module>version-matching/v2.0.Beta</module>
         <module>version-matching/v2.0-SNAPSHOT</module>
+
+        <!-- the order of the below 3 modules IS SIGNIFICANT -->
+        <module>version-precedence/1.0</module>
+        <module>version-precedence/2.0</module>
+        <module>version-precedence/1.1</module>
     </modules>
 </project>

@@ -228,7 +228,7 @@ public class ReportAggregateMojo extends ReportMojo {
 
         Function<String, Artifact> resolve = gav -> {
             try {
-                return Analyzer.resolve(project, gav, versionRegex, resolver);
+                return Analyzer.resolveConstrained(project, gav, versionRegex, resolver);
             } catch (VersionRangeResolutionException | ArtifactResolutionException e) {
                 getLog().warn("Could not resolve artifact '" + gav + "' with message: " + e.getMessage());
                 return null;

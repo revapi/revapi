@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -68,16 +70,18 @@ public class ArtifactResolver {
 
     /**
      * Tries to find the newest version of the artifact that matches given regular expression.
+     * The found version will be older than the {@code upToVersion} or newest available if {@code upToVersion} is null.
      *
      * @param gav the coordinates of the artifact. The version part is ignored
+     * @param upToVersion the version up to which the versions will be matched
      * @param versionMatcher the matcher to match the version
      * @return
      * @throws VersionRangeResolutionException
      */
-    public Artifact resolveNewestMatching(String gav, Pattern versionMatcher)
+    public Artifact resolveNewestMatching(String gav, @Nullable String upToVersion, Pattern versionMatcher)
             throws VersionRangeResolutionException, ArtifactResolutionException {
         Artifact artifact = new DefaultArtifact(gav);
-        artifact = artifact.setVersion("[,)");
+        artifact = artifact.setVersion(upToVersion == null ? "[,)" : "[," + upToVersion + ")");
         VersionRangeRequest rangeRequest = new VersionRangeRequest(artifact, null, null);
 
         VersionRangeResult result = repositorySystem.resolveVersionRange(session, rangeRequest);
