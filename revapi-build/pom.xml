@@ -79,7 +79,7 @@
                     <dependency>
                         <groupId>org.revapi</groupId>
                         <artifactId>revapi-build-support</artifactId>
-                        <version>3</version>
+                        <version>4</version>
                     </dependency>
                 </dependencies>
                 <configuration>
