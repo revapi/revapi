@@ -28,6 +28,7 @@ import javax.lang.model.element.ExecutableElement;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -36,12 +37,15 @@ import org.revapi.java.spi.Util;
  */
 public final class AttributeValueChanged extends CheckBase {
     @Override
-    protected List<Difference> doVisitAnnotation(AnnotationMirror oldAnnotation,
-        AnnotationMirror newAnnotation) {
+    protected List<Difference> doVisitAnnotation(JavaAnnotationElement oldElement,
+        JavaAnnotationElement newElement) {
 
-        if (oldAnnotation == null || newAnnotation == null) {
+        if (oldElement == null || newElement == null) {
             return null;
         }
+
+        AnnotationMirror oldAnnotation = oldElement.getAnnotation();
+        AnnotationMirror newAnnotation = newElement.getAnnotation();
 
         List<Difference> result = new ArrayList<>();
 

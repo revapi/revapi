@@ -17,6 +17,7 @@
 package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -27,11 +28,11 @@ import org.revapi.java.compilation.ProbingEnvironment;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class PackageElement extends JavaElementBase<javax.lang.model.element.PackageElement> {
+public class PackageElement extends JavaElementBase<javax.lang.model.element.PackageElement, TypeMirror> {
 
     public PackageElement(ProbingEnvironment env,
         Archive archive, javax.lang.model.element.PackageElement element) {
-        super(env, archive, element);
+        super(env, archive, element, element.asType());
     }
 
     @Nonnull

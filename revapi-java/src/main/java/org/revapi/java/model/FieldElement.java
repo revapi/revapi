@@ -18,6 +18,7 @@ package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -27,10 +28,10 @@ import org.revapi.java.spi.JavaFieldElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class FieldElement extends JavaElementBase<VariableElement> implements JavaFieldElement {
+public final class FieldElement extends JavaElementBase<VariableElement, TypeMirror> implements JavaFieldElement {
 
-    public FieldElement(ProbingEnvironment env, Archive archive, VariableElement element) {
-        super(env, archive, element);
+    public FieldElement(ProbingEnvironment env, Archive archive, VariableElement element, TypeMirror type) {
+        super(env, archive, element, type);
     }
 
     @Nonnull
@@ -41,6 +42,6 @@ public final class FieldElement extends JavaElementBase<VariableElement> impleme
 
     @Override
     protected String createComparableSignature() {
-        return getModelElement().getSimpleName().toString();
+        return getDeclaringElement().getSimpleName().toString();
     }
 }

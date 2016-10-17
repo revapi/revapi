@@ -30,6 +30,8 @@ import javax.lang.model.util.ElementFilter;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaFieldElement;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -46,31 +48,30 @@ public final class Removed extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
-        activeNewType = newType;
+    protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
+        activeNewType = newType == null ? null : newType.getDeclaringElement();
     }
 
     @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField != null && newField == null && isAccessible(oldField, getOldTypeEnvironment())) {
-
+    protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
+        if (oldField != null && newField == null && isAccessible(oldField)) {
             pushActive(oldField, null);
         }
     }
 
     @Override
     protected List<Difference> doEnd() {
-        CheckBase.ActiveElements<VariableElement> fields = popIfActive();
+        CheckBase.ActiveElements<JavaFieldElement> fields = popIfActive();
 
         if (fields == null) {
             return null;
         }
 
-        boolean isConstant = fields.oldElement.getConstantValue() != null;
+        boolean isConstant = fields.oldElement.getDeclaringElement().getConstantValue() != null;
 
         //check if the field exists in a super-class in the new type environment
         if (activeNewType != null) {
-            String oldFieldType = Util.toUniqueString(fields.oldElement.asType());
+            String oldFieldType = Util.toUniqueString(fields.oldElement.getModelRepresentation());
 
             //we know that the new type doesn't contain the field, so let's search its super classes
             for (TypeMirror superType : Util.getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(),
@@ -85,7 +86,7 @@ public final class Removed extends CheckBase {
                 List<VariableElement> superFields = ElementFilter.fieldsIn(st.asElement().getEnclosedElements());
 
                 for (VariableElement superField : superFields) {
-                    if (superField.getSimpleName().contentEquals(fields.oldElement.getSimpleName())) {
+                    if (superField.getSimpleName().contentEquals(fields.oldElement.getDeclaringElement().getSimpleName())) {
                         if (!isAccessible(superField, getNewTypeEnvironment())) {
                             continue;
                         }
@@ -96,7 +97,7 @@ public final class Removed extends CheckBase {
                             //so the field with the same name and type exists in one of the super classes in the
                             //new type environment... This is compatible...
                             return Collections.singletonList(createDifference(Code.FIELD_MOVED_TO_SUPER_CLASS,
-                                    Util.toHumanReadableString(fields.oldElement.getEnclosingElement()),
+                                    Util.toHumanReadableString(fields.oldElement.getDeclaringElement().getEnclosingElement()),
                                     Util.toHumanReadableString(st.asElement())));
                         }
                     }

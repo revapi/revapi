@@ -5,11 +5,11 @@ import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.TypeElement;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
@@ -23,8 +23,9 @@ public final class Missing extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
-        if ((oldType != null && isMissing(oldType)) || (newType != null && isMissing(newType))) {
+    protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
+        if ((oldType != null && isMissing(oldType.getDeclaringElement()))
+                || (newType != null && isMissing(newType.getDeclaringElement()))) {
             pushActive(oldType, newType);
         }
     }
@@ -32,7 +33,7 @@ public final class Missing extends CheckBase {
     @Nullable
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<TypeElement> types = popIfActive();
+        ActiveElements<JavaTypeElement> types = popIfActive();
         if (types == null) {
             return null;
         }
@@ -40,11 +41,11 @@ public final class Missing extends CheckBase {
         List<Difference> ret = new ArrayList<>();
 
         if (types.oldElement != null) {
-            ret.add(createDifference(Code.MISSING_IN_OLD_API, types.oldElement.getQualifiedName().toString()));
+            ret.add(createDifference(Code.MISSING_IN_OLD_API, types.oldElement.getDeclaringElement().getQualifiedName().toString()));
         }
 
         if (types.newElement != null) {
-            ret.add(createDifference(Code.MISSING_IN_NEW_API, types.newElement.getQualifiedName().toString()));
+            ret.add(createDifference(Code.MISSING_IN_NEW_API, types.newElement.getDeclaringElement().getQualifiedName().toString()));
         }
 
         return ret;

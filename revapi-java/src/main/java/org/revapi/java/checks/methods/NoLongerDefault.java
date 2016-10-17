@@ -21,11 +21,11 @@ import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
@@ -39,19 +39,19 @@ public class NoLongerDefault extends CheckBase {
     }
 
     @Override
-    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
+    protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
         if (oldMethod == null || newMethod == null) {
             return;
         }
 
-        if (oldMethod.isDefault() && !newMethod.isDefault()) {
+        if (oldMethod.getDeclaringElement().isDefault() && !newMethod.getDeclaringElement().isDefault()) {
             pushActive(oldMethod, newMethod);
         }
     }
 
     @Override
     protected @Nullable List<Difference> doEnd() {
-        ActiveElements<ExecutableElement> methods = popIfActive();
+        ActiveElements<JavaMethodElement> methods = popIfActive();
         if (methods == null) {
             return null;
         }

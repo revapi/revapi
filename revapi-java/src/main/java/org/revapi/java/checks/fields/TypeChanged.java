@@ -20,10 +20,9 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.lang.model.element.VariableElement;
-
 import org.revapi.Difference;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaFieldElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -38,13 +37,13 @@ public final class TypeChanged extends BothFieldsRequiringCheck {
     }
 
     @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+    protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
         if (!shouldCheck(oldField, newField)) {
             return;
         }
 
-        String oldType = Util.toUniqueString(oldField.asType());
-        String newType = Util.toUniqueString(newField.asType());
+        String oldType = Util.toUniqueString(oldField.getModelRepresentation());
+        String newType = Util.toUniqueString(newField.getModelRepresentation());
 
         if (!oldType.equals(newType)) {
             pushActive(oldField, newField);
@@ -53,17 +52,17 @@ public final class TypeChanged extends BothFieldsRequiringCheck {
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<VariableElement> fields = popIfActive();
+        ActiveElements<JavaFieldElement> fields = popIfActive();
         if (fields == null) {
             return null;
         }
 
-        String oldType = Util.toHumanReadableString(fields.oldElement.asType());
-        String newType = Util.toHumanReadableString(fields.newElement.asType());
+        String oldType = Util.toHumanReadableString(fields.oldElement.getModelRepresentation());
+        String newType = Util.toHumanReadableString(fields.newElement.getModelRepresentation());
 
         return Collections.singletonList(
-            createDifference(Code.FIELD_TYPE_CHANGED, new String[]{oldType, newType}, fields.oldElement.asType(),
-                fields.newElement.asType())
+            createDifference(Code.FIELD_TYPE_CHANGED, new String[]{oldType, newType},
+                    fields.oldElement.getModelRepresentation(), fields.newElement.getModelRepresentation())
         );
     }
 }

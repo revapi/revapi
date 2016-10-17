@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -37,6 +36,7 @@ import org.revapi.CoIterator;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -63,13 +63,13 @@ public class ExceptionsThrownChanged extends CheckBase {
     }
 
     @Override
-    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
+    protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
         if (oldMethod == null || newMethod == null) {
             return;
         }
 
-        List<? extends TypeMirror> oldExceptions = oldMethod.getThrownTypes();
-        List<? extends TypeMirror> newExceptions = newMethod.getThrownTypes();
+        List<? extends TypeMirror> oldExceptions = oldMethod.getModelRepresentation().getThrownTypes();
+        List<? extends TypeMirror> newExceptions = newMethod.getModelRepresentation().getThrownTypes();
 
         Set<String> oldExceptionClassNames = oldExceptions.isEmpty() ? Collections.emptySet() : oldExceptions.stream()
             .map(Util::toUniqueString).collect(Collectors.toSet());
@@ -85,13 +85,13 @@ public class ExceptionsThrownChanged extends CheckBase {
     @Nullable
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<ExecutableElement> methods = popIfActive();
+        ActiveElements<JavaMethodElement> methods = popIfActive();
         if (methods == null) {
             return null;
         }
 
-        List<? extends TypeMirror> oldExceptions = new ArrayList<>(methods.oldElement.getThrownTypes());
-        List<? extends TypeMirror> newExceptions = new ArrayList<>(methods.newElement.getThrownTypes());
+        List<? extends TypeMirror> oldExceptions = new ArrayList<>(methods.oldElement.getModelRepresentation().getThrownTypes());
+        List<? extends TypeMirror> newExceptions = new ArrayList<>(methods.newElement.getModelRepresentation().getThrownTypes());
 
         Comparator<TypeMirror> byClassName = (a, b) -> Util.toUniqueString(a).compareTo(Util.toUniqueString(b));
 

@@ -21,11 +21,11 @@ import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
@@ -39,13 +39,12 @@ public final class NumberOfParametersChanged extends CheckBase {
     }
 
     @Override
-    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
-        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, getOldTypeEnvironment(), newMethod,
-                getNewTypeEnvironment())) {
+    protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
+        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
             return;
         }
 
-        if (oldMethod.getParameters().size() != newMethod.getParameters().size()) {
+        if (oldMethod.getModelRepresentation().getParameterTypes().size() != newMethod.getModelRepresentation().getParameterTypes().size()) {
             pushActive(oldMethod, newMethod);
         }
     }
@@ -53,7 +52,7 @@ public final class NumberOfParametersChanged extends CheckBase {
     @Nullable
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<ExecutableElement> methods = popIfActive();
+        ActiveElements<JavaMethodElement> methods = popIfActive();
 
         if (methods == null) {
             return null;

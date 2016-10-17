@@ -21,11 +21,11 @@ import java.util.EnumSet;
 import java.util.List;
 
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
@@ -39,21 +39,21 @@ public final class Added extends CheckBase {
     }
 
     @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null && newField != null && isAccessible(newField, getNewTypeEnvironment())) {
+    protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
+        if (oldField == null && newField != null && isAccessible(newField)) {
             pushActive(null, newField);
         }
     }
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<VariableElement> fields = popIfActive();
+        ActiveElements<JavaFieldElement> fields = popIfActive();
 
         if (fields == null) {
             return null;
         }
 
-        boolean isStatic = fields.newElement.getModifiers().contains(Modifier.STATIC);
+        boolean isStatic = fields.newElement.getDeclaringElement().getModifiers().contains(Modifier.STATIC);
 
         if (isStatic) {
             return Collections.singletonList(createDifference(Code.FIELD_ADDED_STATIC_FIELD));

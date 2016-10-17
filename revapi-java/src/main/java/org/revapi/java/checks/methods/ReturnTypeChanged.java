@@ -21,12 +21,12 @@ import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -41,14 +41,13 @@ public final class ReturnTypeChanged extends CheckBase {
     }
 
     @Override
-    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
-        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, getOldTypeEnvironment(), newMethod,
-                getNewTypeEnvironment())) {
+    protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
+        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
             return;
         }
 
-        String oldRet = Util.toUniqueString(oldMethod.getReturnType());
-        String newRet = Util.toUniqueString(newMethod.getReturnType());
+        String oldRet = Util.toUniqueString(oldMethod.getModelRepresentation().getReturnType());
+        String newRet = Util.toUniqueString(newMethod.getModelRepresentation().getReturnType());
 
         if (!oldRet.equals(newRet)) {
             pushActive(oldMethod, newMethod);
@@ -58,13 +57,13 @@ public final class ReturnTypeChanged extends CheckBase {
     @Nullable
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<ExecutableElement> methods = popIfActive();
+        ActiveElements<JavaMethodElement> methods = popIfActive();
         if (methods == null) {
             return null;
         }
 
-        TypeMirror oldReturnType = methods.oldElement.getReturnType();
-        TypeMirror newReturnType = methods.newElement.getReturnType();
+        TypeMirror oldReturnType = methods.oldElement.getModelRepresentation().getReturnType();
+        TypeMirror newReturnType = methods.newElement.getModelRepresentation().getReturnType();
 
         TypeMirror erasedOldType = getOldTypeEnvironment().getTypeUtils().erasure(oldReturnType);
         TypeMirror erasedNewType = getNewTypeEnvironment().getTypeUtils().erasure(newReturnType);

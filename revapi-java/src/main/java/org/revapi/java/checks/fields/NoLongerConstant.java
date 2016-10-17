@@ -20,10 +20,9 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.lang.model.element.VariableElement;
-
 import org.revapi.Difference;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
@@ -37,24 +36,25 @@ public final class NoLongerConstant extends BothFieldsRequiringCheck {
     }
 
     @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+    protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
         if (!shouldCheck(oldField, newField)) {
             return;
         }
 
-        if (oldField.getConstantValue() != null && newField.getConstantValue() == null) {
+        if (oldField.getDeclaringElement().getConstantValue() != null
+                && newField.getDeclaringElement().getConstantValue() == null) {
             pushActive(oldField, newField);
         }
     }
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<VariableElement> fields = popIfActive();
+        ActiveElements<JavaFieldElement> fields = popIfActive();
         if (fields == null) {
             return null;
         }
 
         return Collections.singletonList(
-            createDifference(Code.FIELD_NO_LONGER_CONSTANT, fields.oldElement.getConstantValue()));
+            createDifference(Code.FIELD_NO_LONGER_CONSTANT, fields.oldElement.getDeclaringElement().getConstantValue()));
     }
 }

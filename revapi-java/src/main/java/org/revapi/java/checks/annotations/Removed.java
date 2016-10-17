@@ -20,11 +20,10 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.lang.model.element.AnnotationMirror;
-
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -33,13 +32,13 @@ import org.revapi.java.spi.Util;
  */
 public final class Removed extends CheckBase {
     @Override
-    protected List<Difference> doVisitAnnotation(AnnotationMirror oldAnnotation,
-        AnnotationMirror newAnnotation) {
+    protected List<Difference> doVisitAnnotation(JavaAnnotationElement oldAnnotation,
+        JavaAnnotationElement newAnnotation) {
 
         if (oldAnnotation != null && newAnnotation == null) {
             return Collections.singletonList(
                 createDifference(Code.ANNOTATION_REMOVED, new String[]{
-                    Util.toHumanReadableString(oldAnnotation.getAnnotationType())}, oldAnnotation)
+                    Util.toHumanReadableString(oldAnnotation.getAnnotation().getAnnotationType())}, oldAnnotation)
             );
         }
 

@@ -18,10 +18,9 @@ package org.revapi.java.checks.fields;
 
 import java.util.EnumSet;
 
-import javax.lang.model.element.VariableElement;
-
 import org.revapi.java.checks.common.VisibilityChanged;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
@@ -38,7 +37,7 @@ public final class VisibilityReduced extends VisibilityChanged {
     }
 
     @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+    protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
         super.doVisit(oldField, newField);
     }
 }

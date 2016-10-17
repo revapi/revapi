@@ -21,10 +21,6 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
 import org.revapi.configuration.Configurable;
@@ -111,13 +107,13 @@ public interface Check extends Configurable {
     @Nullable
     List<Difference> visitEnd();
 
-    void visitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType);
+    void visitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType);
 
-    void visitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod);
+    void visitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod);
 
-    void visitMethodParameter(@Nullable VariableElement oldParameter, @Nullable VariableElement newParameter);
+    void visitMethodParameter(@Nullable JavaMethodParameterElement oldParameter, @Nullable JavaMethodParameterElement newParameter);
 
-    void visitField(@Nullable VariableElement oldField, @Nullable VariableElement newField);
+    void visitField(@Nullable JavaFieldElement oldField, @Nullable JavaFieldElement newField);
 
     /**
      * Visiting annotation is slightly different, because it is not followed by the standard {@link #visitEnd()} call.
@@ -130,8 +126,8 @@ public interface Check extends Configurable {
      * @return the list of differences between the two annotations
      */
     @Nullable
-    List<Difference> visitAnnotation(@Nullable AnnotationMirror oldAnnotation,
-        @Nullable AnnotationMirror newAnnotation);
+    List<Difference> visitAnnotation(@Nullable JavaAnnotationElement oldAnnotation,
+        @Nullable JavaAnnotationElement newAnnotation);
 
     enum Type {
         CLASS, METHOD, METHOD_PARAMETER, FIELD, ANNOTATION

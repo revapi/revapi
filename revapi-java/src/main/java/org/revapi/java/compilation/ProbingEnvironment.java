@@ -85,6 +85,10 @@ public final class ProbingEnvironment implements TypeEnvironment {
         return explicitExclusions.contains(Util.toHumanReadableString(element));
     }
 
+    public boolean isScanningComplete() {
+        return typeMap != null;
+    }
+
     @Nonnull
     @Override
     public Elements getElementUtils() {

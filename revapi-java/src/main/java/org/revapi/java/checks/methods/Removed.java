@@ -34,6 +34,7 @@ import javax.lang.model.util.ElementFilter;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 
@@ -81,8 +82,8 @@ public final class Removed extends CheckBase {
     }
 
     @Override
-    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
-        if (oldMethod != null && newMethod == null && isAccessible(oldMethod, getOldTypeEnvironment())) {
+    protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
+        if (oldMethod != null && newMethod == null && isAccessible(oldMethod)) {
             pushActive(oldMethod, null);
         }
     }
@@ -90,7 +91,7 @@ public final class Removed extends CheckBase {
     @Nullable
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<ExecutableElement> methods = popIfActive();
+        ActiveElements<JavaMethodElement> methods = popIfActive();
         if (methods == null) {
             return null;
         }
@@ -98,7 +99,7 @@ public final class Removed extends CheckBase {
         Difference difference = null;
 
         //try to find the removed method in some of the superclasses in the new environment
-        ExecutableElement oldMethod = methods.oldElement;
+        ExecutableElement oldMethod = methods.oldElement.getDeclaringElement();
         TypeElement type = (TypeElement) oldMethod.getEnclosingElement();
         boolean oldMethodAbstract = oldMethod.getModifiers().contains(Modifier.ABSTRACT);
         boolean oldMethodFinal = oldMethod.getModifiers().contains(Modifier.FINAL);

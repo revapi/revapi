@@ -50,11 +50,9 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v2/methods/Added.java", "v1/methods/Added.java");
 
-        Assert.assertEquals(1,
-            (int) reporter.getProblemCounters().get(Code.METHOD_REPLACED_BY_ABSTRACT_METHOD_IN_SUPERCLASS.code()));
-        Assert.assertEquals(1, (int) reporter.getProblemCounters()
-            .get(Code.METHOD_NON_FINAL_METHOD_REPLACED_BY_FINAL_IN_SUPERCLASS.code()));
-        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_MOVED_TO_SUPERCLASS.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_ABSTRACT.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_FINAL.code()));
+        Assert.assertEquals(4, (int) reporter.getProblemCounters().get(Code.METHOD_MOVED_TO_SUPERCLASS.code()));
         Assert.assertEquals(6, (int) reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
     }
 
@@ -107,7 +105,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         runAnalysis(reporter, "v1/methods/Visibility.java", "v2/methods/Visibility.java");
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_VISIBILITY_INCREASED.code()));
-        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_VISIBILITY_REDUCED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_VISIBILITY_REDUCED.code()));
     }
 
     @Test

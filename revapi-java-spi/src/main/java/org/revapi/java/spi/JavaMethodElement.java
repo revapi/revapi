@@ -1,7 +1,7 @@
 package org.revapi.java.spi;
 
-import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.ExecutableType;
 
 /**
  * Elements in the element forest that represent Java methods, will implement this interface.
@@ -10,7 +10,8 @@ import javax.lang.model.element.ExecutableElement;
  * @since 0.1
  */
 public interface JavaMethodElement extends JavaModelElement {
-    @Nonnull
     @Override
-    ExecutableElement getModelElement();
+    ExecutableType getModelRepresentation();
+
+    @Override ExecutableElement getDeclaringElement();
 }

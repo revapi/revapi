@@ -25,6 +25,7 @@ import javax.lang.model.element.TypeElement;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
@@ -38,19 +39,20 @@ public final class KindChanged extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType != null && newType != null && oldType.getKind() != newType.getKind() && isBothAccessible(oldType,
-                getOldTypeEnvironment(), newType, getNewTypeEnvironment())) {
+    protected void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
+        if (oldType != null && newType != null
+                && oldType.getDeclaringElement().getKind() != newType.getDeclaringElement().getKind()
+                && isBothAccessible(oldType, newType)) {
             pushActive(oldType, newType);
         }
     }
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<TypeElement> types = popIfActive();
+        ActiveElements<JavaTypeElement> types = popIfActive();
         if (types != null) {
-            TypeElement o = types.oldElement;
-            TypeElement n = types.newElement;
+            TypeElement o = types.oldElement.getDeclaringElement();
+            TypeElement n = types.newElement.getDeclaringElement();
 
             if (o.getKind() != n.getKind()) {
                 Difference p = createDifference(Code.CLASS_KIND_CHANGED, new String[]{kind(o), kind(n)}, o, n);

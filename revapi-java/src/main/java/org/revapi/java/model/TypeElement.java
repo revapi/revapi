@@ -23,8 +23,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleElementVisitor8;
 
 import org.revapi.Archive;
@@ -40,7 +46,7 @@ import org.revapi.query.Filter;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement> implements JavaTypeElement {
+public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement, DeclaredType> implements JavaTypeElement {
     private static final List<Modifier> ACCESSIBLE_MODIFIERS = Arrays.asList(Modifier.PUBLIC, Modifier.PROTECTED);
 
     private final String binaryName;
@@ -61,7 +67,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
      * @param canonicalName the canonical name of the class
      */
     public TypeElement(ProbingEnvironment env, Archive archive, String binaryName, String canonicalName) {
-        super(env, archive, null);
+        super(env, archive, null, null);
         this.binaryName = binaryName;
         this.canonicalName = canonicalName;
     }
@@ -74,23 +80,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
      * @param env     the probing environment
      * @param element the model element to be represented
      */
-    public TypeElement(ProbingEnvironment env, Archive archive, javax.lang.model.element.TypeElement element) {
-        super(env, archive, element);
+    public TypeElement(ProbingEnvironment env, Archive archive, javax.lang.model.element.TypeElement element, DeclaredType type) {
+        super(env, archive, element, type);
         binaryName = env.getElementUtils().getBinaryName(element).toString();
         canonicalName = element.getQualifiedName().toString();
-    }
-
-    public boolean isInnerClass() {
-        int dotPos = -1;
-
-        do {
-            dotPos = canonicalName.indexOf('.', dotPos + 1);
-            if (dotPos >= 0 && binaryName.charAt(dotPos) == '$') {
-                return true;
-            }
-        } while (dotPos >= 0);
-
-        return false;
     }
 
     @Nonnull
@@ -99,25 +92,16 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return "class";
     }
 
-    @Nonnull
-    @Override
-    @SuppressWarnings("ConstantConditions")
-    public javax.lang.model.element.TypeElement getModelElement() {
-        //even though environment.getElementUtils() is marked @Nonnull, we do the check here, because
-        //it actually IS null for a while during initialization of the forest during compilation.
-        //we do this so that toString() works even under those conditions.
-        if (element == null && environment.hasProcessingEnvironment()) {
-            element = environment.getElementUtils().getTypeElement(canonicalName);
-        }
-        return element;
-    }
-
     public String getBinaryName() {
         return binaryName;
     }
 
     public String getCanonicalName() {
         return canonicalName;
+    }
+
+    @Override protected List<TypeMirror> getSuperTypesForInheritance() {
+        return Util.getAllSuperTypes(getTypeEnvironment().getTypeUtils(), getModelRepresentation());
     }
 
     @Override public Set<UseSite> getUseSites() {
@@ -136,19 +120,21 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     }
 
     @Override public boolean isMembersAccessible() {
-        if (subClasses != null) {
-            if (isAccessibleByModifier(getModelElement())) {
-                membersAccessible = allEnclosersAccessibleByModifier(getModelElement());
-            } else {
-                membersAccessible = subClasses.stream()
-                        .filter(TypeElement::isMembersAccessible)
-                        .findAny().isPresent();
-            }
-
-            subClasses = null;
-        }
-
-        return membersAccessible;
+        return true;
+// TODO this is most probably not needed anymore
+//        if (subClasses != null) {
+//            if (isAccessibleByModifier(getModelElement())) {
+//                membersAccessible = allEnclosersAccessibleByModifier(getModelElement());
+//            } else {
+//                membersAccessible = subClasses.stream()
+//                        .filter(TypeElement::isMembersAccessible)
+//                        .findAny().isPresent();
+//            }
+//
+//            subClasses = null;
+//        }
+//
+//        return membersAccessible;
     }
 
     @Override public boolean isInAPI() {
@@ -180,9 +166,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     @Override
     @SuppressWarnings("ConstantConditions")
     public String getFullHumanReadableString() {
-        javax.lang.model.element.TypeElement el = getModelElement();
-        //see getModelElement() for why we do the null check here even if getModelElement() is @Nonnull
-        return getHumanReadableElementType() + " " + (el == null ? canonicalName : Util.toHumanReadableString(el));
+        TypeMirror rep = getModelRepresentation();
+
+
+        return getHumanReadableElementType() + " " + (rep == null ? canonicalName : Util.toHumanReadableString(rep));
     }
 
     @Override
@@ -216,14 +203,14 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                     TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
                     Name fieldName = e.getSimpleName();
                     List<FieldElement> fs = type.searchChildren(FieldElement.class, false,
-                            Filter.flat(f -> fieldName.contentEquals(f.getModelElement().getSimpleName())));
+                            Filter.flat(f -> fieldName.contentEquals(f.getDeclaringElement().getSimpleName())));
                     return fs.get(0);
                 } else if (e.getEnclosingElement() instanceof javax.lang.model.element.ExecutableElement) {
                     //this is a method parameter
                     TypeElement type = environment.getTypeMap().get(e.getEnclosingElement().getEnclosingElement());
                     String methodSig = Util.toUniqueString(e.getEnclosingElement().asType());
                     List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
-                            Filter.flat(m -> Util.toUniqueString(m.getModelElement().asType()).equals(methodSig)));
+                            Filter.flat(m -> Util.toUniqueString(m.getDeclaringElement().asType()).equals(methodSig)));
 
                     MethodElement method = ms.get(0);
 
@@ -245,7 +232,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
                 String methodSig = Util.toUniqueString(e.asType());
                 List<MethodElement> fs = type.searchChildren(MethodElement.class, false,
-                        Filter.flat(f -> Util.toUniqueString(f.getModelElement().asType()).equals(methodSig)));
+                        Filter.flat(f -> Util.toUniqueString(f.getDeclaringElement().asType()).equals(methodSig)));
 
                 return fs.get(0);
             }

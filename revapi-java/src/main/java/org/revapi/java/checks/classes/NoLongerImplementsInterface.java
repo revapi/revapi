@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -40,16 +40,16 @@ public final class NoLongerImplementsInterface extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
+    protected void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
         if (oldType == null || newType == null) {
             return;
         }
 
         List<TypeMirror> newInterfaces = Util.getAllSuperInterfaces(getNewTypeEnvironment().getTypeUtils(),
-                newType.asType());
+                newType.getModelRepresentation());
 
         List<TypeMirror> oldInterfaces = Util.getAllSuperInterfaces(getOldTypeEnvironment().getTypeUtils(),
-                oldType.asType());
+                oldType.getModelRepresentation());
 
         for (TypeMirror oldIface : oldInterfaces) {
             if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
@@ -61,7 +61,7 @@ public final class NoLongerImplementsInterface extends CheckBase {
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<TypeElement> types = popIfActive();
+        ActiveElements<JavaTypeElement> types = popIfActive();
         if (types == null) {
             return null;
         }

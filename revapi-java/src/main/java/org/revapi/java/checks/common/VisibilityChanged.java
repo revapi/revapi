@@ -25,6 +25,7 @@ import javax.lang.model.element.Modifier;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
@@ -39,10 +40,10 @@ public abstract class VisibilityChanged extends CheckBase {
         this.reportIncrease = reportIncrease;
     }
 
-    protected final void doVisit(Element oldElement, Element newElement) {
+    protected final void doVisit(JavaModelElement oldElement, JavaModelElement newElement) {
         if (oldElement != null && newElement != null) {
-            boolean oldAccessible = isAccessible(oldElement, getOldTypeEnvironment());
-            boolean newAccessible = isAccessible(newElement, getNewTypeEnvironment());
+            boolean oldAccessible = isAccessible(oldElement);
+            boolean newAccessible = isAccessible(newElement);
             //check if both are accessible or if they differ.. don't check if they're both private
             if (oldAccessible || newAccessible) {
                 pushActive(oldElement, newElement);
@@ -52,10 +53,10 @@ public abstract class VisibilityChanged extends CheckBase {
 
     @Override
     protected final List<Difference> doEnd() {
-        CheckBase.ActiveElements<Element> elements = popIfActive();
+        CheckBase.ActiveElements<JavaModelElement> elements = popIfActive();
         if (elements != null) {
-            Modifier oldVisibility = getVisibility(elements.oldElement);
-            Modifier newVisibility = getVisibility(elements.newElement);
+            Modifier oldVisibility = getVisibility(elements.oldElement.getDeclaringElement());
+            Modifier newVisibility = getVisibility(elements.newElement.getDeclaringElement());
 
             //public == 0, private == 3
             if (isProblem(getModifierRank(oldVisibility), getModifierRank(newVisibility))) {

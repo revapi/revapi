@@ -19,10 +19,10 @@ package org.revapi.java.checks.fields;
 import java.util.EnumSet;
 
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.VariableElement;
 
 import org.revapi.java.checks.common.ModifierChanged;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
@@ -39,10 +39,8 @@ public final class NoLongerStatic extends ModifierChanged {
     }
 
     @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (BothFieldsRequiringCheck
-            .shouldCheck(this, oldField, getOldTypeEnvironment(), newField, getNewTypeEnvironment())) {
-
+    protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
+        if (BothFieldsRequiringCheck.shouldCheck(this, oldField, newField)) {
             super.doVisit(oldField, newField);
         }
     }

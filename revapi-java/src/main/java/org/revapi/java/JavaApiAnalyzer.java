@@ -249,9 +249,9 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         List<String> fullBlueprintSignature = methodParamsSignature(blueprint, false);
         List<String> erasedBlueprintSignature = methodParamsSignature(blueprint, true);
 
-        String fullBlueprintReturnType = Util.toUniqueString(blueprint.getModelElement().getReturnType());
+        String fullBlueprintReturnType = Util.toUniqueString(blueprint.getModelRepresentation().getReturnType());
         String erasedBlueprintReturnType = Util.toUniqueString(blueprint.getTypeEnvironment().getTypeUtils()
-                .erasure(blueprint.getModelElement().getReturnType()));
+                .erasure(blueprint.getModelRepresentation().getReturnType()));
 
         int idx = 0;
         for (MethodElement candidate : candidates) {
@@ -275,10 +275,10 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     private static List<String> methodParamsSignature(MethodElement method, boolean erased) {
         if (erased) {
             Types types = method.getTypeEnvironment().getTypeUtils();
-            return method.getModelElement().getParameters().stream().map(p ->
+            return method.getDeclaringElement().getParameters().stream().map(p ->
                     Util.toUniqueString(types.erasure(p.asType()))).collect(toList());
         } else {
-            return method.getModelElement().getParameters().stream().map(p -> Util.toUniqueString(p.asType()))
+            return method.getModelRepresentation().getParameterTypes().stream().map(Util::toUniqueString)
                     .collect(toList());
         }
     }
@@ -286,9 +286,9 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     private static float computeMatchScore(String blueprintReturnType, List<String> blueprintParamSignature,
                                            String erasedReturnType, List<String> erasedParamSignature, MethodElement method) {
 
-        String mRt = Util.toUniqueString(method.getModelElement().getReturnType());
-        String emRt = Util.toUniqueString(method.getTypeEnvironment().getTypeUtils().erasure(method.getModelElement()
-                .getReturnType()));
+        String mRt = Util.toUniqueString(method.getModelRepresentation().getReturnType());
+        String emRt = Util.toUniqueString(method.getTypeEnvironment().getTypeUtils()
+                .erasure(method.getModelRepresentation().getReturnType()));
 
         List<String> mPs = methodParamsSignature(method, false);
         List<String> emPs = methodParamsSignature(method, true);
@@ -364,7 +364,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     }
 
     private static void add(MethodElement method, TreeMap<String, List<MethodElement>> methods) {
-        String name = method.getModelElement().getSimpleName().toString();
+        String name = method.getDeclaringElement().getSimpleName().toString();
         List<MethodElement> overloads = methods.get(name);
         if (overloads == null) {
             overloads = new ArrayList<>();

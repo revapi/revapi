@@ -19,12 +19,12 @@ package org.revapi.java.checks.common;
 import java.util.Collections;
 import java.util.List;
 
-import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
@@ -41,17 +41,17 @@ public abstract class ModifierChanged extends CheckBase {
         this.modifier = modifier;
     }
 
-    protected final void doVisit(Element oldElement, Element newElement) {
+    protected final void doVisit(JavaModelElement oldElement, JavaModelElement newElement) {
         if (oldElement == null || newElement == null) {
             return;
         }
 
-        if (isBothPrivate(oldElement, getOldTypeEnvironment(), newElement, getNewTypeEnvironment())) {
+        if (isBothPrivate(oldElement, newElement)) {
             return;
         }
 
-        boolean oldHas = oldElement.getModifiers().contains(modifier);
-        boolean newHas = newElement.getModifiers().contains(modifier);
+        boolean oldHas = oldElement.getDeclaringElement().getModifiers().contains(modifier);
+        boolean newHas = newElement.getDeclaringElement().getModifiers().contains(modifier);
 
         if ((added && !oldHas && newHas) || (!added && oldHas && !newHas)) {
             pushActive(oldElement, newElement);
@@ -60,7 +60,7 @@ public abstract class ModifierChanged extends CheckBase {
 
     @Override
     protected final List<Difference> doEnd() {
-        ActiveElements<Element> elements = popIfActive();
+        ActiveElements<JavaModelElement> elements = popIfActive();
         if (elements == null) {
             return null;
         }

@@ -14,10 +14,14 @@
  * limitations under the License
  */
 
-public class Added {
+public class Added extends NewSuperClass {
     public int movingFromSuperclass;
     public int f1;
     protected int f2;
     int f3;
     private int f4;
+}
+
+class NewSuperClass {
+    public int movingToSuperClass;
 }

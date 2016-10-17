@@ -416,6 +416,12 @@ public final class Util {
             return null;
         }
 
+        @Override
+        public Void visitError(ErrorType t, StringBuilderAndState<TypeMirror> state) {
+            state.bld.append(((TypeElement) t.asElement()).getQualifiedName());
+            return null;
+        }
+
         private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState<TypeMirror> state) {
             if (!vars.isEmpty()) {
                 state.bld.append("<");

@@ -31,7 +31,9 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v1/fields/Added.java", "v2/fields/Added.java");
 
-        Assert.assertEquals(3, (int) reporter.getProblemCounters().get(Code.FIELD_ADDED.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_ADDED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_MOVED_TO_SUPER_CLASS.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_INHERITED_NOW_DECLARED.code()));
     }
 
     @Test
@@ -41,6 +43,7 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_REMOVED.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_MOVED_TO_SUPER_CLASS.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_INHERITED_NOW_DECLARED.code()));
     }
 
     @Test
@@ -120,7 +123,8 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v1/fields/Visibility.java", "v2/fields/Visibility.java");
 
-        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_VISIBILITY_REDUCED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_VISIBILITY_REDUCED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_REMOVED.code()));
     }
 
     @Test
@@ -128,7 +132,8 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
         runAnalysis(reporter, "v2/fields/Visibility.java", "v1/fields/Visibility.java");
 
-        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.FIELD_VISIBILITY_INCREASED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_VISIBILITY_INCREASED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_ADDED.code()));
     }
 
     @Test

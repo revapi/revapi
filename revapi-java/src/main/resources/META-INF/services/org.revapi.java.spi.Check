@@ -47,6 +47,7 @@ org.revapi.java.checks.fields.TypeChanged
 org.revapi.java.checks.fields.VisibilityIncreased
 org.revapi.java.checks.fields.VisibilityReduced
 org.revapi.java.checks.fields.EnumConstantsOrderChanged
+org.revapi.java.checks.fields.FieldMovedInHierarchy
 
 org.revapi.java.checks.methods.Added
 org.revapi.java.checks.methods.DefaultValueChanged
@@ -65,6 +66,7 @@ org.revapi.java.checks.methods.NoLongerDefault
 org.revapi.java.checks.methods.NowDefault
 org.revapi.java.checks.methods.NowAbstract
 org.revapi.java.checks.methods.NoLongerAbstract
+org.revapi.java.checks.methods.MethodMovedInHierarchy
 
 org.revapi.java.checks.generics.FormalTypeParametersChanged
 org.revapi.java.checks.generics.SuperTypeParametersChanged

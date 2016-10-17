@@ -19,10 +19,10 @@ package org.revapi.java.checks.classes;
 import java.util.EnumSet;
 
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
 
 import org.revapi.java.checks.common.ModifierChanged;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
@@ -40,7 +40,7 @@ public final class NowFinal extends ModifierChanged {
     }
 
     @Override
-    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
+    protected void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
         super.doVisit(oldType, newType);
     }
 }

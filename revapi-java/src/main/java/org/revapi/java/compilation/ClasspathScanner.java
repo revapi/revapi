@@ -143,19 +143,9 @@ final class ClasspathScanner {
                     //TODO fallback to manually looping through archives
                 } catch (IllegalAccessException e) {
                     //should not happen
+                    throw new AssertionError("Illegal access after setAccessible(true) on a field. Wha?", e);
                 }
             }
-
-//            List<ArchiveLocation> additionalClassPathLocations = additionalClassPath.keySet().stream()
-//                    .map(ArchiveLocation::new).collect(toList());
-//
-//            for (ArchiveLocation loc : additionalClassPathLocations) {
-//                if (scanner.requiredTypes.isEmpty()) {
-//                    break;
-//                } else {
-//                    scanner.scan(loc, additionalClassPath.get(loc.getArchive()), false);
-//                }
-//            }
         }
 
         scanner.initEnvironment();
@@ -243,8 +233,9 @@ final class ClasspathScanner {
             boolean includes = inclusionFilter.accepts(bn, cn);
             boolean excludes = inclusionFilter.rejects(bn, cn);
 
+            //type.asType() possibly not completely correct when dealing with inner class of a parameterized class
             org.revapi.java.model.TypeElement t =
-                    new org.revapi.java.model.TypeElement(environment, loc.getArchive(), type);
+                    new org.revapi.java.model.TypeElement(environment, loc.getArchive(), type, (DeclaredType) type.asType());
 
             TypeRecord tr = getTypeRecord(type);
             tr.inApi = !excludes && (tr.inApi || !shouldBeIgnored(type));
@@ -298,7 +289,7 @@ final class ClasspathScanner {
         }
 
         void placeInTree(TypeRecord typeRecord) {
-            TypeElement type = typeRecord.modelElement.getModelElement();
+            TypeElement type = typeRecord.modelElement.getDeclaringElement();
 
             if (!(type.getEnclosingElement() instanceof TypeElement)) {
                 environment.getTree().getRootsUnsafe().add(typeRecord.modelElement);
@@ -339,15 +330,15 @@ final class ClasspathScanner {
                                 break;
                             }
                         } while (!nesting.isEmpty());
-
-                        parent = parents.isEmpty() ? null : parents.get(0);
                     }
+
+                    parent = parents.isEmpty() ? null : parents.get(0);
                 }
 
                 if (parent == null) {
                     environment.getTree().getRootsUnsafe().add(typeRecord.modelElement);
                 } else {
-                    parent.getUninitializedChildren().add(typeRecord.modelElement);
+                    parent.getChildren().add(typeRecord.modelElement);
                 }
             }
         }
@@ -380,6 +371,7 @@ final class ClasspathScanner {
             if (returnType != null) {
                 addUse(owningType, method, returnType, UseSite.Type.RETURN_TYPE);
                 addType(returnType, false);
+                addToApiIfNotExcluded(returnType);
             }
 
             int idx = 0;
@@ -388,6 +380,7 @@ final class ClasspathScanner {
                 if (pt != null) {
                     addUse(owningType, method, pt, UseSite.Type.PARAMETER_TYPE, idx++);
                     addType(pt, false);
+                    addToApiIfNotExcluded(pt);
                 }
 
                 p.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, p, a));
@@ -404,6 +397,13 @@ final class ClasspathScanner {
             });
 
             method.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a));
+        }
+
+        private void addToApiIfNotExcluded(TypeElement t) {
+            TypeRecord tr = getTypeRecord(t);
+            if (!tr.explicitlyExcluded) {
+                tr.inApi = true;
+            }
         }
 
         void scanAnnotation(TypeRecord owningType, Element annotated, AnnotationMirror annotation) {
@@ -488,6 +488,7 @@ final class ClasspathScanner {
                     ret = a.getKey().getQualifiedName().toString().compareTo(b.getKey().getQualifiedName().toString());
                 }
 
+                //the less nested classes need to come first
                 return ret;
             };
 
@@ -548,7 +549,7 @@ final class ClasspathScanner {
 
                             //find the first owning class that is part of our model
                             List<TypeElement> siblings = environment.getTree().getRootsUnsafe().stream().map(
-                                    org.revapi.java.model.TypeElement::getModelElement).collect(Collectors.toList());
+                                    org.revapi.java.model.TypeElement::getDeclaringElement).collect(Collectors.toList());
 
                             while (!owners.isEmpty()) {
                                 if (ignored.contains(owners.peek()) || siblings.contains(owners.peek())) {
@@ -603,7 +604,7 @@ final class ClasspathScanner {
                                 String bin = els.getBinaryName(t).toString();
                                 MissingClassElement mce = new MissingClassElement(environment, bin,
                                         t.getQualifiedName().toString());
-                                types.put(mce.getModelElement(), mce);
+                                types.put(mce.getDeclaringElement(), mce);
                                 environment.getTree().getRootsUnsafe().add(mce);
                             }
                         }

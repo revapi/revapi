@@ -46,6 +46,8 @@ import javax.lang.model.util.SimpleTypeVisitor7;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaFieldElement;
+import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.TypeEnvironment;
 
 /**
@@ -62,47 +64,50 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
     }
 
     @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
-        if (oldField == null || newField == null ||
-            !isBothAccessible(oldField.getEnclosingElement(), getOldTypeEnvironment(),
-                newField.getEnclosingElement(), getNewTypeEnvironment())) {
-
+    protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
+        if (oldField == null || newField == null) {
             return;
         }
 
-        if (!SERIAL_VERSION_UID_FIELD_NAME.equals(oldField.getSimpleName().toString())) {
+        if (!SERIAL_VERSION_UID_FIELD_NAME.equals(oldField.getDeclaringElement().getSimpleName().toString())) {
             return;
         }
 
-        if (!SERIAL_VERSION_UID_FIELD_NAME.equals(newField.getSimpleName().toString())) {
+        if (!SERIAL_VERSION_UID_FIELD_NAME.equals(newField.getDeclaringElement().getSimpleName().toString())) {
+            return;
+        }
+
+        if (!isBothAccessible((JavaModelElement) oldField.getParent(), (JavaModelElement) newField.getParent())) {
             return;
         }
 
         PrimitiveType oldLong = getOldTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
-        if (!getOldTypeEnvironment().getTypeUtils().isSameType(oldField.asType(), oldLong)) {
+        if (!getOldTypeEnvironment().getTypeUtils().isSameType(oldField.getModelRepresentation(), oldLong)) {
             return;
         }
 
         PrimitiveType newLong = getNewTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
-        if (!getNewTypeEnvironment().getTypeUtils().isSameType(newField.asType(), newLong)) {
+        if (!getNewTypeEnvironment().getTypeUtils().isSameType(newField.getModelRepresentation(), newLong)) {
             return;
         }
 
-        if (!oldField.getModifiers().contains(Modifier.STATIC) || !oldField.getModifiers().contains(Modifier.FINAL)) {
+        if (!oldField.getDeclaringElement().getModifiers().contains(Modifier.STATIC)
+                || !oldField.getDeclaringElement().getModifiers().contains(Modifier.FINAL)) {
             return;
         }
 
-        if (!newField.getModifiers().contains(Modifier.STATIC) || !newField.getModifiers().contains(Modifier.FINAL)) {
+        if (!newField.getDeclaringElement().getModifiers().contains(Modifier.STATIC)
+                || !newField.getDeclaringElement().getModifiers().contains(Modifier.FINAL)) {
             return;
         }
 
-        TypeElement oldType = (TypeElement) oldField.getEnclosingElement();
-        TypeElement newType = (TypeElement) newField.getEnclosingElement();
+        TypeElement oldType = (TypeElement) oldField.getDeclaringElement().getEnclosingElement();
+        TypeElement newType = (TypeElement) newField.getDeclaringElement().getEnclosingElement();
 
         long computedOldSUID = computeSerialVersionUID(oldType, getOldTypeEnvironment());
         long computedNewSUID = computeSerialVersionUID(newType, getNewTypeEnvironment());
-        Long actualOldSUID = (Long) oldField.getConstantValue();
-        Long actualNewSUID = (Long) newField.getConstantValue();
+        Long actualOldSUID = (Long) oldField.getDeclaringElement().getConstantValue();
+        Long actualNewSUID = (Long) newField.getDeclaringElement().getConstantValue();
 
         if (Objects.equals(actualOldSUID, actualNewSUID) && computedOldSUID != computedNewSUID) {
             pushActive(oldField, newField);
@@ -111,7 +116,7 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<VariableElement> fields = popIfActive();
+        ActiveElements<JavaFieldElement> fields = popIfActive();
         if (fields == null) {
             return null;
         }

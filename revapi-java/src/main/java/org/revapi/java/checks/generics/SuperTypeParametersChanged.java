@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -43,16 +43,16 @@ public class SuperTypeParametersChanged extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
-        if (!isBothAccessible(oldType, getOldTypeEnvironment(), newType, getNewTypeEnvironment())) {
+    protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
+        if (!isBothAccessible(oldType, newType)) {
             return;
         }
 
         List<? extends TypeMirror> oldSuperTypes = getOldTypeEnvironment().getTypeUtils().directSupertypes(
-            oldType.asType());
+            oldType.getModelRepresentation());
 
         List<? extends TypeMirror> newSuperTypes = getNewTypeEnvironment().getTypeUtils().directSupertypes(
-            newType.asType());
+            newType.getModelRepresentation());
 
         if (oldSuperTypes.size() != newSuperTypes.size()) {
             //super types changed, handled elsewhere
@@ -96,7 +96,7 @@ public class SuperTypeParametersChanged extends CheckBase {
     @Nullable
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<TypeElement> types = popIfActive();
+        ActiveElements<JavaTypeElement> types = popIfActive();
         if (types == null) {
             return null;
         }

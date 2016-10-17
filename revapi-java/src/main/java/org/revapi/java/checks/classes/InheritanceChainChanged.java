@@ -33,6 +33,7 @@ import org.revapi.CoIterator;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 
@@ -49,7 +50,7 @@ public final class InheritanceChainChanged extends CheckBase {
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<TypeElement> types = popIfActive();
+        ActiveElements<JavaTypeElement> types = popIfActive();
         if (types != null) {
 
             List<Difference> ret = new ArrayList<>();
@@ -59,12 +60,8 @@ public final class InheritanceChainChanged extends CheckBase {
             @SuppressWarnings("unchecked")
             List<TypeMirror> newSuperClasses = (List<TypeMirror>) types.context[1];
 
-            Comparator<TypeMirror> typeNameComparator = new Comparator<TypeMirror>() {
-                @Override
-                public int compare(TypeMirror o1, TypeMirror o2) {
-                    return Util.toUniqueString(o1).compareTo(Util.toUniqueString(o2));
-                }
-            };
+            Comparator<TypeMirror> typeNameComparator =
+                    (o1, o2) -> Util.toUniqueString(o1).compareTo(Util.toUniqueString(o2));
 
             List<TypeMirror> removedSuperClasses = new ArrayList<>();
             List<TypeMirror> addedSuperClasses = new ArrayList<>();
@@ -116,7 +113,7 @@ public final class InheritanceChainChanged extends CheckBase {
 
             for (TypeMirror t : addedSuperClasses) {
                 String str = Util.toHumanReadableString(t);
-                Code code = types.oldElement.getModifiers().contains(Modifier.FINAL)
+                Code code = types.oldElement.getDeclaringElement().getModifiers().contains(Modifier.FINAL)
                     ? Code.CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS
                     : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
 
@@ -135,12 +132,15 @@ public final class InheritanceChainChanged extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType == null || newType == null) {
+    protected void doVisitClass(JavaTypeElement oldEl, JavaTypeElement newEl) {
+        if (oldEl == null || newEl == null) {
             return;
         }
 
-        if (isBothPrivate(oldType, getOldTypeEnvironment(), newType, getNewTypeEnvironment())) {
+        TypeElement oldType = oldEl.getDeclaringElement();
+        TypeElement newType = newEl.getDeclaringElement();
+
+        if (isBothPrivate(oldEl, newEl)) {
             return;
         }
 
@@ -150,7 +150,7 @@ public final class InheritanceChainChanged extends CheckBase {
             .getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(), newType.asType());
 
         if (oldSuperTypes.size() != newSuperTypes.size()) {
-            pushActive(oldType, newType, oldSuperTypes, newSuperTypes);
+            pushActive(oldEl, newEl, oldSuperTypes, newSuperTypes);
         } else {
             Types oldTypes = getOldTypeEnvironment().getTypeUtils();
             Types newTypes = getNewTypeEnvironment().getTypeUtils();
@@ -162,7 +162,7 @@ public final class InheritanceChainChanged extends CheckBase {
                 TypeMirror newSuperClass = newTypes.erasure(newSuperTypes.get(i));
 
                 if (!Util.isSameType(oldSuperClass, newSuperClass)) {
-                    pushActive(oldType, newType, oldSuperTypes, newSuperTypes);
+                    pushActive(oldEl, newEl, oldSuperTypes, newSuperTypes);
                     break;
                 }
             }

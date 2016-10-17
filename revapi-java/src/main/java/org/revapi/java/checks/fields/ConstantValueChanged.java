@@ -19,11 +19,11 @@ package org.revapi.java.checks.fields;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-
-import javax.lang.model.element.VariableElement;
+import java.util.Objects;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
@@ -37,13 +37,13 @@ public final class ConstantValueChanged extends BothFieldsRequiringCheck {
     }
 
     @Override
-    protected void doVisitField(VariableElement oldField, VariableElement newField) {
+    protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
         if (!shouldCheck(oldField, newField)) {
             return;
         }
 
-        Object oldC = oldField.getConstantValue();
-        Object newC = newField.getConstantValue();
+        Object oldC = oldField.getDeclaringElement().getConstantValue();
+        Object newC = newField.getDeclaringElement().getConstantValue();
 
         if (oldC != null && newC != null && !oldC.equals(newC)) {
             pushActive(oldField, newField);
@@ -52,7 +52,7 @@ public final class ConstantValueChanged extends BothFieldsRequiringCheck {
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<VariableElement> fields = popIfActive();
+        ActiveElements<JavaFieldElement> fields = popIfActive();
 
         if (fields == null) {
             return null;
@@ -60,8 +60,8 @@ public final class ConstantValueChanged extends BothFieldsRequiringCheck {
 
         return Collections.singletonList(
             createDifference(Code.FIELD_CONSTANT_VALUE_CHANGED,
-                fields.oldElement.getConstantValue().toString(),
-                fields.newElement.getConstantValue().toString())
+                Objects.toString(fields.oldElement.getDeclaringElement().getConstantValue()),
+                Objects.toString(fields.newElement.getDeclaringElement().getConstantValue()))
         );
     }
 }

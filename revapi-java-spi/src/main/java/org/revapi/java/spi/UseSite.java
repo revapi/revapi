@@ -21,7 +21,7 @@ import java.util.EnumSet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 
 /**
  * @author Lukas Krejci
@@ -117,7 +117,7 @@ public final class UseSite {
          * @return non-null value indicates early exit before visiting all use sites.
          */
         @Nullable
-        R visit(@Nonnull TypeElement type, @Nonnull UseSite use, @Nullable P parameter);
+        R visit(@Nonnull DeclaredType type, @Nonnull UseSite use, @Nullable P parameter);
 
         /**
          * Called when all uses have been visited.
@@ -128,7 +128,7 @@ public final class UseSite {
          * @return a return value
          */
         @Nullable
-        R end(TypeElement type, @Nullable P parameter);
+        R end(DeclaredType type, @Nullable P parameter);
     }
 
     private final Type useType;

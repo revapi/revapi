@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -40,14 +40,15 @@ public final class NowImplementsInterface extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType == null || newType == null || isBothPrivate(oldType, getOldTypeEnvironment(), newType,
-                getNewTypeEnvironment())) {
+    protected void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
+        if (oldType == null || newType == null || isBothPrivate(oldType, newType)) {
             return;
         }
 
-        List<? extends TypeMirror> newInterfaces = newType.getInterfaces();
-        List<? extends TypeMirror> oldInterfaces = oldType.getInterfaces();
+        //hmm, these might not be right I assume if the types are inner classes parameterized by the type parameters
+        //of the containing class
+        List<? extends TypeMirror> newInterfaces = newType.getDeclaringElement().getInterfaces();
+        List<? extends TypeMirror> oldInterfaces = oldType.getDeclaringElement().getInterfaces();
 
         for (TypeMirror newIface : newInterfaces) {
             if (!Util.isSubtype(newIface, oldInterfaces, getNewTypeEnvironment().getTypeUtils())) {
@@ -59,15 +60,15 @@ public final class NowImplementsInterface extends CheckBase {
 
     @Override
     protected List<Difference> doEnd() {
-        CheckBase.ActiveElements<TypeElement> types = popIfActive();
+        CheckBase.ActiveElements<JavaTypeElement> types = popIfActive();
         if (types == null) {
             return null;
         }
 
         List<Difference> result = new ArrayList<>();
 
-        List<? extends TypeMirror> newInterfaces = types.newElement.getInterfaces();
-        List<? extends TypeMirror> oldInterfaces = types.oldElement.getInterfaces();
+        List<? extends TypeMirror> newInterfaces = types.newElement.getDeclaringElement().getInterfaces();
+        List<? extends TypeMirror> oldInterfaces = types.oldElement.getDeclaringElement().getInterfaces();
 
         for (TypeMirror newIface : newInterfaces) {
             if (!Util.isSubtype(newIface, oldInterfaces, getNewTypeEnvironment().getTypeUtils())) {

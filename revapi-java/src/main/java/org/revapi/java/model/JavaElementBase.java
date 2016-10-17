@@ -16,18 +16,27 @@
 
 package org.revapi.java.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.SortedSet;
+import java.util.function.BiFunction;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 
 import org.revapi.API;
 import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 import org.revapi.simple.SimpleElement;
@@ -36,18 +45,22 @@ import org.revapi.simple.SimpleElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-public abstract class JavaElementBase<T extends Element> extends SimpleElement implements JavaModelElement {
+public abstract class JavaElementBase<E extends Element, T extends TypeMirror> extends SimpleElement
+        implements JavaModelElement {
 
     protected final ProbingEnvironment environment;
-    protected T element;
+    protected final E element;
+    protected final T representation;
     private boolean initializedChildren;
     private final Archive archive;
     private String comparableSignature;
+    private boolean inherited = false;
 
-    JavaElementBase(ProbingEnvironment env, Archive archive, T element) {
+    JavaElementBase(ProbingEnvironment env, Archive archive, E element, T representation) {
         this.environment = env;
         this.element = element;
         this.archive = archive;
+        this.representation = representation;
     }
 
     @Nonnull
@@ -66,12 +79,12 @@ public abstract class JavaElementBase<T extends Element> extends SimpleElement i
     }
 
     @Override
-    public int compareTo(org.revapi.Element o) {
+    public int compareTo(@Nonnull org.revapi.Element o) {
         if (getClass() != o.getClass()) {
             return JavaElementFactory.compareByType(this, o);
         }
 
-        return getComparableSignature().compareTo(((JavaElementBase<?>) o).getComparableSignature());
+        return getComparableSignature().compareTo(((JavaElementBase<?, ?>) o).getComparableSignature());
     }
 
     @Nonnull
@@ -80,44 +93,67 @@ public abstract class JavaElementBase<T extends Element> extends SimpleElement i
         return environment;
     }
 
-    @Nonnull
-    public T getModelElement() {
+    public E getDeclaringElement() {
         return element;
     }
 
-    @SuppressWarnings("unchecked")
-    public SortedSet<JavaElement> getUninitializedChildren() {
-        return (SortedSet<JavaElement>) super.getChildren();
+    @Override public T getModelRepresentation() {
+        return representation;
     }
 
     @Nonnull
     @Override
     @SuppressWarnings({"unchecked", "ConstantConditions"})
     public SortedSet<JavaElement> getChildren() {
-        if (!initializedChildren) {
+        if (!initializedChildren && environment.isScanningComplete()) {
             SortedSet<JavaElement> set = (SortedSet<JavaElement>) super.getChildren();
 
-            //this actually CAN be null during probing... the @Nonnull annotation is there for library users, not for the
-            //library itself
-            if (getModelElement() == null) {
-                //wait with the initialization until we have the model element ready
-                return set;
-            }
+            DeclaredType currentType = findContainingType().getModelRepresentation();
+            Element currentElement =  getDeclaringElement();
+            Types types = environment.getTypeUtils();
 
-            for (Element e : getModelElement().getEnclosedElements()) {
-                if (e instanceof javax.lang.model.element.TypeElement && environment.isExplicitlyExcluded(e)) {
-                    continue;
+            BiFunction<Element, Boolean, JavaElementBase<?, ?>> processElement = (e, includePrivate) -> {
+                if (!includePrivate
+                        && Collections.disjoint(e.getModifiers(), Arrays.asList(Modifier.PUBLIC, Modifier.PROTECTED))) {
+                    return null;
                 }
 
-                JavaModelElement child = JavaElementFactory.elementFor(e, environment, archive);
+                TypeMirror t = types.asMemberOf(currentType, e);
+                if (t instanceof DeclaredType && environment.isExplicitlyExcluded(((DeclaredType) t).asElement())) {
+                    return null;
+                }
+
+                //TODO if this is an inherited element, check that it isn't overridden by some other element "below"
+                //in the type hierarchy...
+
+                JavaElementBase<?, ?> child = JavaElementFactory.elementFor(e, t, environment, archive);
                 if (child != null) {
                     if (set.add(child)) {
                         child.setParent(this);
                     }
                 }
+
+                return child;
+            };
+
+            for (Element e : currentElement.getEnclosedElements()) {
+                processElement.apply(e, true);
             }
 
-            for (AnnotationMirror m : getModelElement().getAnnotationMirrors()) {
+            getSuperTypesForInheritance().forEach(t -> {
+                Element e = types.asElement(t);
+                if (e != null && e instanceof javax.lang.model.element.TypeElement
+                        && environment.getTypeMap().containsKey(e)) {
+                    for (Element child : e.getEnclosedElements()) {
+                        JavaElementBase<?, ?> childE = processElement.apply(child, false);
+                        if (childE != null) {
+                            childE.setInherited(true);
+                        }
+                    }
+                }
+            });
+
+            for (AnnotationMirror m : getDeclaringElement().getAnnotationMirrors()) {
                 set.add(new AnnotationElement(environment, archive, m));
             }
 
@@ -127,10 +163,34 @@ public abstract class JavaElementBase<T extends Element> extends SimpleElement i
         return (SortedSet<JavaElement>) super.getChildren();
     }
 
+    @Override public boolean isInherited() {
+        return inherited;
+    }
+
+    public void setInherited(boolean inherited) {
+        this.inherited = inherited;
+    }
+
+    protected List<TypeMirror> getSuperTypesForInheritance() {
+        return Collections.emptyList();
+    }
+
     @Nonnull
     @Override
     public String getFullHumanReadableString() {
-        return getHumanReadableElementType() + " " + Util.toHumanReadableString(getModelElement());
+        String decl = Util.toHumanReadableString(getDeclaringElement());
+        if (isInherited()) {
+            org.revapi.Element parent = getParent();
+            while (parent != null && !(parent instanceof JavaTypeElement)) {
+                parent = parent.getParent();
+            }
+            JavaTypeElement parentType = (JavaTypeElement) parent;
+
+            if (parentType != null) {
+                decl += " @ " + Util.toHumanReadableString(parentType.getDeclaringElement());
+            }
+        }
+        return getHumanReadableElementType() + " " + decl;
     }
 
     @Override
@@ -145,7 +205,7 @@ public abstract class JavaElementBase<T extends Element> extends SimpleElement i
         }
 
         return obj != null && obj instanceof JavaElementBase &&
-            getFullHumanReadableString().equals(((JavaElementBase<?>) obj).getFullHumanReadableString());
+            getFullHumanReadableString().equals(((JavaElementBase<?, ?>) obj).getFullHumanReadableString());
     }
 
     @Override
@@ -162,4 +222,13 @@ public abstract class JavaElementBase<T extends Element> extends SimpleElement i
     }
 
     protected abstract String createComparableSignature();
+
+    private JavaTypeElement findContainingType() {
+        org.revapi.Element ret = this;
+        while (ret != null && !(ret instanceof JavaTypeElement)) {
+            ret = ret.getParent();
+        }
+
+        return (JavaTypeElement) ret;
+    }
 }

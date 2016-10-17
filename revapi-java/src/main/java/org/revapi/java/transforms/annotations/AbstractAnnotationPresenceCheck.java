@@ -31,6 +31,7 @@ import javax.lang.model.util.SimpleElementVisitor7;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
+import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.ElementPairVisitor;
 import org.revapi.java.spi.JavaModelElement;
@@ -87,7 +88,7 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
             return null;
         }
 
-        AnnotationMirror affectedAnnotation = (AnnotationMirror) difference.attachments.get(0);
+        AnnotationMirror affectedAnnotation = ((AnnotationElement) difference.attachments.get(0)).getAnnotation();
 
         return affectedAnnotation.getAnnotationType().asElement()
             .accept(new SimpleElementVisitor7<Difference, Void>() {
@@ -102,7 +103,7 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
                         return difference;
                     }
 
-                    return oldElement.getModelElement().accept(new ElementPairVisitor<Difference>() {
+                    return oldElement.getDeclaringElement().accept(new ElementPairVisitor<Difference>() {
                         @Override
                         protected Difference unmatchedAction(@Nonnull javax.lang.model.element.Element element,
                             @Nullable javax.lang.model.element.Element otherElement) {
@@ -132,7 +133,7 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
                             @Nonnull ExecutableElement otherElement) {
                             return transformedCode.createDifference(analysisContext.getLocale());
                         }
-                    }, newElement.getModelElement());
+                    }, newElement.getDeclaringElement());
                 }
             }, null);
     }

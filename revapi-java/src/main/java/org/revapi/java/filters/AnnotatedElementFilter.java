@@ -49,7 +49,7 @@ public final class AnnotatedElementFilter extends AbstractIncludeExcludeFilter {
 
     @Override
     protected Stream<String> getTestedElementRepresentations(JavaModelElement element) {
-        return element.getModelElement().getAnnotationMirrors().stream().map(Util::toHumanReadableString);
+        return element.getDeclaringElement().getAnnotationMirrors().stream().map(Util::toHumanReadableString);
     }
 
     @Override

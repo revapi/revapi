@@ -23,12 +23,13 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaFieldElement;
+import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
@@ -43,35 +44,36 @@ public class EnumConstantsOrderChanged extends BothFieldsRequiringCheck {
     }
 
     @Override
-    protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
-        isEnumClass = newType != null && newType.getKind() == ElementKind.ENUM;
+    protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
+        isEnumClass = newType != null && newType.getDeclaringElement().getKind() == ElementKind.ENUM;
     }
 
     @Override
-    protected boolean shouldCheck(VariableElement oldField, VariableElement newField) {
-        return isEnumClass && super.shouldCheck(oldField, newField) && oldField.getKind() == ElementKind.ENUM_CONSTANT
-                && newField.getKind() == ElementKind.ENUM_CONSTANT;
+    protected boolean shouldCheck(JavaFieldElement oldField, JavaFieldElement newField) {
+        return isEnumClass && super.shouldCheck(oldField, newField)
+                && oldField.getDeclaringElement().getKind() == ElementKind.ENUM_CONSTANT
+                && newField.getDeclaringElement().getKind() == ElementKind.ENUM_CONSTANT;
     }
 
     @Override
     @SuppressWarnings("ConstantConditions")
-    protected void doVisitField(@Nullable VariableElement oldField, @Nullable VariableElement newField) {
+    protected void doVisitField(@Nullable JavaFieldElement oldField, @Nullable JavaFieldElement newField) {
         if (!shouldCheck(oldField, newField)) {
             return;
         }
 
         Predicate<VariableElement> isNotEnumConstant = v -> v.getKind() != ElementKind.ENUM_CONSTANT;
 
-        List<? extends VariableElement> fields = ElementFilter.fieldsIn(oldField.getEnclosingElement()
-                .getEnclosedElements());
+        List<? extends VariableElement> fields = ElementFilter.fieldsIn(oldField.getDeclaringElement().
+                getEnclosingElement().getEnclosedElements());
         fields.removeIf(isNotEnumConstant);
 
-        int oldIdx = fields.indexOf(oldField);
+        int oldIdx = fields.indexOf(oldField.getDeclaringElement());
 
-        fields = ElementFilter.fieldsIn(newField.getEnclosingElement().getEnclosedElements());
+        fields = ElementFilter.fieldsIn(newField.getDeclaringElement().getEnclosingElement().getEnclosedElements());
         fields.removeIf(isNotEnumConstant);
 
-        int newIdx = fields.indexOf(newField);
+        int newIdx = fields.indexOf(newField.getDeclaringElement());
 
         if (newIdx != oldIdx) {
             pushActive(oldField, newField, oldIdx, newIdx);
@@ -81,7 +83,7 @@ public class EnumConstantsOrderChanged extends BothFieldsRequiringCheck {
     @Nullable
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<VariableElement> fields = popIfActive();
+        ActiveElements<JavaFieldElement> fields = popIfActive();
         if (fields == null) {
             return null;
         }

@@ -31,6 +31,7 @@ import javax.lang.model.util.SimpleElementVisitor7;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,15 +61,15 @@ public final class Added extends CheckBase {
     }
 
     @Override
-    protected void doVisitMethod(ExecutableElement oldMethod, ExecutableElement newMethod) {
-        if (oldMethod == null && newMethod != null && isAccessible(newMethod, getNewTypeEnvironment())) {
+    protected void doVisitMethod(JavaMethodElement oldMethod, JavaMethodElement newMethod) {
+        if (oldMethod == null && newMethod != null && isAccessible(newMethod)) {
             pushActive(null, newMethod);
         }
     }
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<ExecutableElement> methods = popIfActive();
+        ActiveElements<JavaMethodElement> methods = popIfActive();
         if (methods == null) {
             return null;
         }
@@ -80,7 +81,7 @@ public final class Added extends CheckBase {
         // 4) abstract method added to a non-final class
         // 5) previously inherited method is now declared in class
 
-        ExecutableElement method = methods.newElement;
+        ExecutableElement method = methods.newElement.getDeclaringElement();
 
         TypeElement enclosingClass = method.getEnclosingElement().accept(enclosingClassExtractor, null);
         if (enclosingClass == null) {

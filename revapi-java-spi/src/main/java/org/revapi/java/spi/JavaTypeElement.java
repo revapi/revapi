@@ -2,8 +2,8 @@ package org.revapi.java.spi;
 
 import java.util.Set;
 
-import javax.annotation.Nonnull;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 
 /**
  * Elements in the element forest that represent Java types, will implement this interface.
@@ -13,10 +13,10 @@ import javax.lang.model.element.TypeElement;
  */
 public interface JavaTypeElement extends JavaModelElement {
 
-    @Nonnull
     @Override
-    TypeElement getModelElement();
+    DeclaredType getModelRepresentation();
 
+    @Override TypeElement getDeclaringElement();
 
     /**
      * @return the set of "places" where this type element is used
@@ -35,7 +35,7 @@ public interface JavaTypeElement extends JavaModelElement {
      * @return the value returned by the visitor
      */
     default <R, P> R visitUseSites(UseSite.Visitor<R, P> visitor, P parameter) {
-        TypeElement type = getModelElement();
+        DeclaredType type = getModelRepresentation();
         for (UseSite u : getUseSites()) {
             R ret = visitor.visit(type, u, parameter);
             if (ret != null) {

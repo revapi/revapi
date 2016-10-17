@@ -21,12 +21,12 @@ import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.VariableElement;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaMethodElement;
+import org.revapi.java.spi.JavaMethodParameterElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -43,27 +43,28 @@ public final class ParameterTypeChanged extends CheckBase {
     }
 
     @Override
-    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
-        skip = oldMethod == null || newMethod == null || oldMethod.getParameters().size() != newMethod.getParameters
-                ().size();
+    protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
+        skip = oldMethod == null || newMethod == null ||
+                oldMethod.getModelRepresentation().getParameterTypes().size() !=
+                        newMethod.getModelRepresentation().getParameterTypes().size();
     }
 
     @Override
-    protected void doVisitMethodParameter(@Nullable VariableElement oldParameter,
-        @Nullable VariableElement newParameter) {
+    protected void doVisitMethodParameter(@Nullable JavaMethodParameterElement oldParameter,
+        @Nullable JavaMethodParameterElement newParameter) {
 
         if (skip || oldParameter == null || newParameter == null) {
             //will be handled by nof parameters changed...
             return;
         }
 
-        if (isBothPrivate(oldParameter.getEnclosingElement(), getOldTypeEnvironment(),
-                newParameter.getEnclosingElement(), getNewTypeEnvironment())) {
+        if (isBothPrivate(oldParameter.getDeclaringElement().getEnclosingElement(), getOldTypeEnvironment(),
+                newParameter.getDeclaringElement().getEnclosingElement(), getNewTypeEnvironment())) {
             return;
         }
 
-        String oldType = Util.toUniqueString(oldParameter.asType());
-        String newType = Util.toUniqueString(newParameter.asType());
+        String oldType = Util.toUniqueString(oldParameter.getModelRepresentation());
+        String newType = Util.toUniqueString(newParameter.getModelRepresentation());
 
         if (!oldType.equals(newType)) {
             pushActive(oldParameter, newParameter);
@@ -74,13 +75,13 @@ public final class ParameterTypeChanged extends CheckBase {
     @Override
     protected List<Difference> doEnd() {
 
-        ActiveElements<VariableElement> params = popIfActive();
+        ActiveElements<JavaMethodParameterElement> params = popIfActive();
         if (params == null) {
             return null;
         }
 
-        String oldType = Util.toHumanReadableString(params.oldElement.asType());
-        String newType = Util.toHumanReadableString(params.newElement.asType());
+        String oldType = Util.toHumanReadableString(params.oldElement.getModelRepresentation());
+        String newType = Util.toHumanReadableString(params.newElement.getModelRepresentation());
 
         return Collections.singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_CHANGED, oldType, newType));
     }

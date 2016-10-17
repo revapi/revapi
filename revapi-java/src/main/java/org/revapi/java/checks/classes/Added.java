@@ -25,6 +25,7 @@ import javax.lang.model.element.TypeElement;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
@@ -33,7 +34,7 @@ import org.revapi.java.spi.Code;
 public final class Added extends CheckBase {
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<TypeElement> types = popIfActive();
+        ActiveElements<JavaTypeElement> types = popIfActive();
         if (types != null) {
 //TODO The heuristics of figuring out if a class is external is flawed.
 //            TypeElement typeInOld = getOldTypeEnvironment().getElementUtils().getTypeElement(types.newElement
@@ -50,8 +51,8 @@ public final class Added extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType == null && newType != null && isAccessible(newType, getNewTypeEnvironment())) {
+    protected void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
+        if (oldType == null && newType != null && isAccessible(newType)) {
             pushActive(null, newType);
         }
     }

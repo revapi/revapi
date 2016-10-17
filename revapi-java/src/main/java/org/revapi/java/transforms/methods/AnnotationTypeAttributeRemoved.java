@@ -76,7 +76,7 @@ public class AnnotationTypeAttributeRemoved implements DifferenceTransform<JavaM
                     + " That should never be the case.");
         }
 
-        ExecutableElement method = (ExecutableElement) oldElement.getModelElement();
+        ExecutableElement method = (ExecutableElement) oldElement.getDeclaringElement();
 
         if (method.getEnclosingElement().getKind() == ElementKind.ANNOTATION_TYPE) {
             return Code.METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE.createDifference(locale);

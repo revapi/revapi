@@ -16,8 +16,8 @@
 
 package org.revapi.java.spi;
 
-import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
+import javax.lang.model.type.TypeMirror;
 
 /**
  * All elements corresponding to various Java language model (apart from annotations (see
@@ -32,6 +32,24 @@ public interface JavaModelElement extends JavaElement {
     /**
      * @return the corresponding {@link javax.lang.model.element.Element model element}.
      */
-    @Nonnull
-    Element getModelElement();
+    TypeMirror getModelRepresentation();
+
+    /**
+     * The element that represents the declaration this model element.
+     *
+     * @return
+     */
+    Element getDeclaringElement();
+
+    /**
+     * Each {@link JavaTypeElement} contains as its children not only the elements that are declared on the type
+     * but also elements that it inherits from its super types (with type parameters "instantiated" according to the
+     * actual type).
+     *
+     * <p>This flag indicates if this is a child of type that is directly declared on it ({@code false}) or if it is
+     * an instantiation of an inherited element ({@code true}).
+     *
+     * @return false if the parent type declares this child element, true if it is inherited from a super type
+     */
+    boolean isInherited();
 }

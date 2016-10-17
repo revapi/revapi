@@ -16,11 +16,14 @@
 
 package org.revapi.java.model;
 
+import java.util.List;
 import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
 import org.revapi.Element;
@@ -32,11 +35,12 @@ import org.revapi.java.spi.Util;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class MethodElement extends JavaElementBase<ExecutableElement> implements JavaMethodElement {
+public final class MethodElement extends JavaElementBase<ExecutableElement, ExecutableType> implements JavaMethodElement {
 
-    public MethodElement(ProbingEnvironment env, Archive archive, ExecutableElement element) {
-        super(env, archive, element);
+    public MethodElement(ProbingEnvironment env, Archive archive, ExecutableElement element, ExecutableType type) {
+        super(env, archive, element, type);
     }
+
 
     @Nonnull
     @Override
@@ -48,8 +52,8 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> impl
     protected String createComparableSignature() {
         //the choice of '#' for a separator between the name and signature is because it precedes both '(' and any
         //legal character in a method name in the ASCII table
-        return getModelElement().getSimpleName() + "#" +
-            Util.toUniqueString(getTypeEnvironment().getTypeUtils().erasure(getModelElement().asType()));
+        return getDeclaringElement().getSimpleName() + "#" +
+            Util.toUniqueString(getTypeEnvironment().getTypeUtils().erasure(getModelRepresentation()));
     }
 
     @Nonnull
@@ -57,8 +61,14 @@ public final class MethodElement extends JavaElementBase<ExecutableElement> impl
     protected SortedSet<Element> newChildrenInstance() {
         SortedSet<Element> ret = super.newChildrenInstance();
 
-        for (VariableElement v : getModelElement().getParameters()) {
-            MethodParameterElement p = new MethodParameterElement(environment, getArchive(), v);
+        List<? extends TypeMirror> pts = getModelRepresentation ().getParameterTypes();
+        List<? extends VariableElement> pes = getDeclaringElement().getParameters();
+
+        for (int i = 0; i < pts.size(); ++i) {
+            TypeMirror t = pts.get(i);
+            VariableElement e = pes.get(i);
+
+            MethodParameterElement p = new MethodParameterElement(environment, getArchive(), e, t);
             p.setParent(this);
             ret.add(p);
         }

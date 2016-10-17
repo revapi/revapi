@@ -1,6 +1,7 @@
 package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.type.DeclaredType;
 
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -18,10 +19,12 @@ public final class MissingClassElement extends TypeElement {
         element = new MissingTypeElement(canonicalName);
     }
 
-    @Nonnull
-    @Override
-    public javax.lang.model.element.TypeElement getModelElement() {
+    @Override public javax.lang.model.element.TypeElement getDeclaringElement() {
         return element;
+    }
+
+    @Override public DeclaredType getModelRepresentation() {
+        return (DeclaredType) element.asType();
     }
 
     @Nonnull

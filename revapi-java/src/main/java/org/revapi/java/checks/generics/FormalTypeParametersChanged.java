@@ -24,14 +24,15 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Parameterizable;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaMethodElement;
+import org.revapi.java.spi.JavaModelElement;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -47,23 +48,25 @@ public final class FormalTypeParametersChanged extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(@Nullable TypeElement oldType, @Nullable TypeElement newType) {
+    protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
         doVisit(oldType, newType);
     }
 
     @Override
-    protected void doVisitMethod(@Nullable ExecutableElement oldMethod, @Nullable ExecutableElement newMethod) {
+    protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
         doVisit(oldMethod, newMethod);
     }
 
-    private void doVisit(@Nullable Parameterizable oldElement, @Nullable Parameterizable newElement) {
-        if (oldElement == null || newElement == null ||
-            !isBothAccessible(oldElement, getOldTypeEnvironment(), newElement, getNewTypeEnvironment())) {
+    private void doVisit(@Nullable JavaModelElement oldElement, @Nullable JavaModelElement newElement) {
+        if (oldElement == null || newElement == null || !isBothAccessible(oldElement, newElement)) {
             return;
         }
 
-        List<? extends TypeParameterElement> oldPars = oldElement.getTypeParameters();
-        List<? extends TypeParameterElement> newPars = newElement.getTypeParameters();
+        Parameterizable oldEl = (Parameterizable) oldElement.getDeclaringElement();
+        Parameterizable newEl = (Parameterizable) newElement.getDeclaringElement();
+
+        List<? extends TypeParameterElement> oldPars = oldEl.getTypeParameters();
+        List<? extends TypeParameterElement> newPars = newEl.getTypeParameters();
 
         if (oldPars.size() == 0 && oldPars.size() == newPars.size()) {
             return;
@@ -103,7 +106,7 @@ public final class FormalTypeParametersChanged extends CheckBase {
     @Nullable
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<Parameterizable> els = popIfActive();
+        ActiveElements<JavaModelElement> els = popIfActive();
         if (els == null) {
             return null;
         }
@@ -116,8 +119,10 @@ public final class FormalTypeParametersChanged extends CheckBase {
         Map<TypeParameterElement, TypeParameterElement> changed =
             (Map<TypeParameterElement, TypeParameterElement>) els.context[2];
 
+        Parameterizable oldT = (Parameterizable) els.oldElement.getDeclaringElement();
+
         List<Difference> diffs = new ArrayList<>();
-        if (els.oldElement.getTypeParameters().isEmpty()) {
+        if (oldT.getTypeParameters().isEmpty()) {
             diffs.add(createDifference(Code.GENERICS_ELEMENT_NOW_PARAMETERIZED));
         }
 

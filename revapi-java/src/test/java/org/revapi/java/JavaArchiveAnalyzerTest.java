@@ -114,11 +114,11 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             TypeElement B_T$2 = roots.next();
 
             Assert.assertEquals("A", A.getCanonicalName());
-            Assert.assertEquals("A", A.getModelElement().getQualifiedName().toString());
+            Assert.assertEquals("A", A.getDeclaringElement().getQualifiedName().toString());
             Assert.assertEquals("B.T$1", B_T$1.getCanonicalName());
-            Assert.assertEquals("B.T$1", B_T$1.getModelElement().getQualifiedName().toString());
+            Assert.assertEquals("B.T$1", B_T$1.getDeclaringElement().getQualifiedName().toString());
             Assert.assertEquals("B.T$2", B_T$2.getCanonicalName());
-            Assert.assertEquals("B.T$2", B_T$2.getModelElement().getQualifiedName().toString());
+            Assert.assertEquals("B.T$2", B_T$2.getDeclaringElement().getQualifiedName().toString());
         } finally {
             deleteDir(compRes.compilationPath);
         }

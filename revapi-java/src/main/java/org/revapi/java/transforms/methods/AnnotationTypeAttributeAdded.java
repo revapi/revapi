@@ -73,7 +73,7 @@ public final class AnnotationTypeAttributeAdded implements DifferenceTransform<J
         @Nonnull Difference difference) {
 
         @SuppressWarnings("ConstantConditions")
-        ExecutableElement method = (ExecutableElement) newElement.getModelElement();
+        ExecutableElement method = (ExecutableElement) newElement.getDeclaringElement();
 
         if (method.getEnclosingElement().getKind() == ElementKind.ANNOTATION_TYPE) {
             AnnotationValue defaultValue = method.getDefaultValue();

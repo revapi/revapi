@@ -18,10 +18,8 @@ package org.revapi.java.checks.fields;
 
 import java.util.EnumSet;
 
-import javax.lang.model.element.VariableElement;
-
 import org.revapi.java.spi.CheckBase;
-import org.revapi.java.spi.TypeEnvironment;
+import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
@@ -34,16 +32,13 @@ abstract class BothFieldsRequiringCheck extends CheckBase {
         return EnumSet.of(Type.FIELD);
     }
 
-    protected boolean shouldCheck(VariableElement oldField, VariableElement newField) {
-        return shouldCheck(this, oldField, getOldTypeEnvironment(), newField, getNewTypeEnvironment());
+    protected boolean shouldCheck(JavaFieldElement oldField, JavaFieldElement newField) {
+        return shouldCheck(this, oldField, newField);
     }
 
-    protected static boolean shouldCheck(org.revapi.java.spi.CheckBase check, VariableElement oldField, TypeEnvironment oldEnvironment,
-        VariableElement newField, TypeEnvironment newEnvironment) {
-        if (oldField == null || newField == null) {
-            return false;
-        }
+    protected static boolean shouldCheck(org.revapi.java.spi.CheckBase check, JavaFieldElement oldField,
+        JavaFieldElement newField) {
 
-        return check.isBothAccessible(oldField, oldEnvironment, newField, newEnvironment);
+        return check.isBothAccessible(oldField, newField);
     }
 }

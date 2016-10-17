@@ -19,6 +19,7 @@ package org.revapi.java.model;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
 import org.revapi.Element;
@@ -30,14 +31,13 @@ import org.revapi.java.spi.Util;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class MethodParameterElement extends JavaElementBase<VariableElement> implements
+public final class MethodParameterElement extends JavaElementBase<VariableElement, TypeMirror> implements
     JavaMethodParameterElement {
 
     private final int index;
-    private String comparableSignature;
 
-    public MethodParameterElement(ProbingEnvironment env, Archive archive, VariableElement element) {
-        super(env, archive, element);
+    public MethodParameterElement(ProbingEnvironment env, Archive archive, VariableElement element, TypeMirror type) {
+        super(env, archive, element, type);
         if (element.getEnclosingElement() instanceof ExecutableElement) {
             index = ((ExecutableElement) element.getEnclosingElement()).getParameters().indexOf(element);
         } else {
@@ -80,8 +80,8 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
         MethodParameterElement other = (MethodParameterElement) obj;
 
-        ExecutableElement myMethodElement = (ExecutableElement) getModelElement().getEnclosingElement();
-        ExecutableElement otherMethodElement = (ExecutableElement) other.getModelElement().getEnclosingElement();
+        ExecutableElement myMethodElement = (ExecutableElement) getDeclaringElement().getEnclosingElement();
+        ExecutableElement otherMethodElement = (ExecutableElement) other.getDeclaringElement().getEnclosingElement();
 
         if (myMethodElement.getParameters().size() != otherMethodElement.getParameters().size()) {
             return false;
@@ -99,8 +99,8 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
     @Override
     protected String createComparableSignature() {
-        String myType = Util.toUniqueString(getModelElement().getEnclosingElement().getEnclosingElement().asType());
-        String myMethod = getModelElement().getEnclosingElement().getSimpleName().toString();
+        String myType = Util.toUniqueString(getDeclaringElement().getEnclosingElement().getEnclosingElement().asType());
+        String myMethod = getDeclaringElement().getEnclosingElement().getSimpleName().toString();
 
         return myType + "::" + myMethod;
     }

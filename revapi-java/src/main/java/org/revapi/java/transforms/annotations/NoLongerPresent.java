@@ -50,7 +50,7 @@ public class NoLongerPresent implements DifferenceTransform<JavaTypeElement> {
             return difference;
         }
 
-        if (oldElement.getModelElement().getKind() == ElementKind.ANNOTATION_TYPE) {
+        if (oldElement.getDeclaringElement().getKind() == ElementKind.ANNOTATION_TYPE) {
             return Code.ANNOTATION_NO_LONGER_PRESENT.createDifference(locale);
         } else {
             return difference;

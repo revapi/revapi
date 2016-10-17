@@ -34,6 +34,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.lang.model.type.DeclaredType;
 import javax.tools.ToolProvider;
 
 import org.revapi.API;
@@ -54,6 +55,7 @@ import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Check;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
+import org.revapi.java.spi.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -166,8 +168,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             checkTypeStack.push(Check.Type.CLASS);
             for (Check c : checksByInterest.get(Check.Type.CLASS)) {
                 Stats.of(c.getClass().getName()).start();
-                c.visitClass(oldElement == null ? null : ((TypeElement) oldElement).getModelElement(),
-                    newElement == null ? null : ((TypeElement) newElement).getModelElement());
+                c.visitClass(oldElement == null ? null : (TypeElement) oldElement,
+                    newElement == null ? null : (TypeElement) newElement);
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else if (conforms(oldElement, newElement, AnnotationElement.class)) {
@@ -181,8 +183,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             for (Check c : checksByInterest.get(Check.Type.ANNOTATION)) {
                 Stats.of(c.getClass().getName()).start();
                 List<Difference> cps = c
-                    .visitAnnotation(oldElement == null ? null : ((AnnotationElement) oldElement).getAnnotation(),
-                        newElement == null ? null : ((AnnotationElement) newElement).getAnnotation());
+                    .visitAnnotation(oldElement == null ? null : (AnnotationElement) oldElement,
+                        newElement == null ? null : (AnnotationElement) newElement);
                 if (cps != null) {
                     lastAnnotationResults.addAll(cps);
                 }
@@ -192,16 +194,16 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             checkTypeStack.push(Check.Type.FIELD);
             for (Check c : checksByInterest.get(Check.Type.FIELD)) {
                 Stats.of(c.getClass().getName()).start();
-                c.visitField(oldElement == null ? null : ((FieldElement) oldElement).getModelElement(),
-                    newElement == null ? null : ((FieldElement) newElement).getModelElement());
+                c.visitField(oldElement == null ? null : (FieldElement) oldElement,
+                    newElement == null ? null : (FieldElement) newElement);
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else if (conforms(oldElement, newElement, MethodElement.class)) {
             checkTypeStack.push(Check.Type.METHOD);
             for (Check c : checksByInterest.get(Check.Type.METHOD)) {
                 Stats.of(c.getClass().getName()).start();
-                c.visitMethod(oldElement == null ? null : ((MethodElement) oldElement).getModelElement(),
-                    newElement == null ? null : ((MethodElement) newElement).getModelElement());
+                c.visitMethod(oldElement == null ? null : (MethodElement) oldElement,
+                    newElement == null ? null : (MethodElement) newElement);
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else if (conforms(oldElement, newElement, MethodParameterElement.class)) {
@@ -209,8 +211,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             for (Check c : checksByInterest.get(Check.Type.METHOD_PARAMETER)) {
                 Stats.of(c.getClass().getName()).start();
                 c.visitMethodParameter(
-                    oldElement == null ? null : ((MethodParameterElement) oldElement).getModelElement(),
-                    newElement == null ? null : ((MethodParameterElement) newElement).getModelElement());
+                    oldElement == null ? null : (MethodParameterElement) oldElement,
+                    newElement == null ? null : (MethodParameterElement) newElement);
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         }
@@ -298,7 +300,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
         message = messages.getString(message);
         message = MessageFormat.format(message, typeAndUseSite.useSite.getSite().getFullHumanReadableString(),
-            typeAndUseSite.type.getQualifiedName().toString());
+                Util.toHumanReadableString(typeAndUseSite.type));
 
         bld.append(message);
     }
@@ -311,8 +313,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             ((JavaTypeElement) element).visitUseSites(new UseSite.Visitor<Object, Void>() {
                 @Nullable
                 @Override
-                public Object visit(@Nonnull javax.lang.model.element.TypeElement type, @Nonnull UseSite use,
-                    @Nullable Void parameter) {
+                public Object visit(@Nonnull DeclaredType type, @Nonnull UseSite use,
+                                    @Nullable Void parameter) {
                     if (appendUse(bld, type, use, environment)) {
                         return Boolean.TRUE; //just a non-null values
                     }
@@ -322,7 +324,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
                 @Nullable
                 @Override
-                public Object end(javax.lang.model.element.TypeElement type, @Nullable Void parameter) {
+                public Object end(DeclaredType type, @Nullable Void parameter) {
                     return null;
                 }
             }, null);
@@ -330,7 +332,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
 
-    private boolean appendUse(StringBuilder bld, javax.lang.model.element.TypeElement type, UseSite use,
+    private boolean appendUse(StringBuilder bld, DeclaredType type, UseSite use,
         ProbingEnvironment environment) {
 
         if (!use.getUseType().isMovingToApi()) {
@@ -343,7 +345,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         if (chain.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Could not find example path to API element for type {} starting with use {}",
-                    type.getQualifiedName().toString(), use);
+                        ((javax.lang.model.element.TypeElement) type.asElement()).getQualifiedName().toString(), use);
             }
             return false;
         }
@@ -368,8 +370,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         return true;
     }
 
-    private List<TypeAndUseSite> getExamplePathToApiArchive(javax.lang.model.element.TypeElement type,
-        UseSite bottomUse, ProbingEnvironment environment) {
+    private List<TypeAndUseSite> getExamplePathToApiArchive(DeclaredType type, UseSite bottomUse,
+                                                            ProbingEnvironment environment) {
 
         ArrayList<TypeAndUseSite> ret = new ArrayList<>();
 
@@ -378,12 +380,13 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         return ret;
     }
 
-    private boolean traverseToApi(final javax.lang.model.element.TypeElement type, final UseSite currentUse,
+    private boolean traverseToApi(final DeclaredType type, final UseSite currentUse,
         final List<TypeAndUseSite> path, final ProbingEnvironment environment, final
     Set<javax.lang.model.element.TypeElement> visitedTypes) {
 
         JavaTypeElement ut = findClassOf(currentUse.getSite());
-        javax.lang.model.element.TypeElement useType = ut.getModelElement();
+        javax.lang.model.element.TypeElement useType =
+                (javax.lang.model.element.TypeElement) ut.getModelRepresentation().asElement();
 
         if (visitedTypes.contains(useType)) {
             return false;
@@ -402,7 +405,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             Boolean ret = ut.visitUseSites(new UseSite.Visitor<Boolean, Void>() {
                 @Nullable
                 @Override
-                public Boolean visit(@Nonnull javax.lang.model.element.TypeElement visitedType, @Nonnull UseSite use,
+                public Boolean visit(@Nonnull DeclaredType visitedType, @Nonnull UseSite use,
                     @Nullable Void parameter) {
                     if (traverseToApi(visitedType, use, path, environment, visitedTypes)) {
                         path.add(0, new TypeAndUseSite(type, currentUse));
@@ -413,7 +416,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
                 @Nullable
                 @Override
-                public Boolean end(javax.lang.model.element.TypeElement type, @Nullable Void parameter) {
+                public Boolean end(DeclaredType type, @Nullable Void parameter) {
                     return null;
                 }
             }, null);
@@ -455,10 +458,10 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     private static class TypeAndUseSite {
-        final javax.lang.model.element.TypeElement type;
+        final DeclaredType type;
         final UseSite useSite;
 
-        public TypeAndUseSite(javax.lang.model.element.TypeElement type, UseSite useSite) {
+        public TypeAndUseSite(DeclaredType type, UseSite useSite) {
             this.type = type;
             this.useSite = useSite;
         }

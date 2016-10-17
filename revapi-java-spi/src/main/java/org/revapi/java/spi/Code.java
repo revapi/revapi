@@ -92,6 +92,7 @@ public enum Code {
     FIELD_ADDED("java.field.added", NON_BREAKING, NON_BREAKING, null),
     FIELD_REMOVED("java.field.removed", BREAKING, BREAKING, null),
     FIELD_MOVED_TO_SUPER_CLASS("java.field.movedToSuperClass", NON_BREAKING, NON_BREAKING, null),
+    FIELD_INHERITED_NOW_DECLARED("java.field.inheritedNowDeclared", NON_BREAKING, NON_BREAKING, null),
     FIELD_CONSTANT_REMOVED("java.field.removedWithConstant", BREAKING, NON_BREAKING, POTENTIALLY_BREAKING),
     FIELD_CONSTANT_VALUE_CHANGED("java.field.constantValueChanged", NON_BREAKING, NON_BREAKING, BREAKING),
     FIELD_NOW_CONSTANT("java.field.nowConstant", NON_BREAKING, NON_BREAKING, null),

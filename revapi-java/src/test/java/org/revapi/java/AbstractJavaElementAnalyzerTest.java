@@ -47,7 +47,6 @@ import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
 import org.revapi.Difference;
-import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
@@ -142,16 +141,15 @@ public abstract class AbstractJavaElementAnalyzerTest {
                 }
                 problemCounters.put(d.code, cnt);
 
-                Element e = report.getNewElement();
-                if (e == null) {
-                    e = report.getOldElement();
-                }
+                String oldE = report.getOldElement() == null
+                        ? "<none>"
+                        : report.getOldElement().getFullHumanReadableString();
 
-                LOG.info(
-                    (e == null ? "null" : e.getFullHumanReadableString()) + ": " + d.name + " (" + d.code + "): " +
-                        d.classification + ", " +
-                        d.description
-                );
+                String newE = report.getNewElement() == null
+                        ? "<none>"
+                        : report.getNewElement().getFullHumanReadableString();
+
+                LOG.info("[" + d.code + "] old: " + oldE + ", new: " + newE + ", " + d.classification + ", " + d.description);
             }
         }
 

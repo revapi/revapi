@@ -15,6 +15,7 @@
  */
 
 public class Added extends SuperClass {
+    public int movingToSuperClass;
 }
 
 class SuperClass {

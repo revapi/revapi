@@ -22,7 +22,6 @@ import java.util.List;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
@@ -42,21 +41,19 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
     }
 
     @Override
-    protected void doVisitClass(TypeElement oldType, TypeElement newType) {
+    protected void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
         if (newType == null) {
             return;
         }
 
-        JavaTypeElement model = getNewTypeEnvironment().getModelElement(newType);
-
-        if (model != null && model.isInAPI() && !isAccessibleByModifier(newType)) {
+        if (newType.isInAPI() && !isAccessibleByModifier(newType.getDeclaringElement())) {
             pushActive(oldType, newType);
         }
     }
 
     @Override
     protected List<Difference> doEnd() {
-        ActiveElements<TypeElement> types = popIfActive();
+        ActiveElements<JavaTypeElement> types = popIfActive();
 
         if (types == null) {
             return null;
@@ -64,7 +61,7 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
 
         return Collections
             .singletonList(createDifference(Code.CLASS_NON_PUBLIC_PART_OF_API, new Object[]{types.newElement},
-                Util.toHumanReadableString(types.newElement)));
+                Util.toHumanReadableString(types.newElement.getModelRepresentation())));
     }
 
     private boolean isAccessibleByModifier(Element e) {

@@ -19,10 +19,12 @@ package org.revapi.java.model;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
-import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
@@ -34,17 +36,17 @@ public final class JavaElementFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static JavaModelElement elementFor(Element modelElement, ProbingEnvironment env, Archive archive) {
+    public static JavaElementBase<?, ?> elementFor(Element modelElement, TypeMirror modelType, ProbingEnvironment env, Archive archive) {
         if (modelElement instanceof javax.lang.model.element.TypeElement) {
-            return new TypeElement(env, archive, (javax.lang.model.element.TypeElement) modelElement);
+            return new TypeElement(env, archive, (javax.lang.model.element.TypeElement) modelElement, (DeclaredType) modelType);
         } else if (modelElement instanceof VariableElement &&
             modelElement.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
-            return new FieldElement(env, archive, (VariableElement) modelElement);
+            return new FieldElement(env, archive, (VariableElement) modelElement, modelType);
         } else if (modelElement instanceof VariableElement &&
             modelElement.getEnclosingElement() instanceof ExecutableElement) {
-            return new MethodParameterElement(env, archive, (VariableElement) modelElement);
+            return new MethodParameterElement(env, archive, (VariableElement) modelElement, modelType);
         } else if (modelElement instanceof ExecutableElement) {
-            return new MethodElement(env, archive, (ExecutableElement) modelElement);
+            return new MethodElement(env, archive, (ExecutableElement) modelElement, (ExecutableType) modelType);
         } else {
             throw new IllegalArgumentException("Unsupported model element: " + modelElement.getClass());
         }
