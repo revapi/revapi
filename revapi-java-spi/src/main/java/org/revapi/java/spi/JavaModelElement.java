@@ -33,14 +33,18 @@ public interface JavaModelElement extends JavaElement {
     JavaModelElement getParent();
 
     /**
-     * @return the corresponding {@link javax.lang.model.element.Element model element}.
+     * Note that this is distinctly different from {@link #getDeclaringElement()}. This method returns a type mirror
+     * describing an element on its position in the type hierarchy. I.e. if an inherited method with type parameters
+     * resolved according to the class it is inherited "to".
+     *
+     * @return the representation of this java element at its position in the type hierarchy
      */
     TypeMirror getModelRepresentation();
 
     /**
-     * The element that represents the declaration this model element.
+     * For an inherited method for example, this will return the element in the super type that declares this method.
      *
-     * @return
+     * @return The element that represents the declaration this model element.
      */
     Element getDeclaringElement();
 

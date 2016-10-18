@@ -28,6 +28,13 @@ import javax.annotation.Nullable;
  */
 public interface Filter<T> {
 
+    /**
+     * A simple filter that scans only the direct children of some element.
+     *
+     * @param filter the function to determine if the filter {@link #applies(Object)}
+     * @param <T> the type of the element to accept
+     * @return a filter implementation that does not descend into any element
+     */
     static <T> Filter<T> flat(Function<T, Boolean> filter) {
         return new Filter<T>() {
             @Override public boolean applies(@Nullable T element) {
