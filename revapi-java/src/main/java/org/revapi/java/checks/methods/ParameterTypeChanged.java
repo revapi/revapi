@@ -82,6 +82,16 @@ public final class ParameterTypeChanged extends CheckBase {
         String oldType = Util.toHumanReadableString(params.oldElement.getModelRepresentation());
         String newType = Util.toHumanReadableString(params.newElement.getModelRepresentation());
 
-        return Collections.singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_CHANGED, oldType, newType));
+        String oldErasedType = Util.toUniqueString(params.oldElement.getTypeEnvironment().getTypeUtils()
+                .erasure(params.oldElement.getModelRepresentation()));
+        String newErasedType = Util.toUniqueString(params.newElement.getTypeEnvironment().getTypeUtils()
+                .erasure(params.newElement.getModelRepresentation()));
+
+        if (!oldErasedType.equals(newErasedType)) {
+            return Collections.singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_CHANGED, oldType, newType));
+        } else {
+            return Collections
+                    .singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED, oldType, newType));
+        }
     }
 }

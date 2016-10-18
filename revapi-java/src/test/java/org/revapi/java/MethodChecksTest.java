@@ -224,7 +224,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                                 && "method parameter void Overloads::b(===java.lang.Class<?>===, java.lang.Object)"
                                 .equals(r.getNewElement().toString())
                                 && r.getDifferences().size() == 1
-                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_CHANGED.code().equals(d.code))
+                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED.code().equals(d.code))
         ));
 
         Assert.assertTrue(reports.stream().anyMatch(r ->
@@ -242,7 +242,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                                 && "method parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<?>===, int)"
                                 .equals(r.getNewElement().toString())
                                 && r.getDifferences().size() == 1
-                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_CHANGED.code().equals(d.code))
+                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED.code().equals(d.code))
         ));
     }
 
