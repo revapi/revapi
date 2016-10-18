@@ -18,6 +18,9 @@ package org.revapi.java;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -186,72 +189,91 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(7, reports.size());
 
-        Assert.assertTrue(reports.stream().anyMatch(r ->
-                        "method int Overloads::a(int)".equals(r.getOldElement().toString())
-                                && "method double Overloads::a(int)".equals(r.getNewElement().toString())
-                                && r.getDifferences().size() == 1
-                                && r.getDifferences().stream()
-                                .allMatch(d -> Code.METHOD_RETURN_TYPE_CHANGED.code().equals(d.code))
-        ));
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method int Overloads::a(int)",
+                "method double Overloads::a(int)",
+                Code.METHOD_RETURN_TYPE_CHANGED)));
 
-        Assert.assertTrue(reports.stream().anyMatch(r ->
-                        "method void Overloads::a()".equals(r.getOldElement().toString())
-                                && "method double Overloads::a()".equals(r.getNewElement().toString())
-                                && r.getDifferences().size() == 1
-                                && r.getDifferences().stream()
-                                .allMatch(d -> Code.METHOD_RETURN_TYPE_CHANGED.code().equals(d.code))
-        ));
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void Overloads::a()",
+                "method double Overloads::a()",
+                Code.METHOD_RETURN_TYPE_CHANGED)));
 
-        Assert.assertTrue(reports.stream().anyMatch(r ->
-                        "method void Overloads::a(int, long)".equals(r.getOldElement().toString())
-                                && "method void Overloads::a(int, long, float)".equals(r.getNewElement().toString())
-                                && r.getDifferences().size() == 1
-                                && r.getDifferences().stream()
-                                .allMatch(d -> Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED.code().equals(d.code))
-        ));
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void Overloads::a(int, long)",
+                "method void Overloads::a(int, long, float)",
+                Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED)));
 
-        Assert.assertTrue(reports.stream().anyMatch(r ->
-                        "method void Overloads::a(int, long, double, float)".equals(r.getOldElement().toString())
-                                && "method void Overloads::a(long, int)".equals(r.getNewElement().toString())
-                                && r.getDifferences().size() == 1
-                                && r.getDifferences().stream()
-                                .allMatch(d -> Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED.code().equals(d.code))
-        ));
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void Overloads::a(int, long, double, float)",
+                "method void Overloads::a(long, int)",
+                Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED)));
 
-        Assert.assertTrue(reports.stream().anyMatch(r ->
-                        "method parameter void Overloads::b(===java.lang.Class<? extends java.lang.Integer>===, java.lang.Object)"
-                                .equals(r.getOldElement().toString())
-                                && "method parameter void Overloads::b(===java.lang.Class<?>===, java.lang.Object)"
-                                .equals(r.getNewElement().toString())
-                                && r.getDifferences().size() == 1
-                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED.code().equals(d.code))
-        ));
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method parameter void Overloads::b(===java.lang.Class<? extends java.lang.Integer>===, java.lang.Object)",
+                "method parameter void Overloads::b(===java.lang.Class<?>===, java.lang.Object)",
+                Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED)));
 
-        Assert.assertTrue(reports.stream().anyMatch(r ->
-                        "method parameter void Overloads::c(java.lang.Class<java.lang.Long>, ===java.lang.Class<? extends java.lang.Integer>===, float)"
-                                .equals(r.getOldElement().toString())
-                                && "method parameter void Overloads::c(java.lang.Class<java.lang.Long>, ===int===, float)"
-                                .equals(r.getNewElement().toString())
-                                && r.getDifferences().size() == 1
-                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_CHANGED.code().equals(d.code))
-        ));
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method parameter void Overloads::c(java.lang.Class<java.lang.Long>, ===java.lang.Class<? extends java.lang.Integer>===, float)",
+                "method parameter void Overloads::c(java.lang.Class<java.lang.Long>, ===int===, float)",
+                Code.METHOD_PARAMETER_TYPE_CHANGED)));
 
-        Assert.assertTrue(reports.stream().anyMatch(r ->
-                        "method parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<java.lang.Long>===, int)"
-                                .equals(r.getOldElement().toString())
-                                && "method parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<?>===, int)"
-                                .equals(r.getNewElement().toString())
-                                && r.getDifferences().size() == 1
-                                && r.getDifferences().stream().allMatch(d -> Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED.code().equals(d.code))
-        ));
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<java.lang.Long>===, int)",
+                "method parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<?>===, int)",
+                Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED)));
     }
 
     @Test
     public void testAbstractMethod() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        ArrayList<Report> reports = new ArrayList<>();
+        CollectingReporter reporter = new CollectingReporter(reports);
         runAnalysis(reporter, "v1/methods/Abstract.java", "v2/methods/Abstract.java");
 
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_ABSTRACT.code()));
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_ABSTRACT.code()));
+        Assert.assertEquals(7, reports.size());
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "class Abstract.PubliclyUsedPrivateSuperClass",
+                "class Abstract.PubliclyUsedPrivateSuperClass",
+                Code.CLASS_NON_PUBLIC_PART_OF_API)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                null,
+                "method void Abstract.A::method()",
+                Code.METHOD_ADDED)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                null,
+                "method void Abstract.B::method()",
+                Code.METHOD_ADDED)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                null,
+                "method void Abstract.C::method()",
+                Code.METHOD_ADDED)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                null,
+                "method void Abstract.PubliclyUsedPrivateSuperClass::method()",
+                Code.METHOD_ABSTRACT_METHOD_ADDED)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void Abstract::abstractMethod()",
+                "method void Abstract::abstractMethod()",
+                Code.METHOD_NO_LONGER_ABSTRACT)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void Abstract::concreteMethod()",
+                "method void Abstract::concreteMethod()",
+                Code.METHOD_NOW_ABSTRACT)));
+    }
+
+    private Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {
+        return r -> Objects.toString(expectedOld).equals(Objects.toString(r.getOldElement()))
+                && Objects.toString(expectedNew).equals(Objects.toString(r.getNewElement()))
+                && r.getDifferences().size() == expectedCodes.length
+                && Stream.of(expectedCodes).map(c -> r.getDifferences().stream().anyMatch(d -> d.code.equals(c.code())))
+                .reduce(true, Boolean::logicalAnd);
     }
 }
