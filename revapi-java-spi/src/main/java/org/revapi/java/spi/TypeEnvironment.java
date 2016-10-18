@@ -17,9 +17,7 @@
 package org.revapi.java.spi;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
@@ -67,22 +65,10 @@ public interface TypeEnvironment {
      * <p>
      * It does not mean that the element is to be included in the API checks if this method returns false. That merely
      * means that the user didn't explicitly exclude it and further checks need to be made to establish whether to check
-     * the element or not (see for example {@link CheckBase#isAccessible(Element, TypeEnvironment)}).
+     * the element or not (see for example {@link CheckBase#isAccessible(JavaModelElement)}).
      *
      * @param element the element to check (might be type, method, whatever)
      * @return true if the the user explicitly excluded this element from the API checks, false otherwise.
      */
     boolean isExplicitlyExcluded(Element element);
-
-    /**
-     * Converts between the javax.lang.model and revapi representation of the type. The revapi representation contains
-     * some useful methods with "results" computed during the analysis.
-     *
-     * <p>Note that this will return {@code null} for types that are not part of the revapi representation - namely
-     * the types on the bootstrap classpath.
-     *
-     * @param type the javax.lang.model representation of a type
-     * @return the revapi representation type
-     */
-    @Nullable JavaTypeElement getModelElement(TypeElement type);
 }

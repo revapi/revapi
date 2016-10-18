@@ -34,56 +34,6 @@
             "uniqueItems": true,
             "default": ["java.missing.newClass", "java.missing.oldClass", "java.class.nonPublicPartOfAPI",
               "java.class.externalClassNoLongerExposedInAPI", "java.class.externalClassExposedInAPI"]
-        },
-        "deepUseChainAnalysis": {
-            "description": "Whether to perform deep use chain analysis of classes when looking for public \
-            API-reachable uses of non-public classes. This is off by default because it is very costly.",
-            "type": "boolean",
-            "default": "false"
-        },
-        "classpath": {
-            "description": "Classpath related configuration.",
-            "type": "object",
-            "properties": {
-                "bootstrap": {
-                    "description": "Specifies the bootstrap classpath for the old and new versions of the API. Classes from \
-                            this path are excluded from API comparison because they are assumed compatible.",
-                    "type": "object",
-                    "properties": {
-                        "old": {
-                            "$ref": "#/definitions/bootstrap-classpath"
-                        },
-                        "new": {
-                            "$ref": "#/definitions/bootstrap-classpath"
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "definitions": {
-        "bootstrap-classpath": {
-            "description": "A list of jars relative to $JAVA_HOME/lib. If java home is not specified, the java home\
-                            of the JVM executing the API check is used. If not specified, the following bootstrap jars\
-                            are considered: resources.jar, rt.jar, sunrsasign.jar, jsse.jar, jce.jar, charsets.jar, \
-                            jfr.jar",
-            "type": "object",
-            "properties": {
-                "java-home": {
-                    "description": "Optional absolute path to the Java home to be considered for this version of the \
-                                    API.",
-                    "type": "string"
-                },
-                "jars": {
-                    "description": "The list of jars relative to $JAVA_HOME/jre/lib",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "default": ["resources.jar", "rt.jar", "sunrsasign.jar", "jsse.jar", "jce.jar", "charsets.jar",
-                        "jfr.jar"]
-                }
-            }
         }
     }
 }

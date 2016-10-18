@@ -18,10 +18,8 @@ package org.revapi.java;
 
 import static java.util.stream.Collectors.toList;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -121,7 +119,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(
                     new API(Arrays.asList(new ShrinkwrapArchive(archive.archive)), null),
-                    Executors.newSingleThreadExecutor(), null, false, false, Collections.<File>emptySet(),
+                    Executors.newSingleThreadExecutor(), null, false,
                     InclusionFilter.acceptAll());
 
             JavaElementForest forest = analyzer.analyze();

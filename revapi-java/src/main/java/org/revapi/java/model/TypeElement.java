@@ -162,13 +162,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return binaryName.compareTo(((TypeElement) o).binaryName);
     }
 
-    @Nonnull
-    @Override
-    @SuppressWarnings("ConstantConditions")
-    public String getFullHumanReadableString() {
+    @Override protected String createFullHumanReadableString() {
         TypeMirror rep = getModelRepresentation();
-
-
         return getHumanReadableElementType() + " " + (rep == null ? canonicalName : Util.toHumanReadableString(rep));
     }
 

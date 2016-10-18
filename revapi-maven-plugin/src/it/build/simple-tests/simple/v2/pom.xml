@@ -65,10 +65,7 @@
                                                 "old" : "class test.Dep",
                                                 "justification" : "foo"
                                             }
-                                        ],
-                                        "java": {
-                                          "deepUseChainAnalysis": true
-                                        }
+                                        ]
                                     }
                                 }
                             ]]></analysisConfiguration>

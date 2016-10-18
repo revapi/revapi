@@ -30,7 +30,6 @@ import javax.lang.model.util.Types;
 
 import org.revapi.API;
 import org.revapi.java.model.JavaElementForest;
-import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 
@@ -116,10 +115,6 @@ public final class ProbingEnvironment implements TypeEnvironment {
 
     public Map<TypeElement, org.revapi.java.model.TypeElement> getTypeMap() {
         return typeMap;
-    }
-
-    @Override public JavaTypeElement getModelElement(TypeElement type) {
-        return typeMap.get(type);
     }
 
     public void addExplicitExclusion(String canonicalName) {

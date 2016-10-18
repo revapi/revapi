@@ -25,14 +25,12 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.ExecutableType;
 import javax.lang.model.util.SimpleElementVisitor7;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaMethodElement;
-import org.revapi.java.spi.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +77,7 @@ public final class Added extends CheckBase {
         // 2) method added to a final class
         // 3) concrete method added to a non-final class
         // 4) abstract method added to a non-final class
+        // 5) final method added to a non-final class
         // 5) previously inherited method is now declared in class
 
         ExecutableElement method = methods.newElement.getDeclaringElement();
@@ -87,19 +86,6 @@ public final class Added extends CheckBase {
         if (enclosingClass == null) {
             LOG.warn("Could not find an enclosing class of method " + method + ". That's weird.");
             return null;
-        }
-
-        String methodSignature = Removed.getMethodSignature(method.getSimpleName(),
-                (ExecutableType) getNewTypeEnvironment().getTypeUtils().erasure(method.asType()));
-
-        ExecutableElement previouslyInherited = null;
-
-        TypeElement oldEnclosingClass =
-                getOldTypeEnvironment().getElementUtils().getTypeElement(enclosingClass.getQualifiedName());
-        if (oldEnclosingClass != null) {
-            previouslyInherited =
-                    Removed.getAccessiblyInheritedFromSuperTypesOf(this, methodSignature, oldEnclosingClass,
-                            getOldTypeEnvironment());
         }
 
         Difference difference;
@@ -114,44 +100,16 @@ public final class Added extends CheckBase {
                 //based on the presence of a previously inherited method.
                 difference = createDifference(Code.METHOD_STATIC_METHOD_ADDED_TO_INTERFACE);
             } else {
-                if (previouslyInherited == null) {
-                    difference = createDifference(Code.METHOD_ADDED_TO_INTERFACE);
-                } else {
-                    difference = createDifference(Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS,
-                            new String[]{Util.toHumanReadableString(previouslyInherited.getEnclosingElement())},
-                            previouslyInherited.getEnclosingElement());
-                }
+                difference = createDifference(Code.METHOD_ADDED_TO_INTERFACE);
             }
         } else if (method.getModifiers().contains(Modifier.ABSTRACT)) {
-            if (previouslyInherited == null) {
-                difference = createDifference(Code.METHOD_ABSTRACT_METHOD_ADDED);
-            } else if (previouslyInherited.getModifiers().contains(Modifier.ABSTRACT)) {
-                difference = createDifference(Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS,
-                        new String[]{Util.toHumanReadableString(previouslyInherited.getEnclosingElement())},
-                        previouslyInherited.getEnclosingElement());
-            } else {
-                difference = createDifference(Code.METHOD_NOW_ABSTRACT);
-            }
+            difference = createDifference(Code.METHOD_ABSTRACT_METHOD_ADDED);
         } else if (method.getModifiers().contains(Modifier.FINAL) &&
-            !enclosingClass.getModifiers().contains(Modifier.FINAL)) {
+                !enclosingClass.getModifiers().contains(Modifier.FINAL)) {
 
-            if (previouslyInherited == null) {
-                difference = createDifference(Code.METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS);
-            } else if (previouslyInherited.getModifiers().contains(Modifier.FINAL)){
-                difference = createDifference(Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS,
-                        new String[]{Util.toHumanReadableString(previouslyInherited.getEnclosingElement())},
-                        previouslyInherited.getEnclosingElement());
-            } else {
-                difference = createDifference(Code.METHOD_NOW_FINAL);
-            }
+             difference = createDifference(Code.METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS);
         } else {
-            if (previouslyInherited == null) {
-                difference = createDifference(Code.METHOD_ADDED);
-            } else {
-                difference = createDifference(Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS,
-                        new String[]{Util.toHumanReadableString(previouslyInherited.getEnclosingElement())},
-                        previouslyInherited.getEnclosingElement());
-            }
+            difference = createDifference(Code.METHOD_ADDED);
         }
 
         return Collections.singletonList(difference);

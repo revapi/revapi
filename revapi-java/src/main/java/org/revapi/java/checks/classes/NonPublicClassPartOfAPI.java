@@ -37,7 +37,7 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {
-        return isSkipUseTracking() ? EnumSet.noneOf(Type.class) : EnumSet.of(Type.CLASS);
+        return EnumSet.of(Type.CLASS);
     }
 
     @Override

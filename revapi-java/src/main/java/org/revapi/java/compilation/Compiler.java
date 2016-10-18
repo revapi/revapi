@@ -67,8 +67,9 @@ public final class Compiler {
     }
 
     public CompilationValve compile(final ProbingEnvironment environment,
-        final AnalysisConfiguration.MissingClassReporting missingClassReporting, final boolean ignoreMissingAnnotations,
-        final boolean skipUseTracking, final Set<File> bootstrapClasspath, final InclusionFilter inclusionFilter)
+                                    final AnalysisConfiguration.MissingClassReporting missingClassReporting,
+                                    final boolean ignoreMissingAnnotations,
+                                    final InclusionFilter inclusionFilter)
             throws Exception {
 
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
@@ -111,23 +112,6 @@ public final class Compiler {
         ProbingAnnotationProcessor processor = new ProbingAnnotationProcessor(environment);
 
         task.setProcessors(Collections.singletonList(processor));
-
-//        Future<Boolean> future = processor.submitWithCompilationAwareness(executor, task, () -> {
-//            if (Timing.LOG.isDebugEnabled()) {
-//                Timing.LOG.debug("About to crawl " + environment.getApi());
-//            }
-//
-//            try {
-//                new ClassTreeInitializer(environment, missingClassReporting, ignoreMissingAnnotations,
-//                        skipUseTracking, bootstrapClasspath, inclusionFilter).initTree();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            if (Timing.LOG.isDebugEnabled()) {
-//                Timing.LOG.debug("Crawl finished for " + environment.getApi());
-//            }
-//        });
 
         Future<Boolean> future = processor.submitWithCompilationAwareness(executor, task, () -> {
             if (Timing.LOG.isDebugEnabled()) {

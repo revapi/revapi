@@ -16,7 +16,6 @@
 
 package org.revapi.java;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,25 +32,20 @@ public final class AnalysisConfiguration {
 
     private final MissingClassReporting missingClassReporting;
     private final Set<String> useReportingCodes;
-    private final Set<File> oldApiBootstrapClasspath;
-    private final Set<File> newApiBootstrapClasspath;
     private final boolean ignoreMissingAnnotations;
-    private final boolean deepUseChainAnalysis;
     private final Set<Pattern> classInclusionFilters;
     private final Set<Pattern> classExclusionFilters;
     private final Set<Pattern> packageInclusionFilters;
     private final Set<Pattern> packageExclusionFilters;
 
     public AnalysisConfiguration(MissingClassReporting missingClassReporting, Set<String> useReportingCodes,
-            Set<File> oldApiBootstrapClasspath, Set<File> newApiBootstrapClasspath, boolean ignoreMissingAnnotations,
-            boolean deepUseChainAnalysis, Set<Pattern> classInclusionFilters, Set<Pattern> classExclusionFilters,
-            Set<Pattern> packageInclusionFilters, Set<Pattern> packageExclusionFilters) {
+                                 boolean ignoreMissingAnnotations,
+                                 Set<Pattern> classInclusionFilters,
+                                 Set<Pattern> classExclusionFilters,
+                                 Set<Pattern> packageInclusionFilters, Set<Pattern> packageExclusionFilters) {
         this.missingClassReporting = missingClassReporting;
         this.useReportingCodes = useReportingCodes;
-        this.oldApiBootstrapClasspath = oldApiBootstrapClasspath;
-        this.newApiBootstrapClasspath = newApiBootstrapClasspath;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
-        this.deepUseChainAnalysis = deepUseChainAnalysis;
         this.classInclusionFilters = classInclusionFilters;
         this.classExclusionFilters = classExclusionFilters;
         this.packageInclusionFilters = packageInclusionFilters;
@@ -61,10 +55,7 @@ public final class AnalysisConfiguration {
     public static AnalysisConfiguration fromModel(ModelNode node) {
         MissingClassReporting reporting = readMissingClassReporting(node);
         Set<String> useReportingCodes = readUseReportingCodes(node);
-        Set<File> oldApiBootstrapClasspath = readBootstrapClasspath(node, "old");
-        Set<File> newApiBootstrapClasspath = readBootstrapClasspath(node, "new");
         boolean ignoreMissingAnnotations = readIgnoreMissingAnnotations(node);
-        boolean deepUseChainAnalysis = readDeepUseChainAnalysis(node);
 
         ModelNode classesRegex = node.get("revapi", "java", "filter", "classes", "regex");
         ModelNode packagesRegex = node.get("revapi", "java", "filter", "packages", "regex");
@@ -78,8 +69,8 @@ public final class AnalysisConfiguration {
         Set<Pattern> packageExclusionFilters = readFilter(node.get("revapi", "java", "filter", "packages", "exclude"),
                 packagesRegex);
 
-        return new AnalysisConfiguration(reporting, useReportingCodes, oldApiBootstrapClasspath,
-            newApiBootstrapClasspath, ignoreMissingAnnotations, deepUseChainAnalysis, classInclusionFilters,
+        return new AnalysisConfiguration(reporting, useReportingCodes,
+                ignoreMissingAnnotations, classInclusionFilters,
                 classExclusionFilters, packageInclusionFilters, packageExclusionFilters);
     }
 
@@ -91,20 +82,8 @@ public final class AnalysisConfiguration {
         return useReportingCodes;
     }
 
-    public Set<File> getOldApiBootstrapClasspath() {
-        return oldApiBootstrapClasspath;
-    }
-
-    public Set<File> getNewApiBootstrapClasspath() {
-        return newApiBootstrapClasspath;
-    }
-
     public boolean isIgnoreMissingAnnotations() {
         return ignoreMissingAnnotations;
-    }
-
-    public boolean isDeepUseChainAnalysis() {
-        return deepUseChainAnalysis;
     }
 
     public Set<Pattern> getClassExclusionFilters() {
@@ -167,66 +146,6 @@ public final class AnalysisConfiguration {
         }
 
         return ret;
-    }
-
-    private static Set<File> readBootstrapClasspath(ModelNode analysisConfig, String api) {
-        Set<File> ret = new HashSet<>();
-        ModelNode config = analysisConfig.get("revapi", "java", "bootstrap-classpath", api);
-
-        String javaHome = getJavaHome(config);
-
-        if (config.isDefined()) {
-            ModelNode jars = config.get("jars");
-            if (jars.isDefined()) {
-                for (ModelNode jar : jars.asList()) {
-                    File f = new File(javaHome, jar.asString());
-
-                    if (f.exists() && f.canRead()) {
-                        ret.add(f);
-                    }
-                }
-            } else {
-                addDefaultBootstrapJars(ret, javaHome);
-            }
-        } else {
-            addDefaultBootstrapJars(ret, javaHome);
-        }
-
-        return ret;
-    }
-
-    private static void addDefaultBootstrapJars(Set<File> result, String javaHome) {
-        addBootstrapJar(result, javaHome, "resources.jar");
-        addBootstrapJar(result, javaHome, "rt.jar");
-        addBootstrapJar(result, javaHome, "sunrsasign.jar");
-        addBootstrapJar(result, javaHome, "jsse.jar");
-        addBootstrapJar(result, javaHome, "jce.jar");
-        addBootstrapJar(result, javaHome, "charsets.jar");
-        addBootstrapJar(result, javaHome, "jfr.jar");
-    }
-
-    private static void addBootstrapJar(Set<File> result, String javaHome, String jar) {
-        File f = new File(javaHome, jar);
-        if (f.exists() && f.canRead()) {
-            result.add(f);
-        }
-    }
-
-    private static String getJavaHome(ModelNode bootstrapClasspathConfiguration) {
-        ModelNode javaHomeNode =
-            bootstrapClasspathConfiguration.isDefined() ? bootstrapClasspathConfiguration.get("java-home") : null;
-
-        String javaHome = javaHomeNode != null && javaHomeNode.isDefined() ? javaHomeNode.asString() :
-            System.getProperty("java.home");
-
-        javaHome += File.separator + File.separator + "lib";
-
-        return javaHome;
-    }
-
-    private static boolean readDeepUseChainAnalysis(ModelNode analysisConfig) {
-        ModelNode config = analysisConfig.get("revapi", "java", "deepUseChainAnalysis");
-        return config.isDefined() && config.asBoolean();
     }
 
     private static Set<Pattern> readFilter(ModelNode filterNode, ModelNode regexNode) {

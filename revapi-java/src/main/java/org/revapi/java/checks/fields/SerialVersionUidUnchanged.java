@@ -47,7 +47,6 @@ import javax.lang.model.util.SimpleTypeVisitor7;
 import org.revapi.Difference;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaFieldElement;
-import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.TypeEnvironment;
 
 /**
@@ -77,7 +76,7 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
             return;
         }
 
-        if (!isBothAccessible((JavaModelElement) oldField.getParent(), (JavaModelElement) newField.getParent())) {
+        if (!isBothAccessible(oldField.getParent(), newField.getParent())) {
             return;
         }
 

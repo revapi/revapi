@@ -104,8 +104,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
                 .withConfigurationFromJSON(
-                        "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }, " +
-                                "\"deepUseChainAnalysis\": true}}}").build();
+                        "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }}}}").build();
 
         revapi.validateConfiguration(ctx);
         revapi.analyze(ctx);

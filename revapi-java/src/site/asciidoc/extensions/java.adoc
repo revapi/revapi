@@ -18,20 +18,7 @@ On this page you can learn about the possible configuration options of the Java 
         "behavior": "report",
         "ignoreMissingAnnotations": false
       },
-      "reportUsesFor": ["java.missing.newClass", "java.class.nonPublicPartOfAPI"],
-      "classpath": {
-        "bootstrap": {
-          "old": {
-            "java-home": "/opt/java7",
-            "jars": ["rt.jar"]
-          },
-          "new": {
-            "java-home": "/opt/java8",
-            "jars": ["rt.jar"]
-          }
-        }
-      },
-      "deepUseChainAnalysis": false
+      "reportUsesFor": ["java.missing.newClass", "java.class.nonPublicPartOfAPI"]
     }
   }
 }
@@ -53,20 +40,3 @@ Revapi is able to track usage chains of the classes it finds in the API. For som
 where a certain class is used to be able to determine if that's something wrong or not. By default the usage chains 
 are reported for the following problem codes: `java.missing.newClass`, `java.missing.oldClass`,
 `java.class.nonPublicPartOfAPI`, `java.class.externalClassNoLongerExposedInAPI`, `java.class.externalClassExposedInAPI`.
-`deepUseChainAnalysis`::
-Revapi by default doesn't build a graph of usages between types (use chains) except for inheritance. If this property is
-set to true, a complex graph where every usage of a type is tracked is formed and is used to figure out whether and how
-a type is used in an API. This is mostly useful for finding out what types can "leak" into your API from your
-dependencies or whether a non-public type is reachable using a certain sequence of API calls. This analysis is currently
-very costly and can take many seconds for projects with deep dependency tree (notoriously, JavaEE projects). This is
-therefore turned off by default.
-`classpath.bootstrap`::
-The `old` and `new` elements declare an array of the jars that are to be considered implicitly present on the
-classpath. This is to support API-checking across different versions of JRE for example. The classes on the bootstrap
-classpath are considered compatible and are not checked for (beyond their presence).
-[]
-NOTE: Currently, the class parsing backend used by Revapi Java is being rewritten to use
-http://www.javassist.org[javassist] and this capability might be lost. This should be outweighed by the performance
-increase that move should bring.
-
-

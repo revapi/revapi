@@ -18,7 +18,6 @@ package org.revapi.java;
 
 import static java.util.stream.Collectors.toList;
 
-import java.io.File;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -426,15 +425,11 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Nonnull
     @Override
     public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
-        Set<File> bootstrapClasspath =
-                api == analysisContext.getOldApi() ? configuration.getOldApiBootstrapClasspath() :
-                        configuration.getNewApiBootstrapClasspath();
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
-        boolean skipUseTracking = !configuration.isDeepUseChainAnalysis();
         InclusionFilter inclusionFilter = composeInclusionFilter(configuration);
 
         return new JavaArchiveAnalyzer(api, compilationExecutor, configuration.getMissingClassReporting(),
-                ignoreMissingAnnotations, skipUseTracking, bootstrapClasspath, inclusionFilter);
+                ignoreMissingAnnotations, inclusionFilter);
     }
 
     @Nonnull

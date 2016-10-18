@@ -126,11 +126,6 @@ public enum Code {
     METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS("java.method.finalMethodAddedToNonFinalClass", POTENTIALLY_BREAKING,
         POTENTIALLY_BREAKING, null),
     METHOD_REMOVED("java.method.removed", BREAKING, BREAKING, null),
-    METHOD_REPLACED_BY_ABSTRACT_METHOD_IN_SUPERCLASS("java.method.replacedByAbstractMethodInSuperClass", BREAKING,
-        BREAKING, null),
-    METHOD_NON_FINAL_METHOD_REPLACED_BY_FINAL_IN_SUPERCLASS("java.method.nonFinalReplacedByFinalInSuperclass",
-        POTENTIALLY_BREAKING,
-        POTENTIALLY_BREAKING, null),
     METHOD_MOVED_TO_SUPERCLASS("java.method.movedToSuperClass", NON_BREAKING, NON_BREAKING, null),
     METHOD_INHERITED_METHOD_MOVED_TO_CLASS("java.method.inheritedMovedToClass", NON_BREAKING, NON_BREAKING, null),
     METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE(
@@ -164,7 +159,7 @@ public enum Code {
     private final String code;
     private final EnumMap<CompatibilityType, DifferenceSeverity> classification;
 
-    private Code(String code, DifferenceSeverity sourceSeverity, DifferenceSeverity binarySeverity,
+    Code(String code, DifferenceSeverity sourceSeverity, DifferenceSeverity binarySeverity,
         DifferenceSeverity semanticSeverity) {
         this.code = code;
         classification = new EnumMap<>(CompatibilityType.class);

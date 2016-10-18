@@ -29,6 +29,9 @@ import javax.lang.model.type.TypeMirror;
  */
 public interface JavaModelElement extends JavaElement {
 
+    @Override
+    JavaModelElement getParent();
+
     /**
      * @return the corresponding {@link javax.lang.model.element.Element model element}.
      */

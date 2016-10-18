@@ -55,6 +55,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     private final Archive archive;
     private String comparableSignature;
     private boolean inherited = false;
+    private String stringRepre;
 
     JavaElementBase(ProbingEnvironment env, Archive archive, E element, T representation) {
         this.environment = env;
@@ -65,6 +66,17 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
 
     @Nonnull
     protected abstract String getHumanReadableElementType();
+
+    @Nullable @Override public JavaModelElement getParent() {
+        return (JavaModelElement) super.getParent();
+    }
+
+    @Override public void setParent(@Nullable org.revapi.Element parent) {
+        if (parent != null && !(parent instanceof JavaModelElement)) {
+            throw new IllegalArgumentException("A parent must be a java model element.");
+        }
+        super.setParent(parent);
+    }
 
     @Nonnull
     @Override
@@ -123,9 +135,6 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
                     return null;
                 }
 
-                //TODO if this is an inherited element, check that it isn't overridden by some other element "below"
-                //in the type hierarchy...
-
                 JavaElementBase<?, ?> child = JavaElementFactory.elementFor(e, t, environment, archive);
                 if (child != null) {
                     if (set.add(child)) {
@@ -177,7 +186,21 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
 
     @Nonnull
     @Override
-    public String getFullHumanReadableString() {
+    public final String getFullHumanReadableString() {
+        if (environment.isScanningComplete() && stringRepre != null) {
+            return stringRepre;
+        }
+
+        String ret = createFullHumanReadableString();
+
+        if (environment.isScanningComplete()) {
+            stringRepre = ret;
+        }
+
+        return ret;
+    }
+
+    protected String createFullHumanReadableString() {
         String decl = Util.toHumanReadableString(getDeclaringElement());
         if (isInherited()) {
             org.revapi.Element parent = getParent();

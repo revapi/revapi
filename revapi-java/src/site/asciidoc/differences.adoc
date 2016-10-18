@@ -723,30 +723,6 @@ If such move should represent a compatibility breakage it is reported differentl
 <<a_method_replaced_by_abstract_in_superclass, Method Replaced By Abstract In Superclass>>.
 Otherwise this is a compatible change and is reported for completeness' sake.
 
-=== Method Replaced By Abstract In Superclass
-[cols="35s,<65d"]
-|=============
-| Code              | +java.method.replacedByAbstractMethodInSuperClass+
-| Binary severity   | breaking
-| Source severity   | breaking
-| Semantic severity | NA
-|=============
-
-A variant of <<a_overriding_method_removed, Overriding Method Removed>>, but the method in the super class is abstract.
-Therefore, it would no longer be possible to call the method.
-
-=== Non-final Method Replaced By Final In Superclass
-[cols="35s,<65d"]
-|=============
-| Code              | +java.method.nonFinalReplacedByFinalInSuperclass+
-| Binary severity   | potentially breaking
-| Source severity   | potentially breaking
-| Semantic severity | NA
-|=============
-
-As with <<a_final_method_added_to_non_final_class, Final Method Added To Non-final Class>>, this can break if a subclass
-in user code overrides the method.
-
 === Attribute Removed From Annotation Type
 [cols="35s,<65d"]
 |=============

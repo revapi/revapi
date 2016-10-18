@@ -58,7 +58,7 @@ public class IgnoreNewMethodsOnEJBInterfaces implements DifferenceTransform<Java
 
         // we know the element will be a JavaMethodElement. This is because we limit the
         // differences passed into this method.
-        ExecutableElement method = newElement.getModelElement();
+        ExecutableElement method = newElement.getDeclaringElement();
 
         // ok, so we got a reference to the method that caused the difference. Now we need to
         // check whether the method was added to an EJB interface - we will just check whether

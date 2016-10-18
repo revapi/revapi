@@ -16,9 +16,7 @@
 
 package org.revapi.java;
 
-import java.io.File;
 import java.io.StringWriter;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.Nonnull;
@@ -42,21 +40,18 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final ProbingEnvironment probingEnvironment;
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
     private final boolean ignoreMissingAnnotations;
-    private final boolean skipUseTracking;
-    private final Set<File> bootstrapClasspath;
     private CompilationValve compilationValve;
     private InclusionFilter inclusionFilter;
 
     public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
-            AnalysisConfiguration.MissingClassReporting missingClassReporting, boolean ignoreMissingAnnotations,
-            boolean skipUseTracking, Set<File> bootstrapClasspath, InclusionFilter inclusionFilter) {
+                               AnalysisConfiguration.MissingClassReporting missingClassReporting,
+                               boolean ignoreMissingAnnotations,
+                               InclusionFilter inclusionFilter) {
         this.api = api;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
-        this.skipUseTracking = skipUseTracking;
         this.probingEnvironment = new ProbingEnvironment(api);
-        this.bootstrapClasspath = bootstrapClasspath;
         this.inclusionFilter = inclusionFilter;
     }
 
@@ -71,8 +66,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives());
         try {
             compilationValve = compiler
-                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, skipUseTracking,
-                        bootstrapClasspath, inclusionFilter);
+                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, inclusionFilter);
 
             probingEnvironment.getTree()
                 .setCompilationFuture(new CompilationFuture(compilationValve, output));

@@ -87,14 +87,10 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
             return false;
         }
 
-        String myType = Util.toUniqueString(myMethodElement.getEnclosingElement().asType());
-        String myMethod = myMethodElement.getSimpleName().toString();
+        String mySig = getComparableSignature();
+        String otherSig = other.getComparableSignature();
 
-        String otherType = Util.toUniqueString(otherMethodElement.getEnclosingElement().asType());
-        String otherMethod = otherMethodElement.getSimpleName().toString();
-
-
-        return myType.equals(otherType) && myMethod.equals(otherMethod) && index == other.index;
+        return mySig.equals(otherSig) && index == other.index;
     }
 
     @Override

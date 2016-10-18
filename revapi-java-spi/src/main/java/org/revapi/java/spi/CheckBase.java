@@ -18,27 +18,15 @@ package org.revapi.java.spi;
 
 import java.io.Reader;
 import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.util.SimpleElementVisitor7;
-import javax.lang.model.util.SimpleElementVisitor8;
 
-import org.jboss.dmr.ModelNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 
@@ -57,45 +45,20 @@ import org.revapi.Difference;
  */
 public abstract class CheckBase implements Check {
 
-    private static final UseSite.Visitor<Boolean, Void> NOOP_USE_CHECK = new UseSite.Visitor<Boolean, Void>() {
-        @Nullable
-        @Override
-        public Boolean visit(@Nonnull DeclaredType type, @Nonnull UseSite use, @Nullable Void parameter) {
-            return null;
-        }
-
-        @Nullable
-        @Override
-        public Boolean end(DeclaredType type, @Nullable Void parameter) {
-            return false;
-        }
-    };
-
     /**
      * Checks whether both provided elements are (package) private. If one of them is null, the fact cannot be
      * determined and therefore this method would return false.
      *
      * @param a first element
-     * @param envA the type environment of the first element
      * @param b second element
-     * @param envB the type environment of the second element
      * @return true if both elements are not null and are private or package private
      */
-    public boolean isBothPrivate(@Nullable Element a, TypeEnvironment envA, @Nullable Element b, TypeEnvironment envB) {
-        if (a == null || b == null) {
-            return false;
-        }
-
-        return !isAccessible(a, envA) && !isAccessible(b, envB);
-    }
-
     public boolean isBothPrivate(@Nullable JavaModelElement a, @Nullable JavaModelElement b) {
         if (a == null || b == null) {
             return false;
         }
 
-        return isBothPrivate(a.getDeclaringElement(), a.getTypeEnvironment(), b.getDeclaringElement(),
-                b.getTypeEnvironment());
+        return !isAccessible(a) && !isAccessible(b);
     }
 
     /**
@@ -103,110 +66,34 @@ public abstract class CheckBase implements Check {
      * returns false, because the accessibility cannot be truthfully detected in that case.
      *
      * @param a first element
-     * @param envA the type environment of the first element
      * @param b second element
-     * @param envB the type environment of the second element
      * @return true if both elements are not null and accessible (i.e. public or protected)
      */
-    public boolean isBothAccessible(@Nullable Element a, @Nonnull TypeEnvironment envA, @Nullable Element b,
-                                    @Nonnull  TypeEnvironment envB) {
-        if (a == null || b == null) {
-            return false;
-        }
-
-        return isAccessible(a, envA) && isAccessible(b, envB);
-    }
-
     public boolean isBothAccessible(@Nullable JavaModelElement a, @Nullable JavaModelElement b) {
         if (a == null || b == null) {
             return false;
         }
 
-        return isBothAccessible(a.getDeclaringElement(), a.getTypeEnvironment(), b.getDeclaringElement(),
-                b.getTypeEnvironment());
+        return isAccessible(a) && isAccessible(b);
     }
 
     /**
      * @param e the element to check
-     * @param env the type environment of the element
      * @return true if the provided element is public or protected, false otherwise.
-     * @deprecated this shouldn't be needed anymore with the changed way of populating children
      */
-    @Deprecated
-    public boolean isAccessible(@Nonnull Element e, @Nonnull  TypeEnvironment env) {
-        //large number of cases will not use the visitedTypes, so let's conserve some memory
-        return isAccessible(e, env, skipUseTracking ? Collections.emptySet() : new HashSet<>(1));
-    }
-
     public boolean isAccessible(@Nonnull JavaModelElement e) {
         if (e instanceof JavaTypeElement) {
             return ((JavaTypeElement) e).isInAPI();
         } else {
-            JavaModelElement parent = (JavaModelElement) e.getParent();
+            JavaModelElement parent = e.getParent();
             assert parent != null;
             return isAccessibleByModifier(e.getDeclaringElement()) && isAccessible(parent);
-        }
-    }
-
-    private boolean isAccessible(Element e, TypeEnvironment env, Set<DeclaredType> visitedTypes) {
-        //rule out missing, private and package private elements - those are never accessible.
-        if (!isAccessibleByModifier(e)) {
-            return e instanceof TypeElement && isUsedSignificantly((TypeElement) e, env, visitedTypes);
-        } else {
-            //ok, we have something that is public or protected...
-            return e.accept(new SimpleElementVisitor8<Boolean, Void>(true) {
-                //by default, we judge the accessibility just by the modifier.
-                //But in case of fields, methods and inner classes, we have to take into account the fact that they may be
-                //made accessible by a public subclass of the enclosing type
-
-                @Override
-                public Boolean visitType(TypeElement e, Void v) {
-                    JavaTypeElement t = env.getModelElement(e);
-                    return t == null || t.isMembersAccessible();
-                }
-
-                @Override
-                public Boolean visitExecutable(ExecutableElement e, Void v) {
-                    return isAccessibleOrHasAccessibleSubclasses((TypeElement) e.getEnclosingElement());
-                }
-
-                @Override
-                public Boolean visitVariable(VariableElement e, Void v) {
-                    return isAccessibleOrHasAccessibleSubclasses((TypeElement) e.getEnclosingElement());
-                }
-
-                private boolean isAccessibleOrHasAccessibleSubclasses(TypeElement type) {
-                    //if we reach this method, we know the method or field is accessible and we're checking if the type
-                    //that contains it has accessible members
-                    JavaTypeElement t = env.getModelElement(type);
-                    return t == null || t.isMembersAccessible();
-                }
-            }, null);
         }
     }
 
     private boolean isAccessibleByModifier(Element e) {
         return !isMissing(e) && (e.getModifiers().contains(Modifier.PUBLIC) ||
                 e.getModifiers().contains(Modifier.PROTECTED));
-    }
-
-    /**
-     * @param e the element to check
-     * @param env the environment in which the element is present
-     * @return true if the element and all its enclosing elements are accessible, false otherwise
-     */
-    private boolean isAllEnclosersAccessible(@Nonnull Element e, @Nonnull TypeEnvironment env) {
-        //IntelliJ is wrong about the below. e definitely CAN be null...
-        //noinspection ConstantConditions
-        while (e != null) {
-            if (!(e instanceof PackageElement) && !isAccessibleByModifier(e)) {
-                return false;
-            }
-
-            e = e.getEnclosingElement();
-        }
-
-        return true;
     }
 
     /**
@@ -219,111 +106,6 @@ public abstract class CheckBase implements Check {
      */
     public boolean isMissing(@Nonnull Element e) {
         return e.asType().getKind() == TypeKind.ERROR;
-    }
-
-    private boolean isUsedSignificantly(@Nonnull TypeElement type, @Nonnull TypeEnvironment env,
-            Set<DeclaredType> visitedTypes) {
-        return !skipUseTracking && isPubliclyUsedAs(type, env,
-                UseSite.Type.allBut(UseSite.Type.IS_IMPLEMENTED, UseSite.Type.IS_INHERITED, UseSite.Type.CONTAINS),
-                visitedTypes, NOOP_USE_CHECK);
-    }
-
-    private boolean isPubliclyUsedAs(@Nonnull TypeElement type, final TypeEnvironment env,
-    final Collection<UseSite.Type> uses, final Set<DeclaredType> visitedElements, final UseSite.Visitor<Boolean, Void> noUseCheck) {
-
-        final Boolean isUsedSignificantly = env.getModelElement(type).visitUseSites(new UseSite.Visitor<Boolean, Void>() {
-
-            private int nofUses;
-
-            @Nullable
-            @Override
-            public Boolean visit(@Nonnull DeclaredType type, @Nonnull UseSite use, @Nullable Void ignored) {
-
-                if (visitedElements.contains(type)) {
-                    return null;
-                }
-
-                visitedElements.add(type);
-
-                final boolean validUse = uses.contains(use.getUseType());
-
-                if (validUse && use.getSite() instanceof JavaModelElement) {
-                    nofUses++;
-
-                    Element e = ((JavaModelElement) use.getSite()).getDeclaringElement();
-                    if (!isAccessible(e, env)) {
-                        return null;
-                    }
-
-                    final UseSite.Visitor<Boolean, Void> effectiveAccessibilityEndCheck = new UseSite.Visitor<Boolean, Void>() {
-                        @Nullable
-                        @Override
-                        public Boolean visit(@Nonnull DeclaredType type, @Nonnull UseSite use,
-                            @Nullable Void parameter) {
-                            return null;
-                        }
-
-                        @Nullable
-                        @Override
-                        public Boolean end(DeclaredType type, @Nullable Void parameter) {
-                            return isAllEnclosersAccessible(type.asElement(), env);
-                        }
-                    };
-
-                    return e.accept(new SimpleElementVisitor7<Boolean, Void>() {
-                        @Override
-                        public Boolean visitVariable(VariableElement e, Void ignored) {
-                            return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
-                                @Override
-                                public Boolean visitType(TypeElement e, Void ignored) {
-                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements, effectiveAccessibilityEndCheck);
-                                }
-                            }, null);
-                        }
-
-                        @Override
-                        public Boolean visitExecutable(ExecutableElement e, Void ignored) {
-                            return e.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
-                                @Override
-                                public Boolean visitType(TypeElement e, Void ignored) {
-                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS), visitedElements, effectiveAccessibilityEndCheck);
-                                }
-                            }, null);
-                        }
-
-                        @Override
-                        public Boolean visitType(final TypeElement type, Void ignored) {
-                            return type.getEnclosingElement().accept(new SimpleElementVisitor7<Boolean, Void>() {
-                                @Override
-                                public Boolean visitPackage(PackageElement e, Void ignored) {
-                                    return true;
-                                }
-
-                                @Override
-                                public Boolean visitType(TypeElement e, Void ignored) {
-                                    return isPubliclyUsedAs(e, env, UseSite.Type.allBut(UseSite.Type.CONTAINS),
-                                        visitedElements, effectiveAccessibilityEndCheck);
-                                }
-                            }, null);
-                        }
-                    }, null);
-                } else {
-                    return null;
-                }
-            }
-
-            @Nullable
-            @Override
-            public Boolean end(DeclaredType type, @Nullable Void parameter) {
-                if (nofUses == 0) {
-                    return noUseCheck.end(type, parameter);
-                }
-
-                return null;
-            }
-        }, null);
-
-        return isUsedSignificantly != null && isUsedSignificantly;
     }
 
     /**
@@ -349,32 +131,8 @@ public abstract class CheckBase implements Check {
     private TypeEnvironment oldTypeEnvironment;
     private TypeEnvironment newTypeEnvironment;
     private int depth;
-    private boolean dummyRun;
     private final Deque<ActiveElements<?>> activations = new ArrayDeque<>();
     private AnalysisContext analysisContext;
-
-    private boolean skipUseTracking;
-
-    /**
-     * This base class reads the configuration during the initialization and if the "revapi.java.deepUseChainAnalysis"
-     * is set to true, it does expensive checks for usage of private classes in a public manner.
-     *
-     * @return true if use tracking is not used in {@link #isAccessible(Element, TypeEnvironment)} method, false if it
-     * is
-     */
-    public boolean isSkipUseTracking() {
-        return skipUseTracking;
-    }
-
-    /**
-     * By default, this value is read from the configuration during the {@link #initialize(AnalysisContext)} call.
-     * If you need to override that value for some reason, use this method.
-     *
-     * @param value the new value of the skipUseTracking property
-     */
-    protected void setSkipUseTracking(boolean value) {
-        this.skipUseTracking = value;
-    }
 
     @Nonnull
     protected Difference createDifference(@Nonnull Code code,
@@ -418,8 +176,6 @@ public abstract class CheckBase implements Check {
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         this.analysisContext = analysisContext;
-        ModelNode node = analysisContext.getConfiguration().get("revapi", "java", "deepUseChainAnalysis");
-        skipUseTracking = !(node.isDefined() && node.asBoolean());
     }
 
     @Override
@@ -441,7 +197,7 @@ public abstract class CheckBase implements Check {
     @Override
     public final List<Difference> visitEnd() {
         try {
-            return dummyRun ? null : doEnd();
+            return doEnd();
         } finally {
             //defensive pop if the doEnd "forgets" to do it.
             //this is to prevent accidental retrieval of wrong data in the case the last active element was pushed
@@ -449,7 +205,6 @@ public abstract class CheckBase implements Check {
             //even if the visit call didn't push anything to the stack.
             popIfActive();
             depth--;
-            dummyRun = false;
         }
     }
 
@@ -467,11 +222,7 @@ public abstract class CheckBase implements Check {
     @Override
     public final void visitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
         depth++;
-        if (isPotentiallyInApi(oldType, newType)) {
-            doVisitClass(oldType, newType);
-        } else {
-            dummyRun = true;
-        }
+        doVisitClass(oldType, newType);
     }
 
     protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
@@ -487,11 +238,7 @@ public abstract class CheckBase implements Check {
     @Override
     public final void visitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
         depth++;
-        if (isPotentiallyInApi(oldMethod, newMethod)) {
-            doVisitMethod(oldMethod, newMethod);
-        } else {
-            dummyRun = true;
-        }
+        doVisitMethod(oldMethod, newMethod);
     }
 
     protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
@@ -501,11 +248,7 @@ public abstract class CheckBase implements Check {
     public final void visitMethodParameter(@Nullable JavaMethodParameterElement oldParameter,
         @Nullable JavaMethodParameterElement newParameter) {
         depth++;
-        if (isPotentiallyInApi(oldParameter, newParameter)) {
-            doVisitMethodParameter(oldParameter, newParameter);
-        } else {
-            dummyRun = true;
-        }
+        doVisitMethodParameter(oldParameter, newParameter);
     }
 
     @SuppressWarnings("UnusedParameters")
@@ -523,11 +266,7 @@ public abstract class CheckBase implements Check {
     @Override
     public final void visitField(@Nullable JavaFieldElement oldField, @Nullable JavaFieldElement newField) {
         depth++;
-        if (isPotentiallyInApi(oldField, newField)) {
-            doVisitField(oldField, newField);
-        } else {
-            dummyRun = true;
-        }
+        doVisitField(oldField, newField);
     }
 
     protected void doVisitField(@Nullable JavaFieldElement oldField, @Nullable JavaFieldElement newField) {
@@ -591,10 +330,5 @@ public abstract class CheckBase implements Check {
     protected <T extends JavaElement> ActiveElements<T> popIfActive() {
         return (ActiveElements<T>) (!activations.isEmpty() && activations.peek().depth == depth ? activations.pop() :
             null);
-    }
-
-    private boolean isPotentiallyInApi(JavaModelElement oldEl, JavaModelElement newEl) {
-        return !(oldEl != null && oldTypeEnvironment.isExplicitlyExcluded(oldEl.getDeclaringElement())
-                && newEl != null && newTypeEnvironment.isExplicitlyExcluded(newEl.getDeclaringElement()));
     }
 }

@@ -20,8 +20,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.lang.model.element.TypeElement;
-
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;

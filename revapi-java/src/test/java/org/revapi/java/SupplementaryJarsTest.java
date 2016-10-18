@@ -107,7 +107,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             revapi.analyze(AnalysisContext.builder()
                     .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                     .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
-                    .withConfigurationFromJSON("{\"revapi\": {\"java\": {\"deepUseChainAnalysis\": true}}}").build());
+                    .build());
         }
 
         Assert.assertEquals(8, allReports.size());
@@ -134,8 +134,8 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             revapi.analyze(AnalysisContext.builder()
                     .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                     .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
-                    .withConfigurationFromJSON("{\"revapi\": {\"java\": {\"deepUseChainAnalysis\": true," +
-                            " \"filter\": {\"classes\": {\"exclude\": [\"C\"]}}}}}").build());
+                    .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
+                            "\"filter\": {\"classes\": {\"exclude\": [\"C\"]}}}}}").build());
         }
 
         Assert.assertEquals(6, allReports.size());
