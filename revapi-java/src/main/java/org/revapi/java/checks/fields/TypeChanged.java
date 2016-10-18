@@ -42,8 +42,13 @@ public final class TypeChanged extends BothFieldsRequiringCheck {
             return;
         }
 
-        String oldType = Util.toUniqueString(oldField.getModelRepresentation());
-        String newType = Util.toUniqueString(newField.getModelRepresentation());
+        String oldType = Util.toUniqueString(
+                oldField.getTypeEnvironment().getTypeUtils().erasure(
+                        oldField.getModelRepresentation()));
+        String newType = Util.toUniqueString(
+                newField.getTypeEnvironment().getTypeUtils().erasure(
+                        newField.getModelRepresentation()));
+
 
         if (!oldType.equals(newType)) {
             pushActive(oldField, newField);

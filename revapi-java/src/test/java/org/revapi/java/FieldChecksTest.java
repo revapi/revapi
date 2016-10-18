@@ -159,4 +159,14 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertNull(reporter.getProblemCounters().get(Code.FIELD_ENUM_CONSTANT_ORDER_CHANGED.code()));
     }
+
+    @Test
+    public void testGenericFields() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/fields/Generics.java", "v2/fields/Generics.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_TYPE_CHANGED.code()));
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED.code()));
+    }
 }
