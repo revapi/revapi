@@ -55,14 +55,14 @@ final class BuildTimeReporter implements Reporter {
         StringBuilder errors = new StringBuilder("The following API problems caused the build to fail:\n");
         StringBuilder ignores = new StringBuilder();
         for (Report r : allProblems) {
-            Element element = r.getOldElement();
+            Element element = r.getNewElement();
             Archive archive;
             if (element == null) {
-                element = r.getNewElement();
+                element = r.getOldElement();
                 assert element != null;
-                archive = shouldOutputArchive(newApi, element.getArchive()) ? element.getArchive() : null;
-            } else {
                 archive = shouldOutputArchive(oldApi, element.getArchive()) ? element.getArchive() : null;
+            } else {
+                archive = shouldOutputArchive(newApi, element.getArchive()) ? element.getArchive() : null;
             }
 
             for (Difference d : r.getDifferences()) {
@@ -70,7 +70,7 @@ final class BuildTimeReporter implements Reporter {
                     errors.append(d.code).append(": ").append(element.getFullHumanReadableString()).append(": ")
                             .append(d.description);
                     if (archive != null) {
-                        errors.append("[").append(archive.getName()).append("]");
+                        errors.append(" [").append(archive.getName()).append("]");
                     }
                     errors.append("\n");
 
@@ -163,22 +163,5 @@ final class BuildTimeReporter implements Reporter {
 
     @Override
     public void close() throws IOException {
-    }
-
-    private void appendIgnoreRecipe(StringBuilder bld, Report report, Difference difference) {
-        bld.append("\nIf you're using the semver-ignore extension, update your module's version to one compatible " +
-                "with the current changes (e.g. mvn package revapi:update-versions). If you want to " +
-                "explicitly ignore this change and provide a justification for it, add the following JSON snippet " +
-                "to your Revapi configuration under \"revapi.ignore\" path:\n");
-        bld.append("{\n");
-        bld.append("  \"code\": \"").append(difference.code).append("\",\n");
-        if (report.getOldElement() != null) {
-            bld.append("  \"old\": \"").append(report.getOldElement()).append("\",\n");
-        }
-        if (report.getNewElement() != null) {
-            bld.append("  \"new\": \"").append(report.getNewElement()).append("\",\n");
-        }
-        bld.append("  \"justification\": <<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE >>>>>\n");
-        bld.append("}");
     }
 }
