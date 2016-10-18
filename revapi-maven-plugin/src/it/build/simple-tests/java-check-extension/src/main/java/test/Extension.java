@@ -21,24 +21,23 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.lang.model.element.TypeElement;
-
 import org.revapi.DifferenceSeverity;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
+import org.revapi.java.spi.JavaTypeElement;
 
 public class Extension extends org.revapi.java.spi.CheckBase {
 
     @Override
-    public void doVisitClass(TypeElement oldType, TypeElement newType) {
-        if (oldType != null && "test.Dep".equals(oldType.getQualifiedName().toString())) {
+    public void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
+        if (oldType != null && !isMissing(oldType.getDeclaringElement()) && "test.Dep".equals(oldType.getDeclaringElement().getQualifiedName().toString())) {
             pushActive(oldType, newType);
         }
     }
 
     @Override
     public List<Difference> doEnd() {
-        ActiveElements<TypeElement> types = popIfActive();
+        ActiveElements<JavaTypeElement> types = popIfActive();
         if (types != null) {
             return Collections.singletonList(
                 Difference.builder().withCode("!!TEST_CODE!!").withName("test check")
