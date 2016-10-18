@@ -250,7 +250,6 @@ final class ClasspathScanner {
             TypeElement superType = getTypeElement.visit(type.getSuperclass());
             if (superType != null) {
                 TypeRecord superTypeRecord = getTypeRecord(superType);
-                superTypeRecord.subClasses.add(type);
                 addUse(tr, type, superType, UseSite.Type.IS_INHERITED);
                 if (!processed.contains(superType)) {
                     requiredTypes.put(superType, false);
@@ -492,16 +491,6 @@ final class ClasspathScanner {
                 return ret;
             };
 
-            //set up the subclasses of the types so that we can determine the accessibility of methods, etc.
-            this.types.values().stream()
-                    .filter(r -> r.modelElement != null)
-                    .forEach(r -> {
-                        r.modelElement.setSubClasses(r.subClasses.stream()
-                                .map(te -> this.types.get(te).modelElement)
-                                .filter(c -> c != null)
-                                .collect(Collectors.toSet()));
-                    });
-
             //determine the inAPi status of all type records now that we have a complete picture of who uses what
             Set<TypeRecord> undetermined = new HashSet<>(this.types.values());
             while (!undetermined.isEmpty()) {
@@ -640,7 +629,6 @@ final class ClasspathScanner {
     private static final class TypeRecord {
         Set<ClassPathUseSite> useSites = new HashSet<>(4);
         org.revapi.java.model.TypeElement modelElement;
-        Set<TypeElement> subClasses = new HashSet<>(1);
         Map<UseSite.Type, Set<TypeRecord>> usedTypes = new EnumMap<>(UseSite.Type.class);
         boolean explicitlyExcluded;
         boolean explicitlyIncluded;

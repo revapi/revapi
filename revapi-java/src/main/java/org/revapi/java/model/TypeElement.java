@@ -16,7 +16,6 @@
 
 package org.revapi.java.model;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -25,9 +24,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
@@ -47,14 +44,10 @@ import org.revapi.query.Filter;
  * @since 0.1
  */
 public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement, DeclaredType> implements JavaTypeElement {
-    private static final List<Modifier> ACCESSIBLE_MODIFIERS = Arrays.asList(Modifier.PUBLIC, Modifier.PROTECTED);
-
     private final String binaryName;
     private final String canonicalName;
     private Set<UseSite> useSites;
     private Set<ClassPathUseSite> rawUseSites;
-    private Set<TypeElement> subClasses;
-    private boolean membersAccessible;
     private boolean inApi;
 
     /**
@@ -119,24 +112,6 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return useSites;
     }
 
-    @Override public boolean isMembersAccessible() {
-        return true;
-// TODO this is most probably not needed anymore
-//        if (subClasses != null) {
-//            if (isAccessibleByModifier(getModelElement())) {
-//                membersAccessible = allEnclosersAccessibleByModifier(getModelElement());
-//            } else {
-//                membersAccessible = subClasses.stream()
-//                        .filter(TypeElement::isMembersAccessible)
-//                        .findAny().isPresent();
-//            }
-//
-//            subClasses = null;
-//        }
-//
-//        return membersAccessible;
-    }
-
     @Override public boolean isInAPI() {
         return inApi;
     }
@@ -147,10 +122,6 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
     public void setRawUseSites(Set<ClassPathUseSite> rawUseSites) {
         this.rawUseSites = rawUseSites;
-    }
-
-    public void setSubClasses(Set<TypeElement> subClasses) {
-        this.subClasses = subClasses;
     }
 
     @Override
@@ -171,23 +142,6 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     protected String createComparableSignature() {
         //this isn't used, because compareTo is implemented differently
         return null;
-    }
-
-    private boolean isAccessibleByModifier(Element type) {
-        return !Collections.disjoint(type.getModifiers(), ACCESSIBLE_MODIFIERS);
-    }
-
-    private boolean allEnclosersAccessibleByModifier(javax.lang.model.element.TypeElement type) {
-        Element el = type;
-        while (el != null && !(el instanceof PackageElement)) {
-            if (!isAccessibleByModifier(el)) {
-                return false;
-            }
-
-            el = el.getEnclosingElement();
-        }
-
-        return true;
     }
 
     private JavaModelElement getModel(Element element, int indexInParent) {

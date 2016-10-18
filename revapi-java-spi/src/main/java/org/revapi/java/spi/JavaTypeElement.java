@@ -50,21 +50,4 @@ public interface JavaTypeElement extends JavaModelElement {
      * @return true if this type was found to be a part of the API, false otherwise
      */
     boolean isInAPI();
-
-    /**
-     * If a member of a class is accessible depends on 2 things. First, it has to have a modifier that allows "public"
-     * access (i.e. public or protected) but secondly the class that contains that member has to be accessible somehow.
-     *
-     * <p>For that the rules are somewhat more complicated:
-     * The <b>public</b> members of the class are accessible iff:
-     * <ol>
-     * <li> they are not overridden by an accessible subclass
-     * <li> the class is public (regardless of final) and all its enclosing classes are public or protected non-final,
-     * <li> the class is protected (non-final) and all its enclosing classes are public or protected non-final,
-     * <li> the class is not accessible but at least one of its (indirect) subclasses is accessible and the rules 1. and
-     *      2. apply for that subclass.
-     *
-     * @return true if the above rules apply for this type, false otherwise
-     */
-    boolean isMembersAccessible();
 }
