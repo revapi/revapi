@@ -45,6 +45,7 @@ import javax.tools.StandardJavaFileManager;
 
 import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
+import org.revapi.java.FlatFilter;
 import org.revapi.java.model.MissingClassElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
@@ -303,7 +304,7 @@ final class ClasspathScanner {
                 }
 
                 Function<String, Filter<org.revapi.java.model.TypeElement>> findByCN =
-                        cn -> Filter.flat(e -> cn.equals(e.getCanonicalName()));
+                        cn -> FlatFilter.by(e -> cn.equals(e.getCanonicalName()));
 
                 List<org.revapi.java.model.TypeElement> parents = Collections.emptyList();
                 while (parents.isEmpty() && !nesting.isEmpty()) {

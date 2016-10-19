@@ -31,13 +31,13 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleElementVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.java.FlatFilter;
 import org.revapi.java.compilation.ClassPathUseSite;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
-import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
@@ -152,20 +152,20 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                     TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
                     Name fieldName = e.getSimpleName();
                     List<FieldElement> fs = type.searchChildren(FieldElement.class, false,
-                            Filter.flat(f -> fieldName.contentEquals(f.getDeclaringElement().getSimpleName())));
+                            FlatFilter.by(f -> fieldName.contentEquals(f.getDeclaringElement().getSimpleName())));
                     return fs.get(0);
                 } else if (e.getEnclosingElement() instanceof javax.lang.model.element.ExecutableElement) {
                     //this is a method parameter
                     TypeElement type = environment.getTypeMap().get(e.getEnclosingElement().getEnclosingElement());
                     String methodSig = Util.toUniqueString(e.getEnclosingElement().asType());
                     List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
-                            Filter.flat(m -> Util.toUniqueString(m.getDeclaringElement().asType()).equals(methodSig)));
+                            FlatFilter.by(m -> Util.toUniqueString(m.getDeclaringElement().asType()).equals(methodSig)));
 
                     MethodElement method = ms.get(0);
 
                     //now look for the parameter
                     List<MethodParameterElement> params =
-                            method.searchChildren(MethodParameterElement.class, false, Filter.flat(p -> true));
+                            method.searchChildren(MethodParameterElement.class, false, FlatFilter.by(p -> true));
 
                     return params.get(indexInParent);
                 } else {
@@ -181,7 +181,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
                 String methodSig = Util.toUniqueString(e.asType());
                 List<MethodElement> fs = type.searchChildren(MethodElement.class, false,
-                        Filter.flat(f -> Util.toUniqueString(f.getDeclaringElement().asType()).equals(methodSig)));
+                        FlatFilter.by(f -> Util.toUniqueString(f.getDeclaringElement().asType()).equals(methodSig)));
 
                 return fs.get(0);
             }

@@ -16,8 +16,6 @@
 
 package org.revapi.query;
 
-import java.util.function.Function;
-
 import javax.annotation.Nullable;
 
 /**
@@ -27,25 +25,6 @@ import javax.annotation.Nullable;
  * @since 0.1
  */
 public interface Filter<T> {
-
-    /**
-     * A simple filter that scans only the direct children of some element.
-     *
-     * @param filter the function to determine if the filter {@link #applies(Object)}
-     * @param <T> the type of the element to accept
-     * @return a filter implementation that does not descend into any element
-     */
-    static <T> Filter<T> flat(Function<T, Boolean> filter) {
-        return new Filter<T>() {
-            @Override public boolean applies(@Nullable T element) {
-                return filter.apply(element);
-            }
-
-            @Override public boolean shouldDescendInto(@Nullable Object element) {
-                return false;
-            }
-        };
-    }
 
     /**
      * If an element in a forest is of compatible type, does the filter apply to it?
