@@ -1,9 +1,103 @@
-== Detected Differences
+== Understanding The Found Differences
+
+=== Identifying Problematic Element
+
+When Revapi reports the found API problems it needs to pinpoint the element it is "talking about".
+Therefore it assigns a one-line representation to each API element to identify it. It tries to follow the conventions of
+Java syntax but needs to go beyond it to express additional information.
+
+First, let's go through some simple examples.
+
+  class com.example.MyClass
+
+This somewhat obviously refers to a class called `MyClass` in the `com.example` package.
+
+  class com.example.MyGenericClass<T extends java.lang.Number>
+
+This again refers to the class but you can see that Revapi also includes the type parameters in the class name. Note
+that the bounds of the type parameters are specified using fully qualified class names.
+
+  missing-class com.example.Whoops
+
+What's this? Here, Revapi tries to convey that the class in question wasn't found anywhere on the classpath.
+
+  method java.lang.String com.example.MyClass::myMethod(int, long)
+
+If you are familiar with the method reference syntax in Java 8, you may guess that the above refers to a method called
+`myMethod` declared in the `com.example.MyClass` class that returns a `java.lang.String` and accepts an `int` as its
+first argument and a `long` as its second argument. As with classes, the type mentioned in the method identifier may
+include the type parameters. The method identifier also includes the `throws` declaration if present on the method.
+
+  method parameter java.lang.String com.example.MyClass::myMethod(int, ===long===)
+
+If Revapi needs to "talk" about a single parameter of a method, it encloses the parameter in `===`. The above therefore
+identifies the second parameter of the method `myMethod`.
+
+  field com.example.MyClass.myField
+
+Quite intuitively, the above identifies the field called `myField` in the class `com.example.MyClass`.
+
+  method void com.example.MySuperClass::superMethod() @ com.example.MyClass
+
+This is again a little bit cryptic. The above identifies the method `superMethod` declared in `com.example.MySuperClass`
+as seen in `com.example.MyClass`. In another words, Revapi distinguishes between a declared method and inherited method.
+This is because a public method in a private class can be made "accessible" in the API if the private class is inherited
+by some public class in the API.
+
+Types::
+```
+class the.fully.qualified.class.name.including.Any<Type extends Params>
+```
+or in case the type is missing in the API:
+```
+missing-class fully.qualified.class.name.including.Any<Type extends Params>
+```
+
+Methods::
+Declared method:
+```
+method ReturnType fully.qualified.class.name.of.the.declaring.class::methodName(All, The, Params) throws Any, Exceptions
+```
+Inherited method:
+```
+method ReturnType fully.qualified.class.name.of.the.declaring.class::methodName(All, The, Params) throws Any, Exceptions @ the.class.that.inherits.the.Method
+```
+Revapi distinguishes between declared and inherited methods because a public method in a private class can be made
+"accessible" in the API if the private class is inherited by some public class in the API.
+
+Method Parameters::
+This is where the syntax differs most from java. The `===` highlight the parameter
+in question among the others. Note also that the parameter names are not available because more often than not they're
+not available in the bytecode.
+
+Parameter on a declared method:
+```
+method parameter ReturnType class.name.of.declaring.class::methodName(===ParameterType===, Other, Params)
+```
+Parameter on an inherited method:
+```
+method parameter ReturnType class.name.of.declaring.class::methodName(===ParameterType===, Other, Params) @ class.name.of.inheriting.class
+```
+Because method parameter is tied to the method, the distinction between a declared and inherited method is exhibited
+in the identifier of the method parameter, too.
+
+Fields::
+Declared field:
+```
+field fully.qualified.class.name.of.declaring.class.fieldName
+```
+Inherited field:
+```
+field fully.qualified.class.name.of.declaring.class.fieldName @ class.that.inherits.the.Field
+```
+As with methods, the distinction between a declared and inherited field is quite important.
+
+=== Detected Differences
 All the differences detected by the extension are defined in the
 link:../revapi-java-spi/apidocs/org/revapi/java/spi/Code.html[Code] enumeration. Below, you can find a short discussion
 of each type of the difference.
 
-=== Missing API Class
+==== Missing API Class
 [cols="35s,<65d"]
 |=============
 | Code              | +java.missing.oldClass+ or +java.missing.newClass+
@@ -12,10 +106,11 @@ of each type of the difference.
 | Semantic severity | NA
 |=============
 
-By default, Revapi will abort the API check if it encounters a type that should belong to the API but that cannot be
+By default, Revapi will report any type that should belong to the API but cannot be
 found neither in the API libraries themselves or in the supporting libraries. It can also be configured to ignore such
-missing classes or to report them. If it is configured to report them, one of the above codes will be emitted
-depending on whether the missing class is found in the old version of the API or the new one.
+missing classes or to abort the API check altogether. If it is configured to report them (which is the default), one of
+the above codes will be emitted depending on whether the missing class is found in the old version of the API or the new
+one.
 
 The missing class behavior can be configured by the `revapi.java.missing-classes` configuration property with the
 possible values of `ignore`, `report` and `error`, e.g.:
@@ -25,13 +120,13 @@ possible values of `ignore`, `report` and `error`, e.g.:
 {
     "revapi" : {
         "java" : {
-            "missing-classes" : "report"
+            "missing-classes" : "ignore"
         }
     }
 }
 ----
 
-=== Element No Longer Deprecated
+==== Element No Longer Deprecated
 [cols="35s,<65d"]
 |=============
 | Code              | +java.element.noLongerDeprecated+
@@ -44,7 +139,7 @@ An element (class, method or field) is marked as deprecated in the old version o
 This represents no danger in terms of API breakage and is reported only because it is useful to know for the library
 users to know about such cases.
 
-=== Element Now Deprecated
+==== Element Now Deprecated
 [cols="35s,<65d"]
 |=============
 | Code              | +java.element.nowDeprecated+
@@ -57,7 +152,7 @@ An element (class, method or field) is marked as deprecated in the new version o
 This represents no danger in terms of API breakage and is reported only because it is useful to know for the library
 users to know about such cases.
 
-=== Class Visibility Increased
+==== Class Visibility Increased
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.visibilityIncreased+
@@ -70,7 +165,7 @@ The class is more visible in the new version of the API than it used to be in th
 and is reported for completeness sake. The visibility is ordered as follows: +private+ < +package private+ < +protected+
 < +public+.
 
-=== Class Visibility Reduced
+==== Class Visibility Reduced
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.visibilityReduced+
@@ -83,7 +178,7 @@ Reducing the visibility of an API class is a breaking change. It means that clas
 might no longer be able to. Thus a library user might face compilation errors at compile time or linkage errors at
 runtime when trying to use the new version of the library.
 
-=== Class Kind Changed
+==== Class Kind Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.kindChanged+
@@ -96,7 +191,7 @@ There are 4 kinds of java classes: +class+, +interface+, +annotation type+, +enu
 a class changes from one to the other. This is of course incompatible change and will break the library users at both
 compile time and at runtime.
 
-=== Class No Longer Final
+==== Class No Longer Final
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.noLongerFinal+
@@ -107,7 +202,7 @@ compile time and at runtime.
 
 A class that used to be final is now not. This is no API breakage and is reported for completeness sake.
 
-=== Class Now Final
+==== Class Now Final
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.nowFinal+
@@ -119,7 +214,7 @@ A class that used to be final is now not. This is no API breakage and is reporte
 A class became final in the new version of the library. This is a breaking change because any library user that extended
 the class will no longer be compatible with the new version of the library, in which the class cannot be extended.
 
-=== Class No Longer Abstract
+==== Class No Longer Abstract
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.noLongerAbstract+
@@ -130,7 +225,7 @@ the class will no longer be compatible with the new version of the library, in w
 
 A class that used to be abstract is now not. This is no API breakage and is reported for completeness sake.
 
-=== Class Now Abstract
+==== Class Now Abstract
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.nowAbstract+
@@ -142,7 +237,7 @@ A class that used to be abstract is now not. This is no API breakage and is repo
 A concrete class became abstract in the new version of the library. This is a breaking change because it is no longer
 possible to create instances of such class.
 
-=== Class Added
+==== Class Added
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.added+
@@ -153,7 +248,7 @@ possible to create instances of such class.
 
 A new class appeared in the new version of the API. This is a non-breaking change reported for completeness sake.
 
-=== Class Removed
+==== Class Removed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.removed+
@@ -165,7 +260,7 @@ A new class appeared in the new version of the API. This is a non-breaking chang
 A class present in the old version of the library is no longer present. This is of course a breaking change because
 the users of the API will no longer be able to use that class in any capacity.
 
-=== Class No Longer Implements Interface
+==== Class No Longer Implements Interface
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.noLongerImplementsInterface+
@@ -176,7 +271,7 @@ the users of the API will no longer be able to use that class in any capacity.
 
 This is a breaking change because it is no longer possible to cast the class to the no longer implemented interface.
 
-=== Class Now Implements Interface
+==== Class Now Implements Interface
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.nowImplementsInterface+
@@ -187,7 +282,7 @@ This is a breaking change because it is no longer possible to cast the class to 
 
 No API breakage reported for the completeness sake.
 
-=== Final Class Inherits From New Class
+==== Final Class Inherits From New Class
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.finalClassInheritsFromNewClass+
@@ -200,7 +295,7 @@ A final class inherits from a new class. This represents no API breakage and is 
 Inheriting from a new class may introduce new methods or fields to the class but cannot remove any (method changes are
 reported separately).
 
-=== Non-final Class Inherits From New Class
+==== Non-final Class Inherits From New Class
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.nonFinalClassInheritsFromNewClass+
@@ -213,7 +308,7 @@ While this change is usually OK, it might cause trouble to the users of the API 
 final methods. If the users of the library happen to define methods of the same name in the class that inherits from the
 checked one, they will get compilation or linkage errors.
 
-=== Class Now Checked Exception
+==== Class Now Checked Exception
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.nowCheckedException+
@@ -225,7 +320,7 @@ checked one, they will get compilation or linkage errors.
 A class newly inherits from +java.lang.Exception+. This is a source incompatibility because such exceptions need to be
 declared in the +throws+ declarations of the methods.
 
-=== Class No Longer Inherits From Class
+==== Class No Longer Inherits From Class
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.noLongerInheritsFromClass+
@@ -237,7 +332,7 @@ declared in the +throws+ declarations of the methods.
 The checked class no longer inherits from a super class that it used to. This means that it can no longer be cast to
 that super class nor can the methods declared in the super class be called using the instance of the checked class.
 
-=== Class Is Non-Public Part of API
+==== Class Is Non-Public Part of API
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.nonPublicPartOfAPI+
@@ -250,11 +345,13 @@ While this is non-breaking from the pure API compatibility point of view, it is 
 This means that a class that is not publicly accessible (i.e. is private or package private) is used in a public
 capacity (i.e. return type of a method, type of a method parameter, type of an accessible field, implemented interface).
 
+By default, Revapi even outputs the "usage chain" from some public API element to the non-public class.
+
 NOTE: This is NOT reported on a non-accessible class that is used solely as a super class of another API classes or that
 is only implemented by other API classes. An implementation of a private interface or inheriting from a non-public
 super class is a valid design decision.
 
-=== Type Parameters of The Super Type Changed
+==== Type Parameters of The Super Type Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.superTypeTypeParametersChanged+
@@ -270,7 +367,7 @@ potentially break the compilation, too.
 This is generally a quite dangerous thing to do, because it can change the erased signatures of the methods or fields
 inherited from the super class (which would be the cause of the binary and source incompatibilities).
 
-=== Annotation Added
+==== Annotation Added
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.added+
@@ -283,7 +380,7 @@ An element is newly annotated by given annotation. This poses no risk during com
 cause semantic differences between the versions because of the way the annotations can be used (code generation,
 processing, reflection, etc.).
 
-=== Annotation Removed
+==== Annotation Removed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.removed+
@@ -296,7 +393,7 @@ An element is no longer annotated by given annotation. This poses no risk during
 cause semantic differences between the versions because of the way the annotations can be used (code generation,
 processing, reflection, etc.).
 
-=== Annotation Attribute Value Changed
+==== Annotation Attribute Value Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.attributeValueChanged+
@@ -309,7 +406,7 @@ An attribute of some annotation on some element changed its value. This poses no
 time but may cause semantic differences between the versions because of the way the annotations can be used (code
 generation, processing, reflection, etc.).
 
-=== Annotation Attribute Added
+==== Annotation Attribute Added
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.attributeAdded+
@@ -322,7 +419,7 @@ An annotation on some element newly specifies an explicit value of an attribute.
 or at linkage time but may cause semantic differences between the versions because of the way the annotations can be
 used (code generation, processing, reflection, etc.).
 
-=== Annotation Attribute Removed
+==== Annotation Attribute Removed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.attributeRemoved+
@@ -335,7 +432,7 @@ An annotation on some element no longer specifies an explicit value of an attrib
 compilation or at linkage time but may cause semantic differences between the versions because of the way the
 annotations can be used (code generation, processing, reflection, etc.).
 
-=== Annotation No Longer Inherited
+==== Annotation No Longer Inherited
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.noLongerInherited+
@@ -348,7 +445,7 @@ An annotation type used to be annotated with the `@Inherited` annotation but is 
 compilation or at linkage time but may cause semantic differences between the versions because of the way the
 annotations can be used (code generation, processing, reflection, etc.).
 
-=== Annotation Now Inherited
+==== Annotation Now Inherited
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.nowInherited+
@@ -361,7 +458,7 @@ An annotation type is now annotated with the `@Inherited` annotation. This poses
 compilation or at linkage time but may cause semantic differences between the versions because of the way the
 annotations can be used (code generation, processing, reflection, etc.).
 
-=== Static Field Added
+==== Static Field Added
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.addedStaticField+
@@ -372,7 +469,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 
 No API breakage, provided for completeness sake. Note that this si reported only for publicly accessible fields.
 
-=== Field Added
+==== Field Added
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.added+
@@ -383,7 +480,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 
 No API breakage, provided for completeness sake. Note that this si reported only for publicly accessible fields.
 
-=== Field Removed
+==== Field Removed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.removed+
@@ -395,7 +492,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 The field was removed from the class. This is an API breakage because the field can no longer be accessed.
 Note that this si reported only for publicly accessible fields.
 
-=== Constant Field Removed
+==== Constant Field Removed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.removed+
@@ -410,7 +507,7 @@ API). This is because the constants are inlined during compilation. Because the 
 in the API but the user of the API still can operate with the value, this is also reported as potentially breaking the
 semantics.
 
-=== Constant Field Changed Value
+==== Constant Field Changed Value
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.constantValueChanged+
@@ -423,7 +520,7 @@ A constant field changed its value. At compilation time, the new value is used, 
 swapped for the old API without recompiling the users of the API) the users of the API will still use the old value,
 because the constant values are inlined. This is therefore reported as breaking the semantics.
 
-=== Field Now Constant
+==== Field Now Constant
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.nowConstant+
@@ -434,7 +531,7 @@ because the constant values are inlined. This is therefore reported as breaking 
 
 This is no API breakage and is reported only for completeness' sake.
 
-=== Field No Longer Constant
+==== Field No Longer Constant
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.nowConstant+
@@ -449,7 +546,7 @@ value from the old version of the API is used. I.e. the code works and therefore
 incompatibility, but it is marked as a semantic incompatibility, because the behavior described above is most probably
 NOT what the API author had in mind when making the change.
 
-=== Field Now Final
+==== Field Now Final
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.nowFinal+
@@ -461,7 +558,7 @@ NOT what the API author had in mind when making the change.
 A field that could previously be assigned to is now final and cannot be changed. This is therefore both source and
 binary incompatibility.
 
-=== Field No Longer Final
+==== Field No Longer Final
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.noLongerFinal+
@@ -472,7 +569,7 @@ binary incompatibility.
 
 This is no API breakage and is reported for completeness' sake.
 
-=== Field No Longer Static
+==== Field No Longer Static
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.noLongerStatic+
@@ -484,7 +581,7 @@ This is no API breakage and is reported for completeness' sake.
 A static field has become an instance field. Accessing the field is no longer possible through its class and therefore
 this is both source and binary incompatibility.
 
-=== Field Now Static
+==== Field Now Static
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.nowStatic+
@@ -497,7 +594,7 @@ According to the Java specification, the Java runtime will throw `IncompatibleCl
 has become static and the new version of API is used against the user code compiled against the old version of API.
 When recompiling the user code against the new version, everything works fine.
 
-=== Field Type Changed
+==== Field Type Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.typeChanged+
@@ -508,7 +605,7 @@ When recompiling the user code against the new version, everything works fine.
 
 The field has a different type than it used to in the old version of the API. This is incompatible change.
 
-=== Field `serialVersionUID` Unchanged
+==== Field `serialVersionUID` Unchanged
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.serialVersionUIDUnchanged+
@@ -523,7 +620,7 @@ it break binary compatibility, it possibly may cause semantic problems because s
 depends on if and how the `readObject` and `writeObject` methods on the class are implemented, which is beyond the scope
 of this check.
 
-=== Field Visibility Increased
+==== Field Visibility Increased
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.visibilityIncreased+
@@ -534,7 +631,7 @@ of this check.
 
 No API breakage, reported for completeness' sake.
 
-=== Field Visibility Reduced
+==== Field Visibility Reduced
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.visibilityReduced+
@@ -545,7 +642,7 @@ No API breakage, reported for completeness' sake.
 
 Field's visibility was reduced, which means that code that used to be able to access it might no longer be able to.
 
-=== Enum Constant Order Changed
+==== Enum Constant Order Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.enumConstantOrderChanged+
@@ -557,7 +654,7 @@ Field's visibility was reduced, which means that code that used to be able to ac
 The constants of an enumeration were re-ordered. This can lead to problems in user code that uses the `Enum.ordinal()`
 method to determine the order of an enum constant and relies on a specific value.
 
-=== Default Value Added To Method
+==== Default Value Added To Method
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.defaultValueAdded+
@@ -569,7 +666,7 @@ method to determine the order of an enum constant and relies on a specific value
 This is only relevant on annotation types, of which the attributes are represented by method declarations.
 Declaring a default value to an annotation attribute is not an API breakage and is only reported for completeness' sake.
 
-=== Method's Default Value Changed
+==== Method's Default Value Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.defaultValueChanged+
@@ -584,7 +681,7 @@ how the annotation is used). Elements annotated using this annotation that didn'
 attribute will suddenly be understood to have the new default value of the attribute when used with the new version of
 the API. This might or might not be a problem.
 
-=== Default Value Removed From Method
+==== Default Value Removed From Method
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.defaultValueRemoved+
@@ -599,7 +696,7 @@ because annotation processor that relies on the new version of the annotation ty
 was compiled against the old version of the API (and therefore didn't have to declare the default value of the
 attribute).
 
-=== Method Added To Interface
+==== Method Added To Interface
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.addedToInterface+
@@ -622,7 +719,7 @@ implementations provide the impl of the new method and it is provided with the S
 of the interface, things will break with `NoSuchMethodError` when the caller tries to call the SPI method backed by the
 old SPI implementation.
 
-=== Method With No Default Value Added To Annotation Type
+==== Method With No Default Value Added To Annotation Type
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.attributeWithNoDefaultAddedToAnnotationType+
@@ -640,7 +737,7 @@ define explicit value for the new attribute. This also breaks semantics because 
 attribute won't be possible to process using a processor that depends on the new version of the API and therefore
 assumes an explicit value for the annotation attribute.
 
-=== Method With Default Value Added To Annotation Type
+==== Method With Default Value Added To Annotation Type
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.attributeWithDefaultAddedToAnnotationType+
@@ -651,7 +748,7 @@ assumes an explicit value for the annotation attribute.
 
 This does not break compatibility and is reported for completeness' sake.
 
-=== Abstract Method Added
+==== Abstract Method Added
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.abstractMethodAdded+
@@ -663,7 +760,7 @@ This does not break compatibility and is reported for completeness' sake.
 Abstract method added to a class. All the code compiled against the old version of the API will not provide a concrete
 implementation of it and will therefore break.
 
-=== Method Added
+==== Method Added
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.added+
@@ -674,7 +771,7 @@ implementation of it and will therefore break.
 
 A new concrete method added to a concrete class. This is always safe.
 
-=== Final Method Added To Non-final Class
+==== Final Method Added To Non-final Class
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.finalMethodAddedToNonFinalClass+
@@ -686,7 +783,7 @@ A new concrete method added to a concrete class. This is always safe.
 This will break user code if the a subclass of the checked class declared a method that happens to have a same signature
 as the newly introduced final method.
 
-=== Inherited Method Moved To Class
+==== Inherited Method Moved To Class
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.inheritedMovedToClass+
@@ -698,7 +795,7 @@ as the newly introduced final method.
 A method that was inherited in the old version is now declared in the class (or interface). This is a compatible change.
 Note that if the super class is part of the API, the removal of the method from that class will be reported separately.
 
-=== Method Removed
+==== Method Removed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.removed+
@@ -709,7 +806,7 @@ Note that if the super class is part of the API, the removal of the method from 
 
 Removing a method from a class is an incompatible change.
 
-=== Method Moved To Superclass
+==== Method Moved To Superclass
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.movedToSuperClass+
@@ -723,7 +820,7 @@ If such move should represent a compatibility breakage it is reported differentl
 <<a_method_replaced_by_abstract_in_superclass, Method Replaced By Abstract In Superclass>>.
 Otherwise this is a compatible change and is reported for completeness' sake.
 
-=== Attribute Removed From Annotation Type
+==== Attribute Removed From Annotation Type
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.attributeRemovedFromAnnotationType+
@@ -734,7 +831,7 @@ Otherwise this is a compatible change and is reported for completeness' sake.
 
 This is identical to <<a_method_removed, Method Removed>> but specialized for annotation types.
 
-=== Method No Longer Final
+==== Method No Longer Final
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.noLongerFinal+
@@ -745,7 +842,7 @@ This is identical to <<a_method_removed, Method Removed>> but specialized for an
 
 No API breakage, reported for completeness' sake.
 
-=== Method Now Final
+==== Method Now Final
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.nowFinal+
@@ -756,7 +853,7 @@ No API breakage, reported for completeness' sake.
 
 Any subclasses that overrode the method will break both at compile time and at runtime.
 
-=== Method No Longer Static
+==== Method No Longer Static
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.noLongerStatic+
@@ -768,7 +865,7 @@ Any subclasses that overrode the method will break both at compile time and at r
 When a method becomes a member method, it no longer can be called from the static context. This breaks both binary
 and source compatibility.
 
-=== Method Now Static
+==== Method Now Static
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.nowStatic+
@@ -780,7 +877,7 @@ and source compatibility.
 A static method can be called in the same way as member method, so on the source level, this change is compatible.
 It is not binary compatible though because static methods are called using a different bytecode instruction.
 
-=== Method Now Abstract
+==== Method Now Abstract
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.nowAbstract+
@@ -792,7 +889,7 @@ It is not binary compatible though because static methods are called using a dif
 If a method becomes abstract, all the inheriting classes will have to implement it even though they didn't have
 to before.
 
-=== Method No Longer Abstract
+==== Method No Longer Abstract
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.noLongerAbstract+
@@ -803,7 +900,7 @@ to before.
 
 This is a compatible change reported for the completeness' sake.
 
-=== Method Visibility Increased
+==== Method Visibility Increased
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.visibilityIncreased+
@@ -814,7 +911,7 @@ This is a compatible change reported for the completeness' sake.
 
 No API breakage, reported for completeness' sake.
 
-=== Method Visibility Reduced
+==== Method Visibility Reduced
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.visibilityIncreased+
@@ -825,7 +922,7 @@ No API breakage, reported for completeness' sake.
 
 A method might no longer be visible to code that used to call it. This is a breaking change.
 
-=== Method Return Type Changed
+==== Method Return Type Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.returnTypeChanged+
@@ -837,7 +934,7 @@ A method might no longer be visible to code that used to call it. This is a brea
 While changing the return type always breaks at runtime (i.e. when swapping the new API for the old API without
 recompiling the user code), it might be OK at compile time due to implicit conversions of primitive types.
 
-=== Type Parameters of The Return Type Changed
+==== Type Parameters of The Return Type Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.returnTypeTypeParametersChanged+
@@ -849,7 +946,7 @@ recompiling the user code), it might be OK at compile time due to implicit conve
 If the return type of the method is a generic type and its type parameters change between old and new version of the API
 it is a source incompatible change. It is binary compatible because of type erasure.
 
-=== Number of Method Parameters Changed
+==== Number of Method Parameters Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.numberOfParametersChanged+
@@ -860,7 +957,7 @@ it is a source incompatible change. It is binary compatible because of type eras
 
 Obviously, this is a breaking change - you can no longer call the method with the same parameters.
 
-=== Method Parameter Type Changed
+==== Method Parameter Type Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.parameterTypeChanged+
@@ -872,7 +969,7 @@ Obviously, this is a breaking change - you can no longer call the method with th
 This is a binary incompatibility but may be source compatible if the changed types are primitive and the new one
 is strictly bigger than the old one and the old one is implicitly convertible to it.
 
-=== Element Now Parameterized
+==== Element Now Parameterized
 [cols="35s,<65d"]
 |=============
 | Code              | +java.generics.elementNowParameterized+
@@ -887,7 +984,7 @@ the new version of the API parameterized the list to `List<E>`. The old code use
 list but the new version of the API suggests it is not possible. Everything will still work correctly, but new user code
 might start assuming uniform types in the list).
 
-=== Formal Type Parameter Added
+==== Formal Type Parameter Added
 [cols="35s,<65d"]
 |=============
 | Code              | +java.generics.formalTypeParameterAdded+
@@ -900,7 +997,7 @@ This is not a binary incompatibility due to type erasure but it is a source inco
 against the old version of the API will no longer compile with the new version because they will be missing the
 definition of the formal type parameter.
 
-=== Formal Type Parameter Removed
+==== Formal Type Parameter Removed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.generics.formalTypeParameterRemoved+
@@ -913,7 +1010,7 @@ This is not a binary incompatibility due to type erasure but it is a source inco
 against the old version of the API will no longer compile with the new version because they will be declaring a type
 parameter that is no longer required.
 
-=== Formal Type Parameter Changed
+==== Formal Type Parameter Changed
 [cols="35s,<65d"]
 |=============
 | Code              | +java.generics.formalTypeParameterChanged+
