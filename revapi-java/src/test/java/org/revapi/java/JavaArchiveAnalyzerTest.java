@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
+import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 
@@ -31,6 +32,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.Archive;
+import org.revapi.Element;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
@@ -119,6 +121,43 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             Assert.assertEquals("B.T$2", B_T$2.getDeclaringElement().getQualifiedName().toString());
         } finally {
             deleteDir(compRes.compilationPath);
+        }
+    }
+
+    @Test
+    public void testPreventRecursionWhenConstructingInheritedMembers() throws Exception {
+        ArchiveAndCompilationPath archive = createCompiledJar("a.jar", "misc/MemberInheritsOwner.java");
+
+        try {
+            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
+                    Arrays.asList(new ShrinkwrapArchive(archive.archive)),
+                    null), Executors.newSingleThreadExecutor(), null, false,
+                    InclusionFilter.acceptAll());
+
+            JavaElementForest forest = analyzer.analyze();
+
+            forest.getRoots();
+
+            Assert.assertEquals(1, forest.getRoots().size());
+
+            Predicate<Element> findMethod =
+                    c -> "method void MemberInheritsOwner::method()".equals(c.getFullHumanReadableString());
+            Predicate<Element> findMember1 =
+                    c -> "class MemberInheritsOwner.Member1".equals(c.getFullHumanReadableString());
+            Predicate<Element> findMember2 =
+                    c -> "class MemberInheritsOwner.Member2".equals(c.getFullHumanReadableString());
+
+            Element root = forest.getRoots().first();
+            Assert.assertEquals(3, root.getChildren().size());
+            Assert.assertTrue(root.getChildren().stream().anyMatch(findMethod));
+            Assert.assertTrue(root.getChildren().stream().anyMatch(findMember1));
+            Assert.assertTrue(root.getChildren().stream().anyMatch(findMember2));
+
+            Assert.assertEquals(1, root.getChildren().stream().filter(findMember1).findFirst().get().getChildren().size());
+            Assert.assertEquals(1, root.getChildren().stream().filter(findMember2).findFirst().get().getChildren().size());
+
+        } finally {
+            deleteDir(archive.compilationPath);
         }
     }
 }

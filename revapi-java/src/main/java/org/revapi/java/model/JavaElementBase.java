@@ -131,9 +131,6 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
                 }
 
                 TypeMirror t = types.asMemberOf(currentType, e);
-                if (t instanceof DeclaredType && environment.isExplicitlyExcluded(((DeclaredType) t).asElement())) {
-                    return null;
-                }
 
                 JavaElementBase<?, ?> child = JavaElementFactory.elementFor(e, t, environment, archive);
                 if (child != null) {
@@ -146,6 +143,11 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
             };
 
             for (Element e : currentElement.getEnclosedElements()) {
+                //leave out types - those have been handled by the classpath scanner and also can lead to nasty
+                //recursions if the member classes inherit from the outer class
+                if (e instanceof javax.lang.model.element.TypeElement) {
+                    continue;
+                }
                 processElement.apply(e, true);
             }
 
@@ -154,6 +156,11 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
                 if (e != null && e instanceof javax.lang.model.element.TypeElement
                         && environment.getTypeMap().containsKey(e)) {
                     for (Element child : e.getEnclosedElements()) {
+                        //leave out types - those have been handled by the classpath scanner and also can lead to nasty
+                        //recursions if the member classes inherit from the outer class
+                        if (child instanceof javax.lang.model.element.TypeElement) {
+                            continue;
+                        }
                         JavaElementBase<?, ?> childE = processElement.apply(child, false);
                         if (childE != null) {
                             childE.setInherited(true);
