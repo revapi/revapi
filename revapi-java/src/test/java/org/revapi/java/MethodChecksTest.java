@@ -231,7 +231,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         CollectingReporter reporter = new CollectingReporter(reports);
         runAnalysis(reporter, "v1/methods/Abstract.java", "v2/methods/Abstract.java");
 
-        Assert.assertEquals(7, reports.size());
+        Assert.assertEquals(6, reports.size());
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
                 "class Abstract.PubliclyUsedPrivateSuperClass",
@@ -254,11 +254,6 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 Code.METHOD_ADDED)));
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
-                null,
-                "method void Abstract.PubliclyUsedPrivateSuperClass::method()",
-                Code.METHOD_ABSTRACT_METHOD_ADDED)));
-
-        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
                 "method void Abstract::abstractMethod()",
                 "method void Abstract::abstractMethod()",
                 Code.METHOD_NO_LONGER_ABSTRACT)));
@@ -267,6 +262,46 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "method void Abstract::concreteMethod()",
                 "method void Abstract::concreteMethod()",
                 Code.METHOD_NOW_ABSTRACT)));
+    }
+
+    @Test
+    public void testInheritedMethodsWithExceptions() throws Exception {
+        ArrayList<Report> reports = new ArrayList<>();
+         CollectingReporter reporter = new CollectingReporter(reports);
+        runAnalysis(reporter, "v1/methods/ExceptionsAndInheritance.java", "v2/methods/ExceptionsAndInheritance.java");
+
+        Assert.assertEquals(5, reports.size());
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void ExceptionsAndInheritance.ChildWithNoExceptions::abstractUnchecked() throws java.lang.IllegalArgumentException",
+                "method void ExceptionsAndInheritance.ChildWithNoExceptions::abstractUnchecked()",
+                Code.METHOD_RUNTIME_EXCEPTION_REMOVED
+        )));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void ExceptionsAndInheritance.Base::concreteChecked() throws java.io.IOException @ ExceptionsAndInheritance.ChildWithNoExceptions",
+                "method void ExceptionsAndInheritance.ChildWithNoExceptions::concreteChecked()",
+                Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS,
+                Code.METHOD_CHECKED_EXCEPTION_REMOVED
+        )));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void ExceptionsAndInheritance.Base::concreteUnchecked() throws java.lang.IllegalArgumentException @ ExceptionsAndInheritance.ChildWithNoExceptions",
+                "method void ExceptionsAndInheritance.ChildWithNoExceptions::concreteUnchecked() throws java.lang.IllegalArgumentException",
+                Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS
+        )));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void ExceptionsAndInheritance.ChildWithSpecializedExceptions::abstractUnchecked()",
+                "method void ExceptionsAndInheritance.ChildWithSpecializedExceptions::abstractUnchecked() throws java.lang.IllegalStateException",
+                Code.METHOD_RUNTIME_EXCEPTION_ADDED
+        )));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void ExceptionsAndInheritance.Base::concreteUnchecked() throws java.lang.IllegalArgumentException @ ExceptionsAndInheritance.ChildWithSpecializedExceptions",
+                "method void ExceptionsAndInheritance.Base::concreteUnchecked() @ ExceptionsAndInheritance.ChildWithSpecializedExceptions",
+                Code.METHOD_RUNTIME_EXCEPTION_REMOVED
+        )));
     }
 
     private Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {

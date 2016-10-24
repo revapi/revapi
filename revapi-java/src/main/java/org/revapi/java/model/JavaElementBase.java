@@ -18,7 +18,9 @@ package org.revapi.java.model;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
 
@@ -26,6 +28,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
@@ -124,6 +127,8 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
             Element currentElement =  getDeclaringElement();
             Types types = environment.getTypeUtils();
 
+            Map<String, ExecutableElement> methods = new HashMap<>(8);
+
             BiFunction<Element, Boolean, JavaElementBase<?, ?>> processElement = (e, includePrivate) -> {
                 if (!includePrivate
                         && Collections.disjoint(e.getModifiers(), Arrays.asList(Modifier.PUBLIC, Modifier.PROTECTED))) {
@@ -131,6 +136,18 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
                 }
 
                 TypeMirror t = types.asMemberOf(currentType, e);
+
+                if (e instanceof ExecutableElement) {
+                    //check if e isn't overridden in the current type..
+                    String overrideKey = getOverrideMapKey((ExecutableElement) e);
+                    ExecutableElement alreadyIncludedMethod = methods.get(overrideKey);
+                    if (alreadyIncludedMethod != null) {
+                        return null;
+                    } else {
+                        //remember this to check if the next super type doesn't declare a method this one overrides
+                        methods.put(overrideKey, alreadyIncludedMethod);
+                    }
+                }
 
                 JavaElementBase<?, ?> child = JavaElementFactory.elementFor(e, t, environment, archive);
                 if (child != null) {
@@ -148,6 +165,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
                 if (e instanceof javax.lang.model.element.TypeElement) {
                     continue;
                 }
+
                 processElement.apply(e, true);
             }
 
@@ -260,5 +278,9 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
         }
 
         return (JavaTypeElement) ret;
+    }
+
+    private static String getOverrideMapKey(ExecutableElement method) {
+        return method.getSimpleName() + "#" + Util.toUniqueString(method.asType());
     }
 }

@@ -41,7 +41,6 @@ public final class MethodElement extends JavaElementBase<ExecutableElement, Exec
         super(env, archive, element, type);
     }
 
-
     @Nonnull
     @Override
     protected String getHumanReadableElementType() {
@@ -53,7 +52,7 @@ public final class MethodElement extends JavaElementBase<ExecutableElement, Exec
         //the choice of '#' for a separator between the name and signature is because it precedes both '(' and any
         //legal character in a method name in the ASCII table
         return getDeclaringElement().getSimpleName() + "#" +
-            Util.toUniqueString(getTypeEnvironment().getTypeUtils().erasure(getModelRepresentation()));
+            Util.toUniqueString(getModelRepresentation());
     }
 
     @Nonnull

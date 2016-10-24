@@ -120,9 +120,17 @@ public final class Util {
 
         @Override
         public Void visitIntersection(IntersectionType t, StringBuilderAndState<TypeMirror> state) {
-            for (TypeMirror b : IgnoreCompletionFailures.in(t::getBounds)) {
-                b.accept(this, state);
-                state.bld.append("+");
+            List<? extends TypeMirror> bounds = IgnoreCompletionFailures.in(t::getBounds);
+            if (state.visitingMethod) {
+                //the type erasure of an intersection type is the first type
+                if (!bounds.isEmpty()) {
+                    bounds.get(0).accept(this, state);
+                }
+            } else {
+                for (TypeMirror b : bounds) {
+                    b.accept(this, state);
+                    state.bld.append("+");
+                }
             }
 
             return null;
@@ -130,6 +138,12 @@ public final class Util {
 
         @Override
         public Void visitTypeVariable(TypeVariable t, StringBuilderAndState<TypeMirror> state) {
+            if (state.visitingMethod) {
+                TypeMirror lowerBound = IgnoreCompletionFailures.in(t::getLowerBound);
+                lowerBound.accept(this, state);
+                return null;
+            }
+
             if (state.visitedObjects.contains(t)) {
                 state.bld.append("%");
                 return null;
@@ -151,14 +165,25 @@ public final class Util {
 
         @Override
         public Void visitWildcard(WildcardType t, StringBuilderAndState<TypeMirror> state) {
+            TypeMirror extendsBound = IgnoreCompletionFailures.in(t::getExtendsBound);
+
+            if (state.visitingMethod) {
+                if (extendsBound != null) {
+                    extendsBound.accept(this, state);
+                } else {
+                    //super bound or unbound wildcard
+                    state.bld.append("java.lang.Object");
+                }
+
+                return null;
+            }
+
             TypeMirror superBound = IgnoreCompletionFailures.in(t::getSuperBound);
 
             if (superBound != null) {
                 superBound.accept(this, state);
                 state.bld.append("-");
             }
-
-            TypeMirror extendsBound = IgnoreCompletionFailures.in(t::getExtendsBound);
 
             if (extendsBound != null) {
                 extendsBound.accept(this, state);
@@ -170,10 +195,10 @@ public final class Util {
 
         @Override
         public Void visitExecutable(ExecutableType t, StringBuilderAndState<TypeMirror> state) {
-            visitTypeVars(IgnoreCompletionFailures.in(t::getTypeVariables), state);
-
-            IgnoreCompletionFailures.in(t::getReturnType).accept(this, state);
             state.bld.append("(");
+
+            //we will be producing the erased type of the method, because that's what uniquely identifies it
+            state.visitingMethod = true;
 
             Iterator<? extends TypeMirror> it = IgnoreCompletionFailures.in(t::getParameterTypes).iterator();
             if (it.hasNext()) {
@@ -185,18 +210,7 @@ public final class Util {
             }
             state.bld.append(")");
 
-            List<? extends TypeMirror> thrownTypes = IgnoreCompletionFailures.in(t::getThrownTypes);
-
-            if (!thrownTypes.isEmpty()) {
-                state.bld.append("throws:");
-                it = thrownTypes.iterator();
-
-                it.next().accept(this, state);
-                while (it.hasNext()) {
-                    state.bld.append(",");
-                    it.next().accept(this, state);
-                }
-            }
+            state.visitingMethod = false;
 
             return null;
         }
@@ -222,7 +236,9 @@ public final class Util {
             CharSequence name = ((TypeElement) t.asElement()).getQualifiedName();
             state.bld.append(name);
 
-            visitTypeVars(IgnoreCompletionFailures.in(t::getTypeArguments), state);
+            if (!state.visitingMethod) {
+                visitTypeVars(IgnoreCompletionFailures.in(t::getTypeArguments), state);
+            }
 
             return null;
         }
