@@ -82,12 +82,17 @@ public abstract class CheckBase implements Check {
      * @return true if the provided element is public or protected, false otherwise.
      */
     public boolean isAccessible(@Nonnull JavaModelElement e) {
+        if (!isAccessibleByModifier(e.getDeclaringElement())) {
+            return false;
+        }
+
+        JavaModelElement parent = e.getParent();
+
         if (e instanceof JavaTypeElement) {
-            return ((JavaTypeElement) e).isInAPI();
+            return ((JavaTypeElement) e).isInAPI() && (parent == null || isAccessible(parent));
         } else {
-            JavaModelElement parent = e.getParent();
             assert parent != null;
-            return isAccessibleByModifier(e.getDeclaringElement()) && isAccessible(parent);
+            return isAccessible(parent);
         }
     }
 
