@@ -304,6 +304,42 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         )));
     }
 
+    @Test
+    public void testInheritedMethodsWithCovariantReturnTypes() throws Exception {
+        ArrayList<Report> reports = new ArrayList<>();
+        CollectingReporter reporter = new CollectingReporter(reports);
+        runAnalysis(reporter, "v1/methods/CovariantReturnTypeAndInheritance.java", "v2/methods/CovariantReturnTypeAndInheritance.java");
+
+        Assert.assertEquals(4, reports.size());
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method E CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>::genericMethod()",
+                "method T CovariantReturnTypeAndInheritance.Base<T>::genericMethod() @ CovariantReturnTypeAndInheritance.Class",
+                Code.METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED,
+                Code.METHOD_MOVED_TO_SUPERCLASS
+        )));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                null,
+                "method java.lang.Number CovariantReturnTypeAndInheritance.Class::genericMethod(int)",
+                Code.METHOD_ADDED
+        )));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method E CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>::nonGenericMethod()",
+                "method java.lang.Number CovariantReturnTypeAndInheritance.Base<T>::nonGenericMethod() @ CovariantReturnTypeAndInheritance.Class",
+                Code.METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED,
+                Code.METHOD_MOVED_TO_SUPERCLASS
+        )));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "class CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>",
+                "class CovariantReturnTypeAndInheritance.Class",
+                Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED,
+                Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED
+        )));
+    }
+
     private Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {
         return r -> Objects.toString(expectedOld).equals(Objects.toString(r.getOldElement()))
                 && Objects.toString(expectedNew).equals(Objects.toString(r.getNewElement()))
