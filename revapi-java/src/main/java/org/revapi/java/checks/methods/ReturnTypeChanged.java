@@ -21,6 +21,8 @@ import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Difference;
@@ -77,7 +79,14 @@ public final class ReturnTypeChanged extends CheckBase {
         Code code = null;
 
         if (!oldER.equals(newER)) {
-            code = Code.METHOD_RETURN_TYPE_CHANGED;
+            //we need to check if the returned type changed covariantly or not.
+            if (isPrimitiveOrVoid(erasedOldType) || isPrimitiveOrVoid(erasedNewType)) {
+                code = Code.METHOD_RETURN_TYPE_CHANGED;
+            } else if (isCovariant(erasedOldType, erasedNewType)) {
+                code = Code.METHOD_RETURN_TYPE_CHANGED_COVARIANTLY;
+            } else {
+                code = Code.METHOD_RETURN_TYPE_CHANGED;
+            }
         } else {
             if (!oldR.equals(newR)) {
                 code = Code.METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED;
@@ -88,5 +97,21 @@ public final class ReturnTypeChanged extends CheckBase {
         String newHR = Util.toHumanReadableString(newReturnType);
 
         return code == null ? null : Collections.singletonList(createDifference(code, oldHR, newHR));
+    }
+
+    private static boolean isPrimitiveOrVoid(TypeMirror type) {
+        TypeKind kind = type.getKind();
+        switch (kind) {
+            case VOID:
+                return true;
+            case ARRAY:
+                return isPrimitiveOrVoid(((ArrayType) type).getComponentType());
+            default:
+                return kind.isPrimitive();
+        }
+    }
+
+    private boolean isCovariant(TypeMirror superType, TypeMirror subType) {
+        return Util.isSubtype(subType, Collections.singletonList(superType), getNewTypeEnvironment().getTypeUtils());
     }
 }

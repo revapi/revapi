@@ -15,11 +15,6 @@ public class CovariantReturnTypeAndInheritance {
     }
 
     public static class Class<E extends Number> extends Base<E> {
-        //covariant return type - this should be considered an override
-        public String method() {
-            return null;
-        }
-
         public E genericMethod() {
             return null;
         }

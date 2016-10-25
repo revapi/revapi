@@ -310,7 +310,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         CollectingReporter reporter = new CollectingReporter(reports);
         runAnalysis(reporter, "v1/methods/CovariantReturnTypeAndInheritance.java", "v2/methods/CovariantReturnTypeAndInheritance.java");
 
-        Assert.assertEquals(4, reports.size());
+        Assert.assertEquals(5, reports.size());
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
                 "method E CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>::genericMethod()",
@@ -337,6 +337,13 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "class CovariantReturnTypeAndInheritance.Class",
                 Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED,
                 Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED
+        )));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method java.lang.Object CovariantReturnTypeAndInheritance.Base<T>::method() @ CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>",
+                "method java.lang.String CovariantReturnTypeAndInheritance.Class::method()",
+                Code.METHOD_RETURN_TYPE_CHANGED_COVARIANTLY,
+                Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS
         )));
     }
 

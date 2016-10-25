@@ -137,6 +137,7 @@ public enum Code {
     METHOD_RETURN_TYPE_CHANGED("java.method.returnTypeChanged", POTENTIALLY_BREAKING, BREAKING, null),
     METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED("java.method.returnTypeTypeParametersChanged", BREAKING,
         NON_BREAKING, null),
+    METHOD_RETURN_TYPE_CHANGED_COVARIANTLY("java.method.returnTypeChangedCovariantly", NON_BREAKING, NON_BREAKING, null),
     METHOD_NUMBER_OF_PARAMETERS_CHANGED("java.method.numberOfParametersChanged", BREAKING, BREAKING, null),
     METHOD_PARAMETER_TYPE_CHANGED("java.method.parameterTypeChanged", POTENTIALLY_BREAKING, BREAKING, null),
     METHOD_PARAMETER_TYPE_PARAMETER_CHANGED("java.method.parameterTypeParameterChanged", POTENTIALLY_BREAKING,
