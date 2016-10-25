@@ -68,7 +68,8 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .addAsResource(compRes1.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
                 .addAsResource(compRes1.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
                 .addAsResource(compRes1.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(),
-                        "B$UsedByIgnoredClass.class");
+                        "B$UsedByIgnoredClass.class")
+                .addAsResource(compRes1.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class");
 
         //now do the same for v2
         compRes2 = createCompiledJar("tmp2", "v2/supplementary/a/A.java", "v2/supplementary/b/B.java",
@@ -89,7 +90,8 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .addAsResource(compRes2.compilationPath.resolve("B$PrivateUsedClass.class").toFile(),
                         "B$PrivateUsedClass.class")
                 .addAsResource(compRes2.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(),
-                        "B$UsedByIgnoredClass.class");
+                        "B$UsedByIgnoredClass.class")
+                .addAsResource(compRes1.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class");
     }
 
     @After

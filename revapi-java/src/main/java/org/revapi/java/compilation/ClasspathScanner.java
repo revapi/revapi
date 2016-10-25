@@ -32,6 +32,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.TypeVisitor;
@@ -47,6 +48,7 @@ import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.FlatFilter;
 import org.revapi.java.model.MissingClassElement;
+import org.revapi.java.spi.IgnoreCompletionFailures;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
 import org.revapi.query.Filter;
@@ -227,7 +229,7 @@ final class ClasspathScanner {
             }
 
             processed.add(type);
-            requiredTypes.remove(type);
+            Boolean wasAnno = requiredTypes.remove(type);
 
             String bn = environment.getElementUtils().getBinaryName(type).toString();
             String cn = type.getQualifiedName().toString();
@@ -235,12 +237,20 @@ final class ClasspathScanner {
             boolean excludes = inclusionFilter.rejects(bn, cn);
 
             //type.asType() possibly not completely correct when dealing with inner class of a parameterized class
+            TypeMirror typeType = type.asType();
+            if (typeType.getKind() == TypeKind.ERROR) {
+                //just re-add the missing type and return. It will be dealt with accordingly
+                //in initEnvironment
+                requiredTypes.put(type, wasAnno);
+                return;
+            }
+
             org.revapi.java.model.TypeElement t =
                     new org.revapi.java.model.TypeElement(environment, loc.getArchive(), type, (DeclaredType) type.asType());
 
             TypeRecord tr = getTypeRecord(type);
-            tr.inApi = !excludes && (tr.inApi || !shouldBeIgnored(type));
             tr.modelElement = t;
+            tr.inApi = !excludes && (tr.inApi || !shouldBeIgnored(type));
             tr.explicitlyExcluded = excludes;
             tr.explicitlyIncluded = includes;
 
@@ -248,16 +258,15 @@ final class ClasspathScanner {
                 return;
             }
 
-            TypeElement superType = getTypeElement.visit(type.getSuperclass());
+            TypeElement superType = getTypeElement.visit(IgnoreCompletionFailures.in(type::getSuperclass));
             if (superType != null) {
-                TypeRecord superTypeRecord = getTypeRecord(superType);
                 addUse(tr, type, superType, UseSite.Type.IS_INHERITED);
                 if (!processed.contains(superType)) {
                     requiredTypes.put(superType, false);
                 }
             }
 
-            type.getInterfaces().stream().map(getTypeElement::visit)
+            IgnoreCompletionFailures.in(type::getInterfaces).stream().map(getTypeElement::visit)
                     .forEach(e -> {
                         if (!processed.contains(e)) {
                             requiredTypes.put(e, false);
@@ -265,7 +274,7 @@ final class ClasspathScanner {
                         addUse(tr, type, e, UseSite.Type.IS_IMPLEMENTED);
                     });
 
-            for (Element e : type.getEnclosedElements()) {
+            for (Element e : IgnoreCompletionFailures.in(type::getEnclosedElements)) {
                 switch (e.getKind()) {
                     case ANNOTATION_TYPE:
                     case CLASS:
@@ -358,6 +367,7 @@ final class ClasspathScanner {
 
             addUse(owningType, field, fieldType, UseSite.Type.HAS_TYPE);
             addType(fieldType, false);
+            addToApiIfNotExcludedAndNotSelfUse(fieldType, owningType);
 
             field.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, field, a));
         }
@@ -371,7 +381,7 @@ final class ClasspathScanner {
             if (returnType != null) {
                 addUse(owningType, method, returnType, UseSite.Type.RETURN_TYPE);
                 addType(returnType, false);
-                addToApiIfNotExcluded(returnType);
+                addToApiIfNotExcludedAndNotSelfUse(returnType, owningType);
             }
 
             int idx = 0;
@@ -380,7 +390,7 @@ final class ClasspathScanner {
                 if (pt != null) {
                     addUse(owningType, method, pt, UseSite.Type.PARAMETER_TYPE, idx++);
                     addType(pt, false);
-                    addToApiIfNotExcluded(pt);
+                    addToApiIfNotExcludedAndNotSelfUse(pt, owningType);
                 }
 
                 p.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, p, a));
@@ -399,7 +409,11 @@ final class ClasspathScanner {
             method.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a));
         }
 
-        private void addToApiIfNotExcluded(TypeElement t) {
+        private void addToApiIfNotExcludedAndNotSelfUse(TypeElement t, TypeRecord owningType) {
+            if (t.equals(owningType.modelElement.getDeclaringElement())) {
+                return;
+            }
+
             TypeRecord tr = getTypeRecord(t);
             if (!tr.explicitlyExcluded) {
                 tr.inApi = true;
@@ -497,7 +511,7 @@ final class ClasspathScanner {
             while (!undetermined.isEmpty()) {
                 undetermined = undetermined.stream()
                         .filter(tr -> tr.modelElement != null && !tr.explicitlyExcluded)
-                        .filter(tr -> tr.inApi /* || tr.modelElement.isMembersAccessible()*/) //the member accessibility is not a completely correct thing to check here. It is much simpler to check all the inherited members with each class than to compute accessibility at the parent level.
+                        .filter(tr -> tr.inApi)
                         .flatMap(tr -> tr.usedTypes.entrySet().stream())
                         .filter(e -> movesToApi(e.getKey()))
                         .flatMap(e -> e.getValue().stream())

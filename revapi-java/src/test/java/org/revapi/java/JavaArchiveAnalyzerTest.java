@@ -96,8 +96,8 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             .addAsResource(compRes.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
             .addAsResource(compRes.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
             .addAsResource(compRes.compilationPath.resolve("C.class").toFile(), "C.class")
-            .addAsResource(compRes.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(), "B$UsedByIgnoredClass.class");
-
+            .addAsResource(compRes.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(), "B$UsedByIgnoredClass.class")
+            .addAsResource(compRes.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class");
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,

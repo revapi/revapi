@@ -18,4 +18,7 @@ public class A {
     private B.T$1 f1;
     public B.T$2 f2;
     public B.T$3 f3;
+
+    //this tests that a public field or method of a private class doesn't move it to API.
+    private enum PrivateEnum {ONE, TWO}
 }

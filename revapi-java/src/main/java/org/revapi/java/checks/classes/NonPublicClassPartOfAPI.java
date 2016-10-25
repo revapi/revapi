@@ -20,9 +20,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.Modifier;
-
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
@@ -46,7 +43,7 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
             return;
         }
 
-        if (newType.isInAPI() && !isAccessibleByModifier(newType.getDeclaringElement())) {
+        if (newType.isInAPI() && !isAccessible(newType)) {
             pushActive(oldType, newType);
         }
     }
@@ -63,8 +60,4 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
             .singletonList(createDifference(Code.CLASS_NON_PUBLIC_PART_OF_API, new Object[]{types.newElement},
                 Util.toHumanReadableString(types.newElement.getModelRepresentation())));
     }
-
-    private boolean isAccessibleByModifier(Element e) {
-        return !isMissing(e) && (e.getModifiers().contains(Modifier.PUBLIC) ||
-                e.getModifiers().contains(Modifier.PROTECTED));    }
 }
