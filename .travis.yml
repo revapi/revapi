@@ -17,6 +17,9 @@ cache:
   directories:
     - $HOME/.m2
 
+script:
+  - mvn clean verify --batch-mode --fail-at-end
+
 notifications:
   webhooks:
     urls:
@@ -26,5 +29,5 @@ notifications:
     on_start: never     # options: [always|never|change] default: always
 
 after_success:
-- bash <(curl -s https://codecov.io/bash)
+- bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -X xcode
 
