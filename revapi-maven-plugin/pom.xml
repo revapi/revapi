@@ -143,6 +143,14 @@
             </plugin>
 
             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                   <propertyName>invoker.mavenOpts</propertyName>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <artifactId>maven-invoker-plugin</artifactId>
                 <version>${maven-invoker.version}</version>
                 <executions>
