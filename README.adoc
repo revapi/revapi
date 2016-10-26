@@ -2,7 +2,7 @@
 :toc:
 
 image:https://travis-ci.org/revapi/revapi.svg?branch=master[Build Status,link=https://travis-ci.org/revapi/revapi]
-image:https://img.shields.io/codecov/c/github/codecov/example-python.svg[Code Coverage,link=https://codecov.io/github/revapi/revapi?branch=master]
+image:http://codecov.io/github/revapi/revapi/coverage.svg?branch=master[Code Coverage,link=https://codecov.io/github/revapi/revapi?branch=master]
 image:https://img.shields.io/gitter/room/nwjs/nw.js.svg[Gitter Chat,link=https://gitter.im/revapi/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link]
 
 http://revapi.org[Revapi] is a tool for API analysis and change tracking.
