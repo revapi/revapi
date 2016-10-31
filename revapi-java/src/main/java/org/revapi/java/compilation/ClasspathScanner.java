@@ -20,6 +20,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -850,7 +851,8 @@ final class ClasspathScanner {
         Map<UseSite.Type, Set<TypeRecord>> usedTypes = new EnumMap<>(UseSite.Type.class);
         Set<Element> accessibleDeclaredNonClassMembers = new HashSet<>(4);
         Set<Element> inaccessibleDeclaredNonClassMembers = new HashSet<>(4);
-        Set<TypeRecord> superTypes = new HashSet<>(2);
+        //important for this to be a linked hashset so that superclasses are processed prior to implemented interfaces
+        Set<TypeRecord> superTypes = new LinkedHashSet<>(2);
         boolean explicitlyExcluded;
         boolean explicitlyIncluded;
         boolean inApi;
