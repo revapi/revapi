@@ -16,23 +16,12 @@
 
 package org.revapi.java.model;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.SortedSet;
-import java.util.function.BiFunction;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
 
 import org.revapi.API;
 import org.revapi.Archive;
@@ -54,7 +43,6 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     protected final ProbingEnvironment environment;
     protected final E element;
     protected final T representation;
-    private boolean initializedChildren;
     private final Archive archive;
     private String comparableSignature;
     private boolean inherited = false;
@@ -118,82 +106,8 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
 
     @Nonnull
     @Override
-    @SuppressWarnings({"unchecked", "ConstantConditions"})
+    @SuppressWarnings("unchecked")
     public SortedSet<JavaElement> getChildren() {
-        if (!initializedChildren && environment.isScanningComplete()) {
-            SortedSet<JavaElement> set = (SortedSet<JavaElement>) super.getChildren();
-
-            DeclaredType currentType = findContainingType().getModelRepresentation();
-            Element currentElement =  getDeclaringElement();
-            Types types = environment.getTypeUtils();
-
-            Map<String, ExecutableElement> methods = new HashMap<>(8);
-
-            BiFunction<Element, Boolean, JavaElementBase<?, ?>> processElement = (e, includePrivate) -> {
-                if (!includePrivate
-                        && Collections.disjoint(e.getModifiers(), Arrays.asList(Modifier.PUBLIC, Modifier.PROTECTED))) {
-                    return null;
-                }
-
-                TypeMirror t = types.asMemberOf(currentType, e);
-
-                if (e instanceof ExecutableElement) {
-                    //check if e isn't overridden in the current type..
-                    String overrideKey = getOverrideMapKey((ExecutableElement) e);
-                    ExecutableElement alreadyIncludedMethod = methods.get(overrideKey);
-                    if (alreadyIncludedMethod != null) {
-                        return null;
-                    } else {
-                        //remember this to check if the next super type doesn't declare a method this one overrides
-                        methods.put(overrideKey, alreadyIncludedMethod);
-                    }
-                }
-
-                JavaElementBase<?, ?> child = JavaElementFactory.elementFor(e, t, environment, archive);
-                if (child != null) {
-                    if (set.add(child)) {
-                        child.setParent(this);
-                    }
-                }
-
-                return child;
-            };
-
-            for (Element e : currentElement.getEnclosedElements()) {
-                //leave out types - those have been handled by the classpath scanner and also can lead to nasty
-                //recursions if the member classes inherit from the outer class
-                if (e instanceof javax.lang.model.element.TypeElement) {
-                    continue;
-                }
-
-                processElement.apply(e, true);
-            }
-
-            getSuperTypesForInheritance().forEach(t -> {
-                Element e = types.asElement(t);
-                if (e != null && e instanceof javax.lang.model.element.TypeElement
-                        && environment.getTypeMap().containsKey(e)) {
-                    for (Element child : e.getEnclosedElements()) {
-                        //leave out types - those have been handled by the classpath scanner and also can lead to nasty
-                        //recursions if the member classes inherit from the outer class
-                        if (child instanceof javax.lang.model.element.TypeElement) {
-                            continue;
-                        }
-                        JavaElementBase<?, ?> childE = processElement.apply(child, false);
-                        if (childE != null) {
-                            childE.setInherited(true);
-                        }
-                    }
-                }
-            });
-
-            for (AnnotationMirror m : getDeclaringElement().getAnnotationMirrors()) {
-                set.add(new AnnotationElement(environment, archive, m));
-            }
-
-            initializedChildren = true;
-        }
-
         return (SortedSet<JavaElement>) super.getChildren();
     }
 
@@ -203,10 +117,6 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
 
     public void setInherited(boolean inherited) {
         this.inherited = inherited;
-    }
-
-    protected List<TypeMirror> getSuperTypesForInheritance() {
-        return Collections.emptyList();
     }
 
     @Nonnull
@@ -270,17 +180,4 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     }
 
     protected abstract String createComparableSignature();
-
-    private JavaTypeElement findContainingType() {
-        org.revapi.Element ret = this;
-        while (ret != null && !(ret instanceof JavaTypeElement)) {
-            ret = ret.getParent();
-        }
-
-        return (JavaTypeElement) ret;
-    }
-
-    private static String getOverrideMapKey(ExecutableElement method) {
-        return method.getSimpleName() + "#" + Util.toUniqueString(method.asType());
-    }
 }

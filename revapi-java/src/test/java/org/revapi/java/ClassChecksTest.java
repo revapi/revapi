@@ -172,4 +172,12 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(1,
             (int) reporter.getProblemCounters().get(Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED.code()));
     }
+
+    @Test
+    public void testPublicInNonPublicNotInApi() throws Exception {
+        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        runAnalysis(reporter, "v1/classes/NonPublic.java", "v2/classes/NonPublic.java");
+
+        Assert.assertNull(reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+    }
 }

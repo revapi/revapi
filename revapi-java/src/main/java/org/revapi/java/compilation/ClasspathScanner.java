@@ -1,11 +1,16 @@
 package org.revapi.java.compilation;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
+import static org.revapi.java.model.JavaElementFactory.elementFor;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,6 +34,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
@@ -40,6 +46,7 @@ import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
+import javax.lang.model.util.Types;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
@@ -47,6 +54,10 @@ import javax.tools.StandardJavaFileManager;
 import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.FlatFilter;
+import org.revapi.java.model.AnnotationElement;
+import org.revapi.java.model.JavaElementBase;
+import org.revapi.java.model.JavaElementFactory;
+import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MissingClassElement;
 import org.revapi.java.spi.IgnoreCompletionFailures;
 import org.revapi.java.spi.UseSite;
@@ -92,7 +103,7 @@ final class ClasspathScanner {
         Scanner scanner = new Scanner();
 
         for (ArchiveLocation loc : classPathLocations) {
-            scanner.scan(loc, classPath.get(loc.getArchive()));
+            scanner.scan(loc, classPath.get(loc.getArchive()), true);
         }
 
         Set<TypeElement> lastUnknowns = Collections.emptySet();
@@ -139,7 +150,7 @@ final class ClasspathScanner {
                     }
 
                     if (loc != null) {
-                        scanner.scanClass(loc, t);
+                        scanner.scanClass(loc, t, false);
                     }
 
                 } catch (NoSuchFieldException e) {
@@ -206,7 +217,7 @@ final class ClasspathScanner {
             }
         };
 
-        void scan(ArchiveLocation location, File path) throws IOException {
+        void scan(ArchiveLocation location, File path, boolean primaryApi) throws IOException {
             fileManager.setLocation(location, Collections.singleton(path));
 
             Iterable<? extends JavaFileObject> jfos = fileManager.list(location, "",
@@ -218,12 +229,12 @@ final class ClasspathScanner {
 
                 //type can be null if it represents an anonymous or member class...
                 if (type != null) {
-                    scanClass(location, type);
+                    scanClass(location, type, primaryApi);
                 }
             }
         }
 
-        void scanClass(ArchiveLocation loc, TypeElement type) {
+        void scanClass(ArchiveLocation loc, TypeElement type, boolean primaryApi) {
             if (processed.contains(type)) {
                 return;
             }
@@ -250,7 +261,9 @@ final class ClasspathScanner {
 
             TypeRecord tr = getTypeRecord(type);
             tr.modelElement = t;
-            tr.inApi = !excludes && (tr.inApi || !shouldBeIgnored(type));
+            //this will be revisited... in here we're just establishing the types that are in the API for sure...
+            tr.inApi = !excludes && (primaryApi && !shouldBeIgnored(type) && !(type.getEnclosingElement() instanceof TypeElement));
+            tr.primaryApi = primaryApi;
             tr.explicitlyExcluded = excludes;
             tr.explicitlyIncluded = includes;
 
@@ -261,6 +274,7 @@ final class ClasspathScanner {
             TypeElement superType = getTypeElement.visit(IgnoreCompletionFailures.in(type::getSuperclass));
             if (superType != null) {
                 addUse(tr, type, superType, UseSite.Type.IS_INHERITED);
+                tr.superTypes.add(getTypeRecord(superType));
                 if (!processed.contains(superType)) {
                     requiredTypes.put(superType, false);
                 }
@@ -272,6 +286,7 @@ final class ClasspathScanner {
                             requiredTypes.put(e, false);
                         }
                         addUse(tr, type, e, UseSite.Type.IS_IMPLEMENTED);
+                        tr.superTypes.add(getTypeRecord(e));
                     });
 
             for (Element e : IgnoreCompletionFailures.in(type::getEnclosedElements)) {
@@ -281,7 +296,8 @@ final class ClasspathScanner {
                     case ENUM:
                     case INTERFACE:
                         addUse(tr, type, (TypeElement) e, UseSite.Type.CONTAINS);
-                        scanClass(loc, (TypeElement) e);
+                        //the contained classes by default inherit the API status of their containing class
+                        scanClass(loc, (TypeElement) e, tr.inApi);
                         break;
                     case CONSTRUCTOR:
                     case METHOD:
@@ -354,8 +370,12 @@ final class ClasspathScanner {
 
         void scanField(TypeRecord owningType, VariableElement field) {
             if (shouldBeIgnored(field)) {
+                owningType.inaccessibleDeclaredNonClassMembers.add(field);
                 return;
             }
+
+            owningType.accessibleDeclaredNonClassMembers.add(field);
+
 
             TypeElement fieldType = field.asType().accept(getTypeElement, null);
 
@@ -367,21 +387,22 @@ final class ClasspathScanner {
 
             addUse(owningType, field, fieldType, UseSite.Type.HAS_TYPE);
             addType(fieldType, false);
-            addToApiIfNotExcludedAndNotSelfUse(fieldType, owningType);
 
             field.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, field, a));
         }
 
         void scanMethod(TypeRecord owningType, ExecutableElement method) {
             if (shouldBeIgnored(method)) {
+                owningType.inaccessibleDeclaredNonClassMembers.add(method);
                 return;
             }
+
+            owningType.accessibleDeclaredNonClassMembers.add(method);
 
             TypeElement returnType = method.getReturnType().accept(getTypeElement, null);
             if (returnType != null) {
                 addUse(owningType, method, returnType, UseSite.Type.RETURN_TYPE);
                 addType(returnType, false);
-                addToApiIfNotExcludedAndNotSelfUse(returnType, owningType);
             }
 
             int idx = 0;
@@ -390,7 +411,6 @@ final class ClasspathScanner {
                 if (pt != null) {
                     addUse(owningType, method, pt, UseSite.Type.PARAMETER_TYPE, idx++);
                     addType(pt, false);
-                    addToApiIfNotExcludedAndNotSelfUse(pt, owningType);
                 }
 
                 p.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, p, a));
@@ -407,17 +427,6 @@ final class ClasspathScanner {
             });
 
             method.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a));
-        }
-
-        private void addToApiIfNotExcludedAndNotSelfUse(TypeElement t, TypeRecord owningType) {
-            if (t.equals(owningType.modelElement.getDeclaringElement())) {
-                return;
-            }
-
-            TypeRecord tr = getTypeRecord(t);
-            if (!tr.explicitlyExcluded) {
-                tr.inApi = true;
-            }
         }
 
         void scanAnnotation(TypeRecord owningType, Element annotated, AnnotationMirror annotation) {
@@ -463,6 +472,7 @@ final class ClasspathScanner {
             TypeRecord rec = types.get(type);
             if (rec == null) {
                 rec = new TypeRecord();
+                rec.javacElement = type;
                 int depth = 0;
                 Element e = type.getEnclosingElement();
                 while (e != null && e instanceof TypeElement) {
@@ -477,22 +487,62 @@ final class ClasspathScanner {
         }
 
         void initEnvironment() {
-            Map<TypeElement, org.revapi.java.model.TypeElement> types = new IdentityHashMap<>();
-
             if (ignoreMissingAnnotations && !requiredTypes.isEmpty()) {
-                Map<TypeElement, Boolean> newTypes = requiredTypes.entrySet().stream().filter(e -> {
-                    boolean isAnno = e.getValue();
-                    if (isAnno) {
-                        this.types.get(e.getKey()).useSites.clear();
-                    }
-                    return !isAnno;
-                }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                requiredTypes.clear();
-                requiredTypes.putAll(newTypes);
+                removeAnnotatesUses();
             }
 
+            moveInnerClassesOfPrimariesToApi();
+            determineApiStatus();
+            initChildren();
+
+            Set<TypeRecord> types = constructTree();
+
+            if (!requiredTypes.isEmpty()) {
+                handleMissingClasses(types);
+            }
+
+            environment.setTypeMap(types.stream().collect(toMap(tr -> tr.javacElement, tr -> tr.modelElement)));
+       }
+
+        private void handleMissingClasses(Set<TypeRecord> types) {
             Elements els = environment.getElementUtils();
 
+            switch (missingClassReporting) {
+                case ERROR:
+                    List<String> reallyMissing = requiredTypes.keySet().stream()
+                            .map(t -> els.getTypeElement(t.getQualifiedName()))
+                            .filter(t -> els.getTypeElement(t.getQualifiedName()) == null)
+                            .map(t -> t.getQualifiedName().toString())
+                            .sorted()
+                            .collect(toList());
+
+                    if (!reallyMissing.isEmpty()) {
+                        throw new IllegalStateException(
+                                "The following classes that contribute to the public API of " +
+                                        environment.getApi() +
+                                        " could not be located: " +
+                                        reallyMissing);
+                    }
+                    break;
+                case REPORT:
+                    for (TypeElement t : requiredTypes.keySet()) {
+                        TypeElement type = els.getTypeElement(t.getQualifiedName());
+                        if (type == null) {
+                            String bin = els.getBinaryName(t).toString();
+                            MissingClassElement mce = new MissingClassElement(environment, bin,
+                                    t.getQualifiedName().toString());
+                            TypeRecord tr = new TypeRecord();
+                            tr.javacElement = mce.getDeclaringElement();
+                            tr.modelElement = mce;
+                            types.add(tr);
+                            environment.getTree().getRootsUnsafe().add(mce);
+                        }
+                    }
+            }
+        }
+
+        private Set<TypeRecord> constructTree() {
+            Set<TypeRecord> types = new HashSet<>();
             Set<TypeElement> ignored = new HashSet<>();
             Comparator<Map.Entry<TypeElement, TypeRecord>> byNestingDepth = (a, b) -> {
                 TypeRecord ar = a.getValue();
@@ -505,23 +555,6 @@ final class ClasspathScanner {
                 //the less nested classes need to come first
                 return ret;
             };
-
-            //determine the inAPi status of all type records now that we have a complete picture of who uses what
-            Set<TypeRecord> undetermined = new HashSet<>(this.types.values());
-            while (!undetermined.isEmpty()) {
-                undetermined = undetermined.stream()
-                        .filter(tr -> tr.modelElement != null && !tr.explicitlyExcluded)
-                        .filter(tr -> tr.inApi)
-                        .flatMap(tr -> tr.usedTypes.entrySet().stream())
-                        .filter(e -> movesToApi(e.getKey()))
-                        .flatMap(e -> e.getValue().stream())
-                        .filter(usedTr -> !usedTr.inApi)
-                        .map(usedTr -> {
-                            usedTr.inApi = true;
-                            return usedTr;
-                        })
-                        .collect(Collectors.toSet());
-            }
 
             this.types.entrySet().stream().sorted(byNestingDepth).forEach(e -> {
                 TypeElement t = e.getKey();
@@ -576,47 +609,216 @@ final class ClasspathScanner {
                         if (include) {
                             placeInTree(r);
                             r.modelElement.setRawUseSites(r.useSites);
-                            types.put(t, r.modelElement);
+                            types.add(r);
                             r.modelElement.setInApi(r.inApi);
                         }
                     }
                 }
             });
 
-            if (!requiredTypes.isEmpty()) {
-                switch (missingClassReporting) {
-                    case ERROR:
-                        List<String> reallyMissing = requiredTypes.keySet().stream()
-                                .map(t -> els.getTypeElement(t.getQualifiedName()))
-                                .filter(t -> els.getTypeElement(t.getQualifiedName()) == null)
-                                .map(t -> t.getQualifiedName().toString())
-                                .sorted()
-                                .collect(toList());
+            return types;
+        }
 
-                        if (!reallyMissing.isEmpty()) {
-                            throw new IllegalStateException(
-                                    "The following classes that contribute to the public API of " +
-                                            environment.getApi() +
-                                            " could not be located: " +
-                                            reallyMissing);
-                        }
-                        break;
-                    case REPORT:
-                        for (TypeElement t : requiredTypes.keySet()) {
-                            TypeElement type = els.getTypeElement(t.getQualifiedName());
-                            if (type == null) {
-                                String bin = els.getBinaryName(t).toString();
-                                MissingClassElement mce = new MissingClassElement(environment, bin,
-                                        t.getQualifiedName().toString());
-                                types.put(mce.getDeclaringElement(), mce);
-                                environment.getTree().getRootsUnsafe().add(mce);
-                            }
-                        }
+        private void determineApiStatus() {
+            Set<TypeRecord> undetermined = new HashSet<>(this.types.values());
+            while (!undetermined.isEmpty()) {
+                undetermined = undetermined.stream()
+                        .filter(tr -> tr.modelElement != null && !tr.explicitlyExcluded)
+                        .filter(tr -> tr.inApi)
+                        .flatMap(tr -> tr.usedTypes.entrySet().stream()
+                                .map(e -> new AbstractMap.SimpleImmutableEntry<>(tr, e)))
+                        .filter(e -> movesToApi(e.getValue().getKey()))
+                        .flatMap(e -> e.getValue().getValue().stream())
+                        .filter(usedTr -> !usedTr.inApi)
+                        .filter(usedTr -> !usedTr.explicitlyExcluded)
+                        .map(usedTr -> {
+                            usedTr.inApi = true;
+                            return usedTr;
+                        })
+                        .collect(toSet());
+            }
+        }
+
+        private void moveInnerClassesOfPrimariesToApi() {
+            Set<TypeRecord> primaries = this.types.values().stream()
+                    .filter(tr -> tr.primaryApi)
+                    .filter(tr -> tr.nestingDepth == 0)
+                    .collect(toSet());
+
+            while (!primaries.isEmpty()) {
+                primaries = primaries.stream()
+                        .flatMap(tr -> tr.usedTypes.getOrDefault(UseSite.Type.CONTAINS, Collections.emptySet()).stream())
+                        .filter(containedTr -> containedTr.modelElement != null)
+                        .filter(containedTr -> !shouldBeIgnored(containedTr.modelElement.getDeclaringElement()))
+                        .map(containedTr -> {
+                            containedTr.inApi = true;
+                            return containedTr;
+                        })
+                        .collect(toSet());
+            }
+        }
+
+        private void removeAnnotatesUses() {
+            Map<TypeElement, Boolean> newTypes = requiredTypes.entrySet().stream().filter(e -> {
+                boolean isAnno = e.getValue();
+                if (isAnno) {
+                    this.types.get(e.getKey()).useSites.clear();
+                }
+                return !isAnno;
+            }).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+            requiredTypes.clear();
+            requiredTypes.putAll(newTypes);
+        }
+
+        private void initChildren() {
+            for (TypeRecord tr : this.types.values()) {
+                if (tr.modelElement == null) {
+                    continue;
+                }
+
+                //the set of methods' override-sensitive signatures - I.e. this is the list of methods
+                //actually visible on a type.
+                Set<String> methods = new HashSet<>(8);
+
+                Function<JavaElementBase<?, ?>, JavaElementBase<?, ?>> addOverride = e -> {
+                    if (e instanceof MethodElement) {
+                        MethodElement me = (MethodElement) e;
+                        methods.add(getOverrideMapKey(me.getDeclaringElement()));
+                    }
+                    return e;
+                };
+
+                Function<JavaElementBase<?, ?>, JavaElementBase<?, ?>> initChildren = e -> {
+                    initNonClassElementChildrenAndMoveToApi(tr, e, false);
+                    return e;
+                };
+
+                //add declared stuff
+                tr.accessibleDeclaredNonClassMembers.stream()
+                        .map(e ->
+                                elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
+                        .map(addOverride)
+                        .map(initChildren)
+                        .forEach(c -> tr.modelElement.getChildren().add(c));
+
+                tr.inaccessibleDeclaredNonClassMembers.stream()
+                        .map(e ->
+                                elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
+                        .map(addOverride)
+                        .map(initChildren)
+                        .forEach(c -> tr.modelElement.getChildren().add(c));
+
+                //now add inherited stuff
+                tr.superTypes.forEach(str -> addInherited(tr, str, methods));
+
+                //and finally the annotations
+                for (AnnotationMirror m : tr.javacElement.getAnnotationMirrors()) {
+                    tr.modelElement.getChildren().add(new AnnotationElement(environment, tr.modelElement.getArchive(), m));
                 }
             }
+        }
 
-            environment.setTypeMap(types);
-       }
+        private void addInherited(TypeRecord target, TypeRecord superType, Set<String> methodOverrideMap) {
+            Types types = environment.getTypeUtils();
+
+            superType.accessibleDeclaredNonClassMembers.stream()
+                    .map(e -> {
+                        if (e instanceof ExecutableElement) {
+                            ExecutableElement me = (ExecutableElement) e;
+                            if (!shouldAddMethodChild(me, methodOverrideMap)) {
+                                return null;
+                            }
+                        }
+
+                        TypeMirror elementType = types.asMemberOf((DeclaredType) target.javacElement.asType(), e);
+
+                        JavaElementBase<?, ?> element = JavaElementFactory
+                                .elementFor(e, elementType, environment, superType.modelElement.getArchive());
+
+                        element.setInherited(true);
+
+                        initNonClassElementChildrenAndMoveToApi(target, element, true);
+
+                        return element;
+                    })
+                    .filter(e -> e != null)
+                    .forEach(c -> target.modelElement.getChildren().add(c));
+
+            for (TypeRecord st : superType.superTypes) {
+                addInherited(target, st, methodOverrideMap);
+            }
+        }
+
+        private boolean shouldAddMethodChild(ExecutableElement methodElement, Set<String> overrideMap) {
+            String overrideKey = getOverrideMapKey(methodElement);
+            boolean alreadyIncludedMethod = overrideMap.contains(overrideKey);
+            if (alreadyIncludedMethod) {
+                return false;
+            } else {
+                //remember this to check if the next super type doesn't declare a method this one overrides
+                overrideMap.add(overrideKey);
+                return true;
+            }
+        }
+
+        private void initNonClassElementChildrenAndMoveToApi(TypeRecord targetType, JavaElementBase<?, ?> parent,
+                                                             boolean inherited) {
+            Types types = environment.getTypeUtils();
+
+            if (targetType.inApi) {
+                TypeMirror representation = types.asMemberOf(targetType.modelElement.getModelRepresentation(),
+                        parent.getDeclaringElement());
+
+                representation.accept(new SimpleTypeVisitor8<Void, Void>() {
+                    @Override protected Void defaultAction(TypeMirror e, Void aVoid) {
+                        if (e.getKind().isPrimitive() || e.getKind() == TypeKind.VOID) {
+                            return null;
+                        }
+
+                        TypeElement childType = getTypeElement.visit(e);
+                        if (childType != null) {
+                            TypeRecord tr = Scanner.this.types.get(childType);
+                            if (tr != null) {
+                                tr.inApi = true;
+                            }
+                        }
+                        return null;
+                    }
+
+                    @Override public Void visitExecutable(ExecutableType t, Void aVoid) {
+                        t.getReturnType().accept(this, null);
+                        t.getParameterTypes().forEach(p -> p.accept(this, null));
+                        return null;
+                    }
+                }, null);
+            }
+
+            for (Element child : parent.getDeclaringElement().getEnclosedElements()) {
+                if (child.getKind().isClass() || child.getKind().isInterface()) {
+                    continue;
+                }
+
+                TypeMirror representation = types.asMemberOf(targetType.modelElement.getModelRepresentation(),
+                        child);
+
+                JavaElementBase<?, ?> childEl = JavaElementFactory.elementFor(child, representation, environment,
+                        parent.getArchive());
+
+                childEl.setInherited(inherited);
+
+                parent.getChildren().add(childEl);
+
+                initNonClassElementChildrenAndMoveToApi(targetType, childEl, inherited);
+            }
+
+            for (AnnotationMirror m : parent.getDeclaringElement().getAnnotationMirrors()) {
+                parent.getChildren().add(new AnnotationElement(environment, parent.getArchive(), m));
+            }
+        }
+    }
+
+    private static String getOverrideMapKey(ExecutableElement method) {
+        return method.getSimpleName() + "#" + Util.toUniqueString(method.asType());
     }
 
     private static final class ArchiveLocation implements JavaFileManager.Location {
@@ -642,12 +844,17 @@ final class ClasspathScanner {
     }
 
     private static final class TypeRecord {
-        Set<ClassPathUseSite> useSites = new HashSet<>(4);
+        Set<ClassPathUseSite> useSites = new HashSet<>(2);
+        TypeElement javacElement;
         org.revapi.java.model.TypeElement modelElement;
         Map<UseSite.Type, Set<TypeRecord>> usedTypes = new EnumMap<>(UseSite.Type.class);
+        Set<Element> accessibleDeclaredNonClassMembers = new HashSet<>(4);
+        Set<Element> inaccessibleDeclaredNonClassMembers = new HashSet<>(4);
+        Set<TypeRecord> superTypes = new HashSet<>(2);
         boolean explicitlyExcluded;
         boolean explicitlyIncluded;
         boolean inApi;
+        boolean primaryApi;
         int nestingDepth;
 
         @Override public String toString() {

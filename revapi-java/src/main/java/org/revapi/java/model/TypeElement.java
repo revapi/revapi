@@ -93,8 +93,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return canonicalName;
     }
 
-    @Override protected List<TypeMirror> getSuperTypesForInheritance() {
-        return Util.getAllSuperTypes(getTypeEnvironment().getTypeUtils(), getModelRepresentation());
+    @Override public boolean isInAPI() {
+        return inApi;
     }
 
     @Override public Set<UseSite> getUseSites() {
@@ -110,10 +110,6 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         }
 
         return useSites;
-    }
-
-    @Override public boolean isInAPI() {
-        return inApi;
     }
 
     public void setInApi(boolean inApi) {

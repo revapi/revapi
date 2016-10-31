@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.java.spi.Code;
 import org.revapi.simple.SimpleReporter;
@@ -349,10 +350,14 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
     }
 
     private Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {
-        return r -> Objects.toString(expectedOld).equals(Objects.toString(r.getOldElement()))
-                && Objects.toString(expectedNew).equals(Objects.toString(r.getNewElement()))
+        return r -> Objects.toString(expectedOld).equals(asReadable(r.getOldElement()))
+                && Objects.toString(expectedNew).equals(asReadable(r.getNewElement()))
                 && r.getDifferences().size() == expectedCodes.length
                 && Stream.of(expectedCodes).map(c -> r.getDifferences().stream().anyMatch(d -> d.code.equals(c.code())))
                 .reduce(true, Boolean::logicalAnd);
+    }
+
+    private static String asReadable(Element el) {
+        return el == null ? String.valueOf((Object) null) : el.getFullHumanReadableString();
     }
 }
