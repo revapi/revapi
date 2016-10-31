@@ -21,6 +21,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.Nullable;
+import javax.lang.model.element.ElementKind;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
@@ -44,7 +45,10 @@ public class NowDefault extends CheckBase {
             return;
         }
 
-        if (!oldMethod.getDeclaringElement().isDefault() && newMethod.getDeclaringElement().isDefault()) {
+        boolean onInterfaces = oldMethod.getParent().getDeclaringElement().getKind() == ElementKind.INTERFACE
+                && newMethod.getParent().getDeclaringElement().getKind() == ElementKind.INTERFACE;
+
+        if (onInterfaces && !oldMethod.getDeclaringElement().isDefault() && newMethod.getDeclaringElement().isDefault()) {
             pushActive(oldMethod, newMethod);
         }
     }

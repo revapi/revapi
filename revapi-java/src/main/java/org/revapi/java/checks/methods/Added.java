@@ -82,11 +82,12 @@ public final class Added extends CheckBase {
 
         ExecutableElement method = methods.newElement.getDeclaringElement();
 
-        TypeElement enclosingClass = method.getEnclosingElement().accept(enclosingClassExtractor, null);
-        if (enclosingClass == null) {
+        if (methods.newElement.getParent() == null) {
             LOG.warn("Could not find an enclosing class of method " + method + ". That's weird.");
             return null;
         }
+
+        TypeElement enclosingClass = (TypeElement) methods.newElement.getParent().getDeclaringElement();
 
         Difference difference;
 

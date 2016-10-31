@@ -162,13 +162,43 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testDefaultMethod() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
+        List<Report> reports = new ArrayList<>();
+        CollectingReporter reporter = new CollectingReporter(reports);
         runAnalysis(reporter, "v1/methods/DefaultMethod.java", "v2/methods/DefaultMethod.java");
 
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_DEFAULT_METHOD_ADDED_TO_INTERFACE
-                .code()));
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_DEFAULT.code()));
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_DEFAULT.code()));
+        Assert.assertEquals(6, reports.size());
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void DefaultMethod::a()",
+                "method void DefaultMethod::a()",
+                Code.METHOD_NO_LONGER_DEFAULT,
+                Code.METHOD_NOW_ABSTRACT)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void DefaultMethod::a() @ DefaultMethod.Test",
+                "method void DefaultMethod.Test::a()",
+                Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method int DefaultMethod::b()",
+                "method int DefaultMethod::b()",
+                Code.METHOD_NOW_DEFAULT,
+                Code.METHOD_NO_LONGER_ABSTRACT)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method int DefaultMethod.Test::b()",
+                "method int DefaultMethod::b() @ DefaultMethod.Test",
+                Code.METHOD_MOVED_TO_SUPERCLASS)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                null,
+                "method void DefaultMethod::c()",
+                Code.METHOD_DEFAULT_METHOD_ADDED_TO_INTERFACE)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                null,
+                "method void DefaultMethod::c() @ DefaultMethod.Test",
+                Code.METHOD_ADDED)));
     }
 
     @Test

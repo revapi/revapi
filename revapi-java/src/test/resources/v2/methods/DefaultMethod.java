@@ -6,4 +6,8 @@ public interface DefaultMethod {
     }
 
     default void c() {}
+
+    class Test implements DefaultMethod {
+        public void a() {}
+    }
 }
