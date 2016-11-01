@@ -630,6 +630,7 @@ final class ClasspathScanner {
                                 .map(e -> new AbstractMap.SimpleImmutableEntry<>(tr, e)))
                         .filter(e -> movesToApi(e.getValue().getKey()))
                         .flatMap(e -> e.getValue().getValue().stream())
+                        .filter(usedTr -> usedTr.modelElement != null)
                         .filter(usedTr -> !usedTr.inApi)
                         .filter(usedTr -> !usedTr.explicitlyExcluded)
                         .map(usedTr -> {
@@ -766,7 +767,7 @@ final class ClasspathScanner {
                                                              boolean inherited) {
             Types types = environment.getTypeUtils();
 
-            if (targetType.inApi) {
+            if (targetType.inApi && !shouldBeIgnored(parent.getDeclaringElement())) {
                 TypeMirror representation = types.asMemberOf(targetType.modelElement.getModelRepresentation(),
                         parent.getDeclaringElement());
 
@@ -779,8 +780,8 @@ final class ClasspathScanner {
                         TypeElement childType = getTypeElement.visit(e);
                         if (childType != null) {
                             TypeRecord tr = Scanner.this.types.get(childType);
-                            if (tr != null) {
-                                tr.inApi = true;
+                            if (tr != null && tr.modelElement != null) {
+                                tr.inApi |= true;
                             }
                         }
                         return null;
