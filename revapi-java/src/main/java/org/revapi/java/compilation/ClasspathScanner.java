@@ -447,10 +447,6 @@ final class ClasspathScanner {
             return false;
         }
 
-        boolean shouldBeIgnored(Element element) {
-            return Collections.disjoint(element.getModifiers(), ACCESSIBLE_MODIFIERS);
-        }
-
         void addUse(TypeRecord userType, Element user, TypeElement used, UseSite.Type useType) {
             addUse(userType, user, used, useType, -1);
         }
@@ -644,6 +640,7 @@ final class ClasspathScanner {
         private void moveInnerClassesOfPrimariesToApi() {
             Set<TypeRecord> primaries = this.types.values().stream()
                     .filter(tr -> tr.primaryApi)
+                    .filter(tr -> tr.inApi)
                     .filter(tr -> tr.nestingDepth == 0)
                     .collect(toSet());
 
@@ -871,5 +868,9 @@ final class ClasspathScanner {
 
     private static boolean movesToApi(UseSite.Type useType) {
         return useType.isMovingToApi();
+    }
+
+    static boolean shouldBeIgnored(Element element) {
+        return Collections.disjoint(element.getModifiers(), ACCESSIBLE_MODIFIERS);
     }
 }
