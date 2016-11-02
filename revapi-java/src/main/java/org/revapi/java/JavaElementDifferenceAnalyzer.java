@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -51,6 +52,8 @@ import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Check;
+import org.revapi.java.spi.JavaElement;
+import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
@@ -189,30 +192,40 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else if (conforms(oldElement, newElement, FieldElement.class)) {
-            checkTypeStack.push(Check.Type.FIELD);
-            for (Check c : checksByInterest.get(Check.Type.FIELD)) {
-                Stats.of(c.getClass().getName()).start();
-                c.visitField(oldElement == null ? null : (FieldElement) oldElement,
-                    newElement == null ? null : (FieldElement) newElement);
-                Stats.of(c.getClass().getName()).end(oldElement, newElement);
-            }
+            doRestrictedCheck((FieldElement) oldElement, (FieldElement) newElement, Check.Type.FIELD);
         } else if (conforms(oldElement, newElement, MethodElement.class)) {
-            checkTypeStack.push(Check.Type.METHOD);
-            for (Check c : checksByInterest.get(Check.Type.METHOD)) {
-                Stats.of(c.getClass().getName()).start();
-                c.visitMethod(oldElement == null ? null : (MethodElement) oldElement,
-                    newElement == null ? null : (MethodElement) newElement);
-                Stats.of(c.getClass().getName()).end(oldElement, newElement);
-            }
+            doRestrictedCheck((MethodElement) oldElement, (MethodElement) newElement, Check.Type.METHOD);
         } else if (conforms(oldElement, newElement, MethodParameterElement.class)) {
-            checkTypeStack.push(Check.Type.METHOD_PARAMETER);
-            for (Check c : checksByInterest.get(Check.Type.METHOD_PARAMETER)) {
+            doRestrictedCheck((MethodParameterElement) oldElement, (MethodParameterElement) newElement,
+                    Check.Type.METHOD_PARAMETER);
+        }
+    }
+
+    private <T extends JavaModelElement> void doRestrictedCheck(T oldElement, T newElement, Check.Type interest) {
+        if (!(isCheckedElsewhere(oldElement, oldEnvironment)
+                && isCheckedElsewhere(newElement, newEnvironment))) {
+            checkTypeStack.push(interest);
+            for (Check c : checksByInterest.get(interest)) {
                 Stats.of(c.getClass().getName()).start();
-                c.visitMethodParameter(
-                    oldElement == null ? null : (MethodParameterElement) oldElement,
-                    newElement == null ? null : (MethodParameterElement) newElement);
+                switch (interest) {
+                    case FIELD:
+                        c.visitField((FieldElement) oldElement, (FieldElement) newElement);
+                        break;
+                    case METHOD:
+                        c.visitMethod((MethodElement) oldElement, (MethodElement) newElement);
+                        break;
+                    case METHOD_PARAMETER:
+                        c.visitMethodParameter((MethodParameterElement) oldElement, (MethodParameterElement) newElement);
+                        break;
+                }
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
+        } else {
+            //this is horrible hack - we don't store the annotations on the stack but need a value representing
+            //"ignore what's on the stack because no checks actually happened".
+            //ArrayDeque doesn't support null elements so we have to have something to represent this state. So we
+            //abuse the ANNOTATION check type for this, because it is otherwise not used in the stack.
+            checkTypeStack.push(Check.Type.ANNOTATION);
         }
     }
 
@@ -224,10 +237,14 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         List<Difference> differences = new ArrayList<>();
-        for (Check c : checksByInterest.get(checkTypeStack.pop())) {
-            List<Difference> p = c.visitEnd();
-            if (p != null) {
-                differences.addAll(p);
+        Check.Type lastInterest = checkTypeStack.pop();
+        //see #doRestrictedCheck for why we use ANNOTATION as "no checks happened"...
+        if (lastInterest != Check.Type.ANNOTATION) {
+            for (Check c : checksByInterest.get(lastInterest)) {
+                List<Difference> p = c.visitEnd();
+                if (p != null) {
+                    differences.addAll(p);
+                }
             }
         }
 
@@ -427,23 +444,43 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
     }
 
-    private JavaTypeElement findClassOf(Element element) {
+    private JavaTypeElement findClassOf(JavaElement element) {
         while (element != null && !(element instanceof JavaTypeElement)) {
-            element = element.getParent();
+            element = (JavaElement) element.getParent();
         }
 
         return (JavaTypeElement) element;
     }
 
-    private static <T> boolean contains(T value, Iterable<? extends T> values) {
-        Iterator<? extends T> it = values.iterator();
-        while (it.hasNext()) {
-            if (value.equals(it.next())) {
-                return true;
-            }
+    private javax.lang.model.element.TypeElement findTypeOf(javax.lang.model.element.Element element) {
+        while (element != null && !(element.getKind().isClass() || element.getKind().isInterface())) {
+            element = element.getEnclosingElement();
         }
 
-        return false;
+        return (javax.lang.model.element.TypeElement) element;
+    }
+
+    private boolean isCheckedElsewhere(JavaModelElement element, ProbingEnvironment env) {
+        if (element == null) {
+            return false;
+        }
+
+        if (!element.isInherited()) {
+            return false;
+        }
+
+        String elementSig = Util.toUniqueString(element.getModelRepresentation());
+        String declSig = Util.toUniqueString(element.getDeclaringElement().asType());
+
+        if (!Objects.equals(elementSig, declSig)) {
+            return false;
+        }
+
+        javax.lang.model.element.TypeElement declaringType = findTypeOf(element.getDeclaringElement());
+
+        JavaTypeElement declaringClass = env.getTypeMap().get(declaringType);
+
+        return declaringClass != null && declaringClass.isInAPI();
     }
 
     //Javac's standard file manager is leaking resources across compilation tasks because it doesn't clear a shared
