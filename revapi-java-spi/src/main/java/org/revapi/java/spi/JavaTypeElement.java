@@ -50,4 +50,9 @@ public interface JavaTypeElement extends JavaModelElement {
      * @return true if this type was found to be a part of the API, false otherwise
      */
     boolean isInAPI();
+
+    /**
+     * @return true, if the class is not accessible in and of itself but is dragged into the API by a significant use.
+     */
+    boolean isInApiThroughUse();
 }

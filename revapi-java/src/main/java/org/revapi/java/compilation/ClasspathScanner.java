@@ -608,6 +608,7 @@ final class ClasspathScanner {
                             r.modelElement.setRawUseSites(r.useSites);
                             types.add(r);
                             r.modelElement.setInApi(r.inApi);
+                            r.modelElement.setInApiThroughUse(r.inApiThroughUse);
                         }
                     }
                 }
@@ -631,6 +632,7 @@ final class ClasspathScanner {
                         .filter(usedTr -> !usedTr.explicitlyExcluded)
                         .map(usedTr -> {
                             usedTr.inApi = true;
+                            usedTr.inApiThroughUse = true;
                             return usedTr;
                         })
                         .collect(toSet());
@@ -778,7 +780,10 @@ final class ClasspathScanner {
                         if (childType != null) {
                             TypeRecord tr = Scanner.this.types.get(childType);
                             if (tr != null && tr.modelElement != null) {
-                                tr.inApi |= true;
+                                if (!tr.inApi) {
+                                    tr.inApiThroughUse = true;
+                                }
+                                tr.inApi = true;
                             }
                         }
                         return null;
@@ -854,6 +859,7 @@ final class ClasspathScanner {
         boolean explicitlyExcluded;
         boolean explicitlyIncluded;
         boolean inApi;
+        boolean inApiThroughUse;
         boolean primaryApi;
         int nestingDepth;
 

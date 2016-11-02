@@ -37,9 +37,7 @@ import javax.annotation.Nullable;
 import javax.lang.model.type.DeclaredType;
 import javax.tools.ToolProvider;
 
-import org.revapi.API;
 import org.revapi.AnalysisContext;
-import org.revapi.Archive;
 import org.revapi.Difference;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
@@ -248,8 +246,14 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             Difference d = it.next();
             if (analysisConfiguration.getUseReportingCodes().contains(d.code)) {
                 StringBuilder newDesc = new StringBuilder(d.description == null ? "" : d.description);
-                appendUses(oldElement, oldEnvironment, newDesc);
-                appendUses(newElement, newEnvironment, newDesc);
+                newDesc.append("\n");
+                newDesc.append(messages.getString("revapi.java.uses.old"));
+                newDesc.append(" ");
+                appendUses(oldElement, newDesc);
+                newDesc.append("\n");
+                newDesc.append(messages.getString("revapi.java.uses.new"));
+                newDesc.append(" ");
+                appendUses(newElement, newDesc);
 
                 d = Difference.builder().addAttachments(d.attachments).addClassifications(d.classification)
                     .withCode(d.code).withName(d.name).withDescription(newDesc.toString()).build();
@@ -305,17 +309,18 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         bld.append(message);
     }
 
-    private void appendUses(Element element, final ProbingEnvironment environment, final StringBuilder bld) {
+    private void appendUses(Element element, final StringBuilder bld) {
         if (element instanceof JavaTypeElement) {
-            bld.append("\n");
             LOG.trace("Reporting uses of {}", element);
 
-            ((JavaTypeElement) element).visitUseSites(new UseSite.Visitor<Object, Void>() {
+            JavaTypeElement usedType = ((JavaTypeElement) element);
+
+            usedType.visitUseSites(new UseSite.Visitor<Object, Void>() {
                 @Nullable
                 @Override
                 public Object visit(@Nonnull DeclaredType type, @Nonnull UseSite use,
                                     @Nullable Void parameter) {
-                    if (appendUse(bld, type, use, environment)) {
+                    if (appendUse(usedType, bld, type, use)) {
                         return Boolean.TRUE; //just a non-null values
                     }
 
@@ -332,14 +337,13 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
 
-    private boolean appendUse(StringBuilder bld, DeclaredType type, UseSite use,
-        ProbingEnvironment environment) {
+    private boolean appendUse(JavaTypeElement usedType, StringBuilder bld, DeclaredType type, UseSite use) {
 
         if (!use.getUseType().isMovingToApi()) {
             return false;
         }
 
-        List<TypeAndUseSite> chain = getExamplePathToApiArchive(type, use, environment);
+        List<TypeAndUseSite> chain = getExamplePathToApiArchive(usedType, type, use);
         Iterator<TypeAndUseSite> chainIt = chain.iterator();
 
         if (chain.isEmpty()) {
@@ -370,23 +374,25 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         return true;
     }
 
-    private List<TypeAndUseSite> getExamplePathToApiArchive(DeclaredType type, UseSite bottomUse,
-                                                            ProbingEnvironment environment) {
+    private List<TypeAndUseSite> getExamplePathToApiArchive(JavaTypeElement usedType, DeclaredType type, UseSite bottomUse) {
 
         ArrayList<TypeAndUseSite> ret = new ArrayList<>();
 
-        traverseToApi(type, bottomUse, ret, environment, new HashSet<>());
+        traverseToApi(usedType, type, bottomUse, ret, new HashSet<>());
 
         return ret;
     }
 
-    private boolean traverseToApi(final DeclaredType type, final UseSite currentUse,
-        final List<TypeAndUseSite> path, final ProbingEnvironment environment, final
-    Set<javax.lang.model.element.TypeElement> visitedTypes) {
+    private boolean traverseToApi(final JavaTypeElement usedType, final DeclaredType type, final UseSite currentUse,
+                                  final List<TypeAndUseSite> path, final
+                                  Set<javax.lang.model.element.TypeElement> visitedTypes) {
+
+        if (!currentUse.getUseType().isMovingToApi()) {
+            return false;
+        }
 
         JavaTypeElement ut = findClassOf(currentUse.getSite());
-        javax.lang.model.element.TypeElement useType =
-                (javax.lang.model.element.TypeElement) ut.getModelRepresentation().asElement();
+        javax.lang.model.element.TypeElement useType = ut.getDeclaringElement();
 
         if (visitedTypes.contains(useType)) {
             return false;
@@ -394,10 +400,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
         visitedTypes.add(useType);
 
-        API api = currentUse.getSite().getApi();
-        Archive siteArchive = currentUse.getSite().getArchive();
-
-        if (contains(siteArchive, api.getArchives())) {
+        if (ut.isInAPI() && !ut.isInApiThroughUse() && !ut.equals(usedType)) {
             //the class is in the primary API
             path.add(0, new TypeAndUseSite(type, currentUse));
             return true;
@@ -407,8 +410,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 @Override
                 public Boolean visit(@Nonnull DeclaredType visitedType, @Nonnull UseSite use,
                     @Nullable Void parameter) {
-                    if (traverseToApi(visitedType, use, path, environment, visitedTypes)) {
-                        path.add(0, new TypeAndUseSite(type, currentUse));
+                    if (traverseToApi(usedType, visitedType, use, path, visitedTypes)) {
                         return true;
                     }
                     return null;

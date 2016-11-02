@@ -49,6 +49,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     private Set<UseSite> useSites;
     private Set<ClassPathUseSite> rawUseSites;
     private boolean inApi;
+    private boolean inApiThroughUse;
 
     /**
      * This is a helper constructor used only during probing the class files. This is to ensure that we have a
@@ -97,6 +98,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return inApi;
     }
 
+    @Override public boolean isInApiThroughUse() {
+        return inApiThroughUse;
+    }
+
     @Override public Set<UseSite> getUseSites() {
         if (useSites == null) {
             if (rawUseSites == null) {
@@ -114,6 +119,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
     public void setInApi(boolean inApi) {
         this.inApi = inApi;
+    }
+
+    public void setInApiThroughUse(boolean inApiThroughUse) {
+        this.inApiThroughUse = inApiThroughUse;
     }
 
     public void setRawUseSites(Set<ClassPathUseSite> rawUseSites) {
