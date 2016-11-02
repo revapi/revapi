@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -726,7 +727,7 @@ final class ClasspathScanner {
                     .map(e -> {
                         if (e instanceof ExecutableElement) {
                             ExecutableElement me = (ExecutableElement) e;
-                            if (!shouldAddMethodChild(me, methodOverrideMap)) {
+                            if (!shouldAddInheritedMethodChild(me, methodOverrideMap)) {
                                 return null;
                             }
                         }
@@ -750,7 +751,10 @@ final class ClasspathScanner {
             }
         }
 
-        private boolean shouldAddMethodChild(ExecutableElement methodElement, Set<String> overrideMap) {
+        private boolean shouldAddInheritedMethodChild(ExecutableElement methodElement, Set<String> overrideMap) {
+            if (methodElement.getKind() == ElementKind.CONSTRUCTOR) {
+                return false;
+            }
             String overrideKey = getOverrideMapKey(methodElement);
             boolean alreadyIncludedMethod = overrideMap.contains(overrideKey);
             if (alreadyIncludedMethod) {
