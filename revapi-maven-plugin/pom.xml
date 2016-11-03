@@ -62,6 +62,7 @@
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
             <scope>runtime</scope>
+            <version>0.4.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>

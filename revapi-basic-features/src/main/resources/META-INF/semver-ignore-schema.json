@@ -7,27 +7,50 @@
       "type": "boolean",
       "default": "false"
     },
-    "changeIncreaseAllows": {
+    "versionIncreaseAllows": {
       "type": "object",
       "properties": {
         "major": {
           "description": "The allowed difference severity on major version number increase.",
           "type": "string",
-          "enum": ["none", "nonBreaking", "potentiallyBreaking", "breaking"],
+          "enum": [
+            "none",
+            "nonBreaking",
+            "potentiallyBreaking",
+            "breaking"
+          ],
           "default": "breaking"
         },
         "minor": {
           "description": "The allowed difference severity on minor version number increase.",
           "type": "string",
-          "enum": ["none", "nonBreaking", "potentiallyBreaking", "breaking"],
+          "enum": [
+            "none",
+            "nonBreaking",
+            "potentiallyBreaking",
+            "breaking"
+          ],
           "default": "nonBreaking"
         },
         "patch": {
           "description": "The allowed difference severity on patch version number increase.",
           "type": "string",
-          "enum": ["none", "nonBreaking", "potentiallyBreaking", "breaking"],
+          "enum": [
+            "none",
+            "nonBreaking",
+            "potentiallyBreaking",
+            "breaking"
+          ],
           "default": "none"
         }
+      }
+    },
+    "passThroughDifferences": {
+      "description": "The list of difference codes that the semver lets pass through even though they would otherwise \
+                      be OK according to the versioning rules. This is for problems that you don't want to ignore."
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     }
   }

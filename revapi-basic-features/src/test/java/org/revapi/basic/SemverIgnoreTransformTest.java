@@ -84,7 +84,7 @@ public class SemverIgnoreTransformTest {
     @Test
     public void testSeverityOverrides() {
         String config = "{\"revapi\": {\"semver\": {\"ignore\": {\"enabled\": true," +
-                "\"changeIncreaseAllows\":{\"major\":\"potentiallyBreaking\",\"minor\":\"nonBreaking\",\"patch\": \"none\"}}}}}";
+                "\"versionIncreaseAllows\":{\"major\":\"potentiallyBreaking\",\"minor\":\"nonBreaking\",\"patch\": \"none\"}}}}}";
 
 
         DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", config);
@@ -116,6 +116,17 @@ public class SemverIgnoreTransformTest {
         Assert.assertNull(tr.transform(null, null, NON_BREAKING));
         Assert.assertNull(tr.transform(null, null, POTENTIALLY_BREAKING));
         Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+    }
+
+    @Test
+    public void testPassthrough() {
+        String config = "{\"revapi\": {\"semver\": {\"ignore\": {\"enabled\": true, \"passThroughDifferences\": [\"potentiallyBreaking\"]}}}}";
+
+        DifferenceTransform<?> tr = getTestTransform("1.0.0", "2.0.0", config);
+
+        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
+        Assert.assertSame(POTENTIALLY_BREAKING, tr.transform(null, null, POTENTIALLY_BREAKING));
+        Assert.assertNull(tr.transform(null, null, BREAKING));
     }
 
     private boolean isBreaking(Difference difference) {
