@@ -139,8 +139,8 @@ public final class Util {
         @Override
         public Void visitTypeVariable(TypeVariable t, StringBuilderAndState<TypeMirror> state) {
             if (state.visitingMethod) {
-                TypeMirror lowerBound = IgnoreCompletionFailures.in(t::getLowerBound);
-                lowerBound.accept(this, state);
+                TypeMirror upperBound = IgnoreCompletionFailures.in(t::getUpperBound);
+                upperBound.accept(this, state);
                 return null;
             }
 
