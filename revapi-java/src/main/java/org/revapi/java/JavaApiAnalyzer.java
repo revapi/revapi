@@ -139,8 +139,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         TreeMap<String, List<MethodElement>> l1MethodsByName = new TreeMap<>();
         TreeMap<String, List<MethodElement>> l2MethodsByName = new TreeMap<>();
 
-        addAllMethods(l1, l1MethodsByName);
-        addAllMethods(l2, l2MethodsByName);
+        int l1MethodsSize = addAllMethods(l1, l1MethodsByName);
+        int l2MethodsSize = addAllMethods(l2, l2MethodsByName);
 
         //rehash overloads that are present in both collections - those are then reordered using their mutual
         //resemblance
@@ -154,7 +154,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         CoIterator<Map.Entry<String, List<MethodElement>>> coit = new CoIterator<>(l1MethodsIterator, l2MethodsIterator,
                 (e1, e2) -> e1.getKey().compareTo(e2.getKey()));
 
-        List<Element> l2MethodsInOrder = new ArrayList<>();
+        List<Element> l2MethodsInOrder = new ArrayList<>(l1MethodsSize);
+        List<Element> l1MethodsInOrder = new ArrayList<>(l2MethodsSize);
 
         while (coit.hasNext()) {
             coit.next();
@@ -171,6 +172,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                 //no overloads with the name present in l2
                 for (MethodElement m : l1e.getValue()) {
                     l1MethodOrder.put(m, index++);
+                    l1MethodsInOrder.add(m);
                 }
             } else {
                 //overloads of the same name present in both maps
@@ -184,25 +186,42 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                     MethodElement m1 = l1Overloads.get(0);
                     MethodElement m2 = l2Overloads.get(0);
 
+                    l1MethodsInOrder.add(m1);
                     l2MethodsInOrder.add(m2);
                     l2MethodOrder.put(m2, index);
                     l1MethodOrder.put(m1, index++);
                 } else {
                     //slow path - for each overload in l1, we need to pick the appropriate one from l2 and put it in the
                     //same place
-                    for (MethodElement c1Method : l1Overloads) {
-                        MethodElement c2Method = removeBestMatch(c1Method, l2Overloads);
-                        if (c2Method != null) {
-                            l2MethodOrder.put(c2Method, index);
-                            l2MethodsInOrder.add(c2Method);
-                        }
-                        l1MethodOrder.put(c1Method, index++);
+                    List<MethodElement> as = l1Overloads;
+                    List<MethodElement> bs = l2Overloads;
+                    List<Element> aio = l1MethodsInOrder;
+                    List<Element> bio = l2MethodsInOrder;
+                    IdentityHashMap<MethodElement, Integer> ao = l1MethodOrder;
+                    IdentityHashMap<MethodElement, Integer> bo = l2MethodOrder;
+
+                    if (l1Overloads.size() > l2Overloads.size()) {
+                        as = l2Overloads;
+                        bs = l1Overloads;
+                        aio = l2MethodsInOrder;
+                        bio = l1MethodsInOrder;
+                        ao = l2MethodOrder;
+                        bo = l1MethodOrder;
+                    }
+
+                    for (MethodElement aMethod : as) {
+                        ao.put(aMethod, index);
+                        aio.add(aMethod);
+
+                        MethodElement bMethod = removeBestMatch(aMethod, bs);
+                        bo.put(bMethod, index++);
+                        bio.add(bMethod);
                     }
 
                     //add the rest
-                    for (MethodElement m : l2Overloads) {
-                        l2MethodOrder.put(m, index++);
-                        l2MethodsInOrder.add(m);
+                    for (MethodElement m : bs) {
+                        bo.put(m, index++);
+                        bio.add(m);
                     }
                 }
             }
@@ -213,31 +232,33 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         //conform to the restrictions imposed by the co-iteration of the lists during the analysis
         //the lists are already sorted in the natural order of the java elements which is first and foremost sorted
         //by element type (see org.revapi.java.model.JavaElementFactory). Let's exploit that and just remove all the
-        //methods in the list and re-add them in the correct order. This is actually only necessary in the second list
-        //because the methods in the first list don't change their order.
+        //methods in the list and re-add them in the correct order.
+        reAddSortedMethods(l1, l1MethodsInOrder);
+        reAddSortedMethods(l2, l2MethodsInOrder);
+    }
 
-        //find the index to add the methods to - exploit the sorting by element type
+    private static void reAddSortedMethods(List<Element> elements, List<Element> sortedMethods) {
         int methodRank = JavaElementFactory.getModelTypeRank(MethodElement.class);
-        index = 0;
-        for (; index < l2.size(); ++index) {
-            Element e = l2.get(index);
+        int index = 0;
+        for (; index < elements.size(); ++index) {
+            Element e = elements.get(index);
             if (JavaElementFactory.getModelTypeRank(e.getClass()) >= methodRank) {
                 break;
             }
         }
 
         //remove all the method elements
-        while (index < l2.size()) {
-            Element e = l2.get(index);
+        while (index < elements.size()) {
+            Element e = elements.get(index);
             if (e instanceof MethodElement) {
-                l2.remove(index);
+                elements.remove(index);
             } else {
                 break;
             }
         }
 
         //and re-add them in the newly established order
-        l2.addAll(index, l2MethodsInOrder);
+        elements.addAll(index, sortedMethods);
     }
 
     private static MethodElement removeBestMatch(MethodElement blueprint, List<MethodElement> candidates) {
@@ -352,14 +373,18 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         return maxLen;
     }
 
-    private static void addAllMethods(Collection<? extends Element> els, TreeMap<String,
+    private static int addAllMethods(Collection<? extends Element> els, TreeMap<String,
             List<MethodElement>> methods) {
 
-        els.forEach(e -> {
+        int ret = 0;
+        for (Element e : els) {
             if (e instanceof MethodElement) {
                 add((MethodElement) e, methods);
+                ret++;
             }
-        });
+        }
+
+        return ret;
     }
 
     private static void add(MethodElement method, TreeMap<String, List<MethodElement>> methods) {

@@ -330,7 +330,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         if (element instanceof JavaTypeElement) {
             LOG.trace("Reporting uses of {}", element);
 
-            JavaTypeElement usedType = ((JavaTypeElement) element);
+            JavaTypeElement usedType = (JavaTypeElement) element;
 
             usedType.visitUseSites(new UseSite.Visitor<Object, Void>() {
                 @Nullable
