@@ -65,12 +65,16 @@ import org.revapi.java.spi.IgnoreCompletionFailures;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
 import org.revapi.query.Filter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
  * @since 0.11.0
  */
 final class ClasspathScanner {
+    private static final Logger LOG = LoggerFactory.getLogger(ClasspathScanner.class);
+
     private static final List<Modifier> ACCESSIBLE_MODIFIERS = Arrays.asList(Modifier.PUBLIC, Modifier.PROTECTED);
 
     private final StandardJavaFileManager fileManager;
@@ -237,82 +241,89 @@ final class ClasspathScanner {
         }
 
         void scanClass(ArchiveLocation loc, TypeElement type, boolean primaryApi) {
-            if (processed.contains(type)) {
-                return;
-            }
-
-            processed.add(type);
-            Boolean wasAnno = requiredTypes.remove(type);
-
-            String bn = environment.getElementUtils().getBinaryName(type).toString();
-            String cn = type.getQualifiedName().toString();
-            boolean includes = inclusionFilter.accepts(bn, cn);
-            boolean excludes = inclusionFilter.rejects(bn, cn);
-
-            //type.asType() possibly not completely correct when dealing with inner class of a parameterized class
-            TypeMirror typeType = type.asType();
-            if (typeType.getKind() == TypeKind.ERROR) {
-                //just re-add the missing type and return. It will be dealt with accordingly
-                //in initEnvironment
-                requiredTypes.put(type, wasAnno);
-                return;
-            }
-
-            org.revapi.java.model.TypeElement t =
-                    new org.revapi.java.model.TypeElement(environment, loc.getArchive(), type, (DeclaredType) type.asType());
-
-            TypeRecord tr = getTypeRecord(type);
-            tr.modelElement = t;
-            //this will be revisited... in here we're just establishing the types that are in the API for sure...
-            tr.inApi = !excludes && (primaryApi && !shouldBeIgnored(type) && !(type.getEnclosingElement() instanceof TypeElement));
-            tr.primaryApi = primaryApi;
-            tr.explicitlyExcluded = excludes;
-            tr.explicitlyIncluded = includes;
-
-            if (tr.explicitlyExcluded) {
-                return;
-            }
-
-            TypeElement superType = getTypeElement.visit(IgnoreCompletionFailures.in(type::getSuperclass));
-            if (superType != null) {
-                addUse(tr, type, superType, UseSite.Type.IS_INHERITED);
-                tr.superTypes.add(getTypeRecord(superType));
-                if (!processed.contains(superType)) {
-                    requiredTypes.put(superType, false);
+            try {
+                if (processed.contains(type)) {
+                    return;
                 }
-            }
 
-            IgnoreCompletionFailures.in(type::getInterfaces).stream().map(getTypeElement::visit)
-                    .forEach(e -> {
-                        if (!processed.contains(e)) {
-                            requiredTypes.put(e, false);
-                        }
-                        addUse(tr, type, e, UseSite.Type.IS_IMPLEMENTED);
-                        tr.superTypes.add(getTypeRecord(e));
-                    });
+                processed.add(type);
+                Boolean wasAnno = requiredTypes.remove(type);
 
-            for (Element e : IgnoreCompletionFailures.in(type::getEnclosedElements)) {
-                switch (e.getKind()) {
-                    case ANNOTATION_TYPE:
-                    case CLASS:
-                    case ENUM:
-                    case INTERFACE:
-                        addUse(tr, type, (TypeElement) e, UseSite.Type.CONTAINS);
-                        //the contained classes by default inherit the API status of their containing class
-                        scanClass(loc, (TypeElement) e, tr.inApi);
-                        break;
-                    case CONSTRUCTOR:
-                    case METHOD:
-                        scanMethod(tr, (ExecutableElement) e);
-                        break;
-                    case ENUM_CONSTANT:
-                    case FIELD:
-                        scanField(tr, (VariableElement) e);
-                        break;
+                String bn = environment.getElementUtils().getBinaryName(type).toString();
+                String cn = type.getQualifiedName().toString();
+                boolean includes = inclusionFilter.accepts(bn, cn);
+                boolean excludes = inclusionFilter.rejects(bn, cn);
+
+                //type.asType() possibly not completely correct when dealing with inner class of a parameterized class
+                TypeMirror typeType = type.asType();
+                if (typeType.getKind() == TypeKind.ERROR) {
+                    //just re-add the missing type and return. It will be dealt with accordingly
+                    //in initEnvironment
+                    requiredTypes.put(type, wasAnno);
+                    return;
                 }
-            }
 
-            type.getAnnotationMirrors().forEach(a -> scanAnnotation(tr, type, a));
+                org.revapi.java.model.TypeElement t =
+                        new org.revapi.java.model.TypeElement(environment, loc.getArchive(), type,
+                                (DeclaredType) type.asType());
+
+                TypeRecord tr = getTypeRecord(type);
+                tr.modelElement = t;
+                //this will be revisited... in here we're just establishing the types that are in the API for sure...
+                tr.inApi = !excludes &&
+                        (primaryApi && !shouldBeIgnored(type) && !(type.getEnclosingElement() instanceof TypeElement));
+                tr.primaryApi = primaryApi;
+                tr.explicitlyExcluded = excludes;
+                tr.explicitlyIncluded = includes;
+
+                if (tr.explicitlyExcluded) {
+                    return;
+                }
+
+                TypeElement superType = getTypeElement.visit(IgnoreCompletionFailures.in(type::getSuperclass));
+                if (superType != null) {
+                    addUse(tr, type, superType, UseSite.Type.IS_INHERITED);
+                    tr.superTypes.add(getTypeRecord(superType));
+                    if (!processed.contains(superType)) {
+                        requiredTypes.put(superType, false);
+                    }
+                }
+
+                IgnoreCompletionFailures.in(type::getInterfaces).stream().map(getTypeElement::visit)
+                        .forEach(e -> {
+                            if (!processed.contains(e)) {
+                                requiredTypes.put(e, false);
+                            }
+                            addUse(tr, type, e, UseSite.Type.IS_IMPLEMENTED);
+                            tr.superTypes.add(getTypeRecord(e));
+                        });
+
+                for (Element e : IgnoreCompletionFailures.in(type::getEnclosedElements)) {
+                    switch (e.getKind()) {
+                        case ANNOTATION_TYPE:
+                        case CLASS:
+                        case ENUM:
+                        case INTERFACE:
+                            addUse(tr, type, (TypeElement) e, UseSite.Type.CONTAINS);
+                            //the contained classes by default inherit the API status of their containing class
+                            scanClass(loc, (TypeElement) e, tr.inApi);
+                            break;
+                        case CONSTRUCTOR:
+                        case METHOD:
+                            scanMethod(tr, (ExecutableElement) e);
+                            break;
+                        case ENUM_CONSTANT:
+                        case FIELD:
+                            scanField(tr, (VariableElement) e);
+                            break;
+                    }
+                }
+
+                type.getAnnotationMirrors().forEach(a -> scanAnnotation(tr, type, a));
+            } catch (Exception e) {
+                LOG.error("Failed to scan class " + type.getQualifiedName().toString()
+                        + ". Analysis results may be skewed.", e);
+            }
         }
 
         void placeInTree(TypeRecord typeRecord) {
