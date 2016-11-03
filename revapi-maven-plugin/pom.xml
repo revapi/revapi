@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>26-SNAPSHOT</version>
+        <version>26</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -42,8 +42,8 @@
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi-java.version>0.11.0-SNAPSHOT</revapi-java.version>
-        <revapi-java-spi.version>0.10.0-SNAPSHOT</revapi-java-spi.version>
+        <revapi-java.version>0.11.0</revapi-java.version>
+        <revapi-java-spi.version>0.10.0</revapi-java-spi.version>
         <revapi-reporter-text.version>0.6.0</revapi-reporter-text.version>
     </properties>
 
@@ -55,14 +55,12 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.6.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
             <scope>runtime</scope>
-            <version>0.4.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
