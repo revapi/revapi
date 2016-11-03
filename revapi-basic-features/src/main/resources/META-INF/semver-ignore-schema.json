@@ -6,6 +6,29 @@
       "description": "Whether the semver ignore should be applied or not. By default it is NOT enabled.",
       "type": "boolean",
       "default": "false"
+    },
+    "changeIncreaseAllows": {
+      "type": "object",
+      "properties": {
+        "major": {
+          "description": "The allowed difference severity on major version number increase.",
+          "type": "string",
+          "enum": ["none", "nonBreaking", "potentiallyBreaking", "breaking"],
+          "default": "breaking"
+        },
+        "minor": {
+          "description": "The allowed difference severity on minor version number increase.",
+          "type": "string",
+          "enum": ["none", "nonBreaking", "potentiallyBreaking", "breaking"],
+          "default": "nonBreaking"
+        },
+        "patch": {
+          "description": "The allowed difference severity on patch version number increase.",
+          "type": "string",
+          "enum": ["none", "nonBreaking", "potentiallyBreaking", "breaking"],
+          "default": "none"
+        }
+      }
     }
   }
 }

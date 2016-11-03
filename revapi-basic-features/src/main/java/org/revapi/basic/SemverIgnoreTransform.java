@@ -96,13 +96,15 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
     }
 
     @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
-        ModelNode node = analysisContext.getConfiguration().get("revapi", "semver", "ignore", "enabled");
+        ModelNode node = analysisContext.getConfiguration().get("revapi", "semver", "ignore");
+
         if (hasMultipleElements(analysisContext.getOldApi().getArchives())
                 || hasMultipleElements(analysisContext.getNewApi().getArchives())) {
             throw new IllegalArgumentException(
                     "The semver extension doesn't handle changes in multiple archives at once.");
         }
-        enabled = node.isDefined() && node.asBoolean();
+
+        enabled = node.get("enabled").isDefined() && node.get("enabled").asBoolean();
 
         if (enabled) {
             Archive oldArchive = analysisContext.getOldApi().getArchives().iterator().next();
@@ -122,21 +124,28 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
             Version oldVersion = Version.parse(oldVersionString);
             Version newVersion = Version.parse(newVersionString);
 
-            if (newVersion.major == 0 && oldVersion.major == 0) {
+            if (newVersion.major == 0 && oldVersion.major == 0 && !node.get("changeIncreaseAllows").isDefined()) {
+                DifferenceSeverity minorChangeAllowed = asSeverity(node.get("changeIncreaseAllows", "minor"), DifferenceSeverity.BREAKING);
+                DifferenceSeverity patchVersionAllowed = asSeverity(node.get("changeIncreaseAllows", "patch"), DifferenceSeverity.NON_BREAKING);
+
                 if (newVersion.minor > oldVersion.minor) {
-                    allowedSeverity = DifferenceSeverity.BREAKING;
+                    allowedSeverity = minorChangeAllowed;
                 } else if (newVersion.minor == oldVersion.minor && newVersion.patch > oldVersion.patch) {
-                    allowedSeverity = DifferenceSeverity.NON_BREAKING;
+                    allowedSeverity = patchVersionAllowed;
                 } else {
                     allowedSeverity = null;
                 }
             } else {
+                DifferenceSeverity majorChangeAllowed = asSeverity(node.get("changeIncreaseAllows", "major"), DifferenceSeverity.BREAKING);
+                DifferenceSeverity minorChangeAllowed = asSeverity(node.get("changeIncreaseAllows", "minor"), DifferenceSeverity.NON_BREAKING);
+                DifferenceSeverity patchVersionAllowed = asSeverity(node.get("changeIncreaseAllows", "patch"), null);
+
                 if (newVersion.major > oldVersion.major) {
-                    allowedSeverity = DifferenceSeverity.BREAKING;
+                    allowedSeverity = majorChangeAllowed;
                 } else if (newVersion.major == oldVersion.major && newVersion.minor > oldVersion.minor) {
-                    allowedSeverity = DifferenceSeverity.NON_BREAKING;
+                    allowedSeverity = minorChangeAllowed;
                 } else {
-                    allowedSeverity = null;
+                    allowedSeverity = patchVersionAllowed;
                 }
             }
         }
@@ -198,6 +207,25 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
             this.patch = patch;
             this.sep = sep;
             this.suffix = suffix;
+        }
+    }
+
+    private static DifferenceSeverity asSeverity(ModelNode configNode, DifferenceSeverity defaultValue) {
+        if (configNode == null || !configNode.isDefined()) {
+            return defaultValue;
+        } else {
+            switch (configNode.asString()) {
+                case "none":
+                    return null;
+                case "nonBreaking":
+                    return DifferenceSeverity.NON_BREAKING;
+                case "potentiallyBreaking":
+                    return DifferenceSeverity.POTENTIALLY_BREAKING;
+                case "breaking":
+                    return DifferenceSeverity.BREAKING;
+                default:
+                    return defaultValue;
+            }
         }
     }
 }

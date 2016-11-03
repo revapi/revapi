@@ -5,8 +5,6 @@
 Using this extension one can automatically ignore API changes that are allowed for a given version delta based on the
 rules of semantic versioning (http://semver.org).
 
-This extension doesn't have any extensive configuration - it can merely be enabled or disabled.
-
 === Sample Configuration
 
 ```javascript
@@ -14,7 +12,12 @@ This extension doesn't have any extensive configuration - it can merely be enabl
   "revapi" : {
     "semver" : {
       "ignore" : {
-        "enabled" : true
+        "enabled" : true,
+        "changeIncreaseAllows" : {
+            "major" : "breaking",
+            "minor" : "nonBreaking",
+            "patch" : "none"
+        }
       }
     }
   }
@@ -26,6 +29,20 @@ This extension doesn't have any extensive configuration - it can merely be enabl
 `enabled`::
 If true, the transformation is in effect and ignores API differences according to the version delta. If false, which
 is the default, the transformation does nothing.
+
+`changeIncreaseAllows`::
+Overrides the allowed severity of changes allowed at the certain version number increase. The defaults are based on the
+semver versioning which allows breaking API changes on major release, non-breaking API changes on minor release and
+no API changes on patch release or if the major version is `0`, breaking changes on minor release and non-breaking
+changes on patch release.
++
+The allowed properties in this map are: `major`, `minor` and `patch` indicating the component of the version string
+being changed and the allowed values are `breaking`, `potentiallyBreaking`, `nonBreaking` and `none` indicating the
+severity of the API changes allowed for given version number change.
++
+If some of the properties (`major`, `minor`, `patch`) are not specified, they assume the default values as outlined in
+the above sample configuration.
+
 
 ==== Implementation Note
 
