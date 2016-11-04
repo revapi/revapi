@@ -26,7 +26,7 @@ import org.revapi.simple.SimpleReporter;
  * @author Lukas Krejci
  * @since 0.4.0
  */
-@Mojo(name = "validate-configuration", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+@Mojo(name = "validate-configuration", defaultPhase = LifecyclePhase.VALIDATE, threadSafe = true)
 public class ValidateConfigurationMojo extends AbstractRevapiMojo {
 
     @Override
