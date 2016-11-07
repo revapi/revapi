@@ -1,0 +1,14 @@
+{
+  "0.11.1": {
+    "revapi": {
+      "ignore": [
+        {
+          "code": "java.method.visibilityReduced",
+          "old": "method boolean org.revapi.java.filters.AnnotatedElementFilter::decideAnnotation(org.revapi.java.spi.JavaAnnotationElement, org.revapi.java.filters.AbstractIncludeExcludeFilter.InclusionState)",
+          "new": "method boolean org.revapi.java.filters.AnnotatedElementFilter::decideAnnotation(org.revapi.java.spi.JavaAnnotationElement, org.revapi.java.filters.AbstractIncludeExcludeFilter.InclusionState)",
+          "justification": "This is more or less a false positive - a protected method on a final class uses a package private class."
+        }
+      ]      
+    }
+  }
+}

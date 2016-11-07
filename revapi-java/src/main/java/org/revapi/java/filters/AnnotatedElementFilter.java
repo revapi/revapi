@@ -53,7 +53,7 @@ public final class AnnotatedElementFilter extends AbstractIncludeExcludeFilter {
     }
 
     @Override
-    protected boolean decideAnnotation(JavaAnnotationElement annotation,
+    boolean decideAnnotation(JavaAnnotationElement annotation,
             AbstractIncludeExcludeFilter.InclusionState parentInclusionState) {
         //annotations cannot be annotated, so include this only if there is no explicit inclusion filter
         return parentInclusionState.toBoolean() && includeTest == null;

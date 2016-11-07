@@ -244,7 +244,7 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
         return ret.toBoolean();
     }
 
-    protected boolean decideAnnotation(JavaAnnotationElement annotation, InclusionState parentInclusionState) {
+    boolean decideAnnotation(JavaAnnotationElement annotation, InclusionState parentInclusionState) {
         return parentInclusionState.toBoolean();
     }
 

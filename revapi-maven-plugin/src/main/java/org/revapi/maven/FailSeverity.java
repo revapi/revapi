@@ -6,7 +6,7 @@ import org.revapi.DifferenceSeverity;
  * @author Lukas Krejci
  * @since 0.1
  */
-enum FailSeverity {
+public enum FailSeverity {
     nonBreaking, potentiallyBreaking, breaking;
 
     public DifferenceSeverity asDifferenceSeverity() {

@@ -21,7 +21,7 @@ import org.revapi.Reporter;
  * @author Lukas Krejci
  * @since 0.1
  */
-final class ReportTimeReporter implements Reporter {
+public final class ReportTimeReporter implements Reporter {
 
     private final DifferenceSeverity minSeverity;
 

@@ -62,7 +62,7 @@ import org.revapi.maven.utils.ScopeDependencyTraverser;
  * @author Lukas Krejci
  * @since 0.1
  */
-final class Analyzer implements AutoCloseable {
+public final class Analyzer implements AutoCloseable {
     private static final Pattern ANY_NON_SNAPSHOT = Pattern.compile("^.*(?<!-SNAPSHOT)$");
 
     private final String analysisConfiguration;
