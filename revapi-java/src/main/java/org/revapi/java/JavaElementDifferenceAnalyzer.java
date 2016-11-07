@@ -428,6 +428,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 public Boolean visit(@Nonnull DeclaredType visitedType, @Nonnull UseSite use,
                     @Nullable Void parameter) {
                     if (traverseToApi(usedType, visitedType, use, path, visitedTypes)) {
+                        path.add(0, new TypeAndUseSite(type, currentUse));
                         return true;
                     }
                     return null;
