@@ -29,7 +29,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-bom</artifactId>
-                <version>29</version>
+                <version>30</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
