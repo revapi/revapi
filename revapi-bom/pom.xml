@@ -32,7 +32,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-bom</artifactId>
-    <version>30-SNAPSHOT</version>
+    <version>30</version>
 
     <packaging>pom</packaging>
 
@@ -137,6 +137,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-bom-30</tag>
     </scm>
 </project>
