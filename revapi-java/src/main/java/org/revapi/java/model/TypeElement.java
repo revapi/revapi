@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
@@ -155,16 +154,15 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 if (e.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
                     //this is a field
                     TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
-                    Name fieldName = e.getSimpleName();
                     List<FieldElement> fs = type.searchChildren(FieldElement.class, false,
-                            FlatFilter.by(f -> fieldName.contentEquals(f.getDeclaringElement().getSimpleName())));
+                            FlatFilter.by(f -> f.getDeclaringElement().equals(e)));
                     return fs.get(0);
                 } else if (e.getEnclosingElement() instanceof javax.lang.model.element.ExecutableElement) {
                     //this is a method parameter
-                    TypeElement type = environment.getTypeMap().get(e.getEnclosingElement().getEnclosingElement());
-                    String methodSig = Util.toUniqueString(e.getEnclosingElement().asType());
+                    Element methodEl = e.getEnclosingElement();
+                    TypeElement type = environment.getTypeMap().get(methodEl.getEnclosingElement());
                     List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
-                            FlatFilter.by(m -> Util.toUniqueString(m.getDeclaringElement().asType()).equals(methodSig)));
+                            FlatFilter.by(m -> m.getDeclaringElement().equals(methodEl)));
 
                     MethodElement method = ms.get(0);
 
@@ -184,11 +182,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
             @Override public JavaModelElement visitExecutable(ExecutableElement e, Void ignored) {
                 TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
-                String methodSig = Util.toUniqueString(e.asType());
-                List<MethodElement> fs = type.searchChildren(MethodElement.class, false,
-                        FlatFilter.by(f -> Util.toUniqueString(f.getDeclaringElement().asType()).equals(methodSig)));
+                List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
+                        FlatFilter.by(m -> m.getDeclaringElement().equals(e)));
 
-                return fs.get(0);
+                return ms.get(0);
             }
         }, null);
     }
