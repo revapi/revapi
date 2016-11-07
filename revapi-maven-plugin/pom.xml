@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>26</version>
+        <version>27-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -36,7 +36,7 @@
 
     <properties>
         <maven.version>3.2.5</maven.version>
-        <maven-plugin-plugin.version>3.4</maven-plugin-plugin.version>
+        <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
         <maven-invoker.version>1.9</maven-invoker.version>
         <aether.version>0.9.1.v20140329</aether.version>
         <skipTests>false</skipTests>
@@ -213,14 +213,12 @@
                         <goals>
                             <goal>descriptor</goal>
                         </goals>
-                        <phase>process-classes</phase>
                     </execution>
                     <execution>
                         <id>help-descriptor</id>
                         <goals>
                             <goal>helpmojo</goal>
                         </goals>
-                        <phase>process-classes</phase>
                     </execution>
                 </executions>
             </plugin>

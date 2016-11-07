@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>26-SNAPSHOT</version>
+        <version>27-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -47,6 +47,22 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <version>${self-api-check.maven-version}</version>
+                <configuration>
+                    <analysisConfigurationFiles combine.children="append">
+                        <configurationFile>
+                            <path>api-ignored.json</path>
+                        </configurationFile>
+                    </analysisConfigurationFiles>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <distributionManagement>
         <site>
             <id>site</id>
