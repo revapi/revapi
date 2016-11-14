@@ -21,7 +21,7 @@
 
     <properties>
         <self-api-check.maven-version>0.7.0</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.11.0</self-api-check.java-extension-version>
+        <self-api-check.java-extension-version>0.11.1</self-api-check.java-extension-version>
     </properties>
 
     <dependencyManagement>
@@ -29,7 +29,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-bom</artifactId>
-                <version>30</version>
+                <version>31</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
