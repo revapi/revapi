@@ -44,7 +44,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"regex\": true, \"exclude\":" +
                 "[\"@annotationfilter.NonPublic.*\"]}}}}}", results -> {
 
-            Assert.assertEquals(18, results.size());
+            Assert.assertEquals(73, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
                     "method void annotationfilter.NonPublicClass::m()",
@@ -58,7 +58,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"exclude\":" +
                 "[\"@annotationfilter.NonPublic(since = \\\"2.0\\\")\"]}}}}}", results -> {
 
-            Assert.assertEquals(27, results.size());
+            Assert.assertEquals(112, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "method void annotationfilter.PublicClass::implDetail()");
         });
@@ -69,7 +69,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"include\":" +
                 "[\"@annotationfilter.Public\"]}}}}}", results -> {
 
-            Assert.assertEquals(10, results.size());
+            Assert.assertEquals(55, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "class annotationfilter.NonPublic", "method java.lang.String annotationfilter.NonPublic::since()",
                     "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
@@ -97,7 +97,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 "\"include\": [\"@annotationfilter.Public\"]}}}}}", results
                 -> {
 
-            Assert.assertEquals(7, results.size());
+            Assert.assertEquals(37, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "class annotationfilter.NonPublic",
                     "method java.lang.String annotationfilter.NonPublic::since()",

@@ -121,7 +121,11 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
             List<Element> results = forest.search(Element.class, true, new AcceptingFilter(), null);
 
             List<String> expected = new ArrayList<>(expectedResults);
-            List<String> actual = results.stream().map(Element::getFullHumanReadableString).collect(toList());
+            List<String> actual = results.stream()
+                    //don't include stuff from the system classpath, because that makes the results unnecessarily
+                    //huge, while we don't actually need to check the system classpath element at all in the tests
+                    .filter(e -> e.getArchive() != null && !e.getArchive().getName().equals("<system classpath>"))
+                    .map(Element::getFullHumanReadableString).collect(toList());
 
             Collections.sort(expected);
             Collections.sort(actual);

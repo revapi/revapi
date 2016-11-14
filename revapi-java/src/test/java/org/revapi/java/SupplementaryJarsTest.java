@@ -31,6 +31,7 @@ import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
@@ -112,7 +113,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                     .build());
         }
 
-        Assert.assertEquals(8, allReports.size());
+        Assert.assertEquals(8 + 11, allReports.size()); //11 removed methods when kind of class changes to interface
         Assert.assertTrue(
                 containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
@@ -125,6 +126,33 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 Code.CLASS_KIND_CHANGED.code()));
         Assert.assertTrue(containsDifference(allReports, "method void B.UsedByIgnoredClass::<init>()", null,
                 Code.METHOD_REMOVED.code()));
+        //eleven methods removed when kind changed, because interface doesn't have the methods of Object
+        Assert.assertEquals(11, allReports.stream()
+                .filter(r -> {
+                    javax.lang.model.element.TypeElement oldType = null;
+                    if (r.getOldElement() == null || !(r.getOldElement() instanceof JavaModelElement)) {
+                        return false;
+                    }
+
+                    javax.lang.model.element.Element old = ((JavaModelElement) r.getOldElement()).getDeclaringElement();
+
+                    do {
+                        if (old instanceof javax.lang.model.element.TypeElement) {
+                            oldType = (javax.lang.model.element.TypeElement) old;
+                            break;
+                        }
+                        old = old.getEnclosingElement();
+                    } while (old != null);
+
+                    if (oldType == null) {
+                        return false;
+                    }
+
+                    return oldType.getQualifiedName().contentEquals("java.lang.Object");
+
+                })
+                .flatMap(r -> r.getDifferences().stream())
+                .count());
     }
 
     @Test

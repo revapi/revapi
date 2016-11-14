@@ -8,6 +8,7 @@ import static org.revapi.java.model.JavaElementFactory.elementFor;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.AbstractMap;
@@ -27,6 +28,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -76,6 +78,7 @@ final class ClasspathScanner {
     private static final Logger LOG = LoggerFactory.getLogger(ClasspathScanner.class);
 
     private static final List<Modifier> ACCESSIBLE_MODIFIERS = Arrays.asList(Modifier.PUBLIC, Modifier.PROTECTED);
+    private static final String SYSTEM_CLASSPATH_NAME = "<system classpath>";
 
     private final StandardJavaFileManager fileManager;
     private final ProbingEnvironment environment;
@@ -168,6 +171,28 @@ final class ClasspathScanner {
             }
         }
 
+        //ok, so scanning the archives doesn't give us any new resolved classes that we need in the API...
+        //let's scan the system classpath. What will be left after this will be the truly missing classes.
+
+        //making a copy because the required types might be modified during scanning
+        Map<TypeElement, Boolean> rts = new HashMap<>(scanner.requiredTypes);
+
+        ArchiveLocation systemClassPath = new ArchiveLocation(new Archive() {
+            @Nonnull @Override public String getName() {
+                return SYSTEM_CLASSPATH_NAME;
+            }
+
+            @Nonnull @Override public InputStream openStream() throws IOException {
+                throw new UnsupportedOperationException();
+            }
+        });
+
+        for (Map.Entry<TypeElement, Boolean> e : rts.entrySet()) {
+            if (e.getKey().asType().getKind() != TypeKind.ERROR) {
+                scanner.scanClass(systemClassPath, e.getKey(), false);
+            }
+        }
+
         scanner.initEnvironment();
     }
 
@@ -254,6 +279,11 @@ final class ClasspathScanner {
                 boolean includes = inclusionFilter.accepts(bn, cn);
                 boolean excludes = inclusionFilter.rejects(bn, cn);
 
+                //technically, we could find this out later on in the method, but doing this here ensures that the
+                //javac tries to fully load the class (and therefore throw any completion failures.
+                //Doing this then ensures that we get a correct TypeKind after this call.
+                TypeElement superType = getTypeElement.visit(IgnoreCompletionFailures.in(type::getSuperclass));
+
                 //type.asType() possibly not completely correct when dealing with inner class of a parameterized class
                 TypeMirror typeType = type.asType();
                 if (typeType.getKind() == TypeKind.ERROR) {
@@ -280,7 +310,6 @@ final class ClasspathScanner {
                     return;
                 }
 
-                TypeElement superType = getTypeElement.visit(IgnoreCompletionFailures.in(type::getSuperclass));
                 if (superType != null) {
                     addUse(tr, type, superType, UseSite.Type.IS_INHERITED);
                     tr.superTypes.add(getTypeRecord(superType));
@@ -511,7 +540,7 @@ final class ClasspathScanner {
             }
 
             environment.setTypeMap(types.stream().collect(toMap(tr -> tr.javacElement, tr -> tr.modelElement)));
-       }
+        }
 
         private void handleMissingClasses(Set<TypeRecord> types) {
             Elements els = environment.getElementUtils();
@@ -569,8 +598,9 @@ final class ClasspathScanner {
                 TypeElement t = e.getKey();
                 TypeRecord r = e.getValue();
 
-                //the model element will be null for types from the bootstrap classpath
-                if (r.modelElement != null) {
+                //the model element will be null for missing types. Additionally, we don't want the system classpath
+                //in our tree, because that is superfluous.
+                if (r.modelElement != null && !r.modelElement.getArchive().getName().equals(SYSTEM_CLASSPATH_NAME)) {
                     String cn = t.getQualifiedName().toString();
                     boolean includes = r.explicitlyIncluded;
                     boolean excludes = r.explicitlyExcluded;
