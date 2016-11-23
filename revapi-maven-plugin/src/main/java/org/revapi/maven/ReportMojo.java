@@ -28,7 +28,6 @@ import java.util.ResourceBundle;
 import org.apache.maven.doxia.sink.Sink;
 import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -50,7 +49,6 @@ import org.revapi.Element;
  */
 @Mojo(name = "report", defaultPhase = LifecyclePhase.SITE,
         requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME)
-@Execute(phase = LifecyclePhase.PACKAGE)
 public class ReportMojo extends AbstractMavenReport {
 
     /**
