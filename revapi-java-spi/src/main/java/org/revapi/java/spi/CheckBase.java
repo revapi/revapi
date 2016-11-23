@@ -78,8 +78,12 @@ public abstract class CheckBase implements Check {
     }
 
     /**
+     * This method checks that the provided element and all its parent elements are accessible (public or protected).
+     * Additionally, if the provided element is a type, it must be in API or, if it is not a type, its nearest enclosing
+     * type must be in API.
+     *
      * @param e the element to check
-     * @return true if the provided element is public or protected, false otherwise.
+     * @return true if the provided element is accessible and in API, false otherwise.
      */
     public boolean isAccessible(@Nonnull JavaModelElement e) {
         if (!isAccessibleByModifier(e.getDeclaringElement())) {
@@ -89,11 +93,21 @@ public abstract class CheckBase implements Check {
         JavaModelElement parent = e.getParent();
 
         if (e instanceof JavaTypeElement) {
-            return ((JavaTypeElement) e).isInAPI() && (parent == null || isAccessible(parent));
+            return ((JavaTypeElement) e).isInAPI() && (parent == null || _isAccessible(parent));
         } else {
             assert parent != null;
             return isAccessible(parent);
         }
+    }
+
+    private boolean _isAccessible(@Nonnull JavaModelElement e) {
+        if (!isAccessibleByModifier(e.getDeclaringElement())) {
+            return false;
+        }
+
+        JavaModelElement parent = e.getParent();
+
+        return parent == null || _isAccessible(parent);
     }
 
     private boolean isAccessibleByModifier(Element e) {
