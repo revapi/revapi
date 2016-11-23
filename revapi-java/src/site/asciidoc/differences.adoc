@@ -130,8 +130,8 @@ possible values of `ignore`, `report` and `error`, e.g.:
 [cols="35s,<65d"]
 |=============
 | Code              | +java.element.noLongerDeprecated+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -143,8 +143,8 @@ users to know about such cases.
 [cols="35s,<65d"]
 |=============
 | Code              | +java.element.nowDeprecated+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -156,8 +156,8 @@ users to know about such cases.
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.visibilityIncreased+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -195,8 +195,8 @@ compile time and at runtime.
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.noLongerFinal+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -218,8 +218,8 @@ the class will no longer be compatible with the new version of the library, in w
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.noLongerAbstract+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -286,8 +286,8 @@ No API breakage reported for the completeness sake.
 [cols="35s,<65d"]
 |=============
 | Code              | +java.class.finalClassInheritsFromNewClass+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -371,8 +371,8 @@ inherited from the super class (which would be the cause of the binary and sourc
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.added+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | potentially breaking
 |=============
 
@@ -384,8 +384,8 @@ processing, reflection, etc.).
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.removed+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | potentially breaking
 |=============
 
@@ -397,8 +397,8 @@ processing, reflection, etc.).
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.attributeValueChanged+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | potentially breaking
 |=============
 
@@ -410,8 +410,8 @@ generation, processing, reflection, etc.).
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.attributeAdded+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | potentially breaking
 |=============
 
@@ -423,8 +423,8 @@ used (code generation, processing, reflection, etc.).
 [cols="35s,<65d"]
 |=============
 | Code              | +java.annotation.attributeRemoved+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | potentially breaking
 |=============
 
@@ -492,6 +492,29 @@ No API breakage, provided for completeness sake. Note that this si reported only
 The field was removed from the class. This is an API breakage because the field can no longer be accessed.
 Note that this si reported only for publicly accessible fields.
 
+==== Field Moved To Superclass
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.movedToSuperclass+
+| Binary severity   | equivalent
+| Source severity   | equivalent
+| Semantic severity | NA
+|=============
+
+The field was moved to a super class. From the point of view of the field user this represents no noticeable change.
+
+==== Inherited Field Now Declared On Class
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.inheritedNowDeclared+
+| Binary severity   | equivalent
+| Source severity   | equivalent
+| Semantic severity | NA
+|=============
+
+A field that was previously inherited is now declared on the class. From the point of view of the field user this
+represents no noticeable change. If the field was also removed from the super class, it will be reported separately.
+
 ==== Constant Field Removed
 [cols="35s,<65d"]
 |=============
@@ -524,19 +547,20 @@ because the constant values are inlined. This is therefore reported as breaking 
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.nowConstant+
-| Binary severity   | non breaking
-| Source severity   | non breaking
-| Semantic severity | NA
+| Binary severity   | equivalent
+| Source severity   | equivalent
+| Semantic severity | potentially breaking
 |=============
 
-This is no API breakage and is reported only for completeness' sake.
+This is no API breakage but has consequences for the user code. As a constant, the field will now be inlined in the user
+code, which is something that didn't happen before. You may want to re-evaluate that decision.
 
 ==== Field No Longer Constant
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.nowConstant+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | breaking
 |=============
 
@@ -550,8 +574,8 @@ NOT what the API author had in mind when making the change.
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.nowFinal+
-| Binary severity   | breaking
-| Source severity   | breaking
+| Binary severity   | potentially breaking
+| Source severity   | potentially breaking
 | Semantic severity | NA
 |=============
 
@@ -609,8 +633,8 @@ The field has a different type than it used to in the old version of the API. Th
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.serialVersionUIDUnchanged+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | potentially breaking
 |=============
 
@@ -624,8 +648,8 @@ of this check.
 [cols="35s,<65d"]
 |=============
 | Code              | +java.field.visibilityIncreased+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -719,6 +743,28 @@ implementations provide the impl of the new method and it is provided with the S
 of the interface, things will break with `NoSuchMethodError` when the caller tries to call the SPI method backed by the
 old SPI implementation.
 
+==== Default Method Added To Interface
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.defaultMethodAddedToInterface+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This represents no API breakage and is included for completeness' sake.
+
+==== Static Method Added To Interface
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.staticMethodAddedToInterface+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This represents no API breakage and is included for completeness' sake.
+
 ==== Method With No Default Value Added To Annotation Type
 [cols="35s,<65d"]
 |=============
@@ -787,8 +833,8 @@ as the newly introduced final method.
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.inheritedMovedToClass+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -810,8 +856,8 @@ Removing a method from a class is an incompatible change.
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.movedToSuperClass+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -852,6 +898,17 @@ No API breakage, reported for completeness' sake.
 |=============
 
 Any subclasses that overrode the method will break both at compile time and at runtime.
+
+==== Method Now Final In Final Class
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.nowFinalInFinalClass+
+| Binary severity   | equivalent
+| Source severity   | equivalent
+| Semantic severity | NA
+|=============
+
+The class is final and cannot be subclassed. Therefore making its method final makes no difference.
 
 ==== Method No Longer Static
 [cols="35s,<65d"]
@@ -904,8 +961,8 @@ This is a compatible change reported for the completeness' sake.
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.visibilityIncreased+
-| Binary severity   | non breaking
-| Source severity   | non breaking
+| Binary severity   | equivalent
+| Source severity   | equivalent
 | Semantic severity | NA
 |=============
 
@@ -933,6 +990,17 @@ A method might no longer be visible to code that used to call it. This is a brea
 
 While changing the return type always breaks at runtime (i.e. when swapping the new API for the old API without
 recompiling the user code), it might be OK at compile time due to implicit conversions of primitive types.
+
+==== Method Return Type Changed Covariantly
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.returnTypeChangedCovariantly+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+Covariant return types are handled transparently, therefore this represents no API change.
 
 ==== Type Parameters of The Return Type Changed
 [cols="35s,<65d"]
@@ -968,6 +1036,77 @@ Obviously, this is a breaking change - you can no longer call the method with th
 
 This is a binary incompatibility but may be source compatible if the changed types are primitive and the new one
 is strictly bigger than the old one and the old one is implicitly convertible to it.
+
+==== Method Now Throws a Checked Exception
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.exception.checkedAdded+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A method now throws a checked exception. This binary compatible but is not source compatible because the code using the
+new version of the method will have to be modified to handle the checked exception.
+
+==== Method Now Throws a Runtime Exception
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.exception.runtimeAdded+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+This is both source and binary compatible but represents a danger for the semantics of the user code
+that might want to catch the newly thrown exception.
+
+==== Method No Longer Throws a Checked Exception
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.exception.checkedRemoved+
+| Binary severity   | non breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+A method no longer throws a checked exception. This binary compatible but is not source compatible because the code
+using the new version of the method fail to compile - the checked exception can no longer be thrown from the method and
+therefore the catch clauses for it will be invalid.
+
+==== Method No Longer Throws a Runtime Exception
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.exception.checkedRemoved+
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This is a compatible change added for completeness' sake.
+
+==== Method Now Default
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.nowDefault+
+| Binary severity   | equivalent
+| Source severity   | equivalent
+| Semantic severity | NA
+|=============
+
+The method is now a default method. This is completely transparent.
+
+==== Method No Longer Default
+[cols="35s,<65d"]
+|=============
+| Code              | +java.method.noLongerDefault+
+| Binary severity   | breaking
+| Source severity   | breaking
+| Semantic severity | NA
+|=============
+
+The method is no longer default. This means that any implementations of the inteface with the method
+will now have to supply an implementation for it.
 
 ==== Element Now Parameterized
 [cols="35s,<65d"]

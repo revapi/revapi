@@ -16,11 +16,14 @@
 
 package org.revapi.java.checks.methods;
 
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.lang.model.element.Modifier;
 
+import org.revapi.Difference;
 import org.revapi.java.checks.common.ModifierChanged;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaMethodElement;
@@ -42,5 +45,19 @@ public final class NowFinal extends ModifierChanged {
     @Override
     protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
         doVisit(oldMethod, newMethod);
+    }
+
+    @Override protected List<Difference> doEnd() {
+        ActiveElements<JavaMethodElement> elements = popIfActive();
+        if (elements == null) {
+            return null;
+        }
+
+        //noinspection ConstantConditions
+        if (elements.newElement.getParent().getDeclaringElement().getModifiers().contains(Modifier.FINAL)) {
+            return Collections.singletonList(createDifference(Code.METHOD_NOW_FINAL_IN_FINAL_CLASS));
+        } else {
+            return Collections.singletonList(createDifference(Code.METHOD_NOW_FINAL));
+        }
     }
 }

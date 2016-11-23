@@ -147,7 +147,7 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
             } else {
                 DifferenceSeverity majorChangeAllowed = asSeverity(node.get("versionIncreaseAllows", "major"), DifferenceSeverity.BREAKING);
                 DifferenceSeverity minorChangeAllowed = asSeverity(node.get("versionIncreaseAllows", "minor"), DifferenceSeverity.NON_BREAKING);
-                DifferenceSeverity patchVersionAllowed = asSeverity(node.get("versionIncreaseAllows", "patch"), null);
+                DifferenceSeverity patchVersionAllowed = asSeverity(node.get("versionIncreaseAllows", "patch"), DifferenceSeverity.EQUIVALENT);
 
                 if (newVersion.major > oldVersion.major) {
                     allowedSeverity = majorChangeAllowed;
@@ -232,6 +232,8 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
             switch (configNode.asString()) {
                 case "none":
                     return null;
+                case "equivalent":
+                    return DifferenceSeverity.EQUIVALENT;
                 case "nonBreaking":
                     return DifferenceSeverity.NON_BREAKING;
                 case "potentiallyBreaking":

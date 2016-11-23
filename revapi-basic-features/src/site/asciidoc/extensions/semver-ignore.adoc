@@ -16,7 +16,7 @@ rules of semantic versioning (http://semver.org).
         "versionIncreaseAllows" : {
             "major" : "breaking",
             "minor" : "nonBreaking",
-            "patch" : "none"
+            "patch" : "equivalent"
         },
         "passThroughDifferences": ["java.class.nonPublicPartOfAPI"]
       }
@@ -38,8 +38,8 @@ no API changes on patch release or if the major version is `0`, breaking changes
 changes on patch release.
 +
 The allowed properties in this map are: `major`, `minor` and `patch` indicating the component of the version string
-being changed and the allowed values are `breaking`, `potentiallyBreaking`, `nonBreaking` and `none` indicating the
-severity of the API changes allowed for given version number change.
+being changed and the allowed values are `breaking`, `potentiallyBreaking`, `nonBreaking`, `equivalent` and `none`
+indicating the severity of the API changes allowed for given version number change.
 +
 If some of the properties (`major`, `minor`, `patch`) are not specified, they assume the default values as outlined in
 the above sample configuration.

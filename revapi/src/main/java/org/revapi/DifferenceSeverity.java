@@ -28,6 +28,11 @@ package org.revapi;
 public enum DifferenceSeverity {
 
     /**
+     * The difference doesn't produce any visible change from the user's perspective.
+     */
+    EQUIVALENT,
+
+    /**
      * The difference doesn't cause any breakage in given compatibility type
      */
     NON_BREAKING,

@@ -59,7 +59,7 @@ public abstract class ModifierChanged extends CheckBase {
     }
 
     @Override
-    protected final List<Difference> doEnd() {
+    protected List<Difference> doEnd() {
         ActiveElements<JavaModelElement> elements = popIfActive();
         if (elements == null) {
             return null;
