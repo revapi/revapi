@@ -75,8 +75,8 @@ public enum Code {
         POTENTIALLY_BREAKING, null),
     CLASS_EXTERNAL_CLASS_EXPOSED_IN_API("java.class.externalClassExposedInAPI", NON_BREAKING, NON_BREAKING,
             POTENTIALLY_BREAKING),
-    CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API("java.class.externalClassNoLongerExposedInAPI", BREAKING, BREAKING,
-            null),
+    CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API("java.class.externalClassNoLongerExposedInAPI", NON_BREAKING,
+            NON_BREAKING, null),
 
     ANNOTATION_ADDED("java.annotation.added", EQUIVALENT, EQUIVALENT, POTENTIALLY_BREAKING),
     ANNOTATION_REMOVED("java.annotation.removed", EQUIVALENT, EQUIVALENT, POTENTIALLY_BREAKING),

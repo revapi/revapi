@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import javax.lang.model.element.TypeElement;
+
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
@@ -34,13 +36,11 @@ public final class Added extends CheckBase {
     protected List<Difference> doEnd() {
         ActiveElements<JavaTypeElement> types = popIfActive();
         if (types != null) {
-//TODO The heuristics of figuring out if a class is external is flawed.
-//            TypeElement typeInOld = getOldTypeEnvironment().getElementUtils().getTypeElement(types.newElement
-//                    .getQualifiedName());
-//
-//            Difference difference = typeInOld == null ? createDifference(Code.CLASS_ADDED) :
-//                    createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API);
-            Difference difference = createDifference(Code.CLASS_ADDED);
+            TypeElement typeInOld = getOldTypeEnvironment().getElementUtils()
+                    .getTypeElement(types.newElement.getDeclaringElement().getQualifiedName());
+
+            Difference difference = typeInOld == null ? createDifference(Code.CLASS_ADDED) :
+                    createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API);
 
             return Collections.singletonList(difference);
         }

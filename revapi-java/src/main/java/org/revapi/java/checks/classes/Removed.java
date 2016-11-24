@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import javax.lang.model.element.TypeElement;
+
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
@@ -47,13 +49,11 @@ public final class Removed extends CheckBase {
     protected List<Difference> doEnd() {
         ActiveElements<JavaTypeElement> types = popIfActive();
         if (types != null) {
-//TODO The heuristics of figuring out if a class is external is flawed.
-//            TypeElement typeInNew = getNewTypeEnvironment().getElementUtils().getTypeElement(types.oldElement
-//                    .getQualifiedName());
-//
-//            Difference difference = typeInNew == null ? createDifference(Code.CLASS_REMOVED) :
-//                    createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API);
-            Difference difference = createDifference(Code.CLASS_REMOVED);
+            TypeElement typeInNew = getNewTypeEnvironment().getElementUtils()
+                    .getTypeElement(types.oldElement.getDeclaringElement().getQualifiedName());
+
+            Difference difference = typeInNew == null ? createDifference(Code.CLASS_REMOVED) :
+                    createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API);
 
             return Collections.singletonList(difference);
         }
