@@ -16,9 +16,6 @@
 
 package org.revapi.java.spi;
 
-import java.util.Arrays;
-import java.util.EnumSet;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.type.DeclaredType;
@@ -54,7 +51,7 @@ public final class UseSite {
         HAS_TYPE,
 
         /**
-         * The use site (method) returns instances the used class.
+         * The use site (method) returns instances of the used class.
          */
         RETURN_TYPE,
 
@@ -73,17 +70,13 @@ public final class UseSite {
         /**
          * The used class contains the use site (inner class).
          */
-        CONTAINS;
+        CONTAINS,
 
-        public static EnumSet<Type> all() {
-            return EnumSet.allOf(UseSite.Type.class);
-        }
-
-        public static EnumSet<Type> allBut(UseSite.Type... types) {
-            EnumSet<Type> ret = all();
-            ret.removeAll(Arrays.asList(types));
-            return ret;
-        }
+        /**
+         * The used class is used as a type parameter or a bound of a type variable or wildcard on the use site
+         * (which can be a class, field, method or a method parameter).
+         */
+        TYPE_PARAMETER_OR_BOUND;
 
         /**
          * @return true if this type of use makes the used type part of the API even if it wasn't originally part

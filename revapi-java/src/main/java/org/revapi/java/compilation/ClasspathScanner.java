@@ -327,6 +327,8 @@ final class ClasspathScanner {
                             tr.superTypes.add(getTypeRecord(e));
                         });
 
+                addTypeParamUses(tr, type, type.asType());
+
                 for (Element e : IgnoreCompletionFailures.in(type::getEnclosedElements)) {
                     switch (e.getKind()) {
                         case ANNOTATION_TYPE:
@@ -429,6 +431,7 @@ final class ClasspathScanner {
 
             addUse(owningType, field, fieldType, UseSite.Type.HAS_TYPE);
             addType(fieldType, false);
+            addTypeParamUses(owningType, field, field.asType());
 
             field.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, field, a));
         }
@@ -445,6 +448,7 @@ final class ClasspathScanner {
             if (returnType != null) {
                 addUse(owningType, method, returnType, UseSite.Type.RETURN_TYPE);
                 addType(returnType, false);
+                addTypeParamUses(owningType, method, method.getReturnType());
             }
 
             int idx = 0;
@@ -453,6 +457,7 @@ final class ClasspathScanner {
                 if (pt != null) {
                     addUse(owningType, method, pt, UseSite.Type.PARAMETER_TYPE, idx++);
                     addType(pt, false);
+                    addTypeParamUses(owningType, method, p.asType());
                 }
 
                 p.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, p, a));
@@ -463,6 +468,7 @@ final class ClasspathScanner {
                 if (ex != null) {
                     addUse(owningType, method, ex, UseSite.Type.IS_THROWN);
                     addType(ex, false);
+                    addTypeParamUses(owningType, method, t);
                 }
 
                 t.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a));
@@ -486,6 +492,50 @@ final class ClasspathScanner {
 
             requiredTypes.put(type, isAnnotation);
             return false;
+        }
+
+        void addTypeParamUses(TypeRecord userType, Element user, TypeMirror usedType) {
+            HashSet<String> visited = new HashSet<>(4);
+            usedType.accept(new SimpleTypeVisitor8<Void, Void>() {
+                @Override public Void visitIntersection(IntersectionType t, Void aVoid) {
+                    t.getBounds().forEach(b -> b.accept(this, null));
+                    return null;
+                }
+
+                @Override public Void visitArray(ArrayType t, Void ignored) {
+                    return t.getComponentType().accept(this, null);
+                }
+
+                @Override public Void visitDeclared(DeclaredType t, Void ignored) {
+                    String type = Util.toUniqueString(t);
+                    if (!visited.contains(type)) {
+                        visited.add(type);
+                        if (t != usedType) {
+                            TypeElement typeEl = (TypeElement) t.asElement();
+                            addType(typeEl, false);
+                            addUse(userType, user, typeEl, UseSite.Type.TYPE_PARAMETER_OR_BOUND);
+                        }
+                        t.getTypeArguments().forEach(a -> a.accept(this, null));
+                    }
+                    return null;
+                }
+
+                @Override public Void visitTypeVariable(TypeVariable t, Void ignored) {
+                    return t.getUpperBound().accept(this, null);
+                }
+
+                @Override public Void visitWildcard(WildcardType t, Void ignored) {
+                    TypeMirror bound = t.getExtendsBound();
+                    if (bound != null) {
+                        bound.accept(this, null);
+                    }
+                    bound = t.getSuperBound();
+                    if (bound != null) {
+                        bound.accept(this, null);
+                    }
+                    return null;
+                }
+            }, null);
         }
 
         void addUse(TypeRecord userType, Element user, TypeElement used, UseSite.Type useType) {

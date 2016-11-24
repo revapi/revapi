@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 
@@ -159,5 +160,49 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         } finally {
             deleteDir(archive.compilationPath);
         }
+    }
+
+    @Test
+    public void testTypeParametersDragIntoAPI() throws Exception {
+        ArchiveAndCompilationPath compRes = createCompiledJar("a.jar", "misc/Generics.java",
+                "misc/GenericsParams.java");
+
+        JavaArchive api = ShrinkWrap.create(JavaArchive.class, "api.jar")
+                .addAsResource(compRes.compilationPath.resolve("Generics.class").toFile(), "Generics.class");
+        JavaArchive sup = ShrinkWrap.create(JavaArchive.class, "sup.jar")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams.class").toFile(), "GenericsParams.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeParam.class").toFile(), "GenericsParams$TypeParam.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$ExtendsBound.class").toFile(), "GenericsParams$ExtendsBound.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$SuperBound.class").toFile(), "GenericsParams$SuperBound.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVar.class").toFile(), "GenericsParams$TypeVar.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVarIface.class").toFile(), "GenericsParams$TypeVarIface.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVarImpl.class").toFile(), "GenericsParams$TypeVarImpl.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$Unused.class").toFile(), "GenericsParams$Unused.class");
+
+        try {
+            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
+                    Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
+                    false, InclusionFilter.acceptAll());
+
+            JavaElementForest forest = analyzer.analyze();
+
+            Set<TypeElement> roots = forest.getRoots();
+
+            Assert.assertEquals(7, roots.size());
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class Generics<T extends GenericsParams.TypeVar, GenericsParams.TypeVarIface, U extends Generics<GenericsParams.TypeVarImpl, ?>>")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.ExtendsBound")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.SuperBound")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeParam")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeVar")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeVarIface")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeVarImpl")));
+            Assert.assertFalse(roots.stream().anyMatch(hasName("class GenericsParams.Unused")));
+        } finally {
+            deleteDir(compRes.compilationPath);
+        }
+    }
+
+    private Predicate<TypeElement> hasName(String name) {
+        return t -> name.equals(t.getFullHumanReadableString());
     }
 }
