@@ -315,6 +315,9 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         case CONTAINS:
             message = "revapi.java.uses.contains";
             break;
+        case TYPE_PARAMETER_OR_BOUND:
+            message = "revapi.java.uses.typeParameterOrBound";
+            break;
         default:
             throw new AssertionError("Invalid use type.");
         }
