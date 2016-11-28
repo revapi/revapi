@@ -164,7 +164,7 @@ public class ReportMojo extends AbstractMavenReport {
 
     /**
      * Problems with this or higher severity will be included in the report.
-     * Possible values: nonBreaking, potentiallyBreaking, breaking.
+     * Possible values: equivalent, nonBreaking, potentiallyBreaking, breaking.
      */
     @Parameter(property = Props.reportSeverity.NAME, defaultValue = Props.reportSeverity.DEFAULT_VALUE)
     protected FailSeverity reportSeverity;

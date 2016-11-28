@@ -152,7 +152,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
 
     /**
      * The severity of found problems at which to break the build. Defaults to API breaking changes.
-     * Possible values: nonBreaking, potentiallyBreaking, breaking.
+     * Possible values: equivalent, nonBreaking, potentiallyBreaking, breaking.
      */
     @Parameter(property = Props.failSeverity.NAME, defaultValue = Props.failSeverity.DEFAULT_VALUE)
     protected FailSeverity failSeverity;

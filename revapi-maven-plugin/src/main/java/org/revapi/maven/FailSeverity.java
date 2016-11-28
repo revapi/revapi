@@ -7,10 +7,12 @@ import org.revapi.DifferenceSeverity;
  * @since 0.1
  */
 public enum FailSeverity {
-    nonBreaking, potentiallyBreaking, breaking;
+    equivalent, nonBreaking, potentiallyBreaking, breaking;
 
     public DifferenceSeverity asDifferenceSeverity() {
         switch (this) {
+        case equivalent:
+            return DifferenceSeverity.EQUIVALENT;
         case nonBreaking:
             return DifferenceSeverity.NON_BREAKING;
         case potentiallyBreaking:
