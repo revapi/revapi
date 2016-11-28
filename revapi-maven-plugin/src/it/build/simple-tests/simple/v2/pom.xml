@@ -64,6 +64,12 @@
                                                 "code" : "java.class.nowFinal",
                                                 "old" : "class test.Dep",
                                                 "justification" : "foo"
+                                            },
+                                            {
+                                                "code": "java.field.serialVersionUIDUnchanged",
+                                                "old": "field test.Class.serialVersionUID",
+                                                "new": "field test.Class.serialVersionUID",
+                                                "justification": "foo"
                                             }
                                         ]
                                     }
@@ -85,6 +91,25 @@
                         <id>api-check-without-deps</id>
                         <configuration>
                             <checkDependencies>false</checkDependencies>
+                            <analysisConfiguration><![CDATA[
+                                {
+                                    "revapi": {
+                                        "java": {
+                                            "missing-classes": {
+                                                "behavior": "ignore"
+                                            }
+                                        },
+                                        "ignore" : [
+                                            {
+                                                "code": "java.field.serialVersionUIDUnchanged",
+                                                "old": "field test.Class.serialVersionUID",
+                                                "new": "field test.Class.serialVersionUID",
+                                                "justification": "foo"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]]></analysisConfiguration>
                             <analysisConfigurationFiles>
                                 <file>analysis-config2.json</file>
                             </analysisConfigurationFiles>

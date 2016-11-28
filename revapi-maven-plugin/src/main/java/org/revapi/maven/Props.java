@@ -47,7 +47,7 @@ final class Props {
 
     static final class failSeverity {
         static final String NAME = PREFIX + "failSeverity";
-        static final String DEFAULT_VALUE = "breaking";
+        static final String DEFAULT_VALUE = "potentiallyBreaking";
     }
 
     static final class alwaysCheckForReleaseVersion {
