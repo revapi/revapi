@@ -21,3 +21,4 @@ org.revapi.java.transforms.annotations.NowDeprecated
 org.revapi.java.transforms.annotations.NowInherited
 org.revapi.java.transforms.methods.AnnotationTypeAttributeAdded
 org.revapi.java.transforms.methods.AnnotationTypeAttributeRemoved
+org.revapi.java.transforms.annotations.DownplayHarmlessAnnotationChanges

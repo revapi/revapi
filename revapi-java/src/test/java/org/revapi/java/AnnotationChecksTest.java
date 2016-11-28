@@ -16,8 +16,13 @@
 
 package org.revapi.java;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.revapi.DifferenceSeverity;
+import org.revapi.Report;
 import org.revapi.java.spi.Code;
 
 /**
@@ -98,6 +103,21 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
         runAnalysis(reporter, "v2/annotations/Attributes.java", "v1/annotations/Attributes.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ELEMENT_NO_LONGER_DEPRECATED.code()));
+    }
+
+    @Test
+    public void testDownplayedJREAnnotations() throws Exception {
+        List<Report> reports = new ArrayList<>();
+        runAnalysis(new CollectingReporter(reports), "v1/annotations/Downplayed.java", "v2/annotations/Downplayed.java");
+
+        Assert.assertEquals(2, reports.size());
+        Assert.assertTrue(reports.stream()
+                .flatMap(r -> r.getDifferences().stream())
+                .flatMap(d -> d.classification.values().stream())
+                .allMatch(ds -> ds == DifferenceSeverity.EQUIVALENT));
+        Assert.assertArrayEquals(new String[]{"java.annotation.added"}, reports.stream()
+                .flatMap(r -> r.getDifferences().stream())
+                .map(d -> d.code).distinct().toArray(String[]::new));
     }
 
     //TODO also check for situation where the annotation used is not on the classpath - wonder how that behaves
