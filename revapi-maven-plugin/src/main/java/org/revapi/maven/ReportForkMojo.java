@@ -12,5 +12,5 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 @Mojo(name = "report-fork", defaultPhase = LifecyclePhase.SITE,
         requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME)
 @Execute(phase = LifecyclePhase.PACKAGE)
-public class ReportForkMojo {
+public class ReportForkMojo extends ReportMojo {
 }
