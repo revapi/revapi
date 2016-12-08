@@ -29,8 +29,6 @@ public class TestUseChainReporting extends AbstractJavaElementAnalyzerTest {
                         " type in the new API: "))
                 .collect(Collectors.toList());
 
-        System.out.println(reports);
-
         Assert.assertTrue(diffs.isEmpty());
     }
 }
