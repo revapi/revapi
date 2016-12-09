@@ -16,7 +16,13 @@
  */
 package org.revapi.maven;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.ServiceLoader;
+import java.util.function.Supplier;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,7 +32,11 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.revapi.ApiAnalyzer;
+import org.revapi.DifferenceTransform;
+import org.revapi.ElementFilter;
 import org.revapi.Reporter;
+import org.revapi.Revapi;
 
 /**
  * @author Lukas Krejci
@@ -219,6 +229,16 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     @Parameter(property = Props.versionFormat.NAME, defaultValue = Props.versionFormat.DEFAULT_VALUE)
     protected String versionFormat;
 
+    /**
+     * A comma-separated list of extensions (fully-qualified class names thereof) that are not taken into account during
+     * API analysis. By default, all extensions that are found on the classpath are used.
+     * <p>
+     * You can modify this set if you use another extensions that change the found differences in a way that the
+     * determined new version would not correspond to what it should be.
+     */
+    @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
+    protected String disallowedExtensions;
+
     protected void analyze(Reporter reporter) throws MojoExecutionException, MojoFailureException {
         try (Analyzer analyzer = prepareAnalyzer(reporter)) {
             if (analyzer != null) {
@@ -240,10 +260,15 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
             return null;
         }
 
+        final List<String> disallowedExtensions = this.disallowedExtensions == null
+                ? Collections.emptyList()
+                : Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
+        Supplier<Revapi.Builder> ctor = getDisallowedExtensionsAwareRevapiConstructor(disallowedExtensions);
+
         return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(), getLog(),
                 failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies, versionFormat);
+                alwaysCheckForReleaseVersion, checkDependencies, versionFormat, ctor);
     }
 
     /**
@@ -288,5 +313,36 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         }
 
         return true;
+    }
+
+
+    protected static Supplier<Revapi.Builder>
+    getDisallowedExtensionsAwareRevapiConstructor(List<String> disallowedExtensions) {
+        return () -> {
+            Revapi.Builder bld = Revapi.builder();
+
+            List<ApiAnalyzer> analyzers = new ArrayList<>();
+            List<ElementFilter> filters = new ArrayList<>();
+            List<DifferenceTransform<?>> transforms = new ArrayList<>();
+            List<Reporter> reporters = new ArrayList<>();
+
+            addAllAllowed(analyzers, ServiceLoader.load(ApiAnalyzer.class), disallowedExtensions);
+            addAllAllowed(filters, ServiceLoader.load(ElementFilter.class), disallowedExtensions);
+            addAllAllowed(transforms, ServiceLoader.load(DifferenceTransform.class), disallowedExtensions);
+            addAllAllowed(reporters, ServiceLoader.load(Reporter.class), disallowedExtensions);
+
+            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(transforms).withReporters(reporters);
+
+            return bld;
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    protected static <T> void addAllAllowed(List<T> list, Iterable<?> candidates, List<String> disallowedClassNames) {
+        for (Object o : candidates) {
+            if (o != null && !disallowedClassNames.contains(o.getClass().getName())) {
+                list.add((T) o);
+            }
+        }
     }
 }

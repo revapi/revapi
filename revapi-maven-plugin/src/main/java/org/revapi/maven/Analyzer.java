@@ -123,12 +123,12 @@ public final class Analyzer implements AutoCloseable {
              RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
              boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
              boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-             String versionRegex) {
+             String versionRegex, Supplier<Revapi.Builder> ctor) {
 
         this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, null, null, project,
                 repositorySystem, repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles,
                 failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
-                () -> Revapi.builder().withAllExtensionsFromThreadContextClassLoader(), null);
+                ctor, null);
     }
 
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldGavs,

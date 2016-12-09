@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -44,9 +43,6 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.revapi.ApiAnalyzer;
-import org.revapi.DifferenceTransform;
-import org.revapi.ElementFilter;
 import org.revapi.Revapi;
 
 import com.ximpleware.AutoPilot;
@@ -87,8 +83,8 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
      * You can modify this set if you use another extensions that change the found differences in a way that the
      * determined new version would not correspond to what it should be.
      */
-    @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
-    private String disallowedExtensions;
+    @Parameter(property = Props.disallowedExtensionsInVersioning.NAME, defaultValue = Props.disallowedExtensionsInVersioning.DEFAULT_VALUE)
+    protected String disallowedExtensions;
 
     private boolean preserveSuffix;
     private String replacementSuffix;
@@ -330,23 +326,11 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     }
 
     private AnalysisResults analyzeProject(MavenProject project) throws MojoExecutionException {
-        final List<String> disallowedExtensions = Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
+        final List<String> disallowedExtensions = this.disallowedExtensions == null
+                ? Collections.emptyList()
+                : Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
 
-        Supplier<Revapi.Builder> ctor = () -> {
-            Revapi.Builder bld = Revapi.builder();
-
-            List<ApiAnalyzer> analyzers = new ArrayList<>();
-            List<ElementFilter> filters = new ArrayList<>();
-            List<DifferenceTransform<?>> transforms = new ArrayList<>();
-
-            addAllAllowed(analyzers, ServiceLoader.load(ApiAnalyzer.class), disallowedExtensions);
-            addAllAllowed(filters, ServiceLoader.load(ElementFilter.class), disallowedExtensions);
-            addAllAllowed(transforms, ServiceLoader.load(DifferenceTransform.class), disallowedExtensions);
-
-            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(transforms);
-
-            return bld;
-        };
+        Supplier<Revapi.Builder> ctor = getDisallowedExtensionsAwareRevapiConstructor(disallowedExtensions);
 
         ApiBreakageHintingReporter reporter = new ApiBreakageHintingReporter();
 
@@ -370,15 +354,6 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
             }
         } catch (Exception e) {
             throw new MojoExecutionException("Analysis failure", e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> void addAllAllowed(List<T> list, Iterable<?> candidates, List<String> disallowedClassNames) {
-        for (Object o : candidates) {
-            if (o != null && !disallowedClassNames.contains(o.getClass().getName())) {
-                list.add((T) o);
-            }
         }
     }
 

@@ -17,6 +17,7 @@
 package org.revapi.maven;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -24,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.function.Supplier;
 
 import org.apache.maven.doxia.sink.Sink;
 import org.apache.maven.doxia.siterenderer.Renderer;
@@ -42,6 +44,7 @@ import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
+import org.revapi.Revapi;
 
 /**
  * @author Lukas Krejci
@@ -243,6 +246,16 @@ public class ReportMojo extends AbstractMavenReport {
     @Parameter(property = Props.generateSiteReport.NAME, defaultValue = Props.generateSiteReport.DEFAULT_VALUE)
     protected boolean generateSiteReport;
 
+    /**
+     * A comma-separated list of extensions (fully-qualified class names thereof) that are not taken into account during
+     * API analysis. By default, all extensions that are found on the classpath are used.
+     * <p>
+     * You can modify this set if you use another extensions that change the found differences in a way that the
+     * determined new version would not correspond to what it should be.
+     */
+    @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
+    protected String disallowedExtensions;
+
     private API oldAPI;
     private API newAPI;
     private ReportTimeReporter reporter;
@@ -383,10 +396,16 @@ public class ReportMojo extends AbstractMavenReport {
                     Analyzer.getProjectArtifactCoordinates(project, newVersion)};
         }
 
+        final List<String> disallowedExtensions = this.disallowedExtensions == null
+                ? Collections.emptyList()
+                : Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
+        Supplier<Revapi.Builder> ctor =
+                AbstractRevapiMojo.getDisallowedExtensionsAwareRevapiConstructor(disallowedExtensions);
+
         return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
                 failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies, versionFormat);
+                alwaysCheckForReleaseVersion, checkDependencies, versionFormat, ctor);
     }
 
     private void ensureAnalyzed(Locale locale) {

@@ -87,6 +87,11 @@ final class Props {
 
     static final class disallowedExtensions {
         static final String NAME = PREFIX + "disallowedExtensions";
+        static final String DEFAULT_VALUE = "";
+    }
+
+    static final class disallowedExtensionsInVersioning {
+        static final String NAME = PREFIX + "disallowedExtensions";
         static final String DEFAULT_VALUE = "org.revapi.basic.SemverIgnoreTransform";
     }
 
