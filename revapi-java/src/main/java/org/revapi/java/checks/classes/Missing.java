@@ -24,8 +24,12 @@ public final class Missing extends CheckBase {
 
     @Override
     protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
-        if ((oldType != null && isMissing(oldType.getDeclaringElement()))
-                || (newType != null && isMissing(newType.getDeclaringElement()))) {
+        boolean oldMissing = oldType != null && isMissing(oldType.getDeclaringElement());
+        boolean oldInApi = oldType != null && oldType.isInAPI();
+        boolean newMissing = newType != null && isMissing(newType.getDeclaringElement());
+        boolean newInApi = newType != null && newType.isInAPI();
+
+        if ((oldMissing || newMissing) && (oldInApi || newInApi)) {
             pushActive(oldType, newType);
         }
     }

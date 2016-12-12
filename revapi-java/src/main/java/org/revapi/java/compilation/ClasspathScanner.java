@@ -616,10 +616,16 @@ final class ClasspathScanner {
                     for (TypeElement t : requiredTypes.keySet()) {
                         TypeElement type = els.getTypeElement(t.getQualifiedName());
                         if (type == null) {
+                            TypeRecord tr = this.types.get(t);
                             String bin = els.getBinaryName(t).toString();
                             MissingClassElement mce = new MissingClassElement(environment, bin,
                                     t.getQualifiedName().toString());
-                            TypeRecord tr = new TypeRecord();
+                            if (tr == null) {
+                                tr = new TypeRecord();
+                            }
+                            mce.setInApi(tr.inApi);
+                            mce.setInApiThroughUse(tr.inApiThroughUse);
+                            mce.setRawUseSites(tr.useSites);
                             tr.javacElement = mce.getDeclaringElement();
                             tr.modelElement = mce;
                             types.add(tr);
@@ -713,13 +719,12 @@ final class ClasspathScanner {
             Set<TypeRecord> undetermined = new HashSet<>(this.types.values());
             while (!undetermined.isEmpty()) {
                 undetermined = undetermined.stream()
-                        .filter(tr -> tr.modelElement != null && !tr.explicitlyExcluded)
+                        .filter(tr -> !tr.explicitlyExcluded)
                         .filter(tr -> tr.inApi)
                         .flatMap(tr -> tr.usedTypes.entrySet().stream()
                                 .map(e -> new AbstractMap.SimpleImmutableEntry<>(tr, e)))
                         .filter(e -> movesToApi(e.getValue().getKey()))
                         .flatMap(e -> e.getValue().getValue().stream())
-                        .filter(usedTr -> usedTr.modelElement != null)
                         .filter(usedTr -> !usedTr.inApi)
                         .filter(usedTr -> !usedTr.explicitlyExcluded)
                         .map(usedTr -> {

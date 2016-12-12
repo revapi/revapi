@@ -318,8 +318,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             case TYPE_PARAMETER_OR_BOUND:
                 message = "revapi.java.uses.typeParameterOrBound";
                 break;
-        default:
-            throw new AssertionError("Invalid use type: " + typeAndUseSite.useSite.getUseType());
+            default:
+                throw new AssertionError("Invalid use type: " + typeAndUseSite.useSite.getUseType());
         }
 
         message = messages.getString(message);
