@@ -3,7 +3,7 @@
   "type": "object",
   "description": "Includes or excludes elements annotated with certain annotations in/from the analysis. If an include \
                   filter is defined, only elements annotated with specified annotations are analyzed. If in addition \
-                  an exclude filter is configured, the exclusion is applied only on those included elements."
+                  an exclude filter is configured, the exclusion is applied only on those included elements.",
   "properties": {
     "regex": {
       "description": "Whether to understand the annotation names as regular expressions.",
