@@ -291,35 +291,35 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private void append(StringBuilder bld, TypeAndUseSite typeAndUseSite) {
         String message;
         switch (typeAndUseSite.useSite.getUseType()) {
-        case ANNOTATES:
-            message = "revapi.java.uses.annotates";
-            break;
-        case HAS_TYPE:
-            message = "revapi.java.uses.hasType";
-            break;
-        case IS_IMPLEMENTED:
-            message = "revapi.java.uses.isImplemented";
-            break;
-        case IS_INHERITED:
-            message = "revapi.java.uses.isInherited";
-            break;
-        case IS_THROWN:
-            message = "revapi.java.uses.isThrown";
-            break;
-        case PARAMETER_TYPE:
-            message = "revapi.java.uses.parameterType";
-            break;
-        case RETURN_TYPE:
-            message = "revapi.java.uses.returnType";
-            break;
-        case CONTAINS:
-            message = "revapi.java.uses.contains";
-            break;
-        case TYPE_PARAMETER_OR_BOUND:
-            message = "revapi.java.uses.typeParameterOrBound";
-            break;
+            case ANNOTATES:
+                message = "revapi.java.uses.annotates";
+                break;
+            case HAS_TYPE:
+                message = "revapi.java.uses.hasType";
+                break;
+            case IS_IMPLEMENTED:
+                message = "revapi.java.uses.isImplemented";
+                break;
+            case IS_INHERITED:
+                message = "revapi.java.uses.isInherited";
+                break;
+            case IS_THROWN:
+                message = "revapi.java.uses.isThrown";
+                break;
+            case PARAMETER_TYPE:
+                message = "revapi.java.uses.parameterType";
+                break;
+            case RETURN_TYPE:
+                message = "revapi.java.uses.returnType";
+                break;
+            case CONTAINS:
+                message = "revapi.java.uses.contains";
+                break;
+            case TYPE_PARAMETER_OR_BOUND:
+                message = "revapi.java.uses.typeParameterOrBound";
+                break;
         default:
-            throw new AssertionError("Invalid use type.");
+            throw new AssertionError("Invalid use type: " + typeAndUseSite.useSite.getUseType());
         }
 
         message = messages.getString(message);
@@ -330,30 +330,48 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     private void appendUses(Element element, final StringBuilder bld) {
-        if (element instanceof JavaTypeElement) {
-            LOG.trace("Reporting uses of {}", element);
+        LOG.trace("Reporting uses of {}", element);
 
-            JavaTypeElement usedType = (JavaTypeElement) element;
-
-            usedType.visitUseSites(new UseSite.Visitor<Object, Void>() {
-                @Nullable
-                @Override
-                public Object visit(@Nonnull DeclaredType type, @Nonnull UseSite use,
-                                    @Nullable Void parameter) {
-                    if (appendUse(usedType, bld, type, use)) {
-                        return Boolean.TRUE; //just a non-null values
-                    }
-
-                    return null;
-                }
-
-                @Nullable
-                @Override
-                public Object end(DeclaredType type, @Nullable Void parameter) {
-                    return null;
-                }
-            }, null);
+        if (element == null) {
+            bld.append("<null>");
+            return;
         }
+
+        while (element != null && !(element instanceof JavaTypeElement)) {
+            element = element.getParent();
+        }
+
+        if (element == null) {
+            return;
+        }
+
+        JavaTypeElement usedType = (JavaTypeElement) element;
+
+        if (usedType.isInAPI() && !usedType.isInApiThroughUse()) {
+            String message = MessageFormat.format(messages.getString("revapi.java.uses.partOfApi"),
+                    usedType.getFullHumanReadableString());
+            bld.append(message);
+            return;
+        }
+
+        usedType.visitUseSites(new UseSite.Visitor<Object, Void>() {
+            @Nullable
+            @Override
+            public Object visit(@Nonnull DeclaredType type, @Nonnull UseSite use,
+                                @Nullable Void parameter) {
+                if (appendUse(usedType, bld, type, use)) {
+                    return Boolean.TRUE; //just a non-null values
+                }
+
+                return null;
+            }
+
+            @Nullable
+            @Override
+            public Object end(DeclaredType type, @Nullable Void parameter) {
+                return null;
+            }
+        }, null);
     }
 
 
