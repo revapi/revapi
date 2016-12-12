@@ -245,6 +245,8 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
     }
 
     boolean decideAnnotation(JavaAnnotationElement annotation, InclusionState parentInclusionState) {
+        //annotations cannot be annotated but it would also be awkward to check a method and NOT its annotations...
+        //therefore we just include the annotations based on the inclusion state of the annotated element.
         return parentInclusionState.toBoolean();
     }
 

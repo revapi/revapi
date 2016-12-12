@@ -20,18 +20,23 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
+import org.revapi.Report;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.filters.AnnotatedElementFilter;
 import org.revapi.java.model.JavaElementForest;
+import org.revapi.java.model.MethodElement;
+import org.revapi.java.model.MethodParameterElement;
 
 /**
  * @author Lukas Krejci
@@ -69,7 +74,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"include\":" +
                 "[\"@annotationfilter.Public\"]}}}}}", results -> {
 
-            Assert.assertEquals(55, results.size());
+            Assert.assertEquals(59, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "class annotationfilter.NonPublic", "method java.lang.String annotationfilter.NonPublic::since()",
                     "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
@@ -84,7 +89,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"include\":" +
                 "[\"@annotationfilter.NonPublic(since = \\\"2.0\\\")\"]}}}}}", results -> {
 
-            Assert.assertEquals(1, results.size());
+            Assert.assertEquals(2, results.size());
             Assert.assertEquals("method void annotationfilter.PublicClass::implDetail()",
                     results.get(0).getFullHumanReadableString());
         });
@@ -97,7 +102,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 "\"include\": [\"@annotationfilter.Public\"]}}}}}", results
                 -> {
 
-            Assert.assertEquals(37, results.size());
+            Assert.assertEquals(39, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "class annotationfilter.NonPublic",
                     "method java.lang.String annotationfilter.NonPublic::since()",
@@ -109,6 +114,30 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                     "method void annotationfilter.UndecisiveClass::m()");
 
         });
+    }
+
+    @Test
+    public void testChangesReportedOnAnnotationElements() throws Exception {
+        ArrayList<Report> reports = new ArrayList<>();
+        CollectingReporter reporter = new CollectingReporter(reports);
+        runAnalysis(reporter,
+                "{\"revapi\": {\"java\": {\"filter\": {\"annotated\": {\"regex\": true," +
+                        " \"include\":[\"@Attributes.Anno.*\"]}}}}}",
+                "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
+
+        Assert.assertEquals(2, reports.size());
+        Report parameterChange = reports.stream().filter(r -> r.getNewElement() instanceof MethodParameterElement)
+                .findFirst().orElse(null);
+        Report annotationChanges = reports.stream().filter(r -> r.getNewElement() instanceof MethodElement)
+                .findFirst().orElse(null);
+
+        Assert.assertEquals(1, parameterChange.getDifferences().size());
+        Assert.assertEquals("java.method.parameterTypeChanged", parameterChange.getDifferences().get(0).code);
+
+        Assert.assertEquals(3, annotationChanges.getDifferences().size());
+        Assert.assertEquals(new HashSet<>(Arrays.asList("java.annotation.attributeValueChanged",
+                "java.annotation.attributeAdded", "java.element.nowDeprecated")),
+                annotationChanges.getDifferences().stream().map(d -> d.code).collect(Collectors.toSet()));
     }
 
     private void testWith(String configJSON, Consumer<List<Element>> test) throws Exception {

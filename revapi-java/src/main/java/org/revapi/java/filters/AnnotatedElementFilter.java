@@ -20,12 +20,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
-
-import org.revapi.java.spi.JavaAnnotationElement;
-import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
-import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -38,11 +33,6 @@ public final class AnnotatedElementFilter extends AbstractIncludeExcludeFilter {
     }
 
     @Override
-    public boolean shouldDescendInto(@Nullable Object element) {
-        return doNothing || (element instanceof JavaTypeElement || element instanceof JavaMethodElement);
-    }
-
-    @Override
     protected boolean canBeReIncluded(JavaModelElement element) {
         return true;
     }
@@ -50,13 +40,6 @@ public final class AnnotatedElementFilter extends AbstractIncludeExcludeFilter {
     @Override
     protected Stream<String> getTestedElementRepresentations(JavaModelElement element) {
         return element.getDeclaringElement().getAnnotationMirrors().stream().map(Util::toHumanReadableString);
-    }
-
-    @Override
-    boolean decideAnnotation(JavaAnnotationElement annotation,
-            AbstractIncludeExcludeFilter.InclusionState parentInclusionState) {
-        //annotations cannot be annotated, so include this only if there is no explicit inclusion filter
-        return parentInclusionState.toBoolean() && includeTest == null;
     }
 
     @Override

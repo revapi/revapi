@@ -27,5 +27,5 @@ public abstract class Attributes {
 
     @Anno(a = 1, b = 2)
     @Deprecated
-    public abstract void m(int i);
+    public abstract void m(float i);
 }
