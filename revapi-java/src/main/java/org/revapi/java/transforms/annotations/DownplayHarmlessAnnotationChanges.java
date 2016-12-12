@@ -47,6 +47,10 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
             return difference;
         }
 
+        if (!(difference.attachments.get(0) instanceof AnnotationElement)) {
+            return difference;
+        }
+
         AnnotationElement anno = (AnnotationElement) difference.attachments.get(0);
 
         if (HARMLESS_ANNOTATIONS.contains(anno.getFullHumanReadableString())) {
