@@ -31,7 +31,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-ant-task</artifactId>
-    <version>0.4.2-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
@@ -88,6 +88,12 @@
                                 "java" : {
                                     "missing-classes" : {
                                         "behavior" : "report"
+                                    }
+                                },
+                                "semver": {
+                                    "ignore": {
+                                        "enabled": true,
+                                        "passThroughDifferences": ["java.class.nonPublicPartOfAPI"]
                                     }
                                 }
                             }

@@ -39,8 +39,10 @@ public final class Added extends CheckBase {
             TypeElement typeInOld = getOldTypeEnvironment().getElementUtils()
                     .getTypeElement(types.newElement.getDeclaringElement().getQualifiedName());
 
-            Difference difference = typeInOld == null ? createDifference(Code.CLASS_ADDED) :
-                    createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API);
+            String[] attachments = Code.attachmentsFor(types.oldElement, types.newElement);
+            Difference difference = typeInOld == null
+                    ? createDifference(Code.CLASS_ADDED, attachments)
+                    : createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API, attachments);
 
             return Collections.singletonList(difference);
         }

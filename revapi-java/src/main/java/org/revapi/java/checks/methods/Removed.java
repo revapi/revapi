@@ -71,6 +71,7 @@ public final class Removed extends CheckBase {
             return null;
         }
 
-        return Collections.singletonList(createDifference(Code.METHOD_REMOVED));
+        return Collections.singletonList(createDifference(Code.METHOD_REMOVED,
+                Code.attachmentsFor(methods.oldElement, methods.newElement)));
     }
 }

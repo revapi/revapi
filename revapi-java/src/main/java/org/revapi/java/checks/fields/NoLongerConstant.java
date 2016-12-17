@@ -19,6 +19,7 @@ package org.revapi.java.checks.fields;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 
 import org.revapi.Difference;
 import org.revapi.java.spi.Code;
@@ -55,6 +56,8 @@ public final class NoLongerConstant extends BothFieldsRequiringCheck {
         }
 
         return Collections.singletonList(
-            createDifference(Code.FIELD_NO_LONGER_CONSTANT, fields.oldElement.getDeclaringElement().getConstantValue()));
+            createDifference(Code.FIELD_NO_LONGER_CONSTANT,
+                    Code.attachmentsFor(fields.oldElement, fields.newElement,
+                            "value", Objects.toString(fields.oldElement.getDeclaringElement().getConstantValue()))));
     }
 }

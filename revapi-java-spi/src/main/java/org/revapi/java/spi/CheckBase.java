@@ -154,15 +154,15 @@ public abstract class CheckBase implements Check {
     private AnalysisContext analysisContext;
 
     @Nonnull
-    protected Difference createDifference(@Nonnull Code code,
-        Object... params) {
-
-        return createDifference(code, params, params);
+    protected Difference createDifference(@Nonnull Code code, String[] attachments) {
+        return code.createDifference(getAnalysisContext().getLocale(), attachments);
     }
 
     @Nonnull
-    protected Difference createDifference(@Nonnull Code code, @Nullable Object[] params, Object... attachments) {
-        return code.createDifference(getAnalysisContext().getLocale(), params, attachments);
+    protected Difference createDifferenceWithExplicitParams(@Nonnull Code code,
+                                                            String[] attachments,
+                                                            String... params) {
+            return code.createDifferenceWithExplicitParams(getAnalysisContext().getLocale(), attachments, params);
     }
 
     @Nonnull

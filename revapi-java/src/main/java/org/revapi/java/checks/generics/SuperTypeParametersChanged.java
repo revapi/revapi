@@ -106,9 +106,12 @@ public class SuperTypeParametersChanged extends CheckBase {
 
         List<Difference> ret = new ArrayList<>();
         for (Map.Entry<TypeMirror, TypeMirror> e : changed.entrySet()) {
+            String oldS = Util.toHumanReadableString(e.getKey());
+            String newS = Util.toHumanReadableString(e.getValue());
             ret.add(createDifference(Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED,
-                new String[]{Util.toHumanReadableString(e.getKey()), Util.toHumanReadableString(e.getValue())},
-                e.getKey(), e.getValue()));
+                    Code.attachmentsFor(types.oldElement, types.newElement,
+                            "oldSuperType", oldS,
+                            "newSuperType", newS)));
         }
 
         return ret;

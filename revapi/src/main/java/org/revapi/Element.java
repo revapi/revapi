@@ -38,6 +38,16 @@ import org.revapi.query.Filter;
 public interface Element extends Comparable<Element> {
 
     /**
+     * Casts this element to the provided type.
+     * @param type the type to cast this instance to
+     * @return this cast as the provided type
+     * @throws ClassCastException if this instance cannot be cast to the provided type
+     */
+    default <T extends Element> T as(Class<T> type) {
+        return type.cast(this);
+    }
+
+    /**
      * @return the API version this element comes from
      */
     @Nonnull

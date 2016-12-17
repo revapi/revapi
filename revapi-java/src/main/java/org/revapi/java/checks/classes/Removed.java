@@ -52,8 +52,10 @@ public final class Removed extends CheckBase {
             TypeElement typeInNew = getNewTypeEnvironment().getElementUtils()
                     .getTypeElement(types.oldElement.getDeclaringElement().getQualifiedName());
 
-            Difference difference = typeInNew == null ? createDifference(Code.CLASS_REMOVED) :
-                    createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API);
+            Difference difference = typeInNew == null ? createDifference(Code.CLASS_REMOVED,
+                    Code.attachmentsFor(types.oldElement, types.newElement)) :
+                    createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API,
+                            Code.attachmentsFor(types.oldElement, types.newElement));
 
             return Collections.singletonList(difference);
         }

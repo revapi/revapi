@@ -88,9 +88,12 @@ public class EnumConstantsOrderChanged extends BothFieldsRequiringCheck {
             return null;
         }
 
-        int oldIdx = (Integer) fields.context[0];
-        int newIdx = (Integer) fields.context[1];
+        String oldIdx = fields.context[0].toString();
+        String newIdx = fields.context[1].toString();
 
-        return Collections.singletonList(createDifference(Code.FIELD_ENUM_CONSTANT_ORDER_CHANGED, oldIdx, newIdx));
+        return Collections.singletonList(createDifference(Code.FIELD_ENUM_CONSTANT_ORDER_CHANGED,
+                Code.attachmentsFor(fields.oldElement, fields.newElement,
+                        "oldOrdinal", oldIdx,
+                        "newOrdinal", newIdx)));
     }
 }

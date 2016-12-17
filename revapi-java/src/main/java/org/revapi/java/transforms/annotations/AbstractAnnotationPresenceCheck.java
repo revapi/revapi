@@ -17,21 +17,19 @@
 package org.revapi.java.transforms.annotations;
 
 import java.io.Reader;
+import java.util.LinkedHashMap;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.util.SimpleElementVisitor7;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
-import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.ElementPairVisitor;
 import org.revapi.java.spi.JavaModelElement;
@@ -80,62 +78,54 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
     @Nullable
     @Override
     public Difference transform(@Nullable final JavaModelElement oldElement,
-        @Nullable final JavaModelElement newElement,
-        @Nonnull final Difference difference) {
+        @Nullable final JavaModelElement newElement, @Nonnull final Difference difference) {
         //we're checking for change of presence of an annotation on an element. Thus both the old and new version
         //of the element must be non-null.
         if (oldElement == null || newElement == null) {
             return null;
         }
 
-        AnnotationMirror affectedAnnotation = ((AnnotationElement) difference.attachments.get(0)).getAnnotation();
+        String affectedAnnotation = difference.attachments.get("annotationType");
+        if (!annotationQualifiedName.equals(affectedAnnotation)) {
+            return difference;
+        }
 
-        return affectedAnnotation.getAnnotationType().asElement()
-            .accept(new SimpleElementVisitor7<Difference, Void>() {
-                @Override
-                protected Difference defaultAction(javax.lang.model.element.Element e, Void ignored) {
-                    return difference;
-                }
+        return oldElement.getDeclaringElement().accept(new ElementPairVisitor<Difference>() {
+            @Override
+            protected Difference unmatchedAction(@Nonnull javax.lang.model.element.Element element,
+                                                 @Nullable javax.lang.model.element.Element otherElement) {
+                return difference;
+            }
 
-                @Override
-                public Difference visitType(TypeElement e, Void ignored) {
-                    if (!annotationQualifiedName.equals(e.getQualifiedName().toString())) {
-                        return difference;
-                    }
+            @Override
+            protected Difference visitType(@Nonnull TypeElement oldElement,
+                                           @Nonnull TypeElement newElement) {
+                return common();
+            }
 
-                    return oldElement.getDeclaringElement().accept(new ElementPairVisitor<Difference>() {
-                        @Override
-                        protected Difference unmatchedAction(@Nonnull javax.lang.model.element.Element element,
-                            @Nullable javax.lang.model.element.Element otherElement) {
-                            return difference;
-                        }
+            @Override
+            protected Difference visitPackage(@Nonnull PackageElement element,
+                                              @Nonnull PackageElement otherElement) {
+                return common();
+            }
 
-                        @Override
-                        protected Difference visitType(@Nonnull TypeElement oldElement,
-                            @Nonnull TypeElement newElement) {
-                            return transformedCode.createDifference(analysisContext.getLocale());
-                        }
+            @Override
+            protected Difference visitVariable(@Nonnull VariableElement element,
+                                               @Nonnull VariableElement otherElement) {
+                return common();
+            }
 
-                        @Override
-                        protected Difference visitPackage(@Nonnull PackageElement element,
-                            @Nonnull PackageElement otherElement) {
-                            return transformedCode.createDifference(analysisContext.getLocale());
-                        }
+            @Override
+            protected Difference visitExecutable(@Nonnull ExecutableElement element,
+                                                 @Nonnull ExecutableElement otherElement) {
+                return common();
+            }
 
-                        @Override
-                        protected Difference visitVariable(@Nonnull VariableElement element,
-                            @Nonnull VariableElement otherElement) {
-                            return transformedCode.createDifference(analysisContext.getLocale());
-                        }
-
-                        @Override
-                        protected Difference visitExecutable(@Nonnull ExecutableElement element,
-                            @Nonnull ExecutableElement otherElement) {
-                            return transformedCode.createDifference(analysisContext.getLocale());
-                        }
-                    }, newElement.getDeclaringElement());
-                }
-            }, null);
+            private Difference common() {
+                return transformedCode.createDifference(analysisContext.getLocale(),
+                        new LinkedHashMap<>(difference.attachments));
+            }
+        }, newElement.getDeclaringElement());
     }
 
     @Override

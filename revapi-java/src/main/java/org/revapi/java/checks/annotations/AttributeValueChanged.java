@@ -63,16 +63,16 @@ public final class AttributeValueChanged extends CheckBase {
 
             if (newValue == null) {
                 result.add(
-                    createDifference(Code.ANNOTATION_ATTRIBUTE_REMOVED,
-                        new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType())},
-                        oldValue.getKey(), oldAnnotation)
+                    createDifference(Code.ANNOTATION_ATTRIBUTE_REMOVED, Code.attachmentsFor(oldElement, newElement,
+                            "attribute", name,
+                            "value", Util.toHumanReadableString(oldValue.getValue())))
                 );
             } else if (!Util.isEqual(oldValue.getValue(), newValue.getValue())) {
                 result.add(createDifference(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED,
-                    new String[]{name, Util.toHumanReadableString(oldAnnotation.getAnnotationType()),
-                        Util.toHumanReadableString(oldValue.getValue()),
-                        Util.toHumanReadableString(newValue.getValue())}, oldValue.getKey(), oldAnnotation,
-                    oldValue.getValue(), newValue.getValue()
+                        Code.attachmentsFor(oldElement, newElement,
+                        "attribute", name,
+                        "oldValue", Util.toHumanReadableString(oldValue.getValue()),
+                        "newValue", Util.toHumanReadableString(newValue.getValue()))
                 ));
             }
 
@@ -87,9 +87,9 @@ public final class AttributeValueChanged extends CheckBase {
 
             if (oldValue == null) {
                 result.add(
-                    createDifference(Code.ANNOTATION_ATTRIBUTE_ADDED,
-                        new String[]{name, Util.toHumanReadableString(newAnnotation.getAnnotationType())},
-                        newValue.getKey(), newAnnotation)
+                    createDifference(Code.ANNOTATION_ATTRIBUTE_ADDED, Code.attachmentsFor(oldElement, newElement,
+                            "attribute", name,
+                            "value", Util.toHumanReadableString(newValue.getValue())))
                 );
             }
         }

@@ -88,10 +88,15 @@ public final class ParameterTypeChanged extends CheckBase {
                 .erasure(params.newElement.getModelRepresentation()));
 
         if (!oldErasedType.equals(newErasedType)) {
-            return Collections.singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_CHANGED, oldType, newType));
+            return Collections.singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_CHANGED,
+                    Code.attachmentsFor(params.oldElement, params.newElement,
+                            "oldType", oldType,
+                            "newType", newType)));
         } else {
-            return Collections
-                    .singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED, oldType, newType));
+            return Collections.singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED,
+                    Code.attachmentsFor(params.oldElement, params.newElement,
+                            "oldType", oldType,
+                            "newType", newType)));
         }
     }
 }

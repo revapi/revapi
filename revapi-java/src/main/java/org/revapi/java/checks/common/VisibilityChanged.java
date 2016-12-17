@@ -60,7 +60,7 @@ public abstract class VisibilityChanged extends CheckBase {
 
             //public == 0, private == 3
             if (isProblem(getModifierRank(oldVisibility), getModifierRank(newVisibility))) {
-                return Collections.singletonList(report(oldVisibility, newVisibility));
+                return Collections.singletonList(report(elements, oldVisibility, newVisibility));
             }
         }
 
@@ -100,9 +100,10 @@ public abstract class VisibilityChanged extends CheckBase {
         }
     }
 
-    private Difference report(Modifier oldVisibility, Modifier newVisibility) {
-        return createDifference(code, new String[]{modifier(oldVisibility), modifier(newVisibility)}, oldVisibility,
-            newVisibility);
+    private Difference report(ActiveElements<?> els, Modifier oldVisibility, Modifier newVisibility) {
+        return createDifference(code, Code.attachmentsFor(els.oldElement, els.newElement,
+                "oldVisibility", modifier(oldVisibility),
+                "newVisibility", modifier(newVisibility)));
     }
 
     private String modifier(Modifier m) {

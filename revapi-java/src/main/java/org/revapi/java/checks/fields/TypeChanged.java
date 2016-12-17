@@ -66,8 +66,10 @@ public final class TypeChanged extends BothFieldsRequiringCheck {
         String newType = Util.toHumanReadableString(fields.newElement.getModelRepresentation());
 
         return Collections.singletonList(
-            createDifference(Code.FIELD_TYPE_CHANGED, new String[]{oldType, newType},
-                    fields.oldElement.getModelRepresentation(), fields.newElement.getModelRepresentation())
+            createDifference(Code.FIELD_TYPE_CHANGED,
+                    Code.attachmentsFor(fields.oldElement, fields.newElement,
+                            "oldType", oldType,
+                            "newType", newType))
         );
     }
 }

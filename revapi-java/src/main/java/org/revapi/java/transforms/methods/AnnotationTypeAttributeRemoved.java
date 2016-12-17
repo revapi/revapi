@@ -17,6 +17,7 @@
 package org.revapi.java.transforms.methods;
 
 import java.io.Reader;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -79,7 +80,8 @@ public class AnnotationTypeAttributeRemoved implements DifferenceTransform<JavaM
         ExecutableElement method = (ExecutableElement) oldElement.getDeclaringElement();
 
         if (method.getEnclosingElement().getKind() == ElementKind.ANNOTATION_TYPE) {
-            return Code.METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE.createDifference(locale);
+            return Code.METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE.createDifference(locale,
+                    new LinkedHashMap<>(difference.attachments));
         }
 
         return difference;

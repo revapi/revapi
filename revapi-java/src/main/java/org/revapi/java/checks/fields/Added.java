@@ -56,9 +56,11 @@ public final class Added extends CheckBase {
         boolean isStatic = fields.newElement.getDeclaringElement().getModifiers().contains(Modifier.STATIC);
 
         if (isStatic) {
-            return Collections.singletonList(createDifference(Code.FIELD_ADDED_STATIC_FIELD));
+            return Collections.singletonList(createDifference(Code.FIELD_ADDED_STATIC_FIELD,
+                    Code.attachmentsFor(fields.oldElement, fields.newElement)));
         } else {
-            return Collections.singletonList(createDifference(Code.FIELD_ADDED));
+            return Collections.singletonList(createDifference(Code.FIELD_ADDED,
+                    Code.attachmentsFor(fields.oldElement, fields.newElement)));
         }
     }
 }

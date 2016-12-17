@@ -45,11 +45,15 @@ public final class Missing extends CheckBase {
         List<Difference> ret = new ArrayList<>();
 
         if (types.oldElement != null) {
-            ret.add(createDifference(Code.MISSING_IN_OLD_API, types.oldElement.getDeclaringElement().getQualifiedName().toString()));
+            ret.add(createDifferenceWithExplicitParams(Code.MISSING_IN_OLD_API,
+                    Code.attachmentsFor(types.oldElement, types.newElement),
+                    types.oldElement.getDeclaringElement().getQualifiedName().toString()));
         }
 
         if (types.newElement != null) {
-            ret.add(createDifference(Code.MISSING_IN_NEW_API, types.newElement.getDeclaringElement().getQualifiedName().toString()));
+            ret.add(createDifferenceWithExplicitParams(Code.MISSING_IN_NEW_API,
+                    Code.attachmentsFor(types.oldElement, types.newElement),
+                    types.newElement.getDeclaringElement().getQualifiedName().toString()));
         }
 
         return ret;

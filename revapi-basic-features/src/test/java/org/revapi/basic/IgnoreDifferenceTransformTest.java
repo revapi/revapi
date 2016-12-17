@@ -110,5 +110,43 @@ public class IgnoreDifferenceTransformTest {
         }
     }
 
+    @Test
+    public void testAttachmentMatch() throws Exception {
+        DummyElement oldE = new DummyElement("a");
+        DummyElement newE = new DummyElement("b");
+
+        Difference difference = Difference.builder().withCode("c").addAttachment("kachna", "nedobra").build();
+
+        try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
+
+            AnalysisContext config = AnalysisContext.builder()
+                    .withConfigurationFromJSON(
+                            "{\"revapi\":{\"ignore\":[{\"code\":\"c\", \"kachna\": \"dobra\", \"justification\" : \"because\"}]}}").build();
+
+            t.initialize(config);
+            difference = t.transform(oldE, newE, difference);
+            Assert.assertNotNull(difference);
+        }
+    }
+
+    @Test
+    public void testAttachmentRegexMatch() throws Exception {
+        DummyElement oldE = new DummyElement("a");
+        DummyElement newE = new DummyElement("b");
+
+        Difference difference = Difference.builder().withCode("c").addAttachment("kachna", "nedobra").build();
+
+        try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
+
+            AnalysisContext config = AnalysisContext.builder()
+                    .withConfigurationFromJSON(
+                            "{\"revapi\":{\"ignore\":[{\"regex\": true, \"code\":\"c\", \"kachna\": \".*dobra$\", \"justification\" : \"because\"}]}}").build();
+
+            t.initialize(config);
+            difference = t.transform(oldE, newE, difference);
+            Assert.assertNull(difference);
+        }
+    }
+
     //TODO add tests for old and new element matching
 }

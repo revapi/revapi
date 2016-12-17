@@ -96,7 +96,10 @@ public final class ReturnTypeChanged extends CheckBase {
         String oldHR = Util.toHumanReadableString(oldReturnType);
         String newHR = Util.toHumanReadableString(newReturnType);
 
-        return code == null ? null : Collections.singletonList(createDifference(code, oldHR, newHR));
+        return code == null ? null : Collections.singletonList(createDifference(code,
+                Code.attachmentsFor(methods.oldElement, methods.newElement,
+                        "oldType", oldHR,
+                        "newType", newHR)));
     }
 
     private static boolean isPrimitiveOrVoid(TypeMirror type) {

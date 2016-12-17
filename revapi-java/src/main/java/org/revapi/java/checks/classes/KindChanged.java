@@ -55,7 +55,10 @@ public final class KindChanged extends CheckBase {
             TypeElement n = types.newElement.getDeclaringElement();
 
             if (o.getKind() != n.getKind()) {
-                Difference p = createDifference(Code.CLASS_KIND_CHANGED, new String[]{kind(o), kind(n)}, o, n);
+                Difference p = createDifference(Code.CLASS_KIND_CHANGED,
+                        Code.attachmentsFor(types.oldElement, types.newElement,
+                                "oldKind", kind(o),
+                                "newKind", kind(n)));
 
                 return Collections.singletonList(p);
             }
@@ -66,16 +69,16 @@ public final class KindChanged extends CheckBase {
 
     private String kind(TypeElement e) {
         switch (e.getKind()) {
-        case CLASS:
-            return "class";
-        case INTERFACE:
-            return "interface";
-        case ANNOTATION_TYPE:
-            return "@interface";
-        case ENUM:
-            return "enum";
-        default:
-            return "unexpected (" + e.getKind() + ")";
+            case CLASS:
+                return "class";
+            case INTERFACE:
+                return "interface";
+            case ANNOTATION_TYPE:
+                return "@interface";
+            case ENUM:
+                return "enum";
+            default:
+                return "unexpected (" + e.getKind() + ")";
         }
     }
 }

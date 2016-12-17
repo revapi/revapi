@@ -62,7 +62,7 @@ public class IgnoreDifferenceTransform
 
     public static class IgnoreRecipe extends DifferenceMatchRecipe {
         public IgnoreRecipe(ModelNode node) {
-            super(node);
+            super(node, "justification");
         }
 
         @Override

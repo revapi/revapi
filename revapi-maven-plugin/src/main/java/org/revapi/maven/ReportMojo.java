@@ -19,7 +19,6 @@ package org.revapi.maven;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
@@ -539,27 +538,24 @@ public class ReportMojo extends AbstractMavenReport {
 
         sink.tableRow_();
 
-        Collections.sort(diffs, new Comparator<ReportTimeReporter.DifferenceReport>() {
-            @Override
-            public int compare(ReportTimeReporter.DifferenceReport d1, ReportTimeReporter.DifferenceReport d2) {
-                String c1 = d1.difference.code;
-                String c2 = d2.difference.code;
+        diffs.sort((d1, d2) -> {
+            String c1 = d1.difference.code;
+            String c2 = d2.difference.code;
 
-                int cmp = c1.compareTo(c2);
-                if (cmp != 0) {
-                    return cmp;
-                }
-
-                Element e1 = d1.newElement == null ? d1.oldElement : d1.newElement;
-                Element e2 = d2.newElement == null ? d2.oldElement : d2.newElement;
-
-                cmp = e1.getClass().getName().compareTo(e2.getClass().getName());
-                if (cmp != 0) {
-                    return cmp;
-                }
-
-                return e1.getFullHumanReadableString().compareTo(e2.getFullHumanReadableString());
+            int cmp = c1.compareTo(c2);
+            if (cmp != 0) {
+                return cmp;
             }
+
+            Element e1 = d1.newElement == null ? d1.oldElement : d1.newElement;
+            Element e2 = d2.newElement == null ? d2.oldElement : d2.newElement;
+
+            cmp = e1.getClass().getName().compareTo(e2.getClass().getName());
+            if (cmp != 0) {
+                return cmp;
+            }
+
+            return e1.getFullHumanReadableString().compareTo(e2.getFullHumanReadableString());
         });
 
         for (ReportTimeReporter.DifferenceReport d : diffs) {

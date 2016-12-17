@@ -36,6 +36,9 @@
                 "type": "string"
             }
         },
+        "additionalProperties": {
+            "type": "string"
+        },
         "required": [ "code", "justification" ]
     }
 }

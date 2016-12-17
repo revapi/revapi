@@ -19,7 +19,6 @@ import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.DifferenceTransform;
-import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 
 /**
@@ -30,8 +29,8 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
     private boolean skip = false;
 
     private static final Set<String> HARMLESS_ANNOTATIONS = new HashSet<>(Arrays.asList(
-            "@java.lang.FunctionalInterface", //having this is purely informational
-            "@java.lang.annotation.Documented" //this doesn't affect the runtime at any rate
+            "java.lang.FunctionalInterface", //having this is purely informational
+            "java.lang.annotation.Documented" //this doesn't affect the runtime at any rate
     ));
 
     @Nonnull @Override public Pattern[] getDifferenceCodePatterns() {
@@ -47,13 +46,12 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
             return difference;
         }
 
-        if (!(difference.attachments.get(0) instanceof AnnotationElement)) {
+        String annotationType = difference.attachments.get("annotationType");
+        if (annotationType == null) {
             return difference;
         }
 
-        AnnotationElement anno = (AnnotationElement) difference.attachments.get(0);
-
-        if (HARMLESS_ANNOTATIONS.contains(anno.getFullHumanReadableString())) {
+        if (HARMLESS_ANNOTATIONS.contains(annotationType)) {
             return new Difference(difference.code, difference.name, difference.description,
                     reclassify(difference.classification), difference.attachments);
         } else {

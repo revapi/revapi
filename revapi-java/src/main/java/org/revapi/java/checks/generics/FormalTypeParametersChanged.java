@@ -123,25 +123,32 @@ public final class FormalTypeParametersChanged extends CheckBase {
 
         List<Difference> diffs = new ArrayList<>();
         if (oldT.getTypeParameters().isEmpty()) {
-            diffs.add(createDifference(Code.GENERICS_ELEMENT_NOW_PARAMETERIZED));
+            diffs.add(createDifference(Code.GENERICS_ELEMENT_NOW_PARAMETERIZED,
+                    Code.attachmentsFor(els.oldElement, els.newElement)));
         }
 
         for (TypeParameterElement e : added) {
             diffs.add(
-                createDifference(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED, new String[]{Util.toHumanReadableString(e)},
-                    e)
+                createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED,
+                        Code.attachmentsFor(els.oldElement, els.newElement),
+                        Util.toHumanReadableString(e))
             );
         }
 
         for (TypeParameterElement e : removed) {
-            diffs.add(createDifference(Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED,
-                new String[]{Util.toHumanReadableString(e)}, e));
+            diffs.add(createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED,
+                    Code.attachmentsFor(els.oldElement, els.newElement),
+                    Util.toHumanReadableString(e)));
         }
 
         for (Map.Entry<TypeParameterElement, TypeParameterElement> e : changed.entrySet()) {
-            diffs.add(createDifference(Code.GENERICS_FORMAL_TYPE_PARAMETER_CHANGED,
-                new String[]{Util.toHumanReadableString(e.getKey()), Util.toHumanReadableString(e.getValue())},
-                e.getKey(), e.getValue()));
+            String oldP = Util.toHumanReadableString(e.getKey());
+            String newP = Util.toHumanReadableString(e.getValue());
+            diffs.add(createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_CHANGED,
+                    Code.attachmentsFor(els.oldElement, els.newElement,
+                            "oldTypeParameter", oldP,
+                            "newTypeParameter", newP),
+                    oldP, newP));
         }
 
         return diffs;

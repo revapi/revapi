@@ -58,6 +58,7 @@ public final class NumberOfParametersChanged extends CheckBase {
             return null;
         }
 
-        return Collections.singletonList(createDifference(Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED));
+        return Collections.singletonList(createDifference(Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED,
+                Code.attachmentsFor(methods.oldElement, methods.newElement)));
     }
 }

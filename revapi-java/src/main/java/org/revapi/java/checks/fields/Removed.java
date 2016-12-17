@@ -54,6 +54,7 @@ public final class Removed extends CheckBase {
         boolean isConstant = fields.oldElement.getDeclaringElement().getConstantValue() != null;
 
         return Collections
-            .singletonList(createDifference(isConstant ? Code.FIELD_CONSTANT_REMOVED : Code.FIELD_REMOVED));
+            .singletonList(createDifference(isConstant ? Code.FIELD_CONSTANT_REMOVED : Code.FIELD_REMOVED,
+                    Code.attachmentsFor(fields.oldElement, fields.newElement)));
     }
 }

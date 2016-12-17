@@ -16,6 +16,8 @@
  */
 package org.revapi.java.checks.methods;
 
+import static org.revapi.java.checks.common.ModifierChanged.stringify;
+
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -60,6 +62,9 @@ public class NoLongerDefault extends CheckBase {
             return null;
         }
 
-        return Collections.singletonList(createDifference(Code.METHOD_NO_LONGER_DEFAULT));
+        return Collections.singletonList(createDifference(Code.METHOD_NO_LONGER_DEFAULT,
+                Code.attachmentsFor(methods.oldElement, methods.newElement,
+                        "oldModifiers", stringify(methods.oldElement.getDeclaringElement().getModifiers()),
+                        "newModifiers", stringify(methods.newElement.getDeclaringElement().getModifiers()))));
     }
 }

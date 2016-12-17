@@ -46,19 +46,22 @@ public abstract class MovedInHierarchy extends CheckBase {
     }
 
     @Nullable @Override protected List<Difference> doEnd() {
-        ActiveElements<JavaModelElement> fields = popIfActive();
-        if (fields == null) {
+        ActiveElements<JavaModelElement> els = popIfActive();
+        if (els == null) {
             return null;
         }
 
         String oldType =
-                Util.toHumanReadableString(fields.oldElement.getDeclaringElement().getEnclosingElement().asType());
+                Util.toHumanReadableString(els.oldElement.getDeclaringElement().getEnclosingElement().asType());
         String newType =
-                Util.toHumanReadableString(fields.newElement.getDeclaringElement().getEnclosingElement().asType());
+                Util.toHumanReadableString(els.newElement.getDeclaringElement().getEnclosingElement().asType());
 
         //we know that oldEl.isInherited() != newEl.isInherited(), so it's enough to just check for the old
-        Code code = fields.oldElement.isInherited() ? moveDown : moveUp;
+        Code code = els.oldElement.isInherited() ? moveDown : moveUp;
 
-        return Collections.singletonList(createDifference(code, oldType, newType));
+        return Collections.singletonList(createDifference(code,
+                Code.attachmentsFor(els.oldElement, els.newElement,
+                        "oldClass", oldType,
+                        "newClass", newType)));
     }
 }

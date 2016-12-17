@@ -76,8 +76,9 @@ public final class NoLongerImplementsInterface extends CheckBase {
 
         for (TypeMirror oldIface : oldInterfaces) {
             if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
-                result.add(createDifference(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE, new String[]{
-                    Util.toHumanReadableString(oldIface)}, oldIface));
+                result.add(createDifference(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE,
+                        Code.attachmentsFor(types.oldElement, types.newElement,
+                            "interface", Util.toHumanReadableString(oldIface))));
             }
         }
 

@@ -17,7 +17,6 @@
 package org.revapi.java.checks.classes;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -60,14 +59,13 @@ public final class InheritanceChainChanged extends CheckBase {
             @SuppressWarnings("unchecked")
             List<TypeMirror> newSuperClasses = (List<TypeMirror>) types.context[1];
 
-            Comparator<TypeMirror> typeNameComparator =
-                    (o1, o2) -> Util.toUniqueString(o1).compareTo(Util.toUniqueString(o2));
+            Comparator<TypeMirror> typeNameComparator = Comparator.comparing(Util::toUniqueString);
 
             List<TypeMirror> removedSuperClasses = new ArrayList<>();
             List<TypeMirror> addedSuperClasses = new ArrayList<>();
 
-            Collections.sort(oldSuperClasses, typeNameComparator);
-            Collections.sort(newSuperClasses, typeNameComparator);
+            oldSuperClasses.sort(typeNameComparator);
+            newSuperClasses.sort(typeNameComparator);
 
             CoIterator<TypeMirror> iterator = new CoIterator<>(oldSuperClasses.iterator(), newSuperClasses.iterator(),
                 typeNameComparator);
@@ -108,7 +106,8 @@ public final class InheritanceChainChanged extends CheckBase {
 
             for (TypeMirror t : removedSuperClasses) {
                 String str = Util.toHumanReadableString(t);
-                ret.add(createDifference(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS, new String[]{str}, t));
+                ret.add(createDifference(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS,
+                        Code.attachmentsFor(types.oldElement, types.newElement, "superClass", str)));
             }
 
             for (TypeMirror t : addedSuperClasses) {
@@ -117,11 +116,12 @@ public final class InheritanceChainChanged extends CheckBase {
                     ? Code.CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS
                     : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
 
-                ret.add(createDifference(code, new String[]{str}, t));
+                ret.add(createDifference(code, Code.attachmentsFor(types.oldElement, types.newElement, "superClass", str)));
 
                 //additionally add a difference about checked exceptions
                 if (changedToCheckedException(getNewTypeEnvironment().getTypeUtils(), t, oldSuperClasses)) {
-                    ret.add(createDifference(Code.CLASS_NOW_CHECKED_EXCEPTION));
+                    ret.add(createDifference(Code.CLASS_NOW_CHECKED_EXCEPTION,
+                            Code.attachmentsFor(types.oldElement, types.newElement)));
                 }
             }
 

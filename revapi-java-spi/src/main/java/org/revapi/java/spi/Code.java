@@ -27,12 +27,18 @@ import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.WeakHashMap;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
@@ -184,6 +190,111 @@ public enum Code {
         return null;
     }
 
+    public static <T extends JavaElement>
+    String[] attachmentsFor(@Nullable T oldElement, @Nullable T newElement, String... customAttachments) {
+        T representative = oldElement == null ? newElement : oldElement;
+        if (representative == null) {
+            throw new IllegalArgumentException("At least one of the oldElement and newElement must not be null");
+        }
+
+        int idx = customAttachments.length;
+        if (representative instanceof JavaAnnotationElement) {
+            //annotationType
+            JavaAnnotationElement anno = representative.as(JavaAnnotationElement.class);
+            String[] ret = new String[customAttachments.length + 2];
+            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
+            ret[idx] = "annotationType";
+            ret[idx + 1] = Util.toHumanReadableString(anno.getAnnotation().getAnnotationType());
+            return ret;
+        } else if (representative instanceof JavaFieldElement) {
+            //package, classSimpleName, fieldName
+            JavaFieldElement field = representative.as(JavaFieldElement.class);
+            String[] ret = new String[customAttachments.length + 6];
+            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
+            ret[idx] = "package";
+            ret[idx + 1] = getPackageName(field);
+            ret[idx + 2] = "classSimpleName";
+            ret[idx + 3] = getClassSimpleName(field);
+            ret[idx + 4] = "fieldName";
+            ret[idx + 5] = field.getDeclaringElement().getSimpleName().toString();
+            return ret;
+        } else if (representative instanceof JavaTypeElement) {
+            //package, classSimpleName
+            JavaTypeElement type = representative.as(JavaTypeElement.class);
+            String[] ret = new String[customAttachments.length + 4];
+            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
+            ret[idx] = "package";
+            ret[idx + 1] = getPackageName(type);
+            ret[idx + 2] = "classSimpleName";
+            ret[idx + 3] = getClassSimpleName(type);
+            return ret;
+        } else if (representative instanceof JavaMethodElement) {
+            //package, classSimpleName, methodName
+            JavaMethodElement method = representative.as(JavaMethodElement.class);
+            String[] ret = new String[customAttachments.length + 6];
+            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
+            ret[idx] = "package";
+            ret[idx + 1] = getPackageName(method);
+            ret[idx + 2] = "classSimpleName";
+            ret[idx + 3] = getClassSimpleName(method);
+            ret[idx + 4] = "methodName";
+            ret[idx + 5] = method.getDeclaringElement().getSimpleName().toString();
+            return ret;
+        } else if (representative instanceof JavaMethodParameterElement) {
+            //package, classSimpleName, methodName, parameterIndex
+            JavaMethodParameterElement param = (JavaMethodParameterElement) representative;
+            @SuppressWarnings("ConstantConditions")
+            JavaMethodElement method = representative.getParent().as(JavaMethodElement.class);
+            String[] ret = new String[customAttachments.length + 8];
+            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
+            ret[idx] = "package";
+            ret[idx + 1] = getPackageName(method);
+            ret[idx + 2] = "classSimpleName";
+            ret[idx + 3] = getClassSimpleName(method);
+            ret[idx + 4] = "methodName";
+            ret[idx + 5] = method.getDeclaringElement().getSimpleName().toString();
+            ret[idx + 6] = "parameterIndex";
+            ret[idx + 7] = Integer.toString(param.getIndex());
+            return ret;
+        } else {
+            return customAttachments;
+        }
+    }
+
+    private static String getPackageName(JavaModelElement element) {
+        while (element != null && !(element instanceof JavaTypeElement)) {
+            element = element.getParent();
+        }
+
+        if (element == null) {
+            return "";
+        } else {
+            TypeElement type = element.as(JavaTypeElement.class).getDeclaringElement();
+            Element pkg = type.getEnclosingElement();
+            while (pkg != null && pkg.getKind() != ElementKind.PACKAGE) {
+                pkg = pkg.getEnclosingElement();
+            }
+
+            if (pkg == null) {
+                return "";
+            } else {
+                return ((PackageElement) pkg).getQualifiedName().toString();
+            }
+        }
+    }
+
+    private static String getClassSimpleName(JavaModelElement element) {
+        while (element != null && !(element instanceof JavaTypeElement)) {
+            element = element.getParent();
+        }
+
+        if (element == null) {
+            return null;
+        } else {
+            return element.as(JavaTypeElement.class).getDeclaringElement().getSimpleName().toString();
+        }
+    }
+
     public String code() {
         return code;
     }
@@ -199,18 +310,69 @@ public enum Code {
         return bld.build();
     }
 
-    public Difference createDifference(@Nonnull Locale locale, Object[] params, Object... attachments) {
+    public Difference createDifference(@Nonnull Locale locale, String... attachments) {
+        return createDifference(locale, keyVals(attachments));
+    }
+
+    public Difference createDifference(@Nonnull Locale locale, LinkedHashMap<String, String> attachments) {
+        String[] params = attachments.values().toArray(new String[attachments.size()]);
+        return createDifference(locale, attachments, params);
+    }
+
+    private static String[] vals(String... keyVals) {
+        if (keyVals.length % 2 != 0) {
+            throw new IllegalArgumentException("Uneven key-value pairs.");
+        }
+
+        String[] ret = new String[keyVals.length / 2];
+        for (int i = 1; i < keyVals.length; i += 2) {
+            ret[(i - 1) / 2] = keyVals[i];
+        }
+
+        return ret;
+    }
+
+    public Difference createDifferenceWithExplicitParams(@Nonnull Locale locale, String[] attachments, String... params) {
+        LinkedHashMap<String, String> ats = keyVals(attachments);
+        return createDifference(locale, ats, params);
+    }
+
+    private Difference createDifference(@Nonnull Locale locale, LinkedHashMap<String, String> attachments,
+                                       String... parameters) {
         Message message = getMessages(locale).get(code);
-        String description = MessageFormat.format(message.description, params);
+        String description = MessageFormat.format(message.description, parameters);
         Difference.Builder bld = Difference.builder().withCode(code).withName(message.name)
-            .withDescription(description).addAttachments(attachments);
+                .withDescription(description).addAttachments(attachments);
 
         for (Map.Entry<CompatibilityType, DifferenceSeverity> e : classification.entrySet()) {
             bld.addClassification(e.getKey(), e.getValue());
         }
 
         return bld.build();
+    }
 
+    private static LinkedHashMap<String, String> keyVals(String... keyVals) {
+        if (keyVals.length % 2 != 0) {
+            throw new IllegalArgumentException("Uneven key-value pairs.");
+        }
+
+        LinkedHashMap<String, String> ret = new LinkedHashMap<>(keyVals.length / 2);
+        String currentKey = null;
+        for (int i = 0; i < keyVals.length; ++i) {
+            String x = keyVals[i];
+
+            if (x == null) {
+                throw new IllegalArgumentException("Null keys or values not supported in attachments.");
+            }
+
+            if (i % 2  == 0) {
+                currentKey = keyVals[i];
+            } else {
+                ret.put(currentKey, x);
+            }
+        }
+
+        return ret;
     }
 
     private static class Message {

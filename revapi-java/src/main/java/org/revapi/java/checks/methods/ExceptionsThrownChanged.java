@@ -93,7 +93,7 @@ public class ExceptionsThrownChanged extends CheckBase {
         List<? extends TypeMirror> oldExceptions = new ArrayList<>(methods.oldElement.getModelRepresentation().getThrownTypes());
         List<? extends TypeMirror> newExceptions = new ArrayList<>(methods.newElement.getModelRepresentation().getThrownTypes());
 
-        Comparator<TypeMirror> byClassName = (a, b) -> Util.toUniqueString(a).compareTo(Util.toUniqueString(b));
+        Comparator<TypeMirror> byClassName = Comparator.comparing(Util::toUniqueString);
 
         Collections.sort(oldExceptions, byClassName);
         Collections.sort(newExceptions, byClassName);
@@ -144,19 +144,35 @@ public class ExceptionsThrownChanged extends CheckBase {
         List<Difference> ret = new ArrayList<>();
 
         if (!removedRuntimeExceptions.isEmpty()) {
-            ret.add(createDifference(Code.METHOD_RUNTIME_EXCEPTION_REMOVED, removedRuntimeExceptions));
+            removedRuntimeExceptions.forEach(ex ->
+                    ret.add(createDifference(Code.METHOD_RUNTIME_EXCEPTION_REMOVED,
+                            Code.attachmentsFor(methods.oldElement, methods.newElement,
+                                    "exception", ex)))
+            );
         }
 
         if (!addedRuntimeExceptions.isEmpty()) {
-            ret.add(createDifference(Code.METHOD_RUNTIME_EXCEPTION_ADDED, addedRuntimeExceptions));
+            addedRuntimeExceptions.forEach(ex ->
+                    ret.add(createDifference(Code.METHOD_RUNTIME_EXCEPTION_ADDED,
+                            Code.attachmentsFor(methods.oldElement, methods.newElement,
+                                    "exception", ex)))
+            );
         }
 
         if (!addedCheckedExceptions.isEmpty()) {
-            ret.add(createDifference(Code.METHOD_CHECKED_EXCEPTION_ADDED, addedCheckedExceptions));
+            addedCheckedExceptions.forEach(ex ->
+                ret.add(createDifference(Code.METHOD_CHECKED_EXCEPTION_ADDED,
+                        Code.attachmentsFor(methods.oldElement, methods.newElement,
+                                "exception", ex)))
+            );
         }
 
         if (!removedCheckedExceptions.isEmpty()) {
-            ret.add(createDifference(Code.METHOD_CHECKED_EXCEPTION_REMOVED, removedCheckedExceptions));
+            removedCheckedExceptions.forEach(ex ->
+                ret.add(createDifference(Code.METHOD_CHECKED_EXCEPTION_REMOVED,
+                        Code.attachmentsFor(methods.oldElement, methods.newElement,
+                                "exception", ex)))
+            );
         }
 
         return ret;

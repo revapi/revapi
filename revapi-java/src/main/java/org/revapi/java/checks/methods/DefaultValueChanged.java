@@ -58,12 +58,19 @@ public final class DefaultValueChanged extends CheckBase {
         Difference difference;
 
         if (ov == null) {
-            difference = createDifference(Code.METHOD_DEFAULT_VALUE_ADDED);
+            difference = createDifference(Code.METHOD_DEFAULT_VALUE_ADDED,
+                    Code.attachmentsFor(methods.oldElement, methods.newElement,
+                            "value", nv));
         } else if (nv == null) {
-            difference = createDifference(Code.METHOD_DEFAULT_VALUE_REMOVED);
+            difference = createDifference(Code.METHOD_DEFAULT_VALUE_REMOVED,
+                    Code.attachmentsFor(methods.oldElement, methods.newElement,
+                            "value", ov));
         } else {
-            difference = createDifference(Code.METHOD_DEFAULT_VALUE_CHANGED,
-                new String[]{attribute, annotationType, ov, nv}, oldValue, newValue);
+            difference = createDifferenceWithExplicitParams(Code.METHOD_DEFAULT_VALUE_CHANGED,
+                    Code.attachmentsFor(methods.oldElement, methods.newElement,
+                            "oldValue", ov,
+                            "newValue", nv),
+                    attribute, annotationType, ov, nv);
         }
 
         return Collections.singletonList(difference);

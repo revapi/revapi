@@ -73,8 +73,9 @@ public final class NowImplementsInterface extends CheckBase {
         for (TypeMirror newIface : newInterfaces) {
             if (!Util.isSubtype(newIface, oldInterfaces, getNewTypeEnvironment().getTypeUtils())) {
                 result.add(
-                    createDifference(Code.CLASS_NOW_IMPLEMENTS_INTERFACE, new String[]{
-                        Util.toHumanReadableString(newIface)}, newIface)
+                    createDifference(Code.CLASS_NOW_IMPLEMENTS_INTERFACE,
+                            Code.attachmentsFor(types.oldElement, types.newElement,
+                                    "interface", Util.toHumanReadableString(newIface)))
                 );
             }
         }

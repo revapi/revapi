@@ -46,6 +46,10 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
         }
     }
 
+    @Override public int getIndex() {
+        return index;
+    }
+
     @Nonnull
     @Override
     protected String getHumanReadableElementType() {

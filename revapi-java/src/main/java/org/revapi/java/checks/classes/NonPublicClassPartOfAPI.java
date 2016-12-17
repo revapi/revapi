@@ -56,8 +56,8 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
             return null;
         }
 
-        return Collections
-            .singletonList(createDifference(Code.CLASS_NON_PUBLIC_PART_OF_API, new Object[]{types.newElement},
+        return Collections.singletonList(createDifferenceWithExplicitParams(Code.CLASS_NON_PUBLIC_PART_OF_API,
+                Code.attachmentsFor(types.oldElement, types.newElement),
                 Util.toHumanReadableString(types.newElement.getModelRepresentation())));
     }
 }

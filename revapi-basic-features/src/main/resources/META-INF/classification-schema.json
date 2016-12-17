@@ -51,13 +51,16 @@
                 "minProperties": 1
             }
         },
+        "additionalProperties": {
+            "type": "string"
+        },
         "required": [ "code" ]
     },
     "minItems": 1,
     "definitions": {
         "classification": {
             "type": "string",
-            "enum": [ "NON_BREAKING", "POTENTIALLY_BREAKING", "BREAKING" ]
+            "enum": [ "EQUIVALENT", "NON_BREAKING", "POTENTIALLY_BREAKING", "BREAKING" ]
         }
     }
 }

@@ -120,7 +120,8 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
             return null;
         }
 
-        return Collections.singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED));
+        return Collections.singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED,
+                Code.attachmentsFor(fields.oldElement, fields.newElement)));
     }
 
     /**

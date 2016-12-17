@@ -11,4 +11,9 @@ import javax.lang.model.element.VariableElement;
 public interface JavaMethodParameterElement extends JavaModelElement {
 
     @Override VariableElement getDeclaringElement();
+
+    /**
+     * @return the index of the method parameter amongst its siblings
+     */
+    int getIndex();
 }

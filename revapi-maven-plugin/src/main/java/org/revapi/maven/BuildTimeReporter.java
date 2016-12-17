@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -82,6 +83,11 @@ final class BuildTimeReporter implements Reporter {
                     if (r.getNewElement() != null) {
                         ignores.append("  \"new\": \"").append(r.getNewElement()).append("\",\n");
                     }
+
+                    for (Map.Entry<String, String> e : d.attachments.entrySet()) {
+                        ignores.append("  \"").append(e.getKey()).append("\": \"").append(e.getValue()).append("\",\n");
+                    }
+
                     ignores.append("  \"justification\": <<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE" +
                             " >>>>>\n");
                     ignores.append("},\n");

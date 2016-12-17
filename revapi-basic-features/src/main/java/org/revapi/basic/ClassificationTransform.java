@@ -77,7 +77,7 @@ public class ClassificationTransform
             CompatibilityType.class);
 
         public ClassificationRecipe(ModelNode node) {
-            super(node);
+            super(node, "classify");
             ModelNode classfications = node.get("classify");
             for (CompatibilityType ct : CompatibilityType.values()) {
                 if (classfications.has(ct.name())) {

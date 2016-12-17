@@ -59,9 +59,9 @@ public final class ConstantValueChanged extends BothFieldsRequiringCheck {
         }
 
         return Collections.singletonList(
-            createDifference(Code.FIELD_CONSTANT_VALUE_CHANGED,
-                Objects.toString(fields.oldElement.getDeclaringElement().getConstantValue()),
-                Objects.toString(fields.newElement.getDeclaringElement().getConstantValue()))
+            createDifference(Code.FIELD_CONSTANT_VALUE_CHANGED, Code.attachmentsFor(fields.oldElement, fields.newElement,
+                "oldValue", Objects.toString(fields.oldElement.getDeclaringElement().getConstantValue()),
+                "newValue", Objects.toString(fields.newElement.getDeclaringElement().getConstantValue())))
         );
     }
 }

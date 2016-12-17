@@ -16,12 +16,9 @@
 
 package org.revapi;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -39,7 +36,7 @@ public final class Difference {
         protected String name;
         protected String description;
         protected Map<CompatibilityType, DifferenceSeverity> classification = new HashMap<>();
-        protected List<Object> attachments = new ArrayList<>();
+        protected Map<String, String> attachments = new LinkedHashMap<>(2);
 
         @Nonnull
         public This withCode(@Nonnull String code) {
@@ -72,22 +69,15 @@ public final class Difference {
         }
 
         @Nonnull
-        public This addAttachment(@Nonnull Object attachment) {
-            attachments.add(attachment);
+        public This addAttachment(@Nonnull String key, @Nonnull String value) {
+            attachments.put(key, value);
             return castThis();
         }
 
         @Nonnull
-        public This addAttachments(@Nonnull Iterable<?> attachments) {
-            for (Object a : attachments) {
-                this.attachments.add(a);
-            }
+        public This addAttachments(@Nonnull Map<String, String> attachments) {
+            this.attachments.putAll(attachments);
             return castThis();
-        }
-
-        @Nonnull
-        public This addAttachments(Object... attachments) {
-            return addAttachments(Arrays.asList(attachments));
         }
 
         @SuppressWarnings("unchecked")
@@ -144,23 +134,27 @@ public final class Difference {
     public final String description;
     public final Map<CompatibilityType, DifferenceSeverity> classification;
 
-    public final List<Object> attachments;
+    /**
+     * The attachments of the difference, keyed by their meaning. Each difference can define a different set of
+     * attachments that correspond to "findings" the difference represents. The map preserves the insertion order.
+     */
+    public final Map<String, String> attachments;
 
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
         @Nonnull CompatibilityType compatibility,
-        @Nonnull DifferenceSeverity severity, @Nonnull List<Serializable> attachments) {
+        @Nonnull DifferenceSeverity severity, @Nonnull Map<String, String> attachments) {
         this(code, name, description, Collections.singletonMap(compatibility, severity), attachments);
     }
 
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
-        @Nonnull Map<CompatibilityType, DifferenceSeverity> classification, @Nonnull List<?> attachments) {
+        @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
+                      @Nonnull Map<String, String> attachments) {
         this.code = code;
         this.name = name;
         this.description = description;
         HashMap<CompatibilityType, DifferenceSeverity> tmp = new HashMap<>(classification);
         this.classification = Collections.unmodifiableMap(tmp);
-        List<?> tmp2 = new ArrayList<>(attachments);
-        this.attachments = Collections.unmodifiableList(tmp2);
+        this.attachments = Collections.unmodifiableMap(new LinkedHashMap<>(attachments));
     }
 
     @Override
@@ -174,7 +168,8 @@ public final class Difference {
 
         Difference difference = (Difference) o;
 
-        return code.equals(difference.code) && classification.equals(difference.classification);
+        return code.equals(difference.code) && classification.equals(difference.classification)
+                && attachments.equals(difference.attachments);
     }
 
     @Override

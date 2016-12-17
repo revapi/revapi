@@ -55,9 +55,15 @@ public final class NowFinal extends ModifierChanged {
 
         //noinspection ConstantConditions
         if (elements.newElement.getParent().getDeclaringElement().getModifiers().contains(Modifier.FINAL)) {
-            return Collections.singletonList(createDifference(Code.METHOD_NOW_FINAL_IN_FINAL_CLASS));
+            return Collections.singletonList(createDifference(Code.METHOD_NOW_FINAL_IN_FINAL_CLASS,
+                    Code.attachmentsFor(elements.oldElement, elements.newElement,
+                            "oldModifiers", stringify(elements.oldElement.getDeclaringElement().getModifiers()),
+                            "newModifiers", stringify(elements.newElement.getDeclaringElement().getModifiers()))));
         } else {
-            return Collections.singletonList(createDifference(Code.METHOD_NOW_FINAL));
+            return Collections.singletonList(createDifference(Code.METHOD_NOW_FINAL,
+                    Code.attachmentsFor(elements.oldElement, elements.newElement,
+                            "oldModifiers", stringify(elements.oldElement.getDeclaringElement().getModifiers()),
+                            "newModifiers", stringify(elements.newElement.getDeclaringElement().getModifiers()))));
         }
     }
 }

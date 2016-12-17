@@ -17,7 +17,10 @@
 package org.revapi.java.checks.common;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.lang.model.element.Modifier;
 
@@ -65,7 +68,48 @@ public abstract class ModifierChanged extends CheckBase {
             return null;
         }
 
-        return Collections.singletonList(createDifference(code));
+        return Collections.singletonList(createDifference(code, Code.attachmentsFor(elements.oldElement, elements.newElement,
+                "oldModifiers", stringify(elements.oldElement.getDeclaringElement().getModifiers()),
+                "newModifiers", stringify(elements.newElement.getDeclaringElement().getModifiers()))));
     }
 
+    //ordered according to http://cr.openjdk.java.net/~alundblad/styleguide/index-v6.html
+    public static String stringify(Set<Modifier> modifiers) {
+        return modifiers.stream()
+                .sorted(Comparator.comparingInt(ModifierChanged::score))
+                .map(m -> m.name().toLowerCase())
+                .collect(Collectors.joining(" "));
+    }
+
+    private static int score(Modifier mod) {
+        //public
+        //private
+        //protected
+        //abstract
+        //static
+        //final
+        //transient
+        //volatile
+        //default
+        //synchronized
+        //native
+        //strictfp
+
+        switch (mod) {
+            case PUBLIC: return 0;
+            case PRIVATE: return 1;
+            case PROTECTED: return 2;
+            case ABSTRACT: return 3;
+            case STATIC: return 4;
+            case FINAL: return 5;
+            case TRANSIENT: return 6;
+            case VOLATILE: return 7;
+            case DEFAULT: return 8;
+            case SYNCHRONIZED: return 9;
+            case NATIVE: return 10;
+            case STRICTFP: return 11;
+            default:
+                return 12;
+        }
+    }
 }

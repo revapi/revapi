@@ -26,17 +26,17 @@ public class SemverIgnoreTransformTest {
     private static final Difference NON_BREAKING =
             new Difference("nonBreaking", "nonBrekaing", "blah", CompatibilityType.OTHER,
                     DifferenceSeverity.NON_BREAKING,
-                    Collections.emptyList());
+                    Collections.emptyMap());
 
     private static final Difference POTENTIALLY_BREAKING =
             new Difference("potentiallyBreaking", "potentiallyBreaking", "blah", CompatibilityType.OTHER,
                     DifferenceSeverity.POTENTIALLY_BREAKING,
-                    Collections.emptyList());
+                    Collections.emptyMap());
 
     private static final Difference BREAKING =
             new Difference("breaking", "breaking", "blah", CompatibilityType.OTHER,
                     DifferenceSeverity.BREAKING,
-                    Collections.emptyList());
+                    Collections.emptyMap());
 
     @Test
     public void testDisabledByDefault() {
