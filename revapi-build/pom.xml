@@ -22,16 +22,46 @@
     <properties>
         <self-api-check.maven-version>0.7.0</self-api-check.maven-version>
         <self-api-check.java-extension-version>0.11.1</self-api-check.java-extension-version>
+
+        <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
+        <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
+        <version.junit>4.11</version.junit>
+        <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
+        <version.org.slf4j>1.7.5</version.org.slf4j>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${version.ch.qos.logback}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${version.com.google.code.findbugs}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${version.junit}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.revapi</groupId>
-                <artifactId>revapi-bom</artifactId>
-                <version>32-SNAPSHOT</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <artifactId>revapi-site-shared</artifactId>
+                <version>${version.org.revapi.revapi-site-shared}</version>
+                <type>zip</type>
+                <classifier>resources</classifier>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${version.org.slf4j}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

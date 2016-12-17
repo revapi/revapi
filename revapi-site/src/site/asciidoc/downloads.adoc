@@ -68,13 +68,6 @@ artifacts, use the link to "All Versions" and pick the one you like.
 |+++<a id="link-org.revapi-revapi-reporter-text">here</a>+++
 |+++<a id="all-link-org.revapi-revapi-reporter-text">here</a>+++
 
-|Revapi BOM
-|`org.revapi:revapi-bom`
-|+++<div id="version-org.revapi-revapi-bom"></div>+++
-|+++<div id="release-date-org.revapi-revapi-bom"></div>+++
-|+++<a id="link-org.revapi-revapi-bom">here</a>+++
-|+++<a id="all-link-org.revapi-revapi-bom">here</a>+++
-
 |===
 
 [pass]
@@ -117,7 +110,6 @@ window.addEventListener("load", function() {
     fillIn("org.revapi", "revapi", ".jar")
     fillIn("org.revapi", "revapi-ant-task", ".jar")
     fillIn("org.revapi", "revapi-basic-features", ".jar")
-    fillIn("org.revapi", "revapi-bom", ".jar")
     fillIn("org.revapi", "revapi-java", ".jar")
     fillIn("org.revapi", "revapi-java-spi", ".jar")
     fillIn("org.revapi", "revapi-maven-plugin", ".jar")
