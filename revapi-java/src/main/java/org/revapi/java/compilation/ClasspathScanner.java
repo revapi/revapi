@@ -136,8 +136,16 @@ final class ClasspathScanner {
                     URI uri = jfo.toUri();
                     String path;
                     if ("jar".equals(uri.getScheme())) {
-                        uri = URI.create(uri.getSchemeSpecificPart());
-                        path = uri.getPath().substring(0, uri.getPath().lastIndexOf('!'));
+                        path = uri.getSchemeSpecificPart();
+
+                        //jar:file:/path .. let's get rid of the "file:" part
+                        int colonIdx = path.indexOf(':');
+                        if (colonIdx >= 0) {
+                            path = path.substring(colonIdx + 1);
+                        }
+
+                        //separate the file path from the in-jar path
+                        path = path.substring(0, path.lastIndexOf('!'));
                     } else {
                         path = uri.getPath();
                     }
