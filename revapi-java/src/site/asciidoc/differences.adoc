@@ -1674,12 +1674,15 @@ recompiling the user code), it might be OK at compile time due to implicit conve
 [cols="35s,<65d"]
 |=============
 | Code              | +java.method.returnTypeChangedCovariantly+
-| Binary severity   | non breaking
+| Binary severity   | breaking
 | Source severity   | non breaking
 | Semantic severity | NA
 |=============
 
-Covariant return types are handled transparently, therefore this represents no API change.
+Covariant return types represent no problem on source level because the new return type can always be cast to the old
+return type and therefore the users of the old version of the API can work with the new type. This a binary
+incompatibility though because the method signature changes and users of the old version of the API would get nasty
+`NoSuchMethodError` errors at link time.
 
 [options=header]
 |====
