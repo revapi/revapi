@@ -105,56 +105,6 @@ public final class Analyzer implements AutoCloseable {
 
     private Revapi revapi;
 
-    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldGavs,
-             String[] newGavs, MavenProject project, RepositorySystem repositorySystem,
-             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-             String versionRegex) {
-
-        this(analysisConfiguration, analysisConfigurationFiles, oldGavs, newGavs, project, repositorySystem,
-                repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles, failOnMissingArchives,
-                failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
-                () -> Revapi.builder().withAllExtensionsFromThreadContextClassLoader());
-    }
-
-    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
-             Artifact[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
-             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-             String versionRegex, Supplier<Revapi.Builder> ctor) {
-
-        this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, null, null, project,
-                repositorySystem, repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles,
-                failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
-                ctor, null);
-    }
-
-    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, String[] oldGavs,
-             String[] newGavs, MavenProject project, RepositorySystem repositorySystem,
-             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-             String versionRegex, Supplier<Revapi.Builder> revapiConstructor) {
-        this(analysisConfiguration, analysisConfigurationFiles, null, null, oldGavs, newGavs, project,
-                repositorySystem, repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles,
-                failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
-                revapiConstructor, null);
-    }
-
-    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
-             Artifact[] newArtifacts, MavenProject project, RepositorySystem repositorySystem,
-             RepositorySystemSession repositorySystemSession, Reporter reporter, Locale locale, Log log,
-             boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-             String versionRegex, Revapi sharedRevapi) {
-        this(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, null, null, project,
-                repositorySystem, repositorySystemSession, reporter, locale, log, failOnMissingConfigurationFiles,
-                failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate, resolveDependencies, versionRegex,
-                null, sharedRevapi);
-    }
-
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
              Artifact[] newArtifacts, String[] oldGavs, String[] newGavs, MavenProject project,
              RepositorySystem repositorySystem, RepositorySystemSession repositorySystemSession, Reporter reporter,

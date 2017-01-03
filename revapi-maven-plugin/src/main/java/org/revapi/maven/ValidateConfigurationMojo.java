@@ -31,7 +31,7 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        try (Analyzer analyzer = prepareAnalyzer(new SimpleReporter())) {
+        try (Analyzer analyzer = prepareAnalyzer(project, new SimpleReporter())) {
             if (analyzer != null) {
                 analyzer.validateConfiguration();
             }

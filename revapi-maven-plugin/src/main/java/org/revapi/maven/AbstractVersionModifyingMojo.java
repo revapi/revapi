@@ -24,17 +24,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -43,7 +38,6 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.revapi.Revapi;
 
 import com.ximpleware.AutoPilot;
 import com.ximpleware.ModifyException;
@@ -326,18 +320,9 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     }
 
     private AnalysisResults analyzeProject(MavenProject project) throws MojoExecutionException {
-        final List<String> disallowedExtensions = this.disallowedExtensions == null
-                ? Collections.emptyList()
-                : Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
-
-        Supplier<Revapi.Builder> ctor = getDisallowedExtensionsAwareRevapiConstructor(disallowedExtensions);
-
         ApiBreakageHintingReporter reporter = new ApiBreakageHintingReporter();
 
-        try (Analyzer analyzer = new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
-                newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(),
-                getLog(), failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies, versionFormat, ctor)) {
+        try (Analyzer analyzer = prepareAnalyzer(project, reporter)) {
 
             analyzer.resolveArtifacts();
 

@@ -17,8 +17,6 @@
 package org.revapi.maven;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.ServiceLoader;
@@ -240,7 +238,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected String disallowedExtensions;
 
     protected void analyze(Reporter reporter) throws MojoExecutionException, MojoFailureException {
-        try (Analyzer analyzer = prepareAnalyzer(reporter)) {
+        try (Analyzer analyzer = prepareAnalyzer(project, reporter)) {
             if (analyzer != null) {
                 analyzer.analyze();
             }
@@ -251,24 +249,36 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         }
     }
 
-    protected Analyzer prepareAnalyzer(Reporter reporter) {
-        if (skip) {
-            return null;
+    protected Analyzer prepareAnalyzer(MavenProject project, Reporter reporter) {
+        AnalyzerBuilder.Result res = AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
+                .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
+                .withAnalysisConfiguration(this.analysisConfiguration)
+                .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
+                .withCheckDependencies(this.checkDependencies)
+                .withDisallowedExtensions(this.disallowedExtensions)
+                .withFailOnMissingConfigurationFiles(this.failOnMissingConfigurationFiles)
+                .withFailOnUnresolvedArtifacts(this.failOnUnresolvedArtifacts)
+                .withFailOnUnresolvedDependencies(this.failOnUnresolvedDependencies)
+                .withLocale(Locale.getDefault())
+                .withLog(getLog())
+                .withNewVersion(this.newVersion)
+                .withOldVersion(this.oldVersion)
+                .withProject(project)
+                .withReporter(reporter)
+                .withRepositorySystem(this.repositorySystem)
+                .withRepositorySystemSession(this.repositorySystemSession)
+                .withSkip(this.skip)
+                .withVersionFormat(this.versionFormat)
+                .build();
+
+        if (res.skip) {
+            this.skip = true;
         }
 
-        if (!initializeComparisonArtifacts()) {
-            return null;
-        }
+        this.oldArtifacts = res.oldArtifacts;
+        this.newArtifacts = res.newArtifacts;
 
-        final List<String> disallowedExtensions = this.disallowedExtensions == null
-                ? Collections.emptyList()
-                : Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
-        Supplier<Revapi.Builder> ctor = getDisallowedExtensionsAwareRevapiConstructor(disallowedExtensions);
-
-        return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
-                newArtifacts, project, repositorySystem, repositorySystemSession, reporter, Locale.getDefault(), getLog(),
-                failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies, versionFormat, ctor);
+        return res.isOnClasspath ? res.analyzer : null;
     }
 
     /**

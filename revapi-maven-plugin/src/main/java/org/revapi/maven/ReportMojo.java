@@ -17,14 +17,11 @@
 package org.revapi.maven;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.function.Supplier;
 
 import org.apache.maven.doxia.sink.Sink;
 import org.apache.maven.doxia.siterenderer.Renderer;
@@ -43,7 +40,6 @@ import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
-import org.revapi.Revapi;
 
 /**
  * @author Lukas Krejci
@@ -369,83 +365,39 @@ public class ReportMojo extends AbstractMavenReport {
             reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
         }
 
-        //noinspection Duplicates
-        if (oldArtifacts == null || oldArtifacts.length == 0) {
-            //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
-            //analyze there
-            //only do it here, because oldArtifacts might point to another artifact.
-            //if we end up here in this branch, we know we'll be comparing the current artifact with something.
-            if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
-                skip = true;
-                return null;
-            }
+        AnalyzerBuilder.Result res = AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
+                .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
+                .withAnalysisConfiguration(this.analysisConfiguration)
+                .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
+                .withCheckDependencies(this.checkDependencies)
+                .withDisallowedExtensions(this.disallowedExtensions)
+                .withFailOnMissingConfigurationFiles(this.failOnMissingConfigurationFiles)
+                .withFailOnUnresolvedArtifacts(this.failOnUnresolvedArtifacts)
+                .withFailOnUnresolvedDependencies(this.failOnUnresolvedDependencies)
+                .withLocale(locale)
+                .withLog(getLog())
+                .withNewVersion(this.newVersion)
+                .withOldVersion(this.oldVersion)
+                .withProject(this.project)
+                .withReporter(reporter)
+                .withRepositorySystem(this.repositorySystem)
+                .withRepositorySystemSession(this.repositorySystemSession)
+                .withSkip(this.skip)
+                .withVersionFormat(this.versionFormat)
+                .build();
 
-            oldArtifacts = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, oldVersion)};
+        if (res.skip || !res.isOnClasspath) {
+            this.skip = true;
         }
 
-        //noinspection Duplicates
-        if (newArtifacts == null || newArtifacts.length == 0) {
-            if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
-                skip = true;
-                return null;
-            }
+        this.oldArtifacts = res.oldArtifacts;
+        this.newArtifacts = res.newArtifacts;
 
-            newArtifacts = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, newVersion)};
-        }
-
-        final List<String> disallowedExtensions = this.disallowedExtensions == null
-                ? Collections.emptyList()
-                : Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
-        Supplier<Revapi.Builder> ctor =
-                AbstractRevapiMojo.getDisallowedExtensionsAwareRevapiConstructor(disallowedExtensions);
-
-        return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
-                newArtifacts, project, repositorySystem, repositorySystemSession, reporter, locale, getLog(),
-                failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies, versionFormat, ctor);
+        return res.isOnClasspath ? res.analyzer : null;
     }
 
     private void ensureAnalyzed(Locale locale) {
         if (!skip && reporter == null) {
-            if (generateSiteReport) {
-                reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
-            }
-
-            if (newArtifacts != null && newArtifacts.length == 1 && "BUILD".equals(newArtifacts[0])) {
-                getLog().warn("\"BUILD\" coordinates are deprecated. Just leave \"newArtifacts\" undefined and" +
-                        " specify \"${project.version}\" as the value for \"newVersion\" (which is the default, so" +
-                        " you don't actually have to do that either).");
-                oldArtifacts = null;
-            }
-
-            //noinspection Duplicates
-            if (oldArtifacts == null || oldArtifacts.length == 0) {
-                //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
-                //analyze there
-                //only do it here, because oldArtifacts might point to another artifact.
-                //if we end up here in this branch, we know we'll be comparing the current artifact with something.
-                if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
-                    skip = true;
-                    return;
-                }
-
-                oldArtifacts = new String[]{
-                        Analyzer.getProjectArtifactCoordinates(project, oldVersion)};
-            }
-
-            //noinspection Duplicates
-            if (newArtifacts == null || newArtifacts.length == 0) {
-                if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
-                    skip = true;
-                    return;
-                }
-
-                newArtifacts = new String[]{
-                        Analyzer.getProjectArtifactCoordinates(project, newVersion)};
-            }
-
             try (Analyzer analyzer = prepareAnalyzer(locale)) {
                 if (analyzer == null) {
                     return;

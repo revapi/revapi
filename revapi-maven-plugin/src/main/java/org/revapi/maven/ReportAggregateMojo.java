@@ -22,14 +22,12 @@ import static org.apache.maven.plugins.annotations.LifecyclePhase.SITE;
 
 import java.io.File;
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -268,23 +266,30 @@ public class ReportAggregateMojo extends ReportMojo {
         boolean resolveDependencies = true;
         String versionRegex = getValueOfChild(runConfig, "versionFormat");
 
-        if (revapi == null) {
-            final List<String> disallowedExtensions = this.disallowedExtensions == null
-                    ? Collections.emptyList()
-                    : Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
-            Supplier<Revapi.Builder> ctor =
-                    AbstractRevapiMojo.getDisallowedExtensionsAwareRevapiConstructor(disallowedExtensions);
+        AnalyzerBuilder bld = AnalyzerBuilder.forArtifacts(oldArtifacts, newArtifacts)
+                .withAlwaysCheckForReleasedVersion(alwaysUpdate)
+                .withAnalysisConfiguration(this.analysisConfiguration)
+                .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
+                .withCheckDependencies(resolveDependencies)
+                .withDisallowedExtensions(disallowedExtensions)
+                .withFailOnMissingConfigurationFiles(failOnMissingConfigurationFiles)
+                .withFailOnUnresolvedArtifacts(failOnMissingArchives)
+                .withFailOnUnresolvedDependencies(failOnMissingSupportArchives)
+                .withLocale(locale)
+                .withLog(getLog())
+                .withProject(project)
+                .withRepositorySystem(repositorySystem)
+                .withRepositorySystemSession(repositorySystemSession)
+                .withSkip(skip)
+                .withVersionFormat(versionRegex);
 
-            return new Analyzer(this.analysisConfiguration, this.analysisConfigurationFiles, oldArtifacts, newArtifacts,
-                    project, repositorySystem, repositorySystemSession, defaultReporter, locale, getLog(),
-                    failOnMissingConfigurationFiles, failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate,
-                    resolveDependencies, versionRegex, ctor);
+        if (revapi == null) {
+            bld = bld.withReporter(defaultReporter);
         } else {
-            return new Analyzer(this.analysisConfiguration, this.analysisConfigurationFiles, oldArtifacts, newArtifacts,
-                    project, repositorySystem, repositorySystemSession, null, locale, getLog(),
-                    failOnMissingConfigurationFiles, failOnMissingArchives, failOnMissingSupportArchives, alwaysUpdate,
-                    resolveDependencies, versionRegex, revapi);
+            bld = bld.withRevapiInstance(revapi);
         }
+
+        return bld.build().analyzer;
     }
 
     protected static Plugin findRevapi(MavenProject project) {
