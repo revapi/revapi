@@ -53,11 +53,11 @@ class AnalyzerBuilder {
     private String versionFormat;
     private Revapi revapi;
 
-    public static AnalyzerBuilder forGavs(String[] oldGavs, String[] newGavs) {
+    static AnalyzerBuilder forGavs(String[] oldGavs, String[] newGavs) {
         return new AnalyzerBuilder(oldGavs, newGavs, null, null);
     }
 
-    public static AnalyzerBuilder forArtifacts(Artifact[] oldArtifacts, Artifact[] newArtifacts) {
+    static AnalyzerBuilder forArtifacts(Artifact[] oldArtifacts, Artifact[] newArtifacts) {
         return new AnalyzerBuilder(null, null, oldArtifacts, newArtifacts);
     }
 
@@ -68,92 +68,92 @@ class AnalyzerBuilder {
         this.newArtifacts = newArtifacts;
     }
 
-    public AnalyzerBuilder withProject(MavenProject project) {
+    AnalyzerBuilder withProject(MavenProject project) {
         this.project = project;
         return this;
     }
 
-    public AnalyzerBuilder withSkip(boolean skip) {
+    AnalyzerBuilder withSkip(boolean skip) {
         this.skip = skip;
         return this;
     }
 
-    public AnalyzerBuilder withOldVersion(String oldVersion) {
+    AnalyzerBuilder withOldVersion(String oldVersion) {
         this.oldVersion = oldVersion;
         return this;
     }
 
-    public AnalyzerBuilder withNewVersion(String newVersion) {
+    AnalyzerBuilder withNewVersion(String newVersion) {
         this.newVersion = newVersion;
         return this;
     }
 
-    public AnalyzerBuilder withDisallowedExtensions(String disallowedExtensions) {
+    AnalyzerBuilder withDisallowedExtensions(String disallowedExtensions) {
         this.disallowedExtensions = disallowedExtensions;
         return this;
     }
 
-    public AnalyzerBuilder withReporter(Reporter reporter) {
+    AnalyzerBuilder withReporter(Reporter reporter) {
         this.reporter = reporter;
         return this;
     }
 
-    public AnalyzerBuilder withLocale(Locale locale) {
+    AnalyzerBuilder withLocale(Locale locale) {
         this.locale = locale;
         return this;
     }
 
-    public AnalyzerBuilder withAnalysisConfiguration(String analysisConfiguration) {
+    AnalyzerBuilder withAnalysisConfiguration(String analysisConfiguration) {
         this.analysisConfiguration = analysisConfiguration;
         return this;
     }
 
-    public AnalyzerBuilder withAnalysisConfigurationFiles(Object[] analysisConfigurationFiles) {
+    AnalyzerBuilder withAnalysisConfigurationFiles(Object[] analysisConfigurationFiles) {
         this.analysisConfigurationFiles = analysisConfigurationFiles;
         return this;
     }
 
-    public AnalyzerBuilder withRepositorySystem(RepositorySystem repositorySystem) {
+    AnalyzerBuilder withRepositorySystem(RepositorySystem repositorySystem) {
         this.repositorySystem = repositorySystem;
         return this;
     }
 
-    public AnalyzerBuilder withRepositorySystemSession(RepositorySystemSession repositorySystemSession) {
+    AnalyzerBuilder withRepositorySystemSession(RepositorySystemSession repositorySystemSession) {
         this.repositorySystemSession = repositorySystemSession;
         return this;
     }
 
-    public AnalyzerBuilder withFailOnMissingConfigurationFiles(boolean failOnMissingConfigurationFiles) {
+    AnalyzerBuilder withFailOnMissingConfigurationFiles(boolean failOnMissingConfigurationFiles) {
         this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
         return this;
     }
 
-    public AnalyzerBuilder withFailOnUnresolvedDependencies(boolean failOnUnresolvedDependencies) {
+    AnalyzerBuilder withFailOnUnresolvedDependencies(boolean failOnUnresolvedDependencies) {
         this.failOnUnresolvedDependencies = failOnUnresolvedDependencies;
         return this;
     }
 
-    public AnalyzerBuilder withFailOnUnresolvedArtifacts(boolean failOnUnresolvedArtifacts) {
+    AnalyzerBuilder withFailOnUnresolvedArtifacts(boolean failOnUnresolvedArtifacts) {
         this.failOnUnresolvedArtifacts = failOnUnresolvedArtifacts;
         return this;
     }
 
-    public AnalyzerBuilder withAlwaysCheckForReleasedVersion(boolean alwaysCheckForReleaseVersion) {
+    AnalyzerBuilder withAlwaysCheckForReleasedVersion(boolean alwaysCheckForReleaseVersion) {
         this.alwaysCheckForReleaseVersion = alwaysCheckForReleaseVersion;
         return this;
     }
 
-    public AnalyzerBuilder withCheckDependencies(boolean checkDependencies) {
+    AnalyzerBuilder withCheckDependencies(boolean checkDependencies) {
         this.checkDependencies = checkDependencies;
         return this;
     }
 
-    public AnalyzerBuilder withVersionFormat(String versionFormat) {
+    AnalyzerBuilder withVersionFormat(String versionFormat) {
         this.versionFormat = versionFormat;
         return this;
     }
 
-    public AnalyzerBuilder withLog(Log log) {
+    AnalyzerBuilder withLog(Log log) {
         this.log = log;
         return this;
     }
