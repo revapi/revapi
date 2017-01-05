@@ -16,6 +16,7 @@
 
 package org.revapi.maven.utils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -25,6 +26,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import org.eclipse.aether.AbstractForwardingRepositorySystemSession;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -34,7 +36,17 @@ import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.graph.DependencyVisitor;
+import org.eclipse.aether.metadata.Metadata;
+import org.eclipse.aether.repository.LocalArtifactRegistration;
+import org.eclipse.aether.repository.LocalArtifactRequest;
+import org.eclipse.aether.repository.LocalArtifactResult;
+import org.eclipse.aether.repository.LocalMetadataRegistration;
+import org.eclipse.aether.repository.LocalMetadataRequest;
+import org.eclipse.aether.repository.LocalMetadataResult;
+import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.LocalRepositoryManager;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.WorkspaceReader;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -65,7 +77,7 @@ public class ArtifactResolver {
 
 
     public Artifact resolveArtifact(String gav) throws ArtifactResolutionException {
-        return resolveArtifact(new DefaultArtifact(gav));
+        return resolveArtifact(new DefaultArtifact(gav), session);
     }
 
     /**
@@ -75,14 +87,21 @@ public class ArtifactResolver {
      * @param gav the coordinates of the artifact. The version part is ignored
      * @param upToVersion the version up to which the versions will be matched
      * @param versionMatcher the matcher to match the version
-     * @return
+     * @param remoteOnly true if only remotely available artifacts should be considered
+     * @param upToInclusive whether the {@code upToVersion} should be considered inclusive or exclusive
+     * @return the resolved artifact
      * @throws VersionRangeResolutionException
      */
-    public Artifact resolveNewestMatching(String gav, @Nullable String upToVersion, Pattern versionMatcher)
+    public Artifact resolveNewestMatching(String gav, @Nullable String upToVersion, Pattern versionMatcher,
+                                          boolean remoteOnly, boolean upToInclusive)
             throws VersionRangeResolutionException, ArtifactResolutionException {
+
+
         Artifact artifact = new DefaultArtifact(gav);
-        artifact = artifact.setVersion(upToVersion == null ? "[,)" : "[," + upToVersion + ")");
+        artifact = artifact.setVersion(upToVersion == null ? "[,)" : "[," + upToVersion + (upToInclusive ? "]" : ")"));
         VersionRangeRequest rangeRequest = new VersionRangeRequest(artifact, repositories, null);
+
+        RepositorySystemSession session = remoteOnly ? makeRemoteOnly(this.session) : this.session;
 
         VersionRangeResult result = repositorySystem.resolveVersionRange(session, rangeRequest);
 
@@ -91,10 +110,9 @@ public class ArtifactResolver {
 
         for(Version v : versions) {
             if (versionMatcher.matcher(v.toString()).matches()) {
-                return resolveArtifact(artifact.setVersion(v.toString()));
+                return resolveArtifact(artifact.setVersion(v.toString()), session);
             }
         }
-
 
         throw new VersionRangeResolutionException(result) {
             @Override
@@ -174,11 +192,77 @@ public class ArtifactResolver {
         }
     }
 
-    private Artifact resolveArtifact(Artifact artifact) throws ArtifactResolutionException {
+    private Artifact resolveArtifact(Artifact artifact, RepositorySystemSession session) throws ArtifactResolutionException {
         ArtifactRequest request = new ArtifactRequest().setArtifact(artifact)
                 .setRepositories(repositories);
 
         ArtifactResult result = repositorySystem.resolveArtifact(session, request);
         return result.getArtifact();
+    }
+
+    private RepositorySystemSession makeRemoteOnly(RepositorySystemSession session) {
+        return new AbstractForwardingRepositorySystemSession() {
+            @Override protected RepositorySystemSession getSession() {
+                return session;
+            }
+
+            @Override public WorkspaceReader getWorkspaceReader() {
+                return null;
+            }
+
+            @Override public LocalRepositoryManager getLocalRepositoryManager() {
+                LocalRepositoryManager wrapped = session.getLocalRepositoryManager();
+                return new LocalRepositoryManager() {
+                    @Override public LocalRepository getRepository() {
+                        return wrapped.getRepository();
+                    }
+
+                    @Override public String getPathForLocalArtifact(Artifact artifact) {
+                        return wrapped.getPathForLocalArtifact(artifact);
+                    }
+
+                    @Override public String getPathForRemoteArtifact(Artifact artifact, RemoteRepository repository,
+                                                                     String context) {
+                        return wrapped.getPathForRemoteArtifact(artifact, repository, context);
+                    }
+
+                    @Override public String getPathForLocalMetadata(Metadata metadata) {
+                        return wrapped.getPathForLocalMetadata(metadata);
+                    }
+
+                    @Override public String getPathForRemoteMetadata(Metadata metadata, RemoteRepository repository,
+                                                                     String context) {
+                        return wrapped.getPathForRemoteMetadata(metadata, repository,
+                                context);
+                    }
+
+                    @Override
+                    public LocalArtifactResult find(RepositorySystemSession session, LocalArtifactRequest request) {
+                        return wrapped.find(session, request);
+                    }
+
+                    @Override public void add(RepositorySystemSession session, LocalArtifactRegistration request) {
+                        wrapped.add(session, request);
+                    }
+
+                    @Override
+                    public LocalMetadataResult find(RepositorySystemSession session, LocalMetadataRequest request) {
+                        if (request.getRepository() == null) {
+                            //local metadata request... the returned file must not be null but may not exist
+                            //we exploit that to not include the locally built results
+                            LocalMetadataResult ret = new LocalMetadataResult(request);
+                            ret.setFile(new File("<faked-to-force-remote-only-resolution-of-artifacts>"));
+                            return ret;
+                        } else {
+                            return wrapped.find(session, request);
+                        }
+                    }
+
+                    @Override public void add(RepositorySystemSession session, LocalMetadataRegistration request) {
+                        wrapped.add(session, request);
+                    }
+                };
+            }
+        };
     }
 }

@@ -125,7 +125,14 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * is simpler way of specifying the old artifact.
      * <p/>
      * The default value is "RELEASE" meaning that the old version is the last released version of the artifact being
-     * built.
+     * built (either remote or found locally (to account for artifacts installed into the local repo that are not
+     * available in some public remote repository)). The version of the compared artifact will be strictly older than
+     * the version of the new artifact.
+     * <p/>
+     * If you specify "LATEST", the old version will be resolved to the newest version available remotely, including
+     * snapshots (if found in one of the repositories active in the build). The version of the compared artifact will
+     * be either older or equal to the version of the new artifact in this case to account for comparing a locally built
+     * snapshot against the latest published snapshot.
      */
     @Parameter(property = Props.oldVersion.NAME, defaultValue = Props.oldVersion.DEFAULT_VALUE)
     protected String oldVersion;

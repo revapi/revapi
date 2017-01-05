@@ -8,7 +8,7 @@ void checkVersion(File pom, String... versions) throws Exception {
             String version = versions[versionCount++];
             assert line.equals("<version>" + version + "</version>") :
                     "The " + versionCount + "th version tag in v2 pom (" + pom.getAbsolutePath() + ") should have" +
-                            " been changed to version  but the line reads: " + line;
+                            " been changed to '" + version  + "' but the line reads: " + line;
             found = true;
             return;
         }

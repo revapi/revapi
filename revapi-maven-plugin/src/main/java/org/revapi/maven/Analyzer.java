@@ -64,6 +64,7 @@ import org.revapi.maven.utils.ScopeDependencyTraverser;
  */
 public final class Analyzer implements AutoCloseable {
     private static final Pattern ANY_NON_SNAPSHOT = Pattern.compile("^.*(?<!-SNAPSHOT)$");
+    private static final Pattern ANY = Pattern.compile(".*");
 
     private final String analysisConfiguration;
 
@@ -192,17 +193,21 @@ public final class Analyzer implements AutoCloseable {
      */
     static Artifact resolveConstrained(MavenProject project, String gav, Pattern versionRegex, ArtifactResolver resolver)
             throws VersionRangeResolutionException, ArtifactResolutionException {
-        if (gav.endsWith(":RELEASE") || gav.endsWith(":LATEST")) {
-
-            versionRegex = versionRegex == null ? ANY_NON_SNAPSHOT : versionRegex;
-
+        boolean latest = gav.endsWith(":LATEST");
+        if (latest || gav.endsWith(":RELEASE")) {
             Artifact a = new DefaultArtifact(gav);
+
+            if (latest) {
+                versionRegex = versionRegex == null ? ANY : versionRegex;
+            } else {
+                versionRegex = versionRegex == null ? ANY_NON_SNAPSHOT : versionRegex;
+            }
 
             String upTo = project.getGroupId().equals(a.getGroupId()) && project.getArtifactId().equals(a.getArtifactId())
                     ? project.getVersion()
                     : null;
 
-            return resolver.resolveNewestMatching(gav, upTo, versionRegex);
+            return resolver.resolveNewestMatching(gav, upTo, versionRegex, latest, latest);
         } else {
             String projectGav = getProjectArtifactCoordinates(project, null);
             Artifact ret = null;
