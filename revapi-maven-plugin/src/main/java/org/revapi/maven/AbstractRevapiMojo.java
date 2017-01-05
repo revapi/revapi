@@ -16,11 +16,7 @@
  */
 package org.revapi.maven;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
-import java.util.ServiceLoader;
-import java.util.function.Supplier;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -30,11 +26,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
-import org.revapi.ApiAnalyzer;
-import org.revapi.DifferenceTransform;
-import org.revapi.ElementFilter;
 import org.revapi.Reporter;
-import org.revapi.Revapi;
 
 /**
  * @author Lukas Krejci
@@ -323,36 +315,5 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         }
 
         return true;
-    }
-
-
-    protected static Supplier<Revapi.Builder>
-    getDisallowedExtensionsAwareRevapiConstructor(List<String> disallowedExtensions) {
-        return () -> {
-            Revapi.Builder bld = Revapi.builder();
-
-            List<ApiAnalyzer> analyzers = new ArrayList<>();
-            List<ElementFilter> filters = new ArrayList<>();
-            List<DifferenceTransform<?>> transforms = new ArrayList<>();
-            List<Reporter> reporters = new ArrayList<>();
-
-            addAllAllowed(analyzers, ServiceLoader.load(ApiAnalyzer.class), disallowedExtensions);
-            addAllAllowed(filters, ServiceLoader.load(ElementFilter.class), disallowedExtensions);
-            addAllAllowed(transforms, ServiceLoader.load(DifferenceTransform.class), disallowedExtensions);
-            addAllAllowed(reporters, ServiceLoader.load(Reporter.class), disallowedExtensions);
-
-            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(transforms).withReporters(reporters);
-
-            return bld;
-        };
-    }
-
-    @SuppressWarnings("unchecked")
-    protected static <T> void addAllAllowed(List<T> list, Iterable<?> candidates, List<String> disallowedClassNames) {
-        for (Object o : candidates) {
-            if (o != null && !disallowedClassNames.contains(o.getClass().getName())) {
-                list.add((T) o);
-            }
-        }
     }
 }
