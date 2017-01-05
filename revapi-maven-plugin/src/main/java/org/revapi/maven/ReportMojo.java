@@ -24,7 +24,6 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.apache.maven.doxia.sink.Sink;
-import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -205,9 +204,6 @@ public class ReportMojo extends AbstractMavenReport {
     protected String versionFormat;
 
     @Component
-    protected Renderer siteRenderer;
-
-    @Component
     protected RepositorySystem repositorySystem;
 
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
@@ -254,11 +250,6 @@ public class ReportMojo extends AbstractMavenReport {
     private API oldAPI;
     private API newAPI;
     private ReportTimeReporter reporter;
-
-    @Override
-    protected Renderer getSiteRenderer() {
-        return siteRenderer;
-    }
 
     @Override
     protected String getOutputDirectory() {
