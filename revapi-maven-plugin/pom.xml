@@ -42,8 +42,8 @@
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi-java.version>0.12.0-SNAPSHOT</revapi-java.version>
-        <revapi-java-spi.version>0.11.0-SNAPSHOT</revapi-java-spi.version>
+        <revapi-java.version>0.12.0</revapi-java.version>
+        <revapi-java-spi.version>0.11.0</revapi-java-spi.version>
         <revapi-reporter-text.version>0.6.0</revapi-reporter-text.version>
     </properties>
 
