@@ -16,6 +16,7 @@
 
 package org.revapi.java.spi;
 
+import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeMirror;
 
@@ -30,6 +31,7 @@ import javax.lang.model.type.TypeMirror;
 public interface JavaModelElement extends JavaElement {
 
     @Override
+    @Nullable
     JavaModelElement getParent();
 
     /**

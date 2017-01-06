@@ -32,4 +32,8 @@ public interface JavaAnnotationElement extends JavaElement {
      */
     @Nonnull
     AnnotationMirror getAnnotation();
+
+    @Override
+    @Nonnull
+    JavaModelElement getParent();
 }

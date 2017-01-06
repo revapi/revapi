@@ -29,6 +29,7 @@ import org.revapi.Archive;
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaMethodElement;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
@@ -39,6 +40,11 @@ public final class MethodElement extends JavaElementBase<ExecutableElement, Exec
 
     public MethodElement(ProbingEnvironment env, Archive archive, ExecutableElement element, ExecutableType type) {
         super(env, archive, element, type);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Nonnull @Override public JavaTypeElement getParent() {
+        return (JavaTypeElement) super.getParent();
     }
 
     @Nonnull

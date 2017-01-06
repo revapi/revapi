@@ -25,6 +25,7 @@ import org.revapi.Archive;
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaAnnotationElement;
+import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 import org.revapi.simple.SimpleElement;
@@ -43,6 +44,11 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
         this.environment = environment;
         this.annotation = annotation;
         this.archive = archive;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Nonnull @Override public JavaModelElement getParent() {
+        return (JavaModelElement) super.getParent();
     }
 
     @Nonnull

@@ -1,5 +1,6 @@
 package org.revapi.java.spi;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
 
 /**
@@ -10,10 +11,15 @@ import javax.lang.model.element.VariableElement;
  */
 public interface JavaMethodParameterElement extends JavaModelElement {
 
-    @Override VariableElement getDeclaringElement();
+    @Override
+    VariableElement getDeclaringElement();
 
     /**
      * @return the index of the method parameter amongst its siblings
      */
     int getIndex();
+
+    @Override
+    @Nonnull
+    JavaMethodElement getParent();
 }

@@ -1,5 +1,6 @@
 package org.revapi.java.spi;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
 
 /**
@@ -11,4 +12,8 @@ import javax.lang.model.element.VariableElement;
 public interface JavaFieldElement extends JavaModelElement {
 
     @Override VariableElement getDeclaringElement();
+
+    @Override
+    @Nonnull
+    JavaTypeElement getParent();
 }

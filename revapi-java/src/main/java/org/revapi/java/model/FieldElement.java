@@ -23,6 +23,7 @@ import javax.lang.model.type.TypeMirror;
 import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaFieldElement;
+import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
@@ -32,6 +33,11 @@ public final class FieldElement extends JavaElementBase<VariableElement, TypeMir
 
     public FieldElement(ProbingEnvironment env, Archive archive, VariableElement element, TypeMirror type) {
         super(env, archive, element, type);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Nonnull @Override public JavaTypeElement getParent() {
+        return (JavaTypeElement) super.getParent();
     }
 
     @Nonnull

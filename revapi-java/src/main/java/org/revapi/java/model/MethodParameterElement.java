@@ -24,6 +24,7 @@ import javax.lang.model.type.TypeMirror;
 import org.revapi.Archive;
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaMethodParameterElement;
 import org.revapi.java.spi.Util;
 
@@ -44,6 +45,13 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
             throw new IllegalArgumentException(
                 "MethodParameterElement cannot be constructed using a VariableElement not representing a method parameter.");
         }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Nonnull
+    @Override
+    public JavaMethodElement getParent() {
+        return (JavaMethodElement) super.getParent();
     }
 
     @Override public int getIndex() {
