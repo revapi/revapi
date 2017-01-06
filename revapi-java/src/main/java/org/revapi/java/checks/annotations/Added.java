@@ -34,7 +34,7 @@ public final class Added extends CheckBase {
     protected List<Difference> doVisitAnnotation(JavaAnnotationElement oldAnnotation,
         JavaAnnotationElement newAnnotation) {
 
-        if (oldAnnotation == null && newAnnotation != null) {
+        if (oldAnnotation == null && newAnnotation != null && isAccessible(newAnnotation.getParent())) {
             return Collections.singletonList(
                 createDifference(Code.ANNOTATION_ADDED, Code.attachmentsFor(null, newAnnotation))
             );

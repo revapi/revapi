@@ -133,16 +133,12 @@ public final class InheritanceChainChanged extends CheckBase {
 
     @Override
     protected void doVisitClass(JavaTypeElement oldEl, JavaTypeElement newEl) {
-        if (oldEl == null || newEl == null) {
+        if (!isBothAccessible(oldEl, newEl)) {
             return;
         }
 
         TypeElement oldType = oldEl.getDeclaringElement();
         TypeElement newType = newEl.getDeclaringElement();
-
-        if (isBothPrivate(oldEl, newEl)) {
-            return;
-        }
 
         List<TypeMirror> oldSuperTypes = Util
             .getAllSuperClasses(getOldTypeEnvironment().getTypeUtils(), oldType.asType());

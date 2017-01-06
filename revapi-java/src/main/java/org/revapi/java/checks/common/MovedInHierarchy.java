@@ -25,15 +25,14 @@ public abstract class MovedInHierarchy extends CheckBase {
     }
 
     protected void doVisit(@Nullable JavaModelElement oldEl, @Nullable JavaModelElement newEl) {
-        if (oldEl == null || newEl == null) {
+        if (!isBothAccessible(oldEl, newEl)) {
             return;
         }
+
+        assert oldEl != null;
+        assert newEl != null;
 
         if (oldEl.isInherited() == newEl.isInherited()) {
-            return;
-        }
-
-        if (!isBothAccessible(oldEl, newEl)) {
             return;
         }
 

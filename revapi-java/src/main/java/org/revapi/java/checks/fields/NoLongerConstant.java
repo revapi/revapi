@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.revapi.Difference;
+import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaFieldElement;
 
@@ -29,7 +30,7 @@ import org.revapi.java.spi.JavaFieldElement;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class NoLongerConstant extends BothFieldsRequiringCheck {
+public final class NoLongerConstant extends CheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -38,7 +39,7 @@ public final class NoLongerConstant extends BothFieldsRequiringCheck {
 
     @Override
     protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
-        if (!shouldCheck(oldField, newField)) {
+        if (!isBothAccessible(oldField, newField)) {
             return;
         }
 

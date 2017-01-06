@@ -41,7 +41,7 @@ public final class NowImplementsInterface extends CheckBase {
 
     @Override
     protected void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
-        if (oldType == null || newType == null || isBothPrivate(oldType, newType)) {
+        if (!isBothAccessible(oldType, newType)) {
             return;
         }
 

@@ -21,6 +21,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 import org.revapi.Difference;
+import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaFieldElement;
 import org.revapi.java.spi.Util;
@@ -29,7 +30,7 @@ import org.revapi.java.spi.Util;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class TypeChanged extends BothFieldsRequiringCheck {
+public final class TypeChanged extends CheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -38,7 +39,7 @@ public final class TypeChanged extends BothFieldsRequiringCheck {
 
     @Override
     protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
-        if (!shouldCheck(oldField, newField)) {
+        if (!isBothAccessible(oldField, newField)) {
             return;
         }
 

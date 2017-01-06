@@ -40,7 +40,7 @@ public final class AttributeValueChanged extends CheckBase {
     protected List<Difference> doVisitAnnotation(JavaAnnotationElement oldElement,
         JavaAnnotationElement newElement) {
 
-        if (oldElement == null || newElement == null) {
+        if (oldElement == null || newElement == null || !isAccessible(newElement.getParent())) {
             return null;
         }
 

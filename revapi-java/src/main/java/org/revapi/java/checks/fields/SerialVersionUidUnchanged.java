@@ -45,6 +45,7 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.SimpleTypeVisitor7;
 
 import org.revapi.Difference;
+import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaFieldElement;
 import org.revapi.java.spi.TypeEnvironment;
@@ -53,7 +54,7 @@ import org.revapi.java.spi.TypeEnvironment;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
+public final class SerialVersionUidUnchanged extends CheckBase {
 
     private static final String SERIAL_VERSION_UID_FIELD_NAME = "serialVersionUID";
 
@@ -64,7 +65,7 @@ public final class SerialVersionUidUnchanged extends BothFieldsRequiringCheck {
 
     @Override
     protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
-        if (oldField == null || newField == null) {
+        if (oldField == null || newField == null || !isAccessible(newField.getParent())) {
             return;
         }
 

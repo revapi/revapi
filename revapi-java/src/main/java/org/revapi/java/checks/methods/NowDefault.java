@@ -43,9 +43,12 @@ public class NowDefault extends CheckBase {
 
     @Override
     protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
-        if (oldMethod == null || newMethod == null) {
+        if (!isBothAccessible(oldMethod, newMethod)) {
             return;
         }
+
+        assert oldMethod != null;
+        assert newMethod != null;
 
         boolean onInterfaces = oldMethod.getParent().getDeclaringElement().getKind() == ElementKind.INTERFACE
                 && newMethod.getParent().getDeclaringElement().getKind() == ElementKind.INTERFACE;

@@ -58,7 +58,7 @@ public final class ParameterTypeChanged extends CheckBase {
             return;
         }
 
-        if (isBothPrivate(oldParameter.getParent(), newParameter.getParent())) {
+        if (!isBothAccessible(oldParameter.getParent(), newParameter.getParent())) {
             return;
         }
 

@@ -45,11 +45,7 @@ public abstract class ModifierChanged extends CheckBase {
     }
 
     protected final void doVisit(JavaModelElement oldElement, JavaModelElement newElement) {
-        if (oldElement == null || newElement == null) {
-            return;
-        }
-
-        if (isBothPrivate(oldElement, newElement)) {
+        if (!isBothAccessible(oldElement, newElement)) {
             return;
         }
 

@@ -44,9 +44,12 @@ public final class ReturnTypeChanged extends CheckBase {
 
     @Override
     protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
-        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
+        if (!isBothAccessible(oldMethod, newMethod)) {
             return;
         }
+
+        assert oldMethod != null;
+        assert newMethod != null;
 
         String oldRet = Util.toUniqueString(oldMethod.getModelRepresentation().getReturnType());
         String newRet = Util.toUniqueString(newMethod.getModelRepresentation().getReturnType());

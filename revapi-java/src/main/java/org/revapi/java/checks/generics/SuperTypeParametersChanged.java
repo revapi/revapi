@@ -48,6 +48,9 @@ public class SuperTypeParametersChanged extends CheckBase {
             return;
         }
 
+        assert oldType != null;
+        assert newType != null;
+
         List<? extends TypeMirror> oldSuperTypes = getOldTypeEnvironment().getTypeUtils().directSupertypes(
             oldType.getModelRepresentation());
 

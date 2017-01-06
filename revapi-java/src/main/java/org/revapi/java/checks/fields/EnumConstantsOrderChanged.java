@@ -27,6 +27,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
 
 import org.revapi.Difference;
+import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaFieldElement;
 import org.revapi.java.spi.JavaTypeElement;
@@ -35,7 +36,7 @@ import org.revapi.java.spi.JavaTypeElement;
  * @author Lukas Krejci
  * @since 1.0
  */
-public class EnumConstantsOrderChanged extends BothFieldsRequiringCheck {
+public class EnumConstantsOrderChanged extends CheckBase {
     private boolean isEnumClass;
 
     @Override
@@ -48,9 +49,8 @@ public class EnumConstantsOrderChanged extends BothFieldsRequiringCheck {
         isEnumClass = newType != null && newType.getDeclaringElement().getKind() == ElementKind.ENUM;
     }
 
-    @Override
-    protected boolean shouldCheck(JavaFieldElement oldField, JavaFieldElement newField) {
-        return isEnumClass && super.shouldCheck(oldField, newField)
+    private boolean shouldCheck(JavaFieldElement oldField, JavaFieldElement newField) {
+        return isEnumClass && isBothAccessible(oldField, newField)
                 && oldField.getDeclaringElement().getKind() == ElementKind.ENUM_CONSTANT
                 && newField.getDeclaringElement().getKind() == ElementKind.ENUM_CONSTANT;
     }

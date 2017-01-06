@@ -41,7 +41,7 @@ public final class NoLongerImplementsInterface extends CheckBase {
 
     @Override
     protected void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
-        if (oldType == null || newType == null) {
+        if (!isBothAccessible(oldType, newType)) {
             return;
         }
 

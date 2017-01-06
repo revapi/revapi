@@ -40,8 +40,6 @@ public final class NoLongerFinal extends ModifierChanged {
 
     @Override
     protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
-        if (BothFieldsRequiringCheck.shouldCheck(this, oldField, newField)) {
-            super.doVisit(oldField, newField);
-        }
+        super.doVisit(oldField, newField);
     }
 }

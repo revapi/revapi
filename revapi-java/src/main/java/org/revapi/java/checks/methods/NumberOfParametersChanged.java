@@ -40,9 +40,12 @@ public final class NumberOfParametersChanged extends CheckBase {
 
     @Override
     protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
-        if (oldMethod == null || newMethod == null || isBothPrivate(oldMethod, newMethod)) {
+        if (!isBothAccessible(oldMethod, newMethod)) {
             return;
         }
+
+        assert oldMethod != null;
+        assert newMethod != null;
 
         if (oldMethod.getModelRepresentation().getParameterTypes().size() != newMethod.getModelRepresentation().getParameterTypes().size()) {
             pushActive(oldMethod, newMethod);

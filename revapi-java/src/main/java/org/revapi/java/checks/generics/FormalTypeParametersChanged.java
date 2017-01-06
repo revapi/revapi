@@ -58,9 +58,12 @@ public final class FormalTypeParametersChanged extends CheckBase {
     }
 
     private void doVisit(@Nullable JavaModelElement oldElement, @Nullable JavaModelElement newElement) {
-        if (oldElement == null || newElement == null || !isBothAccessible(oldElement, newElement)) {
+        if (!isBothAccessible(oldElement, newElement)) {
             return;
         }
+
+        assert oldElement != null;
+        assert newElement != null;
 
         Parameterizable oldEl = (Parameterizable) oldElement.getDeclaringElement();
         Parameterizable newEl = (Parameterizable) newElement.getDeclaringElement();

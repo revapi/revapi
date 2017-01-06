@@ -34,7 +34,7 @@ public final class Removed extends CheckBase {
     protected List<Difference> doVisitAnnotation(JavaAnnotationElement oldAnnotation,
         JavaAnnotationElement newAnnotation) {
 
-        if (oldAnnotation != null && newAnnotation == null) {
+        if (oldAnnotation != null && newAnnotation == null && isAccessible(oldAnnotation.getParent())) {
             return Collections.singletonList(
                 createDifference(Code.ANNOTATION_REMOVED, Code.attachmentsFor(oldAnnotation, null))
             );
