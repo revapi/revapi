@@ -197,19 +197,25 @@ public enum Code {
             throw new IllegalArgumentException("At least one of the oldElement and newElement must not be null");
         }
 
+        String[] ret;
+        int retLen;
         int idx = customAttachments.length;
         if (representative instanceof JavaAnnotationElement) {
             //annotationType
             JavaAnnotationElement anno = representative.as(JavaAnnotationElement.class);
-            String[] ret = new String[customAttachments.length + 2];
+            //indicate we don't want element kind added in the code below
+            retLen = -1;
+            ret = new String[customAttachments.length + 4];
             System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
             ret[idx] = "annotationType";
             ret[idx + 1] = Util.toHumanReadableString(anno.getAnnotation().getAnnotationType());
-            return ret;
+            ret[idx + 2] = "elementKind";
+            ret[idx + 3] = "annotation";
         } else if (representative instanceof JavaFieldElement) {
             //package, classSimpleName, fieldName
             JavaFieldElement field = representative.as(JavaFieldElement.class);
-            String[] ret = new String[customAttachments.length + 6];
+            retLen = customAttachments.length + 8;
+            ret = new String[retLen];
             System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
             ret[idx] = "package";
             ret[idx + 1] = getPackageName(field);
@@ -217,21 +223,22 @@ public enum Code {
             ret[idx + 3] = getClassSimpleName(field);
             ret[idx + 4] = "fieldName";
             ret[idx + 5] = field.getDeclaringElement().getSimpleName().toString();
-            return ret;
         } else if (representative instanceof JavaTypeElement) {
             //package, classSimpleName
             JavaTypeElement type = representative.as(JavaTypeElement.class);
-            String[] ret = new String[customAttachments.length + 4];
+            retLen = customAttachments.length + 6;
+            ret = new String[retLen];
             System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
             ret[idx] = "package";
             ret[idx + 1] = getPackageName(type);
             ret[idx + 2] = "classSimpleName";
             ret[idx + 3] = getClassSimpleName(type);
-            return ret;
+            ret[idx + 4] = "elementType";
         } else if (representative instanceof JavaMethodElement) {
             //package, classSimpleName, methodName
             JavaMethodElement method = representative.as(JavaMethodElement.class);
-            String[] ret = new String[customAttachments.length + 6];
+            retLen = customAttachments.length + 8;
+            ret = new String[retLen];
             System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
             ret[idx] = "package";
             ret[idx + 1] = getPackageName(method);
@@ -239,13 +246,13 @@ public enum Code {
             ret[idx + 3] = getClassSimpleName(method);
             ret[idx + 4] = "methodName";
             ret[idx + 5] = method.getDeclaringElement().getSimpleName().toString();
-            return ret;
         } else if (representative instanceof JavaMethodParameterElement) {
             //package, classSimpleName, methodName, parameterIndex
             JavaMethodParameterElement param = (JavaMethodParameterElement) representative;
             @SuppressWarnings("ConstantConditions")
             JavaMethodElement method = representative.getParent().as(JavaMethodElement.class);
-            String[] ret = new String[customAttachments.length + 8];
+            retLen = customAttachments.length + 10;
+            ret = new String[retLen];
             System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
             ret[idx] = "package";
             ret[idx + 1] = getPackageName(method);
@@ -255,10 +262,66 @@ public enum Code {
             ret[idx + 5] = method.getDeclaringElement().getSimpleName().toString();
             ret[idx + 6] = "parameterIndex";
             ret[idx + 7] = Integer.toString(param.getIndex());
-            return ret;
         } else {
-            return customAttachments;
+            retLen = -1;
+            ret = customAttachments;
         }
+
+        if (retLen > 0) {
+            String kind;
+            ElementKind elementKind = ((JavaModelElement) representative).getDeclaringElement().getKind();
+            switch (elementKind) {
+                case ANNOTATION_TYPE:
+                    kind = "@interface";
+                    break;
+                case CLASS:
+                    kind = "class";
+                    break;
+                case CONSTRUCTOR:
+                    kind = "constructor";
+                    break;
+                case ENUM:
+                    kind = "enum";
+                    break;
+                case ENUM_CONSTANT:
+                    kind = "enumConstant";
+                    break;
+                case FIELD:
+                    kind = "field";
+                    break;
+                case INSTANCE_INIT:
+                    //this most probably never occurs
+                    kind = "initializer";
+                    break;
+                case INTERFACE:
+                    kind = "interface";
+                    break;
+                case METHOD:
+                    kind = "method";
+                    break;
+                case PACKAGE:
+                    //this never occurs, because we don't support explicit checks on packages yet
+                    kind = "package";
+                    break;
+                case PARAMETER:
+                    kind = "parameter";
+                    break;
+                case STATIC_INIT:
+                    //this most probably never occurs
+                    kind = "staticInitializer";
+                    break;
+                case TYPE_PARAMETER:
+                    //this most probably never occurs, because we don't do checks directly on type params, but rather
+                    kind = "typeParameter";
+                    break;
+                default:
+                    kind = "unknownKind(" + elementKind + ")";
+            }
+            ret[retLen - 2] = "elementKind";
+            ret[retLen - 1] = kind;
+        }
+
+        return  ret;
     }
 
     private static String getPackageName(JavaModelElement element) {

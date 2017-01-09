@@ -112,7 +112,22 @@ be used when matching the difference for example in the `revapi.ignore` extensio
 The above will instruct Revapi to not report the removal of `my.Interface` from the list of implemented interfaces on
 any class in the `my` package (or any other subpackage).
 
-``=== Detected Differences
+All types of differences report the `elementKind` parameter that can have 1 of the following values:
+[cols="35s,<65d"]
+|=============
+|`class` | The element is an ordinary class
+|`interface` | The element is an interface
+|`enum` | The element is an enum class
+|`@interface` | The element is an annotation class
+|`constructor` | The element is a constructor
+|`enumConstant` | The element is an enum constant
+|`field` | The element is a field
+|`method` | The method is a method
+|`parameter` | The element is a method parameter
+|`annotation` | The element is an annotation of another element
+|=============
+
+=== Detected Differences
 All the differences detected by the extension are defined in the
 link:../revapi-java-spi/apidocs/org/revapi/java/spi/Code.html[Code] enumeration. Below, you can find a short discussion
 of each type of the difference.
@@ -151,6 +166,7 @@ possible values of `ignore`, `report` and `error`, e.g.:
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Element No Longer Deprecated
@@ -170,6 +186,7 @@ users to know about such cases.
 |====
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.Deprecated`.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Element Now Deprecated
@@ -189,6 +206,7 @@ users to know about such cases.
 |====
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.Deprecated`.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class Visibility Increased
@@ -211,6 +229,7 @@ and is reported for completeness sake. The visibility is ordered as follows: +pr
 | `classSimpleName` | the simple name of the class
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class Visibility Reduced
@@ -233,6 +252,7 @@ runtime when trying to use the new version of the library.
 | `classSimpleName` | the simple name of the class
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class Kind Changed
@@ -255,6 +275,7 @@ compile time and at runtime.
 | `classSimpleName` | the simple name of the class
 | `oldKind` | The kind of the type as it was in the old version.
 | `newKind` | The kind of the type in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class No Longer Final
@@ -275,6 +296,7 @@ A class that used to be final is now not. This is no API breakage and is reporte
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 NOTE: Modifiers are sorted according to the
@@ -301,6 +323,7 @@ the class will no longer be compatible with the new version of the library, in w
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 NOTE: See <<Class No Longer Final>> for the ordering of the modifiers.
@@ -323,6 +346,7 @@ A class that used to be abstract is now not. This is no API breakage and is repo
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 NOTE: See <<Class No Longer Final>> for the ordering of the modifiers.
@@ -346,6 +370,7 @@ possible to create instances of such class.
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 NOTE: See <<Class No Longer Final>> for the ordering of the modifiers.
@@ -366,6 +391,7 @@ A new class appeared in the new version of the API. This is a non-breaking chang
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class Removed
@@ -385,6 +411,7 @@ the users of the API will no longer be able to use that class in any capacity.
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== External Class Exposed In API
@@ -405,6 +432,7 @@ but you don't want the changed API to leak to your users).
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== External Class No Longer Exposed In API
@@ -425,6 +453,7 @@ will usually cause other differences to be reported, too).
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class No Longer Implements Interface
@@ -444,6 +473,7 @@ This is a breaking change because it is no longer possible to cast the class to 
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `interface` | The fully qualified name of the interface that is no longer implemented.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class Now Implements Interface
@@ -463,6 +493,7 @@ No API breakage reported for the completeness sake.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `interface` | The fully qualified name of the interface that is now implemented.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Final Class Inherits From New Class
@@ -484,6 +515,7 @@ reported separately).
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the new super class.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Non-final Class Inherits From New Class
@@ -505,6 +537,7 @@ checked one, they will get compilation or linkage errors.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the new super class.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class Now Checked Exception
@@ -524,6 +557,7 @@ declared in the +throws+ declarations of the methods.
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class No Longer Inherits From Class
@@ -544,6 +578,7 @@ that super class nor can the methods declared in the super class be called using
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the superclass that is no longer inherited.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Class Is Non-Public Part of API
@@ -566,6 +601,7 @@ By default, Revapi even outputs the "usage chain" from some public API element t
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 NOTE: This is NOT reported on a non-accessible class that is used solely as a super class of another API classes or that
@@ -595,6 +631,7 @@ inherited from the super class (which would be the cause of the binary and sourc
 | `classSimpleName` | the simple name of the class
 | `oldSuperType` | The old signature of the super type.
 | `newSuperType` | The new signature of the super type.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Annotation Added
@@ -614,6 +651,7 @@ processing, reflection, etc.).
 |====
 2+| Match parameters
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Annotation Removed
@@ -633,6 +671,7 @@ processing, reflection, etc.).
 |====
 2+| Match parameters
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Annotation Attribute Value Changed
@@ -655,6 +694,7 @@ generation, processing, reflection, etc.).
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
 | `oldValue`   | The old value of the attribute.
 | `newValue`   | The new value of the attribute.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Annotation Attribute Added
@@ -676,6 +716,7 @@ used (code generation, processing, reflection, etc.).
 | `attribute`  | The name of the attribute that was added
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
 | `value`      | The value of the attribute.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Annotation Attribute Removed
@@ -697,6 +738,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 | `attribute`  | The name of the attribute that was removed,
 | `value`      | The value of the attribute that was removed,
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Annotation No Longer Inherited
@@ -716,6 +758,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 |====
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.annotation.Inherited`.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Annotation Now Inherited
@@ -735,6 +778,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 |====
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.annotation.Inherited`.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Static Field Added
@@ -754,6 +798,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field Added
@@ -773,6 +818,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field Removed
@@ -793,6 +839,7 @@ Note that this si reported only for publicly accessible fields.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Constant Field Removed
@@ -815,6 +862,7 @@ Note that this si reported only for publicly accessible fields.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field Moved To Superclass
@@ -836,6 +884,7 @@ The field was moved to a super class. From the point of view of the field user t
 | `fieldName` | the name of the field
 | `oldClass` | The class the field used to be declared in.
 | `newClass` | The class the field is now declared in.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Inherited Field Now Declared On Class
@@ -858,6 +907,7 @@ represents no noticeable change. If the field was also removed from the super cl
 | `fieldName` | the name of the field
 | `oldClass` | The class the field used to be declared in.
 | `newClass` | The class the field is now declared in.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Constant Field Removed
@@ -874,6 +924,15 @@ causes no problem at runtime (i.e. when the new API is swapped for the old API w
 API). This is because the constants are inlined during compilation. Because the value is no longer declared or used
 in the API but the user of the API still can operate with the value, this is also reported as potentially breaking the
 semantics.
+
+[options=header]
+|====
+2+| Match parameters
+| `package` | the package of the class
+| `classSimpleName` | the simple name of the class
+| `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
+|====
 
 ==== Constant Field Changed Value
 [cols="35s,<65d"]
@@ -896,6 +955,7 @@ because the constant values are inlined. This is therefore reported as breaking 
 | `fieldName` | the name of the field
 | `oldValue` | The old value of the constant field.
 | `newValue` |  The new value of the constant field.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field Now Constant
@@ -917,6 +977,7 @@ code, which is something that didn't happen before. You may want to re-evaluate 
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `value` | The constant value of the field.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field No Longer Constant
@@ -941,6 +1002,7 @@ NOT what the API author had in mind when making the change.
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `value` | The constant value the field used to have.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field Now Final
@@ -961,6 +1023,7 @@ binary incompatibility.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field No Longer Final
@@ -980,6 +1043,7 @@ This is no API breakage and is reported for completeness' sake.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field No Longer Static
@@ -1000,6 +1064,7 @@ this is both source and binary incompatibility.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field Now Static
@@ -1021,6 +1086,7 @@ When recompiling the user code against the new version, everything works fine.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field Type Changed
@@ -1042,6 +1108,7 @@ The field has a different type than it used to in the old version of the API. Th
 | `fieldName` | the name of the field
 | `oldType` | The fully qualified name of the old field type.
 | `newType` | The fully qualified name of the new field type.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field `serialVersionUID` Unchanged
@@ -1065,6 +1132,7 @@ of this check.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field Visibility Increased
@@ -1086,6 +1154,7 @@ No API breakage, reported for completeness' sake.
 | `fieldName` | the name of the field
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Field Visibility Reduced
@@ -1107,6 +1176,7 @@ Field's visibility was reduced, which means that code that used to be able to ac
 | `fieldName` | the name of the field
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Enum Constant Order Changed
@@ -1129,6 +1199,7 @@ method to determine the order of an enum constant and relies on a specific value
 | `fieldName` | the name of the field
 | `oldOrdinal` | The old ordinal number of the enum value.
 | `newOrdinal` | The new ordinal number of the enum value.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Default Value Added To Method
@@ -1150,6 +1221,7 @@ Declaring a default value to an annotation attribute is not an API breakage and 
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `value` | the default value of the annotation attribute represented by the method
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method's Default Value Changed
@@ -1175,6 +1247,7 @@ the API. This might or might not be a problem.
 | `methodName` | the name of the method added
 | `oldValue` | the old default value of the annotation attribute represented by the method
 | `newValue` | the new default value of the annotation attribute represented by the method
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Default Value Removed From Method
@@ -1199,6 +1272,7 @@ attribute).
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `value` | the removed default value of the annotation attribute represented by the method
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Added To Interface
@@ -1230,6 +1304,7 @@ old SPI implementation.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Default Method Added To Interface
@@ -1249,6 +1324,7 @@ This represents no API breakage and is included for completeness' sake.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Static Method Added To Interface
@@ -1268,6 +1344,7 @@ This represents no API breakage and is included for completeness' sake.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method With No Default Value Added To Annotation Type
@@ -1294,6 +1371,7 @@ assumes an explicit value for the annotation attribute.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method With Default Value Added To Annotation Type
@@ -1313,6 +1391,7 @@ This does not break compatibility and is reported for completeness' sake.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Abstract Method Added
@@ -1333,6 +1412,7 @@ implementation of it and will therefore break.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Added
@@ -1352,6 +1432,7 @@ A new concrete method added to a concrete class. This is always safe.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Final Method Added To Non-final Class
@@ -1372,6 +1453,7 @@ as the newly introduced final method.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Inherited Method Moved To Class
@@ -1394,6 +1476,7 @@ Note that if the super class is part of the API, the removal of the method from 
 | `methodName` | the name of the method added
 | `oldClass` | the class that the method was originally declared in
 | `newClass` | the class that now declares the method
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Removed
@@ -1413,6 +1496,7 @@ Removing a method from a class is an incompatible change.
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Moved To Superclass
@@ -1437,6 +1521,7 @@ Otherwise this is a compatible change and is reported for completeness' sake.
 | `methodName` | the name of the method added
 | `oldClass` | the class that the method was originally declared in
 | `newClass` | the class that now declares the method
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Attribute Removed From Annotation Type
@@ -1456,6 +1541,7 @@ This is identical to <<a_method_removed, Method Removed>> but specialized for an
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method No Longer Final
@@ -1477,6 +1563,8 @@ No API breakage, reported for completeness' sake.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
+| `elementKind` | See <<Match Parameters>> for possible values
+|====
 
 ==== Method Now Final
 [cols="35s,<65d"]
@@ -1497,6 +1585,8 @@ Any subclasses that overrode the method will break both at compile time and at r
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
+| `elementKind` | See <<Match Parameters>> for possible values
+|====
 
 ==== Method Now Final In Final Class
 [cols="35s,<65d"]
@@ -1517,6 +1607,7 @@ The class is final and cannot be subclassed. Therefore making its method final m
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method No Longer Static
@@ -1539,6 +1630,7 @@ and source compatibility.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Now Static
@@ -1561,6 +1653,7 @@ It is not binary compatible though because static methods are called using a dif
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Now Abstract
@@ -1583,6 +1676,7 @@ to before.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method No Longer Abstract
@@ -1604,6 +1698,7 @@ This is a compatible change reported for the completeness' sake.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Visibility Increased
@@ -1625,6 +1720,7 @@ No API breakage, reported for completeness' sake.
 | `methodName` | the name of the method added
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Visibility Reduced
@@ -1646,6 +1742,7 @@ A method might no longer be visible to code that used to call it. This is a brea
 | `methodName` | the name of the method added
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Return Type Changed
@@ -1668,6 +1765,7 @@ recompiling the user code), it might be OK at compile time due to implicit conve
 | `methodName` | the name of the method added
 | `oldType` | the old return type
 | `newType` | the new return type
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Return Type Changed Covariantly
@@ -1692,6 +1790,7 @@ incompatibility though because the method signature changes and users of the old
 | `methodName` | the name of the method added
 | `oldType` | the old return type
 | `newType` | the new return type
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Type Parameters of The Return Type Changed
@@ -1714,6 +1813,7 @@ it is a source incompatible change. It is binary compatible because of type eras
 | `methodName` | the name of the method added
 | `oldType` | the old return type
 | `newType` | the new return type
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Number of Method Parameters Changed
@@ -1733,6 +1833,7 @@ Obviously, this is a breaking change - you can no longer call the method with th
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Parameter Type Changed
@@ -1756,6 +1857,7 @@ is strictly bigger than the old one and the old one is implicitly convertible to
 | `parameterIndex` | the index of the method parameter
 | `oldType` | the old type of the parameter
 | `newType` | the new type of the parameter
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Parameter Type Parameter Changed
@@ -1779,6 +1881,7 @@ type changed. This is binary compatible because of the type erasure but it can b
 | `parameterIndex` | the index of the method parameter
 | `oldType` | the old type of the parameter
 | `newType` | the new type of the parameter
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Now Throws a Checked Exception
@@ -1800,6 +1903,7 @@ new version of the method will have to be modified to handle the checked excepti
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the added exception type
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Now Throws a Runtime Exception
@@ -1821,6 +1925,7 @@ that might want to catch the newly thrown exception.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the added exception type
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method No Longer Throws a Checked Exception
@@ -1843,6 +1948,7 @@ therefore the catch clauses for it will be invalid.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the removed exception type
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method No Longer Throws a Runtime Exception
@@ -1863,6 +1969,7 @@ This is a compatible change added for completeness' sake.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the removed exception type
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method Now Default
@@ -1884,6 +1991,7 @@ The method is now a default method. This is completely transparent.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Method No Longer Default
@@ -1906,6 +2014,7 @@ will now have to supply an implementation for it.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
+| `elementKind` | See <<Match Parameters>> for possible values
 |====
 
 ==== Element Now Parameterized
@@ -1928,6 +2037,7 @@ might start assuming uniform types in the list).
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
@@ -1950,6 +2060,7 @@ definition of the formal type parameter.
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
@@ -1972,6 +2083,7 @@ parameter that is no longer required.
 2+| Match parameters
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
+| `elementKind` | See <<Match Parameters>> for possible values
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
@@ -1995,6 +2107,7 @@ declared against the old version of the API will use wrong constraints.
 | `classSimpleName` | the simple name of the class
 | `oldTypeParameter` | The old type parameter that changed.
 | `newTypeParameter` | The new type parameter.
+| `elementKind` | See <<Match Parameters>> for possible values
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
