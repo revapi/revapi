@@ -17,6 +17,11 @@ This somewhat obviously refers to a class called `MyClass` in the `com.example` 
 This again refers to the class but you can see that Revapi also includes the type parameters in the class name. Note
 that the bounds of the type parameters are specified using fully qualified class names.
 
+  interface com.example.MyInterface
+
+Here we see that different kinds of classes are distinguished. Revapi uses `@interface` for annotation types, `enum` for
+enumerations, `interface` for interfaces and `class` for ordinary classes.
+
   missing-class com.example.Whoops
 
 What's this? Here, Revapi tries to convey that the class in question wasn't found anywhere on the classpath.
@@ -28,7 +33,7 @@ If you are familiar with the method reference syntax in Java 8, you may guess th
 first argument and a `long` as its second argument. As with classes, the type mentioned in the method identifier may
 include the type parameters. The method identifier also includes the `throws` declaration if present on the method.
 
-  method parameter java.lang.String com.example.MyClass::myMethod(int, ===long===)
+  parameter java.lang.String com.example.MyClass::myMethod(int, ===long===)
 
 If Revapi needs to "talk" about a single parameter of a method, it encloses the parameter in `===`. The above therefore
 identifies the second parameter of the method `myMethod`.
@@ -48,7 +53,8 @@ Types::
 ```
 class the.fully.qualified.class.name.including.Any<Type extends Params>
 ```
-or in case the type is missing in the API:
+where `class` can be `class`, `interface`, `enum` or `@interface` depending on the kind of class in question, or in case
+the type is missing in the API:
 ```
 missing-class fully.qualified.class.name.including.Any<Type extends Params>
 ```
@@ -72,11 +78,11 @@ not available in the bytecode.
 
 Parameter on a declared method:
 ```
-method parameter ReturnType class.name.of.declaring.class::methodName(===ParameterType===, Other, Params)
+parameter ReturnType class.name.of.declaring.class::methodName(===ParameterType===, Other, Params)
 ```
 Parameter on an inherited method:
 ```
-method parameter ReturnType class.name.of.declaring.class::methodName(===ParameterType===, Other, Params) @ class.name.of.inheriting.class
+parameter ReturnType class.name.of.declaring.class::methodName(===ParameterType===, Other, Params) @ class.name.of.inheriting.class
 ```
 Because method parameter is tied to the method, the distinction between a declared and inherited method is exhibited
 in the identifier of the method parameter, too.

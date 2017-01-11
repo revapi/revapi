@@ -53,7 +53,7 @@
                               },
                               {
                                 "code": "java.class.noLongerImplementsInterface",
-                                "old": "class Main",
+                                "old": "interface Main",
                                 "interface": "java.lang.Cloneable",
                                 "justification": "because"
                               }

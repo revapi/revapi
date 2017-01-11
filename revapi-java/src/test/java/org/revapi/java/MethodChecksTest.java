@@ -242,18 +242,18 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED)));
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
-                "method parameter void Overloads::b(===java.lang.Class<? extends java.lang.Integer>===, java.lang.Object)",
-                "method parameter void Overloads::b(===java.lang.Class<?>===, java.lang.Object)",
+                "parameter void Overloads::b(===java.lang.Class<? extends java.lang.Integer>===, java.lang.Object)",
+                "parameter void Overloads::b(===java.lang.Class<?>===, java.lang.Object)",
                 Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED)));
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
-                "method parameter void Overloads::c(java.lang.Class<java.lang.Long>, ===java.lang.Class<? extends java.lang.Integer>===, float)",
-                "method parameter void Overloads::c(java.lang.Class<java.lang.Long>, ===int===, float)",
+                "parameter void Overloads::c(java.lang.Class<java.lang.Long>, ===java.lang.Class<? extends java.lang.Integer>===, float)",
+                "parameter void Overloads::c(java.lang.Class<java.lang.Long>, ===int===, float)",
                 Code.METHOD_PARAMETER_TYPE_CHANGED)));
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
-                "method parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<java.lang.Long>===, int)",
-                "method parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<?>===, int)",
+                "parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<java.lang.Long>===, int)",
+                "parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<?>===, int)",
                 Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED)));
     }
 

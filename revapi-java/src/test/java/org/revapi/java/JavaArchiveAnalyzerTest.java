@@ -144,9 +144,9 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             Predicate<Element> findMethod =
                     c -> "method void MemberInheritsOwner::method()".equals(c.getFullHumanReadableString());
             Predicate<Element> findMember1 =
-                    c -> "class MemberInheritsOwner.Member1".equals(c.getFullHumanReadableString());
+                    c -> "interface MemberInheritsOwner.Member1".equals(c.getFullHumanReadableString());
             Predicate<Element> findMember2 =
-                    c -> "class MemberInheritsOwner.Member2".equals(c.getFullHumanReadableString());
+                    c -> "interface MemberInheritsOwner.Member2".equals(c.getFullHumanReadableString());
 
             Element root = forest.getRoots().first();
             Assert.assertEquals(3, root.getChildren().size());
@@ -194,7 +194,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.SuperBound")));
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeParam")));
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeVar")));
-            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeVarIface")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("interface GenericsParams.TypeVarIface")));
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeVarImpl")));
             Assert.assertFalse(roots.stream().anyMatch(hasName("class GenericsParams.Unused")));
         } finally {

@@ -61,7 +61,7 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
     @Nonnull
     @Override
     protected String getHumanReadableElementType() {
-        return "method parameter";
+        return "parameter";
     }
 
     @Override

@@ -122,7 +122,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
-        Assert.assertTrue(containsDifference(allReports, "class B.UsedByIgnoredClass", "class B.UsedByIgnoredClass",
+        Assert.assertTrue(containsDifference(allReports, "class B.UsedByIgnoredClass", "interface B.UsedByIgnoredClass",
                 Code.CLASS_KIND_CHANGED.code()));
         Assert.assertTrue(containsDifference(allReports, "method void B.UsedByIgnoredClass::<init>()", null,
                 Code.METHOD_REMOVED.code()));

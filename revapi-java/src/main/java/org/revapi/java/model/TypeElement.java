@@ -50,10 +50,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     private boolean inApi;
     private boolean inApiThroughUse;
 
+    //TODO this should really be protected or even package private...
     /**
-     * This is a helper constructor used only during probing the class files. This is to ensure that we have a
-     * "bare bones" type element available even before we have functioning compilation infrastructure in
-     * the environment.
+     * This is a helper constructor used only in {@link MissingClassElement}. Inheritors using this constructor need
+     * to make sure that they also override any and all methods that require a non-null element.
      *
      * @param env           probing environment
      * @param binaryName    the binary name of the class
@@ -82,7 +82,18 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     @Nonnull
     @Override
     protected String getHumanReadableElementType() {
-        return "class";
+        switch (element.getKind()) {
+            case ANNOTATION_TYPE:
+                return "@interface";
+            case CLASS:
+                return "class";
+            case ENUM:
+                return "enum";
+            case INTERFACE:
+                return "interface";
+            default:
+                return "class";
+        }
     }
 
     public String getBinaryName() {
