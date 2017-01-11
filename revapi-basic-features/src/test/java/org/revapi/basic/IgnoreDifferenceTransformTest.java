@@ -116,6 +116,8 @@ public class IgnoreDifferenceTransformTest {
         DummyElement newE = new DummyElement("b");
 
         Difference difference = Difference.builder().withCode("c").addAttachment("kachna", "nedobra").build();
+        Difference anotherDiff = Difference.builder().withCode("d").build();
+        Difference matchingDiff = Difference.builder().withCode("c").addAttachment("kachna", "dobra").build();
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
 
@@ -126,6 +128,12 @@ public class IgnoreDifferenceTransformTest {
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
             Assert.assertNotNull(difference);
+
+            anotherDiff = t.transform(oldE, newE, anotherDiff);
+            Assert.assertNotNull(anotherDiff);
+
+            matchingDiff = t.transform(oldE, newE, matchingDiff);
+            Assert.assertNull(matchingDiff);
         }
     }
 
@@ -135,16 +143,20 @@ public class IgnoreDifferenceTransformTest {
         DummyElement newE = new DummyElement("b");
 
         Difference difference = Difference.builder().withCode("c").addAttachment("kachna", "nedobra").build();
+        Difference anotherDiff = Difference.builder().withCode("d").build();
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
 
             AnalysisContext config = AnalysisContext.builder()
                     .withConfigurationFromJSON(
-                            "{\"revapi\":{\"ignore\":[{\"regex\": true, \"code\":\"c\", \"kachna\": \".*dobra$\", \"justification\" : \"because\"}]}}").build();
+                            "{\"revapi\":{\"ignore\":[{\"regex\": true, \"code\":\".*\", \"kachna\": \".*dobra$\", \"justification\" : \"because\"}]}}").build();
 
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
             Assert.assertNull(difference);
+
+            anotherDiff = t.transform(oldE, newE, anotherDiff);
+            Assert.assertNotNull(anotherDiff);
         }
     }
 

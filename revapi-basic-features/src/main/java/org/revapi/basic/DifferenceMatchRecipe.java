@@ -74,6 +74,12 @@ public abstract class DifferenceMatchRecipe {
             if (!baseMatch) {
                 return false;
             } else {
+                //regexes empty | attachments empty | allMatched
+                //            0 |                 0 | each regex matches
+                //            0 |                 1 | false
+                //            1 |                 0 | true
+                //            1 |                 1 | true
+                boolean allMatched = attachmentRegexes.isEmpty() || !difference.attachments.isEmpty();
                 for (Map.Entry<String, String> e: difference.attachments.entrySet()) {
                     String key = e.getKey();
                     String val = e.getValue();
@@ -81,10 +87,12 @@ public abstract class DifferenceMatchRecipe {
                     Pattern match = attachmentRegexes.get(key);
                     if (match != null && !match.matcher(val).matches()) {
                         return false;
+                    } else {
+                        allMatched = true;
                     }
                 }
 
-                return true;
+                return allMatched;
             }
         } else {
             boolean baseMatch = code.equals(difference.code) &&
@@ -94,6 +102,7 @@ public abstract class DifferenceMatchRecipe {
             if (!baseMatch) {
                 return false;
             } else {
+                boolean allMatched = attachments.isEmpty() || !difference.attachments.isEmpty();
                 for (Map.Entry<String, String> e : difference.attachments.entrySet()) {
                     String key = e.getKey();
                     String val = e.getValue();
@@ -101,10 +110,12 @@ public abstract class DifferenceMatchRecipe {
                     String match = attachments.get(key);
                     if (match != null && !match.equals(val)) {
                         return false;
+                    } else {
+                        allMatched = true;
                     }
                 }
 
-                return true;
+                return allMatched;
             }
         }
     }

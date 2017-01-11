@@ -43,6 +43,8 @@
         <module>version-matching/v1.0.GA</module>
         <module>version-matching/v2.0.Beta</module>
         <module>version-matching/v2.0-SNAPSHOT</module>
+        <module>exclude-by-diff-attachment/v1</module>
+        <module>exclude-by-diff-attachment/v2</module>
 
         <!-- the order of the below 3 modules IS SIGNIFICANT -->
         <module>version-precedence/1.0</module>
