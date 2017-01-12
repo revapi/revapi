@@ -86,8 +86,7 @@ public abstract class CheckBase implements Check {
      * @return true if the provided element is accessible and in API, false otherwise.
      */
     public boolean isAccessible(@Nonnull JavaModelElement e) {
-        if ((e instanceof JavaTypeElement || e instanceof JavaMethodElement)
-                && !isAccessibleByModifier(e.getDeclaringElement())) {
+        if (!(e instanceof JavaMethodParameterElement) && !isAccessibleByModifier(e.getDeclaringElement())) {
             return false;
         }
 
