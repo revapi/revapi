@@ -16,17 +16,11 @@
 
 package org.revapi.java.model;
 
-import java.util.List;
-import java.util.SortedSet;
-
 import javax.annotation.Nonnull;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ExecutableType;
-import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
-import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaTypeElement;
@@ -59,25 +53,5 @@ public final class MethodElement extends JavaElementBase<ExecutableElement, Exec
         //legal character in a method name in the ASCII table
         return getDeclaringElement().getSimpleName() + "#" +
             Util.toUniqueString(getModelRepresentation());
-    }
-
-    @Nonnull
-    @Override
-    protected SortedSet<Element> newChildrenInstance() {
-        SortedSet<Element> ret = super.newChildrenInstance();
-
-        List<? extends TypeMirror> pts = getModelRepresentation ().getParameterTypes();
-        List<? extends VariableElement> pes = getDeclaringElement().getParameters();
-
-        for (int i = 0; i < pts.size(); ++i) {
-            TypeMirror t = pts.get(i);
-            VariableElement e = pes.get(i);
-
-            MethodParameterElement p = new MethodParameterElement(environment, getArchive(), e, t);
-            p.setParent(this);
-            ret.add(p);
-        }
-
-        return ret;
     }
 }

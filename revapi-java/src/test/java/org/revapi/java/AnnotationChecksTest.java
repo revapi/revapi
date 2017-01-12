@@ -18,11 +18,17 @@ package org.revapi.java;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Report;
+import org.revapi.java.model.MethodElement;
+import org.revapi.java.model.MethodParameterElement;
+import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Code;
 
 /**
@@ -118,6 +124,34 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertArrayEquals(new String[]{"java.annotation.added"}, reports.stream()
                 .flatMap(r -> r.getDifferences().stream())
                 .map(d -> d.code).distinct().toArray(String[]::new));
+    }
+
+    @Test
+    public void testAnnotationsCapturedOnAllLocations() throws Exception {
+        List<Report> reports = new ArrayList<>();
+        runAnalysis(new CollectingReporter(reports), "v1/annotations/Elements.java", "v2/annotations/Elements.java");
+
+        Function<Class<?>, Stream<Difference>> diffsOn = cls -> reports.stream()
+                .filter(r -> (r.getNewElement() != null && cls.isAssignableFrom(r.getNewElement().getClass()))
+                        || (r.getOldElement() != null && cls.isAssignableFrom(r.getOldElement().getClass())))
+                .flatMap(r -> r.getDifferences().stream());
+
+        Assert.assertEquals(4, reports.size());
+
+        Assert.assertEquals(2L, diffsOn.apply(MethodParameterElement.class).count());
+        Assert.assertTrue(diffsOn.apply(MethodParameterElement.class)
+                .allMatch(d -> d.code.equals(Code.ANNOTATION_ADDED.code())));
+
+        Assert.assertEquals(1L, diffsOn.apply(TypeElement.class).count());
+        Assert.assertTrue(diffsOn.apply(TypeElement.class)
+                .allMatch(d -> d.code.equals(Code.ANNOTATION_ADDED.code())));
+
+        Assert.assertEquals(1L, diffsOn.apply(MethodElement.class).count());
+        Assert.assertTrue(diffsOn.apply(MethodElement.class)
+                .allMatch(d -> d.code.equals(Code.ANNOTATION_ADDED.code())));
+
+        //the annotations are present on the type uses in the test class, too, but Revapi currently doesn't handle
+        //those...
     }
 
     //TODO also check for situation where the annotation used is not on the classpath - wonder how that behaves

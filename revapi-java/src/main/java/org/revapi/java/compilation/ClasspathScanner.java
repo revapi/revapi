@@ -49,6 +49,7 @@ import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.SimpleElementVisitor8;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileManager;
@@ -905,13 +906,33 @@ final class ClasspathScanner {
                 }, null);
             }
 
-            for (Element child : parent.getDeclaringElement().getEnclosedElements()) {
+            List<? extends Element> children =
+                    parent.getDeclaringElement().accept(new SimpleElementVisitor8<List<? extends Element>, Void>() {
+                        @Override protected List<? extends Element> defaultAction(Element e, Void aVoid) {
+                            return Collections.emptyList();
+                        }
+
+                        @Override public List<? extends Element> visitType(TypeElement e, Void aVoid) {
+                            return e.getEnclosedElements();
+                        }
+
+                        @Override public List<? extends Element> visitExecutable(ExecutableElement e, Void aVoid) {
+                            return e.getParameters();
+                        }
+                    }, null);
+
+            for (Element child : children) {
                 if (child.getKind().isClass() || child.getKind().isInterface()) {
                     continue;
                 }
 
-                TypeMirror representation = types.asMemberOf(targetType.modelElement.getModelRepresentation(),
-                        child);
+                TypeMirror representation;
+                if (child.getKind() == ElementKind.METHOD || child.getKind() == ElementKind.CONSTRUCTOR) {
+                    representation = types.asMemberOf(targetType.modelElement.getModelRepresentation(),
+                            child);
+                } else {
+                    representation = child.asType();
+                }
 
                 JavaElementBase<?, ?> childEl = JavaElementFactory.elementFor(child, representation, environment,
                         parent.getArchive());
