@@ -484,7 +484,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
     private boolean isCheckedElsewhere(JavaModelElement element, ProbingEnvironment env) {
         if (element == null) {
-            return false;
+            //the other element will not be null and therefore we will determine the fact with the other element...
+            return true;
         }
 
         if (!element.isInherited()) {

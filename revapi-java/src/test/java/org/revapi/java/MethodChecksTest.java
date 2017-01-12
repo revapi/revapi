@@ -166,7 +166,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         CollectingReporter reporter = new CollectingReporter(reports);
         runAnalysis(reporter, "v1/methods/DefaultMethod.java", "v2/methods/DefaultMethod.java");
 
-        Assert.assertEquals(6, reports.size());
+        Assert.assertEquals(5, reports.size());
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
                 "method void DefaultMethod::a()",
@@ -194,11 +194,6 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 null,
                 "method void DefaultMethod::c()",
                 Code.METHOD_DEFAULT_METHOD_ADDED_TO_INTERFACE)));
-
-        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
-                null,
-                "method void DefaultMethod::c() @ DefaultMethod.Test",
-                Code.METHOD_ADDED)));
     }
 
     @Test
@@ -377,6 +372,15 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 Code.METHOD_RETURN_TYPE_CHANGED_COVARIANTLY,
                 Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS
         )));
+    }
+
+    @Test
+    public void testInheritedMethodsNotReportedRepeatedly() throws Exception {
+        ArrayList<Report> reports = new ArrayList<>();
+        CollectingReporter reporter = new CollectingReporter(reports);
+        runAnalysis(reporter, "v1/methods/DryReportingWithInheritance.java", "v2/methods/DryReportingWithInheritance.java");
+
+        Assert.assertEquals(2, reports.size());
     }
 
     private Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {
