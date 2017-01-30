@@ -54,6 +54,7 @@ import org.revapi.AnalysisContext;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.configuration.JSONUtil;
+import org.revapi.configuration.ValidationResult;
 import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.maven.utils.ScopeDependencySelector;
 import org.revapi.maven.utils.ScopeDependencyTraverser;
@@ -168,14 +169,12 @@ public final class Analyzer implements AutoCloseable {
         }
     }
 
-    void validateConfiguration() throws MojoExecutionException {
-        try (Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().build()) {
+    ValidationResult validateConfiguration() throws Exception {
+        try (Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().withReporters(reporter).build()) {
             AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withLocale(locale);
             gatherConfig(ctxBuilder);
 
-            revapi.validateConfiguration(ctxBuilder.build());
-        } catch (Exception e) {
-            throw new MojoExecutionException("Failed to validate analysis configuration.", e);
+            return revapi.validateConfiguration(ctxBuilder.build());
         }
     }
 

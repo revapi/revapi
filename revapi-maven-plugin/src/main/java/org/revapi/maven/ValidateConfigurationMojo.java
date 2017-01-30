@@ -16,10 +16,14 @@
  */
 package org.revapi.maven;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.revapi.configuration.ValidationResult;
 import org.revapi.simple.SimpleReporter;
 
 /**
@@ -33,8 +37,22 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         try (Analyzer analyzer = prepareAnalyzer(project, new SimpleReporter())) {
             if (analyzer != null) {
-                analyzer.validateConfiguration();
+                ValidationResult res = analyzer.validateConfiguration();
+                if (!res.isSuccessful()) {
+                    String errors = res.getErrors() == null
+                            ? ""
+                            : Stream.of(res.getErrors()).map(e -> e.message + " @ " + e.dataPath)
+                            .collect(Collectors.joining(", ", "Errors: ", ""));
+                    String missingSchemas = res.getMissingSchemas() == null
+                            ? ""
+                            : Stream.of(res.getMissingSchemas())
+                            .collect(Collectors.joining(", ", "Missing schemas: ", ""));
+                    throw new MojoExecutionException(
+                            "Failed to validate configuration. " + errors + " " + missingSchemas);
+                }
             }
+        } catch (MojoExecutionException e) {
+            throw e;
         } catch (Exception e) {
             throw new MojoExecutionException("Failed to validate configuration.", e);
         }
