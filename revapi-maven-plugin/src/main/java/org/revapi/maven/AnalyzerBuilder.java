@@ -50,6 +50,7 @@ class AnalyzerBuilder {
     private boolean failOnUnresolvedDependencies;
     private boolean alwaysCheckForReleaseVersion;
     private boolean checkDependencies;
+    private boolean resolveProvidedDependencies;
     private String versionFormat;
     private Revapi revapi;
 
@@ -148,6 +149,11 @@ class AnalyzerBuilder {
         return this;
     }
 
+    AnalyzerBuilder withResolveProvidedDependencies(boolean resolveProvidedDependencies) {
+        this.resolveProvidedDependencies = resolveProvidedDependencies;
+        return this;
+    }
+    
     AnalyzerBuilder withVersionFormat(String versionFormat) {
         this.versionFormat = versionFormat;
         return this;
@@ -193,7 +199,8 @@ class AnalyzerBuilder {
         return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, oldGavs,
                 newGavs, project, repositorySystem, repositorySystemSession, reporter, locale, log,
                 failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies, versionFormat, ctor, revapi);
+                alwaysCheckForReleaseVersion, checkDependencies, resolveProvidedDependencies, versionFormat, ctor,
+                revapi);
     }
 
     /**

@@ -75,6 +75,11 @@ final class Props {
         static final String DEFAULT_VALUE = "true";
     }
 
+    static final class resolveProvidedDependencies {
+        static final String NAME = PREFIX + "resolveProvidedDependencies";
+        static final String DEFAULT_VALUE = "true";
+    }
+
     static final class versionFormat {
         static final String NAME = PREFIX + "versionFormat";
         static final String DEFAULT_VALUE = "";

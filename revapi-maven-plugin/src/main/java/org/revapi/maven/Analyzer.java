@@ -111,6 +111,7 @@ public final class Analyzer implements AutoCloseable {
              RepositorySystem repositorySystem, RepositorySystemSession repositorySystemSession, Reporter reporter,
              Locale locale, Log log, boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
              boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
+             boolean resolveProvidedDependencies,
              String versionRegex, Supplier<Revapi.Builder> revapiConstructor, Revapi sharedRevapi) {
 
         this.analysisConfiguration = analysisConfiguration;
@@ -127,8 +128,12 @@ public final class Analyzer implements AutoCloseable {
         this.versionRegex = versionRegex == null ? null : Pattern.compile(versionRegex);
 
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
-        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
-        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
+        String[] scopes = resolveProvidedDependencies
+                ? new String[] {"compile", "provided"}
+                : new String[] {"compile"};
+
+        session.setDependencySelector(new ScopeDependencySelector(scopes));
+        session.setDependencyTraverser(new ScopeDependencyTraverser(scopes));
 
         if (alwaysUpdate) {
             session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);

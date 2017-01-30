@@ -212,6 +212,19 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean checkDependencies;
 
     /**
+     * When establishing the API classes, Revapi by default also looks through the {@code provided} dependencies.
+     * The reason for this is that even though such dependencies do not appear in the transitive dependency set
+     * established by maven, they need to be present both on the compilation and runtime classpath of the module.
+     * Therefore, the classes in the module are free to expose classes from a provided dependency as API elements.
+     *
+     * <p>In rare circumstances this is not a desired behavior though. It is undesired if for example the classes from
+     * the provided dependency are used only for establishing desired build order or when they are used in some
+     * non-standard scenarios during the build and actually not needed at runtime.
+     */
+    @Parameter(property = Props.resolveProvidedDependencies.NAME, defaultValue = Props.resolveProvidedDependencies.DEFAULT_VALUE)
+    protected boolean resolveProvidedDependencies;
+
+    /**
      * If set, this property demands a format of the version string when the {@link #oldVersion} or {@link #newVersion}
      * parameters are set to {@code RELEASE} or {@code LATEST} special version strings.
      * <p>
@@ -254,6 +267,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
                 .withAnalysisConfiguration(this.analysisConfiguration)
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
                 .withCheckDependencies(this.checkDependencies)
+                .withResolveProvidedDependencies(this.resolveProvidedDependencies)
                 .withDisallowedExtensions(this.disallowedExtensions)
                 .withFailOnMissingConfigurationFiles(this.failOnMissingConfigurationFiles)
                 .withFailOnUnresolvedArtifacts(this.failOnUnresolvedArtifacts)

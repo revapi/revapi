@@ -271,6 +271,7 @@ public class ReportAggregateMojo extends ReportMojo {
                 .withAnalysisConfiguration(this.analysisConfiguration)
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
                 .withCheckDependencies(resolveDependencies)
+                .withResolveProvidedDependencies(resolveProvidedDependencies)
                 .withDisallowedExtensions(disallowedExtensions)
                 .withFailOnMissingConfigurationFiles(failOnMissingConfigurationFiles)
                 .withFailOnUnresolvedArtifacts(failOnMissingArchives)
