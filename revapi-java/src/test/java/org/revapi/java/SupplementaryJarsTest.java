@@ -92,7 +92,8 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                         "B$PrivateUsedClass.class")
                 .addAsResource(compRes2.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(),
                         "B$UsedByIgnoredClass.class")
-                .addAsResource(compRes1.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class");
+                .addAsResource(compRes2.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class")
+                .addAsResource(compRes2.compilationPath.resolve("B$PrivateBase.class").toFile(), "B$PrivateBase.class");
     }
 
     @After
@@ -174,6 +175,34 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
+                Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+        Assert.assertFalse(containsDifference(allReports, "class B.UsedByIgnoredClass", "class B.UsedByIgnoredClass",
+                Code.CLASS_KIND_CHANGED.code()));
+        Assert.assertFalse(containsDifference(allReports, "method void B.UsedByIgnoredClass::<init>()", null,
+                Code.METHOD_REMOVED.code()));
+    }
+
+    @Test
+    public void testExcludedClassesInAPI() throws Exception {
+        List<Report> allReports = new ArrayList<>();
+        Reporter reporter = new CollectingReporter(allReports);
+
+        try (Revapi revapi = createRevapi(reporter)) {
+            revapi.analyze(AnalysisContext.builder()
+                    .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
+                    .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
+                    .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
+                            "\"filter\": {\"classes\": {\"exclude\": [\"C\", \"B.T$2\"]}}}}}").build());
+        }
+
+        Assert.assertEquals(3, allReports.size());
+        Assert.assertFalse(
+                containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+        Assert.assertFalse(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
+        Assert.assertFalse(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
         Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));

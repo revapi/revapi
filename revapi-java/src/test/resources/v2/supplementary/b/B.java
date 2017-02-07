@@ -43,7 +43,7 @@ public class B {
 
     }
 
-    private static class PrivateSuperClass {
+    private static class PrivateBase {
 
         /**
          * This will be reported as a usage of private class in a public capacity, because T$3 is in the API and
@@ -52,6 +52,9 @@ public class B {
         public PrivateUsedClass getThat() {
             return null;
         }
+    }
+
+    private static class PrivateSuperClass extends PrivateBase {
     }
 
     /**
