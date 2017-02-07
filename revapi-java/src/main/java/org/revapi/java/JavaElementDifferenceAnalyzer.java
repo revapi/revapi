@@ -263,15 +263,20 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             Difference d = it.next();
             if (analysisConfiguration.getUseReportingCodes().contains(d.code)) {
                 StringBuilder newDesc = new StringBuilder(d.description == null ? "" : d.description);
-                newDesc.append("\n");
-                newDesc.append(messages.getString("revapi.java.uses.old"));
-                newDesc.append(" ");
-                appendUses(oldElement, newDesc);
-                newDesc.append("\n");
-                newDesc.append(messages.getString("revapi.java.uses.new"));
-                newDesc.append(" ");
-                appendUses(newElement, newDesc);
+                if (oldElement != null) {
+                    newDesc.append("\n");
+                    newDesc.append(messages.getString("revapi.java.uses.old"));
+                    newDesc.append(" ");
+                    appendUses(oldEnvironment, oldElement, newDesc);
+                }
 
+                if (newElement != null) {
+                    newDesc.append("\n");
+                    newDesc.append(messages.getString("revapi.java.uses.new"));
+                    newDesc.append(" ");
+                    appendUses(newEnvironment, newElement, newDesc);
+                }
+                
                 d = Difference.builder().addAttachments(d.attachments).addClassifications(d.classification)
                     .withCode(d.code).withName(d.name).withDescription(newDesc.toString()).build();
             }
@@ -329,7 +334,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         bld.append(message);
     }
 
-    private void appendUses(Element element, final StringBuilder bld) {
+    private void appendUses(ProbingEnvironment env, Element element, final StringBuilder bld) {
         LOG.trace("Reporting uses of {}", element);
 
         if (element == null) {
@@ -359,7 +364,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             @Override
             public Object visit(@Nonnull DeclaredType type, @Nonnull UseSite use,
                                 @Nullable Void parameter) {
-                if (appendUse(usedType, bld, type, use)) {
+                if (appendUse(env, usedType, bld, type, use)) {
                     return Boolean.TRUE; //just a non-null values
                 }
 
@@ -375,13 +380,14 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
 
-    private boolean appendUse(JavaTypeElement usedType, StringBuilder bld, DeclaredType type, UseSite use) {
+    private boolean appendUse(ProbingEnvironment env, JavaTypeElement usedType, StringBuilder bld, DeclaredType type,
+                              UseSite use) {
 
         if (!use.getUseType().isMovingToApi()) {
             return false;
         }
 
-        List<TypeAndUseSite> chain = getExamplePathToApiArchive(usedType, type, use);
+        List<TypeAndUseSite> chain = getExamplePathToApiArchive(env, usedType, type, use);
         Iterator<TypeAndUseSite> chainIt = chain.iterator();
 
         if (chain.isEmpty()) {
@@ -412,17 +418,18 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         return true;
     }
 
-    private List<TypeAndUseSite> getExamplePathToApiArchive(JavaTypeElement usedType, DeclaredType type, UseSite bottomUse) {
+    private List<TypeAndUseSite> getExamplePathToApiArchive(ProbingEnvironment env, JavaTypeElement usedType,
+                                                            DeclaredType type, UseSite bottomUse) {
 
         ArrayList<TypeAndUseSite> ret = new ArrayList<>();
 
-        traverseToApi(usedType, type, bottomUse, ret, new HashSet<>());
+        traverseToApi(env, usedType, type, bottomUse, ret, new HashSet<>());
 
         return ret;
     }
 
-    private boolean traverseToApi(final JavaTypeElement usedType, final DeclaredType type, final UseSite currentUse,
-                                  final List<TypeAndUseSite> path, final
+    private boolean traverseToApi(ProbingEnvironment env, final JavaTypeElement usedType, final DeclaredType type,
+                                  final UseSite currentUse, final List<TypeAndUseSite> path, final
                                   Set<javax.lang.model.element.TypeElement> visitedTypes) {
 
         if (!currentUse.getUseType().isMovingToApi()) {
@@ -430,6 +437,14 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         JavaTypeElement ut = findClassOf(currentUse.getSite());
+
+        return appendUseType(env, ut, path, usedType, type, currentUse, visitedTypes);
+    }
+
+    private boolean appendUseType(ProbingEnvironment env, JavaTypeElement ut, List<TypeAndUseSite> path,
+                               JavaTypeElement usedType, DeclaredType type, UseSite currentUse,
+                               Set<javax.lang.model.element.TypeElement> visitedTypes) {
+
         javax.lang.model.element.TypeElement useType = ut.getDeclaringElement();
 
         if (visitedTypes.contains(useType)) {
@@ -447,8 +462,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 @Nullable
                 @Override
                 public Boolean visit(@Nonnull DeclaredType visitedType, @Nonnull UseSite use,
-                    @Nullable Void parameter) {
-                    if (traverseToApi(usedType, visitedType, use, path, visitedTypes)) {
+                                     @Nullable Void parameter) {
+                    if (traverseToApi(env, usedType, visitedType, use, path, visitedTypes)) {
                         path.add(0, new TypeAndUseSite(type, currentUse));
                         return true;
                     }
@@ -461,6 +476,31 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                     return null;
                 }
             }, null);
+
+            if (ret == null) {
+                Set<javax.lang.model.element.TypeElement> derivedUseTypes = env.getDerivedTypes(useType);
+
+                for (javax.lang.model.element.TypeElement dut : derivedUseTypes) {
+                    TypeElement model = env.getTypeMap().get(dut);
+                    if (model == null) {
+                        continue;
+                    }
+
+                    JavaModelElement derivedUseElement = findSameDeclarationUnder(currentUse.getSite(), model);
+                    if (derivedUseElement == null) {
+                        continue;
+                    }
+
+                    UseSite derivedUse = new UseSite(currentUse.getUseType(), derivedUseElement);
+
+                    if (appendUseType(env, model, path, usedType, type, derivedUse, visitedTypes)) {
+
+                        ret = true;
+                        break;
+                    }
+                }
+
+            }
 
             return ret == null ? false : ret;
         }
@@ -480,6 +520,22 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         return (javax.lang.model.element.TypeElement) element;
+    }
+
+    private JavaModelElement findSameDeclarationUnder(JavaElement declaredElement, JavaTypeElement owningElement) {
+        if (!(declaredElement instanceof JavaModelElement)) {
+            return null;
+        }
+
+        JavaModelElement dme = (JavaModelElement) declaredElement;
+        for (Element e : owningElement.getChildren()) {
+            if (e instanceof JavaModelElement
+                    && ((JavaModelElement) e).getDeclaringElement().equals(dme.getDeclaringElement())) {
+                return (JavaModelElement) e;
+            }
+        }
+
+        return null;
     }
 
     private boolean isCheckedElsewhere(JavaModelElement element, ProbingEnvironment env) {

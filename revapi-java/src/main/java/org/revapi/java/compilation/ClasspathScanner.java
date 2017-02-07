@@ -710,6 +710,8 @@ final class ClasspathScanner {
                             placeInTree(r);
                             r.modelElement.setRawUseSites(r.useSites);
                             types.add(r);
+                            environment.setSuperTypes(r.javacElement,
+                                    r.superTypes.stream().map(tr -> tr.javacElement).collect(toList()));
                             r.modelElement.setInApi(r.inApi);
                             r.modelElement.setInApiThroughUse(r.inApiThroughUse);
                         }

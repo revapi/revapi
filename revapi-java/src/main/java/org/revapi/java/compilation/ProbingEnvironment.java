@@ -16,6 +16,9 @@
 
 package org.revapi.java.compilation;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +49,8 @@ public final class ProbingEnvironment implements TypeEnvironment {
     private final Set<String> explicitExclusions = new HashSet<>();
     private final Set<String> explicitInclusions = new HashSet<>();
     private Map<TypeElement, org.revapi.java.model.TypeElement> typeMap;
+    private Map<TypeElement, Set<TypeElement>> derivedTypes = new HashMap<>();
+    private Map<TypeElement, Set<TypeElement>> superTypes = new HashMap<>();
 
     public ProbingEnvironment(API api) {
         this.api = api;
@@ -109,12 +114,29 @@ public final class ProbingEnvironment implements TypeEnvironment {
         return new MissingTypeAwareDelegatingTypes(processingEnvironment.getTypeUtils());
     }
 
+    //TODO make package private at a sufficient version bump
     public void setTypeMap(Map<TypeElement, org.revapi.java.model.TypeElement> typeMap) {
         this.typeMap = typeMap;
     }
 
     public Map<TypeElement, org.revapi.java.model.TypeElement> getTypeMap() {
         return typeMap;
+    }
+
+    public Set<TypeElement> getDerivedTypes(TypeElement superType) {
+        return derivedTypes.getOrDefault(superType, Collections.emptySet());
+    }
+
+    void setSuperTypes(TypeElement derivedType, Collection<TypeElement> superTypes) {
+        this.superTypes.computeIfAbsent(derivedType, x -> new HashSet<>(superTypes));
+        superTypes.forEach(t -> derivedTypes.computeIfAbsent(t, x -> new HashSet<>()).add(derivedType));
+
+        for (TypeElement superType : superTypes) {
+            Set<TypeElement> grandTypes = this.superTypes.get(superType);
+            if (grandTypes != null) {
+                setSuperTypes(derivedType, grandTypes);
+            }
+        }
     }
 
     public void addExplicitExclusion(String canonicalName) {
