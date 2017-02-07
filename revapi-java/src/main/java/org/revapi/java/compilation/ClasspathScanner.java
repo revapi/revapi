@@ -4,6 +4,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import static org.revapi.java.AnalysisConfiguration.MissingClassReporting.ERROR;
+import static org.revapi.java.AnalysisConfiguration.MissingClassReporting.REPORT;
 import static org.revapi.java.model.JavaElementFactory.elementFor;
 
 import java.io.File;
@@ -99,7 +101,7 @@ final class ClasspathScanner {
         this.classPath = classPath;
         this.additionalClassPath = additionalClassPath;
         this.missingClassReporting = missingClassReporting == null
-                ? AnalysisConfiguration.MissingClassReporting.ERROR
+                ? ERROR
                 : missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.inclusionFilter = inclusionFilter;
@@ -592,55 +594,47 @@ final class ClasspathScanner {
             determineApiStatus();
             initChildren();
 
+            if (missingClassReporting == REPORT && !requiredTypes.isEmpty()) {
+                handleMissingClasses(types);
+            }
+
             Set<TypeRecord> types = constructTree();
 
-            if (!requiredTypes.isEmpty()) {
-                handleMissingClasses(types);
+            if (missingClassReporting == ERROR) {
+                List<String> reallyMissing = types.stream().filter(tr -> tr.modelElement instanceof MissingClassElement)
+                        .map(tr -> tr.modelElement.getCanonicalName()).collect(toList());
+                if (!reallyMissing.isEmpty()) {
+                    throw new IllegalStateException(
+                            "The following classes that contribute to the public API of " +
+                                    environment.getApi() +
+                                    " could not be located: " +
+                                    reallyMissing);
+                }
             }
 
             environment.setTypeMap(types.stream().collect(toMap(tr -> tr.javacElement, tr -> tr.modelElement)));
         }
 
-        private void handleMissingClasses(Set<TypeRecord> types) {
+        private void handleMissingClasses(Map<TypeElement, TypeRecord> types) {
             Elements els = environment.getElementUtils();
 
-            switch (missingClassReporting) {
-                case ERROR:
-                    List<String> reallyMissing = requiredTypes.keySet().stream()
-                            .map(t -> els.getTypeElement(t.getQualifiedName()))
-                            .filter(t -> els.getTypeElement(t.getQualifiedName()) == null)
-                            .map(t -> t.getQualifiedName().toString())
-                            .sorted()
-                            .collect(toList());
-
-                    if (!reallyMissing.isEmpty()) {
-                        throw new IllegalStateException(
-                                "The following classes that contribute to the public API of " +
-                                        environment.getApi() +
-                                        " could not be located: " +
-                                        reallyMissing);
+            for (TypeElement t : requiredTypes.keySet()) {
+                TypeElement type = els.getTypeElement(t.getQualifiedName());
+                if (type == null) {
+                    TypeRecord tr = this.types.get(t);
+                    String bin = els.getBinaryName(t).toString();
+                    MissingClassElement mce = new MissingClassElement(environment, bin,
+                            t.getQualifiedName().toString());
+                    if (tr == null) {
+                        tr = new TypeRecord();
                     }
-                    break;
-                case REPORT:
-                    for (TypeElement t : requiredTypes.keySet()) {
-                        TypeElement type = els.getTypeElement(t.getQualifiedName());
-                        if (type == null) {
-                            TypeRecord tr = this.types.get(t);
-                            String bin = els.getBinaryName(t).toString();
-                            MissingClassElement mce = new MissingClassElement(environment, bin,
-                                    t.getQualifiedName().toString());
-                            if (tr == null) {
-                                tr = new TypeRecord();
-                            }
-                            mce.setInApi(tr.inApi);
-                            mce.setInApiThroughUse(tr.inApiThroughUse);
-                            mce.setRawUseSites(tr.useSites);
-                            tr.javacElement = mce.getDeclaringElement();
-                            tr.modelElement = mce;
-                            types.add(tr);
-                            environment.getTree().getRootsUnsafe().add(mce);
-                        }
-                    }
+                    mce.setInApi(tr.inApi);
+                    mce.setInApiThroughUse(tr.inApiThroughUse);
+                    mce.setRawUseSites(tr.useSites);
+                    tr.javacElement = mce.getDeclaringElement();
+                    tr.modelElement = mce;
+                    types.put(tr.javacElement, tr);
+                }
             }
         }
 
@@ -665,7 +659,9 @@ final class ClasspathScanner {
 
                 //the model element will be null for missing types. Additionally, we don't want the system classpath
                 //in our tree, because that is superfluous.
-                if (r.modelElement != null && !r.modelElement.getArchive().getName().equals(SYSTEM_CLASSPATH_NAME)) {
+                if (r.modelElement != null
+                        && (r.modelElement.getArchive() == null
+                        || !r.modelElement.getArchive().getName().equals(SYSTEM_CLASSPATH_NAME))) {
                     String cn = t.getQualifiedName().toString();
                     boolean includes = r.explicitlyIncluded;
                     boolean excludes = r.explicitlyExcluded;
