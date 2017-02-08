@@ -18,6 +18,7 @@ package org.revapi.java.model;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -118,7 +119,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 useSites = Collections.emptySet();
             } else {
                 useSites = rawUseSites.stream()
-                        .map(u -> new UseSite(u.useType, getModel(u.site, u.indexInParent)))
+                        .map(u -> {
+                            JavaModelElement model = getModel(u.site, u.indexInParent);
+                            return model == null ? null : new UseSite(u.useType, model);
+                        }).filter(Objects::nonNull)
                         .collect(Collectors.toSet());
             }
             rawUseSites = null;
@@ -165,6 +169,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 if (e.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
                     //this is a field
                     TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
+                    if (type == null) {
+                        return null;
+                    }
+
                     List<FieldElement> fs = type.searchChildren(FieldElement.class, false,
                             FlatFilter.by(f -> f.getDeclaringElement().equals(e)));
                     return fs.get(0);
@@ -172,6 +180,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                     //this is a method parameter
                     Element methodEl = e.getEnclosingElement();
                     TypeElement type = environment.getTypeMap().get(methodEl.getEnclosingElement());
+                    if (type == null) {
+                        return null;
+                    }
+
                     List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
                             FlatFilter.by(m -> m.getDeclaringElement().equals(methodEl)));
 
@@ -193,6 +205,10 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
             @Override public JavaModelElement visitExecutable(ExecutableElement e, Void ignored) {
                 TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
+                if (type == null) {
+                    return null;
+                }
+
                 List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
                         FlatFilter.by(m -> m.getDeclaringElement().equals(e)));
 
