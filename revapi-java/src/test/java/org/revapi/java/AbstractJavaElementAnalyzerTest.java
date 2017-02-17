@@ -45,6 +45,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.AnalysisResult;
 import org.revapi.Archive;
 import org.revapi.Difference;
 import org.revapi.Report;
@@ -105,7 +106,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
     }
 
-    protected static class ProblemOccurrenceReporter implements Reporter {
+    public static class ProblemOccurrenceReporter implements Reporter {
         private static final Logger LOG = LoggerFactory.getLogger("Problem");
 
         private final Map<String, Integer> problemCounters;
@@ -210,44 +211,45 @@ public abstract class AbstractJavaElementAnalyzerTest {
         return new ArchiveAndCompilationPath(archive, targetPath.toPath());
     }
 
-    protected Revapi createRevapi(Reporter testReporter) {
-        return Revapi.builder().withAnalyzers(new JavaApiAnalyzer()).withReporters(testReporter)
+    protected Revapi createRevapi(Class<? extends Reporter> reporterType) {
+        return Revapi.builder().withAnalyzers(JavaApiAnalyzer.class).withReporters(reporterType)
             .withTransformsFromThreadContextClassLoader().withFiltersFromThreadContextClassLoader().build();
     }
 
-    protected void runAnalysis(Reporter testReporter, String v1Source, String v2Source) throws Exception {
-        runAnalysis(testReporter, null, v1Source, v2Source);
+    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String v1Source, String v2Source) throws Exception {
+        return runAnalysis(reporterType, null, v1Source, v2Source);
     }
 
-    protected void runAnalysis(Reporter testReporter, String configJSON, String v1Source, String v2Source)
+    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String configJSON, String v1Source, String v2Source)
             throws Exception {
-        runAnalysis(testReporter, configJSON, new String[]{v1Source}, new String[]{v2Source});
+        return runAnalysis(reporterType, configJSON, new String[]{v1Source}, new String[]{v2Source});
     }
 
-    protected void runAnalysis(Reporter testReporter, String[] v1Source, String[] v2Source) throws Exception {
-        runAnalysis(testReporter, null, v1Source, v2Source);
+    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String[] v1Source, String[] v2Source) throws Exception {
+        return runAnalysis(reporterType, null, v1Source, v2Source);
     }
 
-    protected void runAnalysis(Reporter testReporter, String configurationJSON, String[] v1Source, String[] v2Source)
-            throws Exception {
+    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String configurationJSON, String[] v1Source,
+                                                 String[] v2Source) throws Exception {
         ArchiveAndCompilationPath v1Archive = createCompiledJar("v1", v1Source);
         ArchiveAndCompilationPath v2Archive = createCompiledJar("v2", v2Source);
 
-        try (Revapi revapi = createRevapi(testReporter)) {
+        Revapi revapi = createRevapi(reporterType);
 
-            AnalysisContext.Builder bld = AnalysisContext.builder()
-                    .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
-                    .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build());
+        AnalysisContext.Builder bld = AnalysisContext.builder()
+                .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
+                .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build());
 
-            if (configurationJSON != null) {
-                bld.withConfigurationFromJSON(configurationJSON);
-            }
+        if (configurationJSON != null) {
+            bld.withConfigurationFromJSON(configurationJSON);
+        }
 
-            AnalysisContext ctx = bld.build();
+        AnalysisContext ctx = bld.build();
 
-            revapi.validateConfiguration(ctx);
-            revapi.analyze(ctx);
+        revapi.validateConfiguration(ctx);
 
+        try (AnalysisResult result = revapi.analyze(ctx)) {
+            return result.getExtensions().getExtensions(reporterType).keySet().iterator().next();
         } finally {
             deleteDir(v1Archive.compilationPath);
             deleteDir(v2Archive.compilationPath);
@@ -287,11 +289,11 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
     }
 
-    protected static class CollectingReporter implements Reporter {
-        private final List<Report> allReports;
+    public static class CollectingReporter implements Reporter {
+        private final List<Report> reports = new ArrayList<>();
 
-        protected CollectingReporter(List<Report> allReports) {
-            this.allReports = allReports;
+        public List<Report> getReports() {
+            return reports;
         }
 
         @Nullable
@@ -313,7 +315,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         @Override
         public void report(@Nonnull Report report) {
             if (!report.getDifferences().isEmpty()) {
-                allReports.add(report);
+                reports.add(report);
             }
         }
 
