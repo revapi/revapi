@@ -27,6 +27,9 @@ import org.revapi.query.Filter;
  *
  * <p>An example of this might be leaving out certain packages from the analysis of java archives.
  *
+ * <p>The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
+ * resource acquisition in initialize, not during the construction of the object.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

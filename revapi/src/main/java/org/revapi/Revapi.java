@@ -16,11 +16,9 @@
 
 package org.revapi;
 
-import java.io.Reader;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -29,14 +27,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
+import org.jboss.dmr.ModelNode;
+import org.jboss.dmr.ModelType;
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.ValidationResult;
@@ -50,13 +50,13 @@ import org.slf4j.LoggerFactory;
  * @author Lukas Krejci
  * @since 1.0
  */
-public final class Revapi implements AutoCloseable {
+public final class Revapi {
     private static final Logger LOG = LoggerFactory.getLogger(Revapi.class);
     static final Logger TIMING_LOG = LoggerFactory.getLogger("revapi.analysis.timing");
-    private final Set<ApiAnalyzer> availableApiAnalyzers;
-    private final Set<Reporter> availableReporters;
-    private final Set<DifferenceTransform<?>> availableTransforms;
-    private final CompoundFilter availableFilters;
+    private final Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers;
+    private final Set<Class<? extends Reporter>> availableReporters;
+    private final Set<Class<? extends DifferenceTransform<?>>> availableTransforms;
+    private final Set<Class<? extends ElementFilter>> availableFilters;
     private final ConfigurationValidator configurationValidator;
     private final Map<String, List<DifferenceTransform<?>>> matchingTransformsCache = new HashMap<>();
 
@@ -69,14 +69,15 @@ public final class Revapi implements AutoCloseable {
      * @param elementFilters        the set of element filters to use
      * @throws java.lang.IllegalArgumentException if any of the parameters is null
      */
-    public Revapi(@Nonnull Set<ApiAnalyzer> availableApiAnalyzers, @Nonnull Set<Reporter> availableReporters,
-                  @Nonnull Set<DifferenceTransform<?>> availableTransforms,
-                  @Nonnull Set<ElementFilter> elementFilters) {
+    public Revapi(@Nonnull Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers,
+                  @Nonnull Set<Class<? extends Reporter>> availableReporters,
+                  @Nonnull Set<Class<? extends DifferenceTransform<?>>> availableTransforms,
+                  @Nonnull Set<Class<? extends ElementFilter>> elementFilters) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
         this.availableReporters = availableReporters;
         this.availableTransforms = availableTransforms;
-        this.availableFilters = new CompoundFilter(elementFilters);
+        this.availableFilters = elementFilters;
         this.configurationValidator = new ConfigurationValidator();
     }
 
@@ -94,10 +95,14 @@ public final class Revapi implements AutoCloseable {
     public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
         ValidationResult validation = ValidationResult.success();
 
-        validation = validate(analysisContext, validation, availableFilters);
-        validation = validate(analysisContext, validation, availableReporters);
-        validation = validate(analysisContext, validation, availableApiAnalyzers);
-        validation = validate(analysisContext, validation, availableTransforms);
+        Iterator<? extends Configurable> it = concat(
+                availableApiAnalyzers.stream(),
+                availableFilters.stream(),
+                availableReporters.stream(),
+                availableTransforms.stream())
+                .map(this::instantiate).iterator();
+
+        validation = validate(analysisContext, validation, it);
 
         return validation;
     }
@@ -105,47 +110,89 @@ public final class Revapi implements AutoCloseable {
     /**
      * Performs the analysis configured by the given analysis context.
      * <p>
-     * Make sure to call the {@link #close()} method (or perform the analysis in try-with-resources block).
+     * Make sure to call the {@link AnalysisResult#close()} method (or perform the analysis in try-with-resources
+     * block).
      *
      * @param analysisContext describes the analysis to be performed
-     * @throws Exception
+     * @return a result object that has to be closed for the analysis to conclude
      */
-    public void analyze(@Nonnull AnalysisContext analysisContext) throws Exception {
+    @SuppressWarnings("unchecked")
+    public AnalysisResult analyze(@Nonnull AnalysisContext analysisContext) {
         TIMING_LOG.debug("Analysis starts");
 
-        initialize(analysisContext, availableFilters);
-        initialize(analysisContext, availableReporters);
-        initialize(analysisContext, availableApiAnalyzers);
-        initialize(analysisContext, availableTransforms);
+        Map<ElementFilter, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
+        Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
+        Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
+        Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
+
+        AnalysisResult.Extensions extensions = new AnalysisResult.Extensions(analyzers, filters, reporters, transforms);
+
+        StreamSupport.stream(extensions.spliterator(), false)
+                .map(e -> (Map.Entry<Configurable, AnalysisContext>) e)
+                .forEach(e -> e.getKey().initialize(e.getValue()));
 
         TIMING_LOG.debug("Initialization complete.");
 
         matchingTransformsCache.clear();
 
-        for (ApiAnalyzer analyzer : availableApiAnalyzers) {
-            analyzeWith(analyzer, analysisContext.getOldApi(), analysisContext.getNewApi());
+        Throwable error = null;
+        try {
+            for (ApiAnalyzer a : extensions.getAnalyzers().keySet()) {
+                analyzeWith(a, analysisContext.getOldApi(), analysisContext.getNewApi(), extensions);
+            }
+        } catch (Exception t) {
+            error = t;
         }
+
+        return new AnalysisResult(error, extensions);
     }
 
-    public void close() throws Exception {
-        TIMING_LOG.debug("Closing all extensions");
-        closeAll(availableTransforms, "problem transform");
-        closeAll(availableFilters, "element filters");
-        closeAll(availableApiAnalyzers, "api analyzer");
-        closeAll(availableReporters, "reporter");
-        TIMING_LOG.debug("Extensions closed. Analysis complete.");
-        TIMING_LOG.debug(Stats.asString());
-    }
+    private <T extends Configurable> Map<T, AnalysisContext>
+    splitByConfiguration(AnalysisContext fullConfig, Set<Class<? extends T>> configurables) {
+        Map<T, AnalysisContext> map = new HashMap<>();
+        if (fullConfig.getConfiguration().getType() == ModelType.LIST) {
+            //new-style config
+            for (Class<? extends T> cc : configurables) {
+                T c = instantiate(cc);
+                String extensionId = c.getExtensionId();
+                if (extensionId == null) {
+                    map.put(c, fullConfig.modified().withConfiguration(new ModelNode()).build());
+                } else {
+                    String[] explodedExtensionId = extensionId.split("\\.");
+                    T inst = null;
+                    for (ModelNode config : fullConfig.getConfiguration().asList()) {
+                        String configExtension = config.get("extension").asString();
+                        if (!extensionId.equals(configExtension)) {
+                            continue;
+                        }
 
-    private void initialize(@Nonnull AnalysisContext analysisContext, Iterable<? extends Configurable> configurables) {
-        for (Configurable c : configurables) {
-            c.initialize(analysisContext);
+                        ModelNode extensionConfig = new ModelNode().get(explodedExtensionId);
+                        extensionConfig.set(config);
+
+                        if (inst == null) {
+                            inst = c;
+                        } else {
+                            inst = instantiate(cc);
+                        }
+
+                        map.put(inst, fullConfig.modified().withConfiguration(extensionConfig).build());
+                    }
+                }
+            }
+        } else {
+            //old-style config
+            for (Class<? extends T> cc : configurables) {
+                map.put(instantiate(cc), fullConfig);
+            }
         }
+
+        return map;
     }
 
     private ValidationResult validate(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
-                                      Iterable<? extends Configurable> configurables) {
-        for (Configurable c : configurables) {
+                                      Iterator<? extends Configurable> configurables) {
+        while (configurables.hasNext()) {
+            Configurable c = configurables.next();
             ValidationResult partial = configurationValidator.validate(analysisContext.getConfiguration(), c);
             validationResult = validationResult.merge(partial);
         }
@@ -153,17 +200,7 @@ public final class Revapi implements AutoCloseable {
         return validationResult;
     }
 
-    private void closeAll(Iterable<? extends AutoCloseable> closeables, String type) {
-        for (AutoCloseable c : closeables) {
-            try {
-                c.close();
-            } catch (Exception e) {
-                LOG.warn("Failed to close " + type + " " + c, e);
-            }
-        }
-    }
-
-    private void analyzeWith(ApiAnalyzer apiAnalyzer, API oldApi, API newApi)
+    private void analyzeWith(ApiAnalyzer apiAnalyzer, API oldApi, API newApi, AnalysisResult.Extensions extensions)
             throws Exception {
 
         if (TIMING_LOG.isDebugEnabled()) {
@@ -193,14 +230,15 @@ public final class Revapi implements AutoCloseable {
 
         TIMING_LOG.debug("Opening difference analyzer");
         elementDifferenceAnalyzer.open();
-        analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs);
+        analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs, extensions);
         TIMING_LOG.debug("Closing difference analyzer");
         elementDifferenceAnalyzer.close();
         TIMING_LOG.debug("Difference analyzer closed");
     }
 
     private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
-                         SortedSet<? extends Element> as, SortedSet<? extends Element> bs) {
+                         SortedSet<? extends Element> as, SortedSet<? extends Element> bs,
+                         AnalysisResult.Extensions extensions) {
 
         List<Element> sortedAs = new ArrayList<>(as);
         List<Element> sortedBs = new ArrayList<>(bs);
@@ -218,8 +256,9 @@ public final class Revapi implements AutoCloseable {
             Element b = it.getRight();
 
             Stats.of("filters").start();
+            Set<ElementFilter> filters = extensions.getFilters().keySet();
             boolean analyzeThis =
-                    (a == null || availableFilters.applies(a)) && (b == null || availableFilters.applies(b));
+                    (a == null || filtersApply(a, filters)) && (b == null || filtersApply(b, filters));
             Stats.of("filters").end(a, b);
 
             long beginDuration = 0;
@@ -232,12 +271,12 @@ public final class Revapi implements AutoCloseable {
             }
 
             Stats.of("descends").start();
-            boolean shouldDescend = a != null && b != null && availableFilters.shouldDescendInto(a) &&
-                    availableFilters.shouldDescendInto(b);
+            boolean shouldDescend = a != null && b != null && filtersDescend(a, filters) &&
+                    filtersDescend(b, filters);
             Stats.of("descends").end(a, b);
 
             if (shouldDescend) {
-                analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren());
+                analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren(), extensions);
             }
 
             if (analyzeThis) {
@@ -246,12 +285,38 @@ public final class Revapi implements AutoCloseable {
                 Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
                 Stats.of("analysisEnds").end(a, b);
                 Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
-                transformAndReport(r);
+                transformAndReport(r, extensions);
             }
         }
     }
 
-    private void transformAndReport(Report report) {
+    private <T> T instantiate(Class<? extends T> type) {
+        try {
+            return type.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException("Failed to instantiate extension: " + type, e);
+        }
+    }
+
+    @SafeVarargs
+    private static <T> Stream<T> concat(Stream<? extends T>... streams) {
+        if (streams.length == 0) {
+            return Stream.empty();
+        } else {
+            return concat(streams[0], streams, 1);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Stream<T> concat(Stream<? extends T> head, Stream<? extends T>[] all, int from) {
+        if (all.length >= from) {
+            return (Stream<T>) head;
+        } else {
+            return Stream.concat(head, concat(all[0], all, from + 1));
+        }
+    }
+
+    private void transformAndReport(Report report, AnalysisResult.Extensions extensions) {
         if (report == null) {
             return;
         }
@@ -270,7 +335,7 @@ public final class Revapi implements AutoCloseable {
                 transformed.clear();
                 boolean shouldBeRemoved = false;
                 boolean differenceChanged = false;
-                for (DifferenceTransform<?> t : getTransformsForDifference(d)) {
+                for (DifferenceTransform<?> t : getTransformsForDifference(d, extensions)) {
                     // it is the responsibility of the transform to declare the proper type.
                     // it will get a ClassCastException if it fails to declare a type that is common to all differences
                     // it can handle
@@ -337,18 +402,18 @@ public final class Revapi implements AutoCloseable {
 
         if (!report.getDifferences().isEmpty()) {
             Stats.of("reports").start();
-            for (Reporter reporter : availableReporters) {
+            for (Reporter reporter : extensions.getReporters().keySet()) {
                 reporter.report(report);
             }
             Stats.of("reports").end(report);
         }
     }
 
-    private List<DifferenceTransform<?>> getTransformsForDifference(Difference diff) {
+    private List<DifferenceTransform<?>> getTransformsForDifference(Difference diff, AnalysisResult.Extensions extensions) {
         List<DifferenceTransform<?>> ret = matchingTransformsCache.get(diff.code);
         if (ret == null) {
             ret = new ArrayList<>();
-            for (DifferenceTransform<?> t : availableTransforms) {
+            for (DifferenceTransform<?> t : extensions.getTransforms().keySet()) {
                 for (Pattern p : t.getDifferenceCodePatterns()) {
                     if (p.matcher(diff.code).matches()) {
                         ret.add(t);
@@ -363,32 +428,33 @@ public final class Revapi implements AutoCloseable {
     }
 
     public static final class Builder {
-        private Set<ApiAnalyzer> analyzers = null;
-        private Set<Reporter> reporters = null;
-        private Set<DifferenceTransform<?>> transforms = null;
-        private Set<ElementFilter> filters = null;
+        private Set<Class<? extends ApiAnalyzer>> analyzers = null;
+        private Set<Class<? extends Reporter>> reporters = null;
+        private Set<Class<? extends DifferenceTransform<?>>> transforms = null;
+        private Set<Class<? extends ElementFilter>> filters = null;
 
         @Nonnull
         public Builder withAnalyzersFromThreadContextClassLoader() {
-            return withAnalyzers(ServiceLoader.load(ApiAnalyzer.class));
+            return withAnalyzers(ServiceTypeLoader.load(ApiAnalyzer.class));
         }
 
         @Nonnull
         public Builder withAnalyzersFrom(@Nonnull ClassLoader cl) {
-            return withAnalyzers(ServiceLoader.load(ApiAnalyzer.class, cl));
+            return withAnalyzers(ServiceTypeLoader.load(ApiAnalyzer.class, cl));
         }
 
+        @SafeVarargs
         @Nonnull
-        public Builder withAnalyzers(ApiAnalyzer... analyzers) {
+        public final Builder withAnalyzers(Class<? extends ApiAnalyzer>... analyzers) {
             return withAnalyzers(Arrays.asList(analyzers));
         }
 
         @Nonnull
-        public Builder withAnalyzers(@Nonnull Iterable<? extends ApiAnalyzer> analyzers) {
+        public Builder withAnalyzers(@Nonnull Iterable<Class<? extends ApiAnalyzer>> analyzers) {
             if (this.analyzers == null) {
                 this.analyzers = new HashSet<>();
             }
-            for (ApiAnalyzer a : analyzers) {
+            for (Class<? extends ApiAnalyzer> a : analyzers) {
                 this.analyzers.add(a);
             }
 
@@ -397,25 +463,26 @@ public final class Revapi implements AutoCloseable {
 
         @Nonnull
         public Builder withReportersFromThreadContextClassLoader() {
-            return withReporters(ServiceLoader.load(Reporter.class));
+            return withReporters(ServiceTypeLoader.load(Reporter.class));
         }
 
         @Nonnull
         public Builder withReportersFrom(@Nonnull ClassLoader cl) {
-            return withReporters(ServiceLoader.load(Reporter.class, cl));
+            return withReporters(ServiceTypeLoader.load(Reporter.class, cl));
         }
 
+        @SafeVarargs
         @Nonnull
-        public Builder withReporters(Reporter... reporters) {
+        public final Builder withReporters(Class<? extends Reporter>... reporters) {
             return withReporters(Arrays.asList(reporters));
         }
 
         @Nonnull
-        public Builder withReporters(@Nonnull Iterable<? extends Reporter> reporters) {
+        public Builder withReporters(@Nonnull Iterable<Class<? extends Reporter>> reporters) {
             if (this.reporters == null) {
                 this.reporters = new HashSet<>();
             }
-            for (Reporter r : reporters) {
+            for (Class<? extends Reporter> r : reporters) {
                 this.reporters.add(r);
             }
 
@@ -426,10 +493,11 @@ public final class Revapi implements AutoCloseable {
         public Builder withTransformsFromThreadContextClassLoader() {
             //don't you love Java generics? ;)
             @SuppressWarnings("rawtypes")
-            Iterable trs = ServiceLoader.load(DifferenceTransform.class);
+            Iterable trs = ServiceTypeLoader.load(DifferenceTransform.class);
 
             @SuppressWarnings("unchecked")
-            Iterable<DifferenceTransform<?>> rtrs = (Iterable<DifferenceTransform<?>>) trs;
+            Iterable<Class<? extends DifferenceTransform<?>>> rtrs
+                    = (Iterable<Class<? extends DifferenceTransform<?>>>) trs;
 
             return withTransforms(rtrs);
         }
@@ -438,25 +506,27 @@ public final class Revapi implements AutoCloseable {
         public Builder withTransformsFrom(@Nonnull ClassLoader cl) {
             //don't you love Java generics? ;)
             @SuppressWarnings("rawtypes")
-            Iterable trs = ServiceLoader.load(DifferenceTransform.class, cl);
+            Iterable trs = ServiceTypeLoader.load(DifferenceTransform.class, cl);
 
             @SuppressWarnings("unchecked")
-            Iterable<DifferenceTransform<?>> rtrs = (Iterable<DifferenceTransform<?>>) trs;
+            Iterable<Class<? extends DifferenceTransform<?>>> rtrs
+                    = (Iterable<Class<? extends DifferenceTransform<?>>>) trs;
 
             return withTransforms(rtrs);
         }
 
+        @SafeVarargs
         @Nonnull
-        public Builder withTransforms(DifferenceTransform<?>... transforms) {
+        public final Builder withTransforms(Class<? extends DifferenceTransform<?>>... transforms) {
             return withTransforms(Arrays.asList(transforms));
         }
 
         @Nonnull
-        public Builder withTransforms(@Nonnull Iterable<? extends DifferenceTransform<?>> transforms) {
+        public Builder withTransforms(@Nonnull Iterable<Class<? extends DifferenceTransform<?>>> transforms) {
             if (this.transforms == null) {
                 this.transforms = new HashSet<>();
             }
-            for (DifferenceTransform<?> t : transforms) {
+            for (Class<? extends DifferenceTransform<?>> t : transforms) {
                 this.transforms.add(t);
             }
 
@@ -465,25 +535,26 @@ public final class Revapi implements AutoCloseable {
 
         @Nonnull
         public Builder withFiltersFromThreadContextClassLoader() {
-            return withFilters(ServiceLoader.load(ElementFilter.class));
+            return withFilters(ServiceTypeLoader.load(ElementFilter.class));
         }
 
         @Nonnull
         public Builder withFiltersFrom(@Nonnull ClassLoader cl) {
-            return withFilters(ServiceLoader.load(ElementFilter.class, cl));
+            return withFilters(ServiceTypeLoader.load(ElementFilter.class, cl));
         }
 
+        @SafeVarargs
         @Nonnull
-        public Builder withFilters(ElementFilter... filters) {
+        public final Builder withFilters(Class<? extends ElementFilter>... filters) {
             return withFilters(Arrays.asList(filters));
         }
 
         @Nonnull
-        public Builder withFilters(@Nonnull Iterable<? extends ElementFilter> filters) {
+        public Builder withFilters(@Nonnull Iterable<Class<? extends ElementFilter>> filters) {
             if (this.filters == null) {
                 this.filters = new HashSet<>();
             }
-            for (ElementFilter f : filters) {
+            for (Class<? extends ElementFilter> f : filters) {
                 this.filters.add(f);
             }
 
@@ -507,10 +578,10 @@ public final class Revapi implements AutoCloseable {
          */
         @Nonnull
         public Revapi build() throws IllegalStateException {
-            analyzers = analyzers == null ? Collections.<ApiAnalyzer>emptySet() : analyzers;
-            reporters = reporters == null ? Collections.<Reporter>emptySet() : reporters;
-            transforms = transforms == null ? Collections.<DifferenceTransform<?>>emptySet() : transforms;
-            filters = filters == null ? Collections.<ElementFilter>emptySet() : filters;
+            analyzers = analyzers == null ? Collections.emptySet() : analyzers;
+            reporters = reporters == null ? Collections.emptySet() : reporters;
+            transforms = transforms == null ? Collections.emptySet() : transforms;
+            filters = filters == null ? Collections.emptySet() : filters;
 
             if (analyzers.isEmpty()) {
                 throw new IllegalStateException(
@@ -527,108 +598,35 @@ public final class Revapi implements AutoCloseable {
         }
     }
 
-    private static class CompoundFilter implements ElementFilter, Iterable<ElementFilter> {
-        private final Collection<? extends ElementFilter> filters;
-        private final String[] allConfigRoots;
-        private final Map<String, ElementFilter> rootsToFilters;
-
-        private CompoundFilter(Collection<? extends ElementFilter> filters) {
-            this.filters = filters;
-
-            rootsToFilters = new HashMap<>();
-            List<String> tmp = new ArrayList<>();
-
-            for (ElementFilter f : filters) {
-                String[] roots = f.getConfigurationRootPaths();
-                if (roots != null) {
-                    for (String root : roots) {
-                        tmp.add(root);
-                        rootsToFilters.put(root, f);
-                    }
-                }
-            }
-
-            allConfigRoots = tmp.toArray(new String[tmp.size()]);
-        }
-
-        @Override
-        public void close() throws Exception {
-            Exception thrown = null;
-            for (ElementFilter f : filters) {
-                try {
-                    f.close();
-                } catch (Exception e) {
-                    if (thrown == null) {
-                        thrown = new Exception("Failed to close some element filters");
-                    }
-
-                    thrown.addSuppressed(e);
-                }
-            }
-
-            if (thrown != null) {
-                throw thrown;
+    private static boolean filtersApply(Element element, Iterable<? extends ElementFilter> filters) {
+        for (ElementFilter f : filters) {
+            String name = f.getClass().getName() + ".applies";
+            Stats.of(name).start();
+            boolean applies = f.applies(element);
+            Stats.of(name).end(element);
+            if (!applies) {
+                return false;
             }
         }
-
-        @Nullable
-        @Override
-        public String[] getConfigurationRootPaths() {
-            return allConfigRoots;
-        }
-
-        @Nullable
-        @Override
-        public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-            ElementFilter f = rootsToFilters.get(configurationRootPath);
-
-            return f == null ? null : f.getJSONSchema(configurationRootPath);
-        }
-
-        @Override
-        public void initialize(@Nonnull AnalysisContext analysisContext) {
-            for (ElementFilter f : filters) {
-                f.initialize(analysisContext);
-            }
-        }
-
-        @Override
-        public boolean applies(@Nullable Element element) {
-            for (ElementFilter f : filters) {
-                String name = f.getClass().getName() + ".applies";
-                Stats.of(name).start();
-                boolean applies = f.applies(element);
-                Stats.of(name).end(element);
-                if (!applies) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        @Override
-        public boolean shouldDescendInto(@Nullable Object element) {
-            Iterator<? extends ElementFilter> it = filters.iterator();
-            boolean hasNoFilters = !it.hasNext();
-
-            while (it.hasNext()) {
-                ElementFilter f = it.next();
-                String name = f.getClass().getName() + ".shouldDescendInto";
-                Stats.of(name).start();
-                boolean should = f.shouldDescendInto(element);
-                Stats.of(name).end(element);
-                if (should) {
-                    return true;
-                }
-            }
-
-            return hasNoFilters;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public Iterator<ElementFilter> iterator() {
-            return (Iterator<ElementFilter>) filters.iterator();
-        }
+        return true;
     }
+
+    private static boolean filtersDescend(Element element, Iterable<? extends ElementFilter> filters) {
+        Iterator<? extends ElementFilter> it = filters.iterator();
+        boolean hasNoFilters = !it.hasNext();
+
+        while (it.hasNext()) {
+            ElementFilter f = it.next();
+            String name = f.getClass().getName() + ".shouldDescendInto";
+            Stats.of(name).start();
+            boolean should = f.shouldDescendInto(element);
+            Stats.of(name).end(element);
+            if (should) {
+                return true;
+            }
+        }
+
+        return hasNoFilters;
+    }
+
 }

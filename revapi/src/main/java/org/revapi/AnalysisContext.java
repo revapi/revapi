@@ -146,6 +146,15 @@ public final class AnalysisContext {
         return new Builder();
     }
 
+    public Builder modified() {
+        Builder bld = new Builder();
+        bld.configuration = this.configuration;
+        bld.locale = this.locale;
+        bld.oldApi = this.oldApi;
+        bld.newApi = this.newApi;
+        return bld;
+    }
+    
     @Nonnull
     public Locale getLocale() {
         return locale;

@@ -105,12 +105,25 @@ public class ConfigurationValidatorTest {
     }
 
     @Test
-    public void testMultiSchemaConfiguration() throws Exception {
+    public void testMultipleConfigs() throws Exception {
+        String schema = "{" +
+                "\"properties\" : {" +
+                "   \"id\" : {" +
+                "      \"type\" : \"integer\"" +
+                "   }," +
+                "   \"kachna\" : {" +
+                "       \"type\" : \"string\"" +
+                "   }" +
+                "}}";
 
-    }
+        String config = "[" +
+                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}}," +
+                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}}," +
+                "{\"extension\": \"other-config\", \"configuration\": 1}" +
+                "]";
 
-    @Test
-    public void testMultipleEvaluations() throws Exception {
+        ValidationResult result = test(config, new String[]{"my-config"}, schema);
 
+        Assert.assertTrue(result.toString(), result.isSuccessful());
     }
 }
