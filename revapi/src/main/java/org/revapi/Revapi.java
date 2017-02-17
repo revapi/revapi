@@ -135,7 +135,7 @@ public final class Revapi {
 
         matchingTransformsCache.clear();
 
-        Throwable error = null;
+        Exception error = null;
         try {
             for (ApiAnalyzer a : extensions.getAnalyzers().keySet()) {
                 analyzeWith(a, analysisContext.getOldApi(), analysisContext.getNewApi(), extensions);

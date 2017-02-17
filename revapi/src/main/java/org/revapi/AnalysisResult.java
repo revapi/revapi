@@ -42,10 +42,10 @@ import org.slf4j.LoggerFactory;
 public final class AnalysisResult implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(AnalysisResult.class);
 
-    private final Throwable failure;
+    private final Exception failure;
     private final Extensions extensions;
 
-    AnalysisResult(@Nullable Throwable failure, Extensions extensions) {
+    AnalysisResult(@Nullable Exception failure, Extensions extensions) {
         this.failure = failure;
         this.extensions = extensions;
     }
@@ -57,7 +57,7 @@ public final class AnalysisResult implements AutoCloseable {
     /**
      * @return the error thrown during the analysis or null if the analysis completed without failures
      */
-    public @Nullable Throwable getFailure() {
+    public @Nullable Exception getFailure() {
         return failure;
     }
 
