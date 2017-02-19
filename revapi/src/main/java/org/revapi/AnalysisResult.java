@@ -61,6 +61,12 @@ public final class AnalysisResult implements AutoCloseable {
         return failure;
     }
 
+    public void throwIfFailed() throws Exception {
+        if (failure != null) {
+            throw failure;
+        }
+    }
+
     /**
      * @return the extension instances run during the analysis, each with its corresponding analysis context containing
      * the configuration used for the extension
