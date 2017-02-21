@@ -309,10 +309,10 @@ public final class Revapi {
 
     @SuppressWarnings("unchecked")
     private static <T> Stream<T> concat(Stream<? extends T> head, Stream<? extends T>[] all, int from) {
-        if (all.length >= from) {
-            return (Stream<T>) head;
+        if (from == all.length - 1) {
+            return Stream.concat(head, all[from]);
         } else {
-            return Stream.concat(head, concat(all[0], all, from + 1));
+            return Stream.concat(head, concat(all[from], all, from + 1));
         }
     }
 

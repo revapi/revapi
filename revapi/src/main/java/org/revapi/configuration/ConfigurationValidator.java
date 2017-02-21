@@ -178,6 +178,7 @@ public final class ConfigurationValidator {
             }
 
             if (!extensionId.equals(currentExtensionId.asString())) {
+                idx++;
                 continue;
             }
 
