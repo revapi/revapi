@@ -72,16 +72,17 @@ public final class BuildTimeReporter implements Reporter {
                     errors.append("\n");
 
                     ignores.append("{\n");
-                    ignores.append("  \"code\": \"").append(d.code).append("\",\n");
+                    ignores.append("  \"code\": \"").append(escape(d.code)).append("\",\n");
                     if (r.getOldElement() != null) {
-                        ignores.append("  \"old\": \"").append(r.getOldElement()).append("\",\n");
+                        ignores.append("  \"old\": \"").append(escape(r.getOldElement())).append("\",\n");
                     }
                     if (r.getNewElement() != null) {
-                        ignores.append("  \"new\": \"").append(r.getNewElement()).append("\",\n");
+                        ignores.append("  \"new\": \"").append(escape(r.getNewElement())).append("\",\n");
                     }
 
                     for (Map.Entry<String, String> e : d.attachments.entrySet()) {
-                        ignores.append("  \"").append(e.getKey()).append("\": \"").append(e.getValue()).append("\",\n");
+                        ignores.append("  \"").append(escape(e.getKey())).append("\": \"").append(escape(e.getValue()))
+                                .append("\",\n");
                     }
 
                     ignores.append("  \"justification\": <<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE" +
@@ -162,5 +163,57 @@ public final class BuildTimeReporter implements Reporter {
 
     @Override
     public void close() throws IOException {
+    }
+
+    private static String escape(Object obj) {
+        if (obj == null) {
+            return "null";
+        }
+
+        String string = obj.toString();
+
+        char c;
+        int i;
+        int len = string.length();
+        StringBuilder sb = new StringBuilder(len);
+        String t;
+
+        for (i = 0; i < len; i += 1) {
+            c = string.charAt(i);
+            switch (c) {
+                case '\\':
+                case '"':
+                    sb.append('\\');
+                    sb.append(c);
+                    break;
+                case '/':
+                    sb.append('\\');
+                    sb.append(c);
+                    break;
+                case '\b':
+                    sb.append("\\b");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\f':
+                    sb.append("\\f");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                default:
+                    if (c < ' ') {
+                        t = "000" + Integer.toHexString(c);
+                        sb.append("\\u").append(t.substring(t.length() - 4));
+                    } else {
+                        sb.append(c);
+                    }
+            }
+        }
+        return sb.toString();
     }
 }
