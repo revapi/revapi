@@ -19,18 +19,20 @@ package org.revapi;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.revapi.configuration.JSONUtil;
-
 import org.jboss.dmr.ModelNode;
+import org.revapi.configuration.JSONUtil;
 
 /**
  * An analysis context is an aggregation of the APIs to check and configuration for the analysis.
  *
+ * <p>It can also contain arbitrary data
  * @author Lukas Krejci
  * @since 0.1
  */
@@ -40,6 +42,7 @@ public final class AnalysisContext {
         private API oldApi;
         private API newApi;
         private ModelNode configuration;
+        private Map<String, Object> data = new HashMap<>(2);
 
         public Builder withLocale(Locale locale) {
             this.locale = locale;
@@ -97,11 +100,21 @@ public final class AnalysisContext {
             return this;
         }
 
-        public AnalysisContext build() {
-            return new AnalysisContext(locale, configuration, oldApi, newApi);
+        public Builder withData(Map<String, Object> data) {
+            this.data.putAll(data);
+            return this;
         }
 
-        public static void merge(ModelNode a, ModelNode b) {
+        public Builder withData(String key, Object value) {
+            this.data.put(key, value);
+            return this;
+        }
+
+        public AnalysisContext build() {
+            return new AnalysisContext(locale, configuration, oldApi, newApi, data);
+        }
+
+        private static void merge(ModelNode a, ModelNode b) {
             switch (b.getType()) {
             case LIST:
                 for (ModelNode v : b.asList()) {
@@ -124,26 +137,37 @@ public final class AnalysisContext {
     private final ModelNode configuration;
     private final API oldApi;
     private final API newApi;
+    private final Map<String, Object> data;
 
     /**
      * Constructor
-     *
      * @param locale        the locale the analysis reporters should use
      * @param configuration configuration represented as DMR node
      * @param oldApi        the old API
      * @param newApi        the new API
+     * @param data          the data that should be attached to the analysis context
      */
     public AnalysisContext(@Nonnull Locale locale, @Nullable ModelNode configuration, @Nonnull API oldApi,
-        @Nonnull API newApi) {
+                           @Nonnull API newApi, @Nonnull Map<String, Object> data) {
         this.locale = locale;
         this.configuration = configuration == null ? new ModelNode() : configuration;
         this.oldApi = oldApi;
         this.newApi = newApi;
+        this.data = data;
     }
 
     @Nonnull
     public static Builder builder() {
         return new Builder();
+    }
+
+    public Builder modified() {
+        Builder bld = new Builder();
+        bld.configuration = this.configuration;
+        bld.locale = this.locale;
+        bld.oldApi = this.oldApi;
+        bld.newApi = this.newApi;
+        return bld;
     }
 
     @Nonnull
@@ -164,5 +188,10 @@ public final class AnalysisContext {
     @Nonnull
     public API getNewApi() {
         return newApi;
+    }
+
+    @Nullable
+    public Object getData(String key) {
+        return data.get(key);
     }
 }

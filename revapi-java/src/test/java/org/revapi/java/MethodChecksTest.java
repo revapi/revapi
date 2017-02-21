@@ -16,20 +16,16 @@
 
 package org.revapi.java;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import javax.annotation.Nonnull;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.java.spi.Code;
-import org.revapi.simple.SimpleReporter;
 
 /**
  * @author Lukas Krejci
@@ -39,8 +35,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testMethodAdded() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/Added.java", "v2/methods/Added.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/Added.java", "v2/methods/Added.java");
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_ADDED.code()));
         Assert.assertEquals(4, (int) reporter.getProblemCounters().get(Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS.code()));
@@ -51,8 +47,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testMethodRemoved() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v2/methods/Added.java", "v1/methods/Added.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v2/methods/Added.java", "v1/methods/Added.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_ABSTRACT.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_FINAL.code()));
@@ -62,8 +58,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testDefaultValueChangedCheck() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/DefaultValue.java", "v2/methods/DefaultValue.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/DefaultValue.java", "v2/methods/DefaultValue.java");
 
         Assert.assertEquals(6, (int) reporter.getProblemCounters().get(Code.METHOD_DEFAULT_VALUE_CHANGED.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_DEFAULT_VALUE_ADDED.code()));
@@ -72,8 +68,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testAnnotationTypeAttributeAdded() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/DefaultValue.java", "v2/methods/DefaultValue.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/DefaultValue.java", "v2/methods/DefaultValue.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters()
             .get(Code.METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE.code()));
@@ -84,8 +80,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testAnnotationTypeAttributeRemoved() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v2/methods/DefaultValue.java", "v1/methods/DefaultValue.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v2/methods/DefaultValue.java", "v1/methods/DefaultValue.java");
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters()
             .get(Code.METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE.code()));
@@ -94,8 +90,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testMethodFinality() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/Final.java", "v2/methods/Final.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/Final.java", "v2/methods/Final.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_FINAL.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_FINAL.code()));
@@ -105,8 +101,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testVisibilityChanges() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/Visibility.java", "v2/methods/Visibility.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/Visibility.java", "v2/methods/Visibility.java");
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_VISIBILITY_INCREASED.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_VISIBILITY_REDUCED.code()));
@@ -114,8 +110,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testReturnTypeChanges() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/ReturnType.java", "v2/methods/ReturnType.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/ReturnType.java", "v2/methods/ReturnType.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_RETURN_TYPE_CHANGED.code()));
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_RETURN_TYPE_CHANGED_COVARIANTLY.code()));
@@ -125,8 +121,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testNofParamsChanged() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/NofParams.java", "v2/methods/NofParams.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/NofParams.java", "v2/methods/NofParams.java");
 
         Assert
             .assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED.code()));
@@ -134,16 +130,16 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testParamTypeChanged() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/ParamType.java", "v2/methods/ParamType.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/ParamType.java", "v2/methods/ParamType.java");
 
         Assert.assertEquals(3, (int) reporter.getProblemCounters().get(Code.METHOD_PARAMETER_TYPE_CHANGED.code()));
     }
 
     @Test
     public void testStaticMethod() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/Static.java", "v2/methods/Static.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/Static.java", "v2/methods/Static.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_STATIC.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_STATIC.code()));
@@ -151,8 +147,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testExceptionsThrown() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/methods/Exceptions.java", "v2/methods/Exceptions.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/methods/Exceptions.java", "v2/methods/Exceptions.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_CHECKED_EXCEPTION_ADDED.code()));
         Assert.assertEquals(3, (int) reporter.getProblemCounters().get(Code.METHOD_CHECKED_EXCEPTION_REMOVED.code()));
@@ -162,9 +158,9 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testDefaultMethod() throws Exception {
-        List<Report> reports = new ArrayList<>();
-        CollectingReporter reporter = new CollectingReporter(reports);
-        runAnalysis(reporter, "v1/methods/DefaultMethod.java", "v2/methods/DefaultMethod.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/methods/DefaultMethod.java", "v2/methods/DefaultMethod.java");
+        List<Report> reports = reporter.getReports();
 
         Assert.assertEquals(5, reports.size());
 
@@ -198,21 +194,9 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testOverloadsResolution() throws Exception {
-        List<Report> reports = new ArrayList<>();
-        SimpleReporter reporter = new SimpleReporter() {
-            @Override
-            public void report(@Nonnull Report report) {
-                reports.add(report);
-            }
-
-            @Override
-            public String toString() {
-                final StringBuilder sb = new StringBuilder("Reports");
-                sb.append(reports);
-                return sb.toString();
-            }
-        };
-        runAnalysis(reporter, "v1/methods/Overloads.java", "v2/methods/Overloads.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/methods/Overloads.java", "v2/methods/Overloads.java");
+        List<Report> reports = reporter.getReports();
 
         Assert.assertEquals(7, reports.size());
 
@@ -254,9 +238,9 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testAbstractMethod() throws Exception {
-        ArrayList<Report> reports = new ArrayList<>();
-        CollectingReporter reporter = new CollectingReporter(reports);
-        runAnalysis(reporter, "v1/methods/Abstract.java", "v2/methods/Abstract.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/methods/Abstract.java", "v2/methods/Abstract.java");
+        List<Report> reports = reporter.getReports();
 
         Assert.assertEquals(6, reports.size());
 
@@ -293,9 +277,9 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testInheritedMethodsWithExceptions() throws Exception {
-        ArrayList<Report> reports = new ArrayList<>();
-         CollectingReporter reporter = new CollectingReporter(reports);
-        runAnalysis(reporter, "v1/methods/ExceptionsAndInheritance.java", "v2/methods/ExceptionsAndInheritance.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/methods/ExceptionsAndInheritance.java", "v2/methods/ExceptionsAndInheritance.java");
+        List<Report> reports = reporter.getReports();
 
         Assert.assertEquals(5, reports.size());
 
@@ -333,9 +317,9 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testInheritedMethodsWithCovariantReturnTypes() throws Exception {
-        ArrayList<Report> reports = new ArrayList<>();
-        CollectingReporter reporter = new CollectingReporter(reports);
-        runAnalysis(reporter, "v1/methods/CovariantReturnTypeAndInheritance.java", "v2/methods/CovariantReturnTypeAndInheritance.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/methods/CovariantReturnTypeAndInheritance.java", "v2/methods/CovariantReturnTypeAndInheritance.java");
+        List<Report> reports = reporter.getReports();
 
         Assert.assertEquals(5, reports.size());
 
@@ -376,11 +360,10 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testInheritedMethodsNotReportedRepeatedly() throws Exception {
-        ArrayList<Report> reports = new ArrayList<>();
-        CollectingReporter reporter = new CollectingReporter(reports);
-        runAnalysis(reporter, "v1/methods/DryReportingWithInheritance.java", "v2/methods/DryReportingWithInheritance.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/methods/DryReportingWithInheritance.java", "v2/methods/DryReportingWithInheritance.java");
 
-        Assert.assertEquals(2, reports.size());
+        Assert.assertEquals(2, reporter.getReports().size());
     }
 
     private Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {

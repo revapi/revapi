@@ -47,6 +47,7 @@ import org.jboss.forge.furnace.manager.request.InstallRequest;
 import org.jboss.forge.furnace.util.Addons;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.AnalysisResult;
 import org.revapi.Revapi;
 import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.maven.utils.ScopeDependencySelector;
@@ -333,8 +334,11 @@ public final class Main {
                 ctxBld.mergeConfiguration(additionalNode);
             }
 
-            try (Revapi revapi = builder.withAllExtensionsFromThreadContextClassLoader().build()) {
-                revapi.analyze(ctxBld.build());
+            Revapi revapi = builder.withAllExtensionsFromThreadContextClassLoader().build();
+            try (AnalysisResult result = revapi.analyze(ctxBld.build())) {
+                if (!result.isSuccess()) {
+                    throw result.getFailure();
+                }
             }
         } finally {
             furnace.stop();

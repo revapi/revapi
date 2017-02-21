@@ -30,15 +30,15 @@
         the differences to a file or on standard output. Takes Freemarker templates for formatting the output.
     </description>
     <url>${web.url}/modules/${project.artifactId}</url>
-    
+
     <artifactId>revapi-reporter-text</artifactId>
-    <version>0.7.1-SNAPSHOT</version>
+    <version>0.8.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.7.0</version>
+            <version>0.8.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

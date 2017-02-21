@@ -27,6 +27,9 @@ import org.revapi.configuration.Configurable;
  * <p>Importantly, reporters are {@link org.revapi.configuration.Configurable} and can use the locale defined in the
  * analysis context of the configuration to produce the desired output.
  *
+ * <p>The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
+ * resource acquisition in initialize, not during the construction of the object.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */

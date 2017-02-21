@@ -22,15 +22,12 @@ import org.revapi.Reporter;
  * @since 0.1
  */
 public final class ReportTimeReporter implements Reporter {
+    static final String MIN_SEVERITY_KEY = "org.revapi.maven.report.minSeverity";
 
-    private final DifferenceSeverity minSeverity;
+    private DifferenceSeverity minSeverity;
 
     EnumMap<DifferenceSeverity, EnumMap<CompatibilityType, List<DifferenceReport>>> reportsBySeverity =
         new EnumMap<>(DifferenceSeverity.class);
-
-    ReportTimeReporter(DifferenceSeverity minSeverity) {
-        this.minSeverity = minSeverity;
-    }
 
     @Override
     public void report(@Nonnull Report report) {
@@ -58,6 +55,7 @@ public final class ReportTimeReporter implements Reporter {
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         reportsBySeverity.clear();
+        minSeverity = (DifferenceSeverity) analysisContext.getData(MIN_SEVERITY_KEY);
     }
 
     private void addDifference(Element oldElement, Element newElement, Difference difference) {

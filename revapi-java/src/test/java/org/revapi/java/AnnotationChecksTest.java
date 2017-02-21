@@ -16,7 +16,6 @@
 
 package org.revapi.java;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -39,82 +38,83 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testAnnotationAdded() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, new String[]{"v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java"},
-            new String[]{"v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java"});
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                new String[]{"v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java"},
+                new String[]{"v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java"});
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ADDED.code()));
     }
 
     @Test
     public void testAnnotationRemoved() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, new String[]{"v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java"},
-            new String[]{"v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java"});
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                new String[]{"v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java"},
+                new String[]{"v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java"});
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_REMOVED.code()));
     }
 
     @Test
     public void testAnnotationNewlyInherited() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/annotations/InheritedAnnotation.java", "v2/annotations/InheritedAnnotation.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/annotations/InheritedAnnotation.java", "v2/annotations/InheritedAnnotation.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_NOW_INHERITED.code()));
     }
 
     @Test
     public void testAnnotationNoLongerInherited() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v2/annotations/InheritedAnnotation.java", "v1/annotations/InheritedAnnotation.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v2/annotations/InheritedAnnotation.java", "v1/annotations/InheritedAnnotation.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_NO_LONGER_INHERITED.code()));
     }
 
     @Test
     public void testAnnotationAttributeAdded() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ATTRIBUTE_ADDED.code()));
     }
 
     @Test
     public void testAnnotationAttributeRemoved() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v2/annotations/Attributes.java", "v1/annotations/Attributes.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v2/annotations/Attributes.java", "v1/annotations/Attributes.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ATTRIBUTE_REMOVED.code()));
     }
 
     @Test
     public void testAnnotationAttributeChanged() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED.code()));
     }
 
     @Test
     public void testElementDeprecated() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ELEMENT_NOW_DEPRECATED.code()));
     }
 
     @Test
     public void testElementNoLongerDeprecated() throws Exception {
-        ProblemOccurrenceReporter reporter = new ProblemOccurrenceReporter();
-        runAnalysis(reporter, "v2/annotations/Attributes.java", "v1/annotations/Attributes.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v2/annotations/Attributes.java", "v1/annotations/Attributes.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ELEMENT_NO_LONGER_DEPRECATED.code()));
     }
 
     @Test
     public void testDownplayedJREAnnotations() throws Exception {
-        List<Report> reports = new ArrayList<>();
-        runAnalysis(new CollectingReporter(reports), "v1/annotations/Downplayed.java", "v2/annotations/Downplayed.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/annotations/Downplayed.java", "v2/annotations/Downplayed.java");
+        List<Report> reports = reporter.getReports();
 
         Assert.assertEquals(2, reports.size());
         Assert.assertTrue(reports.stream()
@@ -128,8 +128,9 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testAnnotationsCapturedOnAllLocations() throws Exception {
-        List<Report> reports = new ArrayList<>();
-        runAnalysis(new CollectingReporter(reports), "v1/annotations/Elements.java", "v2/annotations/Elements.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/annotations/Elements.java", "v2/annotations/Elements.java");
+        List<Report> reports = reporter.getReports();
 
         Function<Class<?>, Stream<Difference>> diffsOn = cls -> reports.stream()
                 .filter(r -> (r.getNewElement() != null && cls.isAssignableFrom(r.getNewElement().getClass()))

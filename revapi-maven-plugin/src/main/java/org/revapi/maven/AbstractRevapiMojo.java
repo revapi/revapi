@@ -16,7 +16,9 @@
  */
 package org.revapi.maven;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,6 +28,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.revapi.AnalysisResult;
 import org.revapi.Reporter;
 
 /**
@@ -249,19 +252,20 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
     protected String disallowedExtensions;
 
-    protected void analyze(Reporter reporter) throws MojoExecutionException, MojoFailureException {
-        try (Analyzer analyzer = prepareAnalyzer(project, reporter)) {
-            if (analyzer != null) {
-                analyzer.analyze();
-            }
-        } catch (MojoExecutionException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new MojoExecutionException("Failed to close the API analyzer.", e);
+    protected AnalysisResult analyze(Class<? extends Reporter> reporter, Object... contextDataKeyValues)
+            throws MojoExecutionException, MojoFailureException {
+
+        Analyzer analyzer = prepareAnalyzer(project, reporter, toContextData(contextDataKeyValues));
+        if (analyzer != null) {
+            return analyzer.analyze();
+        } else {
+            //a null analyzer means the current module doesn't have a jar output
+            return AnalysisResult.fakeSuccess();
         }
     }
 
-    protected Analyzer prepareAnalyzer(MavenProject project, Reporter reporter) {
+    protected Analyzer prepareAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
+                                       Map<String, Object> contextData) {
         AnalyzerBuilder.Result res = AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
                 .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
                 .withAnalysisConfiguration(this.analysisConfiguration)
@@ -282,6 +286,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
                 .withRepositorySystemSession(this.repositorySystemSession)
                 .withSkip(this.skip)
                 .withVersionFormat(this.versionFormat)
+                .withContextData(contextData)
                 .build();
 
         if (res.skip) {
@@ -336,5 +341,31 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         }
 
         return true;
+    }
+
+    private Map<String, Object> toContextData(Object... contextDataKeyValues) {
+        if (contextDataKeyValues.length % 2 != 0) {
+            throw new IllegalArgumentException("Key-value pairs not balanced.");
+        }
+
+        Map<String, Object> ret = new HashMap<>(contextDataKeyValues.length / 2);
+
+        boolean isKey = true;
+        String key = null;
+        for(Object kv : contextDataKeyValues) {
+            if (isKey) {
+                if (!(kv instanceof String)) {
+                    throw new IllegalArgumentException("Found non-string key.");
+                }
+
+                key = (String) kv;
+                isKey = false;
+            } else {
+                ret.put(key, kv);
+                isKey = true;
+            }
+        }
+
+        return ret;
     }
 }

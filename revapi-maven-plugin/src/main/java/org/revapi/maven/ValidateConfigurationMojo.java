@@ -16,6 +16,7 @@
  */
 package org.revapi.maven;
 
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,7 +36,9 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        try (Analyzer analyzer = prepareAnalyzer(project, new SimpleReporter())) {
+        Analyzer analyzer = prepareAnalyzer(project, SimpleReporter.class, Collections.emptyMap());
+
+        try {
             if (analyzer != null) {
                 ValidationResult res = analyzer.validateConfiguration();
                 if (!res.isSuccessful()) {

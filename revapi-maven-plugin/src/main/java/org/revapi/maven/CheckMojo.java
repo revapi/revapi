@@ -21,6 +21,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.revapi.AnalysisResult;
 
 /**
  * Runs the API check of old and new artifacts using the specified configuration of extensions declared as dependencies
@@ -39,18 +40,27 @@ public class CheckMojo extends AbstractRevapiMojo {
             return;
         }
 
-        BuildTimeReporter reporter = new BuildTimeReporter(failSeverity.asDifferenceSeverity());
+        try (AnalysisResult res = analyze(BuildTimeReporter.class,
+                BuildTimeReporter.BREAKING_SEVERITY_KEY, failSeverity.asDifferenceSeverity())) {
 
-        analyze(reporter);
+            res.throwIfFailed();
 
-        if (reporter.hasBreakingProblems()) {
-            if (failBuildOnProblemsFound) {
-                throw new MojoFailureException(reporter.getAllProblemsMessage());
+            BuildTimeReporter reporter = res.getExtensions().getFirstExtension(BuildTimeReporter.class, null);
+
+            if (reporter != null && reporter.hasBreakingProblems()) {
+                if (failBuildOnProblemsFound) {
+                    throw new MojoFailureException(reporter.getAllProblemsMessage());
+                } else {
+                    getLog().info("API problems found but letting the build pass as configured.");
+                }
             } else {
-                getLog().info("API problems found but letting the build pass as configured.");
+                getLog().info("API checks completed without failures.");
             }
-        } else {
-            getLog().info("API checks completed without failures.");
+
+        } catch (MojoFailureException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MojoExecutionException("Failed to execute the API analysis.", e);
         }
     }
 }

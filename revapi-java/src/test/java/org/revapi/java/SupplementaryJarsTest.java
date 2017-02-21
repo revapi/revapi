@@ -16,7 +16,6 @@
 
 package org.revapi.java;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -27,8 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.AnalysisResult;
 import org.revapi.Report;
-import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaModelElement;
@@ -104,14 +103,17 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testSupplementaryJarsAreTakenIntoAccountWhenComputingAPI() throws Exception {
-        List<Report> allReports = new ArrayList<>();
-        Reporter reporter = new CollectingReporter(allReports);
+        List<Report> allReports;
 
-        try (Revapi revapi = createRevapi(reporter)) {
-            revapi.analyze(AnalysisContext.builder()
-                    .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
-                    .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
-                    .build());
+        AnalysisContext ctx = AnalysisContext.builder()
+                .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
+                .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
+                .build();
+        Revapi revapi = createRevapi(CollectingReporter.class);
+
+        try (AnalysisResult res = revapi.analyze(ctx)) {
+            Assert.assertTrue(res.isSuccess());
+            allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }
 
         Assert.assertEquals(8 + 11, allReports.size()); //11 removed methods when kind of class changes to interface
@@ -158,15 +160,18 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testExcludedClassesDontDragUsedTypesIntoAPI() throws Exception {
-        List<Report> allReports = new ArrayList<>();
-        Reporter reporter = new CollectingReporter(allReports);
+        List<Report> allReports;
+        AnalysisContext ctx = AnalysisContext.builder()
+                .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
+                .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
+                .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
+                        "\"filter\": {\"classes\": {\"exclude\": [\"C\"]}}}}}").build();
 
-        try (Revapi revapi = createRevapi(reporter)) {
-            revapi.analyze(AnalysisContext.builder()
-                    .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
-                    .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
-                    .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
-                            "\"filter\": {\"classes\": {\"exclude\": [\"C\"]}}}}}").build());
+        Revapi revapi = createRevapi(CollectingReporter.class);
+
+        try (AnalysisResult res = revapi.analyze(ctx)) {
+            allReports =
+                    res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }
 
         Assert.assertEquals(6, allReports.size());
@@ -186,15 +191,18 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testExcludedClassesInAPI() throws Exception {
-        List<Report> allReports = new ArrayList<>();
-        Reporter reporter = new CollectingReporter(allReports);
+        List<Report> allReports;
+        AnalysisContext ctx = AnalysisContext.builder()
+                .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
+                .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
+                .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
+                        "\"filter\": {\"classes\": {\"exclude\": [\"C\", \"B.T$2\"]}}}}}").build();
 
-        try (Revapi revapi = createRevapi(reporter)) {
-            revapi.analyze(AnalysisContext.builder()
-                    .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
-                    .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
-                    .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
-                            "\"filter\": {\"classes\": {\"exclude\": [\"C\", \"B.T$2\"]}}}}}").build());
+        Revapi revapi = createRevapi(CollectingReporter.class);
+
+        try (AnalysisResult res = revapi.analyze(ctx)) {
+            allReports =
+                    res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }
 
         Assert.assertEquals(3, allReports.size());

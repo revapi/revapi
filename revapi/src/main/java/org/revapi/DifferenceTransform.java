@@ -28,6 +28,9 @@ import org.revapi.configuration.Configurable;
  * in custom extensions that want to "modify the behavior" of other extensions by consuming and transforming the
  * differences found by the other extensions into something else.
  *
+ * <p>The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
+ * resource acquisition in initialize, not during the construction of the object.
+ *
  * @param <T> the type of the element expected in the {@code transform} method. Note that you need to be careful about
  *            this type because the types of the elements passed to {@code transform} depend on the differences that the
  *            transform is interested in. Thus you may end up with {@code ClassCastException}s if you're not careful.

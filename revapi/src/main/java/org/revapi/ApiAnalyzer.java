@@ -28,6 +28,9 @@ import org.revapi.configuration.Configurable;
  * difference analyzer that will be responsible to check pairs of comparable elements, each coming from the different
  * version of the API.
  *
+ * <p>The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
+ * resource acquisition in initialize, not during the construction of the object.
+ * 
  * @author Lukas Krejci
  * @since 0.1
  */

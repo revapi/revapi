@@ -6,11 +6,20 @@ import java.io.StringReader;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
 import org.junit.Test;
-
-import org.jboss.dmr.ModelNode;
+import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.ApiAnalyzer;
+import org.revapi.ArchiveAnalyzer;
+import org.revapi.CorrespondenceComparatorDeducer;
+import org.revapi.DifferenceAnalyzer;
+import org.revapi.Element;
+import org.revapi.ElementFilter;
+import org.revapi.Report;
+import org.revapi.Reporter;
+import org.revapi.Revapi;
 
 /**
  * @author Lukas Krejci
@@ -105,12 +114,121 @@ public class ConfigurationValidatorTest {
     }
 
     @Test
-    public void testMultiSchemaConfiguration() throws Exception {
+    public void testMultipleConfigs() throws Exception {
+        String schema = "{" +
+                "\"properties\" : {" +
+                "   \"id\" : {" +
+                "      \"type\" : \"integer\"" +
+                "   }," +
+                "   \"kachna\" : {" +
+                "       \"type\" : \"string\"" +
+                "   }" +
+                "}}";
 
+        String config = "[" +
+                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}}," +
+                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}}," +
+                "{\"extension\": \"other-config\", \"configuration\": 1}" +
+                "]";
+
+        ValidationResult result = test(config, new String[]{"my-config"}, schema);
+
+        Assert.assertTrue(result.toString(), result.isSuccessful());
     }
 
     @Test
-    public void testMultipleEvaluations() throws Exception {
+    public void testRevapiValidation() throws Exception {
+        String config = "[" +
+                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}}," +
+                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}}," +
+                "{\"extension\": \"other-config\", \"configuration\": 1}" +
+                "]";
 
+        AnalysisContext ctx = AnalysisContext.builder().withConfigurationFromJSON(config).build();
+
+        Revapi revapi = Revapi.builder().withFilters(TestFilter.class).withReporters(TestReporter.class)
+                .withAnalyzers(DummyApiAnalyzer.class).build();
+
+        ValidationResult res = revapi.validateConfiguration(ctx);
+
+        Assert.assertFalse(res.isSuccessful());
+        Assert.assertNotNull(res.getErrors());
+        Assert.assertEquals(1, res.getErrors().length);
+        Assert.assertEquals("/[2]/configuration", res.getErrors()[0].dataPath);
+    }
+
+    public static final class TestFilter implements ElementFilter {
+        private static final String SCHEMA = "{" +
+                "\"properties\" : {" +
+                "   \"id\" : {" +
+                "      \"type\" : \"integer\"" +
+                "   }," +
+                "   \"kachna\" : {" +
+                "       \"type\" : \"string\"" +
+                "   }" +
+                "}}";
+
+        @Nullable @Override public String getExtensionId() {
+            return "my-config";
+        }
+
+        @Nullable @Override public Reader getJSONSchema() {
+            return new StringReader(SCHEMA);
+        }
+
+        @Override public void close() throws Exception {
+        }
+
+        @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
+        }
+
+        @Override public boolean applies(@Nullable Element element) {
+            return false;
+        }
+
+        @Override public boolean shouldDescendInto(@Nullable Object element) {
+            return false;
+        }
+    }
+
+    public static final class TestReporter implements Reporter {
+        @Override public void report(@Nonnull Report report) {
+        }
+
+        @Override public void close() throws Exception {
+        }
+
+        @Nullable @Override public String getExtensionId() {
+            return "other-config";
+        }
+
+        @Nullable @Override public Reader getJSONSchema() {
+            return new StringReader("{\"type\": \"string\"}");
+        }
+
+        @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
+        }
+    }
+
+    public static final class DummyApiAnalyzer implements ApiAnalyzer {
+
+        @Nonnull @Override public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
+            return null;
+        }
+
+        @Nonnull @Override public DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
+                                                                           @Nonnull ArchiveAnalyzer newArchive) {
+            return null;
+        }
+
+        @Nonnull @Override public CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
+            return null;
+        }
+
+        @Override public void close() throws Exception {
+        }
+
+        @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
+        }
     }
 }

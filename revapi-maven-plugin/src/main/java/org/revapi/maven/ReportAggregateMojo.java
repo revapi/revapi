@@ -23,6 +23,7 @@ import static org.apache.maven.plugins.annotations.LifecyclePhase.SITE;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -47,7 +48,7 @@ import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.revapi.API;
-import org.revapi.Reporter;
+import org.revapi.AnalysisResult;
 import org.revapi.Revapi;
 import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.maven.utils.ScopeDependencySelector;
@@ -127,23 +128,25 @@ public class ReportAggregateMojo extends ReportMojo {
         ResourceBundle messages = getBundle(locale);
         Sink sink = getSink();
 
-        ReportTimeReporter reporter = null;
         if (generateSiteReport) {
             startReport(sink, messages);
-            reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
         }
 
-        try (Analyzer topAnalyzer = prepareAnalyzer(null, project, locale, reporter,
-                projectVersions.get(project))) {
+        try {
+            Analyzer topAnalyzer = prepareAnalyzer(null, project, locale, projectVersions.get(project));
+
             Revapi sharedRevapi = topAnalyzer == null ? null : topAnalyzer.getRevapi();
 
             for (MavenProject p : dependents) {
-                try (Analyzer projectAnalyzer = prepareAnalyzer(sharedRevapi, p, locale, reporter,
-                        projectVersions.get(p))) {
-                    if (projectAnalyzer != null) {
-                        projectAnalyzer.analyze();
+                Analyzer projectAnalyzer = prepareAnalyzer(sharedRevapi, p, locale, projectVersions.get(p));
+                if (projectAnalyzer != null) {
+                    try (AnalysisResult res = projectAnalyzer.analyze()) {
+                        res.throwIfFailed();
 
-                        if (generateSiteReport) {
+                        ReportTimeReporter reporter =
+                                res.getExtensions().getFirstExtension(ReportTimeReporter.class, null);
+
+                        if (generateSiteReport && reporter != null) {
                             reportBody(reporter, projectAnalyzer.getResolvedOldApi(),
                                     projectAnalyzer.getResolvedNewApi(), sink, messages);
                         }
@@ -241,8 +244,7 @@ public class ReportAggregateMojo extends ReportMojo {
         return ret;
     }
 
-    private Analyzer prepareAnalyzer(Revapi revapi, MavenProject project, Locale locale,
-                                     Reporter defaultReporter, ProjectVersions storedVersions) {
+    private Analyzer prepareAnalyzer(Revapi revapi, MavenProject project, Locale locale, ProjectVersions storedVersions) {
 
         Plugin runPluginConfig = findRevapi(project);
 
@@ -285,10 +287,14 @@ public class ReportAggregateMojo extends ReportMojo {
                 .withVersionFormat(versionRegex);
 
         if (revapi == null) {
-            bld = bld.withReporter(defaultReporter);
+            bld = bld.withReporter(ReportTimeReporter.class);
         } else {
             bld = bld.withRevapiInstance(revapi);
         }
+
+        Map<String, Object> contextData = new HashMap<>(1);
+        contextData.put(ReportTimeReporter.MIN_SEVERITY_KEY, reportSeverity.asDifferenceSeverity());
+        bld.withContextData(contextData);
 
         return bld.build().analyzer;
     }

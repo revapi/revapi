@@ -118,12 +118,12 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
 
     @Test
     public void testChangesReportedOnAnnotationElements() throws Exception {
-        ArrayList<Report> reports = new ArrayList<>();
-        CollectingReporter reporter = new CollectingReporter(reports);
-        runAnalysis(reporter,
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
                 "{\"revapi\": {\"java\": {\"filter\": {\"annotated\": {\"regex\": true," +
                         " \"include\":[\"@Attributes.Anno.*\"]}}}}}",
                 "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
+
+        List<Report> reports = reporter.getReports();
 
         Assert.assertEquals(2, reports.size());
         Report parameterChange = reports.stream().filter(r -> r.getNewElement() instanceof MethodParameterElement)

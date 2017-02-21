@@ -12,6 +12,7 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.AnalysisResult;
 import org.revapi.Revapi;
 
 /**
@@ -66,14 +67,15 @@ public final class RevapiTask extends Task {
     @Override
     public void execute() throws BuildException {
 
-        try(Revapi revapi = initRevapi()) {
-            AnalysisContext context = initAnalysisContext();
+        Revapi revapi = initRevapi();
+        AnalysisContext context = initAnalysisContext();
 
-            log("Running API analysis");
-            log("Old API: " + context.getOldApi().toString());
-            log("New API: " + context.getNewApi().toString());
+        log("Running API analysis");
+        log("Old API: " + context.getOldApi().toString());
+        log("New API: " + context.getNewApi().toString());
 
-            revapi.analyze(context);
+        try(AnalysisResult res = revapi.analyze(context)) {
+            res.throwIfFailed();
         } catch (Exception e) {
             throw new BuildException("API analysis failed.", e);
         }
@@ -100,8 +102,7 @@ public final class RevapiTask extends Task {
         }
 
         //always add the Ant reporter, so that we get stuff in the Ant log
-        revapiBuilder
-            .withReporters(new AntReporter(this, FailSeverity.valueOf(breakingSeverity).asDifferenceSeverity()));
+        revapiBuilder.withReporters(AntReporter.class);
 
         return revapiBuilder.build();
     }
@@ -119,6 +120,9 @@ public final class RevapiTask extends Task {
         if (configuration != null) {
             builder.withConfigurationFromJSON(configuration);
         }
+
+        builder.withData(AntReporter.ANT_REPORTER_LOGGER_KEY, this);
+        builder.withData(AntReporter.MIN_SEVERITY_KEY, FailSeverity.valueOf(breakingSeverity).asDifferenceSeverity());
 
         return builder.build();
     }

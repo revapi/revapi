@@ -29,9 +29,9 @@
         SPI for extending the java extension of Revapi.
     </description>
     <url>${web.url}/modules/${project.artifactId}</url>
-    
+
     <artifactId>revapi-java-spi</artifactId>
-    <version>0.12.2-SNAPSHOT</version>
+    <version>0.13.0-SNAPSHOT</version>
 
     <properties>
         <jacoco.skip>true</jacoco.skip>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.7.0</version>
+            <version>0.8.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

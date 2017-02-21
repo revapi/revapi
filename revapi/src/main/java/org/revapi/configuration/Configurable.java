@@ -36,9 +36,27 @@ public interface Configurable {
      * a set of paths in the JSON file that it wants to read the configuration from.
      *
      * @return the root paths in the configuration this configurable understands or null
+     * @deprecated don't use this. Instead use the {@link #getExtensionId()} method.
      */
     @Nullable
-    String[] getConfigurationRootPaths();
+    @Deprecated
+    default String[] getConfigurationRootPaths() {
+        return null;
+    }
+
+    /**
+     * The identifier of this configurable extension in the configuration file. This should be globally unique, but
+     * human readable, so a package name or something similar would be a good candidate. Core revapi extensions have
+     * the extension ids always starting with "revapi.".
+     *
+     * @return the unique identifier of this configurable extension or null if this extension doesn't require any
+     * configuration
+     */
+    @Nullable
+    default String getExtensionId() {
+        String[] rootPaths = getConfigurationRootPaths();
+        return rootPaths == null ? null : rootPaths[0];
+    }
 
     /**
      * Returns a reader using which the caller can read the JSON schema for given configuration root path.
@@ -48,9 +66,19 @@ public interface Configurable {
      *                              from {@link #getConfigurationRootPaths()}.
      *
      * @return the reader for reading in the schema JSON or null if no schema is needed for given root path.
+     * @deprecated use {@link #getJSONSchema()} instead
      */
     @Nullable
-    Reader getJSONSchema(@Nonnull String configurationRootPath);
+    @Deprecated
+    default Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        return null;
+    }
+
+    @Nullable
+    default Reader getJSONSchema() {
+        String extensionId = getExtensionId();
+        return extensionId == null ? null : getJSONSchema(extensionId);
+    }
 
     /**
      * The instance can configure itself for the upcoming analysis from the supplied analysis context.

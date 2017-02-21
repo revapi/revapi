@@ -1,19 +1,17 @@
 package org.revapi.java;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.AnalysisResult;
 import org.revapi.Difference;
 import org.revapi.Report;
-import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.java.spi.Code;
 
@@ -26,7 +24,6 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
     private JavaArchive apiV1;
     private JavaArchive apiV2;
 
-    private List<Report> allReports = new ArrayList<>();
     private Revapi revapi;
 
     private void compileJars() throws Exception {
@@ -69,16 +66,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
     @Before
     public void setup() throws Exception {
         compileJars();
-        allReports.clear();
-
-        Reporter reporter = new CollectingReporter(allReports);
-
-        revapi = createRevapi(reporter);
-    }
-
-    @After
-    public void teardown() throws Exception {
-        revapi.close();
+        revapi = createRevapi(CollectingReporter.class);
     }
 
     @Test
@@ -107,7 +95,8 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                         "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }}}}").build();
 
         revapi.validateConfiguration(ctx);
-        revapi.analyze(ctx);
+        List<Report> allReports = revapi.analyze(ctx).getExtensions().getFirstExtension(CollectingReporter.class, null)
+                .getReports();
 
         Assert.assertEquals(3, allReports.size());
         Assert.assertTrue(containsDifference(allReports, "missing-class B.T$2", "missing-class B.T$2",
@@ -138,13 +127,16 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testIgnoresMissingClasses() throws Exception {
-        revapi.analyze(
+        AnalysisResult res = revapi.analyze(
             AnalysisContext.builder()
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
                 .withConfigurationFromJSON(
                     "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"ignore\" }}}}").build()
         );
+
+        List<Report> allReports =
+                res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
 
         Assert.assertEquals(1, allReports.size());
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));

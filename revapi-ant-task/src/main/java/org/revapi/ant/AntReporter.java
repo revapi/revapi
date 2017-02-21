@@ -21,13 +21,11 @@ import org.revapi.Reporter;
  * @since 0.2
  */
 final class AntReporter implements Reporter {
-    private final ProjectComponent logger;
-    private final DifferenceSeverity minSeverity;
+    static final String ANT_REPORTER_LOGGER_KEY = "org.revapi.ant.logger";
+    static final String MIN_SEVERITY_KEY = "org.revapi.ant.minSeverity";
 
-    AntReporter(ProjectComponent logger, DifferenceSeverity minSeverity) {
-        this.logger = logger;
-        this.minSeverity = minSeverity;
-    }
+    private ProjectComponent logger;
+    private DifferenceSeverity minSeverity;
 
     @Override
     public void report(@Nonnull Report report) {
@@ -71,19 +69,19 @@ final class AntReporter implements Reporter {
     public void close() throws Exception {
     }
 
-    @Nullable
-    @Override
-    public String[] getConfigurationRootPaths() {
+    @Nullable @Override public String getExtensionId() {
         return null;
     }
 
     @Nullable
     @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+    public Reader getJSONSchema() {
         return null;
     }
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
+        this.logger = (ProjectComponent) analysisContext.getData(ANT_REPORTER_LOGGER_KEY);
+        this.minSeverity = (DifferenceSeverity) analysisContext.getData(MIN_SEVERITY_KEY);
     }
 }

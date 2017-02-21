@@ -16,12 +16,6 @@
  */
 package org.revapi;
 
-import org.junit.Test;
-import org.revapi.simple.SimpleElement;
-import org.revapi.simple.SimpleElementForest;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +23,14 @@ import java.io.Reader;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.revapi.simple.SimpleElement;
+import org.revapi.simple.SimpleElementForest;
 
 /**
  * @author Lukas Krejci
@@ -38,20 +40,19 @@ public class AnalysisTest {
 
     @Test
     public void testTransformCycleDetection() throws Exception {
-        BiFunction<Element, Element, Report> diffAnalyzer = (o, n) -> Report.builder().withNew(n).withOld(o)
-                .addProblem().withCode("code").done().build();
+        Revapi r = Revapi.builder().withAnalyzers(DummyAnalyzer.class)
+                .withTransforms(CloningDifferenceTransform.class).withReporters(DummyReporter.class).build();
 
-        try (Revapi r = Revapi.builder().withAnalyzers(new DummyAnalyzer(diffAnalyzer))
-                .withTransforms(new CloningDifferenceTransform()).withReporters(new DummyReporter()).build()) {
+        AnalysisContext ctx = AnalysisContext.builder().withNewAPI(API.of().build()).withOldAPI(API.of().build())
+                .build();
 
-            AnalysisContext ctx = AnalysisContext.builder().withNewAPI(API.of().build()).withOldAPI(API.of().build()).build();
-
-            //should not throw exception
-            r.analyze(ctx);
+        //should not throw exception
+        try (AnalysisResult res = r.analyze(ctx)) {
+            Assert.assertTrue(res.isSuccess());
         }
     }
 
-    private static final class CloningDifferenceTransform implements DifferenceTransform<Element> {
+    public static final class CloningDifferenceTransform implements DifferenceTransform<Element> {
 
         @Override
         public @Nonnull Pattern[] getDifferenceCodePatterns() {
@@ -83,7 +84,7 @@ public class AnalysisTest {
         }
     }
 
-    private static final class DummyElement extends SimpleElement {
+    public static final class DummyElement extends SimpleElement {
 
         private final API api;
         private final Archive archive;
@@ -109,7 +110,7 @@ public class AnalysisTest {
         }
     }
 
-    private static final class DummyArchive implements Archive {
+    public static final class DummyArchive implements Archive {
 
         @Override
         public @Nonnull String getName() {
@@ -122,13 +123,10 @@ public class AnalysisTest {
         }
     }
 
-    private static final class DummyAnalyzer implements ApiAnalyzer {
+    public static final class DummyAnalyzer implements ApiAnalyzer {
 
-        private final BiFunction<Element, Element, Report> differenceAnalyzer;
-
-        private DummyAnalyzer(BiFunction<Element, Element, Report> differenceAnalyzer) {
-            this.differenceAnalyzer = differenceAnalyzer;
-        }
+        private final BiFunction<Element, Element, Report> differenceAnalyzer = (o, n) ->
+                Report.builder().withNew(n).withOld(o).addProblem().withCode("code").done().build();;
 
         @Override
         public @Nonnull CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
@@ -165,7 +163,7 @@ public class AnalysisTest {
         }
     }
 
-    private static final class DummyElementForest extends SimpleElementForest {
+    public static final class DummyElementForest extends SimpleElementForest {
 
         DummyElementForest(@Nonnull API api) {
             super(api);
@@ -178,7 +176,7 @@ public class AnalysisTest {
         }
     }
 
-    private static final class DummyArchiveAnalyzer implements ArchiveAnalyzer {
+    public static final class DummyArchiveAnalyzer implements ArchiveAnalyzer {
 
         private final API api;
 
@@ -194,7 +192,7 @@ public class AnalysisTest {
         }
     }
 
-    private static final class DummyDifferenceAnalyzer implements DifferenceAnalyzer {
+    public static final class DummyDifferenceAnalyzer implements DifferenceAnalyzer {
 
         private final BiFunction<Element, Element, Report> reportingFunction;
 
@@ -220,7 +218,7 @@ public class AnalysisTest {
         }
     }
 
-    private static final class DummyReporter implements Reporter {
+    public static final class DummyReporter implements Reporter {
 
         @Override
         public void report(@Nonnull Report report) {
