@@ -95,8 +95,8 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                         "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }}}}").build();
 
         revapi.validateConfiguration(ctx);
-        List<Report> allReports = revapi.analyze(ctx).getExtensions().getExtensions(CollectingReporter.class).keySet()
-                .iterator().next().getReports();
+        List<Report> allReports = revapi.analyze(ctx).getExtensions().getFirstExtension(CollectingReporter.class, null)
+                .getReports();
 
         Assert.assertEquals(3, allReports.size());
         Assert.assertTrue(containsDifference(allReports, "missing-class B.T$2", "missing-class B.T$2",
@@ -136,7 +136,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         );
 
         List<Report> allReports =
-                res.getExtensions().getExtensions(CollectingReporter.class).keySet().iterator().next().getReports();
+                res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
 
         Assert.assertEquals(1, allReports.size());
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));

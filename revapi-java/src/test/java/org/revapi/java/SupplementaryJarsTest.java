@@ -113,8 +113,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             Assert.assertTrue(res.isSuccess());
-            allReports = res.getExtensions().getExtensions(CollectingReporter.class).keySet().iterator().next()
-                    .getReports();
+            allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }
 
         Assert.assertEquals(8 + 11, allReports.size()); //11 removed methods when kind of class changes to interface
@@ -172,7 +171,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             allReports =
-                    res.getExtensions().getExtensions(CollectingReporter.class).keySet().iterator().next().getReports();
+                    res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }
 
         Assert.assertEquals(6, allReports.size());
@@ -203,7 +202,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             allReports =
-                    res.getExtensions().getExtensions(CollectingReporter.class).keySet().iterator().next().getReports();
+                    res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }
 
         Assert.assertEquals(3, allReports.size());
