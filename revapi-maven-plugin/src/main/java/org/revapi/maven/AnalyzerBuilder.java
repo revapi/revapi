@@ -3,9 +3,10 @@ package org.revapi.maven;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.ServiceLoader;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -20,6 +21,7 @@ import org.revapi.DifferenceTransform;
 import org.revapi.ElementFilter;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
+import org.revapi.ServiceTypeLoader;
 
 /**
  * Common {@link Analyzer} instantiation logic for mojos.
@@ -40,7 +42,7 @@ class AnalyzerBuilder {
     private String oldVersion;
     private String newVersion;
     private String disallowedExtensions;
-    private Reporter reporter;
+    private Class<? extends Reporter> reporterType;
     private String analysisConfiguration;
     private Object[] analysisConfigurationFiles;
     private RepositorySystem repositorySystem;
@@ -53,6 +55,7 @@ class AnalyzerBuilder {
     private boolean resolveProvidedDependencies;
     private String versionFormat;
     private Revapi revapi;
+    private Map<String, Object> contextData = new HashMap<>(2);
 
     static AnalyzerBuilder forGavs(String[] oldGavs, String[] newGavs) {
         return new AnalyzerBuilder(oldGavs, newGavs, null, null);
@@ -94,8 +97,8 @@ class AnalyzerBuilder {
         return this;
     }
 
-    AnalyzerBuilder withReporter(Reporter reporter) {
-        this.reporter = reporter;
+    AnalyzerBuilder withReporter(Class<? extends Reporter> reporter) {
+        this.reporterType = reporter;
         return this;
     }
 
@@ -153,7 +156,7 @@ class AnalyzerBuilder {
         this.resolveProvidedDependencies = resolveProvidedDependencies;
         return this;
     }
-    
+
     AnalyzerBuilder withVersionFormat(String versionFormat) {
         this.versionFormat = versionFormat;
         return this;
@@ -166,6 +169,13 @@ class AnalyzerBuilder {
 
     AnalyzerBuilder withRevapiInstance(Revapi revapi) {
         this.revapi = revapi;
+        return this;
+    }
+
+    AnalyzerBuilder withContextData(Map<String, Object> contextData) {
+        if (contextData != null) {
+            this.contextData.putAll(contextData);
+        }
         return this;
     }
 
@@ -197,7 +207,7 @@ class AnalyzerBuilder {
         Supplier<Revapi.Builder> ctor = getDisallowedExtensionsAwareRevapiConstructor(disallowedExtensions);
 
         return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, oldGavs,
-                newGavs, project, repositorySystem, repositorySystemSession, reporter, locale, log,
+                newGavs, project, repositorySystem, repositorySystemSession, reporterType, contextData, locale, log,
                 failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
                 alwaysCheckForReleaseVersion, checkDependencies, resolveProvidedDependencies, versionFormat, ctor,
                 revapi);
@@ -269,27 +279,32 @@ class AnalyzerBuilder {
         return () -> {
             Revapi.Builder bld = Revapi.builder();
 
-            List<ApiAnalyzer> analyzers = new ArrayList<>();
-            List<ElementFilter> filters = new ArrayList<>();
-            List<DifferenceTransform<?>> transforms = new ArrayList<>();
-            List<Reporter> reporters = new ArrayList<>();
+            List<Class<? extends ApiAnalyzer>> analyzers = new ArrayList<>();
+            List<Class<? extends ElementFilter>> filters = new ArrayList<>();
+            List<Class<? extends DifferenceTransform>> transforms = new ArrayList<>();
+            List<Class<? extends Reporter>> reporters = new ArrayList<>();
 
-            addAllAllowed(analyzers, ServiceLoader.load(ApiAnalyzer.class), disallowedExtensions);
-            addAllAllowed(filters, ServiceLoader.load(ElementFilter.class), disallowedExtensions);
-            addAllAllowed(transforms, ServiceLoader.load(DifferenceTransform.class), disallowedExtensions);
-            addAllAllowed(reporters, ServiceLoader.load(Reporter.class), disallowedExtensions);
+            addAllAllowed(analyzers, ServiceTypeLoader.load(ApiAnalyzer.class), disallowedExtensions);
+            addAllAllowed(filters, ServiceTypeLoader.load(ElementFilter.class), disallowedExtensions);
+            addAllAllowed(transforms, ServiceTypeLoader.load(DifferenceTransform.class), disallowedExtensions);
+            addAllAllowed(reporters, ServiceTypeLoader.load(Reporter.class), disallowedExtensions);
 
-            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(transforms).withReporters(reporters);
+            @SuppressWarnings("unchecked")
+            List<Class<? extends DifferenceTransform<?>>> castTransforms =
+                    (List<Class<? extends DifferenceTransform<?>>>) (List) transforms;
+
+            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(castTransforms).withReporters(reporters);
 
             return bld;
         };
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> void addAllAllowed(List<T> list, Iterable<?> candidates, List<String> disallowedClassNames) {
-        for (Object o : candidates) {
-            if (o != null && !disallowedClassNames.contains(o.getClass().getName())) {
-                list.add((T) o);
+    private static <T> void addAllAllowed(List<Class<? extends T>> list, Iterable<Class<? extends T>> candidates,
+                                          List<String> disallowedClassNames) {
+        for (Class<? extends T> c : candidates) {
+            if (c != null && !disallowedClassNames.contains(c.getName())) {
+                list.add(c);
             }
         }
     }

@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Function;
@@ -51,6 +52,7 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.jboss.dmr.ModelNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.AnalysisResult;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.configuration.JSONUtil;
@@ -63,7 +65,7 @@ import org.revapi.maven.utils.ScopeDependencyTraverser;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class Analyzer implements AutoCloseable {
+public final class Analyzer {
     private static final Pattern ANY_NON_SNAPSHOT = Pattern.compile("^.*(?<!-SNAPSHOT)$");
     private static final Pattern ANY = Pattern.compile(".*");
 
@@ -85,7 +87,10 @@ public final class Analyzer implements AutoCloseable {
 
     private final RepositorySystemSession repositorySystemSession;
 
-    private final Reporter reporter;
+    private final Class<? extends Reporter> reporterType;
+
+    private final Map<String, Object> contextData;
+
     private final Locale locale;
 
     private final Log log;
@@ -109,7 +114,8 @@ public final class Analyzer implements AutoCloseable {
 
     Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
              Artifact[] newArtifacts, String[] oldGavs, String[] newGavs, MavenProject project,
-             RepositorySystem repositorySystem, RepositorySystemSession repositorySystemSession, Reporter reporter,
+             RepositorySystem repositorySystem, RepositorySystemSession repositorySystemSession,
+             Class<? extends Reporter> reporterType, Map<String, Object> contextData,
              Locale locale, Log log, boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
              boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
              boolean resolveProvidedDependencies,
@@ -142,7 +148,8 @@ public final class Analyzer implements AutoCloseable {
 
         this.repositorySystemSession = session;
 
-        this.reporter = reporter;
+        this.reporterType = reporterType;
+        this.contextData = contextData;
         this.locale = locale;
         this.log = log;
         this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
@@ -170,12 +177,18 @@ public final class Analyzer implements AutoCloseable {
     }
 
     ValidationResult validateConfiguration() throws Exception {
-        try (Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().withReporters(reporter).build()) {
-            AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withLocale(locale);
-            gatherConfig(ctxBuilder);
-
-            return revapi.validateConfiguration(ctxBuilder.build());
+        Revapi.Builder bld = Revapi.builder().withAllExtensionsFromThreadContextClassLoader();
+        if (reporterType != null) {
+            bld.withReporters(reporterType);
         }
+        Revapi revapi = bld.build();
+
+        AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withLocale(locale);
+        gatherConfig(ctxBuilder);
+
+        ctxBuilder.withData(contextData);
+
+        return revapi.validateConfiguration(ctxBuilder.build());
     }
 
     /**
@@ -381,7 +394,7 @@ public final class Analyzer implements AutoCloseable {
     }
 
     @SuppressWarnings("unchecked")
-    void analyze() throws MojoExecutionException {
+    AnalysisResult analyze() throws MojoExecutionException {
         //This is useful so that users know what RELEASE actually resolved to.
         Function<MavenArchive, String> extractName = new Function<MavenArchive, String>() {
             @Override public String apply(MavenArchive mavenArchive) {
@@ -392,7 +405,7 @@ public final class Analyzer implements AutoCloseable {
         resolveArtifacts();
 
         if (resolvedOldApi == null || resolvedNewApi == null) {
-            return;
+            return AnalysisResult.fakeSuccess();
         }
 
         List<?> oldArchives = StreamSupport.stream(
@@ -413,7 +426,9 @@ public final class Analyzer implements AutoCloseable {
                     .withNewAPI(resolvedNewApi).withLocale(locale);
             gatherConfig(ctxBuilder);
 
-            revapi.analyze(ctxBuilder.build());
+            ctxBuilder.withData(contextData);
+
+            return revapi.analyze(ctxBuilder.build());
         } catch (Exception e) {
             throw new MojoExecutionException("Failed to analyze archives", e);
         }
@@ -430,23 +445,6 @@ public final class Analyzer implements AutoCloseable {
     public Revapi getRevapi() {
         buildRevapi();
         return revapi;
-    }
-
-    /**
-     * Closes Revapi iff it was instantiated by this analyzer (using an implicit or explicit revapi constructor
-     * supplier). If a pre-instantiated Revapi instance was supplied to the constructor of this analyzer, the Revapi
-     * instance is NOT closed by this call. It is the responsibility of the "owner" of that Revapi instance to properly
-     * close it.
-     *
-     * @throws Exception
-     */
-    @Override
-    public void close() throws Exception {
-        //if revapiConstructor == null, we obtained the revapi instance from outside... The caller is therefore
-        //responsible for closing it.
-        if (revapi != null && revapiConstructor != null) {
-            revapi.close();
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -511,8 +509,8 @@ public final class Analyzer implements AutoCloseable {
     private void buildRevapi() {
         if (revapi == null) {
             Revapi.Builder builder = revapiConstructor.get();
-            if (reporter != null) {
-                builder.withReporters(reporter);
+            if (reporterType != null) {
+                builder.withReporters(reporterType);
             }
 
             revapi = builder.build();

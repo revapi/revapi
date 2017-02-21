@@ -37,16 +37,12 @@ import org.revapi.Reporter;
  * @author Lukas Krejci
  * @since 0.1
  */
-final class BuildTimeReporter implements Reporter {
-
-    private final DifferenceSeverity breakingSeverity;
+public final class BuildTimeReporter implements Reporter {
+    static final String BREAKING_SEVERITY_KEY = "org.revapi.maven.buildTimeBreakingSeverity";
+    private DifferenceSeverity breakingSeverity;
     private List<Report> allProblems;
     private List<Archive> oldApi;
     private List<Archive> newApi;
-
-    public BuildTimeReporter(DifferenceSeverity breakingSeverity) {
-        this.breakingSeverity = breakingSeverity;
-    }
 
     public boolean hasBreakingProblems() {
         return allProblems != null && !allProblems.isEmpty();
@@ -107,15 +103,11 @@ final class BuildTimeReporter implements Reporter {
         }
     }
 
-    @Nullable
-    @Override
-    public String[] getConfigurationRootPaths() {
+    @Nullable @Override public String getExtensionId() {
         return null;
     }
 
-    @Nullable
-    @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+    @Nullable @Override public Reader getJSONSchema() {
         return null;
     }
 
@@ -130,6 +122,7 @@ final class BuildTimeReporter implements Reporter {
         for (Archive a : context.getNewApi().getArchives()) {
             newApi.add(a);
         }
+        this.breakingSeverity = (DifferenceSeverity) context.getData(BREAKING_SEVERITY_KEY);
     }
 
     @Override

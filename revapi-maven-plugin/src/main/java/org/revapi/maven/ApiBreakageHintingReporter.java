@@ -31,7 +31,7 @@ import org.revapi.Reporter;
  * @author Lukas Krejci
  * @since 0.4.0
  */
-class ApiBreakageHintingReporter implements Reporter {
+public final class ApiBreakageHintingReporter implements Reporter {
 
     private ApiChangeLevel changeLevel = ApiChangeLevel.NO_CHANGE;
 

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +39,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.revapi.AnalysisResult;
 
 import com.ximpleware.AutoPilot;
 import com.ximpleware.ModifyException;
@@ -320,22 +322,27 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     }
 
     private AnalysisResults analyzeProject(MavenProject project) throws MojoExecutionException {
-        ApiBreakageHintingReporter reporter = new ApiBreakageHintingReporter();
+        Analyzer analyzer = prepareAnalyzer(project, ApiBreakageHintingReporter.class, Collections.emptyMap());
 
-        try (Analyzer analyzer = prepareAnalyzer(project, reporter)) {
-
+        try {
             analyzer.resolveArtifacts();
 
             if (analyzer.getResolvedOldApi() == null) {
                 return null;
             } else {
-                analyzer.analyze();
+                try (AnalysisResult res = analyzer.analyze()) {
+                    res.throwIfFailed();
 
-                ApiChangeLevel level = reporter.getChangeLevel();
-                String baseVersion = ((MavenArchive) analyzer.getResolvedOldApi().getArchives().iterator().next())
-                        .getVersion();
+                    ApiBreakageHintingReporter reporter =
+                            res.getExtensions().getFirstExtension(ApiBreakageHintingReporter.class, null);
 
-                return new AnalysisResults(level, baseVersion);
+                    ApiChangeLevel level = reporter.getChangeLevel();
+                    String baseVersion = ((MavenArchive) analyzer.getResolvedOldApi().getArchives().iterator().next())
+                            .getVersion();
+
+                    return new AnalysisResults(level, baseVersion);
+                }
+
             }
         } catch (Exception e) {
             throw new MojoExecutionException("Analysis failure", e);

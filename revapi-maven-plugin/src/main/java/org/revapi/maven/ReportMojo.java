@@ -18,9 +18,11 @@ package org.revapi.maven;
 
 import java.text.MessageFormat;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import org.apache.maven.doxia.sink.Sink;
@@ -35,6 +37,7 @@ import org.apache.maven.reporting.MavenReportException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.revapi.API;
+import org.revapi.AnalysisResult;
 import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
@@ -262,7 +265,7 @@ public class ReportMojo extends AbstractMavenReport {
 
     private API oldAPI;
     private API newAPI;
-    private ReportTimeReporter reporter;
+    private AnalysisResult analysisResult;
 
     @Override
     protected String getOutputDirectory() {
@@ -295,6 +298,9 @@ public class ReportMojo extends AbstractMavenReport {
         if (generateSiteReport) {
             Sink sink = getSink();
             ResourceBundle bundle = getBundle(locale);
+
+            ReportTimeReporter reporter =
+                    analysisResult.getExtensions().getFirstExtension(ReportTimeReporter.class, null);
 
             startReport(sink, bundle);
             reportBody(reporter, oldAPI, newAPI, sink, bundle);
@@ -365,8 +371,10 @@ public class ReportMojo extends AbstractMavenReport {
     }
 
     protected Analyzer prepareAnalyzer(Locale locale) {
+        Map<String, Object> contextData = null;
         if (generateSiteReport) {
-            reporter = new ReportTimeReporter(reportSeverity.asDifferenceSeverity());
+            contextData = new HashMap<>();
+            contextData.put(ReportTimeReporter.MIN_SEVERITY_KEY, reportSeverity.asDifferenceSeverity());
         }
 
         AnalyzerBuilder.Result res = AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
@@ -384,11 +392,12 @@ public class ReportMojo extends AbstractMavenReport {
                 .withNewVersion(this.newVersion)
                 .withOldVersion(this.oldVersion)
                 .withProject(this.project)
-                .withReporter(reporter)
+                .withReporter(generateSiteReport ? ReportTimeReporter.class : null)
                 .withRepositorySystem(this.repositorySystem)
                 .withRepositorySystemSession(this.repositorySystemSession)
                 .withSkip(this.skip)
                 .withVersionFormat(this.versionFormat)
+                .withContextData(contextData)
                 .build();
 
         if (res.skip || !res.isOnClasspath) {
@@ -402,16 +411,19 @@ public class ReportMojo extends AbstractMavenReport {
     }
 
     private void ensureAnalyzed(Locale locale) {
-        if (!skip && reporter == null) {
-            try (Analyzer analyzer = prepareAnalyzer(locale)) {
-                if (analyzer == null) {
-                    return;
-                }
+        if (!skip && analysisResult == null) {
+            Analyzer analyzer = prepareAnalyzer(locale);
+            if (analyzer == null) {
+                return;
+            }
 
-                analyzer.analyze();
+            try (AnalysisResult res = analyzer.analyze()) {
+                res.throwIfFailed();
 
                 oldAPI = analyzer.getResolvedOldApi();
                 newAPI = analyzer.getResolvedNewApi();
+
+                analysisResult = res;
             } catch (Exception e) {
                 throw new IllegalStateException("Failed to generate report.", e);
             }
