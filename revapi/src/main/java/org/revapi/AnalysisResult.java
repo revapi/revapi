@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -44,6 +45,28 @@ public final class AnalysisResult implements AutoCloseable {
 
     private final Exception failure;
     private final Extensions extensions;
+
+    /**
+     * A factory method for users that need to report success without actually running any analysis. The returned
+     * result will be successful, but will not contain the actual configurations of extensions.
+     *
+     * @return a "fake" successful analysis result
+     */
+    public static AnalysisResult fakeSuccess() {
+        return new AnalysisResult(null, new Extensions(Collections.emptyMap(), Collections.emptyMap(),
+                Collections.emptyMap(), Collections.emptyMap()));
+    }
+
+    /**
+     * Similar to {@link #fakeSuccess()}, this returns a failed analysis result without the need to run any analysis.
+     *
+     * @param failure the failure to report
+     * @return a "fake" failed analysis result
+     */
+    public static AnalysisResult fakeFailure(Exception failure) {
+        return new AnalysisResult(failure, new Extensions(Collections.emptyMap(), Collections.emptyMap(),
+                Collections.emptyMap(), Collections.emptyMap()));
+    }
 
     AnalysisResult(@Nullable Exception failure, Extensions extensions) {
         this.failure = failure;
@@ -125,11 +148,20 @@ public final class AnalysisResult implements AutoCloseable {
             return transforms;
         }
 
-        public <T> Map<T, AnalysisContext> getExtensions(Class<T> extensionType) {
+        public <T> Map<T, AnalysisContext> getExtensionContexts(Class<T> extensionType) {
             IdentityHashMap<T, AnalysisContext> ret = new IdentityHashMap<>();
             stream().filter(e -> extensionType.isAssignableFrom(e.getKey().getClass()))
                     .forEach(e -> ret.put(extensionType.cast(e.getKey()), e.getValue()));
             return ret;
+        }
+
+        public <T> Set<T> getExtensionInstances(Class<T> extensionType) {
+            return getExtensionContexts(extensionType).keySet();
+        }
+
+        public <T> T getFirstExtension(Class<T> extensionType, T defaultValue) {
+            Set<T> instances = getExtensionInstances(extensionType);
+            return instances.isEmpty() ? defaultValue : instances.iterator().next();
         }
 
         @Override public Iterator<Map.Entry<?, AnalysisContext>> iterator() {
