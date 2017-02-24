@@ -131,6 +131,15 @@
                     <suppressionsLocation>${basedir}/checkstyle-suppressions.xml</suppressionsLocation>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!--suppress MavenModelInspection -->
+                    <argLine>${jacoco.maven-opts}</argLine>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
@@ -142,7 +151,11 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <configuration>
-                   <propertyName>invoker.mavenOpts</propertyName>
+                    <propertyName>jacoco.maven-opts</propertyName>
+                    <excludes>
+                        <exclude>org/revapi/maven/HelpMojo</exclude>
+                    </excludes>
+                    <append>true</append>
                 </configuration>
             </plugin>
 
@@ -168,7 +181,8 @@
                                 <goal>clean</goal>
                                 <goal>install</goal>
                             </goals>
-                            <mavenOpts>${itest.maven-opts}</mavenOpts>
+                            <!--suppress MavenModelInspection -->
+                            <mavenOpts>${itest.maven-opts} ${jacoco.maven-opts}</mavenOpts>
                             <debug>${itest.debug-output}</debug>
                         </configuration>
                     </execution>
@@ -191,7 +205,8 @@
                                 <goal>install</goal>
                                 <goal>site</goal>
                             </goals>
-                            <mavenOpts>${itest.maven-opts}</mavenOpts>
+                            <!--suppress MavenModelInspection -->
+                            <mavenOpts>${itest.maven-opts} ${jacoco.maven-opts}</mavenOpts>
                             <debug>${itest.debug-output}</debug>
                         </configuration>
                     </execution>
