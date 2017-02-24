@@ -107,11 +107,9 @@ be used when matching the difference for example in the `revapi.ignore` extensio
 ```javascript
 {
   "regex": true,
-  "code": "java.class.noLongerImplementsInterface",
-  "old": {
-    "element": "class my\\..*",
-    "interface": "my\\.Interface"
-  }
+  "code": "java\\.class\\.noLongerImplementsInterface",
+  "old": "class my\\..*",
+  "interface": "my\\.Interface"
 }
 ```
 
