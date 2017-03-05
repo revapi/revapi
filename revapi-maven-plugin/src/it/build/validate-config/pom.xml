@@ -41,13 +41,11 @@
           <execution>
             <goals><goal>validate-configuration</goal></goals>
             <configuration>
-              <analysisConfiguration><![CDATA[
-                {
-                  "revapi": {
-                    "ignore": { "invalid": true }
-                  }
-                }
-              ]]></analysisConfiguration>
+              <analysisConfiguration>
+                <revapi.ignore>
+                  <invalid>true</invalid>
+                </revapi.ignore>
+              </analysisConfiguration>
             </configuration>
           </execution>
         </executions>

@@ -26,6 +26,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.revapi.AnalysisResult;
@@ -43,7 +44,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
     @Parameter(property = Props.analysisConfiguration.NAME, defaultValue = Props.analysisConfiguration.DEFAULT_VALUE)
-    protected String analysisConfiguration;
+    protected PlexusConfiguration analysisConfiguration;
 
     /**
      * Set to false if you want to tolerate files referenced in the {@code analysisConfigurationFiles} missing on the

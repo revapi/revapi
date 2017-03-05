@@ -46,19 +46,13 @@
                         <configuration>
                             <reportSeverity>nonBreaking</reportSeverity>
                             <analysisConfiguration>
-                                <![CDATA[
-                                  {
-                                    "revapi": {
-                                      "ignore": [
-                                        {
-                                          "code": "java.class.kindChanged",
-                                          "old": "class pkg1.pkg2.WarClass",
-                                          "justification": "This incompat is here just check that the files in the war file actually got copied."
-                                        }
-                                      ]
-                                    }
-                                  }
-                                ]]>
+                                <revapi.ignore>
+                                    <item>
+                                        <code>java.class.kindChanged</code>
+                                        <old>class pkg1.pkg2.WarClass</old>
+                                        <justification>This incompat is here just check that the files in the war file actually got copied.</justification>
+                                    </item>
+                                </revapi.ignore>
                             </analysisConfiguration>
                         </configuration>
                     </execution>

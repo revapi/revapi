@@ -41,26 +41,22 @@
               <goal>check</goal>
             </goals>
             <configuration>
-              <analysisConfiguration><![CDATA[
-                  {
-                      "revapi" : {
-                          "ignore" : [
-                              {
-                                  "regex": true,
-                                  "code" : ".*",
-                                  "elementKind": "^(?!interface).*$",
-                                  "justification": "because"
-                              },
-                              {
-                                "code": "java.class.noLongerImplementsInterface",
-                                "old": "interface Main",
-                                "interface": "java.lang.Cloneable",
-                                "justification": "because"
-                              }
-                          ]
-                      }
-                  }
-              ]]></analysisConfiguration>
+              <analysisConfiguration>
+                <revapi.ignore>
+                  <item>
+                    <regex>true</regex>
+                    <code>.*</code>
+                    <elementKind>^(?!interface).*$</elementKind>
+                    <justification>because</justification>
+                  </item>
+                  <item>
+                    <code>java.class.noLongerImplementsInterface</code>
+                    <old>interface Main</old>
+                    <interface>java.lang.Cloneable</interface>
+                    <justification>because</justification>
+                  </item>
+                </revapi.ignore>
+              </analysisConfiguration>
             </configuration>
           </execution>
         </executions>

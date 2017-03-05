@@ -21,9 +21,11 @@ import static java.util.stream.Collectors.toList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +42,7 @@ import org.apache.maven.RepositoryUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
@@ -55,6 +58,7 @@ import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
+import org.revapi.configuration.Configurable;
 import org.revapi.configuration.JSONUtil;
 import org.revapi.configuration.ValidationResult;
 import org.revapi.maven.utils.ArtifactResolver;
@@ -69,7 +73,7 @@ public final class Analyzer {
     private static final Pattern ANY_NON_SNAPSHOT = Pattern.compile("^.*(?<!-SNAPSHOT)$");
     private static final Pattern ANY = Pattern.compile(".*");
 
-    private final String analysisConfiguration;
+    private final PlexusConfiguration analysisConfiguration;
 
     private final Object[] analysisConfigurationFiles;
 
@@ -112,7 +116,7 @@ public final class Analyzer {
 
     private Revapi revapi;
 
-    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
+    Analyzer(PlexusConfiguration analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
              Artifact[] newArtifacts, String[] oldGavs, String[] newGavs, MavenProject project,
              RepositorySystem repositorySystem, RepositorySystemSession repositorySystemSession,
              Class<? extends Reporter> reporterType, Map<String, Object> contextData,
@@ -177,11 +181,7 @@ public final class Analyzer {
     }
 
     ValidationResult validateConfiguration() throws Exception {
-        Revapi.Builder bld = Revapi.builder().withAllExtensionsFromThreadContextClassLoader();
-        if (reporterType != null) {
-            bld.withReporters(reporterType);
-        }
-        Revapi revapi = bld.build();
+        buildRevapi();
 
         AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withLocale(locale);
         gatherConfig(ctxBuilder);
@@ -502,7 +502,12 @@ public final class Analyzer {
         }
 
         if (analysisConfiguration != null) {
-            ctxBld.mergeConfigurationFromJSON(analysisConfiguration);
+            String text = analysisConfiguration.getValue();
+            if (text == null) {
+                convertNewStyleConfigFromXml(ctxBld, getRevapi());
+            } else {
+                ctxBld.mergeConfigurationFromJSON(text);
+            }
         }
     }
 
@@ -516,6 +521,79 @@ public final class Analyzer {
             revapi = builder.build();
         }
     }
+
+    private void convertNewStyleConfigFromXml(AnalysisContext.Builder bld, Revapi revapi) {
+        Map<String, ModelNode> knownSchemas = new HashMap<>();
+        extractKnownSchemas(knownSchemas, revapi.getApiAnalyzerTypes());
+        extractKnownSchemas(knownSchemas, revapi.getDifferenceTransformTypes());
+        extractKnownSchemas(knownSchemas, revapi.getElementFilterTypes());
+        extractKnownSchemas(knownSchemas, revapi.getReporterTypes());
+
+        ModelNode fullConfiguration = new ModelNode();
+        for (PlexusConfiguration c : analysisConfiguration.getChildren()) {
+
+            String extensionId = c.getName();
+
+            ModelNode schema = knownSchemas.get(extensionId);
+            if (schema == null) {
+                log.error("Extension '" + extensionId +
+                        "' doesn't declare a JSON schema but pom.xml contains its xml-ized configuration. " +
+                        "Cannot convert it into JSON and will ignore it!");
+                continue;
+            }
+
+            ModelNode config = SchemaDrivenXmlToJSONConverter.convert(c, schema);
+
+            ModelNode instanceConfig = new ModelNode();
+            instanceConfig.set("extension", extensionId);
+            instanceConfig.set("configuration", config);
+
+            fullConfiguration.add(instanceConfig);
+        }
+
+        bld.withConfiguration(fullConfiguration);
+    }
+
+    private <T extends Configurable>
+    void extractKnownSchemas(Map<String, ModelNode> schemaByExtensionId, Set<Class<? extends T>> types) {
+        for (Class<? extends T> extensionType : types) {
+            try {
+                Configurable c = extensionType.newInstance();
+                String extensionId = c.getExtensionId();
+                if (extensionId == null) {
+                    continue;
+                }
+
+                Reader schema = c.getJSONSchema();
+                if (schema == null) {
+                    continue;
+                }
+
+                String schemaString = readFull(schema);
+                ModelNode schemaNode = ModelNode.fromJSONString(schemaString);
+
+                schemaByExtensionId.put(extensionId, schemaNode);
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new IllegalStateException("Extension " + extensionType + " is not default-constructable.");
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Failed to read the schema of extension " + extensionType);
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
+        }
+    }
+
+    private String readFull(Reader reader) throws IOException {
+        char[] buffer = new char[512];
+        StringBuilder bld = new StringBuilder();
+        int cnt;
+        while ((cnt = reader.read(buffer)) != -1) {
+            bld.append(buffer, 0, cnt);
+        }
+
+        return bld.toString();
+    }
+
     private static class MarkerException extends RuntimeException {
         public MarkerException(String message) {
             super(message);
