@@ -1,12 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "description": "If no include or exclude filters are defined, everything is included. \
-                     If at least 1 include filter is defined, only elements matching it are included. \
-                     Out of the included elements, some may be further excluded by the exclude filters.",
     "definitions": {
         "patterns": {
-            "description": "A list of (java) regular expressions to match the full human readable representations of \
-                             elements to filter.",
             "type": "array",
             "items": {
                 "type": "string"

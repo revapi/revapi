@@ -3,7 +3,6 @@
   "type": "object",
   "properties": {
     "enabled": {
-      "description": "Whether the semver ignore should be applied or not. By default it is NOT enabled.",
       "type": "boolean",
       "default": "false"
     },
@@ -11,10 +10,10 @@
       "type": "object",
       "properties": {
         "major": {
-          "description": "The allowed difference severity on major version number increase.",
           "type": "string",
           "enum": [
             "none",
+            "equivalent",
             "nonBreaking",
             "potentiallyBreaking",
             "breaking"
@@ -22,10 +21,10 @@
           "default": "breaking"
         },
         "minor": {
-          "description": "The allowed difference severity on minor version number increase.",
           "type": "string",
           "enum": [
             "none",
+            "equivalent",
             "nonBreaking",
             "potentiallyBreaking",
             "breaking"
@@ -33,10 +32,10 @@
           "default": "nonBreaking"
         },
         "patch": {
-          "description": "The allowed difference severity on patch version number increase.",
           "type": "string",
           "enum": [
             "none",
+            "equivalent",
             "nonBreaking",
             "potentiallyBreaking",
             "breaking"
@@ -46,8 +45,6 @@
       }
     },
     "passThroughDifferences": {
-      "description": "The list of difference codes that the semver lets pass through even though they would otherwise \
-                      be OK according to the versioning rules. This is for problems that you don't want to ignore."
       "type": "array",
       "items": {
         "type": "string"
