@@ -108,6 +108,34 @@ public final class Revapi {
     }
 
     /**
+     * @return the set of api analyzers available to this Revapi instance
+     */
+    public Set<Class<? extends ApiAnalyzer>> getApiAnalyzerTypes() {
+        return Collections.unmodifiableSet(availableApiAnalyzers);
+    }
+
+    /**
+     * @return the set of reporters available to this Revapi instance
+     */
+    public Set<Class<? extends Reporter>> getReporterTypes() {
+        return Collections.unmodifiableSet(availableReporters);
+    }
+
+    /**
+     * @return the set of difference transforms available to this Revapi instance
+     */
+    public Set<Class<? extends DifferenceTransform<?>>> getDifferenceTransformTypes() {
+        return Collections.unmodifiableSet(availableTransforms);
+    }
+
+    /**
+     * @return the set of element filters available to this Revapi instance
+     */
+    public Set<Class<? extends ElementFilter>> getElementFilterTypes() {
+        return Collections.unmodifiableSet(availableFilters);
+    }
+
+    /**
      * Performs the analysis configured by the given analysis context.
      * <p>
      * Make sure to call the {@link AnalysisResult#close()} method (or perform the analysis in try-with-resources
