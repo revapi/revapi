@@ -83,9 +83,23 @@ public interface Configurable {
     /**
      * The instance can configure itself for the upcoming analysis from the supplied analysis context.
      *
-     * <p>The configuration contained in the context is the FULL configuration of all extensions. I.e. it contains also
-     * configuration not intended for this configurable. When reading from the configuration one therefore needs to
-     * use the full path to the configuration properties, including the root paths.
+     * <p>The configuration contained in the context is only the minimal configuration needed for this configurable
+     * instance (this may not be true and there can be more data in it while the support for the old-style configuration
+     * is kept, but it is safe to assume so).
+     * <p>To keep support with the old style configuration, the configuration is present in a json object that is nested
+     * in a hierarchy determined by the "exploded" extension id.
+     * <p>I.e. if the extension id is  {@code my.extension.config}, the configuration in the supplied context will be:
+     * <pre><code>
+     * {
+     *     "my": {
+     *         "extension": {
+     *             "config": {
+     *                 ... the actual configuration of the extension ...
+     *             }
+     *         }
+     *     }
+     * }
+     * </code></pre>
      * <p>
      * Note that this method can be called multiple times, each time for a different analysis run.
      *
