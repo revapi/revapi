@@ -136,6 +136,24 @@ public final class Revapi {
     }
 
     /**
+     * This instantiates the individual extensions and assigns the configurations to each one of them. The caller of
+     * this method gains insight on what extensions with what configurations would be executed by the analysis.
+     *
+     * <p>Note that the extensions are instantiated but NOT initialized after this call.
+     *
+     * @param analysisContext the analysis context containing the "global" configuration of all extensions
+     * @return the instantiated extensions and their individual configurations
+     */
+    public AnalysisResult.Extensions prepareAnalysis(@Nonnull AnalysisContext analysisContext) {
+        Map<ElementFilter, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
+        Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
+        Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
+        Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
+
+        return new AnalysisResult.Extensions(analyzers, filters, reporters, transforms);
+    }
+
+    /**
      * Performs the analysis configured by the given analysis context.
      * <p>
      * Make sure to call the {@link AnalysisResult#close()} method (or perform the analysis in try-with-resources
@@ -148,12 +166,7 @@ public final class Revapi {
     public AnalysisResult analyze(@Nonnull AnalysisContext analysisContext) {
         TIMING_LOG.debug("Analysis starts");
 
-        Map<ElementFilter, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
-        Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
-        Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
-        Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
-
-        AnalysisResult.Extensions extensions = new AnalysisResult.Extensions(analyzers, filters, reporters, transforms);
+        AnalysisResult.Extensions extensions = prepareAnalysis(analysisContext);
 
         StreamSupport.stream(extensions.spliterator(), false)
                 .map(e -> (Map.Entry<Configurable, AnalysisContext>) e)

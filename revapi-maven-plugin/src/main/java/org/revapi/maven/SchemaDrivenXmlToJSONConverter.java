@@ -46,7 +46,7 @@ final class SchemaDrivenXmlToJSONConverter {
         return convert(configuration, jsonSchema, jsonSchema);
     }
 
-    static ModelNode convert(PlexusConfiguration configuration, ModelNode jsonSchema, ModelNode rootSchema) {
+    private static ModelNode convert(PlexusConfiguration configuration, ModelNode jsonSchema, ModelNode rootSchema) {
         ModelNode type = jsonSchema.get("type");
         if (!type.isDefined()) {
             if (jsonSchema.get("enum").isDefined()) {
@@ -116,7 +116,7 @@ final class SchemaDrivenXmlToJSONConverter {
                         return new ModelNode(xmlValue);
                     default:
                         throw new IllegalArgumentException(
-                                "Unrecognized type of enum value defined in schema: " + jsonValue);
+                                "Unsupported type of enum value defined in schema: " + jsonValue);
                 }
             }
         }
@@ -200,7 +200,7 @@ final class SchemaDrivenXmlToJSONConverter {
     }
 
     //heavily inspired by the implementation in org.json.JSONPointer
-    private static final class JSONPointer {
+    static final class JSONPointer {
         private final List<String> tokens;
 
         static JSONPointer parse(String pointer) {
