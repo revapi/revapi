@@ -238,6 +238,20 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
             </plugin>
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ban-mad-gadget</id>
+                        <goals><goal>enforce</goal></goals>
+                        <configuration>
+                            <!-- We cannot ban these deps in a maven plugin, because maven reporting impl doesn't
+                                 currently have a newer version that would be free of these deps... -->
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

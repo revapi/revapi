@@ -131,6 +131,26 @@
                     <preparationGoals>clean verify</preparationGoals>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ban-mad-gadget</id>
+                        <goals><goal>enforce</goal></goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>commons-collections:commons-collections:[3.0,3.2.1]</exclude>
+                                        <exclude>commons-collections:commons-collections:4.0</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
