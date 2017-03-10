@@ -46,11 +46,78 @@ import org.revapi.configuration.JSONUtil;
 /**
  * An analysis context is an aggregation of the APIs to check and configuration for the analysis.
  *
- * <p>The configuration accepted by the builder is actually of 2 forms.
- * TODO describe the format of the new configuration and merging logic
+ * <p>The analysis context can also contain arbitrary data that can be then accessed by the extensions. This can be used
+ * to pass runtime data to the extensions that cannot be captured by their configurations.
  *
- * <p>It can also contain arbitrary data that can be then accessed by the extensions. This can be used to pass runtime
- * data to the extensions that cannot be captured by their configurations.
+ * <p>The configuration accepted by the builder is actually of 2 forms.
+ * <ol>
+ *     <li>The "old style" configuration where each extension could be configured at most once
+ *     <li>The "new style" configuration that enables multiple configurations for each extension and is more easily
+ *     translatable to XML.
+ * </ol>
+ *
+ * In the old format, the configuration of an extension was nested inside objects corresponding to its exploded
+ * extension id. E.g. if the extension had an id of "my.extension", the configuration would look like:
+ * <pre><code>
+ *     {
+ *         "my": {
+ *             "extension": {
+ *                 ... the actual configuration of the extension ...
+ *             }
+ *         }
+ *     }
+ * </code></pre>
+ * The original idea for doing things this way was that such configuration is easily mergeable
+ * (e.g. when configuration is split across multiple files). There can be only one configuration for each extension and
+ * each extension resides in a different "section" of the configuration. The nesting provides for a seemingly logical
+ * structure of the configuration.
+ *
+ * <p>On the other hand the new configuration format is different. It stresses the possibility of having more than 1
+ * configuration for an extension and is more easily translatable into XML. On the other hand it is not that well nested
+ * as the old configuration style so it might not look that well logically structured. The new configuration looks like
+ * this:
+ * <pre><code>
+ *     [
+ *         {
+ *             "extension": "my.extension",
+ *             "id": "optional-id",
+ *             "configuration": {
+ *                 ... the actual configuration of the extension ...
+ *             }
+ *         },
+ *         {
+ *             "extension": "other.extension",
+ *             "configuration": {
+ *                 ... the actual configuration of the extension ...
+ *             }
+ *         }
+ *     ]
+ * </code></pre>
+ * Notice that configurations for different extensions (as well as different configurations for the same extension) are
+ * contained in a top level list. The configurations of different extensions are therefore no longer nested inside each
+ * other, but are "laid out" sequentially.
+ *
+ * <p>Each such configuration can optionally be identified by an arbitrary ID which can be used during merging of
+ * configuration from multiple sources.
+ *
+ * <p><b>Merging Configurations</b>
+ *
+ * <p>As was the case with the old style configurations, the new style configurations can also be merged into each other
+ * enabling composition of the final analysis configuration from multiple sources. Because each extension can be
+ * configured multiple times in the new style configuration, the identification of the configs to merge is slightly more
+ * complicated than it used to.
+ *
+ * <p>As long as the "master" configuration and "mergee" configuration contain ids for each configuration of each
+ * extension things are simple. Configurations for the same extension with the same ID are merged together, otherwise
+ * their added to the list of all extension configurations.
+ *
+ * <p>Things get a little bit more complex when the configurations don't have an explicit ID. This use case is supported
+ * for seamless conversion from old style configuration (where it didn't make sense to have any kind of configuration
+ * ID) to new style configurations that we support now (after all there are quite some clients already having their
+ * configurations set up and it would be bad to force them to rewrite them all).
+ *
+ * <p>Simply put, id-less configurations are mergeable as long as the master configuration contains only a single
+ * configuration for given extension and there is just 1 id-less configuration for given extension in the "mergee".
  *
  * @author Lukas Krejci
  * @since 0.1
