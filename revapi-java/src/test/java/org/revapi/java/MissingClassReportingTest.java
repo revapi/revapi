@@ -88,7 +88,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testReportsMissingClasses() throws Exception {
-        AnalysisContext ctx = AnalysisContext.builder()
+        AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
                 .withConfigurationFromJSON(
@@ -128,7 +128,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testIgnoresMissingClasses() throws Exception {
         AnalysisResult res = revapi.analyze(
-            AnalysisContext.builder()
+            AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
                 .withConfigurationFromJSON(

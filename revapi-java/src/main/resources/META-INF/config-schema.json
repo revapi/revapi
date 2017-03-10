@@ -24,6 +24,56 @@
             "uniqueItems": true,
             "default": ["java.missing.newClass", "java.missing.oldClass", "java.class.nonPublicPartOfAPI",
               "java.class.externalClassNoLongerExposedInAPI", "java.class.externalClassExposedInAPI"]
+        },
+        "filter": {
+            "type": "object",
+            "properties": {
+                "classes": {
+                    "type": "object",
+                    "properties": {
+                        "regex": {
+                            "description": "Whether to understand the class names as regular expressions.",
+                            "type": "boolean",
+                            "default": "false"
+                        },
+                        "include": {
+                            "type": "array",
+                            "items" : {
+                                "type" : "string"
+                            }
+                        },
+                        "exclude": {
+                            "type": "array",
+                            "items" : {
+                                "type" : "string"
+                            }
+                        }
+                    }
+                },
+                "packages": {
+                    "type": "object",
+                    "properties": {
+                        "regex": {
+                            "description": "Whether to understand the package names as regular expressions.",
+                            "type": "boolean",
+                            "default": "false"
+                        },
+                        "include": {
+                            "type": "array",
+                            "items" : {
+                                "type" : "string"
+                            }
+                        },
+                        "exclude": {
+                            "type": "array",
+                            "items" : {
+                                "type" : "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
-    }
+    },
+    "additionalProperties": true
 }

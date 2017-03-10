@@ -46,7 +46,6 @@ import org.revapi.java.spi.JavaModelElement;
  */
 abstract class AbstractIncludeExcludeFilter implements ElementFilter {
     private final String configurationRootPath;
-    private final String[] configurationRoot;
     private final String schemaPath;
     private final IdentityHashMap<Object, InclusionState> elementResults = new IdentityHashMap<>();
     protected Predicate<String> includeTest;
@@ -55,7 +54,6 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
 
     protected AbstractIncludeExcludeFilter(String configurationRootPath, String schemaPath) {
         this.configurationRootPath = configurationRootPath;
-        this.configurationRoot = configurationRootPath.split("\\.");
         this.schemaPath = schemaPath;
     }
 
@@ -75,24 +73,20 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
     }
 
     @Override
-    public @Nullable
-    String[] getConfigurationRootPaths() {
-        return new String[]{configurationRootPath};
+    public @Nullable String getExtensionId() {
+        return configurationRootPath;
     }
 
     @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-        if (this.configurationRootPath.equals(configurationRootPath)) {
-            return new InputStreamReader(getClass().getResourceAsStream(schemaPath), Charset.forName("UTF-8"));
-        } else {
-            return null;
-        }
+    @Nullable
+    public Reader getJSONSchema() {
+        return new InputStreamReader(getClass().getResourceAsStream(schemaPath), Charset.forName("UTF-8"));
     }
 
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
-        ModelNode root = analysisContext.getConfiguration().get(configurationRoot);
+        ModelNode root = analysisContext.getConfiguration();
         if (!root.isDefined()) {
             doNothing = true;
             return;

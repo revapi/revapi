@@ -236,7 +236,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
         Revapi revapi = createRevapi(reporterType);
 
-        AnalysisContext.Builder bld = AnalysisContext.builder()
+        AnalysisContext.Builder bld = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build());
 

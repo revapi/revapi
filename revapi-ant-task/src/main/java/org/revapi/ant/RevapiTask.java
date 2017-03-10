@@ -68,7 +68,7 @@ public final class RevapiTask extends Task {
     public void execute() throws BuildException {
 
         Revapi revapi = initRevapi();
-        AnalysisContext context = initAnalysisContext();
+        AnalysisContext context = initAnalysisContext(revapi);
 
         log("Running API analysis");
         log("Old API: " + context.getOldApi().toString());
@@ -107,14 +107,14 @@ public final class RevapiTask extends Task {
         return revapiBuilder.build();
     }
 
-    private AnalysisContext initAnalysisContext() {
+    private AnalysisContext initAnalysisContext(Revapi revapi) {
         API oldApi = API.of(FileArchive.from(oldArchives))
             .addSupportArchives(FileArchive.from(oldSupplementaryArchives)).build();
 
         API newApi = API.of(FileArchive.from(newArchives))
             .addSupportArchives(FileArchive.from(newSupplementaryArchives)).build();
 
-        AnalysisContext.Builder builder = AnalysisContext.builder().withOldAPI(oldApi).withNewAPI(newApi)
+        AnalysisContext.Builder builder = AnalysisContext.builder(revapi).withOldAPI(oldApi).withNewAPI(newApi)
             .withLocale(Locale.getDefault());
 
         if (configuration != null) {

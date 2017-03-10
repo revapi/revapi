@@ -16,12 +16,13 @@
 
 package org.revapi.basic;
 
+import static org.revapi.basic.Util.getAnalysisContextFromFullConfig;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
@@ -81,9 +82,8 @@ public class IgnoreDifferenceTransformTest {
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
 
-            AnalysisContext config = AnalysisContext.builder()
-                .withConfigurationFromJSON(
-                    "{\"revapi\":{\"ignore\":[{\"code\":\"c\", \"justification\" : \"because\"}]}}").build();
+            AnalysisContext config = getAnalysisContextFromFullConfig(IgnoreDifferenceTransform.class,
+                    "[{\"extension\": \"revapi.ignore\", \"configuration\": [{\"code\":\"c\", \"justification\" : \"because\"}]}]");
 
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
@@ -99,10 +99,8 @@ public class IgnoreDifferenceTransformTest {
         Difference difference = Difference.builder().withCode("c").build();
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
-            AnalysisContext config = AnalysisContext.builder()
-                .withConfigurationFromJSON(
-                    "{\"revapi\":{\"ignore\":[{\"regex\": true, \"code\":\"c\", \"justification\" : \"because\"}]}}")
-                .build();
+            AnalysisContext config = getAnalysisContextFromFullConfig(IgnoreDifferenceTransform.class,
+                    "[{\"extension\": \"revapi.ignore\", \"configuration\": [{\"regex\": true, \"code\":\"c\", \"justification\" : \"because\"}]}]");
 
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
@@ -121,9 +119,8 @@ public class IgnoreDifferenceTransformTest {
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
 
-            AnalysisContext config = AnalysisContext.builder()
-                    .withConfigurationFromJSON(
-                            "{\"revapi\":{\"ignore\":[{\"code\":\"c\", \"kachna\": \"dobra\", \"justification\" : \"because\"}]}}").build();
+            AnalysisContext config = getAnalysisContextFromFullConfig(IgnoreDifferenceTransform.class,
+                    "[{\"extension\": \"revapi.ignore\", \"configuration\": [{\"code\":\"c\", \"kachna\": \"dobra\", \"justification\" : \"because\"}]}]");
 
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);
@@ -147,9 +144,8 @@ public class IgnoreDifferenceTransformTest {
 
         try (IgnoreDifferenceTransform t = new IgnoreDifferenceTransform()) {
 
-            AnalysisContext config = AnalysisContext.builder()
-                    .withConfigurationFromJSON(
-                            "{\"revapi\":{\"ignore\":[{\"regex\": true, \"code\":\".*\", \"kachna\": \".*dobra$\", \"justification\" : \"because\"}]}}").build();
+            AnalysisContext config = getAnalysisContextFromFullConfig(IgnoreDifferenceTransform.class,
+                    "[{\"extension\": \"revapi.ignore\", \"configuration\": [{\"regex\": true, \"code\":\".*\", \"kachna\": \".*dobra$\", \"justification\" : \"because\"}]}]");
 
             t.initialize(config);
             difference = t.transform(oldE, newE, difference);

@@ -70,19 +70,15 @@ public class TextReporter implements Reporter {
 
     @Nullable
     @Override
-    public String[] getConfigurationRootPaths() {
-        return new String[]{CONFIG_ROOT_PATH};
+    public String getExtensionId() {
+        return CONFIG_ROOT_PATH;
     }
 
     @Nullable
     @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-        if (CONFIG_ROOT_PATH.equals(configurationRootPath)) {
-            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/schema.json"),
-                    Charset.forName("UTF-8"));
-        } else {
-            return null;
-        }
+    public Reader getJSONSchema() {
+        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/schema.json"),
+                Charset.forName("UTF-8"));
     }
 
     /**
@@ -108,16 +104,16 @@ public class TextReporter implements Reporter {
 
         this.analysis = analysis;
 
-        String minLevel = analysis.getConfiguration().get("revapi", "reporter", "text", "minSeverity").asString();
-        String output = analysis.getConfiguration().get("revapi", "reporter", "text", "output").asString();
+        String minLevel = analysis.getConfiguration().get("minSeverity").asString();
+        String output = analysis.getConfiguration().get("output").asString();
         output = "undefined".equals(output) ? "out" : output;
 
-        String templatePath = analysis.getConfiguration().get("revapi", "reporter", "text", "template").asString();
+        String templatePath = analysis.getConfiguration().get("template").asString();
         if ("undefined".equals(templatePath)) {
             templatePath = null;
         }
 
-        boolean append = analysis.getConfiguration().get("revapi", "reporter", "text", "append").asBoolean(false);
+        boolean append = analysis.getConfiguration().get("append").asBoolean(false);
 
         this.minLevel = "undefined".equals(minLevel) ? DifferenceSeverity.POTENTIALLY_BREAKING :
                 DifferenceSeverity.valueOf(minLevel);

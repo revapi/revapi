@@ -53,7 +53,7 @@ import org.jboss.dmr.ModelNode;
  *      }
  * }
  * </code></pre>
- * 
+ *
  * <p>If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
  * elements matching it are included. Out of the included elements, some may be further excluded by the exclude
  * filters.
@@ -71,24 +71,20 @@ public class ConfigurableElementFilter implements ElementFilter {
 
     @Nullable
     @Override
-    public String[] getConfigurationRootPaths() {
-        return new String[]{"revapi.filter"};
+    public String getExtensionId() {
+        return "revapi.filter";
     }
 
     @Nullable
     @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-        if ("revapi.filter".equals(configurationRootPath)) {
-            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/filter-schema.json"),
-                    Charset.forName("UTF-8"));
-        } else {
-            return null;
-        }
+    public Reader getJSONSchema() {
+        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/filter-schema.json"),
+                Charset.forName("UTF-8"));
     }
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
-        ModelNode root = analysisContext.getConfiguration().get("revapi", "filter");
+        ModelNode root = analysisContext.getConfiguration();
         if (!root.isDefined()) {
             doNothing = true;
             return;

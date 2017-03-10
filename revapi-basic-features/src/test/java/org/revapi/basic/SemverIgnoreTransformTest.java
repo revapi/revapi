@@ -40,7 +40,7 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testDisabledByDefault() {
-        DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", "{}");
+        DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {}}]");
         Assert.assertSame(NON_BREAKING, tr.transform(null, null, NON_BREAKING));
         Assert.assertSame(POTENTIALLY_BREAKING, tr.transform(null, null, POTENTIALLY_BREAKING));
         Assert.assertSame(BREAKING, tr.transform(null, null, BREAKING));
@@ -48,8 +48,8 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testDefaultSeverities() {
-        String config = "{\"revapi\": {\"semver\": {\"ignore\": {\"enabled\": true}}}}";
-        
+        String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]";
+
         DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", config);
         Assert.assertNull(tr.transform(null, null, NON_BREAKING));
         Assert.assertTrue(isBreaking(tr.transform(null, null, POTENTIALLY_BREAKING)));
@@ -83,8 +83,8 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testSeverityOverrides() {
-        String config = "{\"revapi\": {\"semver\": {\"ignore\": {\"enabled\": true," +
-                "\"versionIncreaseAllows\":{\"major\":\"potentiallyBreaking\",\"minor\":\"nonBreaking\",\"patch\": \"none\"}}}}}";
+        String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true," +
+                "\"versionIncreaseAllows\":{\"major\":\"potentiallyBreaking\",\"minor\":\"nonBreaking\",\"patch\": \"none\"}}}]";
 
 
         DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", config);
@@ -120,7 +120,7 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testPassthrough() {
-        String config = "{\"revapi\": {\"semver\": {\"ignore\": {\"enabled\": true, \"passThroughDifferences\": [\"potentiallyBreaking\"]}}}}";
+        String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true, \"passThroughDifferences\": [\"potentiallyBreaking\"]}}]";
 
         DifferenceTransform<?> tr = getTestTransform("1.0.0", "2.0.0", config);
 
@@ -135,11 +135,9 @@ public class SemverIgnoreTransformTest {
 
     private DifferenceTransform<Element> getTestTransform(String oldVersion, String newVersion,
                                                           String configuration) {
-        AnalysisContext ctx = AnalysisContext.builder()
-                .withConfigurationFromJSON(configuration)
+        AnalysisContext ctx = Util.setAnalysisContextFullConfig(AnalysisContext.builder()
                 .withOldAPI(API.of(new Ar(oldVersion)).build())
-                .withNewAPI(API.of(new Ar(newVersion)).build())
-                .build();
+                .withNewAPI(API.of(new Ar(newVersion)).build()), SemverIgnoreTransform.class, configuration);
 
         SemverIgnoreTransform tr = new SemverIgnoreTransform();
 

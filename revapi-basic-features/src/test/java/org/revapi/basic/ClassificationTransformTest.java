@@ -1,12 +1,13 @@
 package org.revapi.basic;
 
+import static org.revapi.basic.Util.getAnalysisContextFromFullConfig;
+
 import java.util.Collections;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.junit.Test;
-
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
@@ -72,10 +73,8 @@ public class ClassificationTransformTest {
             CompatibilityType.BINARY, DifferenceSeverity.NON_BREAKING).addClassification(CompatibilityType.SOURCE,
             DifferenceSeverity.POTENTIALLY_BREAKING).build();
 
-        AnalysisContext config = AnalysisContext.builder()
-            .withConfigurationFromJSON(
-                "{\"revapi\": {\"reclassify\":[{\"code\":\"code\", \"classify\": {\"BINARY\" : \"BREAKING\"}}]}}")
-            .build();
+        AnalysisContext config = getAnalysisContextFromFullConfig(ClassificationTransform.class,
+                "[{\"extension\": \"revapi.reclassify\", \"configuration\":[{\"code\":\"code\", \"classify\": {\"BINARY\" : \"BREAKING\"}}]}]");
 
         try (ClassificationTransform t = new ClassificationTransform()) {
             t.initialize(config);

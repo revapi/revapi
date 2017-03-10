@@ -32,7 +32,7 @@ import org.jboss.dmr.ModelNode;
  * A generic difference transform that can ignore differences based on the difference code ({@link
  * org.revapi.Difference#code}) and on the old or new elements' full human representations
  * ({@link org.revapi.Element#getFullHumanReadableString()}).
- * 
+ *
  * <p>The transform is configured using properties in the general form of:
  * <pre><code>
  *  {
@@ -75,24 +75,14 @@ public class IgnoreDifferenceTransform
     }
 
     public IgnoreDifferenceTransform() {
-        super("revapi", "ignore");
+        super("revapi.ignore");
     }
 
     @Nullable
     @Override
-    public String[] getConfigurationRootPaths() {
-        return new String[]{"revapi.ignore"};
-    }
-
-    @Nullable
-    @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-        if ("revapi.ignore".equals(configurationRootPath)) {
-            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/ignore-schema.json"),
-                    Charset.forName("UTF-8"));
-        } else {
-            return null;
-        }
+    public Reader getJSONSchema() {
+        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/ignore-schema.json"),
+                Charset.forName("UTF-8"));
     }
 
     @Nullable

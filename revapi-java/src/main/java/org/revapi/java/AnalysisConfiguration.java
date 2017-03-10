@@ -57,16 +57,16 @@ public final class AnalysisConfiguration {
         Set<String> useReportingCodes = readUseReportingCodes(node);
         boolean ignoreMissingAnnotations = readIgnoreMissingAnnotations(node);
 
-        ModelNode classesRegex = node.get("revapi", "java", "filter", "classes", "regex");
-        ModelNode packagesRegex = node.get("revapi", "java", "filter", "packages", "regex");
+        ModelNode classesRegex = node.get("filter", "classes", "regex");
+        ModelNode packagesRegex = node.get("filter", "packages", "regex");
 
-        Set<Pattern> classInclusionFilters = readFilter(node.get("revapi", "java", "filter", "classes", "include"),
+        Set<Pattern> classInclusionFilters = readFilter(node.get("filter", "classes", "include"),
                 classesRegex);
-        Set<Pattern> classExclusionFilters = readFilter(node.get("revapi", "java", "filter", "classes", "exclude"),
+        Set<Pattern> classExclusionFilters = readFilter(node.get("filter", "classes", "exclude"),
                 classesRegex);
-        Set<Pattern> packageInclusionFilters = readFilter(node.get("revapi", "java", "filter", "packages", "include"),
+        Set<Pattern> packageInclusionFilters = readFilter(node.get("filter", "packages", "include"),
                 packagesRegex);
-        Set<Pattern> packageExclusionFilters = readFilter(node.get("revapi", "java", "filter", "packages", "exclude"),
+        Set<Pattern> packageExclusionFilters = readFilter(node.get("filter", "packages", "exclude"),
                 packagesRegex);
 
         return new AnalysisConfiguration(reporting, useReportingCodes,
@@ -103,7 +103,7 @@ public final class AnalysisConfiguration {
     }
 
     private static MissingClassReporting readMissingClassReporting(ModelNode analysisConfig) {
-        ModelNode config = analysisConfig.get("revapi", "java", "missing-classes", "behavior");
+        ModelNode config = analysisConfig.get("missing-classes", "behavior");
         if (config.isDefined()) {
             switch (config.asString()) {
             case "report":
@@ -122,7 +122,7 @@ public final class AnalysisConfiguration {
     }
 
     private static boolean readIgnoreMissingAnnotations(ModelNode analysisConfig) {
-        ModelNode config = analysisConfig.get("revapi", "java", "missing-classes", "ignoreMissingAnnotations");
+        ModelNode config = analysisConfig.get("missing-classes", "ignoreMissingAnnotations");
         if (config.isDefined()) {
             return config.asBoolean();
         }
@@ -132,7 +132,7 @@ public final class AnalysisConfiguration {
 
     private static Set<String> readUseReportingCodes(ModelNode analysisConfig) {
         Set<String> ret = new HashSet<>();
-        ModelNode config = analysisConfig.get("revapi", "java", "reportUsesFor");
+        ModelNode config = analysisConfig.get("reportUsesFor");
         if (config.isDefined()) {
             for (ModelNode code : config.asList()) {
                 ret.add(code.asString());

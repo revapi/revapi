@@ -60,13 +60,13 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
 
     @Nullable
     @Override
-    public String[] getConfigurationRootPaths() {
+    public String getExtensionId() {
         return null;
     }
 
     @Nullable
     @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+    public Reader getJSONSchema() {
         return null;
     }
 
