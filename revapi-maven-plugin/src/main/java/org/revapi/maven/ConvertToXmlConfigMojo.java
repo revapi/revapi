@@ -76,7 +76,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
         Revapi revapi = analyzer.getRevapi();
 
         AnalysisContext ctx =
-                AnalysisContext.builder().withConfigurationFromJSON(analysisConfiguration.getValue()).build();
+                AnalysisContext.builder(revapi).withConfigurationFromJSON(analysisConfiguration.getValue()).build();
 
         AnalysisResult.Extensions extensions = revapi.prepareAnalysis(ctx);
 

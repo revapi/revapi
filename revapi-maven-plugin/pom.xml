@@ -44,7 +44,7 @@
         <itest.maven-opts />
         <revapi-java.version>0.14.0-SNAPSHOT</revapi-java.version>
         <revapi-java-spi.version>0.13.0-SNAPSHOT</revapi-java-spi.version>
-        <revapi-reporter-text.version>0.7.0-SNAPSHOT</revapi-reporter-text.version>
+        <revapi-reporter-text.version>0.8.0-SNAPSHOT</revapi-reporter-text.version>
     </properties>
 
     <prerequisites>

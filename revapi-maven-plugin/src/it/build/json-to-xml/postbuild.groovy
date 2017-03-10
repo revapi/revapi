@@ -15,6 +15,9 @@
  */
 
 File pomXml = new File("target/it/build/json-to-xml/pom.xml")
+if (!pomXml.exists()) {
+    pomXml = new File("revapi-maven-plugin", pomXml.getPath())
+}
 
 pomXml.eachLine { line ->
     assert !line.contains("{")

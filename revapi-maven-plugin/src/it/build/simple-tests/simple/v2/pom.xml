@@ -60,7 +60,7 @@
                                 <revapi.ignore>
                                     <item>
                                         <code>java.class.nowFinal</code>
-                                        <old>class test.dep</old>
+                                        <old>class test.Dep</old>
                                         <justification>foo</justification>
                                     </item>
                                     <item>

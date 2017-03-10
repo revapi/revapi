@@ -183,7 +183,7 @@ public final class Analyzer {
     ValidationResult validateConfiguration() throws Exception {
         buildRevapi();
 
-        AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withLocale(locale);
+        AnalysisContext.Builder ctxBuilder = AnalysisContext.builder(revapi).withLocale(locale);
         gatherConfig(ctxBuilder);
 
         ctxBuilder.withData(contextData);
@@ -422,7 +422,7 @@ public final class Analyzer {
         try {
             buildRevapi();
 
-            AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withOldAPI(resolvedOldApi)
+            AnalysisContext.Builder ctxBuilder = AnalysisContext.builder(revapi).withOldAPI(resolvedOldApi)
                     .withNewAPI(resolvedNewApi).withLocale(locale);
             gatherConfig(ctxBuilder);
 
@@ -545,13 +545,13 @@ public final class Analyzer {
             ModelNode config = SchemaDrivenXmlToJSONConverter.convert(c, schema);
 
             ModelNode instanceConfig = new ModelNode();
-            instanceConfig.set("extension", extensionId);
-            instanceConfig.set("configuration", config);
+            instanceConfig.get("extension").set(extensionId);
+            instanceConfig.get("configuration").set(config);
 
             fullConfiguration.add(instanceConfig);
         }
 
-        bld.withConfiguration(fullConfiguration);
+        bld.mergeConfiguration(fullConfiguration);
     }
 
     private <T extends Configurable>
