@@ -32,19 +32,6 @@ import org.revapi.AnalysisContext;
 public interface Configurable {
 
     /**
-     * Revapi supports a single configuration file for multiple extensions. Each such extension is supposed to define
-     * a set of paths in the JSON file that it wants to read the configuration from.
-     *
-     * @return the root paths in the configuration this configurable understands or null
-     * @deprecated don't use this. Instead use the {@link #getExtensionId()} method.
-     */
-    @Nullable
-    @Deprecated
-    default String[] getConfigurationRootPaths() {
-        return null;
-    }
-
-    /**
      * The identifier of this configurable extension in the configuration file. This should be globally unique, but
      * human readable, so a package name or something similar would be a good candidate. Core revapi extensions have
      * the extension ids always starting with "revapi.".
@@ -52,38 +39,14 @@ public interface Configurable {
      * @return the unique identifier of this configurable extension or null if this extension doesn't require any
      * configuration
      */
-    @Nullable
-    default String getExtensionId() {
-        String[] rootPaths = getConfigurationRootPaths();
-        return rootPaths == null ? null : rootPaths[0];
-    }
-
-    /**
-     * Returns a reader using which the caller can read the JSON schema for given configuration root path.
-     *
-     * @param configurationRootPath the root path to get the expected schema for. This will be one of the paths
-     *                              returned
-     *                              from {@link #getConfigurationRootPaths()}.
-     *
-     * @return the reader for reading in the schema JSON or null if no schema is needed for given root path.
-     * @deprecated use {@link #getJSONSchema()} instead
-     */
-    @Nullable
-    @Deprecated
-    default Reader getJSONSchema(@Nonnull String configurationRootPath) {
-        return null;
-    }
+    @Nullable String getExtensionId();
 
     /**
      * This method must not return null if {@link #getExtensionId()} returns a non-null value.
      *
      * @return a json schema to validate the configuration of this configurable against
      */
-    @Nullable
-    default Reader getJSONSchema() {
-        String extensionId = getExtensionId();
-        return extensionId == null ? null : getJSONSchema(extensionId);
-    }
+    @Nullable Reader getJSONSchema();
 
     /**
      * The instance can configure itself for the upcoming analysis from the supplied analysis context.

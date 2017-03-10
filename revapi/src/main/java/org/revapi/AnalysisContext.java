@@ -67,7 +67,7 @@ public final class AnalysisContext {
      * @param newApi        the new API
      * @param data          the data that should be attached to the analysis context
      */
-    public AnalysisContext(@Nonnull Locale locale, @Nullable ModelNode configuration, @Nonnull API oldApi,
+    private AnalysisContext(@Nonnull Locale locale, @Nullable ModelNode configuration, @Nonnull API oldApi,
                            @Nonnull API newApi, @Nonnull Map<String, Object> data) {
         this.locale = locale;
         if (configuration == null) {

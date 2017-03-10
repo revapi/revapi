@@ -69,12 +69,12 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable String[] getConfigurationRootPaths() {
+        public @Nullable String getExtensionId() {
             return null;
         }
 
         @Override
-        public @Nullable Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        public @Nullable Reader getJSONSchema() {
             return null;
         }
 
@@ -148,12 +148,12 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable String[] getConfigurationRootPaths() {
+        public @Nullable String getExtensionId() {
             return null;
         }
 
         @Override
-        public @Nullable Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        public @Nullable Reader getJSONSchema() {
             return null;
         }
 
@@ -229,13 +229,13 @@ public class AnalysisTest {
 
         @Nullable
         @Override
-        public String[] getConfigurationRootPaths() {
+        public String getExtensionId() {
             return null;
         }
 
         @Nullable
         @Override
-        public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        public Reader getJSONSchema() {
             return null;
         }
 

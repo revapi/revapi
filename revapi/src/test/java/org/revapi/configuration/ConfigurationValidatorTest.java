@@ -258,6 +258,14 @@ public class ConfigurationValidatorTest {
 
     public static final class DummyApiAnalyzer implements ApiAnalyzer {
 
+        @Nullable @Override public String getExtensionId() {
+            return null;
+        }
+
+        @Nullable @Override public Reader getJSONSchema() {
+            return null;
+        }
+
         @Nonnull @Override public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
             return null;
         }
