@@ -16,6 +16,9 @@
 
 package org.revapi;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -30,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -266,10 +270,12 @@ public final class AnalysisContext {
                         if (!added) {
                             throw new IllegalArgumentException(
                                     "A configuration cannot contain 2 extension configurations with the same id. " +
-                                            "At least 2 extension configurations have the id '" + id + "'.");
+                                            "At least 2 extension configurations of extension '" + extension +
+                                            "' have the id '" + id + "'.");
                         }
                     }
                 }
+
                 return configuration;
             }
 
@@ -304,28 +310,64 @@ public final class AnalysisContext {
             return newStyleConfig;
         }
 
-        private static void mergeConfigs(ModelNode a, ModelNode b) {
-            Map<String, Map<String, ModelNode>> aByExtensionAndId = new HashMap<>(4);
-            Map<String, List<ModelNode>> idlessAByExtensionId = new HashMap<>(4);
-
-            for (ModelNode ac : a.asList()) {
-                String extensionId = ac.get("extension").asString();
-                if (!ac.hasDefined("id")) {
-                    idlessAByExtensionId.computeIfAbsent(extensionId, x -> new ArrayList<>(2)).add(ac);
+        private static void splitByExtensionAndId(List<ModelNode> configs,
+                                                  Map<String, Map<String, ModelNode>> byExtensionAndId,
+                                                  Map<String, List<ModelNode>> idlessByExtension) {
+            for (ModelNode c : configs) {
+                String extensionId = c.get("extension").asString();
+                if (!c.hasDefined("id")) {
+                    idlessByExtension.computeIfAbsent(extensionId, x -> new ArrayList<>(2)).add(c);
                     continue;
                 }
 
-                String id = ac.get("id").asString();
+                String id = c.get("id").asString();
 
-                aByExtensionAndId.computeIfAbsent(extensionId, x -> new HashMap<>(2)).compute(id, (i, n) -> {
+                byExtensionAndId.computeIfAbsent(extensionId, x -> new HashMap<>(2)).compute(id, (i, n) -> {
                     if (n == null) {
-                        return ac;
+                        return c;
                     } else {
                         throw new IllegalArgumentException(
                                 "There cannot be 2 or more configurations with the same ID.");
                     }
                 });
             }
+        }
+
+        private static void mergeConfigs(ModelNode a, ModelNode b) {
+            Map<String, Map<String, ModelNode>> aByExtensionAndId = new HashMap<>(4);
+            Map<String, List<ModelNode>> idlessAByExtensionId = new HashMap<>(4);
+            splitByExtensionAndId(a.asList(), aByExtensionAndId, idlessAByExtensionId);
+
+            Map<String, Map<String, ModelNode>> bByExtensionAndId = new HashMap<>(4);
+            Map<String, List<ModelNode>> idlessBByExtensionId = new HashMap<>(4);
+            splitByExtensionAndId(b.asList(), bByExtensionAndId, idlessBByExtensionId);
+
+            //we cannot merge if:
+            //1) "a" contains 2 or more (idless or not) for an extension and b contains at least 1 idless for an extension
+            //2) "a" contains at least 1 for an extension and b contains 2 or more idless for an extension
+            Stream.concat(aByExtensionAndId.keySet().stream(), idlessAByExtensionId.keySet().stream()).forEach(ext -> {
+                int aCnt = idlessAByExtensionId.getOrDefault(ext, emptyList()).size()
+                        + aByExtensionAndId.getOrDefault(ext, emptyMap()).size();
+
+                int bCnt = idlessBByExtensionId.getOrDefault(ext, emptyList()).size();
+
+                //rule 1
+                if (aCnt > 1 && bCnt > 0) {
+                    throw new IllegalArgumentException(
+                            "The configuration already contains more than 1 configuration for extension " +
+                                    ext + ". Cannot determine which one of them to merge" +
+                                    " the new configuration(s) (which don't have an explicit ID) into.");
+                }
+
+                //rule 2
+                if (aCnt > 0 && bCnt > 1) {
+                    throw new IllegalArgumentException(
+                            "The configuration already contains 1 or more configurations for extension " +
+                                    ext + ". At the same time, the configuration to merge already contains 2 or more" +
+                                    " configurations for the same extension without an explicit ID." +
+                                    " Cannot figure out how to merge these together.");
+                }
+            });
 
             int bcIdx = 0;
             for (ModelNode bc : b.asList()) {
@@ -339,12 +381,6 @@ public final class AnalysisContext {
                             List<String> path = new ArrayList<>(4);
                             path.addAll(Arrays.asList("[" + bcIdx + "]", "configuration"));
                             mergeNodes(bcExtension, null, path, idless.get(0).get("configuration"), bc.get("configuration"));
-                        } else {
-                            throw new IllegalArgumentException(
-                                    "The configuration already contains more than 1 configuration for extension " +
-                                            bcExtension +
-                                            " without an explicit ID. Cannot determine which one of them to merge" +
-                                            " the new configuration (which also doesn't have an ID) into.");
                         }
                     } else {
                         Map<String, ModelNode> aExtensions = aByExtensionAndId.get(bcExtension);
@@ -353,19 +389,11 @@ public final class AnalysisContext {
                             continue;
                         }
 
-                        if (aExtensions.size() > 1) {
-                            throw new IllegalArgumentException(
-                                    "The configuration already contains more than 1 configuration for extension " +
-                                            bcExtension +
-                                            " Cannot determine which one of them to merge" +
-                                            " the new configuration (which doesn't have an ID) into.");
-                        } else {
-                            List<String> path = new ArrayList<>(4);
-                            path.addAll(Arrays.asList("[" + bcIdx + "]", "configuration"));
+                        List<String> path = new ArrayList<>(4);
+                        path.addAll(Arrays.asList("[" + bcIdx + "]", "configuration"));
 
-                            ModelNode aConfig = aExtensions.values().iterator().next();
-                            mergeNodes(bcExtension, null, path, aConfig.get("configuration"), bc.get("configuration"));
-                        }
+                        ModelNode aConfig = aExtensions.values().iterator().next();
+                        mergeNodes(bcExtension, null, path, aConfig.get("configuration"), bc.get("configuration"));
                     }
                 } else {
                     Map<String, ModelNode> aExtensions = aByExtensionAndId.get(bcExtension);

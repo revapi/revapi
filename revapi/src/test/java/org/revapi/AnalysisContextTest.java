@@ -80,6 +80,23 @@ public class AnalysisContextTest {
         Assert.assertEquals(newCfg, ctx.getConfiguration());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testConfigurationHandling_mergeNewStyle_singleMasterWithMultipleIdlessMergers() throws Exception {
+        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}," +
+                " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
+        Dummy.extensionId = "ext";
+        ModelNode cfg1 = ModelNode.fromJSONString("[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}}]");
+        ModelNode cfg2 = ModelNode.fromJSONString("[{\"extension\": \"ext\", \"configuration\": {\"b\": [\"y\"]}}," +
+                "{\"extension\": \"ext\", \"configuration\": {\"b\": [\"z\"]}}]");
+
+        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(SimpleReporter.class).build();
+
+        AnalysisContext.builder(revapi)
+                .withConfiguration(cfg1)
+                .mergeConfiguration(cfg2)
+                .build();
+    }
+
     @Test
     public void testConfigurationHandling_mergeNewStyle_withIds() throws Exception {
         Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}," +
