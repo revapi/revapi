@@ -18,6 +18,7 @@ package org.revapi;
 
 import static org.revapi.Revapi.TIMING_LOG;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -162,6 +163,11 @@ public final class AnalysisResult implements AutoCloseable {
         public <T> T getFirstExtension(Class<T> extensionType, T defaultValue) {
             Set<T> instances = getExtensionInstances(extensionType);
             return instances.isEmpty() ? defaultValue : instances.iterator().next();
+        }
+
+        public AnalysisContext getFirstConfigurationOrNull(Class<?> extensionType) {
+            Collection<AnalysisContext> ctxs = getExtensionContexts(extensionType).values();
+            return ctxs.isEmpty() ? null : ctxs.iterator().next();
         }
 
         @Override public Iterator<Map.Entry<?, AnalysisContext>> iterator() {

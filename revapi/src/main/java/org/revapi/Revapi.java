@@ -36,7 +36,6 @@ import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 
 import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.ModelType;
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.ValidationResult;
@@ -191,39 +190,33 @@ public final class Revapi {
     private <T extends Configurable> Map<T, AnalysisContext>
     splitByConfiguration(AnalysisContext fullConfig, Set<Class<? extends T>> configurables) {
         Map<T, AnalysisContext> map = new HashMap<>();
-        if (fullConfig.getConfiguration().getType() == ModelType.LIST) {
-            //new-style config
-            for (Class<? extends T> cc : configurables) {
-                T c = instantiate(cc);
-                String extensionId = c.getExtensionId();
-                if (extensionId == null) {
-                    map.put(c, fullConfig.modified().withConfiguration(new ModelNode()).build());
-                } else {
-                    String[] explodedExtensionId = extensionId.split("\\.");
-                    T inst = null;
-                    for (ModelNode config : fullConfig.getConfiguration().asList()) {
-                        String configExtension = config.get("extension").asString();
-                        if (!extensionId.equals(configExtension)) {
-                            continue;
-                        }
-
-                        ModelNode extensionConfig = new ModelNode().get(explodedExtensionId);
-                        extensionConfig.set(config);
-
-                        if (inst == null) {
-                            inst = c;
-                        } else {
-                            inst = instantiate(cc);
-                        }
-
-                        map.put(inst, fullConfig.modified().withConfiguration(extensionConfig).build());
+        for (Class<? extends T> cc : configurables) {
+            T c = instantiate(cc);
+            String extensionId = c.getExtensionId();
+            if (extensionId == null) {
+                map.put(c, fullConfig.copyWithConfiguration(new ModelNode()));
+            } else {
+                T inst = null;
+                boolean configured = false;
+                for (ModelNode config : fullConfig.getConfiguration().asList()) {
+                    String configExtension = config.get("extension").asString();
+                    if (!extensionId.equals(configExtension)) {
+                        continue;
                     }
+                    if (inst == null) {
+                        inst = c;
+                    } else {
+                        inst = instantiate(cc);
+                    }
+
+                    map.put(inst, fullConfig.copyWithConfiguration(config.get("configuration").clone()));
+
+                    configured = true;
                 }
-            }
-        } else {
-            //old-style config
-            for (Class<? extends T> cc : configurables) {
-                map.put(instantiate(cc), fullConfig);
+
+                if (!configured) {
+                    map.put(c, fullConfig.copyWithConfiguration(new ModelNode()));
+                }
             }
         }
 
