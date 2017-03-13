@@ -78,7 +78,12 @@
                                         <root>nested/config</root>
                                     </roots>
                                 </configurationFile>
-                                <file>analysis-config2.json</file>
+                                <configurationFile>
+                                    <path>analysis-config2.xml</path>
+                                    <roots>
+                                        <root>nested/config</root>
+                                    </roots>
+                                </configurationFile>
                             </analysisConfigurationFiles>
                             <reportSeverity>nonBreaking</reportSeverity>
                         </configuration>
@@ -103,7 +108,12 @@
                                 </revapi.ignore>
                             </analysisConfiguration>
                             <analysisConfigurationFiles>
-                                <file>analysis-config2.json</file>
+                                <configurationFile>
+                                    <path>analysis-config2.xml</path>
+                                    <roots>
+                                        <root>nested/config</root>
+                                    </roots>
+                                </configurationFile>
                             </analysisConfigurationFiles>
                         </configuration>
                         <goals><goal>check</goal></goals>

@@ -114,4 +114,14 @@ final class Props {
         static final String NAME = PREFIX + "useBuildConfiguration";
         static final String DEFAULT_VALUE = "false";
     }
+
+    static final class convertPomXml {
+        static final String NAME = PREFIX + "convertPomXml";
+        static final String DEFAULT_VALUE = "true";
+    }
+
+    static final class convertAnalysisConfigurationFiles {
+        static final String NAME = PREFIX + "convertAnalysisConfigurationFiles";
+        static final String DEFAULT_VALUE = "false";
+    }
 }

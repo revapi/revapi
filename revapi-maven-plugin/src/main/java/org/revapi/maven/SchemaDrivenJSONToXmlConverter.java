@@ -20,10 +20,10 @@ import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.revapi.maven.SchemaDrivenXmlToJSONConverter.JSONPointer;
+import org.revapi.configuration.XmlToJson;
 
 /**
- * A dual of {@link SchemaDrivenXmlToJSONConverter}.
+ * Converts JSON representation into a XML.
  *
  * @author Lukas Krejci
  * @since 0.9.0
@@ -86,7 +86,7 @@ final class SchemaDrivenJSONToXmlConverter {
     }
 
     private static ModelNode findRef(ModelNode rootSchema, String ref) {
-        return JSONPointer.parse(ref).navigate(rootSchema);
+        return XmlToJson.JSONPointer.parse(ref).navigate(rootSchema);
     }
 
     private static PlexusConfiguration convertObject(ModelNode configuration, ModelNode jsonSchema, ModelNode rootSchema, String tagName) {

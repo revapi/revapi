@@ -1,0 +1,11 @@
+{
+  "customRoot": {
+    "revapi": {
+      "ignore": [
+        {
+          "code": "some"
+        }
+      ]
+    }
+  }
+}

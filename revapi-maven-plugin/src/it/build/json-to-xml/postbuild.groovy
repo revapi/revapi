@@ -14,11 +14,27 @@
  * limitations under the License
  */
 
-File pomXml = new File("target/it/build/json-to-xml/pom.xml")
-if (!pomXml.exists()) {
-    pomXml = new File("revapi-maven-plugin", pomXml.getPath())
+file = { name ->
+    f = new File((String) name)
+    if (!f.exists()) {
+        f = new File("revapi-maven-plugin", f.getPath())
+    }
+
+    return f
 }
 
+File pomXml = file("target/it/build/json-to-xml/pom.xml")
 pomXml.eachLine { line ->
     assert !line.contains("{")
+    assert !line.contains("conf1.json")
+    assert !line.contains("conf2.json")
+    assert !line.contains("conf3.xml")
 }
+
+File conf1Xml = file("target/it/build/json-to-xml/conf1.xml")
+File conf2Xml = file("target/it/build/json-to-xml/subdir/conf2.xml")
+File conf3Xml = file("target/it/build/json-to-xml/conf3.xml")
+
+assert conf1Xml.exists()
+assert conf2Xml.exists()
+assert !conf3Xml.exists()

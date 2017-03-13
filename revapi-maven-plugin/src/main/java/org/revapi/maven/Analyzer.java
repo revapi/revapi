@@ -21,11 +21,12 @@ import static java.util.stream.Collectors.toList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +44,9 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
+import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
+import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
@@ -58,9 +62,9 @@ import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
-import org.revapi.configuration.Configurable;
 import org.revapi.configuration.JSONUtil;
 import org.revapi.configuration.ValidationResult;
+import org.revapi.configuration.XmlToJson;
 import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.maven.utils.ScopeDependencySelector;
 import org.revapi.maven.utils.ScopeDependencyTraverser;
@@ -476,27 +480,16 @@ public final class Analyzer {
                     }
                 }
 
-                try (FileInputStream in = new FileInputStream(f)) {
-                    ModelNode config = ModelNode.fromJSONStream(JSONUtil.stripComments(in, Charset.forName("UTF-8")));
-
-                    String[] roots = configFile.getRoots();
-
-                    if (roots == null) {
-                        ctxBld.mergeConfiguration(config);
-                    } else {
-                        for (String r : roots) {
-                            String[] rootPath = r.split("/");
-                            ModelNode root = config.get(rootPath);
-
-                            if (!root.isDefined()) {
-                                continue;
-                            }
-
-                            ctxBld.mergeConfiguration(root);
-                        }
+                ModelNode config = readJson(f);
+                if (config != null) {
+                    mergeJsonConfigFile(ctxBld, configFile, config);
+                } else {
+                    try (Reader rdr = new InputStreamReader(new FileInputStream(f))) {
+                        mergeXmlConfigFile(ctxBld, configFile, rdr);
+                    } catch (IOException | XmlPullParserException e) {
+                        throw new MojoExecutionException("Could not load configuration from '" + f.getAbsolutePath()
+                                + "': " + e.getMessage());
                     }
-                } catch (IOException e) {
-                    throw new MojoExecutionException("Could not load configuration from '" + f.getAbsolutePath() + "': " + e.getMessage());
                 }
             }
         }
@@ -507,6 +500,60 @@ public final class Analyzer {
                 convertNewStyleConfigFromXml(ctxBld, getRevapi());
             } else {
                 ctxBld.mergeConfigurationFromJSON(text);
+            }
+        }
+    }
+
+    private void mergeXmlConfigFile(AnalysisContext.Builder ctxBld, ConfigurationFile configFile, Reader rdr)
+            throws IOException, XmlPullParserException {
+        XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
+                PlexusConfiguration::getValue, x -> Arrays.asList(x.getChildren()));
+
+        PlexusConfiguration xml = new XmlPlexusConfiguration(Xpp3DomBuilder.build(rdr));
+
+        String[] roots = configFile.getRoots();
+
+        if (roots == null) {
+            ctxBld.mergeConfiguration(conv.convert(xml));
+        } else {
+            roots: for (String r : roots) {
+                PlexusConfiguration root = xml;
+                boolean first = true;
+                String[] rootPath = r.split("/");
+                for (String name : rootPath) {
+                    if (first) {
+                        first = false;
+                        if (!name.equals(root.getName())) {
+                            continue roots;
+                        }
+                    } else {
+                        root = root.getChild(name);
+                        if (root == null) {
+                            continue roots;
+                        }
+                    }
+                }
+
+                ctxBld.mergeConfiguration(conv.convert(root));
+            }
+        }
+    }
+
+    private void mergeJsonConfigFile(AnalysisContext.Builder ctxBld, ConfigurationFile configFile, ModelNode config) {
+        String[] roots = configFile.getRoots();
+
+        if (roots == null) {
+            ctxBld.mergeConfiguration(config);
+        } else {
+            for (String r : roots) {
+                String[] rootPath = r.split("/");
+                ModelNode root = config.get(rootPath);
+
+                if (!root.isDefined()) {
+                    continue;
+                }
+
+                ctxBld.mergeConfiguration(root);
             }
         }
     }
@@ -523,75 +570,18 @@ public final class Analyzer {
     }
 
     private void convertNewStyleConfigFromXml(AnalysisContext.Builder bld, Revapi revapi) {
-        Map<String, ModelNode> knownSchemas = new HashMap<>();
-        extractKnownSchemas(knownSchemas, revapi.getApiAnalyzerTypes());
-        extractKnownSchemas(knownSchemas, revapi.getDifferenceTransformTypes());
-        extractKnownSchemas(knownSchemas, revapi.getElementFilterTypes());
-        extractKnownSchemas(knownSchemas, revapi.getReporterTypes());
+        XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
+                PlexusConfiguration::getValue, x -> Arrays.asList(x.getChildren()));
 
-        ModelNode fullConfiguration = new ModelNode();
-        for (PlexusConfiguration c : analysisConfiguration.getChildren()) {
-
-            String extensionId = c.getName();
-
-            ModelNode schema = knownSchemas.get(extensionId);
-            if (schema == null) {
-                log.error("Extension '" + extensionId +
-                        "' doesn't declare a JSON schema but pom.xml contains its xml-ized configuration. " +
-                        "Cannot convert it into JSON and will ignore it!");
-                continue;
-            }
-
-            ModelNode config = SchemaDrivenXmlToJSONConverter.convert(c, schema);
-
-            ModelNode instanceConfig = new ModelNode();
-            instanceConfig.get("extension").set(extensionId);
-            instanceConfig.get("configuration").set(config);
-
-            fullConfiguration.add(instanceConfig);
-        }
-
-        bld.mergeConfiguration(fullConfiguration);
+        bld.mergeConfiguration(conv.convert(analysisConfiguration));
     }
 
-    private <T extends Configurable>
-    void extractKnownSchemas(Map<String, ModelNode> schemaByExtensionId, Set<Class<? extends T>> types) {
-        for (Class<? extends T> extensionType : types) {
-            try {
-                Configurable c = extensionType.newInstance();
-                String extensionId = c.getExtensionId();
-                if (extensionId == null) {
-                    continue;
-                }
-
-                Reader schema = c.getJSONSchema();
-                if (schema == null) {
-                    continue;
-                }
-
-                String schemaString = readFull(schema);
-                ModelNode schemaNode = ModelNode.fromJSONString(schemaString);
-
-                schemaByExtensionId.put(extensionId, schemaNode);
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new IllegalStateException("Extension " + extensionType + " is not default-constructable.");
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Failed to read the schema of extension " + extensionType);
-            } catch (IllegalArgumentException e) {
-                throw e;
-            }
+    private ModelNode readJson(File f) {
+        try (FileInputStream in = new FileInputStream(f)) {
+            return ModelNode.fromJSONStream(JSONUtil.stripComments(in, Charset.forName("UTF-8")));
+        } catch (IOException e) {
+            return null;
         }
-    }
-
-    private String readFull(Reader reader) throws IOException {
-        char[] buffer = new char[512];
-        StringBuilder bld = new StringBuilder();
-        int cnt;
-        while ((cnt = reader.read(buffer)) != -1) {
-            bld.append(buffer, 0, cnt);
-        }
-
-        return bld.toString();
     }
 
     private static class MarkerException extends RuntimeException {

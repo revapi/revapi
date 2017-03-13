@@ -38,8 +38,9 @@ import org.revapi.Reporter;
  */
 abstract class AbstractRevapiMojo extends AbstractMojo {
     /**
-     * The JSON configuration of various analysis options. The available options depend on what
-     * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
+     * The JSON or XML configuration of various analysis options. The available options depend on what
+     * analyzers are present on the plugin classpath through the {@code &lt;dependencies&gt;}.
+     * Consult <a href="examples/configuration.html">configuration documentation</a> for more details.
      *
      * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
