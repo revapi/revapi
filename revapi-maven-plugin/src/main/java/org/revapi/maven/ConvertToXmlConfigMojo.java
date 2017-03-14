@@ -42,10 +42,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
-import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.ModelType;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
 import org.revapi.Revapi;
@@ -125,7 +123,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
 
         if (convertPomXml) {
             try {
-                updateAllConfigurations(project, knownExtensionSchemas, indentationSize);
+                updateAllConfigurations(project.getFile(), knownExtensionSchemas, indentationSize);
             } catch (Exception e) {
                 throw new MojoExecutionException("Failed to convert the JSON configuration in pom.xml to XML format.",
                         e);
@@ -196,7 +194,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
             return null;
         }
 
-        PlexusConfiguration xml = convertToXml(extensionSchemas, jsonConfig);
+        PlexusConfiguration xml = SchemaDrivenJSONToXmlConverter.convertToXml(extensionSchemas, jsonConfig);
 
         File newFile = configFile;
 
@@ -218,78 +216,21 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
 
     private static PlexusConfiguration convertToXml(Map<String, ModelNode> extensionSchemas, String xmlOrJson)
             throws IOException, XmlPullParserException {
+        ModelNode jsonConfig;
         try {
-            ModelNode jsonConfig = ModelNode.fromJSONString(xmlOrJson);
-            return convertToXml(extensionSchemas, jsonConfig);
+            jsonConfig = ModelNode.fromJSONString(xmlOrJson);
         } catch (IllegalArgumentException e) {
             //ok, this already is XML
             return null;
         }
+        return SchemaDrivenJSONToXmlConverter.convertToXml(extensionSchemas, jsonConfig);
     }
 
-    private static PlexusConfiguration convertToXml(Map<String, ModelNode> extensionSchemas, ModelNode jsonConfig)
-            throws IOException {
-        if (jsonConfig.getType() == ModelType.LIST) {
-            return convertNewStyleConfigToXml(extensionSchemas, jsonConfig);
-        } else {
-            return convertOldStyleConfigToXml(extensionSchemas, jsonConfig);
-        }
-    }
-
-    private static PlexusConfiguration convertOldStyleConfigToXml(Map<String, ModelNode> extensionSchemas,
-                                                                  ModelNode jsonConfig) {
-        PlexusConfiguration xmlConfig = new XmlPlexusConfiguration("analysisConfiguration");
-
-        extensionCheck: for (Map.Entry<String, ModelNode> e : extensionSchemas.entrySet()) {
-            String extensionId = e.getKey();
-            ModelNode schema = e.getValue();
-
-            String[] extensionPath = extensionId.split("\\.");
-
-            ModelNode config = jsonConfig;
-            for (String segment : extensionPath) {
-                if (!config.has(segment)) {
-                    continue extensionCheck;
-                } else {
-                    config = config.get(segment);
-                }
-            }
-
-            PlexusConfiguration extXml = SchemaDrivenJSONToXmlConverter.convert(config, schema, extensionId, null);
-            xmlConfig.addChild(extXml);
-        }
-
-        return xmlConfig;
-    }
-
-    private static PlexusConfiguration
-    convertNewStyleConfigToXml(Map<String, ModelNode> extensionSchemas, ModelNode jsonConfig) throws IOException {
-        PlexusConfiguration xmlConfig = new XmlPlexusConfiguration("analysisConfiguration");
-
-        for (ModelNode extConfig : jsonConfig.asList()) {
-            String extensionId = extConfig.get("extension").asString();
-            ModelNode configuration = extConfig.get("configuration");
-            String id = extConfig.hasDefined("id") ? extConfig.get("id").asString() : null;
-
-            ModelNode schema = extensionSchemas.get(extensionId);
-            if (schema == null) {
-                continue;
-            }
-
-            PlexusConfiguration extXml = SchemaDrivenJSONToXmlConverter.convert(configuration, schema, extensionId, id);
-            xmlConfig.addChild(extXml);
-        }
-
-        return xmlConfig;
-    }
-
-
-
-    private static void updateAllConfigurations(MavenProject project, Map<String, ModelNode> extensionSchemas,
+    private static void updateAllConfigurations(File pomXml, Map<String, ModelNode> extensionSchemas,
                                                 int indentationSize) throws Exception {
         VTDGen gen = new VTDGen();
         gen.enableIgnoredWhiteSpace(true);
-        gen.parseFile(project.getFile().getAbsolutePath(), true);
+        gen.parseFile(pomXml.getAbsolutePath(), true);
 
         VTDNav nav = gen.getNav();
         XMLModifier mod = new XMLModifier(nav);
@@ -329,7 +270,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
             update.call();
         }
 
-        try (OutputStream out = new FileOutputStream(project.getFile())) {
+        try (OutputStream out = new FileOutputStream(pomXml)) {
             mod.output(out);
         }
     }

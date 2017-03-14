@@ -20,6 +20,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.jboss.dmr.ModelNode;
 import org.junit.Test;
@@ -243,6 +246,34 @@ public class SchemaDrivenJSONToXmlConverterTest {
         assertEquals(0, config.getChildCount());
         assertEquals("true", config.getValue());
     }
+
+    @Test
+    public void testNestedSchemasConverted() throws Exception {
+        ModelNode topSchema = json("{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\"}}}");
+        ModelNode nestedSchema = json("{\"type\": \"boolean\"}");
+
+        Map<String, ModelNode> extensionSchemas = new HashMap<>();
+        extensionSchemas.put("top", topSchema);
+        extensionSchemas.put("top.nested", nestedSchema);
+
+        ModelNode config = json("{\"top\": {\"a\": \"kachny\", \"nested\": true}}");
+
+        PlexusConfiguration xml = SchemaDrivenJSONToXmlConverter.convertToXml(extensionSchemas, config);
+        assertEquals(2, xml.getChildCount());
+
+        PlexusConfiguration topXml = xml.getChild("top");
+        assertNotNull(topXml);
+        assertEquals("top", topXml.getName());
+        assertEquals(1, topXml.getChildCount());
+        assertEquals("a", topXml.getChild(0).getName());
+        assertEquals("kachny", topXml.getChild("a").getValue());
+
+        PlexusConfiguration nested = xml.getChild("top.nested");
+        assertNotNull(nested);
+        assertEquals(0, nested.getChildCount());
+        assertEquals("true", nested.getValue());
+    }
+
 
     private static ModelNode json(String json) {
         return ModelNode.fromJSONString(json);
