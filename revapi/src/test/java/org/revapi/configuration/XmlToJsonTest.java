@@ -31,6 +31,7 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.junit.Assert;
 import org.junit.Test;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -53,7 +54,6 @@ public class XmlToJsonTest {
         Assert.assertEquals(ModelType.BOOLEAN, config.getType());
         Assert.assertTrue(config.asBoolean());
     }
-
 
     @Test
     public void testBooleanConversion_false() throws Exception {
@@ -242,7 +242,19 @@ public class XmlToJsonTest {
 
                     return null;
                 },
-                (n, name) -> n.getAttributes().getNamedItem(name).getNodeValue(),
+                (n, name) -> {
+                    NamedNodeMap attrs = n.getAttributes();
+                    if (attrs == null) {
+                        return null;
+                    }
+
+                    Node attr = attrs.getNamedItem(name);
+                    if (attr == null) {
+                        return null;
+                    }
+
+                    return attr.getNodeValue();
+                },
                 n -> new NodeListList(n.getChildNodes()));
     }
 
