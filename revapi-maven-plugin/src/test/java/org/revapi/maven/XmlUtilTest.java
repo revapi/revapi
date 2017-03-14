@@ -41,7 +41,7 @@ public class XmlUtilTest {
 
     @Test
     public void testPrettyPrintingXml() throws Exception {
-        String text = "<a><b><c>asdf</c></b></a>";
+        String text = "<a><b><c>asdf</c><d/></b></a>";
 
         XmlPlexusConfiguration xml = new XmlPlexusConfiguration(Xpp3DomBuilder.build(new StringReader(text)));
 
@@ -51,6 +51,6 @@ public class XmlUtilTest {
 
         String pretty = wrt.toString();
 
-        assertEquals("<a>\n  <b>\n    <c>asdf</c>\n  </b>\n</a>", pretty);
+        assertEquals("<a>\n  <b>\n    <c>asdf</c>\n    <d/>\n  </b>\n</a>", pretty);
     }
 }

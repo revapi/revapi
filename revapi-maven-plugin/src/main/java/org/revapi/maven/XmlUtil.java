@@ -101,10 +101,10 @@ final class XmlUtil {
                 wrt.write('\n');
                 for (PlexusConfiguration c : xml.getChildren()) {
                     toIndentedString(c, indentationSize, currentDepth + 1, wrt);
+                    wrt.append('\n');
                 }
 
                 if (!hasContent) {
-                    wrt.write('\n');
                     indent(indentationSize, currentDepth, wrt);
                 }
             }
