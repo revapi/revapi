@@ -17,6 +17,9 @@
 
 package org.revapi.reporter.text;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -38,6 +41,7 @@ import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 import org.revapi.Report;
+import org.revapi.Revapi;
 import org.revapi.simple.FileArchive;
 import org.revapi.simple.SimpleElement;
 
@@ -51,12 +55,16 @@ public class TextReporterTest {
     public void testDefaultTemplate() throws Exception {
         TextReporter reporter = new TextReporter();
 
-        AnalysisContext ctx = AnalysisContext.builder()
+        Revapi r = new Revapi(emptySet(), singleton(TextReporter.class), emptySet(), emptySet());
+
+        AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
                 .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build())
                 .build();
 
-        reporter.initialize(ctx);
+        AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(TextReporter.class);
+
+        reporter.initialize(reporterCtx);
 
         buildReports().forEach(reporter::report);
 
@@ -94,12 +102,16 @@ public class TextReporterTest {
 
             TextReporter reporter = new TextReporter();
 
-            AnalysisContext ctx = AnalysisContext.builder().withConfigurationFromJSON(
+            Revapi r = new Revapi(emptySet(), singleton(TextReporter.class), emptySet(), emptySet());
+
+            AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(
                     "{\"revapi\": {\"reporter\": {\"text\": {\"template\": \"" + tempFile.toString() + "\"}}}}")
                     .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
                     .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
-            reporter.initialize(ctx);
+            AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(TextReporter.class);
+
+            reporter.initialize(reporterCtx);
 
             buildReports().forEach(reporter::report);
 

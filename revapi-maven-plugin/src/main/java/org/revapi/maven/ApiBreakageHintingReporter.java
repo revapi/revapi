@@ -65,12 +65,12 @@ public final class ApiBreakageHintingReporter implements Reporter {
     }
 
     @Override
-    public @Nullable String[] getConfigurationRootPaths() {
+    public @Nullable String getExtensionId() {
         return null;
     }
 
     @Override
-    public @Nullable Reader getJSONSchema(@Nonnull String configurationRootPath) {
+    public @Nullable Reader getJSONSchema() {
         return null;
     }
 

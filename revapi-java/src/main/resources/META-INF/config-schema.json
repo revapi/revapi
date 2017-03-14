@@ -3,14 +3,6 @@
     "type": "object",
     "properties": {
         "missing-classes": {
-            "description": "Specifies the behavior when the analyzer encounters a missing API class. \
-                             If \"ignore\" is specified, the missing class is merely logged at WARNING level. \
-                             If \"error\" is specified the analysis fails. \
-                             If \"report\" is specified, the missing class is reported as a difference with a \
-                             \"java.missing.oldClass\" or \"java.missing.newClass\" depending on whether the missing \
-                             class was found in old or new archives. The severity of these differences is set to \
-                             \"POTENTIALLY_BREAKING\". Additionally one can specify whether to report as missing \
-                             classes that are only used to annotate other elements in the archives.",
             "type": "object",
             "properties": {
                 "behavior": {
@@ -25,8 +17,6 @@
             }
         },
         "reportUsesFor": {
-            "description": "Specifies the list of difference codes for which the use sites should be specified in the \
-                            output.",
             "type": "array",
             "items": {
                 "type": "string"
@@ -34,6 +24,56 @@
             "uniqueItems": true,
             "default": ["java.missing.newClass", "java.missing.oldClass", "java.class.nonPublicPartOfAPI",
               "java.class.externalClassNoLongerExposedInAPI", "java.class.externalClassExposedInAPI"]
+        },
+        "filter": {
+            "type": "object",
+            "properties": {
+                "classes": {
+                    "type": "object",
+                    "properties": {
+                        "regex": {
+                            "description": "Whether to understand the class names as regular expressions.",
+                            "type": "boolean",
+                            "default": "false"
+                        },
+                        "include": {
+                            "type": "array",
+                            "items" : {
+                                "type" : "string"
+                            }
+                        },
+                        "exclude": {
+                            "type": "array",
+                            "items" : {
+                                "type" : "string"
+                            }
+                        }
+                    }
+                },
+                "packages": {
+                    "type": "object",
+                    "properties": {
+                        "regex": {
+                            "description": "Whether to understand the package names as regular expressions.",
+                            "type": "boolean",
+                            "default": "false"
+                        },
+                        "include": {
+                            "type": "array",
+                            "items" : {
+                                "type" : "string"
+                            }
+                        },
+                        "exclude": {
+                            "type": "array",
+                            "items" : {
+                                "type" : "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
-    }
+    },
+    "additionalProperties": true
 }

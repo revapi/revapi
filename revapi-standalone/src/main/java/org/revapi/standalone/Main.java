@@ -302,7 +302,9 @@ public final class Main {
                 builder.withAllExtensionsFrom(addon.getClassLoader());
             }
 
-            AnalysisContext.Builder ctxBld = AnalysisContext.builder()
+            Revapi revapi = builder.withAllExtensionsFromThreadContextClassLoader().build();
+
+            AnalysisContext.Builder ctxBld = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(oldArchives).supportedBy(oldSupplementaryArchives).build())
                 .withNewAPI(API.of(newArchives).supportedBy(newSupplementaryArchives).build());
 
@@ -334,7 +336,6 @@ public final class Main {
                 ctxBld.mergeConfiguration(additionalNode);
             }
 
-            Revapi revapi = builder.withAllExtensionsFromThreadContextClassLoader().build();
             try (AnalysisResult result = revapi.analyze(ctxBld.build())) {
                 if (!result.isSuccess()) {
                     throw result.getFailure();

@@ -27,7 +27,7 @@ import org.revapi.Revapi;
  */
 public class ConfigurationValidatorTest {
 
-    private ValidationResult test(String object, final String[] rootPaths, final String... schemas) {
+    private ValidationResult test(String object, final String extensionId, final String schema) {
         ConfigurationValidator validator = new ConfigurationValidator();
 
         ModelNode fullConfig = ModelNode.fromJSONString(object);
@@ -35,21 +35,14 @@ public class ConfigurationValidatorTest {
         Configurable fakeConfigurable = new Configurable() {
             @Nullable
             @Override
-            public String[] getConfigurationRootPaths() {
-                return rootPaths;
+            public String getExtensionId() {
+                return extensionId;
             }
 
             @Nullable
             @Override
-            public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-                int i = 0;
-                for (String r : rootPaths) {
-                    if (r.equals(configurationRootPath)) {
-                        return new StringReader(schemas[i]);
-                    }
-                    ++i;
-                }
-                return null;
+            public Reader getJSONSchema() {
+                return new StringReader(schema);
             }
 
             @Override
@@ -69,9 +62,9 @@ public class ConfigurationValidatorTest {
             "   }" +
             "}}";
 
-        String object = "{\"my-config\" : {\"id\" : 3}}";
+        String object = "[{\"extension\": \"my-config\", \"configuration\" : {\"id\" : 3}}]";
 
-        ValidationResult result = test(object, new String[]{"my-config"}, schema);
+        ValidationResult result = test(object, "my-config", schema);
 
         Assert.assertTrue(result.toString(), result.isSuccessful());
     }
@@ -85,9 +78,9 @@ public class ConfigurationValidatorTest {
             "   }" +
             "}}";
 
-        String object = "{\"my-config\" : {\"id\" : \"3\"}}";
+        String object = "[{\"extension\": \"my-config\", \"configuration\" : {\"id\" : \"3\"}}]";
 
-        ValidationResult result = test(object, new String[]{"my-config"}, schema);
+        ValidationResult result = test(object, "my-config", schema);
 
         Assert.assertFalse(result.toString(), result.isSuccessful());
         Assert.assertEquals(1, result.getErrors().length);
@@ -105,9 +98,9 @@ public class ConfigurationValidatorTest {
             "   }" +
             "}}";
 
-        String object = "{\"my-config\" : {\"id\" : \"3\", \"kachna\" : 42}}";
+        String object = "[{\"extension\": \"my-config\", \"configuration\" : {\"id\" : \"3\", \"kachna\" : 42}}]";
 
-        ValidationResult result = test(object, new String[]{"my-config"}, schema);
+        ValidationResult result = test(object, "my-config", schema);
 
         Assert.assertFalse(result.toString(), result.isSuccessful());
         Assert.assertEquals(2, result.getErrors().length);
@@ -131,7 +124,7 @@ public class ConfigurationValidatorTest {
                 "{\"extension\": \"other-config\", \"configuration\": 1}" +
                 "]";
 
-        ValidationResult result = test(config, new String[]{"my-config"}, schema);
+        ValidationResult result = test(config, "my-config", schema);
 
         Assert.assertTrue(result.toString(), result.isSuccessful());
     }
@@ -144,10 +137,63 @@ public class ConfigurationValidatorTest {
                 "{\"extension\": \"other-config\", \"configuration\": 1}" +
                 "]";
 
-        AnalysisContext ctx = AnalysisContext.builder().withConfigurationFromJSON(config).build();
+        Revapi revapi = Revapi.builder().withFilters(TestFilter.class).withReporters(TestReporter.class)
+                .withAnalyzers(DummyApiAnalyzer.class).build();
+
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withConfigurationFromJSON(config).build();
+
+        ValidationResult res = revapi.validateConfiguration(ctx);
+
+        Assert.assertFalse(res.isSuccessful());
+        Assert.assertNotNull(res.getErrors());
+        Assert.assertEquals(1, res.getErrors().length);
+        Assert.assertEquals("/[2]/configuration", res.getErrors()[0].dataPath);
+    }
+
+    @Test
+    public void testRevapiValidation_mergeWithoutIds() throws Exception {
+        //partial config of the extension
+        String config1 = "[" +
+                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3,}}" +
+                "]";
+
+        //complete the config of the extension and add another config for another extension
+        String config2 = "[" +
+                "{\"extension\": \"my-config\", \"configuration\": {\"kachna\": \"no duck\"}}," +
+                "{\"extension\": \"other-config\", \"configuration\": 1}" +
+                "]";
 
         Revapi revapi = Revapi.builder().withFilters(TestFilter.class).withReporters(TestReporter.class)
                 .withAnalyzers(DummyApiAnalyzer.class).build();
+
+        AnalysisContext ctx = AnalysisContext.builder(revapi)
+                .withConfigurationFromJSON(config1).mergeConfigurationFromJSON(config2).build();
+
+        ValidationResult res = revapi.validateConfiguration(ctx);
+
+        Assert.assertFalse(res.isSuccessful());
+        Assert.assertNotNull(res.getErrors());
+        //we merged "my-config" from the second config into the first, so that should be ok. Only other-config should error out.
+        Assert.assertEquals(1, res.getErrors().length);
+        Assert.assertEquals("/[1]/configuration", res.getErrors()[0].dataPath);
+    }
+
+    @Test
+    public void testRevapiValidation_mergeWithIds() throws Exception {
+        String config1 = "[" +
+                "{\"extension\": \"my-config\", \"id\": \"c1\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}}" +
+                "]";
+
+        String config2 = "[" +
+                "{\"extension\": \"my-config\", \"id\": \"c2\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}}," +
+                "{\"extension\": \"other-config\", \"configuration\": 1}" +
+                "]";
+
+        Revapi revapi = Revapi.builder().withFilters(TestFilter.class).withReporters(TestReporter.class)
+                .withAnalyzers(DummyApiAnalyzer.class).build();
+
+        AnalysisContext ctx = AnalysisContext.builder(revapi)
+                .withConfigurationFromJSON(config1).mergeConfigurationFromJSON(config2).build();
 
         ValidationResult res = revapi.validateConfiguration(ctx);
 
@@ -211,6 +257,14 @@ public class ConfigurationValidatorTest {
     }
 
     public static final class DummyApiAnalyzer implements ApiAnalyzer {
+
+        @Nullable @Override public String getExtensionId() {
+            return null;
+        }
+
+        @Nullable @Override public Reader getJSONSchema() {
+            return null;
+        }
 
         @Nonnull @Override public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
             return null;

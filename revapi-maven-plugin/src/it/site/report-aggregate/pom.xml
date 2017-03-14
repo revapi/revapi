@@ -73,19 +73,13 @@
               <report>report-aggregate</report>
             </reports>
             <configuration>
-              <analysisConfiguration><![CDATA[
-              {
-                "revapi": {
-                  "reporter": {
-                    "text": {
-                      "output": "${project.build.directory}/aggregate-report.txt",
-                      "append": true,
-                      "template": "${project.basedir}/src/main/resources/revapi-template.ftl"
-                    }
-                  }
-                }
-              }
-            ]]></analysisConfiguration>
+              <analysisConfiguration>
+                <revapi.reporter.text>
+                  <output>${project.build.directory}/aggregate-report.txt</output>
+                  <append>true</append>
+                  <template>${project.basedir}/src/main/resources/revapi-template.ftl</template>
+                </revapi.reporter.text>
+              </analysisConfiguration>
             </configuration>
           </reportSet>
         </reportSets>

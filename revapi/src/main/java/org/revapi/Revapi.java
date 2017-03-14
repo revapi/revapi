@@ -36,7 +36,6 @@ import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 
 import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.ModelType;
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.ValidationResult;
@@ -108,6 +107,52 @@ public final class Revapi {
     }
 
     /**
+     * @return the set of api analyzers available to this Revapi instance
+     */
+    public Set<Class<? extends ApiAnalyzer>> getApiAnalyzerTypes() {
+        return Collections.unmodifiableSet(availableApiAnalyzers);
+    }
+
+    /**
+     * @return the set of reporters available to this Revapi instance
+     */
+    public Set<Class<? extends Reporter>> getReporterTypes() {
+        return Collections.unmodifiableSet(availableReporters);
+    }
+
+    /**
+     * @return the set of difference transforms available to this Revapi instance
+     */
+    public Set<Class<? extends DifferenceTransform<?>>> getDifferenceTransformTypes() {
+        return Collections.unmodifiableSet(availableTransforms);
+    }
+
+    /**
+     * @return the set of element filters available to this Revapi instance
+     */
+    public Set<Class<? extends ElementFilter>> getElementFilterTypes() {
+        return Collections.unmodifiableSet(availableFilters);
+    }
+
+    /**
+     * This instantiates the individual extensions and assigns the configurations to each one of them. The caller of
+     * this method gains insight on what extensions with what configurations would be executed by the analysis.
+     *
+     * <p>Note that the extensions are instantiated but NOT initialized after this call.
+     *
+     * @param analysisContext the analysis context containing the "global" configuration of all extensions
+     * @return the instantiated extensions and their individual configurations
+     */
+    public AnalysisResult.Extensions prepareAnalysis(@Nonnull AnalysisContext analysisContext) {
+        Map<ElementFilter, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
+        Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
+        Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
+        Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
+
+        return new AnalysisResult.Extensions(analyzers, filters, reporters, transforms);
+    }
+
+    /**
      * Performs the analysis configured by the given analysis context.
      * <p>
      * Make sure to call the {@link AnalysisResult#close()} method (or perform the analysis in try-with-resources
@@ -120,12 +165,7 @@ public final class Revapi {
     public AnalysisResult analyze(@Nonnull AnalysisContext analysisContext) {
         TIMING_LOG.debug("Analysis starts");
 
-        Map<ElementFilter, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
-        Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
-        Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
-        Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
-
-        AnalysisResult.Extensions extensions = new AnalysisResult.Extensions(analyzers, filters, reporters, transforms);
+        AnalysisResult.Extensions extensions = prepareAnalysis(analysisContext);
 
         StreamSupport.stream(extensions.spliterator(), false)
                 .map(e -> (Map.Entry<Configurable, AnalysisContext>) e)
@@ -150,39 +190,33 @@ public final class Revapi {
     private <T extends Configurable> Map<T, AnalysisContext>
     splitByConfiguration(AnalysisContext fullConfig, Set<Class<? extends T>> configurables) {
         Map<T, AnalysisContext> map = new HashMap<>();
-        if (fullConfig.getConfiguration().getType() == ModelType.LIST) {
-            //new-style config
-            for (Class<? extends T> cc : configurables) {
-                T c = instantiate(cc);
-                String extensionId = c.getExtensionId();
-                if (extensionId == null) {
-                    map.put(c, fullConfig.modified().withConfiguration(new ModelNode()).build());
-                } else {
-                    String[] explodedExtensionId = extensionId.split("\\.");
-                    T inst = null;
-                    for (ModelNode config : fullConfig.getConfiguration().asList()) {
-                        String configExtension = config.get("extension").asString();
-                        if (!extensionId.equals(configExtension)) {
-                            continue;
-                        }
-
-                        ModelNode extensionConfig = new ModelNode().get(explodedExtensionId);
-                        extensionConfig.set(config);
-
-                        if (inst == null) {
-                            inst = c;
-                        } else {
-                            inst = instantiate(cc);
-                        }
-
-                        map.put(inst, fullConfig.modified().withConfiguration(extensionConfig).build());
+        for (Class<? extends T> cc : configurables) {
+            T c = instantiate(cc);
+            String extensionId = c.getExtensionId();
+            if (extensionId == null) {
+                map.put(c, fullConfig.copyWithConfiguration(new ModelNode()));
+            } else {
+                T inst = null;
+                boolean configured = false;
+                for (ModelNode config : fullConfig.getConfiguration().asList()) {
+                    String configExtension = config.get("extension").asString();
+                    if (!extensionId.equals(configExtension)) {
+                        continue;
                     }
+                    if (inst == null) {
+                        inst = c;
+                    } else {
+                        inst = instantiate(cc);
+                    }
+
+                    map.put(inst, fullConfig.copyWithConfiguration(config.get("configuration").clone()));
+
+                    configured = true;
                 }
-            }
-        } else {
-            //old-style config
-            for (Class<? extends T> cc : configurables) {
-                map.put(instantiate(cc), fullConfig);
+
+                if (!configured) {
+                    map.put(c, fullConfig.copyWithConfiguration(new ModelNode()));
+                }
             }
         }
 

@@ -60,12 +60,6 @@ public final class ConfigurationValidator {
     /**
      * Validates that the full configuration contains valid configuration for given configurable.
      *
-     * <p>Note that this handles both old and new types of configuration. If the provided configuration is an object,
-     * the old configuration style is used, where each configurable can contain at most 1 configuration specification.
-     * If the provided configuration is an array, the new configuration style is used, where the configuration can
-     * contain multiple configuration sections for each configurable extension (each such section corresponds to a
-     * separately instantiated extension).
-     *
      * @param fullConfiguration the full configuration containing properties for all configurables
      * @param configurable      the configurable to validate the configuration for
      *
@@ -77,78 +71,19 @@ public final class ConfigurationValidator {
         throws ConfigurationException {
         try {
             switch (fullConfiguration.getType()) {
-                case OBJECT:
-                    return validateOldStyle(fullConfiguration, configurable);
                 case LIST:
-                    return validateNewStyle(fullConfiguration, configurable);
+                    return _validate(fullConfiguration, configurable);
                 case UNDEFINED:
                     return ValidationResult.success();
                 default:
-                    throw new ConfigurationException("Expecting a JSON object or array as the configuration object.");
+                    throw new ConfigurationException("Expecting a JSON array as the configuration object.");
             }
         } catch (IOException | ScriptException e) {
             throw new ConfigurationException("Failed to validate configuration.", e);
         }
     }
 
-    private ValidationResult validateOldStyle(ModelNode fullConfiguration, Configurable configurable)
-            throws IOException, ScriptException {
-        String[] rootPaths = configurable.getConfigurationRootPaths();
-        if (rootPaths == null || rootPaths.length == 0) {
-            return ValidationResult.success();
-        }
-
-        StringWriter output = new StringWriter();
-
-        ScriptEngine js = getJsEngine(output);
-
-        List<PartialValidationResult> validationResults = new ArrayList<>();
-
-        for (String rootPath : rootPaths) {
-            String[] path = rootPath.split("\\.");
-            ModelNode configNode = fullConfiguration.get(path);
-
-            if (!configNode.isDefined()) {
-                continue;
-            }
-
-            try (Reader schemaReader = configurable.getJSONSchema(rootPath)) {
-                if (schemaReader == null) {
-                    continue;
-                }
-
-                String schema = read(schemaReader);
-
-                StringWriter configJSONWrt = new StringWriter();
-                PrintWriter wrt = new PrintWriter(configJSONWrt);
-                configNode.writeJSONString(wrt, true);
-
-                String config = configJSONWrt.toString();
-
-                Bindings variables = js.createBindings();
-
-                js.eval("var data = " + config + ";", variables);
-                try {
-                    js.eval("var schema = " + schema + ";", variables);
-                } catch (ScriptException e) {
-                    throw new IllegalArgumentException("Failed to parse the schema: " + schema, e);
-                }
-
-                variables.put("tv4", js.getContext().getAttribute("tv4", ScriptContext.GLOBAL_SCOPE));
-
-                Object resultObject = js.eval("tv4.validateMultiple(data, schema)", variables);
-                ModelNode result = JSONUtil.toModelNode(resultObject);
-
-                PartialValidationResult r = new PartialValidationResult(rootPath, result);
-
-                validationResults.add(r);
-            }
-        }
-
-        return convert(validationResults);
-    }
-
-    private ValidationResult validateNewStyle(ModelNode fullConfiguration, Configurable configurable)
+    private ValidationResult _validate(ModelNode fullConfiguration, Configurable configurable)
             throws IOException, ScriptException {
         String extensionId = configurable.getExtensionId();
         if (extensionId == null) {

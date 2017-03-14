@@ -1,0 +1,10 @@
+<nested>
+  <config>
+    <revapi.ignore>
+      <item>
+        <code>java.class.noLongerImplementsInterface</code>
+        <justification>bar</justification>
+      </item>
+    </revapi.ignore>
+  </config>
+</nested>

@@ -62,17 +62,17 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
     @Override public void close() throws Exception {
     }
 
-    @Nullable @Override public String[] getConfigurationRootPaths() {
-        return new String[] {"revapi.java.downplayHarmlessAnnotationChanges"};
+    @Nullable @Override public String getExtensionId() {
+        return "revapi.java.downplayHarmlessAnnotationChanges";
     }
 
-    @Nullable @Override public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+    @Nullable @Override public Reader getJSONSchema() {
         return new StringReader("{\"type\": \"boolean\"}");
     }
 
     @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
         ModelNode conf = analysisContext.getConfiguration()
-                .get("revapi", "java", "downplayHarmlessAnnotationChanges");
+                .get("downplayHarmlessAnnotationChanges");
 
         if (conf.isDefined()) {
             skip = !conf.asBoolean();

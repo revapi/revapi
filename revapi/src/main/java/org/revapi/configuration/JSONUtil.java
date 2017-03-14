@@ -80,7 +80,7 @@ public final class JSONUtil {
             }
         } catch (IOException e) {
             //doesn't happen with strings
-            return null;
+            throw new AssertionError("IOException in StringReader? I thought that was impossible!", e);
         }
     }
 

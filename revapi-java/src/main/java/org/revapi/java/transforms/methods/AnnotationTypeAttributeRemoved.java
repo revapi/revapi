@@ -52,13 +52,13 @@ public class AnnotationTypeAttributeRemoved implements DifferenceTransform<JavaM
 
     @Nullable
     @Override
-    public String[] getConfigurationRootPaths() {
+    public String getExtensionId() {
         return null;
     }
 
     @Nullable
     @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+    public Reader getJSONSchema() {
         return null;
     }
 

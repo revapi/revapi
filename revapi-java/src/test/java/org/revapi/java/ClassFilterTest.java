@@ -16,6 +16,8 @@
  */
 package org.revapi.java;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -34,6 +36,7 @@ import org.revapi.AnalysisContext;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementForest;
+import org.revapi.Revapi;
 import org.revapi.simple.SimpleElementFilter;
 
 /**
@@ -110,8 +113,10 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
             throws Exception {
         try {
             JavaApiAnalyzer apiAnalyzer = new JavaApiAnalyzer(Collections.emptyList());
-            AnalysisContext ctx = AnalysisContext.builder().withConfigurationFromJSON(configJSON).build();
-            apiAnalyzer.initialize(ctx);
+            Revapi r = new Revapi(singleton(JavaApiAnalyzer.class), emptySet(), emptySet(), emptySet());
+            AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(configJSON).build();
+            AnalysisContext analyzerCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JavaApiAnalyzer.class);
+            apiAnalyzer.initialize(analyzerCtx);
 
             ArchiveAnalyzer archiveAnalyzer = apiAnalyzer.getArchiveAnalyzer(
                     new API(Collections.singletonList(new ShrinkwrapArchive(archive.archive)), null));

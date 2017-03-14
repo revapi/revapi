@@ -16,6 +16,8 @@
  */
 package org.revapi.java;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.Report;
+import org.revapi.Revapi;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.filters.AnnotatedElementFilter;
 import org.revapi.java.model.JavaElementForest;
@@ -154,8 +157,13 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
             JavaElementForest forest = analyzer.analyze();
 
             AnnotatedElementFilter filter = new AnnotatedElementFilter();
-            AnalysisContext ctx = AnalysisContext.builder().withConfigurationFromJSON(configJSON).build();
-            filter.initialize(ctx);
+            Revapi r = new Revapi(emptySet(), emptySet(), emptySet(), singleton(AnnotatedElementFilter.class));
+
+            AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(configJSON).build();
+            AnalysisContext filterCtx =
+                    r.prepareAnalysis(ctx).getFirstConfigurationOrNull(AnnotatedElementFilter.class);
+
+            filter.initialize(filterCtx);
 
             List<Element> results = forest.search(Element.class, true, filter, null);
 

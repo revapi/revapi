@@ -21,8 +21,11 @@ import static java.util.stream.Collectors.toList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +43,10 @@ import org.apache.maven.RepositoryUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.configuration.PlexusConfiguration;
+import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
+import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
@@ -57,6 +64,7 @@ import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.configuration.JSONUtil;
 import org.revapi.configuration.ValidationResult;
+import org.revapi.configuration.XmlToJson;
 import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.maven.utils.ScopeDependencySelector;
 import org.revapi.maven.utils.ScopeDependencyTraverser;
@@ -69,7 +77,7 @@ public final class Analyzer {
     private static final Pattern ANY_NON_SNAPSHOT = Pattern.compile("^.*(?<!-SNAPSHOT)$");
     private static final Pattern ANY = Pattern.compile(".*");
 
-    private final String analysisConfiguration;
+    private final PlexusConfiguration analysisConfiguration;
 
     private final Object[] analysisConfigurationFiles;
 
@@ -112,7 +120,7 @@ public final class Analyzer {
 
     private Revapi revapi;
 
-    Analyzer(String analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
+    Analyzer(PlexusConfiguration analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
              Artifact[] newArtifacts, String[] oldGavs, String[] newGavs, MavenProject project,
              RepositorySystem repositorySystem, RepositorySystemSession repositorySystemSession,
              Class<? extends Reporter> reporterType, Map<String, Object> contextData,
@@ -177,13 +185,9 @@ public final class Analyzer {
     }
 
     ValidationResult validateConfiguration() throws Exception {
-        Revapi.Builder bld = Revapi.builder().withAllExtensionsFromThreadContextClassLoader();
-        if (reporterType != null) {
-            bld.withReporters(reporterType);
-        }
-        Revapi revapi = bld.build();
+        buildRevapi();
 
-        AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withLocale(locale);
+        AnalysisContext.Builder ctxBuilder = AnalysisContext.builder(revapi).withLocale(locale);
         gatherConfig(ctxBuilder);
 
         ctxBuilder.withData(contextData);
@@ -422,7 +426,7 @@ public final class Analyzer {
         try {
             buildRevapi();
 
-            AnalysisContext.Builder ctxBuilder = AnalysisContext.builder().withOldAPI(resolvedOldApi)
+            AnalysisContext.Builder ctxBuilder = AnalysisContext.builder(revapi).withOldAPI(resolvedOldApi)
                     .withNewAPI(resolvedNewApi).withLocale(locale);
             gatherConfig(ctxBuilder);
 
@@ -476,33 +480,81 @@ public final class Analyzer {
                     }
                 }
 
-                try (FileInputStream in = new FileInputStream(f)) {
-                    ModelNode config = ModelNode.fromJSONStream(JSONUtil.stripComments(in, Charset.forName("UTF-8")));
-
-                    String[] roots = configFile.getRoots();
-
-                    if (roots == null) {
-                        ctxBld.mergeConfiguration(config);
-                    } else {
-                        for (String r : roots) {
-                            String[] rootPath = r.split("/");
-                            ModelNode root = config.get(rootPath);
-
-                            if (!root.isDefined()) {
-                                continue;
-                            }
-
-                            ctxBld.mergeConfiguration(root);
-                        }
+                ModelNode config = readJson(f);
+                if (config != null) {
+                    mergeJsonConfigFile(ctxBld, configFile, config);
+                } else {
+                    try (Reader rdr = new InputStreamReader(new FileInputStream(f))) {
+                        mergeXmlConfigFile(ctxBld, configFile, rdr);
+                    } catch (IOException | XmlPullParserException e) {
+                        throw new MojoExecutionException("Could not load configuration from '" + f.getAbsolutePath()
+                                + "': " + e.getMessage());
                     }
-                } catch (IOException e) {
-                    throw new MojoExecutionException("Could not load configuration from '" + f.getAbsolutePath() + "': " + e.getMessage());
                 }
             }
         }
 
         if (analysisConfiguration != null) {
-            ctxBld.mergeConfigurationFromJSON(analysisConfiguration);
+            String text = analysisConfiguration.getValue();
+            if (text == null) {
+                convertNewStyleConfigFromXml(ctxBld, getRevapi());
+            } else {
+                ctxBld.mergeConfigurationFromJSON(text);
+            }
+        }
+    }
+
+    private void mergeXmlConfigFile(AnalysisContext.Builder ctxBld, ConfigurationFile configFile, Reader rdr)
+            throws IOException, XmlPullParserException {
+        XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
+                PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
+
+        PlexusConfiguration xml = new XmlPlexusConfiguration(Xpp3DomBuilder.build(rdr));
+
+        String[] roots = configFile.getRoots();
+
+        if (roots == null) {
+            ctxBld.mergeConfiguration(conv.convert(xml));
+        } else {
+            roots: for (String r : roots) {
+                PlexusConfiguration root = xml;
+                boolean first = true;
+                String[] rootPath = r.split("/");
+                for (String name : rootPath) {
+                    if (first) {
+                        first = false;
+                        if (!name.equals(root.getName())) {
+                            continue roots;
+                        }
+                    } else {
+                        root = root.getChild(name);
+                        if (root == null) {
+                            continue roots;
+                        }
+                    }
+                }
+
+                ctxBld.mergeConfiguration(conv.convert(root));
+            }
+        }
+    }
+
+    private void mergeJsonConfigFile(AnalysisContext.Builder ctxBld, ConfigurationFile configFile, ModelNode config) {
+        String[] roots = configFile.getRoots();
+
+        if (roots == null) {
+            ctxBld.mergeConfiguration(config);
+        } else {
+            for (String r : roots) {
+                String[] rootPath = r.split("/");
+                ModelNode root = config.get(rootPath);
+
+                if (!root.isDefined()) {
+                    continue;
+                }
+
+                ctxBld.mergeConfiguration(root);
+            }
         }
     }
 
@@ -516,7 +568,23 @@ public final class Analyzer {
             revapi = builder.build();
         }
     }
-    private static class MarkerException extends RuntimeException {
+
+    private void convertNewStyleConfigFromXml(AnalysisContext.Builder bld, Revapi revapi) {
+        XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
+                PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
+
+        bld.mergeConfiguration(conv.convert(analysisConfiguration));
+    }
+
+    private ModelNode readJson(File f) {
+        try (FileInputStream in = new FileInputStream(f)) {
+            return ModelNode.fromJSONStream(JSONUtil.stripComments(in, Charset.forName("UTF-8")));
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private static final class MarkerException extends RuntimeException {
         public MarkerException(String message) {
             super(message);
         }

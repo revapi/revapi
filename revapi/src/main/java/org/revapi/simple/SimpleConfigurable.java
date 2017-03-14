@@ -16,12 +16,13 @@
  */
 package org.revapi.simple;
 
-import org.revapi.AnalysisContext;
-import org.revapi.configuration.Configurable;
+import java.io.Reader;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.Reader;
+
+import org.revapi.AnalysisContext;
+import org.revapi.configuration.Configurable;
 
 /**
  * @author Lukas Krejci
@@ -33,12 +34,12 @@ public class SimpleConfigurable implements AutoCloseable, Configurable {
     }
 
     @Override
-    public @Nullable String[] getConfigurationRootPaths() {
+    public @Nullable String getExtensionId() {
         return null;
     }
 
     @Override
-    public @Nullable Reader getJSONSchema(@Nonnull String configurationRootPath) {
+    public @Nullable Reader getJSONSchema() {
         return null;
     }
 

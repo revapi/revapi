@@ -42,13 +42,13 @@ public final class ReportTimeReporter implements Reporter {
 
     @Nullable
     @Override
-    public String[] getConfigurationRootPaths() {
+    public String getExtensionId() {
         return null;
     }
 
     @Nullable
     @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+    public Reader getJSONSchema() {
         return null;
     }
 

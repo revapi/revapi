@@ -41,19 +41,15 @@
                     <execution>
                         <goals><goal>check</goal></goals>
                         <configuration>
-                            <analysisConfiguration><![CDATA[
-                                {
-                                  "revapi": {
-                                    "ignore" : [
-                                      {
-                                        "code" : "java.method.numberOfParametersChanged",
-                                        "old" : "class test.Class",
-                                        "justification" : "foo"
-                                      }
-                                    ]
-                                  }
-                                }
-                            ]]></analysisConfiguration>
+                            <analysisConfiguration>
+                                <revapi.ignore>
+                                    <item>
+                                        <code>java.method.numberOfParametersChanged</code>
+                                        <old>class test.Class</old>
+                                        <justification>foo</justification>
+                                    </item>
+                                </revapi.ignore>
+                            </analysisConfiguration>
                             <failOnMissingArchives>true</failOnMissingArchives>
                         </configuration>
                     </execution>

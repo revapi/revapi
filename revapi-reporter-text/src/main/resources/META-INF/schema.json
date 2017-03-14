@@ -4,21 +4,14 @@
     "type": "object",
     "properties": {
         "minSeverity": {
-            "description": "The minimum severity that will be reported. The differences with lesser severity will not \
-                             be reported.",
             "enum": ["NON_BREAKING", "POTENTIALLY_BREAKING", "BREAKING"],
             "default": "POTENTIALLY_BREAKING"
         },
         "output": {
-            "description": "The value is a path to file to which write the report. 2 special values are recognized: \
-                             out: the report is written to standard output, \
-                             err: the report is written to standard error output.",
             "type": "string",
             "default": "out"
         },
         "template": {
-            "description": "The path to a Freemarker template file to use for outputting the report. If not given a \
-                            default template is used.",
             "type": "string"
         },
         "append": {

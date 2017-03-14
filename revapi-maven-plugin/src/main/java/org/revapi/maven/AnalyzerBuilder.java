@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
@@ -43,7 +44,7 @@ class AnalyzerBuilder {
     private String newVersion;
     private String disallowedExtensions;
     private Class<? extends Reporter> reporterType;
-    private String analysisConfiguration;
+    private PlexusConfiguration analysisConfiguration;
     private Object[] analysisConfigurationFiles;
     private RepositorySystem repositorySystem;
     private RepositorySystemSession repositorySystemSession;
@@ -107,7 +108,7 @@ class AnalyzerBuilder {
         return this;
     }
 
-    AnalyzerBuilder withAnalysisConfiguration(String analysisConfiguration) {
+    AnalyzerBuilder withAnalysisConfiguration(PlexusConfiguration analysisConfiguration) {
         this.analysisConfiguration = analysisConfiguration;
         return this;
     }

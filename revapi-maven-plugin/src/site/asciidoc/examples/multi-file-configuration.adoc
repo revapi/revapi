@@ -16,7 +16,7 @@ addition to) the `analysisConfiguration` element which provides the in-POM way o
     <configuration>
         <analysisConfigurationFiles>
             <file>${project.basedir}/config/filter.json</file>
-            <file>${project.basedir}/config/ignore.json</file>
+            <file>${project.basedir}/config/ignore.xml</file>
         </analysisConfigurationFiles>
     </configuration>
     <executions>
@@ -27,9 +27,45 @@ addition to) the `analysisConfiguration` element which provides the in-POM way o
 </plugin>
 ```
 
-Each of the configuration files (e.g. `filter.json` and `ignore.json` in the above example) contain the JSON document
+Each of the configuration files (e.g. `filter.json` and `ignore.xml` in the above example) is a JSON or XML document
 with the configuration. The maven plugin then merges the files together (in an unspecified order) and uses the
 result as the final configuration for the analysis.
+
+=== Merging Configuration From Multiple Files
+
+When the analysis configuration is split amongst several files, it needs to be merged together before it is applied to
+the Revapi extensions. This process is slightly complex with the ability for a single extension to be configured
+multiple times but in the end is somewhat similar to the way Maven merges the executions of a plugin - as long as the
+executions are defined once in the effective POM, they don't need to be assigned IDs. If there are multiple executions
+and you override them in child POMs, they need to have the IDs assigned so that it is clear what executions in child POM
+need to be merged with what executions in the parent POM.
+
+In Revapi, too, an extension configuration can optionally have an ID. In JSON this is expressed like this:
+
+```javascript
+...
+    {
+      "extension": "my.extension",
+      "id": "id",
+      "configuration": ...
+    }
+...
+```
+
+and in XML like so:
+
+```xml
+...
+    <my.extension id="myid">
+      ...
+    </my.extension>
+...
+```
+
+When merging configurations without an explicit ID, everything works as long as there is at most a single configuration
+for each extension in each configuration file to be merged. As soon as there is more than one configuration for some
+extension in one of the configuration files, you need to assign IDs to the configurations of that extension so that it
+is clear what configs should be merged with what.
 
 === Custom Root Element of Configuration
 
@@ -55,6 +91,12 @@ The below example illustrates the usage of the custom configuration root.
                 <root>configuration/revapi</root>
               </roots>
             </file>
+            <file>
+              <path>${project.basedir}/config/xml-data-for-many-things.xml</path>
+              <roots>
+                <root>configuration/revapi</root>
+              </roots>
+            </file>
         </analysisConfigurationFiles>
     </configuration>
     <executions>
@@ -66,8 +108,8 @@ The below example illustrates the usage of the custom configuration root.
 ```
 
 The above would read the configuration from the `filter.json` and `ignore.json` files. In addition it would also read
-the configuration from the `json-data-for-many-things.json` file but would only consider the data from the
-"configuration.data" subpath in that file. E.g. if the file looked like:
+the configuration from the `json-data-for-many-things.json` and `xml-data-for-many-things.xml` files but would only
+consider the data from the "configuration/revapi" subpath in those file. E.g. if the files looked like:
 
 ```javascript
 {
@@ -82,7 +124,16 @@ the configuration from the `json-data-for-many-things.json` file but would only 
 }
 ```
 
-The Revapi configuration would only be read from the "... HERE WE ARE ..." part of the document.
+```xml
+<configuration>
+  <ci>...</ci>
+  <revapi>
+     ... HERE WE ARE ...
+  </revapi>
+</configuration>
+```
+
+The Revapi configurations would only be read from the "... HERE WE ARE ..." part of the documents.
 
 Revapi itself uses this approach to track the changes made to its API across the versions using a single file. Each
 Revapi module can have a "api-changes.json" file in its base directory. The contents of this file follow this pattern:

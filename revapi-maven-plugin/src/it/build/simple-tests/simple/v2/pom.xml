@@ -56,25 +56,21 @@
                             <goal>report</goal>
                         </goals>
                         <configuration>
-                            <analysisConfiguration><![CDATA[
-                                {
-                                    "revapi" : {
-                                        "ignore" : [
-                                            {
-                                                "code" : "java.class.nowFinal",
-                                                "old" : "class test.Dep",
-                                                "justification" : "foo"
-                                            },
-                                            {
-                                                "code": "java.field.serialVersionUIDUnchanged",
-                                                "old": "field test.Class.serialVersionUID",
-                                                "new": "field test.Class.serialVersionUID",
-                                                "justification": "foo"
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]]></analysisConfiguration>
+                            <analysisConfiguration>
+                                <revapi.ignore>
+                                    <item>
+                                        <code>java.class.nowFinal</code>
+                                        <old>class test.Dep</old>
+                                        <justification>foo</justification>
+                                    </item>
+                                    <item>
+                                        <code>java.field.serialVersionUIDUnchanged</code>
+                                        <old>field test.Class.serialVersionUID</old>
+                                        <new>field test.Class.serialVersionUID</new>
+                                        <justification>foo</justification>
+                                    </item>
+                                </revapi.ignore>
+                            </analysisConfiguration>
                             <analysisConfigurationFiles>
                                 <configurationFile>
                                     <path>analysis-config.json</path>
@@ -82,7 +78,12 @@
                                         <root>nested/config</root>
                                     </roots>
                                 </configurationFile>
-                                <file>analysis-config2.json</file>
+                                <configurationFile>
+                                    <path>analysis-config2.xml</path>
+                                    <roots>
+                                        <root>nested/config</root>
+                                    </roots>
+                                </configurationFile>
                             </analysisConfigurationFiles>
                             <reportSeverity>nonBreaking</reportSeverity>
                         </configuration>
@@ -91,27 +92,28 @@
                         <id>api-check-without-deps</id>
                         <configuration>
                             <checkDependencies>false</checkDependencies>
-                            <analysisConfiguration><![CDATA[
-                                {
-                                    "revapi": {
-                                        "java": {
-                                            "missing-classes": {
-                                                "behavior": "ignore"
-                                            }
-                                        },
-                                        "ignore" : [
-                                            {
-                                                "code": "java.field.serialVersionUIDUnchanged",
-                                                "old": "field test.Class.serialVersionUID",
-                                                "new": "field test.Class.serialVersionUID",
-                                                "justification": "foo"
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]]></analysisConfiguration>
+                            <analysisConfiguration>
+                                <revapi.java>
+                                    <missing-classes>
+                                        <behavior>ignore</behavior>
+                                    </missing-classes>
+                                </revapi.java>
+                                <revapi.ignore>
+                                    <item>
+                                        <code>java.field.serialVersionUIDUnchanged</code>
+                                        <old>field test.Class.serialVersionUID</old>
+                                        <new>field test.Class.serialVersionUID</new>
+                                        <justification>foo</justification>
+                                    </item>
+                                </revapi.ignore>
+                            </analysisConfiguration>
                             <analysisConfigurationFiles>
-                                <file>analysis-config2.json</file>
+                                <configurationFile>
+                                    <path>analysis-config2.xml</path>
+                                    <roots>
+                                        <root>nested/config</root>
+                                    </roots>
+                                </configurationFile>
                             </analysisConfigurationFiles>
                         </configuration>
                         <goals><goal>check</goal></goals>

@@ -117,13 +117,13 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
         @Nullable
         @Override
-        public String[] getConfigurationRootPaths() {
+        public String getExtensionId() {
             return null;
         }
 
         @Nullable
         @Override
-        public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        public Reader getJSONSchema() {
             return null;
         }
 
@@ -236,7 +236,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
         Revapi revapi = createRevapi(reporterType);
 
-        AnalysisContext.Builder bld = AnalysisContext.builder()
+        AnalysisContext.Builder bld = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build());
 
@@ -298,13 +298,13 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
         @Nullable
         @Override
-        public String[] getConfigurationRootPaths() {
+        public String getExtensionId() {
             return null;
         }
 
         @Nullable
         @Override
-        public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        public Reader getJSONSchema() {
             return null;
         }
 

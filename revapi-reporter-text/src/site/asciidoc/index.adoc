@@ -1,6 +1,6 @@
 == Text Reporter
 
-*Configuration Root*: `revapi.reporter.text`
+*Extension*: `revapi.reporter.text`
 
 This extension is used as a basic means of outputting the results of analysis as text to some file or standard output.
 
@@ -10,54 +10,59 @@ The format of the text can be configured using a http://freemarker.org[FreeMarke
 
 Revapi needs to be configured to use this extension, it is not present by default. In case of maven plugin, you need to
 add the extension as a dependency of the maven plugin like so:
+
 ```xml
 <build>
-   ...
-   <plugin>
-      <groupId>org.revapi</groupId>
-      <artifactId>revapi-maven-plugin</artifactId>
-      <version>...</version>
-      <dependencies>
-         <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-reporter-text</artifactId>
-            <version>...</version>
-         </dependency>
-         ...
-      </dependencies>
-      <configuration>
-      <analysisConfiguration><![CDATA[
-         {
-           "revapi": {
-              "reporter": {
-                 "text": {
-                    ... configure the extension here ...
-                 }
-              }
-           }
-         }
-      ]]></analysisConfiguration>
-      </configuration>
-   </plugin>
-   ...
+  ...
+  <plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    <dependencies>
+      <dependency>
+        <groupId>org.revapi</groupId>
+        <artifactId>revapi-reporter-text</artifactId>
+        <version>...</version>
+      </dependency>
+      ...
+    </dependencies>
+    <configuration>
+      <analysisConfiguration>
+        <revapi.reporter.text>
+          ... configure the extension here ...
+        </revapi.reporter.text>
+      </analysisConfiguration>
+    </configuration>
+  </plugin>
+  ...
 </build>
 ```
 
 === Sample Configuration
 
 ```javascript
-{
-  "revapi" : {
-    "reporter" : {
-      "text" : {
-        "minSeverity": "POTENTIALLY_BREAKING",
-        "output" : "out",
-        "template": "my-template.ftl",
-        "append": false
-      }
+[
+  {
+    "extension": "revapi.reporter.text",
+    "configuration": {
+      "minSeverity": "POTENTIALLY_BREAKING",
+      "output" : "out",
+      "template": "my-template.ftl",
+      "append": false
     }
   }
-}
+]
+```
+
+```xml
+<analysisConfiguration>
+  <revapi.reporter.text>
+    <minSeverity>POTENTIALLY_BREAKING</minSeverity>
+    <output>out</output>
+    <template>my-template.ftl</template>
+    <append>false</append>
+  </revapi.reporter.text>
+</analysisConfiguration>
 ```
 
 === Properties
@@ -79,8 +84,6 @@ The default value is `false` meaning the output file will be overwritten if it a
 This is actually the default template used by the extension if you don't configure your own template.
 
 ```ftl
-=== Analysis results
-
 Old API: <#list analysis.oldApi.archives as archive>${archive.name}<#sep>, </#list> <1>
 New API: <#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>
 <#list reports as report> <2>

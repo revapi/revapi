@@ -1,9 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
-  "description": "Includes or excludes elements annotated with certain annotations in/from the analysis. If an include \
-                  filter is defined, only elements annotated with specified annotations are analyzed. If in addition \
-                  an exclude filter is configured, the exclusion is applied only on those included elements.",
   "properties": {
     "regex": {
       "description": "Whether to understand the annotation names as regular expressions.",
@@ -11,18 +8,12 @@
       "default": "false"
     },
     "include": {
-      "description": "The list of annotations to include. These are fully qualified class names (or regular \
-                     expressions thereof). Elements annotated with one of the annotations listed here will be \
-                     included in the analysis.",
       "type": "array",
       "items" : {
         "type" : "string"
       }
     },
     "exclude": {
-      "description": "The list of annotations to exclude. These are fully qualified class names (or regular \
-      expressions thereof). Elements annotated with one of the annotations listed here will be \
-      excluded from the analysis.",
       "type": "array",
       "items" : {
         "type" : "string"

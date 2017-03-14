@@ -22,7 +22,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
@@ -400,45 +399,24 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
 
     @Nullable
     @Override
-    public String[] getConfigurationRootPaths() {
-        ArrayList<String> checkConfigPaths = new ArrayList<>();
-        checkConfigPaths.add("revapi.java");
-
+    public String getExtensionId() {
         for (Check c : checks) {
-            String[] cp = c.getConfigurationRootPaths();
+            String cp = c.getExtensionId();
             if (cp != null) {
-                checkConfigPaths.addAll(Arrays.asList(cp));
+                throw new IllegalStateException("Individual Java API check configuration not supported ATM.");
             }
         }
 
-        String[] configs = new String[checkConfigPaths.size()];
-        configs = checkConfigPaths.toArray(configs);
-
-        return configs;
+        return "revapi.java";
     }
 
     @Nullable
     @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-        if ("revapi.java".equals(configurationRootPath)) {
-            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/config-schema.json"),
-                    Charset.forName("UTF-8"));
-        }
-
-        for (Check check : checks) {
-            String[] roots = check.getConfigurationRootPaths();
-            if (roots == null) {
-                continue;
-            }
-
-            for (String root : check.getConfigurationRootPaths()) {
-                if (configurationRootPath.equals(root)) {
-                    return check.getJSONSchema(root);
-                }
-            }
-        }
-
-        return null;
+    public Reader getJSONSchema() {
+        //TODO to support schema for individual checks, read their individual schemas and "slot" then inside our schema
+        //under a "checks" property which would be an object, keyed by individual checks' extension ids
+        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/config-schema.json"),
+                Charset.forName("UTF-8"));
     }
 
     @Override

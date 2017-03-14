@@ -91,21 +91,17 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
     @Override public void close() throws Exception {
     }
 
-    @Nullable @Override public String[] getConfigurationRootPaths() {
-        return new String[]{"revapi.semver.ignore"};
+    @Nullable @Override public String getExtensionId() {
+        return "revapi.semver.ignore";
     }
 
-    @Nullable @Override public Reader getJSONSchema(@Nonnull String configurationRootPath) {
-        if ("revapi.semver.ignore".equals(configurationRootPath)) {
-            return new InputStreamReader(getClass().getResourceAsStream("/META-INF/semver-ignore-schema.json"),
-                    Charset.forName("UTF-8"));
-        } else {
-            return null;
-        }
+    @Nullable @Override public Reader getJSONSchema() {
+        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/semver-ignore-schema.json"),
+                Charset.forName("UTF-8"));
     }
 
     @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
-        ModelNode node = analysisContext.getConfiguration().get("revapi", "semver", "ignore");
+        ModelNode node = analysisContext.getConfiguration();
 
         if (hasMultipleElements(analysisContext.getOldApi().getArchives())
                 || hasMultipleElements(analysisContext.getNewApi().getArchives())) {

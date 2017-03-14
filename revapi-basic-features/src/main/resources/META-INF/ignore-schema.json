@@ -5,34 +5,19 @@
         "type": "object",
         "properties": {
             "regex": {
-                "description": "Whether to consider the code, old and new attributes as regular expressions or not. \
-                                 Note that the regular expressions are parsed as Java regular expressions, not \
-                                 Javascript ones.",
                 "type": "boolean",
                 "default": "false"
             },
             "code": {
-                "description": "The code of the difference to ignore. This attribute is mandatory.",
                 "type": "string"
             },
             "old": {
-                "description": "The human readable representation of the old element that must match in order to \
-                                 ignore the element. The human readable representation of the elements is defined \
-                                 by the extensions, so you need to consult the documentation of the respective \
-                                 extension to find out the expected format. This attribute is optional. If not \
-                                 specified the old element is not taken into account.",
                 "type": "string"
             },
             "new": {
-                "description": "The human readable representation of the new element that must match in order to \
-                                 ignore the element. The human readable representation of the elements is defined \
-                                 by the extensions, so you need to consult the documentation of the respective \
-                                 extension to find out the expected format. This attribute is optional. If not \
-                                 specified the old element is not taken into account.",
                 "type": "string"
             },
             "justification": {
-                "description": "The justification for ignoring the difference.",
                 "type": "string"
             }
         },

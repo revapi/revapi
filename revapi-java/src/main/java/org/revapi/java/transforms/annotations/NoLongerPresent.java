@@ -63,12 +63,12 @@ public class NoLongerPresent implements DifferenceTransform<JavaTypeElement> {
     }
 
     @Override
-    public String[] getConfigurationRootPaths() {
+    public String getExtensionId() {
         return null;
     }
 
     @Override
-    public @Nullable Reader getJSONSchema(String configurationRootPath) {
+    public @Nullable Reader getJSONSchema() {
         return null;
     }
 

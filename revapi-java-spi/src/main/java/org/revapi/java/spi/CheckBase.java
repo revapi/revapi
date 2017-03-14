@@ -35,7 +35,7 @@ import org.revapi.Difference;
  * methods and their corresponding {@link #visitEnd()} by keeping track of the "depth" individual calls (see the
  * recursive
  * nature of the {@link org.revapi.java.spi.Check call order}).
- * 
+ *
  * <p>This class also contains a couple of utility methods for checking the accessibility of elements, etc.
  *
  * @author Lukas Krejci
@@ -182,13 +182,13 @@ public abstract class CheckBase implements Check {
 
     @Nullable
     @Override
-    public String[] getConfigurationRootPaths() {
+    public String getExtensionId() {
         return null;
     }
 
     @Nullable
     @Override
-    public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+    public Reader getJSONSchema() {
         return null;
     }
 
@@ -318,7 +318,7 @@ public abstract class CheckBase implements Check {
      * If called in one of the {@code doVisit*()} methods, this method will push the elements along with some
      * contextual
      * data onto an internal stack.
-     * 
+     *
      * <p>You can then retrieve the contents on the top of the stack in your {@link #doEnd()} override by calling the
      * {@link #popIfActive()} method.
      *
@@ -336,7 +336,7 @@ public abstract class CheckBase implements Check {
     /**
      * Pops the top of the stack of active elements if the current position in the call stack corresponds to the one
      * that pushed the active elements.
-     * 
+     *
      * <p>This method does not do any type checks, so take care to retrieve the elements with the same types used to push
      * to them onto the stack.
      *

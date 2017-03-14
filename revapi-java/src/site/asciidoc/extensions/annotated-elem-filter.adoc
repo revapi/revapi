@@ -1,6 +1,6 @@
 == Annotated Element Filter
 
-*Configuration Root*: `revapi.java.filter.annotated`
+*Extension*: `revapi.java.filter.annotated`
 
 The annotated element filter is able to include or exclude java elements based on the presence of certain annotation
 on them. This also works for annotations with certain attributes having certain values, because the match is done on
@@ -23,19 +23,30 @@ NOTE: Currently, this filter does NOT take into account annotations placed on th
 === Sample Configuration
 
 ```javascript
-{
-  "revapi": {
-    "java": {
-      "filter": {
-        "annotated": {
-          "regex": true,
-          "include": ["@my\\.annotations\\.Public.*"]
-          "exclude": ["@my\\.annotations\\.Beta"]
-        }
-      }
+[
+  {
+    "extension": "revapi.java.filter.annotated",
+    "configuration": {
+      "regex": true,
+      "include": ["@my\\.annotations\\.Public.*"]
+      "exclude": ["@my\\.annotations\\.Beta"]
     }
   }
-}
+]
+```
+
+```xml
+<analysisConfiguration>
+  <revapi.java.filter.annotated>
+    <regex>true</regex>
+    <include>
+      <item>@my\.annotations\.Public.*</item>
+    </include>
+    <exclude>
+      <item>@my\.annotations\.Beta</item>
+    </exclude>
+  </revapi.java.filter.annotated>
+</analysisConfiguration>
 ```
 
 === Properties
@@ -123,17 +134,14 @@ make even these classes public.
 If you configure Revapi like this:
 
 ```javascript
-{
-  "revapi": {
-    "java": {
-      "filter": {
-        "annotated": {
-          "exclude": ["@my.annotations.Private"]
-        }
-      }
+[
+  {
+    "extension": "revapi.java.filter.annotated",
+    "configuration": {
+      "exclude": ["@my.annotations.Private"]
     }
   }
-}
+]
 ```
 
 The API analysis will not consider these elements:
@@ -153,17 +161,14 @@ making).
 The Revapi configuration for this might include this snippet:
 
 ```javascript
-{
-  "revapi": {
-    "java": {
-      "filter": {
-        "annotated": {
-          "include": ["@my.annotations.Public"]
-        }
-      }
+[
+  {
+    "extension": "revapi.java.filter.annotated",
+    "configuration": {
+      "include": ["@my.annotations.Public"]
     }
   }
-}
+]
 ```
 
 The API analysis will not consider these elements:
@@ -200,18 +205,15 @@ This is of course a combination of both the approaches above but still is worth 
 The configuration would look something like this:
 
 ```javascript
-{
-  "revapi": {
-    "java": {
-      "filter": {
-        "annotated": {
-          "include": ["@my.annotations.Public"]
-          "exclude": ["@my.annotations.Private"]
-        }
-      }
+[
+  {
+    "extension": "revapi.java.filter.annotated",
+    "configuration": {
+      "include": ["@my.annotations.Public"]
+      "exclude": ["@my.annotations.Private"]
     }
   }
-}
+]
 ```
 
 And the following elements will not be included in the analysis:

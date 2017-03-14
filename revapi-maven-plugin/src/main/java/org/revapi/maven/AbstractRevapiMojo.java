@@ -26,6 +26,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.revapi.AnalysisResult;
@@ -37,13 +38,14 @@ import org.revapi.Reporter;
  */
 abstract class AbstractRevapiMojo extends AbstractMojo {
     /**
-     * The JSON configuration of various analysis options. The available options depend on what
-     * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
+     * The JSON or XML configuration of various analysis options. The available options depend on what
+     * analyzers are present on the plugin classpath through the {@code &lt;dependencies&gt;}.
+     * Consult <a href="examples/configuration.html">configuration documentation</a> for more details.
      *
      * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
     @Parameter(property = Props.analysisConfiguration.NAME, defaultValue = Props.analysisConfiguration.DEFAULT_VALUE)
-    protected String analysisConfiguration;
+    protected PlexusConfiguration analysisConfiguration;
 
     /**
      * Set to false if you want to tolerate files referenced in the {@code analysisConfigurationFiles} missing on the
@@ -79,20 +81,21 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * where
      * <ul>
      *     <li>{@code path} is mandatory,</li>
-     *     <li>{@code roots} is optional and specifies the subtrees of the JSON config that should be used for
+     *     <li>{@code roots} is optional and specifies the subtrees of the JSON/XML config that should be used for
      *     configuration. If not specified, the whole file is taken into account.</li>
      * </ul>
-     * The {@code configuration/root1} and {@code configuration/root2} are JSON paths to the roots of the
-     * configuration inside that JSON config file. This might be used in cases where multiple configurations are stored
+     * The {@code configuration/root1} and {@code configuration/root2} are paths to the roots of the
+     * configuration inside that JSON/XML config file. This might be used in cases where multiple configurations are stored
      * within a single file and you want to use a particular one.
      *
      * <p>An example of this might be a config file which contains API changes to be ignored in all past versions of a
      * library. The classes to be ignored are specified in a configuration that is specific for each version:
      * <pre><code>
      *     {
-     *         "0.1.0" : {
-     *             "revapi" : {
-     *                 "ignore" : [
+     *         "0.1.0" : [
+     *             {
+     *                 "extension": "revapi.ignore",
+     *                 "configuration": [
      *                     {
      *                         "code" : "java.method.addedToInterface",
      *                         "new" : "method void com.example.MyInterface::newMethod()",
@@ -101,10 +104,10 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      *                     ...
      *                 ]
      *             }
-     *         },
-     *         "0.2.0" : {
+     *         ],
+     *         "0.2.0" : [
      *             ...
-     *         }
+     *         ]
      *     }
      * </code></pre>
      */

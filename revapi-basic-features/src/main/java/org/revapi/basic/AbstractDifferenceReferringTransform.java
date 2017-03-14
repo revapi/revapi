@@ -22,23 +22,16 @@ import org.revapi.Element;
 public abstract class AbstractDifferenceReferringTransform<Recipe extends DifferenceMatchRecipe, ConfigContext>
     implements DifferenceTransform<Element> {
 
-    private final String[] propertyPrefix;
-    private final String propertyPrefixAsString;
+    private final String extensionId;
     private Collection<Recipe> configuredRecipes;
     private Pattern[] codes;
 
-    protected AbstractDifferenceReferringTransform(@Nonnull String... propertyPrefix) {
-        this.propertyPrefix = propertyPrefix;
-        if (propertyPrefix.length == 0) {
-            throw new IllegalArgumentException(
-                "The transformation must have a non-empty path in the configuration JSON");
-        }
+    protected AbstractDifferenceReferringTransform(@Nonnull String extensionId) {
+        this.extensionId = extensionId;
+    }
 
-        StringBuilder bld = new StringBuilder(propertyPrefix[0]);
-        for (int i = 1; i < propertyPrefix.length; ++i) {
-            bld.append(".").append(propertyPrefix[i]);
-        }
-        propertyPrefixAsString = bld.toString();
+    @Nullable @Override public String getExtensionId() {
+        return extensionId;
     }
 
     @Nonnull
@@ -60,7 +53,7 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
         configuredRecipes = new ArrayList<>();
 
         int idx = 0;
-        ModelNode myNode = analysisContext.getConfiguration().get(propertyPrefix);
+        ModelNode myNode = analysisContext.getConfiguration();
 
         if (myNode.getType() != ModelType.LIST) {
             this.codes = new Pattern[0];
@@ -70,16 +63,11 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
         List<Pattern> codes = new ArrayList<>();
 
         for (ModelNode config : myNode.asList()) {
-            try {
-                Recipe recipe = newRecipe(ctx, config);
-                codes.add(
-                    recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code) + "$") :
-                        recipe.codeRegex);
-                configuredRecipes.add(recipe);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException(
-                    "Property " + propertyPrefixAsString + "[" + idx + "] is not valid: " + e.getMessage());
-            }
+            Recipe recipe = newRecipe(ctx, config);
+            codes.add(
+                recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code) + "$") :
+                    recipe.codeRegex);
+            configuredRecipes.add(recipe);
         }
         this.codes = codes.toArray(new Pattern[codes.size()]);
     }

@@ -33,7 +33,7 @@ public class ConfigurableElementFilterTest {
     public void testInvalidConfig_noFilters() throws Exception {
         ConfigurationValidator validator = new ConfigurationValidator();
 
-        String json = "{\"revapi\" : {\"filter\" : { }}}";
+        String json = "[{\"extension\": \"revapi.filter\", \"configuration\" : { }}]";
 
         ValidationResult result = validator.validate(ModelNode.fromJSONString(json), new ConfigurableElementFilter());
 
@@ -44,18 +44,16 @@ public class ConfigurableElementFilterTest {
     public void testInvalidConfig_noDefsForFilter() throws Exception {
         ConfigurationValidator validator = new ConfigurationValidator();
 
-        String json = "{\"revapi\" : {\"filter\" : { \"elements\" : { \"include\" : [] }}}}";
+        String json = "[{\"extension\": \"revapi.filter\", \"configuration\" : { \"elements\" : { \"include\" : [] }}}]";
         ValidationResult result = validator.validate(ModelNode.fromJSONString(json), new ConfigurableElementFilter());
         Assert.assertFalse(result.isSuccessful());
 
-        json = "{\"revapi\" : {\"filter\" : { \"elements\" : { \"exclude\" : [] }}}}";
+        json = "[{\"extension\": \"revapi.filter\", \"configuration\": { \"elements\" : { \"exclude\" : [] }}}]";
         result = validator.validate(ModelNode.fromJSONString(json), new ConfigurableElementFilter());
         Assert.assertFalse(result.isSuccessful());
 
-        json = "{\"revapi\" : {\"filter\" : { \"archives\" : { \"exclude\" : {} }}}}";
+        json = "[{\"extension\": \"revapi.filter\", \"configuration\": { \"archives\" : { \"exclude\" : {} }}}]";
         result = validator.validate(ModelNode.fromJSONString(json), new ConfigurableElementFilter());
         Assert.assertFalse(result.isSuccessful());
     }
-
-    //TODO add tests
 }

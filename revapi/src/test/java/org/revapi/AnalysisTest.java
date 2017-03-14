@@ -43,7 +43,7 @@ public class AnalysisTest {
         Revapi r = Revapi.builder().withAnalyzers(DummyAnalyzer.class)
                 .withTransforms(CloningDifferenceTransform.class).withReporters(DummyReporter.class).build();
 
-        AnalysisContext ctx = AnalysisContext.builder().withNewAPI(API.of().build()).withOldAPI(API.of().build())
+        AnalysisContext ctx = AnalysisContext.builder(r).withNewAPI(API.of().build()).withOldAPI(API.of().build())
                 .build();
 
         //should not throw exception
@@ -51,7 +51,6 @@ public class AnalysisTest {
             Assert.assertTrue(res.isSuccess());
         }
     }
-
     public static final class CloningDifferenceTransform implements DifferenceTransform<Element> {
 
         @Override
@@ -70,12 +69,12 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable String[] getConfigurationRootPaths() {
+        public @Nullable String getExtensionId() {
             return null;
         }
 
         @Override
-        public @Nullable Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        public @Nullable Reader getJSONSchema() {
             return null;
         }
 
@@ -149,12 +148,12 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable String[] getConfigurationRootPaths() {
+        public @Nullable String getExtensionId() {
             return null;
         }
 
         @Override
-        public @Nullable Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        public @Nullable Reader getJSONSchema() {
             return null;
         }
 
@@ -230,13 +229,13 @@ public class AnalysisTest {
 
         @Nullable
         @Override
-        public String[] getConfigurationRootPaths() {
+        public String getExtensionId() {
             return null;
         }
 
         @Nullable
         @Override
-        public Reader getJSONSchema(@Nonnull String configurationRootPath) {
+        public Reader getJSONSchema() {
             return null;
         }
 

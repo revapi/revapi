@@ -105,11 +105,12 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
     public void testSupplementaryJarsAreTakenIntoAccountWhenComputingAPI() throws Exception {
         List<Report> allReports;
 
-        AnalysisContext ctx = AnalysisContext.builder()
+        Revapi revapi = createRevapi(CollectingReporter.class);
+
+        AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
                 .build();
-        Revapi revapi = createRevapi(CollectingReporter.class);
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             Assert.assertTrue(res.isSuccess());
@@ -161,13 +162,13 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testExcludedClassesDontDragUsedTypesIntoAPI() throws Exception {
         List<Report> allReports;
-        AnalysisContext ctx = AnalysisContext.builder()
+        Revapi revapi = createRevapi(CollectingReporter.class);
+
+        AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
                 .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
                         "\"filter\": {\"classes\": {\"exclude\": [\"C\"]}}}}}").build();
-
-        Revapi revapi = createRevapi(CollectingReporter.class);
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             allReports =
@@ -192,13 +193,14 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testExcludedClassesInAPI() throws Exception {
         List<Report> allReports;
-        AnalysisContext ctx = AnalysisContext.builder()
+
+        Revapi revapi = createRevapi(CollectingReporter.class);
+
+        AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
                 .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
                         "\"filter\": {\"classes\": {\"exclude\": [\"C\", \"B.T$2\"]}}}}}").build();
-
-        Revapi revapi = createRevapi(CollectingReporter.class);
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             allReports =
