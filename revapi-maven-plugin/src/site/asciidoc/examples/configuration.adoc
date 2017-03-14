@@ -2,7 +2,7 @@
 
 The maven plugin itself is configured using the properties of the link:../plugin-info.html[goals]. The configuration of
 the API analysis is a matter of configuring different Revapi extensions that are to be run. This is done using the
-`analysisConfiguration` element in the Maven plugin's configuration. This element contains either the configuration of
+`analysisConfiguration` element in the Maven plugin's configuration. This element contains the configuration of
 the individual extensions in either XML or JSON.
 
 === Specifying The Analysis Configuration Using XML
@@ -35,7 +35,232 @@ rather than reporting them and also only include the archives with `com.acme` gr
 
 Each extension has a unique "extension id" which is used as the root tag for its configuration under the
 `analysisConfiguration` tag. Under the extension configuration's root tag an XML representation of the configuration
-as specified by the extension documentation (and JSON schema).
+as specified by the extension documentation (and JSON schema - yes, the XML is validated against a JSON schema ;) ).
+
+==== Multiple Configurations Per Extension
+
+There can be multiple configurations for a single extension. Optionally, each extension configuration "instance" can
+be assigned an ID such that it can be effectively merged (see below).
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <version>...</version>
+  ...
+  <configuration>
+    <analysisConfiguration>
+      <revapi.reporter.text id="stdout">
+        <output>out</output>
+      </revapi.reporter.text>
+      <revapi.reporter.text id="custom-report">
+        <output>${project.build.directory}/revapi-custom-report.xml</output>
+        <template>${custom-report.template.location}</template>
+      </revapi.reporter.text>
+    </analysisConfiguration>
+  </configuration>
+```
+
+This configuration will cause the Revapi's text reporter (if is included as a dependency of the plugin) to output the
+results of the analysis both to standard output and a custom file using a custom template.
+
+==== Analysis Configuration And Maven Inheritance
+
+Having the Revapi analysis configuration specified in XML enables Maven to apply its configuration inheritance logic
+to Revapi analysis configuration, too.
+
+Here is a couple of tips on how to make the Maven configuration inheritance work nice with Revapi analysis
+configuration.
+
+TIP: link:http://maven.apache.org/plugins/maven-help-plugin/effective-pom-mojo.html[`mvn help:effective-pom`],
+link:https://maven.apache.org/pom.html#Plugins[`combine.self` and `combine.children`] are your friends when inheriting
+more complex analysis configurations.
+
+==== One Configuration Per Extension
+
+Parent POM:
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <configuration>
+    <analysisConfiguration>
+      <revapi.ignore>
+        <item>
+          <code>java.class.removed</code>
+        </item>
+        <item>
+          <code>java.class.added</code>
+        </item>
+      </revapi.ignore>
+    </analysisConfiguration>
+  </configuration>
+  ...
+```
+
+Child POM:
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <configuration>
+    <analysisConfiguration>
+      <revapi.ignore>
+        <item>
+          <code>java.class.nowFinal</code>
+        </item>
+      </revapi.ignore>
+    </analysisConfiguration>
+  </configuration>
+  ...
+```
+
+Effective Child POM:
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <configuration>
+    <analysisConfiguration>
+      <revapi.ignore>
+        <item>
+          <code>java.class.nowFinal</code>
+        </item>
+      </revapi.ignore>
+    </analysisConfiguration>
+  </configuration>
+  ...
+```
+
+Notice that `revapi.ignore` doesn't contain the `item`s defined in the parent POM. That is the default Maven behavior.
+To be able to inherit the configuration of the `revapi.ignore` extension from the parent POM, you have to specify
+how to merge the `item`s in the child POM like so:
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <configuration>
+    <analysisConfiguration>
+      <revapi.ignore combine.children="append">
+        <item>
+          <code>java.class.nowFinal</code>
+        </item>
+      </revapi.ignore>
+    </analysisConfiguration>
+  </configuration>
+  ...
+```
+
+After that, the effective child POM will indeed contain configuration combined from both parent and child:
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <configuration>
+    <analysisConfiguration>
+      <revapi.ignore>
+        <item>
+          <code>java.class.nowFinal</code>
+        </item>
+        <item>
+          <code>java.class.removed</code>
+        </item>
+        <item>
+          <code>java.class.added</code>
+        </item>
+      </revapi.ignore>
+    </analysisConfiguration>
+  </configuration>
+  ...
+```
+
+==== Multiple Configurations Per Extension
+
+As mentioned in the previous chapters, revapi supports multiple configurations per extension. This gets a little bit
+complicated in conjunction with inheritance. Let's see an example.
+
+Parent POM
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <version>...</version>
+  ...
+  <configuration>
+    <analysisConfiguration>
+      <revapi.reporter.text id="stdout">
+        <output>out</output>
+      </revapi.reporter.text>
+      <revapi.reporter.text id="custom-report">
+        <output>${project.build.directory}/revapi-custom-report.xml</output>
+        <template>${custom-report.template.location}</template>
+      </revapi.reporter.text>
+    </analysisConfiguration>
+  </configuration>
+```
+
+Child POM
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <version>...</version>
+  ...
+  <configuration>
+    <analysisConfiguration>
+      <revapi.reporter.text id="stdout">
+        <output>err</output>
+      </revapi.reporter.text>
+    </analysisConfiguration>
+  </configuration>
+```
+
+I.e. the child POM wants to reconfigure the "stdout" configuration of revapi text reporter to report to standard error
+output instead of the standard output.
+
+If we inspect the effective child POM, we'll see this though:
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <version>...</version>
+  ...
+  <configuration>
+    <analysisConfiguration>
+      <revapi.reporter.text id="stdout">
+        <output>err</output>
+      </revapi.reporter.text>
+    </analysisConfiguration>
+  </configuration>
+```
+
+I.e. the configuration for the custom output is lost in the child POM (again, this is standard Maven behavior. These are
+just examples to save you from ripping your hair out unnecessarily ;) ). To also inherit the other reporter
+configuration, you have to mention it like this in the child POM
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <version>...</version>
+  ...
+  <configuration>
+    <analysisConfiguration>
+      <revapi.reporter.text id="stdout">
+        <output>err</output>
+      </revapi.reporter.text>
+      <revapi.reporter.text id="custom-report"/>
+    </analysisConfiguration>
+  </configuration>
+```
+
+Now the effective child POM contains the custom report configuration as well as the modified stdout configuration.
 
 === Specifying The Analysis Configuration Using JSON
 

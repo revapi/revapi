@@ -1,6 +1,6 @@
 == Version-based Ignore Transformation
 
-*Configuration root*: `revapi.semver.ignore`
+*Extension*: `revapi.semver.ignore`
 
 Using this extension one can automatically ignore API changes that are allowed for a given version delta based on the
 rules of semantic versioning (http://semver.org).
@@ -8,21 +8,36 @@ rules of semantic versioning (http://semver.org).
 === Sample Configuration
 
 ```javascript
-{
-  "revapi" : {
-    "semver" : {
-      "ignore" : {
-        "enabled" : true,
-        "versionIncreaseAllows" : {
-            "major" : "breaking",
-            "minor" : "nonBreaking",
-            "patch" : "equivalent"
-        },
-        "passThroughDifferences": ["java.class.nonPublicPartOfAPI"]
-      }
+[
+  {
+    "extension": "revapi.semver.ignore",
+    "configuration": {
+      "enabled" : true,
+      "versionIncreaseAllows" : {
+        "major" : "breaking",
+        "minor" : "nonBreaking",
+        "patch" : "equivalent"
+      },
+      "passThroughDifferences": ["java.class.nonPublicPartOfAPI"]
     }
   }
-}
+]
+```
+
+```xml
+<analysisConfiguration>
+  <revapi.semver.ignore>
+    <enabled>true</enabled>
+    <versionIncreaseAllows>
+      <major>breaking</major>
+      <minor>nonBreaking</minor>
+      <patch>equivalent</patch>
+    <versionIncreaseAllows>
+    <passThroughDifferences>
+      <item>java.class.nonPublicPartOfAPI</item>
+    </passThroughDifferences>
+  </revapi.semver.ignore>
+</analysisConfiguration>
 ```
 
 === Properties

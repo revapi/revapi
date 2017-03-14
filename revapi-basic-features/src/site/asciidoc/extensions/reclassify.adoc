@@ -1,6 +1,6 @@
 == Reclassify Transformation
 
-*Configuration Root*: `revapi.reclassify`
+*Extension*: `revapi.reclassify`
 
 Using this extension one can reclassify certain API problems found during the analysis to become something else or
 for example reduce their severity.
@@ -8,24 +8,43 @@ for example reduce their severity.
 === Sample Configuration
 
 ```javascript
-{
-  "revapi" : {
-    "reclassify" : [
-    {
-      "regex" : false,
-      "code" : "PROBLEM_CODE",
-      "old" : "FULL_REPRESENTATION_OF_THE_OLD_ELEMENT",
-      "new" : "FULL_REPRESENTATION_OF_THE_NEW_ELEMENT",
-      "classify" : {
-        "NEW_COMPATIBILITY_TYPE": "NEW_SEVERITY",
-        "NEW_COMPATIBILITY_TYPE_2": "NEW_SEVERITY_2",
+[
+  {
+    "extension": "revapi.reclassify",
+    "configuration": [
+      {
+        "regex" : false,
+        "code" : "PROBLEM_CODE",
+        "old" : "FULL_REPRESENTATION_OF_THE_OLD_ELEMENT",
+        "new" : "FULL_REPRESENTATION_OF_THE_NEW_ELEMENT",
+        "classify" : {
+          "NEW_COMPATIBILITY_TYPE": "NEW_SEVERITY",
+          "NEW_COMPATIBILITY_TYPE_2": "NEW_SEVERITY_2",
+        },
+        ... any other properties that correspond to the match parameters of the differences ...
       },
-      ... any other properties that correspond to the match parameters of the differences ...
-    },
-    ...
+      ...
     ]
   }
-}
+]
+```
+
+```xml
+<analysisConfiguration>
+  <revapi.reclassify>
+    <item>
+      <regex>false</regex>
+      <code>PROBLEM_CODE</code>
+      <old>FULL_REPRESENTATION_OF_THE_OLD_ELEMENT</old>
+      <new>FULL_REPRESENTATION_OF_THE_NEW_ELEMENT</new>
+      <classify>
+        <NEW_COMPATIBILITY_TYPE>NEW_SEVERITY</NEW_COMPATIBILITY_TYPE>
+        <NEW_COMPATIBILITY_TYPE_2>NEW_SEVERITY_2</NEW_COMPATIBILITY_TYPE_2>
+      </classify>
+      ... any other properties that correspond to the match parameters of the differences ...
+    </item>
+  </revapi.reclassify>
+</analysisConfiguration>
 ```
 
 === Properties
@@ -53,24 +72,48 @@ Such additional properties always have a string value.
 By specifying the following configuration:
 
 ```javascript
-{
-    "revapi" : {
-        "reclassify" : [
-            {
-                "code" : "java.class.added",
-                "new" : "class my.great.app.ForbiddenClass",
-                "classify" : {
-                    "BINARY" : "BREAKING"
-            },
-            {
-                "code": "java.field.noLongerFinal",
-                "classify": {
-                    "SEMANTIC": "BREAKING"
-                }
-            }
-        ]
-    }
-}
+[
+  {
+    "extension": "revapi.reclassify",
+    "configuration": [
+      {
+        "code" : "java.class.added",
+        "new" : "class my.great.app.ForbiddenClass",
+        "classify" : {
+            "BINARY" : "BREAKING"
+        }
+      },
+      {
+        "code": "java.field.noLongerFinal",
+        "classify": {
+          "SEMANTIC": "BREAKING"
+        }
+      }
+    ]
+  }
+]
+```
+
+or equivalently in XML
+
+```xml
+<analysisConfiguration>
+  <revapi.reclassify>
+    <item>
+      <code>java.class.added</code>
+      <new>class my.great.app.ForbiddenClass</new>
+      <classify>
+        <BINARY>BREAKING</BINARY>
+      </classify>
+    </item>
+    <item>
+      <code>java.field.noLongerFinal</code>
+      <classify>
+        <SEMANTIC>BREAKING</SEMANTIC>
+      </classify>
+    </item>
+  </revapi.reclassify>
+</analysisConfiguration>
 ```
 
 it will be an API error if the class `my.great.app.ForbiddenClass` appears in the new version of a java library (granted
