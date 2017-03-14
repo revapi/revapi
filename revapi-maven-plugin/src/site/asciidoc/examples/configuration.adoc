@@ -1,9 +1,100 @@
 == How to Configure Revapi
 
-The maven plugin itself is configured using the properties of the link:../plugin-info.html[goals]. The configuration
+The maven plugin itself is configured using the properties of the link:../plugin-info.html[goals]. The configuration of
 the API analysis is a matter of configuring different Revapi extensions that are to be run. This is done using the
-`analysisConfiguration` element in the Maven plugin's configuration. This element contains the JSON-based
-configuration of the individual extensions.
+`analysisConfiguration` element in the Maven plugin's configuration. This element contains either the configuration of
+the individual extensions in either XML or JSON.
+
+=== Specifying The Analysis Configuration Using XML
+
+As an example, let's configure the java extension to ignore the classes it finds missing from the API
+rather than reporting them and also only include the archives with `com.acme` groupId in the analysis::
+
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <version>...</version>
+  <configuration>
+    <analysisConfiguration>
+      <revapi.java>
+        <missing-classes>
+          <behavior>ignore</behavior>
+        </missing-classes>
+      </revapi.java>
+      <revapi.filter>
+        <archives>
+          <include>
+            <item>com\.acme:.*</item>
+          </include>
+        </archives>
+      </revapi.filter>
+    </analysisConfiguration>
+  </configuration>
+```
+
+Each extension has a unique "extension id" which is used as the root tag for its configuration under the
+`analysisConfiguration` tag. Under the extension configuration's root tag an XML representation of the configuration
+as specified by the extension documentation (and JSON schema).
+
+=== Specifying The Analysis Configuration Using JSON
+
+Revapi has been around for a little bit and over the time it has evolved. Originally (up until Revapi API 0.8.0),
+each extension was instantiated exactly once and therefore also configured exactly once. Since Revapi API 0.8.0,
+supported by Revapi Maven plugin 0.9.0, there can be multiple configurations for each extension (and the extension
+can be therefore instantiated multiple times). This brings the ability to e.g. have 2 differently configured text
+reporter instances, each generating a different kind of output. Unfortunately, this complicates the configuration,
+because it is no longer possible to have a single "configuration tree" where extensions would read their configurations
+from their declared locations.
+
+Therefore, since Revapi API 0.8.0 there is a new kind of JSON format for configuration (which in turn also enables
+maven plugin to support XML configuration btw). To ease the migration to the new versions, the old configuration format
+is still supported (but mixing the two formats can lead to unresolvable situations, see
+link:multi-file-configuration.html for more details).
+
+==== The JSON Configuration Format
+
+As explained above, each extension can be configured multiple times. To support this in JSON, the JSON configuration
+looks like this:
+
+```javascript
+[
+  {
+    "extension": "revapi.reporter.text",
+    "id": "optional-id",
+    "configuration": {
+      ... the actual configuration of the extension according to its schema ...
+    }
+  },
+  {
+    "extension": "revapi.reporter.text",
+    "configuration": {
+      ...
+    }
+  },
+  {
+    "extension": "revapi.ignore",
+    "configuration": {
+      ...
+    }
+  },
+  ...
+]
+```
+
+The configuration object is a list. The members of the list are individual configurations for the extensions.
+The extension being configured is specified by the `extension` key and the configuration (conforming to the schema
+specified by the extension) is present under the `configuration` key.
+
+The optional `id` key is useful if there are multiple configuration sources (see
+link:multi-file-configuration.html[multi file configuration] for example) as it affects how the configurations from the
+different sources are merged together.
+
+==== The Legacy JSON Configuration Format
+
+WARNING: This describes the obsolete JSON configuration format that cannot handle multiple configurations per extension.
+If you still use it, rest assured that it is still supported (with the exception of certain scenarios during merging
+of multiple configuration sources) but you are encouraged to start using the new configuration format.
 
 The JSON data contains the configuration of all the extensions. Each of the extensions declares a "root" in the JSON
 data from which it reads its configuration (for example, ignoring specific problems found during the analysis can be
@@ -47,7 +138,3 @@ the analysis:
 The configuration options of the various extensions can be found in their respective docs:
 link:../../revapi-basic-features/index.html[basic features documentation], link:../../revapi-java/index.html[java
 extension documentation].
-
-NOTE: Currently, all the configuration has to be specified using JSON, including the configuration specified in the
-POM files. This is not user friendly very much and work is underway to enable XML-based configuration, too (or maybe
-even exclusively just XML).

@@ -36,7 +36,8 @@ the revapi archive's name - quite a useful thing when reporting on what problems
 
 Configuration is supplied using https://github.com/jbossas/jboss-dmr[JBoss DMR] which should in theory support
 loading the configuration from various formats if enough effort is done on the user's side. Revapi as such has so far
-been tested only with JSON data. Even if data was translated into DMR from another format than JSON, the validation
+been extensively tested only with JSON data (support for XML has been added only in Revapi 0.8.0 supported by maven
+plugin 0.9.0). Even if data was translated into DMR from another format than JSON, the validation
 of that data will always be done against a JSON schema that is provided by the extensions.
 
 For details, see the link:apidocs/org/revapi/AnalysisContext.html[AnalysisContext] class (and the way it is supplied
