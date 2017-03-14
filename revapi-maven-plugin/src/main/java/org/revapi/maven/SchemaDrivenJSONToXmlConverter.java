@@ -33,11 +33,11 @@ final class SchemaDrivenJSONToXmlConverter {
 
     }
 
-    static PlexusConfiguration convert(ModelNode configuration, ModelNode jsonSchema, String extensionId) {
-        return convert(configuration, jsonSchema, jsonSchema, extensionId);
+    static PlexusConfiguration convert(ModelNode configuration, ModelNode jsonSchema, String extensionId, String id) {
+        return convert(configuration, jsonSchema, jsonSchema, extensionId, id);
     }
 
-    private static PlexusConfiguration convert(ModelNode configuration, ModelNode jsonSchema, ModelNode rootSchema, String tagName) {
+    private static PlexusConfiguration convert(ModelNode configuration, ModelNode jsonSchema, ModelNode rootSchema, String tagName, String id) {
         ModelNode type = jsonSchema.get("type");
         if (!type.isDefined()) {
             if (jsonSchema.get("enum").isDefined()) {
@@ -47,10 +47,10 @@ final class SchemaDrivenJSONToXmlConverter {
                 if (containsUnsupportedTypes) {
                     throw new IllegalArgumentException("Unsupported type of enum value defined in schema.");
                 }
-                return convertSimple(tagName, configuration.asString());
+                return convertSimple(tagName, id, configuration.asString());
             } else if (jsonSchema.get("$ref").isDefined()) {
                 jsonSchema = findRef(rootSchema, jsonSchema.get("$ref").asString());
-                return convert(configuration, jsonSchema, rootSchema, tagName);
+                return convert(configuration, jsonSchema, rootSchema, tagName, id);
             }
         }
 
@@ -69,17 +69,17 @@ final class SchemaDrivenJSONToXmlConverter {
 
         switch (valueType) {
             case "boolean":
-                return convertSimple(tagName, configuration.asString());
+                return convertSimple(tagName, id, configuration.asString());
             case "integer":
-                return convertSimple(tagName, configuration.asString());
+                return convertSimple(tagName, id, configuration.asString());
             case "number":
-                return convertSimple(tagName, configuration.asString());
+                return convertSimple(tagName, id, configuration.asString());
             case "string":
-                return convertSimple(tagName, configuration.asString());
+                return convertSimple(tagName, id, configuration.asString());
             case "array":
-                return convertArray(configuration, jsonSchema, rootSchema, tagName);
+                return convertArray(configuration, jsonSchema, rootSchema, tagName, id);
             case "object":
-                return convertObject(configuration, jsonSchema, rootSchema, tagName);
+                return convertObject(configuration, jsonSchema, rootSchema, tagName, id);
             default:
                 throw new IllegalArgumentException("Unsupported json value type: " + valueType);
         }
@@ -89,8 +89,11 @@ final class SchemaDrivenJSONToXmlConverter {
         return XmlToJson.JSONPointer.parse(ref).navigate(rootSchema);
     }
 
-    private static PlexusConfiguration convertObject(ModelNode configuration, ModelNode jsonSchema, ModelNode rootSchema, String tagName) {
+    private static PlexusConfiguration convertObject(ModelNode configuration, ModelNode jsonSchema, ModelNode rootSchema, String tagName, String id) {
         XmlPlexusConfiguration object = new XmlPlexusConfiguration(tagName);
+        if (id != null) {
+            object.setAttribute("id", id);
+        }
 
         ModelNode propertySchemas = jsonSchema.get("properties");
         ModelNode additionalPropSchemas = jsonSchema.get("additionalProperties");
@@ -109,28 +112,36 @@ final class SchemaDrivenJSONToXmlConverter {
                 throw new IllegalArgumentException("Could not determine the format for the '" + key +
                         "' JSON value during the JSON-to-XML conversion.");
             }
-            PlexusConfiguration xmlChild = convert(childConfig, childSchema, rootSchema, key);
+            PlexusConfiguration xmlChild = convert(childConfig, childSchema, rootSchema, key, null);
             object.addChild(xmlChild);
         }
         return object;
     }
 
-    private static PlexusConfiguration convertArray(ModelNode configuration, ModelNode jsonSchema, ModelNode rootSchema, String tagName) {
+    private static PlexusConfiguration convertArray(ModelNode configuration, ModelNode jsonSchema, ModelNode rootSchema, String tagName, String id) {
         ModelNode itemsSchema = jsonSchema.get("items");
         if (!itemsSchema.isDefined()) {
             throw new IllegalArgumentException(
                     "No schema found for items of a list. Cannot continue with XML-to-JSON conversion.");
         }
         PlexusConfiguration list = new XmlPlexusConfiguration(tagName);
+        if (id != null) {
+            list.setAttribute("id", id);
+        }
+
         for (ModelNode childConfig : configuration.asList()) {
-            PlexusConfiguration child = convert(childConfig, itemsSchema, rootSchema, "item");
+            PlexusConfiguration child = convert(childConfig, itemsSchema, rootSchema, "item", null);
             list.addChild(child);
         }
         return list;
     }
 
-    private static PlexusConfiguration convertSimple(String tagName, String value) {
+    private static PlexusConfiguration convertSimple(String tagName, String id, String value) {
         XmlPlexusConfiguration ret = new XmlPlexusConfiguration(tagName);
+        if (id != null) {
+            ret.setAttribute("id", id);
+        }
+
         ret.setValue(value);
         return ret;
     }

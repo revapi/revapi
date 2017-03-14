@@ -255,7 +255,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
                 }
             }
 
-            PlexusConfiguration extXml = SchemaDrivenJSONToXmlConverter.convert(config, schema, extensionId);
+            PlexusConfiguration extXml = SchemaDrivenJSONToXmlConverter.convert(config, schema, extensionId, null);
             xmlConfig.addChild(extXml);
         }
 
@@ -269,13 +269,14 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
         for (ModelNode extConfig : jsonConfig.asList()) {
             String extensionId = extConfig.get("extension").asString();
             ModelNode configuration = extConfig.get("configuration");
+            String id = extConfig.hasDefined("id") ? extConfig.get("id").asString() : null;
 
             ModelNode schema = extensionSchemas.get(extensionId);
             if (schema == null) {
                 continue;
             }
 
-            PlexusConfiguration extXml = SchemaDrivenJSONToXmlConverter.convert(configuration, schema, extensionId);
+            PlexusConfiguration extXml = SchemaDrivenJSONToXmlConverter.convert(configuration, schema, extensionId, id);
             xmlConfig.addChild(extXml);
         }
 

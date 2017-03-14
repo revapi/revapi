@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,20 +49,23 @@ public final class XmlToJson<Xml> {
     private static final Logger LOG = LoggerFactory.getLogger(XmlToJson.class);
 
     private final Function<Xml, String> getName;
+    private final BiFunction<Xml, String, String> getAttributeValue;
     private final Function<Xml, String> getValue;
     private final Function<Xml, List<Xml>> getChildren;
     private final Map<String, ModelNode> knownExtensionSchemas;
 
     public XmlToJson(Revapi revapi, Function<Xml, String> getName, Function<Xml, String> getValue,
-                     Function<Xml, List<Xml>> getChildren) {
-        this(getKnownExtensionSchemas(revapi), getName, getValue, getChildren);
+                     BiFunction<Xml, String, String> getAttributeValue, Function<Xml, List<Xml>> getChildren) {
+        this(getKnownExtensionSchemas(revapi), getName, getValue, getAttributeValue, getChildren);
     }
 
     //for testing only
     XmlToJson(Map<String, ModelNode> knownExtensionSchemas, Function<Xml, String> getName,
-              Function<Xml, String> getValue, Function<Xml, List<Xml>> getChildren) {
+              Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
+              Function<Xml, List<Xml>> getChildren) {
         this.getName = getName;
         this.getValue = getValue;
+        this.getAttributeValue = getAttributeValue;
         this.getChildren = getChildren;
         this.knownExtensionSchemas = knownExtensionSchemas;
     }
@@ -73,7 +77,7 @@ public final class XmlToJson<Xml> {
         for (Xml c : getChildren.apply(xml)) {
 
             String extensionId = getName.apply(c);
-
+            String id = getAttributeValue.apply(c, "id");
             ModelNode schema = knownExtensionSchemas.get(extensionId);
             if (schema == null) {
                 LOG.warn("Extension '" + extensionId +
@@ -86,6 +90,9 @@ public final class XmlToJson<Xml> {
 
             ModelNode instanceConfig = new ModelNode();
             instanceConfig.get("extension").set(extensionId);
+            if (id != null) {
+                instanceConfig.get("id").set(id);
+            }
             instanceConfig.get("configuration").set(config);
 
             fullConfiguration.add(instanceConfig);
@@ -363,8 +370,6 @@ public final class XmlToJson<Xml> {
                 throw new IllegalStateException("Extension " + extensionType + " is not default-constructable.");
             } catch (IOException e) {
                 throw new IllegalArgumentException("Failed to read the schema of extension " + extensionType);
-            } catch (IllegalArgumentException e) {
-                throw e;
             }
         }
     }

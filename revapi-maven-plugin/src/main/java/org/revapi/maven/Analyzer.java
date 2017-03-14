@@ -507,7 +507,7 @@ public final class Analyzer {
     private void mergeXmlConfigFile(AnalysisContext.Builder ctxBld, ConfigurationFile configFile, Reader rdr)
             throws IOException, XmlPullParserException {
         XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
-                PlexusConfiguration::getValue, x -> Arrays.asList(x.getChildren()));
+                PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
 
         PlexusConfiguration xml = new XmlPlexusConfiguration(Xpp3DomBuilder.build(rdr));
 
@@ -571,7 +571,7 @@ public final class Analyzer {
 
     private void convertNewStyleConfigFromXml(AnalysisContext.Builder bld, Revapi revapi) {
         XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
-                PlexusConfiguration::getValue, x -> Arrays.asList(x.getChildren()));
+                PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
 
         bld.mergeConfiguration(conv.convert(analysisConfiguration));
     }
@@ -584,7 +584,7 @@ public final class Analyzer {
         }
     }
 
-    private static class MarkerException extends RuntimeException {
+    private static final class MarkerException extends RuntimeException {
         public MarkerException(String message) {
             super(message);
         }

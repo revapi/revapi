@@ -35,7 +35,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"type\": \"boolean\"}");
         ModelNode json = json("true");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
@@ -47,7 +47,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"type\": \"boolean\"}");
         ModelNode json = json("false");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
@@ -59,7 +59,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"type\": \"boolean\"}");
         ModelNode json = json("kachny");
 
-        SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"type\": \"integer\"}");
         ModelNode json = json("1");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
@@ -79,7 +79,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"type\": \"integer\"}");
         ModelNode json = json("asdf");
 
-        SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"type\": \"number\"}");
         ModelNode json = json("1.2");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
@@ -99,7 +99,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"type\": \"number\"}");
         ModelNode json = json("1.2ff");
 
-        SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
     }
 
     @Test
@@ -107,7 +107,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"type\": \"string\"}");
         ModelNode json = json("\"str\"");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
@@ -119,7 +119,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
         ModelNode json = json("[1,2,3]");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertNull(config.getValue());
@@ -139,7 +139,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
                         "\"b\": {\"type\": \"boolean\"}}}");
         ModelNode json = json("{\"a\": 1, \"b\": true}");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertNull(config.getValue());
         assertEquals(2, config.getChildCount());
@@ -157,7 +157,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
                         "\"additionalProperties\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}");
         ModelNode json = json("{\"a\": 4, \"b\": true, \"c\": [], \"d\": [\"x\"]}");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertNull(config.getValue());
         assertEquals(4, config.getChildCount());
@@ -180,28 +180,28 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"enum\": [1, \"a\", true, 2.0]}");
         ModelNode json = json("1");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
         assertEquals("1", config.getValue());
 
         json = json("\"a\"");
-        config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
         assertEquals("a", config.getValue());
 
         json = json("true");
-        config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
         assertEquals("true", config.getValue());
 
         json = json("2.0");
-        config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
@@ -213,7 +213,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
         ModelNode schema = json("{\"enum\": [{}]}");
         ModelNode json = json("{}");
 
-        SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
     }
 
     @Test
@@ -222,13 +222,26 @@ public class SchemaDrivenJSONToXmlConverterTest {
                 "\"definitions\": {\"a\": {\"type\": \"boolean\"}}}");
         ModelNode json = json("{\"a\": true}");
 
-        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag");
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
         assertEquals("tag", config.getName());
         assertNull(config.getValue());
         assertEquals(1, config.getChildCount());
         assertEquals("a", config.getChild(0).getName());
         assertEquals("true", config.getChild(0).getValue());
+    }
+
+    @Test
+    public void testIdUsed() throws Exception {
+        ModelNode schema = json("{\"type\": \"boolean\"}");
+        ModelNode json = json("true");
+
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", "id");
+        assertNotNull(config);
+        assertEquals("tag", config.getName());
+        assertEquals("id", config.getAttribute("id"));
+        assertEquals(0, config.getChildCount());
+        assertEquals("true", config.getValue());
     }
 
     private static ModelNode json(String json) {

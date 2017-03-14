@@ -45,9 +45,11 @@ public class XmlToJsonTest {
     @Test
     public void testBooleanConversion_true() throws Exception {
         XmlToJson<Node> converter = converter("ext", "{\"type\": \"boolean\"}");
-        Node xml = xml("<config><ext>true</ext></config>");
+        Node xml = xml("<config><ext id='1'>true</ext></config>");
 
-        ModelNode config = converter.convert(xml).get(0).get("configuration");
+        ModelNode extConf = converter.convert(xml).get(0);
+        Assert.assertEquals("1", extConf.get("id").asString());
+        ModelNode config = extConf.get("configuration");
         Assert.assertEquals(ModelType.BOOLEAN, config.getType());
         Assert.assertTrue(config.asBoolean());
     }
@@ -227,16 +229,21 @@ public class XmlToJsonTest {
         Map<String, ModelNode> exts = new HashMap<>(1);
         exts.put(extension, json(schema));
 
-        return new XmlToJson<>(exts, Node::getNodeName, n -> {
-            if (n.getChildNodes().getLength() == 1) {
-                Node textOrSomething = n.getFirstChild();
-                if (textOrSomething.getNodeType() == Node.TEXT_NODE || textOrSomething.getNodeType() == Node.CDATA_SECTION_NODE) {
-                    return textOrSomething.getNodeValue();
-                }
-            }
+        return new XmlToJson<>(exts,
+                Node::getNodeName,
+                n -> {
+                    if (n.getChildNodes().getLength() == 1) {
+                        Node textOrSomething = n.getFirstChild();
+                        if (textOrSomething.getNodeType() == Node.TEXT_NODE ||
+                                textOrSomething.getNodeType() == Node.CDATA_SECTION_NODE) {
+                            return textOrSomething.getNodeValue();
+                        }
+                    }
 
-            return null;
-        }, n -> new NodeListList(n.getChildNodes()));
+                    return null;
+                },
+                (n, name) -> n.getAttributes().getNamedItem(name).getNodeValue(),
+                n -> new NodeListList(n.getChildNodes()));
     }
 
     private static final class NodeListList extends AbstractList<Node> {
