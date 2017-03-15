@@ -20,7 +20,9 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -464,31 +467,102 @@ public final class Analyzer {
                 }
 
                 String path = configFile.getPath();
+                String resource = configFile.getResource();
 
-                File f = new File(path);
-                if (!f.isAbsolute()) {
-                    f = new File(project.getBasedir(), path);
+                if (path == null && resource == null) {
+                    throw new MojoExecutionException(
+                            "Either 'path' or 'resource' has to be specified in a configurationFile definition.");
+                } else if (path != null && resource != null) {
+                    throw new MojoExecutionException(
+                            "Either 'path' or 'resource' has to be specified in a configurationFile definition but" +
+                                    " not both.");
                 }
 
-                if (!f.isFile() || !f.canRead()) {
-                    String message = "Could not locate analysis configuration file '" + f.getAbsolutePath() + "'.";
-                    if (failOnMissingConfigurationFiles) {
-                        throw new MojoExecutionException(message);
-                    } else {
-                        log.debug(message);
+                String readErrorMessage = "Error while processing the configuration file on "
+                        + (path == null ? "classpath " + resource : "path " + path);
+
+                Supplier<Iterator<InputStream>> configFileContents;
+
+                if (path != null) {
+                    File f = new File(path);
+                    if (!f.isAbsolute()) {
+                        f = new File(project.getBasedir(), path);
+                    }
+
+                    if (!f.isFile() || !f.canRead()) {
+                        String message = "Could not locate analysis configuration file '" + f.getAbsolutePath() + "'.";
+                        if (failOnMissingConfigurationFiles) {
+                            throw new MojoExecutionException(message);
+                        } else {
+                            log.debug(message);
+                            continue;
+                        }
+                    }
+
+                    final File ff = f;
+                    configFileContents = () -> {
+                        try {
+                            return Collections.<InputStream>singletonList(new FileInputStream(ff)).iterator();
+                        } catch (FileNotFoundException e) {
+                            throw new MarkerException("Failed to read the configuration file '"
+                                    + ff.getAbsolutePath() + "'.", e);
+                        }
+                    };
+                } else {
+                    configFileContents =
+                            () -> {
+                                try {
+                                    return Collections.list(getClass().getClassLoader().getResources(resource))
+                                            .stream()
+                                            .map(url -> {
+                                                try {
+                                                    return url.openStream();
+                                                } catch (IOException e) {
+                                                    throw new MarkerException (
+                                                            "Failed to read the classpath resource '" + url + "'.");
+                                                }
+                                            }).iterator();
+                                } catch (IOException e) {
+                                    throw new IllegalArgumentException(
+                                            "Failed to locate classpath resources on path '" + resource + "'.");
+                                }
+                            };
+                }
+
+                Iterator<InputStream> it = configFileContents.get();
+                List<Integer> nonJsonIndexes = new ArrayList<>(4);
+                int idx = 0;
+                while (it.hasNext()) {
+                    ModelNode config;
+                    try (InputStream in = it.next()) {
+                        config = readJson(in);
+                    } catch (MarkerException | IOException e) {
+                        throw new MojoExecutionException(readErrorMessage, e.getCause());
+                    }
+
+                    if (config == null) {
+                        nonJsonIndexes.add(idx);
                         continue;
                     }
+
+                    mergeJsonConfigFile(ctxBld, configFile, config);
+
+                    idx++;
                 }
 
-                ModelNode config = readJson(f);
-                if (config != null) {
-                    mergeJsonConfigFile(ctxBld, configFile, config);
-                } else {
-                    try (Reader rdr = new InputStreamReader(new FileInputStream(f))) {
-                        mergeXmlConfigFile(ctxBld, configFile, rdr);
-                    } catch (IOException | XmlPullParserException e) {
-                        throw new MojoExecutionException("Could not load configuration from '" + f.getAbsolutePath()
-                                + "': " + e.getMessage());
+                if (!nonJsonIndexes.isEmpty()) {
+                    idx = 0;
+                    it = configFileContents.get();
+                    while (it.hasNext()) {
+                        try (Reader rdr = new InputStreamReader(it.next())) {
+                            if (nonJsonIndexes.contains(idx)) {
+                                mergeXmlConfigFile(ctxBld, configFile, rdr);
+                            }
+                        } catch (MarkerException | IOException | XmlPullParserException e) {
+                            throw new MojoExecutionException(readErrorMessage, e.getCause());
+                        }
+
+                        idx++;
                     }
                 }
             }
@@ -576,8 +650,8 @@ public final class Analyzer {
         bld.mergeConfiguration(conv.convert(analysisConfiguration));
     }
 
-    private ModelNode readJson(File f) {
-        try (FileInputStream in = new FileInputStream(f)) {
+    private ModelNode readJson(InputStream in) {
+        try {
             return ModelNode.fromJSONStream(JSONUtil.stripComments(in, Charset.forName("UTF-8")));
         } catch (IOException e) {
             return null;
@@ -592,5 +666,10 @@ public final class Analyzer {
         public MarkerException(String message, Throwable cause) {
             super(message, cause);
         }
+    }
+
+    @FunctionalInterface
+    private interface ThrowingSupplier<T> {
+        T get() throws Exception;
     }
 }

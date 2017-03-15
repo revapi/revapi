@@ -169,12 +169,12 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
         };
 
         update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']" +
-                "/configuration/analysisConfigurationFiles/*[not(roots) and not(path)]");
+                "/configuration/analysisConfigurationFiles/*[not(self::configurationFile)]");
         update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']" +
                 "/configuration/analysisConfigurationFiles/configurationFile[not(roots)]/path");
 
         update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']" +
-                "/executions/execution/configuration/analysisConfigurationFiles/*[not(roots) and not(path)]");
+                "/executions/execution/configuration/analysisConfigurationFiles/*[not(self::configurationFile)]");
         update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']" +
                 "/executions/execution/configuration/analysisConfigurationFiles/configurationFile[not(roots)]/path");
 

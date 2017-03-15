@@ -73,6 +73,7 @@ public class ReportMojo extends AbstractMavenReport {
      *    &lt;analysisConfigurationFiles&gt;
      *        &lt;configurationFile&gt;
      *            &lt;path&gt;path/to/the/file/relative/to/project/base/dir&lt;/path&gt;
+     *            &lt;resource&gt;path/to/the/file/in/one/of/the/dependencies&lt;/resource&gt;
      *            &lt;roots&gt;
      *                &lt;root&gt;configuration/root1&lt;/root&gt;
      *                &lt;root&gt;configuration/root2&lt;/root&gt;
@@ -85,13 +86,15 @@ public class ReportMojo extends AbstractMavenReport {
      *
      * where
      * <ul>
-     *     <li>{@code path} is mandatory,</li>
+     *     <li>{@code path} is the path on the filesystem,</li>
+     *     <li>{@code resource} is the path to the resource file in one of the artifacts the plugin depends on</li>
      *     <li>{@code roots} is optional and specifies the subtrees of the JSON/XML config that should be used for
      *     configuration. If not specified, the whole file is taken into account.</li>
      * </ul>
-     * The {@code configuration/root1} and {@code configuration/root2} are paths to the roots of the
-     * configuration inside that JSON/XML config file. This might be used in cases where multiple configurations are stored
-     * within a single file and you want to use a particular one.
+     * Either {@code path} or {@code resource} has to be specified but not both. The {@code configuration/root1} and
+     * {@code configuration/root2} are paths to the roots of the configuration inside that JSON/XML config file. This
+     * might be used in cases where multiple configurations are stored within a single file and you want to use
+     * a particular one.
      *
      * <p>An example of this might be a config file which contains API changes to be ignored in all past versions of a
      * library. The classes to be ignored are specified in a configuration that is specific for each version:

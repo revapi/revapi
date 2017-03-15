@@ -31,6 +31,38 @@ Each of the configuration files (e.g. `filter.json` and `ignore.xml` in the abov
 with the configuration. The maven plugin then merges the files together (in an unspecified order) and uses the
 result as the final configuration for the analysis.
 
+=== Using Configuration Defined In Other Modules
+
+It is possible to define a JAR artifact that contains "common" configuration of the Revapi analysis shared by many
+modules. To reference it, simply add the artifact as a dependency of the revapi maven plugin and reference
+the configuration file inside that artifact like:
+
+```xml
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    <dependencies>
+      ...
+      <dependency>
+        <groupId>my.group.id</groupId>
+        <artifactId>artifact-with-common-config</artifact>
+        <version>...</version>
+      </dependency>
+    </dependencies>
+    <configuration>
+        <analysisConfigurationFiles>
+          <configurationFile>
+            <resource>path/to/the/config/file/in/the/shared/artifact</resource>
+          </configurationFile>
+          ...
+        </analysisConfigurationFiles>
+        ...
+    </configuration>
+    ...
+</plugin>
+```
+
 === Merging Configuration From Multiple Files
 
 When the analysis configuration is split amongst several files, it needs to be merged together before it is applied to

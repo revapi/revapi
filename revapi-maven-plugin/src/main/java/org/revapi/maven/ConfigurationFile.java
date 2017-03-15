@@ -9,6 +9,7 @@ package org.revapi.maven;
 public final class ConfigurationFile {
 
     private String path;
+    private String resource;
     private String[] roots;
 
     public String getPath() {
@@ -17,6 +18,14 @@ public final class ConfigurationFile {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getResource() {
+        return resource;
+    }
+
+    public void setResource(String classPath) {
+        this.resource = classPath;
     }
 
     public String[] getRoots() {

@@ -1,0 +1,11 @@
+[
+  {
+    "extension": "revapi.ignore",
+    "configuration": [
+      {
+        "code": "java.method.removed",
+        "justification": "because"
+      }
+    ]
+  }
+]
