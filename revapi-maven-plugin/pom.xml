@@ -42,9 +42,9 @@
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi-java.version>0.14.0-SNAPSHOT</revapi-java.version>
-        <revapi-java-spi.version>0.13.0-SNAPSHOT</revapi-java-spi.version>
-        <revapi-reporter-text.version>0.8.0-SNAPSHOT</revapi-reporter-text.version>
+        <revapi-java.version>0.14.0</revapi-java.version>
+        <revapi-java-spi.version>0.13.0</revapi-java-spi.version>
+        <revapi-reporter-text.version>0.8.0</revapi-reporter-text.version>
     </properties>
 
     <prerequisites>
@@ -55,13 +55,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.8.0-SNAPSHOT</version>
+            <version>0.8.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>0.6.0</version>
             <scope>runtime</scope>
         </dependency>
 
