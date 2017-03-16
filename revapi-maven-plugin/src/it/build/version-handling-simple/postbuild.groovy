@@ -1,31 +1,42 @@
-void checkVersion(File pom, String... versions) throws Exception {
-    int versionCount = 0;
-    boolean found = false;
-    pom.eachLine { line ->
-        line = line.trim();
+import java.util.regex.Pattern
 
-        if (line.startsWith("<version>") && versionCount < versions.length) {
-            String version = versions[versionCount++];
-            assert line.equals("<version>" + version + "</version>") :
-                    "The " + versionCount + "th version tag in v2 pom should have been changed to " + version +
-                            " but the line reads: " + line;
-            found = true;
-            return;
+static void checkVersion(File pom, String moduleVersion, String... versions) throws Exception {
+    int versionCount = 0
+    pom.eachLine { line ->
+        line = line.trim()
+
+        if (line.matches("^\\s*<version>.*") && versionCount < versions.length) {
+            String version = versions[versionCount++]
+            if (!line.matches("^\\s*<version>" + Pattern.quote(version) + "</version>.*")) {
+                throw new AssertionError("The " + versionCount.toString() + "th version tag in " + moduleVersion
+                        + " pom should be " + version + " but the line reads: " + line
+                )
+            }
         }
     }
 
-    if (!found) {
-        throw new AssertionError("Failed to find the <version> tag in v2 pom.xml");
+    if (versionCount < versions.length) {
+        throw new AssertionError("Failed to find the all the correct versions in the pom.xml of " + moduleVersion)
     }
 }
 
-File v2Dir = new File("target/it/build/version-handling-simple/v2");
-if (!v2Dir.exists()) {
-    //the top level build might be running
-    String path = "revapi-maven-plugin/" + v2Dir.getPath()
-    v2Dir = new File(path)
+static File file(String path) {
+    File f = new File(path)
+    if (!f.exists()) {
+        //the top level build might be running
+        path = "revapi-maven-plugin/" + f.getPath()
+        f = new File(path)
+    }
+
+    return f
 }
 
-File v2Pom = new File(v2Dir, "pom.xml");
+File v2Pom = file("target/it/build/version-handling-simple/v2/pom.xml")
+checkVersion(v2Pom, "v2", "1.1.0")
 
-checkVersion(v2Pom, "1.1.0");
+File v3Pom = file("target/it/build/version-handling-simple/v3/artifact/pom.xml")
+
+//1.0.2 is the version of the parent we're referencing in the pom
+//1.1.0 here, too, because we run just update-versions on the v2 artifact. I.e. what we find in the repo is still
+//1.0.1, not the version that update-versions changed the pom to.
+checkVersion(v3Pom, "v3", "1.0.2", "1.1.0")

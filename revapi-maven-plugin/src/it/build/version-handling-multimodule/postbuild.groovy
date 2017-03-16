@@ -1,21 +1,22 @@
-void checkVersion(File pom, String... versions) throws Exception {
-    int versionCount = 0;
-    boolean found = false;
-    pom.eachLine { line ->
-        line = line.trim();
+import java.util.regex.Pattern
 
-        if (line.startsWith("<version>") && versionCount < versions.length) {
-            String version = versions[versionCount++];
-            assert line.equals("<version>" + version + "</version>") :
-                    "The " + versionCount + "th version tag in v2 pom (" + pom.getAbsolutePath() + ") should have" +
-                            " been changed to '" + version  + "' but the line reads: " + line;
-            found = true;
-            return;
+static void checkVersion(File pom, String moduleVersion, String... versions) throws Exception {
+    int versionCount = 0
+    pom.eachLine { line ->
+        line = line.trim()
+
+        if (line.matches("^\\s*<version>.*") && versionCount < versions.length) {
+            String version = versions[versionCount++]
+            if (!line.matches("^\\s*<version>" + Pattern.quote(version) + "</version>.*")) {
+                throw new AssertionError("The " + versionCount.toString() + "th version tag in " + moduleVersion
+                        + " pom should be " + version + " but the line reads: " + line
+                )
+            }
         }
     }
 
-    if (!found) {
-        throw new AssertionError("Failed to find the <version> tag in v2 pom.xml (" + pom.getAbsolutePath() + ")");
+    if (versionCount < versions.length) {
+        throw new AssertionError("Failed to find the all the correct versions in the pom.xml of " + moduleVersion)
     }
 }
 
@@ -31,6 +32,6 @@ File v2aPom = new File(v2aDir, "pom.xml");
 File v2bDir = new File(topDir, "b");
 File v2bPom = new File(v2bDir, "pom.xml");
 
-checkVersion(topPom, "2.0.0");
-checkVersion(v2aPom, "2.0.0", "2.0.0");
-checkVersion(v2bPom, "2.0.0", "2.0.0");
+checkVersion(topPom, "top", "2.0.0");
+checkVersion(v2aPom, "v2a", "2.0.0", "2.0.0");
+checkVersion(v2bPom, "v2b", "2.0.0", "2.0.0");

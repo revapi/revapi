@@ -48,6 +48,7 @@ import com.ximpleware.TranscodeException;
 import com.ximpleware.VTDGen;
 import com.ximpleware.VTDNav;
 import com.ximpleware.XMLModifier;
+import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 
 /**
@@ -229,25 +230,46 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
 
     void updateProjectVersion(MavenProject project, Version version) throws MojoExecutionException {
         try {
+
+            int indentationSize;
+            try (BufferedReader rdr = new BufferedReader(new FileReader(project.getFile()))) {
+                indentationSize = XmlUtil.estimateIndentationSize(rdr);
+            }
+
             VTDGen gen = new VTDGen();
             gen.enableIgnoredWhiteSpace(true);
             gen.parseFile(project.getFile().getAbsolutePath(), true);
 
             VTDNav nav = gen.getNav();
             AutoPilot ap = new AutoPilot(nav);
-            ap.selectXPath("namespace-uri(.)");
-            String ns = ap.evalXPathToString();
-
-            nav.toElementNS(VTDNav.FIRST_CHILD, ns, "version");
-            int pos = nav.getText();
-
             XMLModifier mod = new XMLModifier(nav);
-            mod.updateToken(pos, version.toString());
+
+            ap.selectXPath("/project/version");
+            if (ap.evalXPath() != -1) {
+                //found the version
+                int textPos = nav.getText();
+                mod.updateToken(textPos, version.toString());
+            } else {
+                //place the version after the artifactId
+                ap.selectXPath("/project/artifactId");
+                if (ap.evalXPath() == -1) {
+                    throw new MojoExecutionException("Failed to find artifactId element in the pom.xml of project "
+                            + project.getArtifact().getId() + " when trying to insert a version tag after it.");
+                } else {
+                    StringBuilder versionLine = new StringBuilder();
+                    versionLine.append('\n');
+                    for (int i = 0; i < indentationSize; ++i) {
+                        versionLine.append(' ');
+                    }
+                    versionLine.append("<version>").append(version.toString()).append("</version>");
+                    mod.insertAfterElement(versionLine.toString());
+                }
+            }
 
             try (OutputStream out = new FileOutputStream(project.getFile())) {
                 mod.output(out);
             }
-        } catch (IOException | ModifyException | NavException | XPathParseException | TranscodeException e) {
+        } catch (IOException | ModifyException | NavException | XPathParseException | XPathEvalException | TranscodeException e) {
             throw new MojoExecutionException("Failed to update the version of project " + project, e);
         }
     }
