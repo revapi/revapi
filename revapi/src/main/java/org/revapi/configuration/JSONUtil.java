@@ -42,7 +42,7 @@ import org.jboss.dmr.ModelNode;
 public final class JSONUtil {
 
     private enum State {
-        NORMAL, FIRST_SLASH, SINGLE_LINE, MULTI_LINE, STAR_IN_MULTI_LINE
+        NORMAL, FIRST_SLASH, SINGLE_LINE, MULTI_LINE, STAR_IN_MULTI_LINE, IN_STRING, ESCAPE_IN_STRING
     }
 
 
@@ -106,6 +106,9 @@ public final class JSONUtil {
                         case '/':
                             state = State.FIRST_SLASH;
                             break;
+                        case '"':
+                            state = State.IN_STRING;
+                            //intentional fallthrough
                         default:
                             if (lastChar != -1) {
                                 lastChar = -1;
@@ -120,6 +123,10 @@ public final class JSONUtil {
                             break;
                         case '*':
                             state = State.MULTI_LINE;
+                            break;
+                        case '"':
+                            emit = '/';
+                            state = State.IN_STRING;
                             break;
                         default:
                             emit = '/';
@@ -151,14 +158,42 @@ public final class JSONUtil {
                             break;
                         }
                         break;
+                    case IN_STRING:
+                        switch (lastChar) {
+                        case '\\':
+                            state = State.ESCAPE_IN_STRING;
+                            break;
+                        case '"':
+                            state = State.NORMAL;
+                            break;
+                        }
+                        if (lastChar != -1) {
+                            cont = false;
+                            lastChar = -1;
+                        }
+                        break;
+                    case ESCAPE_IN_STRING:
+                        if (lastChar != -1) {
+                            cont = false;
+                            lastChar = -1;
+                            state = State.IN_STRING;
+                        }
+                        break;
                     }
 
                     if (cont) {
                         int ci = json.read();
 
                         if (ci == -1) {
+                            //the end of input.. emit something if we're in an emittable state..
                             lastChar = -1;
-                            return emit;
+
+                            switch (state) {
+                                case SINGLE_LINE: case MULTI_LINE: case STAR_IN_MULTI_LINE:
+                                    return -1;
+                                default:
+                                    return emit;
+                            }
                         }
 
                         lastChar = ci;

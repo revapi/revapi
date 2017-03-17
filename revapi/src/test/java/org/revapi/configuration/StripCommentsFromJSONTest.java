@@ -29,11 +29,17 @@ public class StripCommentsFromJSONTest {
     public void testSingleLine() {
         String json = "//comment\ncode/code//comment\n//comment\n code";
         Assert.assertEquals("\ncode/code\n\n code", JSONUtil.stripComments(json));
+
+        json = "//asdf";
+        Assert.assertEquals("", JSONUtil.stripComments(json));
+
+        json = "code\"\\\"//\"/**/asdf\"/*\\\"*/\"//asdf";
+        Assert.assertEquals("code\"\\\"//\"asdf\"/*\\\"*/\"", JSONUtil.stripComments(json));
     }
 
     @Test
     public void testMultiLine() {
-        String json = "/code/* comment //code * code *//code";
+        String json = "/code/* comment \n//code * code\"asdf\" \n\n\n*//code";
         Assert.assertEquals("/code/code", JSONUtil.stripComments(json));
     }
 }
