@@ -48,6 +48,7 @@ import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
 import org.revapi.Revapi;
 import org.revapi.configuration.Configurable;
+import org.revapi.configuration.JSONUtil;
 import org.revapi.simple.SimpleReporter;
 
 import com.ximpleware.AutoPilot;
@@ -97,12 +98,14 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
             return;
         }
 
-        Analyzer analyzer = prepareAnalyzer(project, SimpleReporter.class, Collections.emptyMap());
+        AnalyzerBuilder.Result res = buildAnalyzer(project, SimpleReporter.class, Collections.emptyMap());
+        if (res.skip) {
+            return;
+        }
 
-        Revapi revapi = analyzer.getRevapi();
+        Revapi revapi = res.analyzer.getRevapi();
 
-        AnalysisContext ctx =
-                AnalysisContext.builder(revapi).withConfigurationFromJSON(analysisConfiguration.getValue()).build();
+        AnalysisContext ctx = AnalysisContext.builder(revapi).build();
 
         AnalysisResult.Extensions extensions = revapi.prepareAnalysis(ctx);
 
@@ -218,7 +221,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
             throws IOException, XmlPullParserException {
         ModelNode jsonConfig;
         try {
-            jsonConfig = ModelNode.fromJSONString(xmlOrJson);
+            jsonConfig = ModelNode.fromJSONString(JSONUtil.stripComments(xmlOrJson));
         } catch (IllegalArgumentException e) {
             //ok, this already is XML
             return null;

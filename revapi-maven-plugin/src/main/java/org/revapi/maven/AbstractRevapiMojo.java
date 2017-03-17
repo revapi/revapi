@@ -272,7 +272,21 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
 
     protected Analyzer prepareAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
                                        Map<String, Object> contextData) {
-        AnalyzerBuilder.Result res = AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
+        AnalyzerBuilder.Result res = buildAnalyzer(project, reporter, contextData);
+
+        if (res.skip) {
+            this.skip = true;
+        }
+
+        this.oldArtifacts = res.oldArtifacts;
+        this.newArtifacts = res.newArtifacts;
+
+        return res.isOnClasspath ? res.analyzer : null;
+    }
+
+    AnalyzerBuilder.Result buildAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
+                                                   Map<String, Object> contextData) {
+        return AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
                 .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
                 .withAnalysisConfiguration(this.analysisConfiguration)
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
@@ -294,15 +308,6 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
                 .withVersionFormat(this.versionFormat)
                 .withContextData(contextData)
                 .build();
-
-        if (res.skip) {
-            this.skip = true;
-        }
-
-        this.oldArtifacts = res.oldArtifacts;
-        this.newArtifacts = res.newArtifacts;
-
-        return res.isOnClasspath ? res.analyzer : null;
     }
 
     /**
