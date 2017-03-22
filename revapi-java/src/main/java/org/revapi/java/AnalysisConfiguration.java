@@ -78,8 +78,12 @@ public final class AnalysisConfiguration {
         return missingClassReporting;
     }
 
+    public boolean reportUseForAllDifferences() {
+        return useReportingCodes == null;
+    }
+
     public Set<String> getUseReportingCodes() {
-        return useReportingCodes;
+        return useReportingCodes == null ? Collections.emptySet() : useReportingCodes;
     }
 
     public boolean isIgnoreMissingAnnotations() {
@@ -131,11 +135,20 @@ public final class AnalysisConfiguration {
     }
 
     private static Set<String> readUseReportingCodes(ModelNode analysisConfig) {
-        Set<String> ret = new HashSet<>();
+        Set<String> ret = new HashSet<>(5);
         ModelNode config = analysisConfig.get("reportUsesFor");
         if (config.isDefined()) {
-            for (ModelNode code : config.asList()) {
-                ret.add(code.asString());
+            switch (config.getType()) {
+                case LIST:
+                    for (ModelNode code : config.asList()) {
+                        ret.add(code.asString());
+                    }
+                    break;
+                case STRING:
+                    if ("all-differences".equals(config.asString())) {
+                        ret = null;
+                    }
+                    break;
             }
         } else {
             ret.add("java.missing.oldClass");

@@ -21,11 +21,9 @@ public class TestUseChainReporting extends AbstractJavaElementAnalyzerTest {
 
         List<Difference> diffs = rep.getReports().stream().flatMap(r -> r.getDifferences().stream())
                 .filter(d -> "java.method.addedToInterface".equals(d.code))
-                .filter(d -> d.description != null
-                        && d.description.endsWith("Use chain of the type in the old API: <null>\nUse chain of the" +
-                        " type in the new API: "))
                 .collect(Collectors.toList());
 
-        Assert.assertTrue(diffs.isEmpty());
+        Assert.assertEquals(2, diffs.size());
+        Assert.assertTrue(diffs.stream().allMatch(d -> d.attachments.get("exampleUseChainInNewApi") != null));
     }
 }

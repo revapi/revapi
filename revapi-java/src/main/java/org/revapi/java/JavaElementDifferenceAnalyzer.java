@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -261,23 +262,39 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         ListIterator<Difference> it = differences.listIterator();
         while (it.hasNext()) {
             Difference d = it.next();
-            if (analysisConfiguration.getUseReportingCodes().contains(d.code)) {
+            if (analysisConfiguration.reportUseForAllDifferences()
+                    || analysisConfiguration.getUseReportingCodes().contains(d.code)) {
                 StringBuilder newDesc = new StringBuilder(d.description == null ? "" : d.description);
+                StringBuilder oldUseChain = null;
+                StringBuilder newUseChain = null;
+
                 if (oldElement != null) {
                     newDesc.append("\n");
                     newDesc.append(messages.getString("revapi.java.uses.old"));
                     newDesc.append(" ");
-                    appendUses(oldEnvironment, oldElement, newDesc);
+                    oldUseChain = new StringBuilder();
+                    appendUses(oldEnvironment, oldElement, oldUseChain);
+                    newDesc.append(oldUseChain);
                 }
 
                 if (newElement != null) {
                     newDesc.append("\n");
                     newDesc.append(messages.getString("revapi.java.uses.new"));
                     newDesc.append(" ");
-                    appendUses(newEnvironment, newElement, newDesc);
+                    newUseChain = new StringBuilder();
+                    appendUses(newEnvironment, newElement, newUseChain);
+                    newDesc.append(newUseChain);
                 }
-                
-                d = Difference.builder().addAttachments(d.attachments).addClassifications(d.classification)
+
+                Map<String, String> atts = new HashMap<>(d.attachments);
+                if (oldUseChain != null) {
+                    atts.put("exampleUseChainInOldApi", oldUseChain.toString());
+                }
+                if (newUseChain != null) {
+                    atts.put("exampleUseChainInNewApi", newUseChain.toString());
+                }
+
+                d = Difference.builder().addAttachments(atts).addClassifications(d.classification)
                     .withCode(d.code).withName(d.name).withDescription(newDesc.toString()).build();
             }
             it.set(d);

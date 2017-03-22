@@ -131,6 +131,10 @@ All types of differences report the `elementKind` parameter that can have 1 of t
 |`annotation` | The element is an annotation of another element
 |=============
 
+Additionally, if the analyzer is configured to report example use chains for given difference (see the java extension
+link:extensions/java.html[configuration]), there will be 1 or 2 more parameters with the example use chains present:
+`exampleUseChainInOldApi` and/or `exampleUseChainInNewApi`.
+
 === Detected Differences
 All the differences detected by the extension are defined in the
 link:../revapi-java-spi/apidocs/org/revapi/java/spi/Code.html[Code] enumeration. Below, you can find a short discussion

@@ -68,9 +68,11 @@ If `true` (the default is `false`) the usage chain of annotation classes will no
 The end result of this is that annotation classes will not be considered part of the API and thus missing annotation
 classes will not be reported.
 `reportUsesFor`::
-Revapi is able to track usage chains of the classes it finds in the API. For some problems you may want to know how and
-where a certain class is used to be able to determine if that's something wrong or not. By default the usage chains
-are reported for the following problem codes: `java.missing.newClass`, `java.missing.oldClass`,
+Revapi is able to track usage chains of the classes it finds in the API. For some (or all) problems you may want to know
+how and where a certain class is used to be able to determine if that's something wrong or not. This configuration
+property can either be a string `all-differences`, signifying that an example use chain will be reported for every found
+difference or a list of difference codes for which the example use chain should be produced. By default the usage
+chains are reported for the following problem codes: `java.missing.newClass`, `java.missing.oldClass`,
 `java.class.nonPublicPartOfAPI`, `java.class.externalClassNoLongerExposedInAPI`, `java.class.externalClassExposedInAPI`.
 `filter.classes.regex`::
 Specifies whether to consider the strings in `exclude` and `include` lists as regular expressions or not. The default

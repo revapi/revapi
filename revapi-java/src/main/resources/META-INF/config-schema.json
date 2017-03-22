@@ -17,13 +17,21 @@
             }
         },
         "reportUsesFor": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "uniqueItems": true,
-            "default": ["java.missing.newClass", "java.missing.oldClass", "java.class.nonPublicPartOfAPI",
-              "java.class.externalClassNoLongerExposedInAPI", "java.class.externalClassExposedInAPI"]
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "default": ["java.missing.newClass", "java.missing.oldClass", "java.class.nonPublicPartOfAPI",
+                        "java.class.externalClassNoLongerExposedInAPI", "java.class.externalClassExposedInAPI"]
+                },
+                {
+                    "type": "string",
+                    "enum": ["all-differences"]
+                }
+            ]
         },
         "filter": {
             "type": "object",
