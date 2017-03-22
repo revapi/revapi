@@ -106,30 +106,38 @@ public final class XmlToJson<Xml> {
     }
 
     private ModelNode convert(Xml configuration, ModelNode jsonSchema, ModelNode rootSchema) {
-        ModelNode type = jsonSchema.get("type");
-        if (!type.isDefined()) {
+        ModelNode typeNode = jsonSchema.get("type");
+        if (!typeNode.isDefined()) {
+            ModelNode ret = null;
             if (jsonSchema.get("enum").isDefined()) {
-                return convertByEnum(configuration, jsonSchema.get("enum"));
+                ret = convertByEnum(configuration, jsonSchema.get("enum"));
             } else if (jsonSchema.get("$ref").isDefined()) {
                 jsonSchema = findRef(rootSchema, jsonSchema.get("$ref").asString());
-                return convert(configuration, jsonSchema, rootSchema);
+                ret = convert(configuration, jsonSchema, rootSchema);
+            } else if (jsonSchema.hasDefined("oneOf")) {
+                ret = convertByOneOf(configuration, jsonSchema.get("oneOf").asList());
+            } else if (jsonSchema.hasDefined("anyOf")) {
+                ret = convertByAnyOf(configuration, jsonSchema.get("anyOf").asList());
+            } else if (jsonSchema.hasDefined("allOf")) {
+                ret = convertByAllOf(configuration, jsonSchema.get("allOf").asList());
             }
+
+            if (ret == null) {
+                throw new IllegalArgumentException("Could not convert the configuration.");
+            }
+
+            return ret;
         }
 
-        if (type.getType() != ModelType.STRING) {
+        if (typeNode.getType() != ModelType.STRING) {
             throw new IllegalArgumentException(
                     "JSON schema allows for multiple possible types. " +
                             "This is not supported by the XML-to-JSON conversion yet.");
         }
 
-        String valueType = type.asString();
+        String type = typeNode.asString();
 
-        if (valueType == null) {
-            throw new IllegalArgumentException(
-                    "JSON schema type deduction and 'oneOf', 'anyOf' or 'allOf' not supported.");
-        }
-
-        switch (valueType) {
+        switch (type) {
             case "boolean":
                 return convertBoolean(configuration);
             case "integer":
@@ -143,7 +151,7 @@ public final class XmlToJson<Xml> {
             case "object":
                 return convertObject(configuration, jsonSchema, rootSchema);
             default:
-                throw new IllegalArgumentException("Unsupported json value type: " + valueType);
+                throw new IllegalArgumentException("Unsupported json value type: " + type);
         }
     }
 
@@ -256,6 +264,50 @@ public final class XmlToJson<Xml> {
             throw new IllegalArgumentException("'true' or 'false' expected as a boolean value.");
         }
         return new ModelNode(boolVal);
+    }
+
+    private ModelNode convertByOneOf(Xml configuration, Iterable<ModelNode> candidateSchemas) {
+        boolean matched = false;
+        ModelNode parsed = null;
+        for (ModelNode candidateSchema : candidateSchemas) {
+            try {
+                parsed = convert(configuration, candidateSchema);
+                if (matched) {
+                    return null;
+                } else {
+                    matched = true;
+                }
+            } catch (IllegalArgumentException __) {
+                //continue
+            }
+        }
+
+        return parsed;
+    }
+
+    private ModelNode convertByAnyOf(Xml configuration, Iterable<ModelNode> candidateSchemas) {
+        for (ModelNode candidateSchema : candidateSchemas) {
+            try {
+                return convert(configuration, candidateSchema);
+            } catch (IllegalArgumentException __) {
+                //continue
+            }
+        }
+
+        return null;
+    }
+
+    private ModelNode convertByAllOf(Xml configuration, Iterable<ModelNode> candidateSchemas) {
+        ModelNode parsed = null;
+        for (ModelNode candidateSchema : candidateSchemas) {
+            try {
+                parsed = convert(configuration, candidateSchema);
+            } catch (IllegalArgumentException __) {
+                return null;
+            }
+        }
+
+        return parsed;
     }
 
     //heavily inspired by the implementation in org.json.JSONPointer

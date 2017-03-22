@@ -25,6 +25,7 @@ import java.io.Writer;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -78,6 +79,48 @@ public final class ConfigurationValidator {
                 default:
                     throw new ConfigurationException("Expecting a JSON array as the configuration object.");
             }
+        } catch (IOException | ScriptException e) {
+            throw new ConfigurationException("Failed to validate configuration.", e);
+        }
+    }
+
+    /**
+     * Validates the provided configuration against the provided schema.
+     * @param extensionConfiguration the actual configuration of some extension (not wrapped in the identifying object
+     *                               as is the case with the full configuration provided to
+     *                               {@link #validate(ModelNode, Configurable)}.
+     * @param configurationSchema the schema to validate the configuration against
+     * @return the results of the validation
+     * @throws ConfigurationException if an error occurs during the processing of the data or schema as opposed to
+     * a simple validation failure which would be captured in the returned object
+     */
+    public ValidationResult validate(@Nonnull ModelNode extensionConfiguration, @Nonnull ModelNode configurationSchema)
+            throws ConfigurationException {
+        try {
+            StringWriter output = new StringWriter();
+
+            ScriptEngine js = getJsEngine(output);
+
+            String schema = configurationSchema.toJSONString(true);
+            String config = extensionConfiguration.toJSONString(true);
+
+            Bindings variables = js.createBindings();
+
+            js.eval("var data = " + config + ";", variables);
+            try {
+                js.eval("var schema = " + schema + ";", variables);
+            } catch (ScriptException e) {
+                throw new IllegalArgumentException("Failed to parse the schema: " + schema, e);
+            }
+
+            variables.put("tv4", js.getContext().getAttribute("tv4", ScriptContext.GLOBAL_SCOPE));
+
+            Object resultObject = js.eval("tv4.validateMultiple(data, schema)", variables);
+            ModelNode result = JSONUtil.toModelNode(resultObject);
+
+            PartialValidationResult r = new PartialValidationResult("/", result);
+
+            return convert(Collections.singletonList(r));
         } catch (IOException | ScriptException e) {
             throw new ConfigurationException("Failed to validate configuration.", e);
         }

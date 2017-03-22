@@ -215,6 +215,72 @@ public class XmlToJsonTest {
         Assert.assertEquals(true, config.get("a").asBoolean());
     }
 
+    @Test
+    public void testOneOf() throws Exception {
+        XmlToJson<Node> converter = converter("ext", "{\"oneOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
+        Node xml1 = xml("<config><ext>1</ext></config>");
+        Node xml2 = xml("<config><ext>true</ext></config>");
+        Node xml3 = xml("<config><ext>asdf</ext></config>");
+
+        try {
+            converter.convert(xml1).get(0).get("configuration");
+            Assert.fail("Invalid config should not have been converted.");
+        } catch (IllegalArgumentException __) {
+            //good
+        }
+        ModelNode c2 = converter.convert(xml2).get(0).get("configuration");
+
+        try {
+            converter.convert(xml3).get(0).get("configuration");
+            Assert.fail("Invalid configuration should not have been converted.");
+        } catch (IllegalArgumentException __) {
+            //good
+        }
+
+        Assert.assertNotNull(c2);
+        Assert.assertEquals(ModelType.BOOLEAN, c2.getType());
+        Assert.assertTrue(c2.asBoolean());
+    }
+
+    @Test
+    public void testAnyOf() throws Exception {
+        XmlToJson<Node> converter = converter("ext", "{\"anyOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
+        Node xml1 = xml("<config><ext>1</ext></config>");
+        Node xml2 = xml("<config><ext>true</ext></config>");
+        Node xml3 = xml("<config><ext>asdf</ext></config>");
+
+        ModelNode c1 = converter.convert(xml1).get(0).get("configuration");
+        ModelNode c2 = converter.convert(xml2).get(0).get("configuration");
+
+        try {
+            converter.convert(xml3).get(0).get("configuration");
+            Assert.fail("Invalid configuration should not have been converted.");
+        } catch (IllegalArgumentException __) {
+            //good
+        }
+
+        Assert.assertNotNull(c1);
+        Assert.assertNotNull(c2);
+
+        Assert.assertEquals(ModelType.LONG, c1.getType());
+        Assert.assertEquals(ModelType.BOOLEAN, c2.getType());
+        Assert.assertEquals(1L, c1.asLong());
+        Assert.assertTrue(c2.asBoolean());
+    }
+
+    @Test
+    public void testAllOf() throws Exception {
+        XmlToJson<Node> converter = converter("ext", "{\"allOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}]}");
+        Node xml = xml("<config><ext>1</ext></config>");
+
+        ModelNode c = converter.convert(xml).get(0).get("configuration");
+
+        Assert.assertNotNull(c);
+
+        Assert.assertEquals(ModelType.DOUBLE, c.getType());
+        Assert.assertEquals(1D, c.asDouble(), 0);
+    }
+
     private static Node xml(String xml) throws IOException, ParserConfigurationException, SAXException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();

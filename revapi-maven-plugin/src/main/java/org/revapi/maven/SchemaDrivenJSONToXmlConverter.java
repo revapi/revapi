@@ -28,6 +28,7 @@ import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.XmlToJson;
 
 /**
@@ -37,6 +38,9 @@ import org.revapi.configuration.XmlToJson;
  * @since 0.9.0
  */
 final class SchemaDrivenJSONToXmlConverter {
+
+    private static final ConfigurationValidator VALIDATOR = new ConfigurationValidator();
+
     private SchemaDrivenJSONToXmlConverter() {
 
     }
@@ -74,6 +78,43 @@ final class SchemaDrivenJSONToXmlConverter {
             } else if (ctx.currentSchema.get("$ref").isDefined()) {
                 ctx.currentSchema = findRef(ctx.rootSchema, ctx.currentSchema.get("$ref").asString());
                 return convert(configuration, ctx);
+            } else {
+                ModelNode matchingSchema = null;
+                if (ctx.currentSchema.hasDefined("oneOf")) {
+                    for (ModelNode s : ctx.currentSchema.get("oneOf").asList()) {
+                        if (VALIDATOR.validate(configuration, s).isSuccessful()) {
+                            if (matchingSchema != null) {
+                                matchingSchema = null;
+                                break;
+                            } else {
+                                matchingSchema = s;
+                            }
+                        }
+                    }
+                } else if (ctx.currentSchema.hasDefined("anyOf")) {
+                    for (ModelNode s : ctx.currentSchema.get("anyOf").asList()) {
+                        if (VALIDATOR.validate(configuration, s).isSuccessful()) {
+                            matchingSchema = s;
+                            break;
+                        }
+                    }
+                } else if (ctx.currentSchema.hasDefined("allOf")) {
+                    for (ModelNode s : ctx.currentSchema.get("allOf").asList()) {
+                        if (VALIDATOR.validate(configuration, s).isSuccessful()) {
+                            matchingSchema = s;
+                        } else {
+                            matchingSchema = null;
+                            break;
+                        }
+                    }
+                }
+
+                if (matchingSchema != null) {
+                    ctx.currentSchema = matchingSchema;
+                    return convert(configuration, ctx);
+                } else {
+                    throw new IllegalArgumentException("Could not convert the configuration.");
+                }
             }
         }
 
@@ -84,11 +125,6 @@ final class SchemaDrivenJSONToXmlConverter {
         }
 
         String valueType = type.asString();
-
-        if (valueType == null) {
-            throw new IllegalArgumentException(
-                    "JSON schema type deduction and 'oneOf', 'anyOf' or 'allOf' not supported.");
-        }
 
         switch (valueType) {
             case "boolean":

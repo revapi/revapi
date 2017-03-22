@@ -19,6 +19,7 @@ package org.revapi.maven;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -272,6 +273,70 @@ public class SchemaDrivenJSONToXmlConverterTest {
         assertNotNull(nested);
         assertEquals(0, nested.getChildCount());
         assertEquals("true", nested.getValue());
+    }
+
+
+    @Test
+    public void testOneOf() throws Exception {
+        ModelNode schema = json("{\"oneOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
+        ModelNode json1 = json("1");
+        ModelNode json2 = json("1.1");
+
+        try {
+            SchemaDrivenJSONToXmlConverter.convert(json1, schema, "ext", null);
+            fail("Should not have been possible to convert using ambiguous oneOf.");
+        } catch (IllegalArgumentException __) {
+            //good
+        }
+
+        PlexusConfiguration xml = SchemaDrivenJSONToXmlConverter.convert(json2, schema, "ext", null);
+        assertNotNull(xml);
+        assertEquals("ext", xml.getName());
+        assertEquals(0, xml.getChildCount());
+        assertEquals("1.1", xml.getValue());
+    }
+
+    @Test
+    public void testAnyOf() throws Exception {
+        ModelNode schema = json("{\"anyOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
+        ModelNode json1 = json("1.1");
+        ModelNode json2 = json("true");
+        ModelNode json3 = json("\"asdf\"");
+
+        PlexusConfiguration c1 = SchemaDrivenJSONToXmlConverter.convert(json1, schema, "ext", null);
+        PlexusConfiguration c2 = SchemaDrivenJSONToXmlConverter.convert(json2, schema, "ext", null);
+
+        try {
+            SchemaDrivenJSONToXmlConverter.convert(json3, schema, "ext", null);
+            fail("Invalid configuration should not have been converted.");
+        } catch (IllegalArgumentException __) {
+            //good
+        }
+
+        assertNotNull(c1);
+        assertNotNull(c2);
+
+        assertEquals("ext", c1.getName());
+        assertEquals("ext", c2.getName());
+
+        assertEquals(0, c1.getChildCount());
+        assertEquals(0, c2.getChildCount());
+
+        assertEquals("1.1", c1.getValue());
+        assertEquals("true", c2.getValue());
+    }
+
+    @Test
+    public void testAllOf() throws Exception {
+        ModelNode schema = json("{\"allOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}]}");
+        ModelNode json = json("1");
+
+        PlexusConfiguration c = SchemaDrivenJSONToXmlConverter.convert(json, schema, "ext", null);
+
+        assertNotNull(c);
+        assertEquals("ext", c.getName());
+        assertEquals(0, c.getChildCount());
+        assertEquals("1", c.getValue());
     }
 
 
