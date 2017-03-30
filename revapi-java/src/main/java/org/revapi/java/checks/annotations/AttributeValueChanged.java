@@ -63,16 +63,21 @@ public final class AttributeValueChanged extends CheckBase {
 
             if (newValue == null) {
                 result.add(
-                    createDifference(Code.ANNOTATION_ATTRIBUTE_REMOVED, Code.attachmentsFor(oldElement, newElement,
+                    createDifference(Code.ANNOTATION_ATTRIBUTE_REMOVED, Code.attachmentsFor(oldElement.getParent(),
+                            newElement.getParent(),
+                            "annotationType", Util.toHumanReadableString(newElement.getAnnotation().getAnnotationType()),
+                            "annotation", Util.toHumanReadableString(newElement.getAnnotation()),
                             "attribute", name,
                             "value", Util.toHumanReadableString(oldValue.getValue())))
                 );
             } else if (!Util.isEqual(oldValue.getValue(), newValue.getValue())) {
                 result.add(createDifference(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED,
-                        Code.attachmentsFor(oldElement, newElement,
-                        "attribute", name,
-                        "oldValue", Util.toHumanReadableString(oldValue.getValue()),
-                        "newValue", Util.toHumanReadableString(newValue.getValue()))
+                        Code.attachmentsFor(oldElement.getParent(), newElement.getParent(),
+                                "annotationType", Util.toHumanReadableString(newElement.getAnnotation().getAnnotationType()),
+                                "annotation", Util.toHumanReadableString(newElement.getAnnotation()),
+                                "attribute", name,
+                                "oldValue", Util.toHumanReadableString(oldValue.getValue()),
+                                "newValue", Util.toHumanReadableString(newValue.getValue()))
                 ));
             }
 
@@ -87,7 +92,10 @@ public final class AttributeValueChanged extends CheckBase {
 
             if (oldValue == null) {
                 result.add(
-                    createDifference(Code.ANNOTATION_ATTRIBUTE_ADDED, Code.attachmentsFor(oldElement, newElement,
+                    createDifference(Code.ANNOTATION_ATTRIBUTE_ADDED, Code.attachmentsFor(oldElement.getParent(),
+                            newElement.getParent(),
+                            "annotationType", Util.toHumanReadableString(newElement.getAnnotation().getAnnotationType()),
+                            "annotation", Util.toHumanReadableString(newElement.getAnnotation()),
                             "attribute", name,
                             "value", Util.toHumanReadableString(newValue.getValue())))
                 );

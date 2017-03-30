@@ -24,6 +24,7 @@ import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaAnnotationElement;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -36,7 +37,9 @@ public final class Removed extends CheckBase {
 
         if (oldAnnotation != null && newAnnotation == null && isAccessible(oldAnnotation.getParent())) {
             return Collections.singletonList(
-                createDifference(Code.ANNOTATION_REMOVED, Code.attachmentsFor(oldAnnotation, null))
+                createDifference(Code.ANNOTATION_REMOVED, Code.attachmentsFor(oldAnnotation, null,
+                        "annotationType", Util.toHumanReadableString(oldAnnotation.getAnnotation().getAnnotationType()),
+                        "annotation", Util.toHumanReadableString(oldAnnotation.getAnnotation())))
             );
         }
 

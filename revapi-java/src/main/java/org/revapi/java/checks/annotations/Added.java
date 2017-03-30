@@ -24,6 +24,7 @@ import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaAnnotationElement;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -36,7 +37,9 @@ public final class Added extends CheckBase {
 
         if (oldAnnotation == null && newAnnotation != null && isAccessible(newAnnotation.getParent())) {
             return Collections.singletonList(
-                createDifference(Code.ANNOTATION_ADDED, Code.attachmentsFor(null, newAnnotation))
+                createDifference(Code.ANNOTATION_ADDED, Code.attachmentsFor(null, newAnnotation.getParent(),
+                        "annotationType", Util.toHumanReadableString(newAnnotation.getAnnotation().getAnnotationType()),
+                        "annotation", Util.toHumanReadableString(newAnnotation.getAnnotation())))
             );
         }
 
