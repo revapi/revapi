@@ -264,26 +264,17 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             Difference d = it.next();
             if (analysisConfiguration.reportUseForAllDifferences()
                     || analysisConfiguration.getUseReportingCodes().contains(d.code)) {
-                StringBuilder newDesc = new StringBuilder(d.description == null ? "" : d.description);
                 StringBuilder oldUseChain = null;
                 StringBuilder newUseChain = null;
 
                 if (oldElement != null) {
-                    newDesc.append("\n");
-                    newDesc.append(messages.getString("revapi.java.uses.old"));
-                    newDesc.append(" ");
                     oldUseChain = new StringBuilder();
                     appendUses(oldEnvironment, oldElement, oldUseChain);
-                    newDesc.append(oldUseChain);
                 }
 
                 if (newElement != null) {
-                    newDesc.append("\n");
-                    newDesc.append(messages.getString("revapi.java.uses.new"));
-                    newDesc.append(" ");
                     newUseChain = new StringBuilder();
                     appendUses(newEnvironment, newElement, newUseChain);
-                    newDesc.append(newUseChain);
                 }
 
                 Map<String, String> atts = new HashMap<>(d.attachments);
@@ -295,7 +286,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 }
 
                 d = Difference.builder().addAttachments(atts).addClassifications(d.classification)
-                    .withCode(d.code).withName(d.name).withDescription(newDesc.toString()).build();
+                    .withCode(d.code).withName(d.name).withDescription(d.description).build();
             }
             it.set(d);
         }
