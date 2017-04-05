@@ -155,5 +155,18 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
         //those...
     }
 
+    @Test
+    public void testAttachmentsOfTheAnnotatedElementPresent() throws Exception {
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/annotations/AttachmentsPresence.java", "v2/annotations/AttachmentsPresence.java");
+        List<Report> reports = reporter.getReports();
+
+        Assert.assertTrue(reports.stream().flatMap(r -> r.getDifferences().stream()).map(d -> d.attachments)
+                .allMatch(ats ->
+                        !"annotation".equals(ats.get("elementKind"))
+                        && ats.containsKey("package")
+                        && ats.containsKey("classSimpleName")));
+    }
+
     //TODO also check for situation where the annotation used is not on the classpath - wonder how that behaves
 }
