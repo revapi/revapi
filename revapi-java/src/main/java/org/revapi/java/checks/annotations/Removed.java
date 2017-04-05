@@ -37,7 +37,7 @@ public final class Removed extends CheckBase {
 
         if (oldAnnotation != null && newAnnotation == null && isAccessible(oldAnnotation.getParent())) {
             return Collections.singletonList(
-                createDifference(Code.ANNOTATION_REMOVED, Code.attachmentsFor(oldAnnotation, null,
+                createDifference(Code.ANNOTATION_REMOVED, Code.attachmentsFor(oldAnnotation.getParent(), null,
                         "annotationType", Util.toHumanReadableString(oldAnnotation.getAnnotation().getAnnotationType()),
                         "annotation", Util.toHumanReadableString(oldAnnotation.getAnnotation())))
             );
