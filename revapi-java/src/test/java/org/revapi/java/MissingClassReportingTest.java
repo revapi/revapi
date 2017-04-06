@@ -1,9 +1,13 @@
 package org.revapi.java;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,9 +30,11 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
     private Revapi revapi;
 
+    private List<Path> compilationPaths;
+
     private void compileJars() throws Exception {
         //compile all the classes we need in 1 go
-        AbstractJavaElementAnalyzerTest.ArchiveAndCompilationPath compRes1 = createCompiledJar("tmp1",
+        ArchiveAndCompilationPath compRes1 = createCompiledJar("tmp1",
             "v1/supplementary/a/A.java",
             "v1/supplementary/b/B.java", "v1/supplementary/a/C.java");
 
@@ -61,12 +67,25 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 //            .addAsResource(compRes2.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
 //            .addAsResource(compRes2.compilationPath.resolve("B$T$1$Private.class").toFile(), "B$T$1$Private.class")
 //            .addAsResource(compRes2.compilationPath.resolve("C.class").toFile(), "C.class");
+
+        compilationPaths = Arrays.asList(compRes1.compilationPath, compRes2.compilationPath);
     }
 
     @Before
     public void setup() throws Exception {
         compileJars();
         revapi = createRevapi(CollectingReporter.class);
+    }
+
+    @After
+    public void cleanup() throws Exception {
+        compilationPaths.forEach(p -> {
+            try {
+                deleteDir(p);
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to delete the compilation path:" + p);
+            }
+        });
     }
 
     @Test

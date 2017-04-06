@@ -103,7 +103,7 @@ public class Jar implements TestRule {
         task.setProcessors(Arrays.asList(new AbstractProcessor() {
             @Override
             public SourceVersion getSupportedSourceVersion() {
-                return SourceVersion.RELEASE_7;
+                return SourceVersion.latest();
             }
 
             @Override
@@ -143,6 +143,8 @@ public class Jar implements TestRule {
 
         ret.semaphore = cleanUpSemaphore;
         ret.dir = dir;
+
+        compiledStuff.add(ret);
 
         return ret;
     }

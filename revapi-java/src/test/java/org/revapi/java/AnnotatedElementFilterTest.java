@@ -167,6 +167,8 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
 
             List<Element> results = forest.search(Element.class, true, filter, null);
 
+            analyzer.getCompilationValve().removeCompiledResults();
+
             test.accept(results);
         } finally {
             deleteDir(archive.compilationPath);

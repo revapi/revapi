@@ -250,23 +250,22 @@ public final class Revapi {
         ElementForest newTree = newAnalyzer.analyze();
         TIMING_LOG.debug("API trees obtained");
 
-        DifferenceAnalyzer elementDifferenceAnalyzer = apiAnalyzer.getDifferenceAnalyzer(oldAnalyzer, newAnalyzer);
+        try (DifferenceAnalyzer elementDifferenceAnalyzer = apiAnalyzer.getDifferenceAnalyzer(oldAnalyzer, newAnalyzer)) {
+            TIMING_LOG.debug("Obtaining API roots");
+            SortedSet<? extends Element> as = oldTree.getRoots();
+            SortedSet<? extends Element> bs = newTree.getRoots();
+            TIMING_LOG.debug("API roots obtained");
 
-        TIMING_LOG.debug("Obtaining API roots");
-        SortedSet<? extends Element> as = oldTree.getRoots();
-        SortedSet<? extends Element> bs = newTree.getRoots();
-        TIMING_LOG.debug("API roots obtained");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Old tree: {}", oldTree);
+                LOG.debug("New tree: {}", newTree);
+            }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Old tree: {}", oldTree);
-            LOG.debug("New tree: {}", newTree);
+            TIMING_LOG.debug("Opening difference analyzer");
+            elementDifferenceAnalyzer.open();
+            analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs, extensions);
+            TIMING_LOG.debug("Closing difference analyzer");
         }
-
-        TIMING_LOG.debug("Opening difference analyzer");
-        elementDifferenceAnalyzer.open();
-        analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs, extensions);
-        TIMING_LOG.debug("Closing difference analyzer");
-        elementDifferenceAnalyzer.close();
         TIMING_LOG.debug("Difference analyzer closed");
     }
 

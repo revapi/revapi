@@ -249,6 +249,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         revapi.validateConfiguration(ctx);
 
         try (AnalysisResult result = revapi.analyze(ctx)) {
+            result.throwIfFailed();
             return result.getExtensions().getFirstExtension(reporterType, null);
         } finally {
             deleteDir(v1Archive.compilationPath);

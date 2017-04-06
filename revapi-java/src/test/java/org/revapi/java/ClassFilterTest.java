@@ -125,6 +125,8 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
             List<Element> results = forest.search(Element.class, true, new AcceptingFilter(), null);
 
+            ((JavaArchiveAnalyzer) archiveAnalyzer).getCompilationValve().removeCompiledResults();
+
             List<String> expected = new ArrayList<>(expectedResults);
             List<String> actual = results.stream()
                     //don't include stuff from the system classpath, because that makes the results unnecessarily
