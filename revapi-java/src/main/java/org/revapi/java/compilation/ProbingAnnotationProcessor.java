@@ -16,6 +16,7 @@
 
 package org.revapi.java.compilation;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -23,7 +24,6 @@ import java.util.concurrent.Future;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 
@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
  * @author Lukas Krejci
  * @since 0.1
  */
-@SupportedAnnotationTypes(MarkerAnnotationObject.CLASS_NAME)
 final class ProbingAnnotationProcessor extends AbstractProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ProbingAnnotationProcessor.class);
 
@@ -64,6 +63,10 @@ final class ProbingAnnotationProcessor extends AbstractProcessor {
         }
 
         return false;
+    }
+
+    @Override public Set<String> getSupportedAnnotationTypes() {
+        return Collections.singleton(MarkerAnnotationObject.CLASS_NAME);
     }
 
     public <T> Future<T> submitWithCompilationAwareness(ExecutorService executor, final Callable<T> compilation, final Runnable postCompilePayload)
