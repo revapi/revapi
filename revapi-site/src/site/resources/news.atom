@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  ~ Copyright 2017 Lukas Krejci
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License
+  -->
+
+<feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://revapi.org</id>
+  <title>Revapi - Full-featured API checker for Java and beyond.</title>
+  <updated>2017-04-25T00:00:00+01:00</updated>
+  <link href="https://revapi.org/news.atom" rel="self" type="application/atom+xml" />
+  <link href="https://revapi.org/" rel="alternate" type="text/html" />
+  <entry>
+    <id>https://revapi.org/news/20170424-intro.html</id>
+    <title>Introducing Online API Difference Checking</title>
+    <updated>2017-04-25T00:00:00+00:00</updated>
+    <published>2017-04-25T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20170424-intro.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+      Starting today there is an online tool for checking the difference between different versions of libraries on
+      https://diff.revapi.org.
+    </summary>
+    <content type="html">
+      Starting today there is an online tool for checking the difference between different versions of libraries on
+      <a href="https://diff.revapi.org">https://diff.revapi.org</a>.
+    </content>
+  </entry>
+</feed>
