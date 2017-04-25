@@ -30,7 +30,7 @@
     <version>7-SNAPSHOT</version>
 
     <properties>
-        <web.url>http://revapi.org</web.url>
+        <web.url>https://revapi.org</web.url>
         <web.repo>scm:git:git@github.com:revapi/revapi.github.io.git</web.repo>
         <web.repo.branch>staging</web.repo.branch>
     </properties>
