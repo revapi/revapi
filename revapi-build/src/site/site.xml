@@ -13,7 +13,7 @@
 
   <body>
     <head>
-      <!-- Googly stuff -->
+      <!-- Googly stuff and RSS -->
       <![CDATA[
       <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
       <script>
@@ -32,6 +32,7 @@
         ga('send', 'pageview');
 
       </script>
+      <link rel="alternate" type="application/rss+xml" title="Revapi News" href="${web.url}/news.atom" />
       ]]>
     </head>
 
