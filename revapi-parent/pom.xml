@@ -27,7 +27,7 @@
     <groupId>org.revapi</groupId>
     <artifactId>revapi-parent</artifactId>
     <packaging>pom</packaging>
-    <version>7</version>
+    <version>8-SNAPSHOT</version>
 
     <properties>
         <web.url>https://revapi.org</web.url>
@@ -213,7 +213,7 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-      <tag>revapi-parent-7</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <distributionManagement>
