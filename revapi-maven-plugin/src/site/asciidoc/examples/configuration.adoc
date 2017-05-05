@@ -7,6 +7,8 @@ the individual extensions in either XML or JSON.
 
 === Specifying The Analysis Configuration Using XML
 
+==== Ignoring classes ====
+
 As an example, let's configure the java extension to ignore the classes it finds missing from the API
 rather than reporting them and also only include the archives with `com.acme` groupId in the analysis::
 
@@ -36,6 +38,20 @@ rather than reporting them and also only include the archives with `com.acme` gr
 Each extension has a unique "extension id" which is used as the root tag for its configuration under the
 `analysisConfiguration` tag. Under the extension configuration's root tag an XML representation of the configuration
 as specified by the extension documentation (and JSON schema - yes, the XML is validated against a JSON schema ;) ).
+
+==== Failing level ====
+
+By default, `mvn revapi:check` fails if at least one potentially breaking change is found. To fail only for breaking changes, one has to set up `failSeverity` as follows.
+
+```
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <configuration>
+    <failSeverity>breaking</failSeverity>
+    ...
+```
+
 
 ==== Multiple Configurations Per Extension
 
