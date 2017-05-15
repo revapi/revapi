@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.AnnotatedConstruct;
@@ -1038,7 +1039,14 @@ public final class Util {
         }
 
         int dollarPos = swapStartPos;
-        while ((ret = elements.getTypeElement(attemptedName)) == null) {
+        while (true) {
+            final String tmp = attemptedName;
+
+            //Javac can have real trouble trying to initialize member classes... Let's guard for that here...
+            if ((ret = returnNullOnException(() -> elements.getTypeElement(tmp))) == null) {
+                break;
+            }
+
             dollarPos = attemptedName.indexOf('$', dollarPos);
             if (dollarPos == -1) {
                 break;
@@ -1064,5 +1072,13 @@ public final class Util {
         }
 
         return ret;
+    }
+
+    private static <T> T returnNullOnException(Callable<T> call) {
+        try {
+            return call.call();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
