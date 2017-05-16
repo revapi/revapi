@@ -3,7 +3,7 @@
 Revapi Maven plugin enables API checks during the Maven build. By default, it checks the currently built project against
 the its latest released version (as reported by Maven). Alternatively, the two artifacts to can be set arbitrarily.
 
-The plugin offers the following goals:
+The plugin offers the following Maven goals:
 
 * link:check-mojo.html[revapi:check] is used as part of the build to ensure a configurable level of compatibility.
 * link:report-mojo.html[revapi:report] generates a simple report for the project's maven-generated site.
@@ -15,6 +15,9 @@ this to debug problems with the configuration).
 http://semver.org[semver] rules.
 * link:update-release-properties-mojo.html[revapi:update-release-properties] updates the `release.properties` file
 with the release and development versions as determined by Revapi according to the http://semver.org[semver] rules.
+
+link:../plugin-info.html[The Maven presentation page is available here.]
+
 
 == Usage
 
@@ -61,10 +64,6 @@ can do literally nothing).
 </plugin>
 ```
 
-More examples can be found in the "Project Details" menu, including
-link:examples/comparing-specific-artifacts.html[comparing specific artifacts],
-link:examples/report.html[report configuration],
-link:examples/multi-file-configuration.html[multi file configuration], etc.
 == Specifying Versions To Check
 
 By default, Revapi will automagically figure out the latest released version of your project and check the code that's
@@ -126,6 +125,8 @@ latest release as reported by Maven (which would be `2.0.Beta`).
 Note that the version format applies to both old and new versions and is only taken into account if the version string
 is one of the Maven's special version specifiers - `RELEASE` or `LATEST` (`RELEASE` is the default value of `oldVersion`
 configuration parameter, so the above configuration will take effect).
+
+
 == How to Configure Revapi
 
 The maven plugin itself is configured using the properties of the link:../plugin-info.html[goals]. The configuration of
@@ -507,6 +508,8 @@ the analysis:
 The configuration options of the various extensions can be found in their respective docs:
 link:../../revapi-basic-features/index.html[basic features documentation], link:../../revapi-java/index.html[java
 extension documentation].
+
+
 == Evolving The Library Using Semver Rules
 
 By default Revapi will report all API changes of configured severity (by default "potentiallyBreaking") and the maven
@@ -566,6 +569,8 @@ pass.
 
 NOTE: You can even embed the `update-versions` goal in your regular build and have the versions increase automagically
 (at the cost of having to run the build twice when an incompatible change is made).
+
+
 == Multi-file Configuration
 
 Sometimes it can be handy to split the configuration of Revapi analysis in separate files - this can be done for various
@@ -819,6 +824,8 @@ this work, revapi build contains this profile:
     </build>
 </profile>
 ```
+
+
 == Reporting With Revapi
 
 === Report Per Module
@@ -871,6 +878,8 @@ Please consult the details page of the goal for the individual configuration pro
     ...
 </plugin>
 ```
+
+
 == Comparing Specific Artifacts
 
 By default Revapi checks the currently built artifact against the latest released version of it. This actually is
@@ -906,6 +915,8 @@ The above example implies a couple of things:
 obtained from Maven and used during the analysis so that the complete classpath is used
 * you're not constrained to check the artifacts of the current project - in fact you could have a separate "check"
 module that would perform API checks completely separately from other modules in the project.
+
+
 == Updating Version In `pom.xml`
 
 NOTE: Goal details page: link:../update-versions-mojo.html[here]
@@ -941,6 +952,8 @@ mvn revapi:update-versions -Drevapi.singleVersionForAllModules=true
 This will check the API differences in all the child modules and will determine the version of the whole based on the
 "biggest" change. I.e. if one child module breaks the API then the major version will be increased in all modules even
 though the rest of the child modules might not have changed at all.
+
+
 == Updating Versions In `release.properties`
 
 NOTE: Goal details page: link:../update-release-properties-mojo.html[here]
