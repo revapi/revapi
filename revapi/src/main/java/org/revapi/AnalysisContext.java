@@ -184,7 +184,15 @@ public final class AnalysisContext {
         return new Builder(null);
     }
 
-    AnalysisContext copyWithConfiguration(ModelNode configuration) {
+    /**
+     * This is generally only useful for extensions that delegate some of their functionality to other "internal"
+     * extensions of their own that they need to configure.
+     *
+     * @param configuration the configuration to be supplied with the returned analysis context.
+     * @return an analysis context that is a clone of this instance but its configuration is replaced with the provided
+     * one.
+     */
+    public AnalysisContext copyWithConfiguration(ModelNode configuration) {
         return new AnalysisContext(this.locale, configuration, this.oldApi, this.newApi, this.data);
     }
 

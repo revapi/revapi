@@ -18,12 +18,15 @@ package org.revapi.java;
 
 import static java.util.stream.Collectors.toList;
 
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +44,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.util.Types;
 
+import org.jboss.dmr.ModelNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
@@ -400,29 +404,59 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Nullable
     @Override
     public String getExtensionId() {
-        for (Check c : checks) {
-            String cp = c.getExtensionId();
-            if (cp != null) {
-                throw new IllegalStateException("Individual Java API check configuration not supported ATM.");
-            }
-        }
-
         return "revapi.java";
     }
 
     @Nullable
     @Override
     public Reader getJSONSchema() {
-        //TODO to support schema for individual checks, read their individual schemas and "slot" then inside our schema
-        //under a "checks" property which would be an object, keyed by individual checks' extension ids
-        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/config-schema.json"),
+        Map<String, Reader> checkSchemas = new HashMap<>(4);
+        for (Check c : checks) {
+            if (c.getExtensionId() != null) {
+                checkSchemas.put(c.getExtensionId(), c.getJSONSchema());
+            }
+        }
+
+        Reader rdr = new InputStreamReader(getClass().getResourceAsStream("/META-INF/config-schema.json"),
                 Charset.forName("UTF-8"));
+
+        if (checkSchemas.isEmpty()) {
+            return rdr;
+        } else {
+            try {
+                ModelNode baseSchema = ModelNode.fromJSONString(consume(rdr));
+
+                ModelNode checksNode = baseSchema.get("properties", "checks");
+                checksNode.get("type").set("object");
+
+                for (Map.Entry<String, Reader> entry : checkSchemas.entrySet()) {
+                    String checkId = entry.getKey();
+                    Reader checkSchemaReader = entry.getValue();
+
+                    ModelNode checkSchema = ModelNode.fromJSONString(consume(checkSchemaReader));
+
+                    checksNode.get("properties").get(checkId).set(checkSchema);
+                }
+
+                return new StringReader(baseSchema.toJSONString(false));
+            } catch (IOException e) {
+                throw new IllegalStateException("Could not read the schema for the revapi extension...", e);
+            }
+        }
     }
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         this.analysisContext = analysisContext;
         this.configuration = AnalysisConfiguration.fromModel(analysisContext.getConfiguration());
+
+        for (Check c : checks) {
+            if (c.getExtensionId() != null) {
+                ModelNode checkConfig = analysisContext.getConfiguration().get("checks", c.getExtensionId());
+                AnalysisContext checkCtx = analysisContext.copyWithConfiguration(checkConfig);
+                c.initialize(checkCtx);
+            }
+        }
     }
 
     @Nonnull
@@ -509,5 +543,33 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                 return inclClasses.isEmpty() && inclPkgs.isEmpty();
             }
         };
+    }
+
+    private static String consume(Reader rdr) throws IOException {
+        Throwable suppressed = null;
+        try {
+            char[] buffer = new char[512];
+            int cnt;
+            StringBuilder bld = new StringBuilder();
+            while ((cnt = rdr.read(buffer)) >= 0) {
+                bld.append(buffer, 0, cnt);
+            }
+
+            return bld.toString();
+        } catch (Throwable t) {
+            suppressed = t;
+            throw t;
+        } finally {
+            try {
+                rdr.close();
+            } catch (IOException e) {
+                if (suppressed != null) {
+                    e.addSuppressed(suppressed);
+                }
+
+                //noinspection ThrowFromFinallyBlock
+                throw e;
+            }
+        }
     }
 }
