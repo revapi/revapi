@@ -16,7 +16,7 @@ http://semver.org[semver] rules.
 * link:update-release-properties-mojo.html[revapi:update-release-properties] updates the `release.properties` file
 with the release and development versions as determined by Revapi according to the http://semver.org[semver] rules.
 
-link:../plugin-info.html[The Maven presentation page is available here.]
+The full description of all available goals is located link:plugin-info.html[here].
 
 
 == Usage
@@ -86,7 +86,7 @@ artifact and will use the specified version. I.e. using this, you can easily spe
 to check against.
 
 Both of these parameters have their command-line names, too. Please consult the `check` goal
-link:../check-mojo.html[docs] for details.
+link:check-mojo.html[docs] for details.
 
 === Specific New Version
 
@@ -107,7 +107,7 @@ new baseline for the future development).
 
 There is a simpler way though.
 
-You can use the `versionFormat` link:../check-mojo.html#versionFormat[configuration parameter] to specify how the
+You can use the `versionFormat` link:check-mojo.html#versionFormat[configuration parameter] to specify how the
 version string of the latest release must look like.
 
 For example if you use "GA" as the suffix of your final releases and you released `1.0.GA`, `2.0.Alpha` and `2.0.Beta`,
@@ -129,7 +129,7 @@ configuration parameter, so the above configuration will take effect).
 
 == How to Configure Revapi
 
-The maven plugin itself is configured using the properties of the link:../plugin-info.html[goals]. The configuration of
+The maven plugin itself is configured using the properties of the link:plugin-info.html[goals]. The configuration of
 the API analysis is a matter of configuring different Revapi extensions that are to be run. This is done using the
 `analysisConfiguration` element in the Maven plugin's configuration. This element contains the configuration of
 the individual extensions in either XML or JSON.
@@ -280,7 +280,7 @@ Effective Child POM:
   ...
 ```
 
-Notice that `revapi.ignore` doesn't contain the `item`s defined in the parent POM. That is the default Maven behavior.
+Notice that `revapi.ignore` doesn't contain the ``item``s defined in the parent POM. That is the default Maven behavior.
 To be able to inherit the configuration of the `revapi.ignore` extension from the parent POM, you have to specify
 how to merge the `item`s in the child POM like so:
 
@@ -419,8 +419,8 @@ from their declared locations.
 
 Therefore, since Revapi API 0.8.0 there is a new kind of JSON format for configuration (which in turn also enables
 maven plugin to support XML configuration btw). To ease the migration to the new versions, the old configuration format
-is still supported (but mixing the two formats can lead to unresolvable situations, see
-link:multi-file-configuration.html for more details).
+is still supported (but mixing the two formats can lead to unresolvable situations, see the
+<<Multi-file Configuration>> section for more details).
 
 ==== The JSON Configuration Format
 
@@ -457,7 +457,7 @@ The extension being configured is specified by the `extension` key and the confi
 specified by the extension) is present under the `configuration` key.
 
 The optional `id` key is useful if there are multiple configuration sources (see
-link:multi-file-configuration.html[multi file configuration] for example) as it affects how the configurations from the
+<<Multi-file Configuration,multi file configuration>> for example) as it affects how the configurations from the
 different sources are merged together.
 
 ==== The Legacy JSON Configuration Format
@@ -468,7 +468,7 @@ of multiple configuration sources) but you are encouraged to start using the new
 
 The JSON data contains the configuration of all the extensions. Each of the extensions declares a "root" in the JSON
 data from which it reads its configuration (for example, ignoring specific problems found during the analysis can be
-done using the `IgnoreDifferenceTransform` extension from the link:../../revapi-basic-features/index.html[basic
+done using the `IgnoreDifferenceTransform` extension from the link:../revapi-basic-features/index.html[basic
 features] under the root `revapi.ignore`).
 
 So, without further ado, let's configure the java extension to report the classes it finds missing from the API
@@ -506,7 +506,7 @@ the analysis:
 ```
 
 The configuration options of the various extensions can be found in their respective docs:
-link:../../revapi-basic-features/index.html[basic features documentation], link:../../revapi-java/index.html[java
+link:../revapi-basic-features/index.html[basic features documentation], link:../revapi-java/index.html[java
 extension documentation].
 
 
@@ -516,7 +516,7 @@ By default Revapi will report all API changes of configured severity (by default
 plugin will break the build if such differences are found since the last released version.
 
 One then has to somehow "persuade" the plugin to let the build pass again. One way of doing it is to use the
-link:../../revapi-basic-features/extensions/ignore.html[ignore extension] and list all the changes and provide them
+link:../revapi-basic-features/extensions/ignore.html[ignore extension] and list all the changes and provide them
 with a "justification" for why such change happened.
 
 This is very rigorous but also laborious approach that isn't always worth the effort - especially in the early stages
@@ -526,13 +526,13 @@ policy might be required for some critical libraries that require high level of 
 vetted and approved.
 
 There is also another way though. One can use the combination of the
-link:../../revapi-basic-features/extensions/semver-ignore.html[semver-ignore extension] and the
-link:update-versions.html[update-versions goal] to (semi-)automatically increase the version of the library
+link:../revapi-basic-features/extensions/semver-ignore.html[semver-ignore extension] and the
+<<Updating Version In `pom.xml`,update-versions goal>> to (semi-)automatically increase the version of the library
 even during the development such that its version corresponds to the API changes it contains since the last released
 version. No other action like listing the and justifying the changes is necessary in this case.
 
 For that you need to configure Revapi maven plugin to use and enable the
-link:../../revapi-basic-features/extensions/semver-ignore.html[semver-ignore extension]:
+link:../revapi-basic-features/extensions/semver-ignore.html[semver-ignore extension]:
 
 ```xml
 <build>
@@ -830,10 +830,10 @@ this work, revapi build contains this profile:
 
 === Report Per Module
 
-NOTE: Goal details page: link:../report-mojo.html[here]
+NOTE: Goal details page: link:report-mojo.html[here]
 
 The Revapi Maven plugin offers the possibility to create simple reports of the API changes found in the analysis. The
-link:../report-mojo.html[report goal] offers the same configuration properties as the analysis itself. Just include
+link:report-mojo.html[report goal] offers the same configuration properties as the analysis itself. Just include
 the following snippet in `reporting/plugins` of your POM:
 
 ```xml
@@ -857,7 +857,7 @@ configuration properties.
 
 === Aggregate Report
 
-NOTE: Goal details page: link:../report-aggregate-mojo.html[here]
+NOTE: Goal details page: link:report-aggregate-mojo.html[here]
 
 For POM-packaged modules, one can create an aggregate report consisting of the individual reports of the modules that
 are (indirectly) referenced by the POM module. Again this can be configured the same way the rest of the Revapi goals.
@@ -919,7 +919,7 @@ module that would perform API checks completely separately from other modules in
 
 == Updating Version In `pom.xml`
 
-NOTE: Goal details page: link:../update-versions-mojo.html[here]
+NOTE: Goal details page: link:update-versions-mojo.html[here]
 
 Revapi needs two artifacts to compare against each other to determine the API differences and therefore the required
 version changes. By default the new artifact is the project being built so the artifacts need to be actually produced
@@ -927,9 +927,9 @@ prior to running revapi. This is usually done in the `package` phase, which is t
 
 When updating the version, the plugin takes into consideration the configuration of Revapi as declared in the
 `pom.xml` but does not use certain extensions that would make some of the differences disappear (like
-the link:../../revapi-basic-features/extensions/semver-ignore.html[semver-ignore extension]). This list of extensions is
+the link:../revapi-basic-features/extensions/semver-ignore.html[semver-ignore extension]). This list of extensions is
 configurable using the `disallowedExtensions` configuration property, see the goal's
-link:../update-versions-mojo.html[detail page] for further info.
+link:update-versions-mojo.html[detail page] for further info.
 
 For a single-module project, updating the versions is very simple:
 
@@ -956,9 +956,9 @@ though the rest of the child modules might not have changed at all.
 
 == Updating Versions In `release.properties`
 
-NOTE: Goal details page: link:../update-release-properties-mojo.html[here]
+NOTE: Goal details page: link:update-release-properties-mojo.html[here]
 
-This works identically to the link:update-versions.html[update versions goal] but instead of updating the version
+This works identically to the <<Updating Version In `pom.xml`,update versions goal>> but instead of updating the version
 directly in the `pom.xml` files, it creates or updates the `release.properties` file. This will then be read by the
 maven release plugin during the release process.
 
