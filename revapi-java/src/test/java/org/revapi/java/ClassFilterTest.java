@@ -21,13 +21,12 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -113,7 +112,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
             throws Exception {
         try {
             JavaApiAnalyzer apiAnalyzer = new JavaApiAnalyzer(Collections.emptyList());
-            Revapi r = new Revapi(singleton(JavaApiAnalyzer.class), emptySet(), emptySet(), emptySet());
+            Revapi r = new Revapi(singleton(JavaApiAnalyzer.class), emptySet(), emptySet(), emptySet(), emptySet());
             AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(configJSON).build();
             AnalysisContext analyzerCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JavaApiAnalyzer.class);
             apiAnalyzer.initialize(analyzerCtx);

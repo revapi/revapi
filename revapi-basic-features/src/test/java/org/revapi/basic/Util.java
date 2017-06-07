@@ -25,6 +25,7 @@ import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
 import org.revapi.ElementFilter;
+import org.revapi.ElementMatcher;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 
@@ -54,8 +55,9 @@ final class Util {
         @SuppressWarnings("unchecked") Set<Class<? extends DifferenceTransform<?>>> transforms
                 = setOrEmpty((Class) DifferenceTransform.class, extensionType);
         Set<Class<? extends Reporter>> reporters = setOrEmpty(Reporter.class, extensionType);
+        Set<Class<? extends ElementMatcher>> matchers = setOrEmpty(ElementMatcher.class, extensionType);
 
-        return new Revapi(analyzers, reporters, transforms, filters);
+        return new Revapi(analyzers, reporters, transforms, filters, matchers);
     }
 
     @SuppressWarnings("unchecked")

@@ -56,6 +56,7 @@ public final class Revapi {
     private final Set<Class<? extends Reporter>> availableReporters;
     private final Set<Class<? extends DifferenceTransform<?>>> availableTransforms;
     private final Set<Class<? extends ElementFilter>> availableFilters;
+    private final Set<Class<? extends ElementMatcher>> availableMatchers;
     private final ConfigurationValidator configurationValidator;
     private final Map<String, List<DifferenceTransform<?>>> matchingTransformsCache = new HashMap<>();
 
@@ -71,12 +72,14 @@ public final class Revapi {
     public Revapi(@Nonnull Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers,
                   @Nonnull Set<Class<? extends Reporter>> availableReporters,
                   @Nonnull Set<Class<? extends DifferenceTransform<?>>> availableTransforms,
-                  @Nonnull Set<Class<? extends ElementFilter>> elementFilters) {
+                  @Nonnull Set<Class<? extends ElementFilter>> elementFilters,
+                  @Nonnull Set<Class<? extends ElementMatcher>> matchers) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
         this.availableReporters = availableReporters;
         this.availableTransforms = availableTransforms;
         this.availableFilters = elementFilters;
+        this.availableMatchers = matchers;
         this.configurationValidator = new ConfigurationValidator();
     }
 
@@ -135,6 +138,13 @@ public final class Revapi {
     }
 
     /**
+     * @return the set of element matchers available to this Revapi instance
+     */
+    public Set<Class<? extends ElementMatcher>> getElementMatcherTypes() {
+        return Collections.unmodifiableSet(availableMatchers);
+    }
+
+    /**
      * This instantiates the individual extensions and assigns the configurations to each one of them. The caller of
      * this method gains insight on what extensions with what configurations would be executed by the analysis.
      *
@@ -148,8 +158,9 @@ public final class Revapi {
         Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
         Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
         Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
+        Map<ElementMatcher, AnalysisContext> matchers = splitByConfiguration(analysisContext, availableMatchers);
 
-        return new AnalysisResult.Extensions(analyzers, filters, reporters, transforms);
+        return new AnalysisResult.Extensions(analyzers, filters, reporters, transforms, matchers);
     }
 
     /**
@@ -465,6 +476,7 @@ public final class Revapi {
         private Set<Class<? extends Reporter>> reporters = null;
         private Set<Class<? extends DifferenceTransform<?>>> transforms = null;
         private Set<Class<? extends ElementFilter>> filters = null;
+        private Set<Class<? extends ElementMatcher>> matchers = null;
 
         @Nonnull
         public Builder withAnalyzersFromThreadContextClassLoader() {
@@ -595,6 +607,34 @@ public final class Revapi {
         }
 
         @Nonnull
+        public Builder withMatchersFromThreadContextClassLoader() {
+            return withMatchers(ServiceTypeLoader.load(ElementMatcher.class));
+        }
+
+        @Nonnull
+        public Builder withMatchersFrom(@Nonnull ClassLoader cl) {
+            return withMatchers(ServiceTypeLoader.load(ElementMatcher.class, cl));
+        }
+
+        @SafeVarargs
+        @Nonnull
+        public final Builder withMatchers(Class<? extends ElementMatcher>... filters) {
+            return withMatchers(Arrays.asList(filters));
+        }
+
+        @Nonnull
+        public Builder withMatchers(@Nonnull Iterable<Class<? extends ElementMatcher>> filters) {
+            if (this.matchers == null) {
+                this.matchers = new HashSet<>();
+            }
+            for (Class<? extends ElementMatcher> f : filters) {
+                this.matchers.add(f);
+            }
+
+            return this;
+        }
+
+        @Nonnull
         public Builder withAllExtensionsFromThreadContextClassLoader() {
             return withAllExtensionsFrom(Thread.currentThread().getContextClassLoader());
         }
@@ -602,7 +642,7 @@ public final class Revapi {
         @Nonnull
         public Builder withAllExtensionsFrom(@Nonnull ClassLoader cl) {
             return withAnalyzersFrom(cl).withFiltersFrom(cl).withReportersFrom(cl)
-                    .withTransformsFrom(cl);
+                    .withTransformsFrom(cl).withMatchersFrom(cl);
         }
 
         /**
@@ -627,7 +667,7 @@ public final class Revapi {
                                 " a reporter.");
             }
 
-            return new Revapi(analyzers, reporters, transforms, filters);
+            return new Revapi(analyzers, reporters, transforms, filters, matchers);
         }
     }
 

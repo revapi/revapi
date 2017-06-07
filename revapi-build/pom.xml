@@ -25,7 +25,7 @@
 
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
-        <version.junit>4.11</version.junit>
+        <version.junit>4.12</version.junit>
         <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
         <version.org.slf4j>1.7.5</version.org.slf4j>
     </properties>

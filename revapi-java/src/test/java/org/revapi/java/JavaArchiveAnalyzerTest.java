@@ -16,23 +16,17 @@
 
 package org.revapi.java;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 
-import javax.annotation.Nonnull;
-
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
-import org.revapi.Archive;
 import org.revapi.Element;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.model.JavaElementForest;
@@ -44,26 +38,6 @@ import org.revapi.java.model.TypeElement;
  * @since 0.1
  */
 public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
-
-    private static class ShrinkwrapArchive implements Archive {
-        private final JavaArchive archive;
-
-        private ShrinkwrapArchive(JavaArchive archive) {
-            this.archive = archive;
-        }
-
-        @Nonnull
-        @Override
-        public String getName() {
-            return archive.getName();
-        }
-
-        @Nonnull
-        @Override
-        public InputStream openStream() throws IOException {
-            return archive.as(ZipExporter.class).exportAsInputStream();
-        }
-    }
 
     @Test
     public void testSimple() throws Exception {

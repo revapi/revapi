@@ -17,6 +17,7 @@
 package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.ExecutableType;
 
@@ -39,6 +40,10 @@ public final class MethodElement extends JavaElementBase<ExecutableElement, Exec
     @SuppressWarnings("ConstantConditions")
     @Nonnull @Override public JavaTypeElement getParent() {
         return (JavaTypeElement) super.getParent();
+    }
+
+    public boolean isConstructor() {
+        return getDeclaringElement().getKind() == ElementKind.CONSTRUCTOR;
     }
 
     @Nonnull

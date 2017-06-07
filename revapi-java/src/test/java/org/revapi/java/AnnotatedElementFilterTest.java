@@ -157,7 +157,8 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
             JavaElementForest forest = analyzer.analyze();
 
             AnnotatedElementFilter filter = new AnnotatedElementFilter();
-            Revapi r = new Revapi(emptySet(), emptySet(), emptySet(), singleton(AnnotatedElementFilter.class));
+            Revapi r = new Revapi(emptySet(), emptySet(), emptySet(), singleton(AnnotatedElementFilter.class),
+                    emptySet());
 
             AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(configJSON).build();
             AnalysisContext filterCtx =

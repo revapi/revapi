@@ -17,6 +17,7 @@
 package org.revapi.query;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 /**
  * A basic filter designed to work with element {@link org.revapi.ElementForest forests}.
@@ -25,6 +26,35 @@ import javax.annotation.Nullable;
  * @since 0.1
  */
 public interface Filter<T> {
+
+    static <T> Filter<T> shallow(Predicate<T> predicate) {
+        return new Filter<T>() {
+            @Override
+            public boolean applies(@Nullable T element) {
+                return predicate.test(element);
+            }
+
+            @Override
+            public boolean shouldDescendInto(@Nullable Object element) {
+                return false;
+            }
+        };
+    }
+
+    static <T> Filter<T> deep(Predicate<T> predicate) {
+        return new Filter<T>() {
+
+            @Override
+            public boolean applies(@Nullable T element) {
+                return predicate.test(element);
+            }
+
+            @Override
+            public boolean shouldDescendInto(@Nullable Object element) {
+                return true;
+            }
+        };
+    }
 
     /**
      * If an element in a forest is of compatible type, does the filter apply to it?

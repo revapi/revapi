@@ -329,8 +329,16 @@ public final class Util {
                     lowerBound.accept(this, state);
                 }
 
-                state.bld.append(" extends ");
+                int len = state.bld.length();
                 IgnoreCompletionFailures.in(t::getUpperBound).accept(this, state);
+
+                String addition = state.bld.substring(len);
+
+                if ("java.lang.Object".equals(addition)) {
+                    state.bld.replace(len, state.bld.length(), "");
+                } else {
+                    state.bld.insert(len, " extends ");
+                }
             }
 
             return null;

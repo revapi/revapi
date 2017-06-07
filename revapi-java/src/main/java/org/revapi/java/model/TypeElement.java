@@ -31,13 +31,13 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleElementVisitor8;
 
 import org.revapi.Archive;
-import org.revapi.java.FlatFilter;
 import org.revapi.java.compilation.ClassPathUseSite;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
+import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
@@ -174,7 +174,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                     }
 
                     List<FieldElement> fs = type.searchChildren(FieldElement.class, false,
-                            FlatFilter.by(f -> f.getDeclaringElement().equals(e)));
+                            Filter.shallow(f -> f.getDeclaringElement().equals(e)));
                     return fs.get(0);
                 } else if (e.getEnclosingElement() instanceof javax.lang.model.element.ExecutableElement) {
                     //this is a method parameter
@@ -185,13 +185,13 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                     }
 
                     List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
-                            FlatFilter.by(m -> m.getDeclaringElement().equals(methodEl)));
+                            Filter.shallow(m -> m.getDeclaringElement().equals(methodEl)));
 
                     MethodElement method = ms.get(0);
 
                     //now look for the parameter
                     List<MethodParameterElement> params =
-                            method.searchChildren(MethodParameterElement.class, false, FlatFilter.by(p -> true));
+                            method.searchChildren(MethodParameterElement.class, false, Filter.shallow(p -> true));
 
                     return params.get(indexInParent);
                 } else {
@@ -210,7 +210,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 }
 
                 List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
-                        FlatFilter.by(m -> m.getDeclaringElement().equals(e)));
+                        Filter.shallow(m -> m.getDeclaringElement().equals(e)));
 
                 return ms.get(0);
             }
