@@ -2,6 +2,12 @@ language: java
 jdk:
   - oraclejdk8
 
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "eRHFyAdqkUVlWxNrjy9UIN60tHEo+ZZl6l4lszFOFPqIuQKvX7NLI3+TBbvI0czVd9xZsNVLPYWwNxOqIbpMX/MBsXYdzDd2ne2E6Qvtq3OafzOe++vUIYi4YZlpfr3tSx3YNymhTne/KmDTJ/wfnmuemjgN9LWGph9GuaravQE="
+
 notifications:
   email: false
 
@@ -12,6 +18,13 @@ addons:
   apt:
     packages:
       - oracle-java8-installer
+  coverity_scan:
+    project:
+      name: "revapi/revapi"
+      description: "Build submitted via Travis CI"
+    build_command_prepend: "mvn clean"
+    build_command:   "mvn -DskipTests=true compile"
+    branch_pattern: coverity_scan
 
 cache:
   directories:
@@ -21,6 +34,9 @@ cache:
 #not pollute the build. 
 before_script:
   - rm -Rf $HOME/.m2/repository/org/revapi
+
+before_install:
+      - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 script:
   - mvn clean verify --batch-mode --fail-at-end
