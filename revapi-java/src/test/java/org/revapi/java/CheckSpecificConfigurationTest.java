@@ -12,7 +12,6 @@ import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.AnalysisContext;
-import org.revapi.Revapi;
 import org.revapi.java.spi.CheckBase;
 
 /**
