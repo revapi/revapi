@@ -204,7 +204,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
             Element el = cls.searchChildren(elementType, true, filter).get(0);
 
             assertTrue("Testing [" + quality + " = " + expectedValue + "] on " + el,
-                    matcher.matches(quality + " = " + expectedValue, el));
+                    matcher.matches("has " + quality + expectedValue, el));
         }, "elementmatcher/MatchByKind.java");
     }
 
