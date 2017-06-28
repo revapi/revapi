@@ -35,7 +35,7 @@ The basic usage of the Revapi's maven plugin is quite simple. In your `pom.xml`,
             <executions>
                 <execution>
                     <id>check</id>
-                    <goals><goal>check</goal><goals>
+                    <goals><goal>check</goal></goals>
                 </execution>
             </executions>
         </plugin>
