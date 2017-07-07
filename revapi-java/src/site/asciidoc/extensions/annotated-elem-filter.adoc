@@ -28,7 +28,7 @@ NOTE: Currently, this filter does NOT take into account annotations placed on th
     "extension": "revapi.java.filter.annotated",
     "configuration": {
       "regex": true,
-      "include": ["@my\\.annotations\\.Public.*"]
+      "include": ["@my\\.annotations\\.Public.*"],
       "exclude": ["@my\\.annotations\\.Beta"]
     }
   }
@@ -209,7 +209,7 @@ The configuration would look something like this:
   {
     "extension": "revapi.java.filter.annotated",
     "configuration": {
-      "include": ["@my.annotations.Public"]
+      "include": ["@my.annotations.Public"],
       "exclude": ["@my.annotations.Private"]
     }
   }
