@@ -1,31 +1,46 @@
+/*
+ * Copyright 2015-2017 Lukas Krejci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ *
+ */
+
 package org.revapi.java.matcher;
+
+import java.io.Reader;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
-
-import java.io.Reader;
-import java.lang.reflect.ParameterizedType;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RuleContext;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
-import org.revapi.java.model.MethodElement;
-import org.revapi.java.model.MethodParameterElement;
+import org.revapi.java.matcher.ElementMatcherParser.ExpressionContext;
+import org.revapi.java.matcher.ElementMatcherParser.TopExpressionContext;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaElement;
+import org.revapi.java.spi.JavaFieldElement;
+import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
-import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -65,184 +80,413 @@ public final class JavaElementMatcher implements ElementMatcher {
     }
 
     private MatchExpression createMatcher(String recipe) {
-        MatchExpression[] result = new MatchExpression[1];
+        Deque<MatchExpression> expressionStack = new ArrayDeque<>();
 
         ElementMatcherParser parser = createNewParser(recipe);
         parser.addParseListener(new ElementMatcherBaseListener() {
+
+            @Override
+            public void enterTopExpression(TopExpressionContext ctx) {
+                expressionStack.clear();
+            }
+
+            @Override
+            public void exitTopExpression(TopExpressionContext ctx) {
+                if (ctx.getChildCount() == 3) {
+                    exitLogicalExpression(ctx.getChild(1).getText());
+                }
+            }
+
+            @Override
+            public void exitExpression(ExpressionContext ctx) {
+                if (ctx.getChildCount() == 3) {
+                    exitLogicalExpression(ctx.getChild(1).getText());
+                }
+            }
+
+            @Override
+            public void exitThrowsExpression(ElementMatcherParser.ThrowsExpressionContext ctx) {
+                MatchExpression throwMatch = ctx.subExpression() == null
+                        ? null
+                        : convertNakedStringOrRegexUsing(expressionStack.pop(), InstantiationExtractor::new);
+
+                MatchExpression expr = new ThrowsExpression(throwMatch);
+
+                if (throwMatch != null && "doesn't".equals(ctx.getChild(0).getText())) {
+                    expr = new NegatingExpression(expr);
+                }
+
+                expressionStack.push(expr);
+            }
+
+            @Override
+            public void exitSubTypeExpression(ElementMatcherParser.SubTypeExpressionContext ctx) {
+                MatchExpression superType = convertNakedStringOrRegexUsing(expressionStack.pop(), InstantiationExtractor::new);
+
+                int defStart = 0;
+                boolean negate = false;
+                if ("doesn't".equals(ctx.getChild(0).getText())) {
+                    defStart = 1;
+                    negate = true;
+                }
+
+                boolean directDescendant = "directly".equals(ctx.getChild(defStart).getText());
+                if (directDescendant) {
+                    defStart += 1;
+                }
+
+                boolean searchInterfaces = "implements".equals(ctx.getChild(defStart).getText());
+
+                MatchExpression expr = new SubTypeExpression(superType, directDescendant, searchInterfaces);
+
+                if (negate) {
+                    expr = new NegatingExpression(expr);
+                }
+
+                expressionStack.push(expr);
+            }
+
+            @Override
+            public void exitOverridesExpression(ElementMatcherParser.OverridesExpressionContext ctx) {
+                MatchExpression overridden = ctx.subExpression() == null
+                        ? null
+                        : convertNakedStringOrRegexUsing(expressionStack.pop(), InstantiationExtractor::new);
+
+                MatchExpression expr = new OverridesExpression(overridden);
+
+                if ("doesn't".equals(ctx.getChild(0).getText())) {
+                    expr = new NegatingExpression(expr);
+                }
+
+                expressionStack.push(expr);
+            }
+
+            @Override
+            public void exitReturnsExpression(ElementMatcherParser.ReturnsExpressionContext ctx) {
+                MatchExpression returns = convertNakedStringOrRegexUsing(expressionStack.pop(), InstantiationExtractor::new);
+
+                int defStart = 0;
+                boolean negate = false;
+                if ("doesn't".equals(ctx.getChild(0).getText())) {
+                    defStart = 1;
+                    negate = true;
+                }
+
+                boolean covariant = !"precisely".equals(ctx.getChild(defStart + 1).getText());
+
+                MatchExpression expr = new ReturnsExpression(returns, covariant);
+
+                if (negate) {
+                    expr = new NegatingExpression(expr);
+                }
+
+                expressionStack.push(expr);
+            }
+
+            @Override
+            public void exitHasExpression_basic(ElementMatcherParser.HasExpression_basicContext ctx) {
+                MatchExpression expr = expressionStack.pop();
+
+                if ("doesn't".equals(ctx.getChild(0).getText())) {
+                    expr = new NegatingExpression(expr);
+                }
+
+                expressionStack.push(expr);
+            }
+
+            @Override
+            public void exitHasExpression_match(ElementMatcherParser.HasExpression_matchContext ctx) {
+                int matchIdx = 1;
+                DataExtractor<String> extractor;
+
+                if (ctx.getChildCount() == 3) {
+                    matchIdx = 2;
+                    //this should be the signature match
+                    if (!"signature".equals(ctx.getChild(1).getText())) {
+                        throw new IllegalArgumentException("Unexpected match expression: " + ctx.getText());
+                    }
+
+                    switch (ctx.getChild(0).getText()) {
+                        case "erased":
+                            extractor = new ErasedSignatureExractor();
+                            break;
+                        case "generic":
+                            extractor = new GenericSignatureExtractor();
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unknown signature type in: " + ctx.getText());
+                    }
+                } else {
+                    switch (ctx.getChild(0).getText()) {
+                        case "name":
+                            extractor = new NameExtractor();
+                            break;
+                        case "signature":
+                            extractor = new SignatureExtractor();
+                            break;
+                        case "representation":
+                            extractor = new RepresentationExtractor();
+                            break;
+                        case "kind":
+                            extractor = new ElementKindExtractor();
+                            break;
+                        case "package":
+                            extractor = new PackageExtractor();
+                            break;
+                        case "simpleName":
+                            extractor = new SimpleNameExtractor();
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unexpected match expression: " + ctx.getText());
+                    }
+                }
+
+                String stringOrRegex = ctx.getChild(matchIdx).getText();
+
+                MatchExpression expr;
+
+                if (isRegex(stringOrRegex)) {
+                    expr = new PatternExpression(extractor, extractStringOrRegex(stringOrRegex));
+                } else {
+                    expr = new StringExpression(extractor, extractStringOrRegex(stringOrRegex));
+                }
+
+                expressionStack.push(expr);
+            }
+
+            @Override
+            public void exitHasExpression_arguments(ElementMatcherParser.HasExpression_argumentsContext ctx) {
+                boolean negate = "doesn't".equals(ctx.getChild(0).getText());
+                ComparisonOperator operator;
+                int numberIdx;
+
+                if (negate) {
+                    if (ctx.getChildCount() == 4) {
+                        numberIdx = 2;
+                        operator = ComparisonOperator.NE;
+                    } else {
+                        numberIdx = 4;
+                        operator = "more".equals(ctx.getChild(2).getText()) ? ComparisonOperator.LTE : ComparisonOperator.GTE;
+                    }
+                } else {
+                    if (ctx.getChildCount() == 3) {
+                        numberIdx = 1;
+                        operator = ComparisonOperator.EQ;
+                    } else {
+                        numberIdx = 3;
+                        operator = "more".equals(ctx.getChild(1).getText()) ? ComparisonOperator.GT : ComparisonOperator.LT;
+                    }
+                }
+
+                int expectedArguments = Integer.parseInt(ctx.getChild(numberIdx).getText());
+
+                expressionStack.push(new NumberOfArgumentsExpression(operator, expectedArguments));
+            }
+
+            @Override
+            public void exitHasExpression_index(ElementMatcherParser.HasExpression_indexContext ctx) {
+                boolean negate = "doesn't".equals(ctx.getChild(0).getText());
+                ComparisonOperator operator;
+                int numberIdx;
+
+                if (negate) {
+                    if (ctx.getChildCount() == 4) {
+                        numberIdx = 2;
+                        operator = ComparisonOperator.NE;
+                    } else {
+                        numberIdx = 5;
+                        operator = "larger".equals(ctx.getChild(3).getText()) ? ComparisonOperator.LTE : ComparisonOperator.GTE;
+                    }
+                } else {
+                    if (ctx.getChildCount() == 3) {
+                        numberIdx = 2;
+                        operator = ComparisonOperator.EQ;
+                    } else {
+                        numberIdx = 4;
+                        operator = "larger".equals(ctx.getChild(2).getText()) ? ComparisonOperator.GT : ComparisonOperator.LT;
+                    }
+                }
+
+                int expectedIndex = Integer.parseInt(ctx.getChild(numberIdx).getText());
+
+                expressionStack.push(new ArgumentIndexExpression(operator, expectedIndex));
+            }
+
+            @Override
+            public void exitHasExpression_subExpr(ElementMatcherParser.HasExpression_subExprContext ctx) {
+                MatchExpression match = expressionStack.pop();
+
+                ChoiceProducer choice = null;
+
+                boolean alreadyPushed = false;
+
+                switch (ctx.getChild(0).getText()) {
+                    case "argument":
+                        match = convertNakedStringOrRegexUsing(match, SignatureExtractor::new);
+                        Integer concreteIdx = null;
+                        if (ctx.getChildCount() == 3) {
+                            concreteIdx = Integer.parseInt(ctx.getChild(1).getText());
+                        }
+                        choice = new ArgumentsProducer(concreteIdx);
+                        break;
+                    case "annotation":
+                        match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                        choice = new AnnotationsProducer();
+                        break;
+                    case "method":
+                        match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                        choice = new ContainedElementProducer(false, JavaMethodElement.class);
+                        break;
+                    case "field":
+                        match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                        choice = new ContainedElementProducer(false, JavaFieldElement.class);
+                        break;
+                    case "outerClass":
+                        match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                        expressionStack.push(new HasOuterClassExpression(false, match));
+                        alreadyPushed = true;
+                        break;
+                    case "innerClass":
+                        match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                        choice = new ContainedElementProducer(false, JavaTypeElement.class);
+                        break;
+                    case "superType":
+                        match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                        expressionStack.push(new HasSuperTypeExpression(false, match));
+                        alreadyPushed = true;
+                        break;
+                    case "type":
+                        match = convertNakedStringOrRegexUsing(match, SignatureExtractor::new);
+                        expressionStack.push(match);
+                        alreadyPushed = true;
+                        break;
+                    case "direct":
+                        switch (ctx.getChild(1).getText()) {
+                            case "outerClass":
+                                match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                                expressionStack.push(new HasOuterClassExpression(true, match));
+                                alreadyPushed = true;
+                                break;
+                            case "superType":
+                                match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                                expressionStack.push(new HasSuperTypeExpression(true, match));
+                                alreadyPushed = true;
+                                break;
+                        }
+                        break;
+                    case "declared":
+                        switch (ctx.getChild(1).getText()) {
+                            case "method":
+                                match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                                choice = new ContainedElementProducer(true, JavaMethodElement.class);
+                                break;
+                            case "field":
+                                match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                                choice = new ContainedElementProducer(true, JavaFieldElement.class);
+                                break;
+                            case "innerClass":
+                                match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
+                                choice = new ContainedElementProducer(true, JavaTypeElement.class);
+                                break;
+                        }
+                        break;
+                }
+
+                if (!alreadyPushed) {
+                    expressionStack.push(new ChoiceExpression(match, choice));
+                }
+            }
+
+            @Override
+            public void exitStringExpression(ElementMatcherParser.StringExpressionContext ctx) {
+                expressionStack.push(new DataExtractorNeededMarker(DataExtractorNeededMarker.MatcherKind.STRING,
+                        extractStringOrRegexValue(ctx)));
+            }
+
+            @Override
+            public void exitRegexExpression(ElementMatcherParser.RegexExpressionContext ctx) {
+                expressionStack.push(new DataExtractorNeededMarker(DataExtractorNeededMarker.MatcherKind.REGEX,
+                        extractStringOrRegexValue(ctx)));
+            }
+
+            private void exitLogicalExpression(String operator) {
+                MatchExpression right = convertNakedStringOrRegexUsing(expressionStack.pop(),
+                        RepresentationExtractor::new);
+                MatchExpression left = convertNakedStringOrRegexUsing(expressionStack.pop(),
+                        RepresentationExtractor::new);
+                expressionStack.push(new LogicalExpression(left, LogicalOperator.fromString(operator), right));
+            }
+
+            private <E extends DataExtractor<String>>
+            MatchExpression convertNakedStringOrRegexUsing(MatchExpression naked, Supplier<E> extractorCtor) {
+                if (!(naked instanceof DataExtractorNeededMarker)) {
+                    return naked;
+                }
+
+                DataExtractorNeededMarker marker = (DataExtractorNeededMarker) naked;
+
+                switch (marker.getMatcherKind()) {
+                    case STRING:
+                        return new StringExpression(extractorCtor.get(), marker.getValue());
+                    case REGEX:
+                        return new PatternExpression(extractorCtor.get(), marker.getValue());
+                }
+                return naked;
+            }
+
+            private String extractStringOrRegexValue(RuleContext ctx) {
+                return extractStringOrRegex(ctx.getText());
+            }
+
+            private boolean isRegex(String stringOrRegex) {
+                return stringOrRegex.charAt(0) == '/';
+            }
+
+            private String extractStringOrRegex(String value) {
+                return value.substring(1, value.length() - 1);
+            }
+
             //TODO implement
-
-            @Override
-            public void exitBinaryExpression(ElementMatcherParser.BinaryExpressionContext ctx) {
-                String attachment = ctx.getChild(0).getText();
-                String op = ctx.getChild(1).getText();
-                String value = ctx.getChild(2).getText();
-
-                DataExtractor<?> extractor = getExtractorForAttachment(attachment);
-                BinaryOperator operator = BinaryOperator.fromSymbol(op);
-                MatcherInstance<?> matcher = getMatcherFromValue(value);
-
-                BinaryExpression<?> expr = createExpression(extractor, matcher, operator);
-                if (expr == null) {
-                    throw new IllegalArgumentException("Value " + value + " is not compatible with requested element data '" + attachment + "'.");
-                }
-
-                result[0] = expr;
-            }
-
-            @Override
-            public void exitUnaryExpression(ElementMatcherParser.UnaryExpressionContext ctx) {
-                super.exitUnaryExpression(ctx);
-            }
-
-
-            private <T> BinaryExpression<T> createExpression(DataExtractor<T> extractor, MatcherInstance<?> matcher, BinaryOperator operator) {
-                MatcherInstance<T> matchingMatcher = MatcherInstance.ifCompatible(matcher, extractor.extractedType());
-                if (matchingMatcher == null) {
-                    return null;
-                }
-                return new BinaryExpression<>(extractor, matchingMatcher, operator);
-            }
-
-            private DataExtractor<?> getExtractorForAttachment(String attachment) {
-                switch (attachment) {
-                    case "kind":
-                        return new ElementKindExtractor();
-                    case "package":
-                        return new ElementPackageExtractor();
-                    case "class":
-                        return new ElementClassExtractor();
-                    case "name":
-                        return new NameExtractor();
-                    case "signature":
-                        return new SignatureExtractor();
-                    case "erasedSignature":
-                        return new ErasedSignatureExtractor();
-                    case "representation":
-                        return new RepresentationExtractor();
-                    case "index":
-                        return new ParameterIndexExtractor();
-                    case "returnType":
-                        return new ReturnTypeExtractor();
-                    default:
-                        throw new IllegalArgumentException("Unsupported attachment of a java element: '" + attachment + "'.");
-                }
-            }
-
-            private MatcherInstance<?> getMatcherFromValue(String value) {
-                switch (value.charAt(0)) {
-                    case '/':
-                        return new PatternMatcher(Pattern.compile(value.substring(1, value.length() - 1)));
-                    case '\'':
-                        return new StringMatcher(value.substring(1, value.length() - 1));
-                    default:
-                        return new IndexMatcher(Integer.valueOf(value));
-                }
-            }
         });
 
-        ElementMatcherParser.ExpressionContext ctx = parser.expression();
+        TopExpressionContext ctx = parser.topExpression();
         if (ctx.exception != null) {
             throw new IllegalArgumentException("Failed to parse the expression", ctx.exception);
         }
 
-        return result[0];
+        return expressionStack.pop();
     }
 
-    private interface Operator {
-        String getSymbol();
+    private static final class DataExtractorNeededMarker implements MatchExpression {
+        private final MatcherKind matcherKind;
+        private final String value;
 
-        boolean isUnary();
-    }
-
-    private enum BinaryOperator implements Operator {
-        EQUALS("="), NOT_EQUALS("!="), GT(">"), LT("<"), GE(">="), LE("<=");
-
-        private final String symbol;
-
-        BinaryOperator(String symbol) {
-            this.symbol = symbol;
+        private DataExtractorNeededMarker(MatcherKind matcherKind, String value) {
+            this.matcherKind = matcherKind;
+            this.value = value;
         }
 
-        public static BinaryOperator fromSymbol(String symbol) {
-            for (BinaryOperator op : values()) {
-                if (op.symbol.equals(symbol)) {
-                    return op;
-                }
-            }
+        MatcherKind getMatcherKind() {
+            return matcherKind;
+        }
 
-            return null;
+        public String getValue() {
+            return value;
         }
 
         @Override
-        public String getSymbol() {
-            return symbol;
+        public boolean matches(JavaModelElement element) {
+            throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public boolean isUnary() {
-            return false;
-        }
-    }
-
-    private enum UnaryOperator implements Operator {
-        CONTAINS("contains"), IS_CONTAINED_IN("isContainedId"), IMPLEMENTS("implements"),
-        IS_IMPLEMENTED_BY("isImplementedBy"), EXTENDS("extends"), IS_EXTENDED_BY("isExtendedBy"),
-        ANNOTATES("isAnnotatedBy"), IS_ANNOTATED_BY("isAnnotatedBy"), OVERRIDES("overrides"),
-        IS_OVERRIDEN_BY("isOverridenBy"), HAS_TYPE("hasType"), HAS_RETURN_TYPE("hasReturnType"),
-        THROWS("throws"), IS_THROWN_BY("isThrownBy"), PARAMETERIZES("parameterizes"),
-        IS_PARAMETERIZED_BY("isParameterizedBy"), IS_ARGUMENT_OF("isArgumentOf");
-
-        private final String symbol;
-
-        UnaryOperator(String symbol) {
-            this.symbol = symbol;
+        public boolean matches(JavaAnnotationElement annotation) {
+            throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
-        public static UnaryOperator fromSymbol(String symbol) {
-            for (UnaryOperator op : values()) {
-                if (op.symbol.equals(symbol)) {
-                    return op;
-                }
-            }
-
-            return null;
+        enum MatcherKind {
+            STRING, REGEX
         }
-
-        @Override
-        public String getSymbol() {
-            return symbol;
-        }
-
-        @Override
-        public boolean isUnary() {
-            return true;
-        }
-    }
-
-    private interface MatchExpression {
-        boolean matches(JavaElement element);
-    }
-
-    private static class BinaryExpression<T> implements MatchExpression {
-        private final DataExtractor<T> dataExtractor;
-        private final MatcherInstance<T> matcher;
-        private final BinaryOperator operator;
-
-        private BinaryExpression(DataExtractor<T> dataExtractor, MatcherInstance<T> matcher, BinaryOperator operator) {
-            this.dataExtractor = dataExtractor;
-            this.matcher = matcher;
-            this.operator = operator;
-        }
-
-        @Override
-        public boolean matches(JavaElement value) {
-            T val = dataExtractor.extract(value);
-            return matcher.matches(val, operator);
-        }
-    }
-
-    private enum LogicalOperator {
-        AND, OR, NOT
     }
 
     private static ElementMatcherParser createNewParser(String recipe) {
@@ -250,294 +494,58 @@ public final class JavaElementMatcher implements ElementMatcher {
         return new ElementMatcherParser(new CommonTokenStream(lexer));
     }
 
-    private static <T extends Element> T findParentWithType(Element element, Class<T> type) {
-        Element el = element.getParent();
-        while (el != null && !type.isInstance(el)) {
-            el = el.getParent();
-        }
-        return el == null ? null : type.cast(el);
-    }
-
-    private interface MatcherInstance<T> {
-        boolean matches(T value, BinaryOperator operator);
-
-        default boolean supports(Class<?> type) {
-            ParameterizedType ptype = (ParameterizedType) this.getClass().getGenericInterfaces()[0];
-            return type.getName().equals(ptype.getActualTypeArguments()[0].getTypeName());
-        }
-
-        @SuppressWarnings("unchecked")
-        static <X> MatcherInstance<X> ifCompatible(MatcherInstance<?> inst, Class<X> type) {
-            if (inst.supports(type)) {
-                return (MatcherInstance<X>) inst;
-            } else {
-                return null;
-            }
-        }
-    }
-
-    private interface DataExtractor<T> {
-        T extract(JavaElement element);
-        Class<T> extractedType();
-    }
-
-    private static class StringMatcher implements MatcherInstance<String> {
-        private final String string;
-
-        private StringMatcher(String string) {
-            this.string = string;
-        }
-
-        @Override
-        public boolean matches(String value, BinaryOperator operator) {
-            switch (operator) {
-                case EQUALS:
-                    return string.equals(value);
-                case NOT_EQUALS:
-                    return !string.equals(value);
-                default:
-                    throw new IllegalArgumentException("String comparison only supports '=' and '!=' operators.");
-            }
-        }
-    }
-
-    private static class PatternMatcher implements MatcherInstance<String> {
-        private final Pattern pattern;
-
-        private PatternMatcher(Pattern pattern) {
-            this.pattern = pattern;
-        }
-
-        @Override
-        public boolean matches(String value, BinaryOperator operator) {
-            switch (operator) {
-                case EQUALS:
-                    return pattern.matcher(value).matches();
-                case NOT_EQUALS:
-                    return !pattern.matcher(value).matches();
-                default:
-                    throw new IllegalArgumentException("Regex comparison only supports '=' and '!=' operators.");
-            }
-        }
-    }
-
-    private static final class IndexMatcher implements MatcherInstance<Integer> {
-        private final int index;
-
-        private IndexMatcher(int index) {
-            this.index = index;
-        }
-
-        @Override
-        public boolean matches(Integer value, BinaryOperator operator) {
-            switch (operator) {
-                case EQUALS:
-                    return index == value;
-                case NOT_EQUALS:
-                    return index != value;
-                case GE:
-                    return index >= value;
-                case GT:
-                    return index > value;
-                case LE:
-                    return index <= value;
-                case LT:
-                    return index < value;
-                default:
-                    throw new IllegalArgumentException("Unsupported operator: " + operator);
-            }
-        }
-    }
-
-    private static final class ElementKindExtractor implements DataExtractor<String> {
-        @Override
-        public String extract(JavaElement element) {
-            if (element instanceof JavaModelElement) {
-                ElementKind kind = ((JavaModelElement) element).getDeclaringElement().getKind();
-                switch (kind) {
-                    //not supported ATM
-                    //case PACKAGE:
-                    //    return "package";
-                    case ENUM:
-                        return "enum";
-                    case CLASS:
-                        return "class";
-                    case ANNOTATION_TYPE:
-                        return "annotationType";
-                    case INTERFACE:
-                        return "interface";
-                    case ENUM_CONSTANT:
-                        return "enumConstant";
-                    case FIELD:
-                        return "field";
-                    case PARAMETER:
-                        return "parameter";
-                    case METHOD:
-                        return "method";
-                    case CONSTRUCTOR:
-                        return "constructor";
-                    //not supported ATM
-                    //case TYPE_PARAMETER:
-                    //    return "typeParameter";
-                    default:
-                        throw new IllegalArgumentException("Unsupported element kind: '" + kind + "'.");
-                }
-            } else if (element instanceof JavaAnnotationElement) {
-                return "annotation";
-            } else {
-                throw new IllegalArgumentException("Cannot find an element kind of element of type '" + element.getClass() + "'.");
-            }
-        }
-
-        @Override
-        public Class<String> extractedType() {
-            return String.class;
-        }
-    }
-
-    private static final class ElementPackageExtractor implements DataExtractor<String> {
-        @Override
-        public String extract(JavaElement element) {
-            JavaTypeElement type = element instanceof JavaTypeElement
-                    ? (JavaTypeElement) element
-                    : findParentWithType(element, JavaTypeElement.class);
-
-            while (type != null && type.getParent() != null) {
-                type = findParentWithType(type, JavaTypeElement.class);
-            }
-
-            if (type == null) {
-                return null;
-            } else {
-                PackageElement pkg = (PackageElement) type.getDeclaringElement().getEnclosingElement();
-                return pkg == null ? null : pkg.getQualifiedName().toString();
-            }
-        }
-
-        @Override
-        public Class<String> extractedType() {
-            return String.class;
-        }
-    }
-
-    private static final class ElementClassExtractor implements DataExtractor<String> {
-
-        @Override
-        public String extract(JavaElement element) {
-            JavaTypeElement type = element instanceof JavaTypeElement
-                    ? (JavaTypeElement) element
-                    : findParentWithType(element, JavaTypeElement.class);
-
-            return type == null ? null : Util.toHumanReadableString(type.getModelRepresentation());
-        }
-
-        @Override
-        public Class<String> extractedType() {
-            return String.class;
-        }
-    }
-
-    private static final class NameExtractor implements DataExtractor<String> {
-
-        @Override
-        public String extract(JavaElement element) {
-            if (element instanceof JavaModelElement) {
-                return ((JavaModelElement) element).getDeclaringElement().getSimpleName().toString();
-            } else if (element instanceof JavaAnnotationElement) {
-                return ((JavaAnnotationElement) element).getAnnotation().getAnnotationType().asElement().getSimpleName().toString();
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        public Class<String> extractedType() {
-            return String.class;
-        }
-    }
-
-    private static final class SignatureExtractor implements DataExtractor<String> {
-
-        @Override
-        public String extract(JavaElement element) {
-            if (element instanceof JavaModelElement) {
-                return Util.toHumanReadableString(((JavaModelElement) element).getModelRepresentation());
-            } else if (element instanceof JavaAnnotationElement) {
-                return Util.toHumanReadableString(((JavaAnnotationElement) element).getAnnotation());
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        public Class<String> extractedType() {
-            return String.class;
-        }
-    }
-
-    private static final class ErasedSignatureExtractor implements DataExtractor<String> {
-
-        @Override
-        public String extract(JavaElement element) {
-            if (element instanceof JavaModelElement) {
-                Types tps = element.getTypeEnvironment().getTypeUtils();
-                return Util.toHumanReadableString(tps.erasure(((JavaModelElement) element).getModelRepresentation()));
-            } else if (element instanceof JavaAnnotationElement) {
-                return Util.toHumanReadableString(((JavaAnnotationElement) element).getAnnotation());
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        public Class<String> extractedType() {
-            return String.class;
-        }
-    }
-
-    private static final class RepresentationExtractor implements DataExtractor<String> {
-
-        @Override
-        public String extract(JavaElement element) {
-            return element.getFullHumanReadableString();
-        }
-
-        @Override
-        public Class<String> extractedType() {
-            return String.class;
-        }
-    }
-
-    private static final class ParameterIndexExtractor implements DataExtractor<Integer> {
-
-        @Override
-        public Integer extract(JavaElement element) {
-            if (element instanceof MethodParameterElement) {
-                return ((MethodParameterElement) element).getIndex();
-            }
-            return null;
-        }
-
-        @Override
-        public Class<Integer> extractedType() {
-            return Integer.class;
-        }
-    }
-
-    private static final class ReturnTypeExtractor implements DataExtractor<String> {
-
-        @Override
-        public String extract(JavaElement element) {
-            if (element instanceof MethodElement) {
-                TypeMirror returnType = ((MethodElement) element).getModelRepresentation().getReturnType();
-                return Util.toHumanReadableString(returnType);
-            }
-            return null;
-        }
-
-        @Override
-        public Class<String> extractedType() {
-            return String.class;
-        }
-    }
+    //
+//    private static final class ParameterIndexExtractor implements DataExtractor<Integer> {
+//
+//        @Override
+//        public Integer extract(JavaElement element) {
+//            if (element instanceof MethodParameterElement) {
+//                return ((MethodParameterElement) element).getIndex();
+//            }
+//            return null;
+//        }
+//
+//        @Override
+//        public Class<Integer> extractedType() {
+//            return Integer.class;
+//        }
+//    }
+//
+//    private static final class ReturnTypeExtractor implements DataExtractor<String> {
+//
+//        @Override
+//        public String extract(JavaElement element) {
+//            if (element instanceof MethodElement) {
+//                TypeMirror returnType = ((MethodElement) element).getModelRepresentation().getReturnType();
+//                return Util.toHumanReadableString(returnType);
+//            }
+//            return null;
+//        }
+//
+//        @Override
+//        public Class<String> extractedType() {
+//            return String.class;
+//        }
+//    }
+//
+//    private static final class ErasedSignatureExtractor implements DataExtractor<String> {
+//
+//        @Override
+//        public String extract(JavaElement element) {
+//            if (element instanceof JavaModelElement) {
+//                Types tps = element.getTypeEnvironment().getTypeUtils();
+//                return Util.toHumanReadableString(tps.erasure(((JavaModelElement) element).getModelRepresentation()));
+//            } else if (element instanceof JavaAnnotationElement) {
+//                return Util.toHumanReadableString(((JavaAnnotationElement) element).getAnnotation());
+//            } else {
+//                return null;
+//            }
+//        }
+//
+//        @Override
+//        public Class<String> extractedType() {
+//            return String.class;
+//        }
+//    }
+//
 }

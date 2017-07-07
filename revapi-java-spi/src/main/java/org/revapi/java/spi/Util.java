@@ -16,10 +16,15 @@
 
 package org.revapi.java.spi;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +36,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -51,6 +57,7 @@ import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import javax.lang.model.util.SimpleElementVisitor7;
+import javax.lang.model.util.SimpleElementVisitor8;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
@@ -68,18 +75,20 @@ import org.slf4j.LoggerFactory;
 public final class Util {
 
 
-    private static class StringBuilderAndState<T> {
+    private static class StringBuilderAndState {
         final StringBuilder bld = new StringBuilder();
-        final Set<T> visitedObjects = new HashSet<>();
+        final Set<TypeMirror> visitedObjects = new HashSet<>();
         boolean visitingMethod;
+        Deque<TypeMirror> instantiations;
+        Types types;
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
 
-    private static SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>> toUniqueStringVisitor = new SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
+    private static SimpleTypeVisitor7<Void, StringBuilderAndState> toUniqueStringVisitor = new SimpleTypeVisitor7<Void, StringBuilderAndState>() {
 
         @Override
-        public Void visitPrimitive(PrimitiveType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitPrimitive(PrimitiveType t, StringBuilderAndState state) {
             switch (t.getKind()) {
             case BOOLEAN:
                 state.bld.append("boolean");
@@ -113,14 +122,14 @@ public final class Util {
         }
 
         @Override
-        public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> bld) {
+        public Void visitArray(ArrayType t, StringBuilderAndState bld) {
             IgnoreCompletionFailures.in(t::getComponentType).accept(this, bld);
             bld.bld.append("[]");
             return null;
         }
 
         @Override
-        public Void visitIntersection(IntersectionType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitIntersection(IntersectionType t, StringBuilderAndState state) {
             List<? extends TypeMirror> bounds = IgnoreCompletionFailures.in(t::getBounds);
             if (state.visitingMethod) {
                 //the type erasure of an intersection type is the first type
@@ -138,7 +147,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitTypeVariable(TypeVariable t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitTypeVariable(TypeVariable t, StringBuilderAndState state) {
             if (state.visitingMethod) {
                 TypeMirror upperBound = IgnoreCompletionFailures.in(t::getUpperBound);
                 upperBound.accept(this, state);
@@ -165,7 +174,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitWildcard(WildcardType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitWildcard(WildcardType t, StringBuilderAndState state) {
             TypeMirror extendsBound = IgnoreCompletionFailures.in(t::getExtendsBound);
 
             if (state.visitingMethod) {
@@ -195,7 +204,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitExecutable(ExecutableType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitExecutable(ExecutableType t, StringBuilderAndState state) {
             state.bld.append("(");
 
             //we will be producing the erased type of the method, because that's what uniquely identifies it
@@ -217,7 +226,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitNoType(NoType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitNoType(NoType t, StringBuilderAndState state) {
             switch (t.getKind()) {
             case VOID:
                 state.bld.append("void");
@@ -233,7 +242,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitDeclared(DeclaredType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitDeclared(DeclaredType t, StringBuilderAndState state) {
             CharSequence name = ((TypeElement) t.asElement()).getQualifiedName();
             state.bld.append(name);
 
@@ -245,13 +254,13 @@ public final class Util {
         }
 
         @Override
-        public Void visitError(ErrorType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitError(ErrorType t, StringBuilderAndState state) {
             //the missing types are like declared types but don't have any further info on them apart from the name...
             state.bld.append(((TypeElement) t.asElement()).getQualifiedName());
             return null;
         }
 
-        private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState<TypeMirror> state) {
+        private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState state) {
             if (!vars.isEmpty()) {
                 state.bld.append("<");
                 Iterator<? extends TypeMirror> it = vars.iterator();
@@ -267,10 +276,10 @@ public final class Util {
         }
     };
 
-    private static SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>> toHumanReadableStringVisitor = new SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
+    private static SimpleTypeVisitor7<Void, StringBuilderAndState> toHumanReadableStringVisitor = new SimpleTypeVisitor7<Void, StringBuilderAndState>() {
 
         @Override
-        public Void visitPrimitive(PrimitiveType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitPrimitive(PrimitiveType t, StringBuilderAndState state) {
             switch (t.getKind()) {
             case BOOLEAN:
                 state.bld.append("boolean");
@@ -304,14 +313,14 @@ public final class Util {
         }
 
         @Override
-        public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitArray(ArrayType t, StringBuilderAndState state) {
             IgnoreCompletionFailures.in(t::getComponentType).accept(this, state);
             state.bld.append("[]");
             return null;
         }
 
         @Override
-        public Void visitTypeVariable(TypeVariable t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitTypeVariable(TypeVariable t, StringBuilderAndState state) {
             if (state.visitedObjects.contains(t)) {
                 state.bld.append(t.asElement().getSimpleName());
                 return null;
@@ -345,7 +354,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitWildcard(WildcardType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitWildcard(WildcardType t, StringBuilderAndState state) {
             state.bld.append("?");
 
             TypeMirror superBound = IgnoreCompletionFailures.in(t::getSuperBound);
@@ -364,7 +373,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitExecutable(ExecutableType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitExecutable(ExecutableType t, StringBuilderAndState state) {
             visitTypeVars(IgnoreCompletionFailures.in(t::getTypeVariables), state);
 
             state.visitingMethod = true;
@@ -399,7 +408,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitNoType(NoType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitNoType(NoType t, StringBuilderAndState state) {
             switch (t.getKind()) {
             case VOID:
                 state.bld.append("void");
@@ -415,7 +424,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitDeclared(DeclaredType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitDeclared(DeclaredType t, StringBuilderAndState state) {
             CharSequence name = ((TypeElement) t.asElement()).getQualifiedName();
             state.bld.append(name);
             try {
@@ -428,13 +437,13 @@ public final class Util {
         }
 
         @Override
-        public Void visitIntersection(IntersectionType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitIntersection(IntersectionType t, StringBuilderAndState state) {
             Iterator<? extends TypeMirror> it = IgnoreCompletionFailures.in(t::getBounds).iterator();
             if (it.hasNext()) {
                 it.next().accept(this, state);
             }
 
-            TypeVisitor<Void, StringBuilderAndState<TypeMirror>> me = this;
+            TypeVisitor<Void, StringBuilderAndState> me = this;
 
             it.forEachRemaining(b -> { state.bld.append(", "); b.accept(me, state); });
 
@@ -442,12 +451,12 @@ public final class Util {
         }
 
         @Override
-        public Void visitError(ErrorType t, StringBuilderAndState<TypeMirror> state) {
+        public Void visitError(ErrorType t, StringBuilderAndState state) {
             state.bld.append(((TypeElement) t.asElement()).getQualifiedName());
             return null;
         }
 
-        private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState<TypeMirror> state) {
+        private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState state) {
             if (!vars.isEmpty()) {
                 state.bld.append("<");
                 Iterator<? extends TypeMirror> it = vars.iterator();
@@ -464,9 +473,9 @@ public final class Util {
 
     };
 
-    private static SimpleElementVisitor7<Void, StringBuilderAndState<TypeMirror>> toHumanReadableStringElementVisitor = new SimpleElementVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
+    private static SimpleElementVisitor7<Void, StringBuilderAndState> toHumanReadableStringElementVisitor = new SimpleElementVisitor7<Void, StringBuilderAndState>() {
         @Override
-        public Void visitVariable(VariableElement e, StringBuilderAndState<TypeMirror> state) {
+        public Void visitVariable(VariableElement e, StringBuilderAndState state) {
             Element enclosing = e.getEnclosingElement();
             if (enclosing instanceof TypeElement) {
                 enclosing.accept(this, state);
@@ -481,56 +490,7 @@ public final class Util {
                     //this means someone asked to directly output a string representation of a method parameter
                     //in this case, we need to identify the parameter inside the full method signature so that
                     //the full location is available.
-                    int paramIdx = ((ExecutableElement) enclosing).getParameters().indexOf(e);
-                    enclosing.accept(this, state);
-                    int openPar = state.bld.indexOf("(");
-                    int closePar = state.bld.indexOf(")", openPar);
-
-                    int paramStart = openPar + 1;
-                    int curParIdx = -1;
-                    int parsingState = 0; //0 = normal, 1 = inside type param
-                    int typeParamDepth = 0;
-                    for (int i = openPar + 1; i < closePar; ++i) {
-                        char c = state.bld.charAt(i);
-                        switch (parsingState) {
-                            case 0: //normal type
-                                switch (c) {
-                                    case ',':
-                                        curParIdx++;
-                                        if (curParIdx == paramIdx) {
-                                            String par = state.bld.substring(paramStart, i);
-                                            state.bld.replace(paramStart, i, "===" + par + "===");
-                                        } else {
-                                            //accommodate for the space after commas for the second and further parameters
-                                            paramStart = i + (paramIdx == 0 ? 1 : 2);
-                                        }
-                                        break;
-                                    case '<':
-                                        parsingState = 1;
-                                        typeParamDepth = 1;
-                                        break;
-                                }
-                                break;
-                            case 1: //inside type param
-                                switch (c) {
-                                    case '<':
-                                        typeParamDepth++;
-                                        break;
-                                    case '>':
-                                        typeParamDepth--;
-                                        if (typeParamDepth == 0) {
-                                            parsingState = 0;
-                                        }
-                                        break;
-                                }
-                                break;
-                        }
-                    }
-
-                    if (++curParIdx == paramIdx) {
-                        String par = state.bld.substring(paramStart, closePar);
-                        state.bld.replace(paramStart, closePar, "===" + par + "===");
-                    }
+                    outputMethodParameter((ExecutableElement) enclosing, e, state, this);
                 }
             } else {
                 state.bld.append(e.getSimpleName());
@@ -540,13 +500,13 @@ public final class Util {
         }
 
         @Override
-        public Void visitPackage(PackageElement e, StringBuilderAndState<TypeMirror> state) {
+        public Void visitPackage(PackageElement e, StringBuilderAndState state) {
             state.bld.append(e.getQualifiedName());
             return null;
         }
 
         @Override
-        public Void visitType(TypeElement e, StringBuilderAndState<TypeMirror> state) {
+        public Void visitType(TypeElement e, StringBuilderAndState state) {
             state.bld.append(e.getQualifiedName());
 
             List<? extends TypeParameterElement> typePars = IgnoreCompletionFailures.in(e::getTypeParameters);
@@ -565,7 +525,7 @@ public final class Util {
         }
 
         @Override
-        public Void visitExecutable(ExecutableElement e, StringBuilderAndState<TypeMirror> state) {
+        public Void visitExecutable(ExecutableElement e, StringBuilderAndState state) {
             state.visitingMethod = true;
 
             try {
@@ -615,9 +575,153 @@ public final class Util {
         }
 
         @Override
-        public Void visitTypeParameter(TypeParameterElement e, StringBuilderAndState<TypeMirror> state) {
+        public Void visitTypeParameter(TypeParameterElement e, StringBuilderAndState state) {
             state.bld.append(e.getSimpleName());
             List<? extends TypeMirror> bounds = IgnoreCompletionFailures.in(e::getBounds);
+            if (bounds.size() > 0) {
+                if (bounds.size() == 1) {
+                    TypeMirror firstBound = bounds.get(0);
+                    String bs = toHumanReadableString(firstBound);
+                    if (!"java.lang.Object".equals(bs)) {
+                        state.bld.append(" extends ").append(bs);
+                    }
+                } else {
+                    state.bld.append(" extends ");
+                    bounds.get(0).accept(toHumanReadableStringVisitor, state);
+                    for (int i = 1; i < bounds.size(); ++i) {
+                        state.bld.append(", ");
+                        bounds.get(i).accept(toHumanReadableStringVisitor, state);
+                    }
+                }
+            }
+
+            return null;
+        }
+    };
+
+    private static SimpleElementVisitor8<Void, StringBuilderAndState> toHumanReadableStringInstantiatedElementVisitor = new SimpleElementVisitor8<Void, StringBuilderAndState>() {
+        @Override
+        public Void visitVariable(VariableElement e, StringBuilderAndState state) {
+            Element enclosing = e.getEnclosingElement();
+
+            TypeMirror instantiation = state.instantiations.pop();
+
+            if (enclosing instanceof TypeElement) {
+                enclosing.accept(this, state);
+                state.bld.append(".").append(e.getSimpleName());
+            } else if (enclosing instanceof ExecutableElement) {
+                if (state.visitingMethod) {
+                    //we're visiting a method, so we need to output the parameter in a simple way
+                    instantiation.accept(toHumanReadableStringVisitor, state);
+                    //NOTE the names of method params seem not to be available
+                    //stringBuilder.append(" ").append(e.getSimpleName());
+                } else {
+                    //this means someone asked to directly output a string representation of a method parameter
+                    //in this case, we need to identify the parameter inside the full method signature so that
+                    //the full location is available.
+                    outputMethodParameter((ExecutableElement) enclosing, e, state, this);
+                }
+            } else {
+                state.bld.append(e.getSimpleName());
+            }
+
+            return null;
+        }
+
+        @Override
+        public Void visitPackage(PackageElement e, StringBuilderAndState state) {
+            state.bld.append(e.getQualifiedName());
+            return null;
+        }
+
+        @Override
+        public Void visitType(TypeElement e, StringBuilderAndState state) {
+            state.bld.append(e.getQualifiedName());
+
+            DeclaredType instantiation = (DeclaredType) state.instantiations.pop();
+
+            List<? extends TypeMirror> typePars = instantiation.getTypeArguments();
+            if (typePars.size() > 0) {
+                state.bld.append("<");
+
+                typePars.get(0).accept(toHumanReadableStringVisitor, state);
+                for (int i = 1; i < typePars.size(); ++i) {
+                    state.bld.append(", ");
+                    typePars.get(i).accept(toHumanReadableStringVisitor, state);
+                }
+                state.bld.append(">");
+            }
+
+            return null;
+        }
+
+        @Override
+        public Void visitExecutable(ExecutableElement e, StringBuilderAndState state) {
+            state.visitingMethod = true;
+
+            try {
+                ExecutableType instantiation = (ExecutableType) state.instantiations.pop();
+
+                List<? extends TypeVariable> typePars = instantiation.getTypeVariables();
+                if (typePars.size() > 0) {
+                    state.bld.append("<");
+
+                    typePars.get(0).accept(toHumanReadableStringVisitor, state);
+                    for (int i = 1; i < typePars.size(); ++i) {
+                        state.bld.append(", ");
+                        typePars.get(i).accept(toHumanReadableStringVisitor, state);
+                    }
+                    state.bld.append("> ");
+                }
+
+                instantiation.getReturnType().accept(toHumanReadableStringVisitor, state);
+                state.bld.append(" ");
+                e.getEnclosingElement().accept(this, state);
+                state.bld.append("::").append(e.getSimpleName()).append("(");
+
+                List<? extends TypeMirror> pars = instantiation.getParameterTypes();
+                if (pars.size() > 0) {
+                    pars.get(0).accept(toHumanReadableStringVisitor, state);
+                    for (int i = 1; i < pars.size(); ++i) {
+                        state.bld.append(", ");
+                        pars.get(i).accept(toHumanReadableStringVisitor, state);
+                    }
+                }
+
+                state.bld.append(")");
+
+                List<? extends TypeMirror> thrownTypes = instantiation.getThrownTypes();
+
+                //noinspection Duplicates
+                if (thrownTypes.size() > 0) {
+                    state.bld.append(" throws ");
+                    thrownTypes.get(0).accept(toHumanReadableStringVisitor, state);
+                    for (int i = 1; i < thrownTypes.size(); ++i) {
+                        state.bld.append(", ");
+                        thrownTypes.get(i).accept(toHumanReadableStringVisitor, state);
+                    }
+                }
+
+                return null;
+            } finally {
+                state.visitingMethod = false;
+            }
+        }
+
+        @Override
+        public Void visitTypeParameter(TypeParameterElement e, StringBuilderAndState state) {
+            state.bld.append(e.getSimpleName());
+            TypeVariable instantiation = (TypeVariable) state.instantiations.pop();
+
+            List<? extends TypeMirror> bounds;
+            TypeMirror upperBound = instantiation.getUpperBound();
+            if (upperBound instanceof IntersectionType) {
+                bounds = ((IntersectionType) upperBound).getBounds();
+            } else {
+                bounds = Collections.singletonList(upperBound);
+            }
+
+            //noinspection Duplicates
             if (bounds.size() > 0) {
                 if (bounds.size() == 1) {
                     TypeMirror firstBound = bounds.get(0);
@@ -730,7 +834,7 @@ public final class Util {
 
     @Nonnull
     public static String toHumanReadableString(@Nonnull AnnotatedConstruct construct) {
-        StringBuilderAndState<TypeMirror> state = new StringBuilderAndState<>();
+        StringBuilderAndState state = new StringBuilderAndState();
 
         if (construct instanceof Element) {
             ((Element) construct).accept(toHumanReadableStringElementVisitor, state);
@@ -741,6 +845,51 @@ public final class Util {
     }
 
     /**
+     * Produces a human-readable representation of the provided element instantiated as given type mirror.
+     *
+     * I.e. if the provided element represents a class {@code Set<T>} and the provided instantiation
+     * {@code Set<Integer>}, {@code Set<Integer>} is produced. If the element represents a method, all the type
+     * parameters from the {@code instantiation} are used and names from the element.
+     *
+     * @param element the element to convert
+     * @param instantiations the instantiation of the generic type of the element and its parents, if any
+     * @return a human-readable representation of the element as instantiated
+     */
+    public static String toHumanReadableString(Types types, Element element, Collection<? extends TypeMirror> instantiations) {
+        if (instantiations == null || instantiations.isEmpty()) {
+            return toHumanReadableString(element);
+        } else {
+            StringBuilderAndState state = new StringBuilderAndState();
+            state.instantiations = new ArrayDeque<>(instantiations);
+            state.types = types;
+
+            element.accept(toHumanReadableStringInstantiatedElementVisitor, state);
+
+            return state.bld.toString();
+        }
+    }
+
+    /**
+     * The human representation of this concrete model element, taking into consideration the concrete type variables,
+     * etc.
+     *
+     * @param modelElement the model element to convert
+     * @return a human readable string representation of the model element
+     */
+    public static String toHumanReadableString(JavaModelElement modelElement) {
+        Types types = modelElement.getTypeEnvironment().getTypeUtils();
+        Element decl = modelElement.getDeclaringElement();
+
+        List<TypeMirror> hierarchy = new LinkedList<>();
+        while (modelElement != null) {
+            hierarchy.add(modelElement.getModelRepresentation());
+            modelElement = modelElement.getParent();
+        }
+
+        return toHumanReadableString(types, decl, hierarchy);
+    }
+
+    /**
      * Represents the type mirror as a string in such a way that it can be used for equality comparisons.
      *
      * @param t type to convert to string
@@ -748,7 +897,7 @@ public final class Util {
      */
     @Nonnull
     public static String toUniqueString(@Nonnull TypeMirror t) {
-        StringBuilderAndState<TypeMirror> state = new StringBuilderAndState<>();
+        StringBuilderAndState state = new StringBuilderAndState();
         t.accept(toUniqueStringVisitor, state);
         return state.bld.toString();
     }
@@ -803,7 +952,7 @@ public final class Util {
      * @param types the Types instance of the compilation environment from which the type comes from
      * @param type  the type
      *
-     * @return the list of super tpyes
+     * @return the list of super types
      */
     @Nonnull
     public static List<TypeMirror> getAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type) {
@@ -1087,6 +1236,63 @@ public final class Util {
             return call.call();
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    private static void outputMethodParameter(ExecutableElement enclosing, VariableElement e, StringBuilderAndState state, ElementVisitor<?, StringBuilderAndState> parser) {
+        //this means someone asked to directly output a string representation of a method parameter
+        //in this case, we need to identify the parameter inside the full method signature so that
+        //the full location is available.
+        int paramIdx = ((ExecutableElement) enclosing).getParameters().indexOf(e);
+
+        enclosing.accept(parser, state);
+        int openPar = state.bld.indexOf("(");
+        int closePar = state.bld.indexOf(")", openPar);
+
+        int paramStart = openPar + 1;
+        int curParIdx = -1;
+        int parsingState = 0; //0 = normal, 1 = inside type param
+        int typeParamDepth = 0;
+        for (int i = openPar + 1; i < closePar; ++i) {
+            char c = state.bld.charAt(i);
+            switch (parsingState) {
+                case 0: //normal type
+                    switch (c) {
+                        case ',':
+                            curParIdx++;
+                            if (curParIdx == paramIdx) {
+                                String par = state.bld.substring(paramStart, i);
+                                state.bld.replace(paramStart, i, "===" + par + "===");
+                            } else {
+                                //accommodate for the space after commas for the second and further parameters
+                                paramStart = i + (paramIdx == 0 ? 1 : 2);
+                            }
+                            break;
+                        case '<':
+                            parsingState = 1;
+                            typeParamDepth = 1;
+                            break;
+                    }
+                    break;
+                case 1: //inside type param
+                    switch (c) {
+                        case '<':
+                            typeParamDepth++;
+                            break;
+                        case '>':
+                            typeParamDepth--;
+                            if (typeParamDepth == 0) {
+                                parsingState = 0;
+                            }
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        if (++curParIdx == paramIdx) {
+            String par = state.bld.substring(paramStart, closePar);
+            state.bld.replace(paramStart, closePar, "===" + par + "===");
         }
     }
 }

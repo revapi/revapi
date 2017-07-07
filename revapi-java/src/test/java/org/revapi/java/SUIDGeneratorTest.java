@@ -37,6 +37,7 @@ import javax.tools.ToolProvider;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.java.checks.fields.SerialVersionUidUnchanged;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.suid.TestClass;
 
@@ -72,6 +73,11 @@ public class SUIDGeneratorTest {
                 @Override
                 public Types getTypeUtils() {
                     return processingEnv.getTypeUtils();
+                }
+
+                @Override
+                public JavaTypeElement getModelElement(TypeElement e) {
+                    return null;
                 }
 
                 @Override

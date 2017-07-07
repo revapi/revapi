@@ -4,29 +4,36 @@ WS : [ \t\r\n]+ -> skip;
 REGEX: '/' ~('/')+ '/';
 STRING: '\'' ~('\'')* '\'';
 NUMBER: ('0'..'9')+;
+LOGICAL_OPERATOR: 'and' | 'or';
 
 topExpression
     : parenthesizedExpression
-    | expression ('and' | 'or' | 'that') expression
+    | expression LOGICAL_OPERATOR expression
     | hasExpression
     | isExpression
     | throwsExpression
     | subTypeExpression
     | overridesExpression
-    | returnExpression
+    | returnsExpression
     ;
 
 expression
     : parenthesizedExpression
-    | expression ('and' | 'or') expression
+    | expression LOGICAL_OPERATOR expression
     | hasExpression
     | isExpression
     | throwsExpression
     | subTypeExpression
     | overridesExpression
-    | returnExpression
+    | returnsExpression
     | stringExpression
     | regexExpression
+    ;
+
+subExpression
+    : stringExpression
+    | regexExpression
+    | parenthesizedExpression
     ;
 
 parenthesizedExpression
@@ -42,54 +49,93 @@ regexExpression
     ;
 
 throwsExpression
-    : 'throws' expression
-    | 'doesn\'t' 'throw' expression
+    : 'throws' subExpression
+    | 'doesn\'t' 'throw' subExpression?
     ;
 
 subTypeExpression
-    : 'directly'? ('extends' | 'implements') expression
-    | 'doesn\'t' 'directly'? ('extend' | 'implement') expression
+    : 'directly'? ('extends' | 'implements') subExpression
+    | 'doesn\'t' 'directly'? ('extend' | 'implement') subExpression
     ;
 
 overridesExpression
-    : 'overrides' expression
-    | 'doesn\'t' 'override' expression
+    : 'overrides' subExpression
+    | 'doesn\'t' 'override' subExpression?
     ;
 
-returnExpression
-    : 'returns' expression
-    | 'doesn\'t' 'return' expression
+returnsExpression
+    : 'returns' 'precisely'? subExpression
+    | 'doesn\'t' 'return' 'precisely'? subExpression
     ;
 
 hasExpression
-    : 'has' (hasExpression_subExpr | hasExpression_match)
-    | 'doesn\'t' 'have' (hasExpression_subExpr | hasExpression_match)
-    | 'has' (('more' | 'less') 'than')? NUMBER 'arguments'
-    | 'doesn\'t'? 'have' (('more' | 'less') 'than')? NUMBER 'arguments'
-    | 'has' 'index' (('larger' | 'less') 'than')? NUMBER
-    | 'doesn\'t'? 'have' 'index' (('larger' | 'less') 'than')? NUMBER
+    : hasExpression_basic
+    | hasExpression_arguments
+    | hasExpression_index
+    ;
+
+hasExpression_basic
+    : 'has' (hasExpression_subExpr | hasExpression_match | hasExpression_attribute)
+    | 'doesn\'t' 'have' (hasExpression_subExpr | hasExpression_match | hasExpression_attribute)
+    ;
+
+hasExpression_arguments
+    : 'has' (('more' | 'less') 'than')? NUMBER 'arguments'
+    | 'doesn\'t' 'have' (('more' | 'less') 'than')? NUMBER 'arguments'
+    ;
+
+hasExpression_index
+    : 'has' 'index' (('larger' | 'less') 'than')? NUMBER
+    | 'doesn\'t' 'have' 'index' (('larger' | 'less') 'than')? NUMBER
+    ;
+
+hasExpression_attribute
+    : 'explicit'? 'attribute' (STRING | REGEX)? ('that' hasExpression_attribute_values)?
+    ;
+
+hasExpression_attribute_values
+    : 'is' 'not'? 'equal' 'to' hasExpression_attribute_values_subExpr
+    | 'is' ('greater' | 'less') 'than' NUMBER
+    | 'has' (('more' | 'less') 'than')? NUMBER 'elements'
+    | 'doesn\'t' 'have' (('more' | 'less') 'than')? NUMBER 'elements'
+    | 'has' 'element' NUMBER?
+    | 'has' 'element' NUMBER? 'that' hasExpression_attribute_values
+    | 'doesn\'t' 'have' 'element' NUMBER?
+    | 'doesn\'t' 'have' 'element' NUMBER? 'that' hasExpression_attribute_values
+    | 'has' 'type' (STRING | REGEX)
+    | 'doesn\'t' 'have' 'type' (STRING | REGEX)
+    | 'has' hasExpression_attribute
+    | 'doesn\'t' 'have' hasExpression_attribute
+    | '(' hasExpression_attribute_values ')'
+    | hasExpression_attribute_values LOGICAL_OPERATOR hasExpression_attribute_values
+    ;
+
+hasExpression_attribute_values_subExpr
+    : STRING
+    | REGEX
+    | NUMBER
     ;
 
 hasExpression_subExpr
     : ('argument' NUMBER?
         | 'typeParameter'
         | 'annotation'
-        | 'method'
-        | 'field'
-        | 'outerclass'
-        | 'innerclass'
+        | 'declared'? 'method'
+        | 'declared'? 'field'
+        | 'declared'? 'innerClass'
+        | 'direct'? 'outerClass'
         | 'direct'? 'superType'
         | 'type'
         )
-        expression
+        subExpression
     ;
 
 hasExpression_match
     : ('name'
-        | ('erased' | 'realized')? 'signature'
+        | ('erased' | 'generic')? 'signature'
         | 'representation'
         | 'kind'
-        | 'package'
+        | 'simpleName'
       ) (STRING | REGEX)
     ;
 
@@ -109,8 +155,9 @@ isExpression_subExpr
         | 'thrown' 'from'
         | 'direct'? 'superType' 'of'
         | 'overriden' 'by'
+        | 'in' 'class'
         )
-        expression
+        subExpression
     ;
 
 isExpression_kind

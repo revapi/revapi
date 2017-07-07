@@ -16,6 +16,8 @@
 
 package org.revapi.java.compilation;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +34,10 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import org.revapi.API;
+import org.revapi.Archive;
+import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.JavaElementForest;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 
@@ -114,13 +119,35 @@ public final class ProbingEnvironment implements TypeEnvironment {
         return new MissingTypeAwareDelegatingTypes(processingEnvironment.getTypeUtils());
     }
 
-    //TODO make package private at a sufficient version bump
-    public void setTypeMap(Map<TypeElement, org.revapi.java.model.TypeElement> typeMap) {
-        this.typeMap = typeMap;
+    void setTypeMap(Map<TypeElement, org.revapi.java.model.TypeElement> typeMap) {
+        this.typeMap = Collections.unmodifiableMap(typeMap);
     }
 
     public Map<TypeElement, org.revapi.java.model.TypeElement> getTypeMap() {
         return typeMap;
+    }
+
+    @Override
+    public JavaTypeElement getModelElement(TypeElement javaType) {
+        JavaTypeElement ret = typeMap.get(javaType);
+
+        if (ret != null) {
+            return ret;
+        }
+
+        return (JavaTypeElement) JavaElementFactory.elementFor(javaType, javaType.asType(), this, new Archive() {
+            @Nonnull
+            @Override
+            public String getName() {
+                return "<unknown>";
+            }
+
+            @Nonnull
+            @Override
+            public InputStream openStream() throws IOException {
+                throw new IOException("Not supported.");
+            }
+        });
     }
 
     public Set<TypeElement> getDerivedTypes(TypeElement superType) {

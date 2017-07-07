@@ -19,6 +19,10 @@ package org.revapi;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -132,4 +136,23 @@ public interface Element extends Comparable<Element> {
     @Nonnull
     <T extends Element> Iterator<T> iterateOverChildren(@Nonnull Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);
+
+    /**
+     * A stream equivalent of {@link #iterateOverChildren(Class, boolean, Filter)}. The resulting stream contains
+     * distinct non-null elements.
+     *
+     * @param elementType the type of elements to look for
+     * @param recurse     if true, the iterator traverses the element forest using depth first search
+     * @param filter      optional filter to further trim the number of results
+     * @param <T>         the type of the elements to look for
+     * @return the stream of elements complying to the filter
+     * @see #iterateOverChildren(Class, boolean, Filter)
+     */
+    default <T extends Element> Stream<T> stream(Class<T> elementType, boolean recurse, @Nullable Filter<? super T> filter) {
+        Iterator<T> it = iterateOverChildren(elementType, recurse, filter);
+        Spliterator<T> sit = Spliterators.spliteratorUnknownSize(it,
+                Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED);
+
+        return StreamSupport.stream(sit, false);
+    }
 }

@@ -51,7 +51,6 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     private boolean inApi;
     private boolean inApiThroughUse;
 
-    //TODO this should really be protected or even package private...
     /**
      * This is a helper constructor used only in {@link MissingClassElement}. Inheritors using this constructor need
      * to make sure that they also override any and all methods that require a non-null element.
@@ -60,7 +59,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
      * @param binaryName    the binary name of the class
      * @param canonicalName the canonical name of the class
      */
-    public TypeElement(ProbingEnvironment env, Archive archive, String binaryName, String canonicalName) {
+    TypeElement(ProbingEnvironment env, Archive archive, String binaryName, String canonicalName) {
         super(env, archive, null, null);
         this.binaryName = binaryName;
         this.canonicalName = canonicalName;

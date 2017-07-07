@@ -18,7 +18,11 @@ package org.revapi.java.spi;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 
 /**
@@ -45,6 +49,44 @@ public interface TypeEnvironment {
      */
     @Nonnull
     Types getTypeUtils();
+
+    /**
+     * Returns full Revapi representation of the provided java type. This sort of a reverse to
+     * {@link JavaModelElement#getDeclaringElement()} on the type level.
+     *
+     * <p>For elements that were not fully analyzed (for example the types included in the Java runtime)
+     * a stub implementation is returned that reflects the findings of the analysis but may not reflect
+     * the full state of the type (for example use sites not encountered during the analysis will be missing, etc.)
+     *
+     * @param javaType the java type
+     * @return revapi model element or null if it cannot be const
+     */
+    JavaTypeElement getModelElement(TypeElement javaType);
+
+    /**
+     * A variant of {@link #getModelElement(TypeElement)} that accepts a type mirror.
+     *
+     * Returns null if the provided type mirror doesn't represent a declared type.
+     *
+     * @param type the type mirror to try and find the model representation of
+     *
+     * @return the model representation of the type or null if it cannot be found or the type is not a declared type
+     *
+     * @see #getModelElement(TypeElement)
+     */
+    default JavaTypeElement getModelElement(TypeMirror type) {
+        return type.accept(new SimpleTypeVisitor8<JavaTypeElement, Void>() {
+            @Override
+            public JavaTypeElement visitDeclared(DeclaredType t, Void o) {
+                Element el = t.asElement();
+                if (el instanceof TypeElement) {
+                    return getModelElement((TypeElement) el);
+                } else {
+                    return null;
+                }
+            }
+        }, null);
+    }
 
     /**
      * This returns true for elements that are included by the means of configuration. I.e. even though they could
