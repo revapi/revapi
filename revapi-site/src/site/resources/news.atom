@@ -37,4 +37,20 @@
       <a href="https://diff.revapi.org">https://diff.revapi.org</a>.
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20170712-releases.html</id>
+    <title>New Releases and Updates to The Site</title>
+    <updated>2017-07-12T00:00:00+00:00</updated>
+    <published>2017-07-12T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20170712-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+      After a couple of silent weeks I've finally managed to release new versions of the Revapi components. There are exactly
+      2 fixes, one new feature and many improvements to the site.
+    </summary>
+    <content type="html">
+      After a couple of silent weeks I've finally managed to release new versions of the Revapi components. There are exactly
+      2 fixes, one new feature and many improvements to the site.
+    </content>
+  </entry>
 </feed>
