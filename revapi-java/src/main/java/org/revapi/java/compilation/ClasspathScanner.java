@@ -300,7 +300,7 @@ final class ClasspathScanner {
                 if (typeType.getKind() == TypeKind.ERROR) {
                     //just re-add the missing type and return. It will be dealt with accordingly
                     //in initEnvironment
-                    requiredTypes.put(type, wasAnno);
+                    requiredTypes.put(type, wasAnno == null ? false : wasAnno);
                     return;
                 }
 
