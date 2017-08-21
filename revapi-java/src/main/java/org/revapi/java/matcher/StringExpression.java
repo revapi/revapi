@@ -50,4 +50,9 @@ final class StringExpression implements MatchExpression {
     public boolean matches(TypeMirror type) {
         return Objects.equals(value, extractor.extract(type));
     }
+
+    @Override
+    public boolean matches(AnnotationAttributeElement attribute) {
+        return Objects.equals(value, extractor.extract(attribute));
+    }
 }

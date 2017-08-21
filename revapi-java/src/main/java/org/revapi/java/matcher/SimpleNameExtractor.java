@@ -17,6 +17,7 @@
 
 package org.revapi.java.matcher;
 
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.java.spi.JavaAnnotationElement;
@@ -40,6 +41,16 @@ final class SimpleNameExtractor implements DataExtractor<String> {
     @Override
     public String extract(TypeMirror type) {
         return Util.toHumanReadableString(type);
+    }
+
+    @Override
+    public String extract(AnnotationAttributeElement element) {
+        return element.getAttributeMethod().getSimpleName().toString();
+    }
+
+    @Override
+    public String extract(AnnotationValue value) {
+        return "";
     }
 
     @Override

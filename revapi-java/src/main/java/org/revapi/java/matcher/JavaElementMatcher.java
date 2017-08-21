@@ -17,19 +17,31 @@
 
 package org.revapi.java.matcher;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.Reader;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.antlr.v4.runtime.ANTLRErrorListener;
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.RuleContext;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
@@ -82,7 +94,13 @@ public final class JavaElementMatcher implements ElementMatcher {
     private MatchExpression createMatcher(String recipe) {
         Deque<MatchExpression> expressionStack = new ArrayDeque<>();
 
-        ElementMatcherParser parser = createNewParser(recipe);
+        ElementMatcherParser parser = createNewParser(recipe, new BaseErrorListener() {
+            @Override
+            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
+                throw new ParseCancellationException("Syntax error @ " + line + ":" + charPositionInLine + " - " + msg);
+            }
+        });
+
         parser.addParseListener(new ElementMatcherBaseListener() {
 
             @Override
@@ -330,8 +348,8 @@ public final class JavaElementMatcher implements ElementMatcher {
                         choice = new ArgumentsProducer(concreteIdx);
                         break;
                     case "annotation":
-                        match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
-                        choice = new AnnotationsProducer();
+                        match = convertNakedStringOrRegexUsing(match, NameExtractor::new);
+                        choice = new AnnotationsProducer(false);
                         break;
                     case "method":
                         match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
@@ -388,6 +406,10 @@ public final class JavaElementMatcher implements ElementMatcher {
                                 match = convertNakedStringOrRegexUsing(match, InstantiationExtractor::new);
                                 choice = new ContainedElementProducer(true, JavaTypeElement.class);
                                 break;
+                            case "annotation":
+                                match = convertNakedStringOrRegexUsing(match, NameExtractor::new);
+                                choice = new AnnotationsProducer(true);
+                                break;
                         }
                         break;
                 }
@@ -395,6 +417,192 @@ public final class JavaElementMatcher implements ElementMatcher {
                 if (!alreadyPushed) {
                     expressionStack.push(new ChoiceExpression(match, choice));
                 }
+            }
+
+            @Override
+            public void exitHasExpression_attribute(ElementMatcherParser.HasExpression_attributeContext ctx) {
+                boolean explicit;
+                String attributeName = null;
+                MatchExpression attributeMatch = null;
+
+                switch (ctx.getChildCount()) {
+                    case 1:
+                        explicit = false;
+                        attributeName = null;
+                        attributeMatch = null;
+                        break;
+                    case 2:
+                        if ("explicit".equals(ctx.getChild(0).getText())) {
+                            explicit = true;
+                            attributeName = null;
+                            attributeMatch = null;
+                        } else {
+                            explicit = false;
+                            attributeName = ctx.getChild(1).getText();
+                            attributeMatch = null;
+                        }
+                        break;
+                    case 3:
+                        if ("explicit".equals(ctx.getChild(0).getText())) {
+                            explicit = true;
+                            if (ctx.hasExpression_attribute_values() == null) {
+                                attributeName = ctx.getChild(2).getText();
+                            } else {
+                                attributeMatch = expressionStack.pop();
+                            }
+                        } else {
+                            explicit = false;
+                            attributeName = null;
+                            attributeMatch = expressionStack.pop();
+                        }
+                        break;
+                    case 4:
+                        if ("explicit".equals(ctx.getChild(0).getText())) {
+                            explicit = true;
+                            attributeName = null;
+                            attributeMatch = expressionStack.pop();
+                        } else {
+                            explicit = false;
+                            attributeName = ctx.getChild(1).getText();
+                            attributeMatch = expressionStack.pop();
+                        }
+                        break;
+                    case 5:
+                        explicit = true;
+                        attributeName = ctx.getChild(2).getText();
+                        attributeMatch = expressionStack.pop();
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Expecting 1 to 5 children in expression '" + ctx.getText()
+                                + "' but got " + ctx.getChildCount());
+                }
+
+                MatchExpression attributeNameMatch = null;
+                if (attributeName != null) {
+                    String val = extractStringOrRegex(attributeName);
+                    if (isRegex(attributeName)) {
+                        attributeNameMatch = new StringExpression(new SimpleNameExtractor(), val);
+                    } else {
+                        attributeNameMatch = new PatternExpression(new SimpleNameExtractor(), val);
+                    }
+                }
+
+                expressionStack.push(new AttributeExpression(attributeNameMatch, attributeMatch, explicit));
+            }
+
+            @Override
+            public void exitHasExpression_attribute_values(ElementMatcherParser.HasExpression_attribute_valuesContext ctx) {
+                String check;
+                AbstractAttributeValueExpression match = null;
+                TerminalNode numberNode;
+                int hasCheckIndex = 1;
+                switch (textAt(ctx, 0)) {
+                    case "is":
+                        check = textAt(ctx, 1);
+                        if ("greater".equals(check) || "less".equals(check)) {
+                            String numberString = textAt(ctx, 3);
+                            try {
+                                Number number = NumberFormat.getNumberInstance(Locale.US).parse(numberString);
+                                match = new AttributeGreaterLessThanExpression(number, "less".equals(check));
+                            } catch (ParseException e) {
+                                parser.notifyErrorListeners(ctx.NUMBER().getSymbol(), "expected a number", null);
+                                return;
+                            }
+                        } else {
+                            match = getAttributeValueMatcher(ctx.hasExpression_attribute_values_subExpr());
+                            if ("not".equals(check)) {
+                                match = new NegatingAttributeValueExpression(match);
+                            }
+                        }
+                        break;
+                    case "doesn't":
+                        hasCheckIndex = 2;
+                        //intentional fallthrough
+                    case "has":
+                        check = textAt(ctx, hasCheckIndex);
+                        switch (check) {
+                            case "element":
+                                if (!ctx.hasExpression_attribute_values().isEmpty()) {
+                                    match = (AbstractAttributeValueExpression) expressionStack.pop();
+                                }
+                                numberNode = ctx.NUMBER();
+                                try {
+                                    Number number = numberNode == null
+                                            ? null
+                                            : NumberFormat.getNumberInstance(Locale.US).parse(numberNode.getText());
+                                    match = new AttributeHasElementExpression(match,
+                                            number == null ? null : number.intValue());
+                                } catch (ParseException e) {
+                                    parser.notifyErrorListeners(ctx.NUMBER().getSymbol(), "expected a number", null);
+                                    return;
+                                }
+                                break;
+                            default:
+                                numberNode = ctx.NUMBER();
+                                if (numberNode != null) {
+                                    try {
+                                        Number number = NumberFormat.getNumberInstance(Locale.US).parse(numberNode.getText());
+                                        check = ctx.getChild(1).getText();
+                                        Boolean operator;
+                                        switch (check) {
+                                            case "more":
+                                                operator = false;
+                                                break;
+                                            case "less":
+                                                operator = true;
+                                                break;
+                                            default:
+                                                operator = null;
+                                        }
+                                        match = new AttributeElementCountExpression(number.intValue(), operator);
+                                    } catch (ParseException e) {
+                                        parser.notifyErrorListeners(ctx.NUMBER().getSymbol(), "expected a number", null);
+                                        return;
+                                    }
+                                } else if (ctx.hasExpression_attribute() != null) {
+                                    match = new AttributeChildMatchesExpression((AttributeExpression) expressionStack.pop());
+                                }
+                                break;
+                        }
+
+                        if (hasCheckIndex > 1) {
+                            match = new NegatingAttributeValueExpression(match);
+                        }
+                        break;
+                    case "(":
+                        match = (AbstractAttributeValueExpression) expressionStack.pop();
+                        break;
+                    default:
+                        LogicalOperator op = LogicalOperator.fromString(ctx.getChild(1).getText());
+                        AbstractAttributeValueExpression right = (AbstractAttributeValueExpression) expressionStack.pop();
+                        AbstractAttributeValueExpression left = (AbstractAttributeValueExpression) expressionStack.pop();
+
+                        match = new AttributeValueLogicalExpression(left, op, right);
+                        break;
+                }
+
+                if (match != null) {
+                    expressionStack.push(match);
+                }
+            }
+
+            @Override
+            public void exitHasExpression_attribute_type(ElementMatcherParser.HasExpression_attribute_typeContext ctx) {
+                boolean negate = "doesn't".equals(textAt(ctx, 0));
+                String stringOrRegex = textAt(ctx, negate ? 3 : 2);
+
+                MatchExpression expr;
+                if (isRegex(stringOrRegex)) {
+                    expr = new AttributeTypeEqualsExpression(Pattern.compile(extractStringOrRegex(stringOrRegex)));
+                } else {
+                    expr = new AttributeTypeEqualsExpression(extractStringOrRegex(stringOrRegex));
+                }
+
+                if (negate) {
+                    expr = new NegatingExpression(expr);
+                }
+
+                expressionStack.push(expr);
             }
 
             @Override
@@ -415,6 +623,26 @@ public final class JavaElementMatcher implements ElementMatcher {
                 MatchExpression left = convertNakedStringOrRegexUsing(expressionStack.pop(),
                         RepresentationExtractor::new);
                 expressionStack.push(new LogicalExpression(left, LogicalOperator.fromString(operator), right));
+            }
+
+            private String textAt(RuleContext ctx, int childIndex) {
+                return ctx.getChild(childIndex).getText();
+            }
+
+            private AbstractAttributeValueExpression getAttributeValueMatcher(ElementMatcherParser.HasExpression_attribute_values_subExprContext ctx) {
+                if (ctx.hasExpression_attribute_values_subExpr().isEmpty()) {
+                    String val = ctx.getChild(0).getText();
+                    if (isRegex(val)) {
+                        return new AttributeValueEqualsExpression(Pattern.compile(extractStringOrRegex(val)));
+                    } else if (isString(val)) {
+                        return new AttributeValueEqualsExpression(extractStringOrRegex(val));
+                    } else {
+                        return new AttributeValueEqualsExpression(val);
+                    }
+                } else {
+                    return new AttributeArrayValueEqualsExpression(ctx.hasExpression_attribute_values_subExpr().stream()
+                            .map(this::getAttributeValueMatcher).collect(toList()));
+                }
             }
 
             private <E extends DataExtractor<String>>
@@ -442,12 +670,17 @@ public final class JavaElementMatcher implements ElementMatcher {
                 return stringOrRegex.charAt(0) == '/';
             }
 
+            private boolean isString(String stringOrRegex) {
+                return stringOrRegex.charAt(0) == '\'';
+            }
+
             private String extractStringOrRegex(String value) {
                 return value.substring(1, value.length() - 1);
             }
 
             //TODO implement
         });
+
 
         TopExpressionContext ctx = parser.topExpression();
         if (ctx.exception != null) {
@@ -489,63 +722,13 @@ public final class JavaElementMatcher implements ElementMatcher {
         }
     }
 
-    private static ElementMatcherParser createNewParser(String recipe) {
+    private static ElementMatcherParser createNewParser(String recipe, ANTLRErrorListener errorListener) {
         ElementMatcherLexer lexer = new ElementMatcherLexer(CharStreams.fromString(recipe));
-        return new ElementMatcherParser(new CommonTokenStream(lexer));
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(errorListener);
+        ElementMatcherParser parser = new ElementMatcherParser(new CommonTokenStream(lexer));
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        return parser;
     }
-
-    //
-//    private static final class ParameterIndexExtractor implements DataExtractor<Integer> {
-//
-//        @Override
-//        public Integer extract(JavaElement element) {
-//            if (element instanceof MethodParameterElement) {
-//                return ((MethodParameterElement) element).getIndex();
-//            }
-//            return null;
-//        }
-//
-//        @Override
-//        public Class<Integer> extractedType() {
-//            return Integer.class;
-//        }
-//    }
-//
-//    private static final class ReturnTypeExtractor implements DataExtractor<String> {
-//
-//        @Override
-//        public String extract(JavaElement element) {
-//            if (element instanceof MethodElement) {
-//                TypeMirror returnType = ((MethodElement) element).getModelRepresentation().getReturnType();
-//                return Util.toHumanReadableString(returnType);
-//            }
-//            return null;
-//        }
-//
-//        @Override
-//        public Class<String> extractedType() {
-//            return String.class;
-//        }
-//    }
-//
-//    private static final class ErasedSignatureExtractor implements DataExtractor<String> {
-//
-//        @Override
-//        public String extract(JavaElement element) {
-//            if (element instanceof JavaModelElement) {
-//                Types tps = element.getTypeEnvironment().getTypeUtils();
-//                return Util.toHumanReadableString(tps.erasure(((JavaModelElement) element).getModelRepresentation()));
-//            } else if (element instanceof JavaAnnotationElement) {
-//                return Util.toHumanReadableString(((JavaAnnotationElement) element).getAnnotation());
-//            } else {
-//                return null;
-//            }
-//        }
-//
-//        @Override
-//        public Class<String> extractedType() {
-//            return String.class;
-//        }
-//    }
-//
 }

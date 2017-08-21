@@ -17,6 +17,7 @@
 
 package org.revapi.java.matcher;
 
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.java.spi.JavaAnnotationElement;
@@ -39,6 +40,10 @@ interface DataExtractor<T> {
      * @return a representation of the type
      */
     T extract(TypeMirror type);
+
+    T extract(AnnotationAttributeElement element);
+
+    T extract(AnnotationValue value);
 
     Class<T> extractedType();
 }

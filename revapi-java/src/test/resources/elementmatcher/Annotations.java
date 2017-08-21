@@ -1,6 +1,7 @@
 package element.matcher;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -10,17 +11,20 @@ public class Annotations {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public @interface A {
-        String value() default "";
+        String[] value() default {};
 
         int arg1() default 0;
 
         int arg2();
+
+        B[] arg3() default {};
     }
 
-    @Target(ElementType.METHOD)
+    @Target({ElementType.METHOD, ElementType.TYPE})
     @Retention(RetentionPolicy.RUNTIME)
+    @Inherited
     public @interface B {
-        String value() default "";
+        String value() default "kachna";
     }
 
     @A(arg2 = 1)
@@ -30,9 +34,27 @@ public class Annotations {
     @B("kachna")
     public void method2() {}
 
-    @A(value = "kachna", arg2 = 1)
+    @A(arg2 = 1)
     public void method3() {}
 
-    @A(value = "kachna", arg1 = 0, arg2 = 1)
+    @A(value = {"kachna", "drachma"}, arg1 = 0, arg2 = 0, arg3 = @B)
     public void method4() {}
+
+    @B
+    public class Base {
+
+    }
+
+    @B
+    public interface Iface {
+
+    }
+
+    public class InheritingChild extends Base {
+
+    }
+
+    public class NotInheritingChild implements Iface {
+
+    }
 }

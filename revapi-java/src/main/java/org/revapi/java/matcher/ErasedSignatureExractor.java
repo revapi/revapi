@@ -17,6 +17,7 @@
 
 package org.revapi.java.matcher;
 
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
@@ -43,6 +44,16 @@ final class ErasedSignatureExractor implements DataExtractor<String> {
     @Override
     public String extract(TypeMirror type) {
         return Util.toHumanReadableString(type);
+    }
+
+    @Override
+    public String extract(AnnotationAttributeElement element) {
+        return extract(element.getAttributeMethod().getReturnType());
+    }
+
+    @Override
+    public String extract(AnnotationValue value) {
+        return "";
     }
 
     @Override

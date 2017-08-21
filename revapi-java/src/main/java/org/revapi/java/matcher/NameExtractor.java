@@ -17,6 +17,7 @@
 
 package org.revapi.java.matcher;
 
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -62,12 +63,22 @@ final class NameExtractor implements DataExtractor<String> {
 
     @Override
     public String extract(JavaAnnotationElement element) {
-        return nameExtractor.visit(element.getAnnotation().getAnnotationType().asElement());
+        return "@" + nameExtractor.visit(element.getAnnotation().getAnnotationType().asElement());
     }
 
     @Override
     public String extract(TypeMirror type) {
         return Util.toHumanReadableString(type);
+    }
+
+    @Override
+    public String extract(AnnotationAttributeElement element) {
+        return element.getAttributeMethod().getSimpleName().toString();
+    }
+
+    @Override
+    public String extract(AnnotationValue value) {
+        return "";
     }
 
     @Override

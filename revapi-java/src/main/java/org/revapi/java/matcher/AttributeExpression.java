@@ -17,17 +17,13 @@
 
 package org.revapi.java.matcher;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Pattern;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.AnnotationValueVisitor;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.java.spi.JavaAnnotationElement;
@@ -37,22 +33,15 @@ import org.revapi.java.spi.JavaModelElement;
  * @author Lukas Krejci
  */
 final class AttributeExpression implements MatchExpression {
-    private final ComparisonOperator operator;
-    private final @Nullable Object expectedValue;
-    private final boolean explicitValueRequired;
-    private final @Nullable String attributeName;
-    private final @Nullable Pattern attributePattern;
+    private final @Nullable MatchExpression valueMatch;
+    private final @Nullable MatchExpression attributeNameMatch;
+    private final boolean onlyExplicitValues;
 
-    public AttributeExpression(@Nullable String attributeName, @Nullable String attributePattern, @Nullable ComparisonOperator operator, @Nullable Object expectedValue, boolean explicitValueRequired) {
-        this.operator = operator == null ? ComparisonOperator.EQ : operator;
-        this.expectedValue = expectedValue;
-        this.explicitValueRequired = explicitValueRequired;
-        this.attributeName = attributeName;
-
-        //noinspection ConstantConditions
-        this.attributePattern = attributePattern == null
-                ? null
-                : Pattern.compile(attributeName);
+    public AttributeExpression(@Nullable MatchExpression attributeNameMatch, @Nullable MatchExpression valueMatch,
+                               boolean onlyExplicitValues) {
+        this.attributeNameMatch = attributeNameMatch;
+        this.valueMatch = valueMatch;
+        this.onlyExplicitValues = onlyExplicitValues;
     }
 
     @Override
@@ -65,148 +54,28 @@ final class AttributeExpression implements MatchExpression {
         AnnotationMirror am = annotation.getAnnotation();
         Map<? extends ExecutableElement, ? extends AnnotationValue> attrs;
 
-        if (explicitValueRequired) {
+        if (onlyExplicitValues) {
             attrs = am.getElementValues();
         } else {
             attrs = annotation.getTypeEnvironment().getElementUtils()
                     .getElementValuesWithDefaults(am);
         }
 
-        AnnotationValue val = findAttributeValue(attrs);
-        if (val == null) {
-            return false;
-        }
+        Predicate<AnnotationAttributeElement> nameFilter = attributeNameMatch == null
+                ? __ -> true
+                : attributeNameMatch::matches;
 
-        return matchValue(val);
+        Predicate<AnnotationAttributeElement> valueFilter = valueMatch == null
+                ? __ -> true
+                : valueMatch::matches;
+
+        return attrs.entrySet().stream()
+                .map(e -> new AnnotationAttributeElement(annotation, e.getKey(), e.getValue()))
+                .anyMatch(nameFilter.and(valueFilter));
     }
 
     @Override
     public boolean matches(TypeMirror type) {
         return false;
-    }
-
-    private @Nullable AnnotationValue findAttributeValue(Map<? extends ExecutableElement, ? extends AnnotationValue> attrs) {
-        for(Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> e : attrs.entrySet()) {
-            ExecutableElement m = e.getKey();
-            AnnotationValue v = e.getValue();
-
-            String name = m.getSimpleName().toString();
-
-            if (matchName(name)) {
-                return v;
-            }
-        }
-
-        return null;
-    }
-
-    private boolean matchName(String name) {
-        if (attributeName != null) {
-            switch (operator) {
-                case EQ:
-                    return attributeName.equals(name);
-                case NE:
-                    return !attributeName.equals(name);
-                default:
-                    throw new IllegalArgumentException("String comparisons only support = and != operators.");
-            }
-        } else if (attributePattern != null) {
-            switch (operator) {
-                case EQ:
-                    return attributePattern.matcher(name).matches();
-                case NE:
-                    return !attributePattern.matcher(name).matches();
-                default:
-                    throw new IllegalArgumentException("String comparisons only support = and != operators.");
-            }
-        } else {
-            throw new IllegalStateException("Either string or regex comparison should be set for attribute name.");
-        }
-    }
-
-    private boolean matchValue(AnnotationValue value) {
-        Object actualValue = value.accept(new AnnotationValueVisitor<Object, Void>() {
-            @Override
-            public Object visit(AnnotationValue av, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visit(AnnotationValue av) {
-                return null;
-            }
-
-            @Override
-            public Object visitBoolean(boolean b, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitByte(byte b, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitChar(char c, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitDouble(double d, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitFloat(float f, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitInt(int i, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitLong(long i, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitShort(short s, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitString(String s, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitType(TypeMirror t, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitEnumConstant(VariableElement c, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitAnnotation(AnnotationMirror a, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitArray(List<? extends AnnotationValue> vals, Void __) {
-                return null;
-            }
-
-            @Override
-            public Object visitUnknown(AnnotationValue av, Void aVoid) {
-                return null;
-            }
-        }, null);
-
-        return Objects.equals(expectedValue, actualValue);
     }
 }

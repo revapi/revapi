@@ -20,41 +20,38 @@ package org.revapi.java.matcher;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.Archive;
+import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
-import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
  */
-final class GenericSignatureExtractor implements DataExtractor<String> {
+abstract class AbstractAttributeValueExpression implements MatchExpression {
     @Override
-    public String extract(JavaModelElement element) {
-        return Util.toHumanReadableString(element.getDeclaringElement().asType());
+    public final boolean matches(JavaModelElement element) {
+        return false;
     }
 
     @Override
-    public String extract(JavaAnnotationElement element) {
-        return Util.toHumanReadableString(element.getAnnotation());
+    public final boolean matches(JavaAnnotationElement annotation) {
+        return false;
     }
 
     @Override
-    public String extract(TypeMirror type) {
-        return Util.toHumanReadableString(type);
+    public final boolean matches(AnnotationAttributeElement attribute) {
+        return matches(attribute.getAnnotationValue(), attribute.getArchive(), (ProbingEnvironment) attribute.getTypeEnvironment());
     }
 
     @Override
-    public String extract(AnnotationAttributeElement element) {
-        return extract(element.getAttributeMethod().getReturnType());
+    public final boolean matches(TypeMirror type) {
+        return false;
     }
 
-    @Override
-    public String extract(AnnotationValue value) {
-        return "";
+    public boolean matches(int index, AnnotationValue value, Archive archive, ProbingEnvironment env) {
+        return matches(value, archive, env);
     }
 
-    @Override
-    public Class<String> extractedType() {
-        return String.class;
-    }
+    public abstract boolean matches(AnnotationValue value, Archive archive, ProbingEnvironment env);
 }

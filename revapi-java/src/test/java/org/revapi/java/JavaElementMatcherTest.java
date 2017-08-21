@@ -468,7 +468,113 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testHasAnnotation() throws Exception {
-        //TODO Implement
+        testOn("elementmatcher/Annotations.java", types -> {
+            Element cls = types.getRoots().first();
+
+            Function<String, MethodElement> getMethod = methodName ->
+                    cls.searchChildren(MethodElement.class, false,
+                            Filter.shallow(m -> m.getDeclaringElement().getSimpleName().contentEquals(methodName)))
+                            .get(0);
+            Function<String, TypeElement> getClass = typeName ->
+                    cls.searchChildren(TypeElement.class, false,
+                            Filter.shallow(m -> m.getDeclaringElement().getSimpleName().contentEquals(typeName)))
+                            .get(0);
+
+            MethodElement method1 = getMethod.apply("method1");
+            MethodElement method2 = getMethod.apply("method2");
+            MethodElement method3 = getMethod.apply("method3");
+            MethodElement method4 = getMethod.apply("method4");
+
+            TypeElement base = getClass.apply("Base");
+            TypeElement iface = getClass.apply("Iface");
+            TypeElement inheritingChild = getClass.apply("InheritingChild");
+            TypeElement notInheritingChild = getClass.apply("NotInheritingChild");
+
+            String hasAnnotation = "has annotation '@element.matcher.Annotations.A'";
+            String hasDeclaredInheritableAnnotation = "has declared annotation '@element.matcher.Annotations.B'";
+            String hasInheritableAnnotation = "has annotation '@element.matcher.Annotations.B'";
+
+            assertMatches(hasAnnotation, method1);
+            assertDoesntMatch(hasAnnotation, method2);
+            assertMatches(hasAnnotation, method3);
+            assertMatches(hasAnnotation, method4);
+
+            assertMatches(hasDeclaredInheritableAnnotation, base);
+            assertMatches(hasDeclaredInheritableAnnotation, iface);
+            assertDoesntMatch(hasDeclaredInheritableAnnotation, inheritingChild);
+            assertDoesntMatch(hasDeclaredInheritableAnnotation, notInheritingChild);
+
+            assertMatches(hasInheritableAnnotation, base);
+            assertMatches(hasInheritableAnnotation, iface);
+            assertMatches(hasInheritableAnnotation, inheritingChild);
+            assertDoesntMatch(hasInheritableAnnotation, notInheritingChild);
+        });
+    }
+
+    @Test
+    @Parameters({
+            "has explicit attribute 'value',false,true,false,true",
+            "has attribute 'value' that is equal to 'kachna',true,true,false,false",
+            "has attribute 'arg2' that is not equal to 0,true,false,true,false",
+            "has attribute 'value' that is equal to {'kachna'\\,/dra.hma/},false,false,false,true",
+            "has attribute 'arg3' that is equal to {'@element.matcher.Annotations.B'},false,false,false,true",
+            "has attribute 'arg2' that is greater than 0,true,false,true,false",
+            "has attribute 'arg2' that is less than 1,false,false,false,true",
+            "has attribute that has 2 elements,false,false,false,true",
+            "has attribute that has more than 1 elements,false,false,false,true",
+            "has explicit attribute that has less than 3 elements,false,false,false,true",
+            "has attribute that has element that is equal to 'kachna',false,false,false,true",
+            "has attribute that has element that (is equal to 'kachna'),false,false,false,true",
+            "has attribute that has element 1,false,false,false,true",
+            "has attribute that has element 1 that is not equal to 'kachna',false,false,false,true",
+            "has attribute 'value' that doesn't have element 1,true,true,true,false",
+            "has attribute 'value' that doesn't have element 0 that is equal to 'kachna',true,true,true,false",
+            "has attribute that has element that has attribute that is equal to 'kachna',false,false,false,true",
+            "has explicit attribute that is equal to 0 or is equal to 'kachna',false,true,false,true",
+            "has explicit attribute that has type 'element.matcher.Annotations.B[]',false,false,false,true",
+            "has explicit attribute that doesn't have type 'element.matcher.Annotations.B[]',true,true,true,true"
+    })
+    public void testHasAnnotationAttribute(String test, boolean matchesMethod1, boolean matchesMethod2,
+                                           boolean matchesMethod3, boolean matchesMethod4) throws Exception {
+        testOn("elementmatcher/Annotations.java", types -> {
+            Element cls = types.getRoots().first();
+
+            Function<String, MethodElement> getMethod = methodName ->
+                    cls.searchChildren(MethodElement.class, false,
+                            Filter.shallow(m -> m.getDeclaringElement().getSimpleName().contentEquals(methodName)))
+                            .get(0);
+
+            MethodElement method1 = getMethod.apply("method1");
+            MethodElement method2 = getMethod.apply("method2");
+            MethodElement method3 = getMethod.apply("method3");
+            MethodElement method4 = getMethod.apply("method4");
+
+            String realTest = "has annotation (" + test + ")";
+
+            if (matchesMethod1) {
+                assertMatches(realTest, method1);
+            } else {
+                assertDoesntMatch(realTest, method1);
+            }
+
+            if (matchesMethod2) {
+                assertMatches(realTest, method2);
+            } else {
+                assertDoesntMatch(realTest, method2);
+            }
+
+            if (matchesMethod3) {
+                assertMatches(realTest, method3);
+            } else {
+                assertDoesntMatch(realTest, method3);
+            }
+
+            if (matchesMethod4) {
+                assertMatches(realTest, method4);
+            } else {
+                assertDoesntMatch(realTest, method4);
+            }
+        });
     }
 
     @Test

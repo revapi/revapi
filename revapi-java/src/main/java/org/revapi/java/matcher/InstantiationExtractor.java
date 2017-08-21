@@ -17,7 +17,9 @@
 
 package org.revapi.java.matcher;
 
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -40,6 +42,27 @@ final class InstantiationExtractor implements DataExtractor<String> {
     @Override
     public String extract(TypeMirror type) {
         return Util.toHumanReadableString(type);
+    }
+
+    @Override
+    public String extract(AnnotationAttributeElement element) {
+        return element.getAttributeMethod().getSimpleName().toString() + " = "
+                + Util.toHumanReadableString(element.getAnnotationValue());
+    }
+
+    @Override
+    public String extract(AnnotationValue value) {
+        return value.accept(new SimpleAnnotationValueVisitor8<String, Void>() {
+            @Override
+            protected String defaultAction(Object o, Void aVoid) {
+                return Util.toHumanReadableString(value);
+            }
+
+            @Override
+            public String visitString(String s, Void __) {
+                return s;
+            }
+        }, null);
     }
 
     @Override

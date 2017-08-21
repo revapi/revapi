@@ -90,7 +90,7 @@ hasExpression_index
     ;
 
 hasExpression_attribute
-    : 'explicit'? 'attribute' (STRING | REGEX)? ('that' hasExpression_attribute_values)?
+    : 'explicit'? 'attribute' (STRING | REGEX)? ('that' (hasExpression_attribute_values | hasExpression_attribute_type))?
     ;
 
 hasExpression_attribute_values
@@ -102,24 +102,28 @@ hasExpression_attribute_values
     | 'has' 'element' NUMBER? 'that' hasExpression_attribute_values
     | 'doesn\'t' 'have' 'element' NUMBER?
     | 'doesn\'t' 'have' 'element' NUMBER? 'that' hasExpression_attribute_values
-    | 'has' 'type' (STRING | REGEX)
-    | 'doesn\'t' 'have' 'type' (STRING | REGEX)
     | 'has' hasExpression_attribute
     | 'doesn\'t' 'have' hasExpression_attribute
     | '(' hasExpression_attribute_values ')'
     | hasExpression_attribute_values LOGICAL_OPERATOR hasExpression_attribute_values
     ;
 
+hasExpression_attribute_type
+    : 'has' 'type' (STRING | REGEX)
+    | 'doesn\'t' 'have' 'type' (STRING | REGEX)
+    ;
+
 hasExpression_attribute_values_subExpr
     : STRING
     | REGEX
     | NUMBER
+    | '{' hasExpression_attribute_values_subExpr (',' hasExpression_attribute_values_subExpr)* '}'
     ;
 
 hasExpression_subExpr
     : ('argument' NUMBER?
         | 'typeParameter'
-        | 'annotation'
+        | 'declared'? 'annotation'
         | 'declared'? 'method'
         | 'declared'? 'field'
         | 'declared'? 'innerClass'
@@ -147,7 +151,7 @@ isExpression
 isExpression_subExpr
     : ('argument' NUMBER? 'of'
         | 'typeParameter' 'of'
-        | 'annotated' 'by'
+        | 'directly'? 'annotated' 'by'
         | 'method' 'of'
         | 'field' 'of'
         | 'outerclass' 'of'

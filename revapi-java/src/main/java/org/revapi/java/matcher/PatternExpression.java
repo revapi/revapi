@@ -50,4 +50,9 @@ final class PatternExpression implements MatchExpression {
     public boolean matches(TypeMirror type) {
         return pattern.matcher(extractor.extract(type)).matches();
     }
+
+    @Override
+    public boolean matches(AnnotationAttributeElement attribute) {
+        return pattern.matcher(extractor.extract(attribute)).matches();
+    }
 }

@@ -17,6 +17,7 @@
 
 package org.revapi.java.matcher;
 
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.type.TypeMirror;
 
@@ -91,6 +92,16 @@ final class ElementKindExtractor implements DataExtractor<String> {
                         + type.getKind() + " encountered");
         }
 
+    }
+
+    @Override
+    public String extract(AnnotationAttributeElement element) {
+        return "attribute";
+    }
+
+    @Override
+    public String extract(AnnotationValue value) {
+        return "attributeValue";
     }
 
     @Override

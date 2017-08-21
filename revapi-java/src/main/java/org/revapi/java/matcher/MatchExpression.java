@@ -37,6 +37,8 @@ interface MatchExpression {
         } else if (element instanceof JavaModelElement) {
             JavaModelElement model = (JavaModelElement) element;
             return matches(model);
+        } else if (element instanceof AnnotationAttributeElement) {
+            return matches((AnnotationAttributeElement) element);
         } else {
             return false;
         }
@@ -57,6 +59,14 @@ interface MatchExpression {
      * @return if this matcher matches the type mirror, false otherwise
      */
     default boolean matches(TypeMirror type) {
+        return false;
+    }
+
+    /**
+     * Only used by match expressions for the annotation attributes
+     * @param attribute the attribute to match
+     */
+    default boolean matches(AnnotationAttributeElement attribute) {
         return false;
     }
 }

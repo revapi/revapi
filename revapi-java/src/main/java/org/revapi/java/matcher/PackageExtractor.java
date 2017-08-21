@@ -17,6 +17,7 @@
 
 package org.revapi.java.matcher;
 
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.type.TypeMirror;
@@ -40,6 +41,16 @@ final class PackageExtractor implements DataExtractor<String> {
 
     @Override
     public String extract(TypeMirror type) {
+        return "";
+    }
+
+    @Override
+    public String extract(AnnotationAttributeElement element) {
+        return "";
+    }
+
+    @Override
+    public String extract(AnnotationValue value) {
         return "";
     }
 
