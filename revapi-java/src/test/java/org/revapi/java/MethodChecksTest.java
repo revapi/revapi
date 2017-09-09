@@ -324,8 +324,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(5, reports.size());
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
-                "method E CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>::genericMethod()",
-                "method T CovariantReturnTypeAndInheritance.Base<T>::genericMethod() @ CovariantReturnTypeAndInheritance.Class",
+                "method E CovariantReturnTypeAndInheritance.Class<E>::genericMethod()",
+                "method java.lang.Number CovariantReturnTypeAndInheritance.Base::genericMethod() @ CovariantReturnTypeAndInheritance.Class",
                 Code.METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED,
                 Code.METHOD_MOVED_TO_SUPERCLASS
         )));
@@ -337,8 +337,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         )));
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
-                "method E CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>::nonGenericMethod()",
-                "method java.lang.Number CovariantReturnTypeAndInheritance.Base<T>::nonGenericMethod() @ CovariantReturnTypeAndInheritance.Class",
+                "method E CovariantReturnTypeAndInheritance.Class<E>::nonGenericMethod()",
+                "method java.lang.Number CovariantReturnTypeAndInheritance.Base::nonGenericMethod() @ CovariantReturnTypeAndInheritance.Class",
                 Code.METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED,
                 Code.METHOD_MOVED_TO_SUPERCLASS
         )));
@@ -351,7 +351,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         )));
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
-                "method java.lang.Object CovariantReturnTypeAndInheritance.Base<T>::method() @ CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>",
+                "method java.lang.Object CovariantReturnTypeAndInheritance.Base<E>::method() @ CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>",
                 "method java.lang.String CovariantReturnTypeAndInheritance.Class::method()",
                 Code.METHOD_RETURN_TYPE_CHANGED_COVARIANTLY,
                 Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS

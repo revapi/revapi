@@ -45,6 +45,11 @@ abstract class AbstractAttributeValueExpression implements MatchExpression {
     }
 
     @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        return false;
+    }
+
+    @Override
     public final boolean matches(TypeMirror type) {
         return false;
     }

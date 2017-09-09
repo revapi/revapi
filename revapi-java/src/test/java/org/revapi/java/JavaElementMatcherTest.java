@@ -607,6 +607,57 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
         //TODO Implement
     }
 
+    @Test
+    public void testIsAKind() throws Exception {
+        testOn("elementmatcher/MatchByKind.java", types -> {
+            Element cls = types.getRoots().first();
+
+            assertMatches("is a 'class'", cls);
+            assertMatches("is not a 'method'", cls);
+            assertMatches("isn't a 'field'", cls);
+        });
+    }
+
+    @Test
+    public void testInPackage() throws Exception {
+        testOn("elementmatcher/MatchByKind.java", types -> {
+            Element cls = types.getRoots().first();
+
+            assertMatches("is in package 'element.matcher'", cls);
+            assertMatches("is not in package 'java.lang'", cls);
+            assertMatches("isn't in package 'java.util'", cls);
+
+            FieldElement enumConst = cls.searchChildren(FieldElement.class, true,
+                    Filter.deep(e -> e.getDeclaringElement().getKind() == ElementKind.ENUM_CONSTANT)).get(0);
+
+            //try that nested elements still get package detected
+            assertMatches("is in package 'element.matcher'", enumConst);
+            assertMatches("is not in package 'java.lang'", enumConst);
+            assertMatches("isn't in package 'java.util'", enumConst);
+        });
+    }
+
+    @Test
+    public void testTypeParameters() throws Exception {
+        testOn("elementmatcher/TypeParameters.java", types -> {
+           Element top = types.getRoots().first();
+            JavaTypeElement base = top.searchChildren(JavaTypeElement.class, false,
+                    Filter.shallow(t -> "Base".equals(t.getDeclaringElement().getSimpleName().toString()))).get(0);
+            JavaTypeElement concreteChild = top.searchChildren(JavaTypeElement.class, false,
+                    Filter.shallow(t -> "ConcreteChild".equals(t.getDeclaringElement().getSimpleName().toString()))).get(0);
+            JavaTypeElement genericChild = top.searchChildren(JavaTypeElement.class, false,
+                    Filter.shallow(t -> "GenericChild".equals(t.getDeclaringElement().getSimpleName().toString()))).get(0);
+
+            assertMatches("has 1 typeParameters", base);
+            assertMatches("doesn't have more than 0 typeParameters", concreteChild);
+            assertMatches("has 2 typeParameters", genericChild);
+
+            assertDoesntMatch("has typeParameter (has upper bound that extends 'java.lang.String')", base);
+            assertDoesntMatch("has typeParameter (is a 'class')", concreteChild);
+            assertMatches("has typeParameter that has upper bound 'java.lang.String'", genericChild);
+        });
+    }
+
     private void assertMatches(String test, Element element) {
         assertTrue("Expecting match for [" + test + "] on " + element, matcher.matches(test, element));
     }

@@ -53,9 +53,8 @@ final class ElementKindExtractor implements DataExtractor<String> {
                 return "method";
             case CONSTRUCTOR:
                 return "constructor";
-            //not supported ATM
-            //case TYPE_PARAMETER:
-            //    return "typeParameter";
+            case TYPE_PARAMETER:
+                return "typeParameter";
             default:
                 throw new IllegalArgumentException("Unsupported element kind: '" + kind + "'.");
         }
@@ -97,6 +96,11 @@ final class ElementKindExtractor implements DataExtractor<String> {
     @Override
     public String extract(AnnotationAttributeElement element) {
         return "attribute";
+    }
+
+    @Override
+    public String extract(TypeParameterElement element) {
+        return "typeParameter";
     }
 
     @Override

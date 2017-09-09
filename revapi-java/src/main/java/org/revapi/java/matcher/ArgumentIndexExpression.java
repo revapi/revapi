@@ -48,4 +48,14 @@ final class ArgumentIndexExpression implements MatchExpression {
     public boolean matches(JavaAnnotationElement annotation) {
         return false;
     }
+
+    @Override
+    public boolean matches(AnnotationAttributeElement attribute) {
+        return false;
+    }
+
+    @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        return false;
+    }
 }

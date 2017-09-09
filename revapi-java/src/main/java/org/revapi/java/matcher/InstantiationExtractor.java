@@ -51,6 +51,11 @@ final class InstantiationExtractor implements DataExtractor<String> {
     }
 
     @Override
+    public String extract(TypeParameterElement element) {
+        return Util.toHumanReadableString(element.getType());
+    }
+
+    @Override
     public String extract(AnnotationValue value) {
         return value.accept(new SimpleAnnotationValueVisitor8<String, Void>() {
             @Override

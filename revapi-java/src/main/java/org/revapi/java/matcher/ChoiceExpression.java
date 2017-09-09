@@ -38,6 +38,16 @@ final class ChoiceExpression implements MatchExpression {
     }
 
     @Override
+    public boolean matches(AnnotationAttributeElement attribute) {
+        return choiceProducer.choiceFor(attribute).anyMatch(choiceMatch::matches);
+    }
+
+    @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        return choiceProducer.choiceFor(typeParameter).anyMatch(choiceMatch::matches);
+    }
+
+    @Override
     public boolean matches(JavaAnnotationElement annotation) {
         return choiceProducer.choiceFor(annotation).anyMatch(choiceMatch::matches);
     }

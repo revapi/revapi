@@ -28,12 +28,10 @@ import org.revapi.java.spi.Util;
 /**
  * @author Lukas Krejci
  */
-final class ErasedSignatureExractor implements DataExtractor<String> {
+final class ErasedSignatureExtractor implements DataExtractor<String> {
     @Override
     public String extract(JavaModelElement element) {
-        Types types = element.getTypeEnvironment().getTypeUtils();
-        TypeMirror erasure = types.erasure(element.getModelRepresentation());
-        return Util.toHumanReadableString(erasure);
+        return extract(element.getModelRepresentation(), element.getTypeEnvironment().getTypeUtils());
     }
 
     @Override
@@ -43,12 +41,17 @@ final class ErasedSignatureExractor implements DataExtractor<String> {
 
     @Override
     public String extract(TypeMirror type) {
-        return Util.toHumanReadableString(type);
+        return extract(type, null);
     }
 
     @Override
     public String extract(AnnotationAttributeElement element) {
-        return extract(element.getAttributeMethod().getReturnType());
+        return extract(element.getAttributeMethod().getReturnType(), element.getTypeEnvironment().getTypeUtils());
+    }
+
+    @Override
+    public String extract(TypeParameterElement element) {
+        return extract(element.getType(), element.getTypeEnvironment().getTypeUtils());
     }
 
     @Override
@@ -59,5 +62,10 @@ final class ErasedSignatureExractor implements DataExtractor<String> {
     @Override
     public Class<String> extractedType() {
         return String.class;
+    }
+
+    private String extract(TypeMirror type, Types types) {
+        type = types == null ? type : types.erasure(type);
+        return Util.toHumanReadableString(type);
     }
 }

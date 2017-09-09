@@ -226,7 +226,7 @@ public final class JavaElementMatcher implements ElementMatcher {
 
                     switch (ctx.getChild(0).getText()) {
                         case "erased":
-                            extractor = new ErasedSignatureExractor();
+                            extractor = new ErasedSignatureExtractor();
                             break;
                         case "generic":
                             extractor = new GenericSignatureExtractor();
@@ -272,6 +272,7 @@ public final class JavaElementMatcher implements ElementMatcher {
                 expressionStack.push(expr);
             }
 
+            @SuppressWarnings("Duplicates")
             @Override
             public void exitHasExpression_arguments(ElementMatcherParser.HasExpression_argumentsContext ctx) {
                 boolean negate = "doesn't".equals(ctx.getChild(0).getText());
@@ -338,10 +339,11 @@ public final class JavaElementMatcher implements ElementMatcher {
 
                 boolean alreadyPushed = false;
 
+                Integer concreteIdx = null;
+
                 switch (ctx.getChild(0).getText()) {
                     case "argument":
                         match = convertNakedStringOrRegexUsing(match, SignatureExtractor::new);
-                        Integer concreteIdx = null;
                         if (ctx.getChildCount() == 3) {
                             concreteIdx = Integer.parseInt(ctx.getChild(1).getText());
                         }
@@ -378,6 +380,13 @@ public final class JavaElementMatcher implements ElementMatcher {
                         expressionStack.push(match);
                         alreadyPushed = true;
                         break;
+                    case "typeParameter":
+                        concreteIdx = null;
+                        if (ctx.NUMBER() != null) {
+                            concreteIdx = Integer.parseInt(ctx.NUMBER().getText());
+                        }
+                        match = convertNakedStringOrRegexUsing(match, SignatureExtractor::new);
+                        choice = new TypeParameterProducer(concreteIdx);
                     case "direct":
                         switch (ctx.getChild(1).getText()) {
                             case "outerClass":
@@ -416,6 +425,54 @@ public final class JavaElementMatcher implements ElementMatcher {
 
                 if (!alreadyPushed) {
                     expressionStack.push(new ChoiceExpression(match, choice));
+                }
+            }
+
+            @SuppressWarnings("Duplicates")
+            @Override
+            public void exitHasExpression_typeParameters(ElementMatcherParser.HasExpression_typeParametersContext ctx) {
+                boolean negate = "doesn't".equals(ctx.getChild(0).getText());
+                ComparisonOperator operator;
+                int numberIdx;
+
+                if (negate) {
+                    if (ctx.getChildCount() == 4) {
+                        numberIdx = 2;
+                        operator = ComparisonOperator.NE;
+                    } else {
+                        numberIdx = 4;
+                        operator = "more".equals(ctx.getChild(2).getText()) ? ComparisonOperator.LTE : ComparisonOperator.GTE;
+                    }
+                } else {
+                    if (ctx.getChildCount() == 3) {
+                        numberIdx = 1;
+                        operator = ComparisonOperator.EQ;
+                    } else {
+                        numberIdx = 3;
+                        operator = "more".equals(ctx.getChild(1).getText()) ? ComparisonOperator.GT : ComparisonOperator.LT;
+                    }
+                }
+
+                int expectedArguments = Integer.parseInt(ctx.getChild(numberIdx).getText());
+
+                expressionStack.push(new NumberOfTypeParametersExpression(operator, expectedArguments));
+            }
+
+            @Override
+            public void exitHasExpression_typeParameterBounds(ElementMatcherParser.HasExpression_typeParameterBoundsContext ctx) {
+                MatchExpression subExpr = convertNakedStringOrRegexUsing(expressionStack.pop(), SignatureExtractor::new);
+                int boundTypeIdx = "doesn't".equals(textAt(ctx, 0)) ? 2 : 1;
+
+                String boundType = textAt(ctx, boundTypeIdx);
+                switch (boundType) {
+                    case "lower":
+                        expressionStack.push(new TypeParameterBoundExpression(subExpr, true));
+                        break;
+                    case "upper":
+                        expressionStack.push(new TypeParameterBoundExpression(subExpr, false));
+                        break;
+                    default:
+                        throw new IllegalStateException("Unrecognized type parameter bound type. Expected 'lower' or 'upper' but got: " + boundType);
                 }
             }
 
@@ -606,6 +663,44 @@ public final class JavaElementMatcher implements ElementMatcher {
             }
 
             @Override
+            public void exitIsExpression(ElementMatcherParser.IsExpressionContext ctx) {
+                boolean negate = false;
+                if ("not".equals(textAt(ctx, 1))) {
+                    negate = true;
+                } else if ("isn't".equals(textAt(ctx, 0))) {
+                    negate = true;
+                }
+
+                if (negate) {
+                    expressionStack.push(new NegatingExpression(expressionStack.pop()));
+                }
+            }
+
+            @Override
+            public void exitIsExpression_kind(ElementMatcherParser.IsExpression_kindContext ctx) {
+                String stringOrRegex = textAt(ctx, 1);
+                if (isRegex(stringOrRegex)) {
+                    expressionStack.push(
+                    new PatternExpression(new ElementKindExtractor(), extractStringOrRegex(stringOrRegex)));
+                } else {
+                    expressionStack.push(
+                            new StringExpression(new ElementKindExtractor(), extractStringOrRegex(stringOrRegex)));
+                }
+            }
+
+            @Override
+            public void exitIsExpression_package(ElementMatcherParser.IsExpression_packageContext ctx) {
+                String stringOrRegex = textAt(ctx, 2);
+                if (isRegex(stringOrRegex)) {
+                    expressionStack.push(
+                            new PatternExpression(new PackageExtractor(), extractStringOrRegex(stringOrRegex)));
+                } else {
+                    expressionStack.push(
+                            new StringExpression(new PackageExtractor(), extractStringOrRegex(stringOrRegex)));
+                }
+            }
+
+            @Override
             public void exitStringExpression(ElementMatcherParser.StringExpressionContext ctx) {
                 expressionStack.push(new DataExtractorNeededMarker(DataExtractorNeededMarker.MatcherKind.STRING,
                         extractStringOrRegexValue(ctx)));
@@ -714,6 +809,16 @@ public final class JavaElementMatcher implements ElementMatcher {
 
         @Override
         public boolean matches(JavaAnnotationElement annotation) {
+            throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
+        }
+
+        @Override
+        public boolean matches(AnnotationAttributeElement attribute) {
+            throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
+        }
+
+        @Override
+        public boolean matches(TypeParameterElement typeParameter) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 

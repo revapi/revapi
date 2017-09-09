@@ -34,9 +34,10 @@ interface MatchExpression {
     default boolean matches(JavaElement element) {
         if (element instanceof JavaAnnotationElement) {
             return matches((JavaAnnotationElement) element);
+        } else if (element instanceof TypeParameterElement) {
+            return matches((TypeParameterElement) element);
         } else if (element instanceof JavaModelElement) {
-            JavaModelElement model = (JavaModelElement) element;
-            return matches(model);
+            return matches((JavaModelElement) element);
         } else if (element instanceof AnnotationAttributeElement) {
             return matches((AnnotationAttributeElement) element);
         } else {
@@ -66,7 +67,7 @@ interface MatchExpression {
      * Only used by match expressions for the annotation attributes
      * @param attribute the attribute to match
      */
-    default boolean matches(AnnotationAttributeElement attribute) {
-        return false;
-    }
+    boolean matches(AnnotationAttributeElement attribute);
+
+    boolean matches(TypeParameterElement typeParameter);
 }

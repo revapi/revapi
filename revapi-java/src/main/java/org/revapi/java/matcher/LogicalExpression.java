@@ -36,23 +36,30 @@ final class LogicalExpression implements MatchExpression {
 
     @Override
     public boolean matches(JavaModelElement element) {
-        switch (operator) {
-            case AND:
-                return left.matches(element) && right.matches(element);
-            case OR:
-                return left.matches(element) || right.matches(element);
-            default:
-                return false;
-        }
+        return applyOperator(left.matches(element), right.matches(element));
+    }
+
+    @Override
+    public boolean matches(AnnotationAttributeElement attribute) {
+        return applyOperator(left.matches(attribute), right.matches(attribute));
+    }
+
+    @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        return applyOperator(left.matches(typeParameter), right.matches(typeParameter));
     }
 
     @Override
     public boolean matches(JavaAnnotationElement annotation) {
+        return applyOperator(left.matches(annotation), right.matches(annotation));
+    }
+
+    private boolean applyOperator(boolean left, boolean right) {
         switch (operator) {
             case AND:
-                return left.matches(annotation) && right.matches(annotation);
+                return left && right;
             case OR:
-                return left.matches(annotation) || right.matches(annotation);
+                return left || right;
             default:
                 return false;
         }

@@ -23,8 +23,12 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleElementVisitor8;
+import javax.lang.model.util.SimpleTypeVisitor8;
 
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -73,7 +77,27 @@ final class NameExtractor implements DataExtractor<String> {
 
     @Override
     public String extract(AnnotationAttributeElement element) {
-        return element.getAttributeMethod().getSimpleName().toString();
+        return nameExtractor.visit(element.getAttributeMethod());
+    }
+
+    @Override
+    public String extract(org.revapi.java.matcher.TypeParameterElement element) {
+        return element.getType().accept(new SimpleTypeVisitor8<String, Void>() {
+            @Override
+            public String visitTypeVariable(TypeVariable t, Void aVoid) {
+                return nameExtractor.visit(t.asElement());
+            }
+
+            @Override
+            public String visitWildcard(WildcardType t, Void aVoid) {
+                return "?";
+            }
+
+            @Override
+            public String visitDeclared(DeclaredType t, Void aVoid) {
+                return nameExtractor.visit(t.asElement());
+            }
+        }, null);
     }
 
     @Override

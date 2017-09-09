@@ -75,6 +75,18 @@ final class AttributeExpression implements MatchExpression {
     }
 
     @Override
+    public boolean matches(AnnotationAttributeElement attribute) {
+        return (attributeNameMatch == null || attributeNameMatch.matches(attribute))
+                && (valueMatch == null || valueMatch.matches(attribute));
+
+    }
+
+    @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        return false;
+    }
+
+    @Override
     public boolean matches(TypeMirror type) {
         return false;
     }

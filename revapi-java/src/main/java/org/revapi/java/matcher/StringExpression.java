@@ -55,4 +55,9 @@ final class StringExpression implements MatchExpression {
     public boolean matches(AnnotationAttributeElement attribute) {
         return Objects.equals(value, extractor.extract(attribute));
     }
+
+    @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        return Objects.equals(value, extractor.extract(typeParameter));
+    }
 }

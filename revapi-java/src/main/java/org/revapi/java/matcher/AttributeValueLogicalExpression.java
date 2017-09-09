@@ -36,7 +36,6 @@ final class AttributeValueLogicalExpression extends AbstractAttributeValueExpres
         this.right = right;
     }
 
-
     @Override
     public boolean matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
         switch (operator) {

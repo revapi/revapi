@@ -17,7 +17,7 @@
 
 package org.revapi.java.matcher;
 
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.element.Parameterizable;
 
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -25,35 +25,40 @@ import org.revapi.java.spi.JavaModelElement;
 /**
  * @author Lukas Krejci
  */
-final class NegatingExpression implements MatchExpression {
-    private final MatchExpression expr;
+final class NumberOfTypeParametersExpression implements MatchExpression {
+    private final ComparisonOperator operator;
+    private final int expected;
 
-    NegatingExpression(MatchExpression expr) {
-        this.expr = expr;
+    NumberOfTypeParametersExpression(ComparisonOperator operator, int expected) {
+        this.operator = operator;
+        this.expected = expected;
     }
 
     @Override
     public boolean matches(JavaModelElement element) {
-        return !expr.matches(element);
-    }
+        if (!(element.getDeclaringElement() instanceof Parameterizable)) {
+            return false;
+        }
 
-    @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return !expr.matches(typeParameter);
+        Parameterizable el = (Parameterizable) element.getDeclaringElement();
+
+        int nofArguments = el.getTypeParameters().size();
+
+        return operator.evaluate(nofArguments, expected);
     }
 
     @Override
     public boolean matches(JavaAnnotationElement annotation) {
-        return !expr.matches(annotation);
-    }
-
-    @Override
-    public boolean matches(TypeMirror type) {
-        return !expr.matches(type);
+        return false;
     }
 
     @Override
     public boolean matches(AnnotationAttributeElement attribute) {
-        return !expr.matches(attribute);
+        return false;
+    }
+
+    @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        return false;
     }
 }

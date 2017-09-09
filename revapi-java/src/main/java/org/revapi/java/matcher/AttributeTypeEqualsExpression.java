@@ -52,6 +52,11 @@ final class AttributeTypeEqualsExpression implements MatchExpression {
     }
 
     @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        return false;
+    }
+
+    @Override
     public boolean matches(AnnotationAttributeElement attribute) {
         String valueType = Util.toHumanReadableString(attribute.getAttributeMethod().getReturnType());
         return typeMatches(valueType);

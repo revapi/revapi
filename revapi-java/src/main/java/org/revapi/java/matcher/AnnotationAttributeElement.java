@@ -72,7 +72,11 @@ final class AnnotationAttributeElement extends SimpleElement implements JavaElem
 
     @Override
     public int compareTo(Element o) {
-        return attributeMethod.getSimpleName().toString().compareTo(attributeMethod.getSimpleName().toString());
+        if (!(o instanceof AnnotationAttributeElement)) {
+            return MatchElementsAwareComparator.compareByType(this, o);
+        }
+        return attributeMethod.getSimpleName().toString()
+                .compareTo(((AnnotationAttributeElement) o).attributeMethod.getSimpleName().toString());
     }
 
     public ExecutableElement getAttributeMethod() {

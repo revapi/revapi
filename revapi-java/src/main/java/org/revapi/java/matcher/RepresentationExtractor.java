@@ -51,6 +51,11 @@ final class RepresentationExtractor implements DataExtractor<String> {
     }
 
     @Override
+    public String extract(TypeParameterElement element) {
+        return extract(element.getType());
+    }
+
+    @Override
     public String extract(AnnotationValue value) {
         return Util.toHumanReadableString(value);
     }

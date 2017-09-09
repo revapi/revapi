@@ -20,7 +20,11 @@ package org.revapi.java.matcher;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.WildcardType;
+import javax.lang.model.util.SimpleTypeVisitor8;
 
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -47,6 +51,26 @@ final class PackageExtractor implements DataExtractor<String> {
     @Override
     public String extract(AnnotationAttributeElement element) {
         return "";
+    }
+
+    @Override
+    public String extract(TypeParameterElement element) {
+        return element.getType().accept(new SimpleTypeVisitor8<String, Void>() {
+            @Override
+            public String visitTypeVariable(TypeVariable t, Void aVoid) {
+                return packageOf(t.asElement());
+            }
+
+            @Override
+            public String visitWildcard(WildcardType t, Void aVoid) {
+                return "";
+            }
+
+            @Override
+            public String visitDeclared(DeclaredType t, Void aVoid) {
+                return packageOf(t.asElement());
+            }
+        }, null);
     }
 
     @Override

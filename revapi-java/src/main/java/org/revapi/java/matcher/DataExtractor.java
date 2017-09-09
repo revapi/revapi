@@ -43,6 +43,8 @@ interface DataExtractor<T> {
 
     T extract(AnnotationAttributeElement element);
 
+    T extract(TypeParameterElement element);
+
     T extract(AnnotationValue value);
 
     Class<T> extractedType();

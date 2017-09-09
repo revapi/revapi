@@ -49,6 +49,11 @@ final class GenericSignatureExtractor implements DataExtractor<String> {
     }
 
     @Override
+    public String extract(TypeParameterElement element) {
+        return extract(element.getType());
+    }
+
+    @Override
     public String extract(AnnotationValue value) {
         return "";
     }

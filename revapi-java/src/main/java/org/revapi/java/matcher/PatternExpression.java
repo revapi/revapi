@@ -55,4 +55,9 @@ final class PatternExpression implements MatchExpression {
     public boolean matches(AnnotationAttributeElement attribute) {
         return pattern.matcher(extractor.extract(attribute)).matches();
     }
+
+    @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        return pattern.matcher(extractor.extract(typeParameter)).matches();
+    }
 }

@@ -45,6 +45,30 @@ final class HasSuperTypeExpression implements MatchExpression {
         TypeEnvironment env = element.getTypeEnvironment();
 
         TypeMirror superType = ((JavaTypeElement) element).getDeclaringElement().getSuperclass();
+
+        return superTypeMatches(env, superType);
+    }
+
+    @Override
+    public boolean matches(JavaAnnotationElement annotation) {
+        return false;
+    }
+
+    @Override
+    public boolean matches(AnnotationAttributeElement attribute) {
+        return false;
+    }
+
+    @Override
+    public boolean matches(TypeParameterElement typeParameter) {
+        TypeEnvironment env = typeParameter.getTypeEnvironment();
+
+        TypeMirror tp = typeParameter.getType();
+
+        return false;
+    }
+
+    private boolean superTypeMatches(TypeEnvironment env, TypeMirror superType) {
         JavaTypeElement superTypeElement = superType == null ? null : env.getModelElement(superType);
 
         if (superTypeElement == null) {
@@ -65,11 +89,6 @@ final class HasSuperTypeExpression implements MatchExpression {
             superTypeElement = superType == null ? null : env.getModelElement(superType);
         }
 
-        return false;
-    }
-
-    @Override
-    public boolean matches(JavaAnnotationElement annotation) {
         return false;
     }
 }

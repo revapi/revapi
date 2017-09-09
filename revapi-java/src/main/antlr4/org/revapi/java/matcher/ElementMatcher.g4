@@ -33,7 +33,8 @@ expression
 subExpression
     : stringExpression
     | regexExpression
-    | parenthesizedExpression
+    | 'that'? parenthesizedExpression
+    | 'that' expression
     ;
 
 parenthesizedExpression
@@ -72,6 +73,8 @@ hasExpression
     : hasExpression_basic
     | hasExpression_arguments
     | hasExpression_index
+    | hasExpression_typeParameters
+    | hasExpression_typeParameterBounds
     ;
 
 hasExpression_basic
@@ -87,6 +90,16 @@ hasExpression_arguments
 hasExpression_index
     : 'has' 'index' (('larger' | 'less') 'than')? NUMBER
     | 'doesn\'t' 'have' 'index' (('larger' | 'less') 'than')? NUMBER
+    ;
+
+hasExpression_typeParameters
+    : 'has' (('more' | 'less') 'than')? NUMBER 'typeParameters'
+    | 'doesn\'t' 'have' (('more' | 'less') 'than')? NUMBER 'typeParameters'
+    ;
+
+hasExpression_typeParameterBounds
+    : 'has' ('lower' | 'upper') 'bound' subExpression
+    | 'doesn\'t' 'have' ('lower' | 'upper') 'bound' subExpression
     ;
 
 hasExpression_attribute
@@ -122,7 +135,7 @@ hasExpression_attribute_values_subExpr
 
 hasExpression_subExpr
     : ('argument' NUMBER?
-        | 'typeParameter'
+        | 'typeParameter' NUMBER?
         | 'declared'? 'annotation'
         | 'declared'? 'method'
         | 'declared'? 'field'
@@ -152,8 +165,8 @@ isExpression_subExpr
     : ('argument' NUMBER? 'of'
         | 'typeParameter' 'of'
         | 'directly'? 'annotated' 'by'
-        | 'method' 'of'
-        | 'field' 'of'
+        | 'declared'? 'method' 'of'
+        | 'declared'? 'field' 'of'
         | 'outerclass' 'of'
         | 'innerclass' 'of'
         | 'thrown' 'from'
