@@ -655,6 +655,7 @@ public final class Revapi {
             reporters = reporters == null ? Collections.emptySet() : reporters;
             transforms = transforms == null ? Collections.emptySet() : transforms;
             filters = filters == null ? Collections.emptySet() : filters;
+            matchers = matchers == null ? Collections.emptySet() : matchers;
 
             if (analyzers.isEmpty()) {
                 throw new IllegalStateException(
