@@ -12,6 +12,7 @@ pom.xml.versionsBackup
 .classpath
 .settings
 .idea
+.vscode
 *.ipr
 *.iml
 *.iws
