@@ -23,6 +23,8 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -38,8 +40,8 @@ final class AttributeElementCountExpression extends AbstractAttributeValueExpres
     }
 
     @Override
-    public boolean matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return value.accept(new SimpleAnnotationValueVisitor8<Boolean, Void>() {
+    public Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+        return Result.fromBoolean(value.accept(new SimpleAnnotationValueVisitor8<Boolean, Void>() {
             @Override
             protected Boolean defaultAction(Object o, Void __) {
                 return false;
@@ -51,6 +53,6 @@ final class AttributeElementCountExpression extends AbstractAttributeValueExpres
                         ? vals.size() == expectedCount
                         : (less ? vals.size() < expectedCount : vals.size() > expectedCount);
             }
-        }, null);
+        }, null));
     }
 }

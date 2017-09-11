@@ -19,6 +19,8 @@ package org.revapi.java.matcher;
 
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
@@ -37,9 +39,9 @@ final class HasSuperTypeExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
+    public Result matches(JavaModelElement element) {
         if (!(element instanceof JavaTypeElement)) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         TypeEnvironment env = element.getTypeEnvironment();
@@ -50,38 +52,38 @@ final class HasSuperTypeExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return false;
+    public Result matches(JavaAnnotationElement annotation) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return false;
+    public Result matches(AnnotationAttributeElement attribute) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        TypeEnvironment env = typeParameter.getTypeEnvironment();
-
-        TypeMirror tp = typeParameter.getType();
-
-        return false;
+    public Result matches(TypeParameterElement typeParameter) {
+        return Result.DOESNT_MATCH;
     }
 
-    private boolean superTypeMatches(TypeEnvironment env, TypeMirror superType) {
+    private Result superTypeMatches(TypeEnvironment env, TypeMirror superType) {
         JavaTypeElement superTypeElement = superType == null ? null : env.getModelElement(superType);
 
         if (superTypeElement == null) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         if (direct) {
             return superTypeExpression.matches(superTypeElement);
         }
 
+        Result ret = Result.DOESNT_MATCH;
+
         while (superTypeElement != null) {
-            if (superTypeExpression.matches(superTypeElement)) {
-                return true;
+            ret = ret.or(superTypeExpression.matches(superTypeElement));
+
+            if (ret != Result.DOESNT_MATCH) {
+                return ret;
             }
 
             superType = superTypeElement.getDeclaringElement().getSuperclass();
@@ -89,6 +91,6 @@ final class HasSuperTypeExpression implements MatchExpression {
             superTypeElement = superType == null ? null : env.getModelElement(superType);
         }
 
-        return false;
+        return ret;
     }
 }

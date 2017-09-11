@@ -21,6 +21,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -30,33 +31,33 @@ import org.revapi.java.spi.JavaModelElement;
  */
 abstract class AbstractAttributeValueExpression implements MatchExpression {
     @Override
-    public final boolean matches(JavaModelElement element) {
-        return false;
+    public final Result matches(JavaModelElement element) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public final boolean matches(JavaAnnotationElement annotation) {
-        return false;
+    public final Result matches(JavaAnnotationElement annotation) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public final boolean matches(AnnotationAttributeElement attribute) {
+    public final Result matches(AnnotationAttributeElement attribute) {
         return matches(attribute.getAnnotationValue(), attribute.getArchive(), (ProbingEnvironment) attribute.getTypeEnvironment());
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return false;
+    public Result matches(TypeParameterElement typeParameter) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public final boolean matches(TypeMirror type) {
-        return false;
+    public final Result matches(TypeMirror type) {
+        return Result.DOESNT_MATCH;
     }
 
-    public boolean matches(int index, AnnotationValue value, Archive archive, ProbingEnvironment env) {
+    public Result matches(int index, AnnotationValue value, Archive archive, ProbingEnvironment env) {
         return matches(value, archive, env);
     }
 
-    public abstract boolean matches(AnnotationValue value, Archive archive, ProbingEnvironment env);
+    public abstract Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env);
 }

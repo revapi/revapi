@@ -19,6 +19,8 @@ package org.revapi.java.matcher;
 
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 
@@ -33,27 +35,27 @@ final class NegatingExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
-        return !expr.matches(element);
+    public Result matches(JavaModelElement element) {
+        return expr.matches(element).negate();
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return !expr.matches(typeParameter);
+    public Result matches(TypeParameterElement typeParameter) {
+        return expr.matches(typeParameter).negate();
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return !expr.matches(annotation);
+    public Result matches(JavaAnnotationElement annotation) {
+        return expr.matches(annotation).negate();
     }
 
     @Override
-    public boolean matches(TypeMirror type) {
-        return !expr.matches(type);
+    public Result matches(TypeMirror type) {
+        return expr.matches(type).negate();
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return !expr.matches(attribute);
+    public Result matches(AnnotationAttributeElement attribute) {
+        return expr.matches(attribute).negate();
     }
 }

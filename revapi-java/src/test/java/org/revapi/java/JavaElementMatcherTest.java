@@ -18,6 +18,8 @@ import org.junit.runner.RunWith;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.matcher.JavaElementMatcher;
 import org.revapi.java.model.FieldElement;
@@ -659,11 +661,11 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
     }
 
     private void assertMatches(String test, Element element) {
-        assertTrue("Expecting match for [" + test + "] on " + element, matcher.matches(test, element));
+        assertTrue("Expecting match for [" + test + "] on " + element, matcher.matches(test, element) == Result.MATCH);
     }
 
     private void assertDoesntMatch(String test, Element element) {
-        assertFalse("Expecting no match for [" + test + "] on " + element, matcher.matches(test, element));
+        assertTrue("Expecting no match for [" + test + "] on " + element, matcher.matches(test, element) == Result.DOESNT_MATCH);
     }
 
     private <T extends Element> void testSimpleMatchForElementType(Class<T> elementType, String quality, String expectedValue, Filter<T> filter) throws Exception {
@@ -672,7 +674,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
             Element el = cls.searchChildren(elementType, true, filter).get(0);
 
             assertTrue("Testing [" + quality + " = " + expectedValue + "] on " + el,
-                    matcher.matches("has " + quality + expectedValue, el));
+                    matcher.matches("has " + quality + expectedValue, el) == Result.MATCH);
         });
     }
 

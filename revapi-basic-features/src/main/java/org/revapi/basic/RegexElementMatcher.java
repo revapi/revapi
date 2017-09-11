@@ -18,9 +18,9 @@ public final class RegexElementMatcher implements ElementMatcher {
     private final Map<String, Pattern> patternCache = new HashMap<>();
 
     @Override
-    public boolean matches(String recipe, Element element) {
+    public Result matches(String recipe, Element element) {
         Pattern pattern = patternCache.computeIfAbsent(recipe, __ -> Pattern.compile(recipe));
-        return pattern.matcher(element.getFullHumanReadableString()).matches();
+        return Result.fromBoolean(pattern.matcher(element.getFullHumanReadableString()).matches());
     }
 
     @Override

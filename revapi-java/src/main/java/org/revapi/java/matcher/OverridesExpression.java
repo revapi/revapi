@@ -17,12 +17,15 @@
 
 package org.revapi.java.matcher;
 
+import java.util.Iterator;
 import java.util.List;
 
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -42,9 +45,9 @@ final class OverridesExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
+    public Result matches(JavaModelElement element) {
         if (!(element instanceof JavaMethodElement)) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         JavaMethodElement overridingMethodElement = (JavaMethodElement) element;
@@ -57,13 +60,12 @@ final class OverridesExpression implements MatchExpression {
             boolean ret = overridingMethodElement.getDeclaringElement().getSimpleName()
                     .contentEquals(m.getDeclaringElement().getSimpleName());
             ret = ret && types.isSubsignature(overridingMethodType, m.getModelRepresentation());
-            if (ret && overriddenMethodMatch != null) {
-                ret = overriddenMethodMatch.matches(m);
-            }
             return ret;
         });
 
         List<TypeMirror> parentTypes = Util.getAllSuperTypes(types, overridingMethodElement.getParent().getModelRepresentation());
+
+        Result ret = Result.DOESNT_MATCH;
 
         while (!parentTypes.isEmpty()) {
             TypeMirror pt = parentTypes.remove(0);
@@ -73,28 +75,42 @@ final class OverridesExpression implements MatchExpression {
                 continue;
             }
 
-            if (parentType.iterateOverChildren(JavaMethodElement.class, false, check).hasNext()) {
-                return true;
+            Iterator<JavaMethodElement> ms = parentType.iterateOverChildren(JavaMethodElement.class, false, check);
+            if (overriddenMethodMatch == null) {
+                ret = ret.or(Result.fromBoolean(ms.hasNext()));
+                if (ret == Result.MATCH) {
+                    return ret;
+                }
             } else {
-                Util.fillAllSuperTypes(types, pt, parentTypes);
+                while (ms.hasNext()) {
+                    JavaMethodElement m = ms.next();
+
+                    ret = ret.or(overriddenMethodMatch.matches(m));
+
+                    if (ret == Result.MATCH) {
+                        return ret;
+                    }
+                }
             }
+
+            Util.fillAllSuperTypes(types, pt, parentTypes);
         }
 
-        return false;
+        return ret;
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return false;
+    public Result matches(JavaAnnotationElement annotation) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return false;
+    public Result matches(AnnotationAttributeElement attribute) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return false;
+    public Result matches(TypeParameterElement typeParameter) {
+        return Result.DOESNT_MATCH;
     }
 }

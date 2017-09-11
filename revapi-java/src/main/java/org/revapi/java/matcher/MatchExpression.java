@@ -19,6 +19,8 @@ package org.revapi.java.matcher;
 
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -31,7 +33,7 @@ import org.revapi.java.spi.JavaModelElement;
  * @author Lukas Krejci
  */
 interface MatchExpression {
-    default boolean matches(JavaElement element) {
+    default Result matches(JavaElement element) {
         if (element instanceof JavaAnnotationElement) {
             return matches((JavaAnnotationElement) element);
         } else if (element instanceof TypeParameterElement) {
@@ -41,13 +43,13 @@ interface MatchExpression {
         } else if (element instanceof AnnotationAttributeElement) {
             return matches((AnnotationAttributeElement) element);
         } else {
-            return false;
+            return Result.DOESNT_MATCH;
         }
     }
 
-    boolean matches(JavaModelElement element);
+    Result matches(JavaModelElement element);
 
-    boolean matches(JavaAnnotationElement annotation);
+    Result matches(JavaAnnotationElement annotation);
 
     /**
      * This method is here for special cases where we cannot match against a model element.
@@ -57,17 +59,16 @@ interface MatchExpression {
      * {@link PatternExpression} or any other expression that cannot be further decomposed.
      *
      * @param type the type mirror to match
-     * @return if this matcher matches the type mirror, false otherwise
      */
-    default boolean matches(TypeMirror type) {
-        return false;
+    default Result matches(TypeMirror type) {
+        return Result.DOESNT_MATCH;
     }
 
     /**
      * Only used by match expressions for the annotation attributes
      * @param attribute the attribute to match
      */
-    boolean matches(AnnotationAttributeElement attribute);
+    Result matches(AnnotationAttributeElement attribute);
 
-    boolean matches(TypeParameterElement typeParameter);
+    Result matches(TypeParameterElement typeParameter);
 }

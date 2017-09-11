@@ -13,8 +13,8 @@ import org.revapi.ElementMatcher;
  */
 public final class ExactElementMatcher implements ElementMatcher {
     @Override
-    public boolean matches(String recipe, Element element) {
-        return recipe.equals(element.getFullHumanReadableString());
+    public Result matches(String recipe, Element element) {
+        return Result.fromBoolean(recipe.equals(element.getFullHumanReadableString()));
     }
 
     @Override

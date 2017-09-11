@@ -26,6 +26,8 @@ import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.util.ElementKindVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor8;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -42,52 +44,59 @@ final class ThrowsExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
+    public Result matches(JavaModelElement element) {
         List<? extends TypeMirror> thrownTypes = ((JavaMethodElement) element).getModelRepresentation()
                 .getThrownTypes();
 
         if (thrownTypes.isEmpty()) {
-            return throwsMatch == null;
+            return Result.fromBoolean(throwsMatch == null);
         } else if (throwsMatch == null) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
-        TypeVisitor<Boolean, Void> decision = new SimpleTypeVisitor8<Boolean, Void>() {
+        TypeVisitor<Result, Void> decision = new SimpleTypeVisitor8<Result, Void>(Result.DOESNT_MATCH) {
             @Override
-            public Boolean visitDeclared(DeclaredType t, Void ignored) {
-                return t.asElement().accept(new ElementKindVisitor7<Boolean, Void>() {
+            public Result visitDeclared(DeclaredType t, Void ignored) {
+                return t.asElement().accept(new ElementKindVisitor7<Result, Void>(Result.DOESNT_MATCH) {
                     @Override
-                    public Boolean visitType(TypeElement e, Void ignored) {
+                    public Result visitType(TypeElement e, Void ignored) {
                         JavaTypeElement modelType = element.getTypeEnvironment().getModelElement(e);
-                        return modelType != null && throwsMatch.matches(modelType);
+                        if (modelType == null) {
+                            return Result.DOESNT_MATCH;
+                        } else {
+                            return throwsMatch.matches(modelType);
+                        }
                     }
                 }, null);
 
             }
         };
 
+        Result ret = Result.DOESNT_MATCH;
         for (TypeMirror t : thrownTypes) {
-            Boolean result = t.accept(decision, null);
-            if (result != null && result) {
-                return true;
+            Result result = t.accept(decision, null);
+            if (result == Result.MATCH) {
+                return Result.MATCH;
+            } else {
+                ret = ret.or(result);
             }
         }
 
-        return false;
+        return ret;
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return false;
+    public Result matches(JavaAnnotationElement annotation) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return false;
+    public Result matches(AnnotationAttributeElement attribute) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return false;
+    public Result matches(TypeParameterElement typeParameter) {
+        return Result.DOESNT_MATCH;
     }
 }

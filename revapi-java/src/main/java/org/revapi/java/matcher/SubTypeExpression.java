@@ -24,6 +24,8 @@ import java.util.List;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
@@ -45,9 +47,9 @@ final class SubTypeExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
+    public Result matches(JavaModelElement element) {
         if (!(element instanceof JavaTypeElement)) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         TypeMirror elementType = ((JavaTypeElement) element).getModelRepresentation();
@@ -59,7 +61,7 @@ final class SubTypeExpression implements MatchExpression {
             List<? extends TypeMirror> superTypes = types.directSupertypes(elementType);
 
             if (superTypes.isEmpty()) {
-                return false;
+                return Result.DOESNT_MATCH;
             }
 
             if (searchInterfaces) {
@@ -77,28 +79,35 @@ final class SubTypeExpression implements MatchExpression {
 
         TypeEnvironment typeEnvironment = element.getTypeEnvironment();
 
+        Result ret = Result.DOESNT_MATCH;
         for (TypeMirror t : candidates) {
             JavaTypeElement type = typeEnvironment.getModelElement(t);
-            if (type != null && superTypeMatch.matches(type)) {
-                return true;
+            if (type == null) {
+                ret = ret.or(Result.DOESNT_MATCH);
+            } else {
+                ret = ret.or(superTypeMatch.matches(type));
+            }
+
+            if (ret == Result.MATCH) {
+                break;
             }
         }
 
-        return false;
+        return ret;
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return false;
+    public Result matches(JavaAnnotationElement annotation) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return false;
+    public Result matches(AnnotationAttributeElement attribute) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return false;
+    public Result matches(TypeParameterElement typeParameter) {
+        return Result.DOESNT_MATCH;
     }
 }

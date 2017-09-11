@@ -24,6 +24,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -41,32 +42,41 @@ final class AttributeHasElementExpression extends AbstractAttributeValueExpressi
     }
 
     @Override
-    public boolean matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return value.accept(new SimpleAnnotationValueVisitor8<Boolean, Void>() {
+    public Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+        return value.accept(new SimpleAnnotationValueVisitor8<Result, Void>() {
             @Override
-            protected Boolean defaultAction(Object o, Void aVoid) {
-                return false;
+            protected Result defaultAction(Object o, Void aVoid) {
+                return Result.DOESNT_MATCH;
             }
 
             @Override
-            public Boolean visitArray(List<? extends AnnotationValue> vals, Void __) {
+            public Result visitArray(List<? extends AnnotationValue> vals, Void __) {
                 if (elementIndex == null) {
                     if (elementMatch == null) {
-                        return vals.size() > 0;
+                        return Result.fromBoolean(vals.size() > 0);
                     } else {
+                        boolean hasUndecided = false;
                         for (int i = 0; i < vals.size(); ++i) {
-                            if (elementMatch.matches(i, vals.get(i), archive, env)) {
-                                return true;
+                            Result elementResult = elementMatch.matches(i, vals.get(i), archive, env);
+
+                            if (elementResult == Result.MATCH) {
+                                return Result.MATCH;
+                            } else if (elementResult == Result.UNDECIDED) {
+                                hasUndecided = true;
                             }
                         }
-                        return false;
+
+                        return hasUndecided ? Result.UNDECIDED : Result.DOESNT_MATCH;
                     }
                 } else {
                     if (elementMatch == null) {
-                        return vals.size() > elementIndex;
+                        return Result.fromBoolean(vals.size() > elementIndex);
                     } else {
-                        return vals.size() > elementIndex && elementMatch.matches(elementIndex, vals.get(elementIndex),
-                                archive, env);
+                        if (vals.size() <= elementIndex) {
+                            return Result.DOESNT_MATCH;
+                        } else {
+                            return elementMatch.matches(elementIndex, vals.get(elementIndex), archive, env);
+                        }
                     }
                 }
             }

@@ -61,9 +61,9 @@ public final class JavaElementMatcher implements ElementMatcher {
     private final Map<String, MatchExpression> parsedMatchers = new HashMap<>();
 
     @Override
-    public boolean matches(String recipe, Element element) {
+    public Result matches(String recipe, Element element) {
         if (!(element instanceof JavaElement)) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         MatchExpression matcher = parsedMatchers.computeIfAbsent(recipe, this::createMatcher);
@@ -803,22 +803,22 @@ public final class JavaElementMatcher implements ElementMatcher {
         }
 
         @Override
-        public boolean matches(JavaModelElement element) {
+        public Result matches(JavaModelElement element) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public boolean matches(JavaAnnotationElement annotation) {
+        public Result matches(JavaAnnotationElement annotation) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public boolean matches(AnnotationAttributeElement attribute) {
+        public Result matches(AnnotationAttributeElement attribute) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public boolean matches(TypeParameterElement typeParameter) {
+        public Result matches(TypeParameterElement typeParameter) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 

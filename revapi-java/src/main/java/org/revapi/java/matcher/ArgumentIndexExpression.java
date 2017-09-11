@@ -17,6 +17,8 @@
 
 package org.revapi.java.matcher;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -34,28 +36,28 @@ final class ArgumentIndexExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
+    public Result matches(JavaModelElement element) {
         if (!(element instanceof MethodParameterElement)) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         int index = ((MethodParameterElement) element).getIndex();
 
-        return operator.evaluate(index, expectedIndex);
+        return Result.fromBoolean(operator.evaluate(index, expectedIndex));
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return false;
+    public Result matches(JavaAnnotationElement annotation) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return false;
+    public Result matches(AnnotationAttributeElement attribute) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return false;
+    public Result matches(TypeParameterElement typeParameter) {
+        return Result.DOESNT_MATCH;
     }
 }

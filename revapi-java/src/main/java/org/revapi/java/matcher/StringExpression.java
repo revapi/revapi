@@ -21,6 +21,8 @@ import java.util.Objects;
 
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 
@@ -37,27 +39,31 @@ final class StringExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
-        return Objects.equals(value, extractor.extract(element));
+    public Result matches(JavaModelElement element) {
+        return test(extractor.extract(element));
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return Objects.equals(value, extractor.extract(annotation));
+    public Result matches(JavaAnnotationElement annotation) {
+        return test(extractor.extract(annotation));
     }
 
     @Override
-    public boolean matches(TypeMirror type) {
-        return Objects.equals(value, extractor.extract(type));
+    public Result matches(TypeMirror type) {
+        return test(extractor.extract(type));
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return Objects.equals(value, extractor.extract(attribute));
+    public Result matches(AnnotationAttributeElement attribute) {
+        return test(extractor.extract(attribute));
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return Objects.equals(value, extractor.extract(typeParameter));
+    public Result matches(TypeParameterElement typeParameter) {
+        return test(extractor.extract(typeParameter));
+    }
+
+    private Result test(String data) {
+        return Result.fromBoolean(Objects.equals(value, data));
     }
 }

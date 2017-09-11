@@ -25,6 +25,8 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleTypeVisitor8;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -42,51 +44,51 @@ final class TypeParameterBoundExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
-        return false;
+    public Result matches(JavaModelElement element) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return false;
+    public Result matches(JavaAnnotationElement annotation) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return false;
+    public Result matches(AnnotationAttributeElement attribute) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
+    public Result matches(TypeParameterElement typeParameter) {
 
-        return typeParameter.getType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
+        return typeParameter.getType().accept(new SimpleTypeVisitor8<Result, Void>() {
             @Override
-            public Boolean visitTypeVariable(TypeVariable t, Void aVoid) {
+            public Result visitTypeVariable(TypeVariable t, Void aVoid) {
                 return match(lowerBound ? t.getLowerBound() : t.getUpperBound());
             }
 
             @Override
-            public Boolean visitWildcard(WildcardType t, Void aVoid) {
+            public Result visitWildcard(WildcardType t, Void aVoid) {
                 return match(lowerBound ? t.getSuperBound() : t.getExtendsBound());
             }
 
             @Override
-            public Boolean visitDeclared(DeclaredType t, Void aVoid) {
-                return false;
+            public Result visitDeclared(DeclaredType t, Void aVoid) {
+                return Result.DOESNT_MATCH;
             }
 
-            private boolean match(TypeMirror boundType) {
+            private Result match(TypeMirror boundType) {
                 if (boundType == null || boundType.getKind() == TypeKind.NULL) {
-                    return false;
+                    return Result.DOESNT_MATCH;
                 }
-                return boundType.accept(new SimpleTypeVisitor8<Boolean, Void>() {
+                return boundType.accept(new SimpleTypeVisitor8<Result, Void>() {
                     @Override
-                    protected Boolean defaultAction(TypeMirror e, Void aVoid) {
-                        return false;
+                    protected Result defaultAction(TypeMirror e, Void aVoid) {
+                        return Result.DOESNT_MATCH;
                     }
 
                     @Override
-                    public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+                    public Result visitDeclared(DeclaredType t, Void aVoid) {
                         TypeElement type = new TypeElement(typeParameter.getTypeEnvironment(), typeParameter.getArchive(),
                                 (javax.lang.model.element.TypeElement) t.asElement(), t);
                         type.setParent(typeParameter);
@@ -95,7 +97,7 @@ final class TypeParameterBoundExpression implements MatchExpression {
                     }
 
                     @Override
-                    public Boolean visitTypeVariable(TypeVariable t, Void aVoid) {
+                    public Result visitTypeVariable(TypeVariable t, Void aVoid) {
                         TypeParameterElement tp = new TypeParameterElement(typeParameter.getTypeEnvironment(),
                                 typeParameter.getApi(), typeParameter.getArchive(), t);
                         tp.setParent(typeParameter);
@@ -104,11 +106,11 @@ final class TypeParameterBoundExpression implements MatchExpression {
                     }
 
                     @Override
-                    public Boolean visitIntersection(IntersectionType t, Void aVoid) {
+                    public Result visitIntersection(IntersectionType t, Void aVoid) {
                         return t.getBounds().stream().reduce(
-                                false,
-                                (res, type) -> res || this.visit(type),
-                                (v1, v2) -> v1 || v2);
+                                Result.DOESNT_MATCH,
+                                (res, type) -> res.or(this.visit(type)),
+                                Result::or);
                     }
                 }, null);
             }

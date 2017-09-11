@@ -23,6 +23,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -36,12 +37,12 @@ final class AttributeArrayValueEqualsExpression extends AbstractAttributeValueEx
     }
 
     @Override
-    public boolean matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return value.accept(new SimpleAnnotationValueVisitor8<Boolean, Void>(false) {
+    public Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+        return value.accept(new SimpleAnnotationValueVisitor8<Result, Void>(Result.DOESNT_MATCH) {
             @Override
-            public Boolean visitArray(List<? extends AnnotationValue> vals, Void __) {
+            public Result visitArray(List<? extends AnnotationValue> vals, Void __) {
                 if (expectedMatches.size() != vals.size()) {
-                    return false;
+                    return Result.DOESNT_MATCH;
                 }
 
                 int len = expectedMatches.size();
@@ -49,12 +50,13 @@ final class AttributeArrayValueEqualsExpression extends AbstractAttributeValueEx
                     AnnotationValue value = vals.get(i);
                     AbstractAttributeValueExpression match = expectedMatches.get(i);
 
-                    if (!match.matches(i, value, archive, env)) {
-                        return false;
+                    Result partialResult = match.matches(i, value, archive, env);
+                    if (partialResult != Result.MATCH) {
+                        return partialResult;
                     }
                 }
 
-                return true;
+                return Result.MATCH;
             }
         }, null);
     }

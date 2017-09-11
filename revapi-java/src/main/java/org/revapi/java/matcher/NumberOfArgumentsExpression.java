@@ -19,6 +19,7 @@ package org.revapi.java.matcher;
 
 import javax.lang.model.element.ExecutableElement;
 
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -36,30 +37,30 @@ final class NumberOfArgumentsExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
+    public Result matches(JavaModelElement element) {
         if (!(element instanceof JavaMethodElement)) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         ExecutableElement method = ((JavaMethodElement) element).getDeclaringElement();
 
         int nofArguments = method.getParameters().size();
 
-        return operator.evaluate(nofArguments, expected);
+        return Result.fromBoolean(operator.evaluate(nofArguments, expected));
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return false;
+    public Result matches(JavaAnnotationElement annotation) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return false;
+    public Result matches(AnnotationAttributeElement attribute) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return false;
+    public Result matches(TypeParameterElement typeParameter) {
+        return Result.DOESNT_MATCH;
     }
 }

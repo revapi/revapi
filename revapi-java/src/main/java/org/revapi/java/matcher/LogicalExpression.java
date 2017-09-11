@@ -17,6 +17,8 @@
 
 package org.revapi.java.matcher;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 
@@ -35,33 +37,33 @@ final class LogicalExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
+    public Result matches(JavaModelElement element) {
         return applyOperator(left.matches(element), right.matches(element));
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
+    public Result matches(AnnotationAttributeElement attribute) {
         return applyOperator(left.matches(attribute), right.matches(attribute));
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
+    public Result matches(TypeParameterElement typeParameter) {
         return applyOperator(left.matches(typeParameter), right.matches(typeParameter));
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
+    public Result matches(JavaAnnotationElement annotation) {
         return applyOperator(left.matches(annotation), right.matches(annotation));
     }
 
-    private boolean applyOperator(boolean left, boolean right) {
+    private Result applyOperator(Result left, Result right) {
         switch (operator) {
             case AND:
-                return left && right;
+                return left.and(right);
             case OR:
-                return left || right;
+                return left.or(right);
             default:
-                return false;
+                return Result.DOESNT_MATCH;
         }
     }
 }

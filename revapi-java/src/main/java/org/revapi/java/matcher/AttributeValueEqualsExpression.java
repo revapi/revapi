@@ -24,6 +24,8 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.Util;
 
@@ -45,8 +47,8 @@ class AttributeValueEqualsExpression extends AbstractAttributeValueExpression {
     }
 
     @Override
-    public boolean matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return value.accept(new SimpleAnnotationValueVisitor8<Boolean, Void>() {
+    public Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+        return Result.fromBoolean(value.accept(new SimpleAnnotationValueVisitor8<Boolean, Void>() {
             @Override
             protected Boolean defaultAction(Object o, Void __) {
                 String val = Util.toHumanReadableString(value);
@@ -58,7 +60,7 @@ class AttributeValueEqualsExpression extends AbstractAttributeValueExpression {
                 return valueMatches(s);
             }
 
-            private Boolean valueMatches(String s) {
+            private boolean valueMatches(String s) {
                 if (expectedValue != null) {
                     return Objects.equals(expectedValue, s);
                 } else if (expectedPattern != null) {
@@ -67,6 +69,6 @@ class AttributeValueEqualsExpression extends AbstractAttributeValueExpression {
                     throw new IllegalStateException("Neither exact value or regex specified.");
                 }
             }
-        }, null);
+        }, null));
     }
 }

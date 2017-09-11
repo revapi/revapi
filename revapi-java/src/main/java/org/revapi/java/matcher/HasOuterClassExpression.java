@@ -20,6 +20,8 @@ package org.revapi.java.matcher;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
+import org.revapi.ElementMatcher;
+import org.revapi.ElementMatcher.Result;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
@@ -38,30 +40,33 @@ final class HasOuterClassExpression implements MatchExpression {
     }
 
     @Override
-    public boolean matches(JavaModelElement element) {
+    public Result matches(JavaModelElement element) {
         if (!(element instanceof JavaTypeElement)) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         TypeEnvironment env = element.getTypeEnvironment();
 
         Element enclosingElement = element.getDeclaringElement().getEnclosingElement();
         if (!(enclosingElement instanceof TypeElement)) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         JavaTypeElement enclosingType = env.getModelElement((TypeElement) enclosingElement);
         if (enclosingType == null) {
-            return false;
+            return Result.DOESNT_MATCH;
         }
 
         if (direct) {
             return outerClassMatch.matches(enclosingType);
         }
 
+        Result ret = Result.DOESNT_MATCH;
         while (enclosingType != null) {
-            if (outerClassMatch.matches(enclosingType)) {
-                return true;
+            ret = ret.or(outerClassMatch.matches(enclosingType));
+
+            if (ret == Result.MATCH || ret == Result.UNDECIDED) {
+                return ret;
             }
 
             enclosingElement = enclosingType.getDeclaringElement().getEnclosingElement();
@@ -72,21 +77,21 @@ final class HasOuterClassExpression implements MatchExpression {
             }
         }
 
-        return false;
+        return ret;
     }
 
     @Override
-    public boolean matches(AnnotationAttributeElement attribute) {
-        return false;
+    public Result matches(AnnotationAttributeElement attribute) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(TypeParameterElement typeParameter) {
-        return false;
+    public Result matches(TypeParameterElement typeParameter) {
+        return Result.DOESNT_MATCH;
     }
 
     @Override
-    public boolean matches(JavaAnnotationElement annotation) {
-        return false;
+    public Result matches(JavaAnnotationElement annotation) {
+        return Result.DOESNT_MATCH;
     }
 }
