@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "changeDetection": {
+      "type": "string",
+      "enum": ["jvm", "structural"],
+      "default": "structural"
+    }
+  }
+}
