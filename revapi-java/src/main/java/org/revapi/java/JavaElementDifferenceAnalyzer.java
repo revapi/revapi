@@ -102,7 +102,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private final ProbingEnvironment oldEnvironment;
     private final ProbingEnvironment newEnvironment;
     private final Map<Check.Type, List<Check>> checksByInterest;
-    private final Deque<Check.Type> checkTypeStack = new ArrayDeque<>();
+    private final Deque<CheckType> checkTypeStack = new ArrayDeque<>();
 
     // NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
     // are always sorted as last amongst sibling model elements.
@@ -167,7 +167,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         Timing.LOG.trace("Beginning analysis of {} and {}.", oldElement, newElement);
 
         if (conforms(oldElement, newElement, TypeElement.class)) {
-            checkTypeStack.push(Check.Type.CLASS);
+            checkTypeStack.push(CheckType.CLASS);
+            lastAnnotationResults = null;
             for (Check c : checksByInterest.get(Check.Type.CLASS)) {
                 Stats.of(c.getClass().getName()).start();
                 c.visitClass(oldElement == null ? null : (TypeElement) oldElement,
@@ -178,7 +179,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             // annotation are always terminal elements and they also always sort as last elements amongst siblings, so
             // treat them a bit differently
             if (lastAnnotationResults == null) {
-                lastAnnotationResults = new ArrayList<>();
+                lastAnnotationResults = new ArrayList<>(4);
             }
             //DO NOT push the ANNOTATION type to the checkTypeStack. Annotations are handled differently and this would
             //lead to the stack corruption and missed problems!!!
@@ -193,20 +194,22 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else if (conforms(oldElement, newElement, FieldElement.class)) {
-            doRestrictedCheck((FieldElement) oldElement, (FieldElement) newElement, Check.Type.FIELD);
+            doRestrictedCheck((FieldElement) oldElement, (FieldElement) newElement, CheckType.FIELD);
         } else if (conforms(oldElement, newElement, MethodElement.class)) {
-            doRestrictedCheck((MethodElement) oldElement, (MethodElement) newElement, Check.Type.METHOD);
+            doRestrictedCheck((MethodElement) oldElement, (MethodElement) newElement, CheckType.METHOD);
         } else if (conforms(oldElement, newElement, MethodParameterElement.class)) {
             doRestrictedCheck((MethodParameterElement) oldElement, (MethodParameterElement) newElement,
-                    Check.Type.METHOD_PARAMETER);
+                    CheckType.METHOD_PARAMETER);
         }
     }
 
-    private <T extends JavaModelElement> void doRestrictedCheck(T oldElement, T newElement, Check.Type interest) {
+    private <T extends JavaModelElement> void doRestrictedCheck(T oldElement, T newElement, CheckType interest) {
+        lastAnnotationResults = null;
+
         if (!(isCheckedElsewhere(oldElement, oldEnvironment)
                 && isCheckedElsewhere(newElement, newEnvironment))) {
             checkTypeStack.push(interest);
-            for (Check c : checksByInterest.get(interest)) {
+            for (Check c : checksByInterest.get(interest.getCheckType())) {
                 Stats.of(c.getClass().getName()).start();
                 switch (interest) {
                     case FIELD:
@@ -222,11 +225,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else {
-            //this is horrible hack - we don't store the annotations on the stack but need a value representing
             //"ignore what's on the stack because no checks actually happened".
-            //ArrayDeque doesn't support null elements so we have to have something to represent this state. So we
-            //abuse the ANNOTATION check type for this, because it is otherwise not used in the stack.
-            checkTypeStack.push(Check.Type.ANNOTATION);
+            checkTypeStack.push(CheckType.NONE);
         }
     }
 
@@ -234,14 +234,13 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     public Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
         if (conforms(oldElement, newElement, AnnotationElement.class)) {
             //the annotations are always reported at the parent element
-            return new Report(Collections.<Difference>emptyList(), oldElement, newElement);
+            return new Report(Collections.emptyList(), oldElement, newElement);
         }
 
         List<Difference> differences = new ArrayList<>();
-        Check.Type lastInterest = checkTypeStack.pop();
-        //see #doRestrictedCheck for why we use ANNOTATION as "no checks happened"...
-        if (lastInterest != Check.Type.ANNOTATION) {
-            for (Check c : checksByInterest.get(lastInterest)) {
+        CheckType lastInterest = checkTypeStack.pop();
+        if (lastInterest.isConcrete()) {
+            for (Check c : checksByInterest.get(lastInterest.getCheckType())) {
                 List<Difference> p = c.visitEnd();
                 if (p != null) {
                     differences.addAll(p);
@@ -590,6 +589,25 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         public TypeAndUseSite(DeclaredType type, UseSite useSite) {
             this.type = type;
             this.useSite = useSite;
+        }
+    }
+
+    private enum CheckType {
+        CLASS(Check.Type.CLASS), FIELD(Check.Type.FIELD), METHOD(Check.Type.METHOD),
+        METHOD_PARAMETER(Check.Type.METHOD_PARAMETER), ANNOTATION(Check.Type.ANNOTATION), NONE(null);
+
+        private final Check.Type checkType;
+
+        CheckType(Check.Type checkType) {
+            this.checkType = checkType;
+        }
+
+        public Check.Type getCheckType() {
+            return checkType;
+        }
+
+        public boolean isConcrete() {
+            return checkType != null;
         }
     }
 }
