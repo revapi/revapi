@@ -365,6 +365,7 @@ final class ClasspathScanner {
             } catch (Exception e) {
                 LOG.error("Failed to scan class " + type.getQualifiedName().toString()
                         + ". Analysis results may be skewed.", e);
+                getTypeRecord(type).errored = true;
             }
         }
 
@@ -656,6 +657,10 @@ final class ClasspathScanner {
             this.types.entrySet().stream().sorted(byNestingDepth).forEach(e -> {
                 TypeElement t = e.getKey();
                 TypeRecord r = e.getValue();
+
+                if (r.errored) {
+                    return;
+                }
 
                 //the model element will be null for missing types. Additionally, we don't want the system classpath
                 //in our tree, because that is superfluous.
@@ -989,6 +994,7 @@ final class ClasspathScanner {
         boolean inApiThroughUse;
         boolean primaryApi;
         int nestingDepth;
+        boolean errored;
 
         @Override public String toString() {
             final StringBuilder sb = new StringBuilder("TypeRecord[");
