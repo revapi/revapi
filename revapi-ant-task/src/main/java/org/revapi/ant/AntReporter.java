@@ -20,7 +20,7 @@ import org.revapi.Reporter;
  * @author Lukas Krejci
  * @since 0.2
  */
-final class AntReporter implements Reporter {
+public final class AntReporter implements Reporter {
     static final String ANT_REPORTER_LOGGER_KEY = "org.revapi.ant.logger";
     static final String MIN_SEVERITY_KEY = "org.revapi.ant.minSeverity";
 
