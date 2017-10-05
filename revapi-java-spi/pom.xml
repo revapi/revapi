@@ -25,6 +25,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>Revapi Java SPI</name>
+    <packaging>multi-release-jar</packaging>
+
     <description>
         SPI for extending the java extension of Revapi.
     </description>
@@ -44,6 +46,16 @@
             <version>0.8.1</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>pw.krejci</groupId>
+                <artifactId>multi-release-jar-maven-plugin</artifactId>
+                <version>${version.pw.krejci.multi-release-jar-maven-plugin}</version>
+            </extension>
+        </extensions>
+    </build>
 
     <distributionManagement>
         <site>

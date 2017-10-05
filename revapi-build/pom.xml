@@ -28,6 +28,11 @@
         <version.junit>4.11</version.junit>
         <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
         <version.org.slf4j>1.7.5</version.org.slf4j>
+
+        <version.pw.krejci.multi-release-jar-maven-plugin>0.1.3</version.pw.krejci.multi-release-jar-maven-plugin>
+
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <dependencyManagement>
@@ -91,42 +96,6 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.puppycrawl.tools</groupId>
-                        <artifactId>checkstyle</artifactId>
-                        <version>6.4</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.revapi</groupId>
-                        <artifactId>revapi-build-support</artifactId>
-                        <version>4</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <consoleOutput>true</consoleOutput>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <configLocation>checkstyle.xml</configLocation>
-                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals><goal>check</goal></goals>
-                        <phase>verify</phase>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
                 <artifactId>maven-site-plugin</artifactId>
                 <configuration>
                     <relativizeDecorationLinks>false</relativizeDecorationLinks>
@@ -164,7 +133,6 @@
 
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
                 <configuration>
                     <forkCount>5</forkCount>
                     <reuseForks>true</reuseForks>
@@ -291,6 +259,44 @@
     </reporting>
 
     <profiles>
+        <profile>
+            <!-- checkstyle currently doesn't work with Java 9, so let's only use it on lower java versions -->
+            <id>checkstyle</id>
+            <activation>
+                <jdk>[,1.8]</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.puppycrawl.tools</groupId>
+                                <artifactId>checkstyle</artifactId>
+                                <version>6.4</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.revapi</groupId>
+                                <artifactId>revapi-build-support</artifactId>
+                                <version>4</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                            <configLocation>checkstyle.xml</configLocation>
+                            <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals><goal>check</goal></goals>
+                                <phase>verify</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>api-check</id>
             <activation>

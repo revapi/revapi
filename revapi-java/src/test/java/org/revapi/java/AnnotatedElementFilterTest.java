@@ -20,13 +20,18 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,12 +52,31 @@ import org.revapi.java.model.MethodParameterElement;
  */
 public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest {
 
+    private static final int NUMBER_OF_ELEMENTS_ON_OBJECT;
+    private static final int NUMBER_OF_ELEMENTS_ON_ANNOTATION;
+
+    static {
+        NUMBER_OF_ELEMENTS_ON_OBJECT = getNumberOfChildElements(Object.class);
+        NUMBER_OF_ELEMENTS_ON_ANNOTATION = getNumberOfChildElements(Annotation.class);
+    }
+
     @Test
     public void testExcludeByAnnotationPresence() throws Exception {
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"regex\": true, \"exclude\":" +
                 "[\"@annotationfilter.NonPublic.*\"]}}}}}", results -> {
 
-            Assert.assertEquals(73, results.size());
+            int expectedCount = NUMBER_OF_ELEMENTS_ON_ANNOTATION + 4 //@NonPublic + since() + @Retention, @Target
+                    + NUMBER_OF_ELEMENTS_ON_ANNOTATION + 3 //@Public + @Retention, @Target on it
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass, PublicClass(), @Public
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 2 //PublicClass.PublicInnerClass, PublicClass.PublicInnerClass()
+                    + 1 //PublicClass.f
+                    + 1 //PublicClass.m()
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 2 //UndecisiveClass, UndecisiveClass()
+                    + 1 //UndecisiveClass.f
+                    + 1 //UndecisiveClass.m()
+                    ;
+
+            Assert.assertEquals(expectedCount, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
                     "method void annotationfilter.NonPublicClass::m()",
@@ -66,7 +90,23 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"exclude\":" +
                 "[\"@annotationfilter.NonPublic(since = \\\"2.0\\\")\"]}}}}}", results -> {
 
-            Assert.assertEquals(112, results.size());
+            int expectedCount = NUMBER_OF_ELEMENTS_ON_ANNOTATION + 3 //@NonPublic, @Target, @Retention
+                    + 1 //@NonPublic.since()
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //NonPublicClass, NonPublicClass(), @NonPublic
+                    + 1 //NonPublicClass.f
+                    + 2 //NonPublicClass.m(), @Public
+                    + NUMBER_OF_ELEMENTS_ON_ANNOTATION + 3 //@Public, @Target, @Retention
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass, PublicClass(), @Public
+                    + 1 //PublicClass.f
+                    + 1 //PublicClass.m()
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass.NonPublicInnerClass, PublicClass.NonPublicInnerClass(), @NonPublic
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 2 //PublicClass.PublicInnerClass, PublicClass.PublicInnerClass()
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 2 //UndecisiveClass, UndecisiveClass()
+                    + 1 //UndecisiveClass.f
+                    + 1 //UndecisiveClass.m()
+                ;
+
+            Assert.assertEquals(expectedCount, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "method void annotationfilter.PublicClass::implDetail()");
         });
@@ -77,7 +117,16 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         testWith("{\"revapi\":{\"java\":{\"filter\":{\"annotated\":{\"include\":" +
                 "[\"@annotationfilter.Public\"]}}}}}", results -> {
 
-            Assert.assertEquals(59, results.size());
+            int expectedCount = 2 //NonPublicClass.m(), @Public
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass, PublicClass(), @Public
+                    + 1 //PublicClass.f
+                    + 1 //PublicClass.m()
+                    + 2 //PublicClass.implDetail(), @NonPublic
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass.NonPublicInnerClass, PublicClass.NonPublicInnerClass(), @NonPublic
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 2 //PublicClass.PublicInnerClass, PublicClass.PublicInnerClass()
+                    ;
+
+            Assert.assertEquals(expectedCount, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "class annotationfilter.NonPublic", "method java.lang.String annotationfilter.NonPublic::since()",
                     "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
@@ -105,7 +154,14 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 "\"include\": [\"@annotationfilter.Public\"]}}}}}", results
                 -> {
 
-            Assert.assertEquals(39, results.size());
+            int expectedCount = 2 //NonPublicClass.m(), @Public
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass, PublicClass(), @Public
+                    + NUMBER_OF_ELEMENTS_ON_OBJECT + 2 //PublicClass.PublicInnerClass, PublicClass.PublicInnerClass()
+                    + 1 //PublicClass.f
+                    + 1 //PublicClass.m()
+                    ;
+
+            Assert.assertEquals(expectedCount, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "class annotationfilter.NonPublic",
                     "method java.lang.String annotationfilter.NonPublic::since()",
@@ -182,5 +238,36 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         if (!intersection.isEmpty()) {
             Assert.fail("List " + list + " shouldn't have contained any of the " + Arrays.asList(elements));
         }
+    }
+
+    private static int getNumberOfAnnotationsOn(AnnotatedElement element) {
+        return element.getDeclaredAnnotations().length;
+    }
+
+    private static int getNumberOfChildElements(Class<?> clazz) {
+        Function<Integer, Boolean> accessibleElements = mods -> {
+            return Modifier.isPublic(mods) || Modifier.isProtected(mods);
+        };
+
+        int cnt = getNumberOfAnnotationsOn(clazz);
+        cnt += Stream.of(clazz.getDeclaredClasses()).filter(c -> accessibleElements.apply(c.getModifiers()))
+                .collect(Collectors.summingInt(cl -> getNumberOfChildElements(cl) + 1));
+
+        cnt += Stream.of(clazz.getDeclaredMethods()).filter(c -> accessibleElements.apply(c.getModifiers()))
+                .collect(Collectors.summingInt(m -> {
+                    int mcnt = getNumberOfAnnotationsOn(m);
+                    mcnt += m.getParameterCount();
+
+                    mcnt += Stream.of(m.getParameterAnnotations()).collect(Collectors.summingInt(as -> as.length));
+
+                    return mcnt + 1; //+1 for the method itself
+                }));
+
+        cnt += Stream.of(clazz.getDeclaredFields()).filter(c -> accessibleElements.apply(c.getModifiers()))
+                .collect(Collectors.summingInt(f -> {
+                    return getNumberOfAnnotationsOn(f) + 1;
+                }));
+
+        return cnt;
     }
 }

@@ -11,7 +11,6 @@ import static org.revapi.java.model.JavaElementFactory.elementFor;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
@@ -26,9 +25,12 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
@@ -57,6 +59,7 @@ import javax.lang.model.util.Types;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
+import javax.tools.StandardLocation;
 
 import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
@@ -82,6 +85,10 @@ final class ClasspathScanner {
 
     private static final List<Modifier> ACCESSIBLE_MODIFIERS = Arrays.asList(Modifier.PUBLIC, Modifier.PROTECTED);
     private static final String SYSTEM_CLASSPATH_NAME = "<system classpath>";
+
+    private static final JavaFileManager.Location[] POSSIBLE_SYSTEM_CLASS_LOCATIONS = {
+            StandardLocation.CLASS_PATH, StandardLocation.PLATFORM_CLASS_PATH
+    };
 
     private final StandardJavaFileManager fileManager;
     private final ProbingEnvironment environment;
@@ -118,6 +125,21 @@ final class ClasspathScanner {
             scanner.scan(loc, classPath.get(loc.getArchive()), true);
         }
 
+        SyntheticLocation allLoc = new SyntheticLocation();
+        fileManager.setLocation(allLoc, classPath.values());
+
+        Function<String, JavaFileObject> searchHard = className ->
+                Stream.concat(Stream.of(allLoc), Stream.of(POSSIBLE_SYSTEM_CLASS_LOCATIONS))
+                        .map(l -> {
+                            try {
+                                return fileManager.getJavaFileForInput(l, className, JavaFileObject.Kind.CLASS);
+                            } catch (IOException e) {
+                                throw new IllegalStateException(e);
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .findFirst().orElse(null);
+
         Set<TypeElement> lastUnknowns = Collections.emptySet();
 
         Map<String, ArchiveLocation> cachedArchives = new HashMap<>(additionalClassPath.size());
@@ -125,59 +147,61 @@ final class ClasspathScanner {
         while (!scanner.requiredTypes.isEmpty() && !lastUnknowns.equals(scanner.requiredTypes.keySet())) {
             lastUnknowns = new HashSet<>(scanner.requiredTypes.keySet());
             for (TypeElement t : lastUnknowns) {
-                try {
-                    Field f = t.getClass().getField("classfile");
-                    JavaFileObject jfo = (JavaFileObject) f.get(t);
-                    if (jfo == null) {
-                        t = environment.getElementUtils().getTypeElement(t.getQualifiedName());
-                        if (t == null) {
-                            //this type is really missing...
-                            continue;
-                        }
-                        jfo = (JavaFileObject) f.get(t);
-                    }
-                    URI uri = jfo.toUri();
-                    String path;
-                    if ("jar".equals(uri.getScheme())) {
-                        path = uri.getSchemeSpecificPart();
+                String name = environment.getElementUtils().getBinaryName(t).toString();
+                JavaFileObject jfo = searchHard.apply(name);
+                if (jfo == null) {
+                    //this type is really missing
+                    continue;
+                }
 
-                        //jar:file:/path .. let's get rid of the "file:" part
-                        int colonIdx = path.indexOf(':');
-                        if (colonIdx >= 0) {
-                            path = path.substring(colonIdx + 1);
-                        }
+                URI uri = jfo.toUri();
+                String path;
+                if ("jar".equals(uri.getScheme())) {
+                    //we pass our archives as jars, so let's dig only into those
+                    path = uri.getSchemeSpecificPart();
 
-                        //separate the file path from the in-jar path
-                        path = path.substring(0, path.lastIndexOf('!'));
-                    } else {
-                        path = uri.getPath();
+                    //jar:file:/path .. let's get rid of the "file:" part
+                    int colonIdx = path.indexOf(':');
+                    if (colonIdx >= 0) {
+                        path = path.substring(colonIdx + 1);
                     }
 
-                    ArchiveLocation loc = cachedArchives.get(path);
-                    if (loc == null) {
-                        Archive ar = null;
-                        for (Map.Entry<Archive, File> e : additionalClassPath.entrySet()) {
-                            if (e.getValue().getAbsolutePath().equals(path)) {
-                                ar = e.getKey();
-                                break;
-                            }
-                        }
+                    //separate the file path from the in-jar path
+                    path = path.substring(0, path.lastIndexOf('!'));
 
-                        if (ar != null) {
-                            loc = new ArchiveLocation(ar);
-                            cachedArchives.put(path, loc);
+                    //remove superfluous forward slashes at the start of the path, if any
+                    int lastSlashIdx = -1;
+                    for (int i = 0; i < path.length() - 1; ++i) {
+                        if (path.charAt(i) == '/' && path.charAt(i + 1) != '/') {
+                            lastSlashIdx = i;
+                            break;
+                        }
+                    }
+                    if (lastSlashIdx > 0) {
+                        path = path.substring(lastSlashIdx);
+                    }
+                } else {
+                    path = uri.getPath();
+                }
+
+                ArchiveLocation loc = cachedArchives.get(path);
+                if (loc == null) {
+                    Archive ar = null;
+                    for (Map.Entry<Archive, File> e : additionalClassPath.entrySet()) {
+                        if (e.getValue().getAbsolutePath().equals(path)) {
+                            ar = e.getKey();
+                            break;
                         }
                     }
 
-                    if (loc != null) {
-                        scanner.scanClass(loc, t, false);
+                    if (ar != null) {
+                        loc = new ArchiveLocation(ar);
+                        cachedArchives.put(path, loc);
                     }
+                }
 
-                } catch (NoSuchFieldException e) {
-                    //TODO fallback to manually looping through archives
-                } catch (IllegalAccessException e) {
-                    //should not happen
-                    throw new AssertionError("Illegal access after setAccessible(true) on a field. Wha?", e);
+                if (loc != null) {
+                    scanner.scanClass(loc, t, false);
                 }
             }
         }
@@ -971,6 +995,20 @@ final class ClasspathScanner {
         @Override
         public String getName() {
             return "archiveLocation_" + archive.getName();
+        }
+
+        @Override
+        public boolean isOutputLocation() {
+            return false;
+        }
+    }
+
+    private static final class SyntheticLocation implements JavaFileManager.Location {
+        private final String name = "randomName" + (new Random().nextInt());
+
+        @Override
+        public String getName() {
+            return name;
         }
 
         @Override

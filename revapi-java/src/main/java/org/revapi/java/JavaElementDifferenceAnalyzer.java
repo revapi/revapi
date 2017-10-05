@@ -72,22 +72,28 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private static final Method CLEAR_COMPILER_CACHE;
     private static final Object SHARED_ZIP_FILE_INDEX_CACHE;
     static {
-        Method clearCompilerCache = null;
-        Object sharedInstance = null;
-        try {
-            Class<?> zipFileIndexCacheClass = ToolProvider.getSystemToolClassLoader()
-                    .loadClass("com.sun.tools.javac.file.ZipFileIndexCache");
+        String javaVersion = System.getProperty("java.version");
+        if (javaVersion.startsWith("1.")) {
+            Method clearCompilerCache = null;
+            Object sharedInstance = null;
+            try {
+                Class<?> zipFileIndexCacheClass = ToolProvider.getSystemToolClassLoader()
+                        .loadClass("com.sun.tools.javac.file.ZipFileIndexCache");
 
-            clearCompilerCache = zipFileIndexCacheClass.getDeclaredMethod("clearCache");
-            Method getSharedInstance = zipFileIndexCacheClass.getDeclaredMethod("getSharedInstance");
-            sharedInstance = getSharedInstance.invoke(null);
-        } catch (Exception e) {
-            LOG.warn("Failed to initialize the force-clearing of javac file caches. We will probably leak resources.", e);
-        }
+                clearCompilerCache = zipFileIndexCacheClass.getDeclaredMethod("clearCache");
+                Method getSharedInstance = zipFileIndexCacheClass.getDeclaredMethod("getSharedInstance");
+                sharedInstance = getSharedInstance.invoke(null);
+            } catch (Exception e) {
+                LOG.warn("Failed to initialize the force-clearing of javac file caches. We will probably leak resources.", e);
+            }
 
-        if (clearCompilerCache != null && sharedInstance != null) {
-            CLEAR_COMPILER_CACHE = clearCompilerCache;
-            SHARED_ZIP_FILE_INDEX_CACHE = sharedInstance;
+            if (clearCompilerCache != null && sharedInstance != null) {
+                CLEAR_COMPILER_CACHE = clearCompilerCache;
+                SHARED_ZIP_FILE_INDEX_CACHE = sharedInstance;
+            } else {
+                CLEAR_COMPILER_CACHE = null;
+                SHARED_ZIP_FILE_INDEX_CACHE = null;
+            }
         } else {
             CLEAR_COMPILER_CACHE = null;
             SHARED_ZIP_FILE_INDEX_CACHE = null;
