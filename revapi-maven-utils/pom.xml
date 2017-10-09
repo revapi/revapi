@@ -35,6 +35,7 @@
 
     <properties>
         <aether.version>0.9.1.v20140329</aether.version>
+        <automatic.module.name>org.revapi.maven.utils</automatic.module.name>
     </properties>
 
     <dependencyManagement>
