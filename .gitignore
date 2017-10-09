@@ -17,3 +17,4 @@ pom.xml.versionsBackup
 *.iml
 *.iws
 nb-configuration.xml
+.vscode/

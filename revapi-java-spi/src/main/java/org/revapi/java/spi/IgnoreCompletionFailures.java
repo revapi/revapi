@@ -32,7 +32,14 @@ public final class IgnoreCompletionFailures {
     }
 
     private static boolean isCompletionFailure(@Nonnull Throwable t) {
-        return t.getClass().getName().endsWith("CompletionFailure");
+        Class<?> c = t.getClass();
+        while (c != null) {
+            if (c.getName().endsWith("CompletionFailure")) {
+                return true;
+            }
+            c = c.getSuperclass();
+        }
+        return false;
     }
 
     public static <R> R in(Fn0<R> action) {

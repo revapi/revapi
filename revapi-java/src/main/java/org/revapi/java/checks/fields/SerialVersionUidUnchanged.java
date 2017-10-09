@@ -19,6 +19,10 @@ package org.revapi.java.checks.fields;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -27,7 +31,12 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -43,12 +52,16 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.SimpleTypeVisitor7;
+import javax.lang.model.util.Types;
 
+import org.jboss.dmr.ModelNode;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaFieldElement;
 import org.revapi.java.spi.TypeEnvironment;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -57,10 +70,33 @@ import org.revapi.java.spi.TypeEnvironment;
 public final class SerialVersionUidUnchanged extends CheckBase {
 
     private static final String SERIAL_VERSION_UID_FIELD_NAME = "serialVersionUID";
+    private boolean strict = false;
 
     @Override
     public EnumSet<Type> getInterest() {
         return EnumSet.of(Type.FIELD);
+    }
+
+    @Override
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        super.initialize(analysisContext);
+        ModelNode changeDetectionType = analysisContext.getConfiguration().get("changeDetection");
+        if (changeDetectionType.isDefined() && "jvm".equals(changeDetectionType.asString())) {
+            strict = true;
+        }
+    }
+
+    @Nullable
+    @Override
+    public String getExtensionId() {
+        return "serialVersionUID";
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema() {
+        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/serialVersionUID-config-schema.json"),
+                Charset.forName("UTF-8"));
     }
 
     @Override
@@ -104,13 +140,19 @@ public final class SerialVersionUidUnchanged extends CheckBase {
         TypeElement oldType = (TypeElement) oldField.getDeclaringElement().getEnclosingElement();
         TypeElement newType = (TypeElement) newField.getDeclaringElement().getEnclosingElement();
 
-        long computedOldSUID = computeSerialVersionUID(oldType, getOldTypeEnvironment());
-        long computedNewSUID = computeSerialVersionUID(newType, getNewTypeEnvironment());
+        long computedOldSUID = strict
+                ? computeSerialVersionUID(oldType, getOldTypeEnvironment())
+                : computeStructuralId(oldType, getOldTypeEnvironment());
+
+        long computedNewSUID = strict
+                ? computeSerialVersionUID(newType, getNewTypeEnvironment())
+                : computeStructuralId(newType, getNewTypeEnvironment());
+
         Long actualOldSUID = (Long) oldField.getDeclaringElement().getConstantValue();
         Long actualNewSUID = (Long) newField.getDeclaringElement().getConstantValue();
 
         if (Objects.equals(actualOldSUID, actualNewSUID) && computedOldSUID != computedNewSUID) {
-            pushActive(oldField, newField);
+            pushActive(oldField, newField, actualOldSUID);
         }
     }
 
@@ -121,8 +163,53 @@ public final class SerialVersionUidUnchanged extends CheckBase {
             return null;
         }
 
+        Long actualSUID = (Long) fields.context[0];
+
         return Collections.singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED,
-                Code.attachmentsFor(fields.oldElement, fields.newElement)));
+                Code.attachmentsFor(fields.oldElement, fields.newElement, "serialVersionUID", actualSUID.toString())));
+    }
+
+    public static long computeStructuralId(TypeElement type, TypeEnvironment environment) {
+        Predicate<Element> serializableFields = e -> {
+            Set<Modifier> mods = e.getModifiers();
+            return !mods.contains(Modifier.TRANSIENT) && !mods.contains(Modifier.STATIC);
+        };
+
+        Comparator<Element> bySimpleName = Comparator.comparing(e -> e.getSimpleName().toString());
+
+        List<TypeMirror> fields = ElementFilter.fieldsIn(type.getEnclosedElements()).stream()
+                .filter(serializableFields)
+                .sorted(bySimpleName)
+                .map(Element::asType)
+                .collect(Collectors.toList());
+
+        Types types = environment.getTypeUtils();
+
+        for (TypeMirror st: Util.getAllSuperClasses(types, type.asType())) {
+            Element ste = types.asElement(st);
+            ElementFilter.fieldsIn(ste.getEnclosedElements()).stream()
+                    .filter(serializableFields)
+                    .sorted(bySimpleName)
+                    .map(e -> types.asMemberOf((DeclaredType) st, e))
+                    .forEach(fields::add);
+        }
+
+        String data = fields.stream().map(Util::toUniqueString).collect(Collectors.joining());
+
+        try {
+            byte[] bytes = data.getBytes("UTF-8");
+
+            MessageDigest md = MessageDigest.getInstance("SHA");
+            byte[] hashBytes = md.digest(bytes);
+            long hash = 0;
+            for (int i = Math.min(hashBytes.length, 8) - 1; i >= 0; i--) {
+                hash = (hash << 8) | (hashBytes[i] & 0xFF);
+            }
+            return hash;
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Could not compute structural ID of a type "
+                    + type.getQualifiedName().toString(), e);
+        }
     }
 
     /**

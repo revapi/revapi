@@ -34,6 +34,10 @@
     <artifactId>revapi-reporter-text</artifactId>
     <version>0.8.1-SNAPSHOT</version>
 
+    <properties>
+        <automatic.module.name>org.revapi.reporter.text</automatic.module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>

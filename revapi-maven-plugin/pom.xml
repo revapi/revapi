@@ -32,7 +32,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-maven-plugin</artifactId>
-    <version>0.9.2-SNAPSHOT</version>
+    <version>0.9.3-SNAPSHOT</version>
 
     <properties>
         <maven.version>3.2.5</maven.version>
@@ -45,6 +45,8 @@
         <revapi-java.version>0.14.0</revapi-java.version>
         <revapi-java-spi.version>0.13.0</revapi-java-spi.version>
         <revapi-reporter-text.version>0.8.0</revapi-reporter-text.version>
+
+        <automatic.module.name>org.revapi.maven.plugin</automatic.module.name>
     </properties>
 
     <prerequisites>
@@ -55,7 +57,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.8.2-SNAPSHOT</version>
+            <version>0.8.2</version>
         </dependency>
 
         <dependency>

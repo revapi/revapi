@@ -31,19 +31,23 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-standalone</artifactId>
-    <version>0.6.2-SNAPSHOT</version>
+    <version>0.6.3-SNAPSHOT</version>
+
+    <properties>
+        <automatic.module.name>org.revapi.standalone</automatic.module.name>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.8.0</version>
+            <version>0.8.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.6.0</version>
+            <version>0.6.1</version>
             <scope>runtime</scope>
         </dependency>
 

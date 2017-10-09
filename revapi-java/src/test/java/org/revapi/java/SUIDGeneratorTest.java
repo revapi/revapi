@@ -18,6 +18,7 @@ package org.revapi.java;
 
 import java.io.File;
 import java.io.ObjectStreamClass;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -39,6 +40,7 @@ import org.junit.Test;
 import org.revapi.java.checks.fields.SerialVersionUidUnchanged;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
+import org.revapi.java.suid.Empty;
 import org.revapi.java.suid.TestClass;
 
 /**
@@ -51,6 +53,7 @@ public class SUIDGeneratorTest {
     @SupportedAnnotationTypes("java.lang.SuppressWarnings")
     private static class SUIDGeneratingAnnotationProcessor extends AbstractProcessor {
         public long generatedSUID;
+        public long generatedStructuralId;
 
         @Override
         public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -62,7 +65,7 @@ public class SUIDGeneratorTest {
 
             TypeElement testType = (TypeElement) elements.iterator().next();
 
-            generatedSUID = SerialVersionUidUnchanged.computeSerialVersionUID(testType, new TypeEnvironment() {
+            TypeEnvironment fakeEnv = new TypeEnvironment() {
                 @Nonnull
                 @Override
                 public Elements getElementUtils() {
@@ -79,8 +82,10 @@ public class SUIDGeneratorTest {
                 public JavaTypeElement getModelElement(TypeElement e) {
                     return null;
                 }
-            });
+            };
 
+            generatedSUID = SerialVersionUidUnchanged.computeSerialVersionUID(testType, fakeEnv);
+            generatedStructuralId = SerialVersionUidUnchanged.computeStructuralId(testType, fakeEnv);
             return true;
         }
     }
@@ -105,6 +110,38 @@ public class SUIDGeneratorTest {
             Assert.assertEquals(officialSUID, ap.generatedSUID);
         } finally {
             new File("TestClass.class").delete();
+        }
+    }
+
+    @Test
+    public void testHandlingEmptyClass() throws Exception {
+        try {
+            ObjectStreamClass s = ObjectStreamClass.lookup(Empty.class);
+            long officialSUID = s.getSerialVersionUID();
+            SUIDGeneratingAnnotationProcessor ap = new SUIDGeneratingAnnotationProcessor();
+
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+            JavaCompiler.CompilationTask task = compiler
+                    .getTask(null, null, null, null, Arrays.asList(TestClass.class.getName()),
+                            Arrays.asList(new SourceInClassLoader("suid/Empty.java")));
+
+            task.setProcessors(Arrays.asList(ap));
+
+            task.call();
+
+            Assert.assertEquals(officialSUID, ap.generatedSUID);
+
+            MessageDigest md = MessageDigest.getInstance("SHA");
+            byte[] hashBytes = md.digest("".getBytes("UTF-8"));
+            long hash = 0;
+            for (int i = Math.min(hashBytes.length, 8) - 1; i >= 0; i--) {
+                hash = (hash << 8) | (hashBytes[i] & 0xFF);
+            }
+
+            Assert.assertEquals(hash, ap.generatedStructuralId);
+        } finally {
+            new File("Empty.class").delete();
         }
     }
 }

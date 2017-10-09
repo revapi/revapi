@@ -25,6 +25,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>Revapi Java SPI</name>
+
     <description>
         SPI for extending the java extension of Revapi.
     </description>
@@ -35,6 +36,7 @@
 
     <properties>
         <jacoco.skip>true</jacoco.skip>
+        <automatic.module.name>org.revapi.java.spi</automatic.module.name>
     </properties>
 
     <dependencies>

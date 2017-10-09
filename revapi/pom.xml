@@ -33,6 +33,10 @@
     <artifactId>revapi</artifactId>
     <version>0.9.0-SNAPSHOT</version>
 
+    <properties>
+        <automatic.module.name>org.revapi</automatic.module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>

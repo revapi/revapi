@@ -580,8 +580,7 @@ public final class Analyzer {
 
     private void mergeXmlConfigFile(AnalysisContext.Builder ctxBld, ConfigurationFile configFile, Reader rdr)
             throws IOException, XmlPullParserException {
-        XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
-                PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
+        XmlToJson<PlexusConfiguration> conv = createXmlToJsonConverter(revapi);
 
         PlexusConfiguration xml = new XmlPlexusConfiguration(Xpp3DomBuilder.build(rdr));
 
@@ -611,6 +610,19 @@ public final class Analyzer {
                 ctxBld.mergeConfiguration(conv.convert(root));
             }
         }
+    }
+
+    private XmlToJson<PlexusConfiguration> createXmlToJsonConverter(Revapi revapi) {
+        return new XmlToJson<>(revapi,
+                    PlexusConfiguration::getName,
+                    PlexusConfiguration::getValue,
+                    PlexusConfiguration::getAttribute,
+                    x -> {
+                        if (x.getValue() != null) {
+                            throw new IllegalArgumentException("Not a list");
+                        }
+                        return Arrays.asList(x.getChildren());
+                    });
     }
 
     private void mergeJsonConfigFile(AnalysisContext.Builder ctxBld, ConfigurationFile configFile, ModelNode config) {
@@ -644,8 +656,7 @@ public final class Analyzer {
     }
 
     private void convertNewStyleConfigFromXml(AnalysisContext.Builder bld, Revapi revapi) {
-        XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
-                PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
+        XmlToJson<PlexusConfiguration> conv = createXmlToJsonConverter(revapi);
 
         bld.mergeConfiguration(conv.convert(analysisConfiguration));
     }
@@ -666,10 +677,5 @@ public final class Analyzer {
         public MarkerException(String message, Throwable cause) {
             super(message, cause);
         }
-    }
-
-    @FunctionalInterface
-    private interface ThrowingSupplier<T> {
-        T get() throws Exception;
     }
 }

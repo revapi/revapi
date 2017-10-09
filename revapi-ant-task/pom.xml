@@ -31,7 +31,11 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-ant-task</artifactId>
-    <version>0.6.1-SNAPSHOT</version>
+    <version>0.6.2-SNAPSHOT</version>
+
+    <properties>
+        <automatic.module.name>org.revapi.ant</automatic.module.name>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -50,6 +54,7 @@
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>
             <version>1.8.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
