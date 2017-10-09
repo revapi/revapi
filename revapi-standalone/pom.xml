@@ -33,6 +33,10 @@
     <artifactId>revapi-standalone</artifactId>
     <version>0.6.3-SNAPSHOT</version>
 
+    <properties>
+        <automatic.module.name>org.revapi.standalone</automatic.module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>

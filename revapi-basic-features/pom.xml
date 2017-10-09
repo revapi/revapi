@@ -34,6 +34,10 @@
     <artifactId>revapi-basic-features</artifactId>
     <version>0.6.2-SNAPSHOT</version>
 
+    <properties>
+        <automatic.module.name>org.revapi.basic</automatic.module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
