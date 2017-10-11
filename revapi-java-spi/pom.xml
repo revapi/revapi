@@ -33,6 +33,7 @@
 
     <artifactId>revapi-java-spi</artifactId>
     <version>0.13.2-SNAPSHOT</version>
+    <packaging>multi-release-jar</packaging>
 
     <properties>
         <jacoco.skip>true</jacoco.skip>

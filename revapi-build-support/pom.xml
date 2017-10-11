@@ -3,7 +3,7 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>7</version>
+        <version>8-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
