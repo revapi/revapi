@@ -41,13 +41,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.8.0</version>
+            <version>0.8.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.6.0</version>
+            <version>0.6.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
