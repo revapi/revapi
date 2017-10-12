@@ -19,7 +19,7 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>33-SNAPSHOT</version>
+        <version>33</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -32,7 +32,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-java-spi</artifactId>
-    <version>0.13.2-SNAPSHOT</version>
+    <version>0.13.2</version>
     <packaging>multi-release-jar</packaging>
 
     <properties>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.8.3-SNAPSHOT</version>
+            <version>0.8.3</version>
         </dependency>
     </dependencies>
 
@@ -59,6 +59,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-java-spi-0.13.2</tag>
     </scm>
 </project>
