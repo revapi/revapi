@@ -26,7 +26,7 @@
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
         <version.junit>4.11</version.junit>
-        <version.org.revapi.revapi-site-shared>4-SNAPSHOT</version.org.revapi.revapi-site-shared>
+        <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
         <version.org.slf4j>1.7.5</version.org.slf4j>
 
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -344,7 +344,7 @@
                             <dependency>
                                 <groupId>org.revapi</groupId>
                                 <artifactId>revapi-build-support</artifactId>
-                                <version>5-SNAPSHOT</version>
+                                <version>4</version>
                             </dependency>
                         </dependencies>
                         <configuration>
