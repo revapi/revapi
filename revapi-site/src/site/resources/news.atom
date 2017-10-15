@@ -53,4 +53,18 @@
       2 fixes, one new feature and many improvements to the site.
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20171015-releases.html</id>
+    <title>New Releases</title>
+    <updated>2017-10-15T00:00:00+00:00</updated>
+    <published>2017-10-15T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20171015-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        There hasn't been much public progress on Revapi lately but it nevertheless slowly crawls forward in its quest to become the best programming API checking tool in the multiverse :)
+    </summary>
+    <content type="html">
+      There hasn't been much public progress on Revapi lately but it nevertheless slowly crawls forward in its quest to become the best programming API checking tool in the multiverse :)
+    </content>
+  </entry>
 </feed>
