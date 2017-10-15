@@ -1134,6 +1134,35 @@ it break binary compatibility, it possibly may cause semantic problems because s
 depends on if and how the `readObject` and `writeObject` methods on the class are implemented, which is beyond the scope
 of this check.
 
+The behavior of this check can be configured using the `revapi.java.checks.serialVersionUID.changeDetection` configuration attribute. The default value of this attribute is `structural` meaning that the difference is reported only for classes that somehow change structurally between versions (i.e. a field is added/deleted or its type changed). When specifying `jvm` as the change detection algorithm the default serialVersionUID is computed for both old and new version of the class. This is more "sensitive" than the structural change because it also considers any changes to methods or static fields of the class (but it nevertheless is the algorithm that the JVM itself uses for computing the default serialization UID of a class).
+
+Example of the configuration in both XML and JSON:
+
+```
+<revapi.java>
+  <checks>
+    <serialVersionUID>
+      <changeDetection>structural</changeDetection>
+    </serialVersionUID>
+  </checks>
+</revapi.java>
+```
+
+or
+
+```
+{
+  "extension": "revapi.java",
+  "configuration": {
+    "checks": {
+      "serialVersionUID": {
+        "changeDetection": "jvm"
+      }
+    }
+  }
+}
+```
+
 [options=header]
 |====
 2+| Match parameters
