@@ -3,7 +3,7 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>8-SNAPSHOT</version>
+        <version>9-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -15,13 +15,13 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>33-SNAPSHOT</version>
+    <version>34-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>${web.url}</url>
 
     <properties>
-        <self-api-check.maven-version>0.9.1</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.14.0</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.9.3</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.14.2</self-api-check.java-extension-version>
 
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
@@ -31,6 +31,8 @@
 
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+
+        <version.pw.krejci.multi-release-jar-maven-plugin>0.1.4</version.pw.krejci.multi-release-jar-maven-plugin>
 
         <automatic.module.name>define this in child modules</automatic.module.name>
     </properties>
@@ -94,6 +96,14 @@
     </dependencies>
 
     <build>
+        <extensions>
+            <extension>
+                <groupId>pw.krejci</groupId>
+                <artifactId>multi-release-jar-maven-plugin</artifactId>
+                <version>${version.pw.krejci.multi-release-jar-maven-plugin}</version>
+            </extension>
+        </extensions>
+
         <plugins>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -104,6 +114,33 @@
                         </manifestEntries>
                     </archive>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>pw.krejci</groupId>
+                <artifactId>multi-release-jar-maven-plugin</artifactId>
+                <version>${version.pw.krejci.multi-release-jar-maven-plugin}</version>
+                <configuration>
+                    <mainModuleInfo>9</mainModuleInfo>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>common-checks</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>9</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

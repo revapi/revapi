@@ -27,7 +27,7 @@
     <groupId>org.revapi</groupId>
     <artifactId>revapi-parent</artifactId>
     <packaging>pom</packaging>
-    <version>8-SNAPSHOT</version>
+    <version>9-SNAPSHOT</version>
 
     <properties>
         <web.url>https://revapi.org</web.url>

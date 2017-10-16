@@ -136,6 +136,14 @@ public class XmlToJsonTest {
         Assert.assertEquals(2L, config.asList().get(1).asLong());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testArrayConversion_invalid() throws Exception {
+        XmlToJson<Node> converter = converter("list", "{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
+        Node xml = xml("<config><list>text</list></config>");
+
+        converter.convert(xml).get(0).get("configuration");
+    }
+
     @Test
     public void testObjectConversion() throws Exception {
         XmlToJson<Node> converter = converter("ext", "{\"type\": \"object\", " +

@@ -224,6 +224,9 @@ public final class XmlToJson<Xml> {
             throw new IllegalArgumentException(
                     "No schema found for items of a list. Cannot continue with XML-to-JSON conversion.");
         }
+        if (getValue.apply( configuration ) != null) {
+            throw new IllegalArgumentException("Array is not allowed to have a text node");
+        }
         ModelNode list = new ModelNode();
         list.setEmptyList();
         for (Xml childConfig : getChildren.apply(configuration)) {
