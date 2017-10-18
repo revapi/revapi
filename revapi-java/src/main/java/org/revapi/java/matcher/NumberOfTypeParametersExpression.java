@@ -19,7 +19,7 @@ package org.revapi.java.matcher;
 
 import javax.lang.model.element.Parameterizable;
 
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 
@@ -36,30 +36,30 @@ final class NumberOfTypeParametersExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
+    public FilterMatch matches(JavaModelElement element) {
         if (!(element.getDeclaringElement() instanceof Parameterizable)) {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
 
         Parameterizable el = (Parameterizable) element.getDeclaringElement();
 
         int nofArguments = el.getTypeParameters().size();
 
-        return Result.fromBoolean(operator.evaluate(nofArguments, expected));
+        return FilterMatch.fromBoolean(operator.evaluate(nofArguments, expected));
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaAnnotationElement annotation) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeParameterElement typeParameter) {
+        return FilterMatch.DOESNT_MATCH;
     }
 }

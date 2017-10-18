@@ -38,10 +38,6 @@
         <automatic.module.name>org.revapi.reporter.text</automatic.module.name>
     </properties>
 
-    <properties>
-        <automatic.module.name>org.revapi.reporter.text</automatic.module.name>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>

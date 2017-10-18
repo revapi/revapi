@@ -37,10 +37,6 @@
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
     </properties>
 
-    <properties>
-        <automatic.module.name>org.revapi.standalone</automatic.module.name>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>

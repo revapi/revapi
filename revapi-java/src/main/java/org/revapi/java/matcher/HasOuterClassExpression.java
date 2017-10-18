@@ -20,8 +20,7 @@ package org.revapi.java.matcher;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
-import org.revapi.ElementMatcher;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
@@ -40,32 +39,32 @@ final class HasOuterClassExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
+    public FilterMatch matches(JavaModelElement element) {
         if (!(element instanceof JavaTypeElement)) {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
 
         TypeEnvironment env = element.getTypeEnvironment();
 
         Element enclosingElement = element.getDeclaringElement().getEnclosingElement();
         if (!(enclosingElement instanceof TypeElement)) {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
 
         JavaTypeElement enclosingType = env.getModelElement((TypeElement) enclosingElement);
         if (enclosingType == null) {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
 
         if (direct) {
             return outerClassMatch.matches(enclosingType);
         }
 
-        Result ret = Result.DOESNT_MATCH;
+        FilterMatch ret = FilterMatch.DOESNT_MATCH;
         while (enclosingType != null) {
             ret = ret.or(outerClassMatch.matches(enclosingType));
 
-            if (ret == Result.MATCH || ret == Result.UNDECIDED) {
+            if (ret == FilterMatch.MATCHES || ret == FilterMatch.UNDECIDED) {
                 return ret;
             }
 
@@ -81,17 +80,17 @@ final class HasOuterClassExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeParameterElement typeParameter) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaAnnotationElement annotation) {
+        return FilterMatch.DOESNT_MATCH;
     }
 }

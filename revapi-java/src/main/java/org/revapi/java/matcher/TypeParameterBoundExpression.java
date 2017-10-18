@@ -25,8 +25,7 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleTypeVisitor8;
 
-import org.revapi.ElementMatcher;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -44,51 +43,51 @@ final class TypeParameterBoundExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaModelElement element) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaAnnotationElement annotation) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(TypeParameterElement typeParameter) {
 
-        return typeParameter.getType().accept(new SimpleTypeVisitor8<Result, Void>() {
+        return typeParameter.getType().accept(new SimpleTypeVisitor8<FilterMatch, Void>() {
             @Override
-            public Result visitTypeVariable(TypeVariable t, Void aVoid) {
+            public FilterMatch visitTypeVariable(TypeVariable t, Void aVoid) {
                 return match(lowerBound ? t.getLowerBound() : t.getUpperBound());
             }
 
             @Override
-            public Result visitWildcard(WildcardType t, Void aVoid) {
+            public FilterMatch visitWildcard(WildcardType t, Void aVoid) {
                 return match(lowerBound ? t.getSuperBound() : t.getExtendsBound());
             }
 
             @Override
-            public Result visitDeclared(DeclaredType t, Void aVoid) {
-                return Result.DOESNT_MATCH;
+            public FilterMatch visitDeclared(DeclaredType t, Void aVoid) {
+                return FilterMatch.DOESNT_MATCH;
             }
 
-            private Result match(TypeMirror boundType) {
+            private FilterMatch match(TypeMirror boundType) {
                 if (boundType == null || boundType.getKind() == TypeKind.NULL) {
-                    return Result.DOESNT_MATCH;
+                    return FilterMatch.DOESNT_MATCH;
                 }
-                return boundType.accept(new SimpleTypeVisitor8<Result, Void>() {
+                return boundType.accept(new SimpleTypeVisitor8<FilterMatch, Void>() {
                     @Override
-                    protected Result defaultAction(TypeMirror e, Void aVoid) {
-                        return Result.DOESNT_MATCH;
+                    protected FilterMatch defaultAction(TypeMirror e, Void aVoid) {
+                        return FilterMatch.DOESNT_MATCH;
                     }
 
                     @Override
-                    public Result visitDeclared(DeclaredType t, Void aVoid) {
+                    public FilterMatch visitDeclared(DeclaredType t, Void aVoid) {
                         TypeElement type = new TypeElement(typeParameter.getTypeEnvironment(), typeParameter.getArchive(),
                                 (javax.lang.model.element.TypeElement) t.asElement(), t);
                         type.setParent(typeParameter);
@@ -97,7 +96,7 @@ final class TypeParameterBoundExpression implements MatchExpression {
                     }
 
                     @Override
-                    public Result visitTypeVariable(TypeVariable t, Void aVoid) {
+                    public FilterMatch visitTypeVariable(TypeVariable t, Void aVoid) {
                         TypeParameterElement tp = new TypeParameterElement(typeParameter.getTypeEnvironment(),
                                 typeParameter.getApi(), typeParameter.getArchive(), t);
                         tp.setParent(typeParameter);
@@ -106,11 +105,11 @@ final class TypeParameterBoundExpression implements MatchExpression {
                     }
 
                     @Override
-                    public Result visitIntersection(IntersectionType t, Void aVoid) {
+                    public FilterMatch visitIntersection(IntersectionType t, Void aVoid) {
                         return t.getBounds().stream().reduce(
-                                Result.DOESNT_MATCH,
+                                FilterMatch.DOESNT_MATCH,
                                 (res, type) -> res.or(this.visit(type)),
-                                Result::or);
+                                FilterMatch::or);
                     }
                 }, null);
             }

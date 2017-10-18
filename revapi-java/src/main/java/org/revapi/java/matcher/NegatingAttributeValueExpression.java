@@ -20,7 +20,7 @@ package org.revapi.java.matcher;
 import javax.lang.model.element.AnnotationValue;
 
 import org.revapi.Archive;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -34,12 +34,12 @@ final class NegatingAttributeValueExpression extends AbstractAttributeValueExpre
     }
 
     @Override
-    public Result matches(int index, AnnotationValue value, Archive archive, ProbingEnvironment env) {
+    public FilterMatch matches(int index, AnnotationValue value, Archive archive, ProbingEnvironment env) {
         return match.matches(index, value, archive, env).negate();
     }
 
     @Override
-    public Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
         return match.matches(value, archive, env).negate();
     }
 }

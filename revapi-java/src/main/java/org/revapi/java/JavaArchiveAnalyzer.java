@@ -57,7 +57,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
 
     @Nonnull
     @Override
-    public JavaElementForest analyze() {
+    public JavaElementForest analyze(Filter filter) {
         if (Timing.LOG.isDebugEnabled()) {
             Timing.LOG.debug("Starting analysis of " + api);
         }

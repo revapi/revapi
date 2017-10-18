@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
+import org.revapi.FilterResult;
 import org.revapi.Report;
 import org.revapi.Revapi;
 import org.revapi.java.compilation.InclusionFilter;
@@ -210,7 +211,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                     Executors.newSingleThreadExecutor(), null, false,
                     InclusionFilter.acceptAll());
 
-            JavaElementForest forest = analyzer.analyze();
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
 
             AnnotatedElementFilter filter = new AnnotatedElementFilter();
             Revapi r = new Revapi(emptySet(), emptySet(), emptySet(), singleton(AnnotatedElementFilter.class),

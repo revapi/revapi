@@ -20,8 +20,7 @@ package org.revapi.java.matcher;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import org.revapi.ElementMatcher;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.Util;
@@ -44,24 +43,24 @@ final class AttributeTypeEqualsExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaModelElement element) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaAnnotationElement annotation) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeParameterElement typeParameter) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
         String valueType = Util.toHumanReadableString(attribute.getAttributeMethod().getReturnType());
-        return Result.fromBoolean(typeMatches(valueType));
+        return FilterMatch.fromBoolean(typeMatches(valueType));
     }
 
     private boolean typeMatches(String typeName) {

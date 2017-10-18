@@ -27,7 +27,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 
@@ -35,31 +35,31 @@ import org.revapi.java.spi.JavaModelElement;
  * @author Lukas Krejci
  */
 final class AttributeExpression implements MatchExpression {
-    private final Function<AnnotationAttributeElement, Result> filter;
+    private final Function<AnnotationAttributeElement, FilterMatch> filter;
     private final boolean onlyExplicitValues;
 
     public AttributeExpression(@Nullable MatchExpression attributeNameMatch, @Nullable MatchExpression valueMatch,
                                boolean onlyExplicitValues) {
         this.onlyExplicitValues = onlyExplicitValues;
 
-        Function<AnnotationAttributeElement, Result> nameFilter = attributeNameMatch == null
-                ? __ -> Result.MATCH
+        Function<AnnotationAttributeElement, FilterMatch> nameFilter = attributeNameMatch == null
+                ? __ -> FilterMatch.MATCHES
                 : attributeNameMatch::matches;
 
-        Function<AnnotationAttributeElement, Supplier<Result>> valueFilter = valueMatch == null
-                ? __ -> () -> Result.MATCH
+        Function<AnnotationAttributeElement, Supplier<FilterMatch>> valueFilter = valueMatch == null
+                ? __ -> () -> FilterMatch.MATCHES
                 : e -> () -> valueMatch.matches(e);
 
         filter = e -> nameFilter.apply(e).and(valueFilter.apply(e));
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaModelElement element) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
+    public FilterMatch matches(JavaAnnotationElement annotation) {
         AnnotationMirror am = annotation.getAnnotation();
         Map<? extends ExecutableElement, ? extends AnnotationValue> attrs;
 
@@ -70,13 +70,13 @@ final class AttributeExpression implements MatchExpression {
                     .getElementValuesWithDefaults(am);
         }
 
-        Result res = Result.DOESNT_MATCH;
+        FilterMatch res = FilterMatch.DOESNT_MATCH;
         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> e : attrs.entrySet()) {
             AnnotationAttributeElement el = new AnnotationAttributeElement(annotation, e.getKey(), e.getValue());
 
             res = res.or(filter.apply(el));
 
-            if (res == Result.MATCH) {
+            if (res == FilterMatch.MATCHES) {
                 return res;
             }
         }
@@ -85,17 +85,17 @@ final class AttributeExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
         return filter.apply(attribute);
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeParameterElement typeParameter) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(TypeMirror type) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeMirror type) {
+        return FilterMatch.DOESNT_MATCH;
     }
 }

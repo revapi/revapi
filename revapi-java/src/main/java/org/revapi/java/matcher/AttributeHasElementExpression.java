@@ -24,7 +24,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -42,38 +42,38 @@ final class AttributeHasElementExpression extends AbstractAttributeValueExpressi
     }
 
     @Override
-    public Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return value.accept(new SimpleAnnotationValueVisitor8<Result, Void>() {
+    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+        return value.accept(new SimpleAnnotationValueVisitor8<FilterMatch, Void>() {
             @Override
-            protected Result defaultAction(Object o, Void aVoid) {
-                return Result.DOESNT_MATCH;
+            protected FilterMatch defaultAction(Object o, Void aVoid) {
+                return FilterMatch.DOESNT_MATCH;
             }
 
             @Override
-            public Result visitArray(List<? extends AnnotationValue> vals, Void __) {
+            public FilterMatch visitArray(List<? extends AnnotationValue> vals, Void __) {
                 if (elementIndex == null) {
                     if (elementMatch == null) {
-                        return Result.fromBoolean(vals.size() > 0);
+                        return FilterMatch.fromBoolean(vals.size() > 0);
                     } else {
                         boolean hasUndecided = false;
                         for (int i = 0; i < vals.size(); ++i) {
-                            Result elementResult = elementMatch.matches(i, vals.get(i), archive, env);
+                            FilterMatch elementResult = elementMatch.matches(i, vals.get(i), archive, env);
 
-                            if (elementResult == Result.MATCH) {
-                                return Result.MATCH;
-                            } else if (elementResult == Result.UNDECIDED) {
+                            if (elementResult == FilterMatch.MATCHES) {
+                                return FilterMatch.MATCHES;
+                            } else if (elementResult == FilterMatch.UNDECIDED) {
                                 hasUndecided = true;
                             }
                         }
 
-                        return hasUndecided ? Result.UNDECIDED : Result.DOESNT_MATCH;
+                        return hasUndecided ? FilterMatch.UNDECIDED : FilterMatch.DOESNT_MATCH;
                     }
                 } else {
                     if (elementMatch == null) {
-                        return Result.fromBoolean(vals.size() > elementIndex);
+                        return FilterMatch.fromBoolean(vals.size() > elementIndex);
                     } else {
                         if (vals.size() <= elementIndex) {
-                            return Result.DOESNT_MATCH;
+                            return FilterMatch.DOESNT_MATCH;
                         } else {
                             return elementMatch.matches(elementIndex, vals.get(elementIndex), archive, env);
                         }

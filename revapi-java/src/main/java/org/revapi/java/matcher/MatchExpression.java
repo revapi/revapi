@@ -19,8 +19,7 @@ package org.revapi.java.matcher;
 
 import javax.lang.model.type.TypeMirror;
 
-import org.revapi.ElementMatcher;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -33,7 +32,7 @@ import org.revapi.java.spi.JavaModelElement;
  * @author Lukas Krejci
  */
 interface MatchExpression {
-    default Result matches(JavaElement element) {
+    default FilterMatch matches(JavaElement element) {
         if (element instanceof JavaAnnotationElement) {
             return matches((JavaAnnotationElement) element);
         } else if (element instanceof TypeParameterElement) {
@@ -43,13 +42,13 @@ interface MatchExpression {
         } else if (element instanceof AnnotationAttributeElement) {
             return matches((AnnotationAttributeElement) element);
         } else {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
     }
 
-    Result matches(JavaModelElement element);
+    FilterMatch matches(JavaModelElement element);
 
-    Result matches(JavaAnnotationElement annotation);
+    FilterMatch matches(JavaAnnotationElement annotation);
 
     /**
      * This method is here for special cases where we cannot match against a model element.
@@ -60,15 +59,15 @@ interface MatchExpression {
      *
      * @param type the type mirror to match
      */
-    default Result matches(TypeMirror type) {
-        return Result.DOESNT_MATCH;
+    default FilterMatch matches(TypeMirror type) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     /**
      * Only used by match expressions for the annotation attributes
      * @param attribute the attribute to match
      */
-    Result matches(AnnotationAttributeElement attribute);
+    FilterMatch matches(AnnotationAttributeElement attribute);
 
-    Result matches(TypeParameterElement typeParameter);
+    FilterMatch matches(TypeParameterElement typeParameter);
 }

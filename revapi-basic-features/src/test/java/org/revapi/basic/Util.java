@@ -24,7 +24,7 @@ import java.util.Set;
 import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
-import org.revapi.ElementFilter;
+import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
@@ -51,7 +51,7 @@ final class Util {
 
     private static Revapi dummyRevapi(Class<?> extensionType) {
         Set<Class<? extends ApiAnalyzer>> analyzers = setOrEmpty(ApiAnalyzer.class, extensionType);
-        Set<Class<? extends ElementFilter>> filters = setOrEmpty(ElementFilter.class, extensionType);
+        Set<Class<? extends ElementGateway>> filters = setOrEmpty(ElementGateway.class, extensionType);
         @SuppressWarnings("unchecked") Set<Class<? extends DifferenceTransform<?>>> transforms
                 = setOrEmpty((Class) DifferenceTransform.class, extensionType);
         Set<Class<? extends Reporter>> reporters = setOrEmpty(Reporter.class, extensionType);

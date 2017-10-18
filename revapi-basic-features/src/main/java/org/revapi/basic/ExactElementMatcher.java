@@ -7,14 +7,15 @@ import java.io.Reader;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
+import org.revapi.FilterMatch;
 
 /**
  * @author Lukas Krejci
  */
 public final class ExactElementMatcher implements ElementMatcher {
     @Override
-    public Result matches(String recipe, Element element) {
-        return Result.fromBoolean(recipe.equals(element.getFullHumanReadableString()));
+    public FilterMatch test(String recipe, Element element) {
+        return FilterMatch.fromBoolean(recipe.equals(element.getFullHumanReadableString()));
     }
 
     @Override

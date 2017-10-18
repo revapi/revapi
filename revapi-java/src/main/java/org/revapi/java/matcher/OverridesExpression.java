@@ -24,8 +24,7 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
-import org.revapi.ElementMatcher;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -45,9 +44,9 @@ final class OverridesExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
+    public FilterMatch matches(JavaModelElement element) {
         if (!(element instanceof JavaMethodElement)) {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
 
         JavaMethodElement overridingMethodElement = (JavaMethodElement) element;
@@ -65,7 +64,7 @@ final class OverridesExpression implements MatchExpression {
 
         List<TypeMirror> parentTypes = Util.getAllSuperTypes(types, overridingMethodElement.getParent().getModelRepresentation());
 
-        Result ret = Result.DOESNT_MATCH;
+        FilterMatch ret = FilterMatch.DOESNT_MATCH;
 
         while (!parentTypes.isEmpty()) {
             TypeMirror pt = parentTypes.remove(0);
@@ -77,8 +76,8 @@ final class OverridesExpression implements MatchExpression {
 
             Iterator<JavaMethodElement> ms = parentType.iterateOverChildren(JavaMethodElement.class, false, check);
             if (overriddenMethodMatch == null) {
-                ret = ret.or(Result.fromBoolean(ms.hasNext()));
-                if (ret == Result.MATCH) {
+                ret = ret.or(FilterMatch.fromBoolean(ms.hasNext()));
+                if (ret == FilterMatch.MATCHES) {
                     return ret;
                 }
             } else {
@@ -87,7 +86,7 @@ final class OverridesExpression implements MatchExpression {
 
                     ret = ret.or(overriddenMethodMatch.matches(m));
 
-                    if (ret == Result.MATCH) {
+                    if (ret == FilterMatch.MATCHES) {
                         return ret;
                     }
                 }
@@ -100,17 +99,17 @@ final class OverridesExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaAnnotationElement annotation) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeParameterElement typeParameter) {
+        return FilterMatch.DOESNT_MATCH;
     }
 }

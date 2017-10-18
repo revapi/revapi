@@ -28,6 +28,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.Element;
+import org.revapi.FilterResult;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
@@ -50,7 +51,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 InclusionFilter.acceptAll());
 
         try {
-            JavaElementForest forest = analyzer.analyze();
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
 
             Assert.assertEquals(6, forest.getRoots().size());
         } finally {
@@ -80,7 +81,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 false, InclusionFilter.acceptAll());
 
         try {
-            JavaElementForest forest = analyzer.analyze();
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
 
             Assert.assertEquals(3, forest.getRoots().size());
 
@@ -112,7 +113,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 InclusionFilter.acceptAll());
 
         try {
-            JavaElementForest forest = analyzer.analyze();
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
 
             forest.getRoots();
 
@@ -162,7 +163,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 false, InclusionFilter.acceptAll());
 
         try {
-            JavaElementForest forest = analyzer.analyze();
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
 
             Set<TypeElement> roots = forest.getRoots();
 

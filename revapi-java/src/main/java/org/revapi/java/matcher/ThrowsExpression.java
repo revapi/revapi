@@ -26,8 +26,7 @@ import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.util.ElementKindVisitor7;
 import javax.lang.model.util.SimpleTypeVisitor8;
 
-import org.revapi.ElementMatcher;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -44,25 +43,25 @@ final class ThrowsExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
+    public FilterMatch matches(JavaModelElement element) {
         List<? extends TypeMirror> thrownTypes = ((JavaMethodElement) element).getModelRepresentation()
                 .getThrownTypes();
 
         if (thrownTypes.isEmpty()) {
-            return Result.fromBoolean(throwsMatch == null);
+            return FilterMatch.fromBoolean(throwsMatch == null);
         } else if (throwsMatch == null) {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
 
-        TypeVisitor<Result, Void> decision = new SimpleTypeVisitor8<Result, Void>(Result.DOESNT_MATCH) {
+        TypeVisitor<FilterMatch, Void> decision = new SimpleTypeVisitor8<FilterMatch, Void>(FilterMatch.DOESNT_MATCH) {
             @Override
-            public Result visitDeclared(DeclaredType t, Void ignored) {
-                return t.asElement().accept(new ElementKindVisitor7<Result, Void>(Result.DOESNT_MATCH) {
+            public FilterMatch visitDeclared(DeclaredType t, Void ignored) {
+                return t.asElement().accept(new ElementKindVisitor7<FilterMatch, Void>(FilterMatch.DOESNT_MATCH) {
                     @Override
-                    public Result visitType(TypeElement e, Void ignored) {
+                    public FilterMatch visitType(TypeElement e, Void ignored) {
                         JavaTypeElement modelType = element.getTypeEnvironment().getModelElement(e);
                         if (modelType == null) {
-                            return Result.DOESNT_MATCH;
+                            return FilterMatch.DOESNT_MATCH;
                         } else {
                             return throwsMatch.matches(modelType);
                         }
@@ -72,11 +71,11 @@ final class ThrowsExpression implements MatchExpression {
             }
         };
 
-        Result ret = Result.DOESNT_MATCH;
+        FilterMatch ret = FilterMatch.DOESNT_MATCH;
         for (TypeMirror t : thrownTypes) {
-            Result result = t.accept(decision, null);
-            if (result == Result.MATCH) {
-                return Result.MATCH;
+            FilterMatch result = t.accept(decision, null);
+            if (result == FilterMatch.MATCHES) {
+                return FilterMatch.MATCHES;
             } else {
                 ret = ret.or(result);
             }
@@ -86,17 +85,17 @@ final class ThrowsExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaAnnotationElement annotation) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeParameterElement typeParameter) {
+        return FilterMatch.DOESNT_MATCH;
     }
 }

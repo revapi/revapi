@@ -24,8 +24,7 @@ import java.util.List;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
-import org.revapi.ElementMatcher;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
@@ -47,9 +46,9 @@ final class SubTypeExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
+    public FilterMatch matches(JavaModelElement element) {
         if (!(element instanceof JavaTypeElement)) {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
 
         TypeMirror elementType = ((JavaTypeElement) element).getModelRepresentation();
@@ -61,7 +60,7 @@ final class SubTypeExpression implements MatchExpression {
             List<? extends TypeMirror> superTypes = types.directSupertypes(elementType);
 
             if (superTypes.isEmpty()) {
-                return Result.DOESNT_MATCH;
+                return FilterMatch.DOESNT_MATCH;
             }
 
             if (searchInterfaces) {
@@ -79,16 +78,16 @@ final class SubTypeExpression implements MatchExpression {
 
         TypeEnvironment typeEnvironment = element.getTypeEnvironment();
 
-        Result ret = Result.DOESNT_MATCH;
+        FilterMatch ret = FilterMatch.DOESNT_MATCH;
         for (TypeMirror t : candidates) {
             JavaTypeElement type = typeEnvironment.getModelElement(t);
             if (type == null) {
-                ret = ret.or(Result.DOESNT_MATCH);
+                ret = ret.or(FilterMatch.DOESNT_MATCH);
             } else {
                 ret = ret.or(superTypeMatch.matches(type));
             }
 
-            if (ret == Result.MATCH) {
+            if (ret == FilterMatch.MATCHES) {
                 break;
             }
         }
@@ -97,17 +96,17 @@ final class SubTypeExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaAnnotationElement annotation) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeParameterElement typeParameter) {
+        return FilterMatch.DOESNT_MATCH;
     }
 }

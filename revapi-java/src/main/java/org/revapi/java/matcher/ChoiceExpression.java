@@ -17,7 +17,7 @@
 
 package org.revapi.java.matcher;
 
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -35,27 +35,27 @@ final class ChoiceExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
+    public FilterMatch matches(JavaModelElement element) {
         return test(element);
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
         return test(attribute);
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(TypeParameterElement typeParameter) {
         return test(typeParameter);
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
+    public FilterMatch matches(JavaAnnotationElement annotation) {
         return test(annotation);
     }
 
-    private Result test(JavaElement el) {
-        return choiceProducer.choiceFor(el).reduce(Result.DOESNT_MATCH,
-                (partial, check) -> partial.or(choiceMatch.matches(check)), Result::or);
+    private FilterMatch test(JavaElement el) {
+        return choiceProducer.choiceFor(el).reduce(FilterMatch.DOESNT_MATCH,
+                (partial, check) -> partial.or(choiceMatch.matches(check)), FilterMatch::or);
     }
 }

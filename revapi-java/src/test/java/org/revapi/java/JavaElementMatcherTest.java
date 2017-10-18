@@ -1,6 +1,5 @@
 package org.revapi.java;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -18,8 +17,8 @@ import org.junit.runner.RunWith;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
-import org.revapi.ElementMatcher;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
+import org.revapi.FilterResult;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.matcher.JavaElementMatcher;
 import org.revapi.java.model.FieldElement;
@@ -661,11 +660,11 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
     }
 
     private void assertMatches(String test, Element element) {
-        assertTrue("Expecting match for [" + test + "] on " + element, matcher.matches(test, element) == Result.MATCH);
+        assertTrue("Expecting match for [" + test + "] on " + element, matcher.test(test, element) == FilterMatch.MATCHES);
     }
 
     private void assertDoesntMatch(String test, Element element) {
-        assertTrue("Expecting no match for [" + test + "] on " + element, matcher.matches(test, element) == Result.DOESNT_MATCH);
+        assertTrue("Expecting no match for [" + test + "] on " + element, matcher.test(test, element) == FilterMatch.DOESNT_MATCH);
     }
 
     private <T extends Element> void testSimpleMatchForElementType(Class<T> elementType, String quality, String expectedValue, Filter<T> filter) throws Exception {
@@ -674,7 +673,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
             Element el = cls.searchChildren(elementType, true, filter).get(0);
 
             assertTrue("Testing [" + quality + " = " + expectedValue + "] on " + el,
-                    matcher.matches("has " + quality + expectedValue, el) == Result.MATCH);
+                    matcher.test("has " + quality + expectedValue, el) == FilterMatch.MATCHES);
         });
     }
 
@@ -686,7 +685,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
                     null), Executors.newSingleThreadExecutor(), null, false,
                     InclusionFilter.acceptAll());
 
-            JavaElementForest results = analyzer.analyze();
+            JavaElementForest results = analyzer.analyze(e -> FilterResult.passAndDescend());
 
             test.accept(results);
         } finally {

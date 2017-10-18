@@ -22,7 +22,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.AnnotationElement;
 
@@ -37,15 +37,15 @@ final class AttributeChildMatchesExpression extends AbstractAttributeValueExpres
     }
 
     @Override
-    public Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return value.accept(new SimpleAnnotationValueVisitor8<Result, Void>() {
+    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+        return value.accept(new SimpleAnnotationValueVisitor8<FilterMatch, Void>() {
             @Override
-            protected Result defaultAction(Object o, Void aVoid) {
-                return Result.DOESNT_MATCH;
+            protected FilterMatch defaultAction(Object o, Void aVoid) {
+                return FilterMatch.DOESNT_MATCH;
             }
 
             @Override
-            public Result visitAnnotation(AnnotationMirror a, Void aVoid) {
+            public FilterMatch visitAnnotation(AnnotationMirror a, Void aVoid) {
                 return childAttributeMatch.matches(new AnnotationElement(env, archive, a));
             }
         }, null);

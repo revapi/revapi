@@ -45,6 +45,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
+import org.revapi.FilterMatch;
 import org.revapi.java.matcher.ElementMatcherParser.ExpressionContext;
 import org.revapi.java.matcher.ElementMatcherParser.TopExpressionContext;
 import org.revapi.java.spi.JavaAnnotationElement;
@@ -61,9 +62,9 @@ public final class JavaElementMatcher implements ElementMatcher {
     private final Map<String, MatchExpression> parsedMatchers = new HashMap<>();
 
     @Override
-    public Result matches(String recipe, Element element) {
+    public FilterMatch test(String recipe, Element element) {
         if (!(element instanceof JavaElement)) {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
 
         MatchExpression matcher = parsedMatchers.computeIfAbsent(recipe, this::createMatcher);
@@ -803,22 +804,22 @@ public final class JavaElementMatcher implements ElementMatcher {
         }
 
         @Override
-        public Result matches(JavaModelElement element) {
+        public FilterMatch matches(JavaModelElement element) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public Result matches(JavaAnnotationElement annotation) {
+        public FilterMatch matches(JavaAnnotationElement annotation) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public Result matches(AnnotationAttributeElement attribute) {
+        public FilterMatch matches(AnnotationAttributeElement attribute) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public Result matches(TypeParameterElement typeParameter) {
+        public FilterMatch matches(TypeParameterElement typeParameter) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 

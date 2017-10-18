@@ -21,12 +21,13 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,6 +36,7 @@ import org.revapi.AnalysisContext;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementForest;
+import org.revapi.FilterResult;
 import org.revapi.Revapi;
 import org.revapi.simple.SimpleElementFilter;
 
@@ -120,7 +122,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
             ArchiveAnalyzer archiveAnalyzer = apiAnalyzer.getArchiveAnalyzer(
                     new API(Collections.singletonList(new ShrinkwrapArchive(archive.archive)), null));
 
-            ElementForest forest = archiveAnalyzer.analyze();
+            ElementForest forest = archiveAnalyzer.analyze(e -> FilterResult.passAndDescend());
 
             List<Element> results = forest.search(Element.class, true, new AcceptingFilter(), null);
 

@@ -22,8 +22,7 @@ import java.util.List;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
-import org.revapi.ElementMatcher;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -44,9 +43,9 @@ final class ReturnsExpression implements MatchExpression {
     }
 
     @Override
-    public Result matches(JavaModelElement element) {
+    public FilterMatch matches(JavaModelElement element) {
         if (!(element instanceof JavaMethodElement)) {
-            return Result.DOESNT_MATCH;
+            return FilterMatch.DOESNT_MATCH;
         }
 
         JavaMethodElement methodElement = (JavaMethodElement) element;
@@ -60,40 +59,40 @@ final class ReturnsExpression implements MatchExpression {
 
         JavaTypeElement returnType = typeEnvironment.getModelElement(rt);
 
-        Result ret = returnTypeMatch.matches(returnType);
-        if (ret == Result.MATCH) {
+        FilterMatch ret = returnTypeMatch.matches(returnType);
+        if (ret == FilterMatch.MATCHES) {
             return ret;
         }
 
         if (covariant) {
             List<TypeMirror> superTypes = Util.getAllSuperTypes(typeEnvironment.getTypeUtils(), rt);
-            ret = superTypes.stream().reduce(Result.DOESNT_MATCH,
+            ret = superTypes.stream().reduce(FilterMatch.DOESNT_MATCH,
                     (partial, t) -> {
                         JavaTypeElement type = typeEnvironment.getModelElement(t);
                         if (type == null) {
-                            return partial.or(Result.DOESNT_MATCH);
+                            return partial.or(FilterMatch.DOESNT_MATCH);
                         } else {
                             return partial.or(returnTypeMatch.matches(type));
                         }
                     },
-                    Result::or);
+                    FilterMatch::or);
         }
 
         return ret;
     }
 
     @Override
-    public Result matches(JavaAnnotationElement annotation) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(JavaAnnotationElement annotation) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(AnnotationAttributeElement attribute) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(AnnotationAttributeElement attribute) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeParameterElement typeParameter) {
+        return FilterMatch.DOESNT_MATCH;
     }
 }

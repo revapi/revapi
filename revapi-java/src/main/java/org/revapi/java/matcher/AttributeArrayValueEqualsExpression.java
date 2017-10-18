@@ -23,7 +23,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 
 /**
@@ -37,12 +37,12 @@ final class AttributeArrayValueEqualsExpression extends AbstractAttributeValueEx
     }
 
     @Override
-    public Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return value.accept(new SimpleAnnotationValueVisitor8<Result, Void>(Result.DOESNT_MATCH) {
+    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+        return value.accept(new SimpleAnnotationValueVisitor8<FilterMatch, Void>(FilterMatch.DOESNT_MATCH) {
             @Override
-            public Result visitArray(List<? extends AnnotationValue> vals, Void __) {
+            public FilterMatch visitArray(List<? extends AnnotationValue> vals, Void __) {
                 if (expectedMatches.size() != vals.size()) {
-                    return Result.DOESNT_MATCH;
+                    return FilterMatch.DOESNT_MATCH;
                 }
 
                 int len = expectedMatches.size();
@@ -50,13 +50,13 @@ final class AttributeArrayValueEqualsExpression extends AbstractAttributeValueEx
                     AnnotationValue value = vals.get(i);
                     AbstractAttributeValueExpression match = expectedMatches.get(i);
 
-                    Result partialResult = match.matches(i, value, archive, env);
-                    if (partialResult != Result.MATCH) {
+                    FilterMatch partialResult = match.matches(i, value, archive, env);
+                    if (partialResult != FilterMatch.MATCHES) {
                         return partialResult;
                     }
                 }
 
-                return Result.MATCH;
+                return FilterMatch.MATCHES;
             }
         }, null);
     }

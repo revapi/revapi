@@ -32,6 +32,30 @@ import org.revapi.query.Filter;
  *
  * @author Lukas Krejci
  * @since 0.1
+ *
+ * @deprecated use {@link ElementGateway} instead
  */
-public interface ElementFilter extends Filter<Element>, AutoCloseable, Configurable {
+@Deprecated
+public interface ElementFilter extends ElementGateway, Filter<Element>, AutoCloseable, Configurable {
+    @Override
+    default void start(AnalysisStage stage) {
+
+    }
+
+    @Override
+    default FilterResult filter(AnalysisStage stage, Element element) {
+        if (stage != AnalysisStage.FOREST_COMPLETE) {
+            return FilterResult.undecidedAndDescend();
+        }
+
+        boolean applies = applies(element);
+        boolean descend = shouldDescendInto(element);
+
+        return new FilterResult(applies ? FilterMatch.MATCHES : FilterMatch.DOESNT_MATCH, descend);
+    }
+
+    @Override
+    default void end(AnalysisStage stage) {
+
+    }
 }

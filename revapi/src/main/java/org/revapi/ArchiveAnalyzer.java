@@ -27,6 +27,20 @@ import javax.annotation.Nonnull;
  */
 public interface ArchiveAnalyzer {
 
+    /**
+     * Analyzes the API archives and filters the forest using the provided filter.
+     *
+     * @param filter the filter to use to "prune" the forest
+     * @return the element forest ready for analysis
+     */
     @Nonnull
-    ElementForest analyze();
+    ElementForest analyze(Filter filter);
+
+    /**
+     * Implementation of this interface will be provided to the archive analyzer so that it can filter out elements
+     * that the user explicitly does/doesn't want included in the analysis.
+     */
+    interface Filter {
+        FilterResult filter(Element element);
+    }
 }

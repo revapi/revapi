@@ -21,7 +21,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
-import org.revapi.ElementMatcher.Result;
+import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -31,33 +31,33 @@ import org.revapi.java.spi.JavaModelElement;
  */
 abstract class AbstractAttributeValueExpression implements MatchExpression {
     @Override
-    public final Result matches(JavaModelElement element) {
-        return Result.DOESNT_MATCH;
+    public final FilterMatch matches(JavaModelElement element) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public final Result matches(JavaAnnotationElement annotation) {
-        return Result.DOESNT_MATCH;
+    public final FilterMatch matches(JavaAnnotationElement annotation) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public final Result matches(AnnotationAttributeElement attribute) {
+    public final FilterMatch matches(AnnotationAttributeElement attribute) {
         return matches(attribute.getAnnotationValue(), attribute.getArchive(), (ProbingEnvironment) attribute.getTypeEnvironment());
     }
 
     @Override
-    public Result matches(TypeParameterElement typeParameter) {
-        return Result.DOESNT_MATCH;
+    public FilterMatch matches(TypeParameterElement typeParameter) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public final Result matches(TypeMirror type) {
-        return Result.DOESNT_MATCH;
+    public final FilterMatch matches(TypeMirror type) {
+        return FilterMatch.DOESNT_MATCH;
     }
 
-    public Result matches(int index, AnnotationValue value, Archive archive, ProbingEnvironment env) {
+    public FilterMatch matches(int index, AnnotationValue value, Archive archive, ProbingEnvironment env) {
         return matches(value, archive, env);
     }
 
-    public abstract Result matches(AnnotationValue value, Archive archive, ProbingEnvironment env);
+    public abstract FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env);
 }

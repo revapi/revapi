@@ -16,6 +16,7 @@
 
 package org.revapi;
 
+import java.io.Reader;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,11 +30,15 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.jboss.dmr.ModelNode;
 import org.revapi.configuration.Configurable;
@@ -55,7 +60,7 @@ public final class Revapi {
     private final Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers;
     private final Set<Class<? extends Reporter>> availableReporters;
     private final Set<Class<? extends DifferenceTransform<?>>> availableTransforms;
-    private final Set<Class<? extends ElementFilter>> availableFilters;
+    private final Set<Class<? extends ElementGateway>> availableFilters;
     private final Set<Class<? extends ElementMatcher>> availableMatchers;
     private final ConfigurationValidator configurationValidator;
     private final Map<String, List<DifferenceTransform<?>>> matchingTransformsCache = new HashMap<>();
@@ -72,7 +77,7 @@ public final class Revapi {
     public Revapi(@Nonnull Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers,
                   @Nonnull Set<Class<? extends Reporter>> availableReporters,
                   @Nonnull Set<Class<? extends DifferenceTransform<?>>> availableTransforms,
-                  @Nonnull Set<Class<? extends ElementFilter>> elementFilters,
+                  @Nonnull Set<Class<? extends ElementGateway>> elementFilters,
                   @Nonnull Set<Class<? extends ElementMatcher>> matchers) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
@@ -133,7 +138,7 @@ public final class Revapi {
     /**
      * @return the set of element filters available to this Revapi instance
      */
-    public Set<Class<? extends ElementFilter>> getElementFilterTypes() {
+    public Set<Class<? extends ElementGateway>> getElementFilterTypes() {
         return Collections.unmodifiableSet(availableFilters);
     }
 
@@ -154,7 +159,7 @@ public final class Revapi {
      * @return the instantiated extensions and their individual configurations
      */
     public AnalysisResult.Extensions prepareAnalysis(@Nonnull AnalysisContext analysisContext) {
-        Map<ElementFilter, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
+        Map<ElementGateway, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
         Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
         Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
         Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
@@ -256,10 +261,24 @@ public final class Revapi {
         ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
         ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
 
+        ElementGateway filter = unionGateway(extensions);
+        filter.start(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
+
+        ArchiveAnalyzer.Filter analyzerFilter = new ArchiveAnalyzer.Filter() {
+            @Override
+            public FilterResult filter(Element element) {
+                return filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, element);
+            }
+        };
+
         TIMING_LOG.debug("Obtaining API trees.");
-        ElementForest oldTree = oldAnalyzer.analyze();
-        ElementForest newTree = newAnalyzer.analyze();
+
+        ElementForest oldTree = oldAnalyzer.analyze(analyzerFilter);
+        ElementForest newTree = newAnalyzer.analyze(analyzerFilter);
         TIMING_LOG.debug("API trees obtained");
+
+        filter.end(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
+        filter.start(ElementGateway.AnalysisStage.FOREST_COMPLETE);
 
         try (DifferenceAnalyzer elementDifferenceAnalyzer = apiAnalyzer.getDifferenceAnalyzer(oldAnalyzer, newAnalyzer)) {
             TIMING_LOG.debug("Obtaining API roots");
@@ -272,16 +291,57 @@ public final class Revapi {
                 LOG.debug("New tree: {}", newTree);
             }
 
+            TreeMap<Element, Element> undecidedElements = new TreeMap<>((a, b) -> {
+                //this is super inefficient but I'm not sure sorting the undecided elements warrants a change in the API
+                //for the Element to report its depth.
+                int aDepth = 0;
+                int bDepth = 0;
+
+                while (a != null) {
+                    a = a.getParent();
+                    aDepth++;
+                }
+
+                while (b != null) {
+                    b = b.getParent();
+                    bDepth++;
+                }
+
+                return aDepth - bDepth;
+            });
+
             TIMING_LOG.debug("Opening difference analyzer");
             elementDifferenceAnalyzer.open();
-            analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs, extensions);
+
+            do {
+                analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, filter, as, bs,
+                        undecidedElements, extensions);
+
+                Iterator<Map.Entry<Element, Element>> it = undecidedElements.entrySet().iterator();
+                if (it.hasNext()) {
+                    Map.Entry<Element, Element> pair = it.next();
+                    as = new TreeSet<>(Collections.singleton(pair.getKey()));
+                    bs = new TreeSet<>(Collections.singleton(pair.getValue()));
+                    it.remove();
+                } else {
+                    as = Collections.emptySortedSet();
+                    bs = Collections.emptySortedSet();
+                }
+                //TODO possible infinite loop!!!
+            } while (!as.isEmpty() && !bs.isEmpty());
+
             TIMING_LOG.debug("Closing difference analyzer");
         }
+
+        filter.end(ElementGateway.AnalysisStage.FOREST_COMPLETE);
+
         TIMING_LOG.debug("Difference analyzer closed");
     }
 
     private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
+                         ElementGateway filter,
                          SortedSet<? extends Element> as, SortedSet<? extends Element> bs,
+                         Map<Element, Element> undecidedElementPairs,
                          AnalysisResult.Extensions extensions) {
 
         List<Element> sortedAs = new ArrayList<>(as);
@@ -300,10 +360,23 @@ public final class Revapi {
             Element b = it.getRight();
 
             Stats.of("filters").start();
-            Set<ElementFilter> filters = extensions.getFilters().keySet();
-            boolean analyzeThis =
-                    (a == null || filtersApply(a, filters)) && (b == null || filtersApply(b, filters));
+            FilterResult aFilterResult = a == null
+                    ? FilterResult.passAndDescend()
+                    : filter.filter(ElementGateway.AnalysisStage.FOREST_COMPLETE, a);
+            FilterResult bFilterResult = b == null
+                    ? FilterResult.passAndDescend()
+                    : filter.filter(ElementGateway.AnalysisStage.FOREST_COMPLETE, b);
+
             Stats.of("filters").end(a, b);
+
+            if (aFilterResult.getMatch() == FilterMatch.UNDECIDED
+                    || bFilterResult.getMatch() == FilterMatch.UNDECIDED) {
+                undecidedElementPairs.put(a, b);
+                return;
+            }
+
+            boolean analyzeThis = aFilterResult.getMatch() == FilterMatch.MATCHES
+                    && bFilterResult.getMatch() == FilterMatch.MATCHES;
 
             long beginDuration = 0;
             if (analyzeThis) {
@@ -314,13 +387,11 @@ public final class Revapi {
                 beginDuration = Stats.of("analyses").reset();
             }
 
-            Stats.of("descends").start();
-            boolean shouldDescend = a != null && b != null && filtersDescend(a, filters) &&
-                    filtersDescend(b, filters);
-            Stats.of("descends").end(a, b);
+            boolean shouldDescend = aFilterResult.isDescend() && bFilterResult.isDescend();
 
             if (shouldDescend) {
-                analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren(), extensions);
+                analyze(deducer, elementDifferenceAnalyzer, filter, a.getChildren(), b.getChildren(),
+                        undecidedElementPairs, extensions);
             }
 
             if (analyzeThis) {
@@ -340,6 +411,76 @@ public final class Revapi {
         } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Failed to instantiate extension: " + type, e);
         }
+    }
+
+    private ElementGateway unionGateway(AnalysisResult.Extensions extensions) {
+        return new ElementGateway() {
+            @Override
+            public void start(AnalysisStage stage) {
+                onAllDo(e -> e.start(stage));
+            }
+
+            @Override
+            public FilterResult filter(AnalysisStage stage, Element element) {
+                return extensions.getFilters().keySet().stream()
+                        .map(f -> {
+                            String name = f.getClass().getName() + ".check";
+                            Stats.of(name).start();
+                            FilterResult res = f.filter(stage, element);
+                            Stats.of(name).end(element);
+
+                            return res;
+                        })
+                        .reduce(FilterResult::and)
+                        .orElse(new FilterResult(FilterMatch.MATCHES, true));
+            }
+
+            @Override
+            public void end(AnalysisStage stage) {
+                onAllDo(e -> e.end(stage));
+            }
+
+            @Override
+            public void close() throws Exception {
+                List<Exception> failures = new ArrayList<>(1);
+
+                onAllDo(f -> {
+                    try {
+                        f.close();
+                    } catch (Exception e) {
+                        failures.add(e);
+                    }
+                });
+
+                if (!failures.isEmpty()) {
+                    Iterator<Exception> it = failures.iterator();
+                    Exception ex = new Exception(it.next());
+                    it.forEachRemaining(e -> ex.addSuppressed(e));
+                    throw ex;
+                }
+            }
+
+            @Nullable
+            @Override
+            public String getExtensionId() {
+                return null;
+            }
+
+            @Nullable
+            @Override
+            public Reader getJSONSchema() {
+                return null;
+            }
+
+            @Override
+            public void initialize(@Nonnull AnalysisContext analysisContext) {
+                extensions.getFilters().forEach((f, c) -> f.initialize(c));
+            }
+
+            private void onAllDo(Consumer<ElementGateway> action) {
+                extensions.getFilters().keySet().forEach(action);
+            }
+        };
     }
 
     @SafeVarargs
@@ -475,7 +616,7 @@ public final class Revapi {
         private Set<Class<? extends ApiAnalyzer>> analyzers = null;
         private Set<Class<? extends Reporter>> reporters = null;
         private Set<Class<? extends DifferenceTransform<?>>> transforms = null;
-        private Set<Class<? extends ElementFilter>> filters = null;
+        private Set<Class<? extends ElementGateway>> filters = null;
         private Set<Class<? extends ElementMatcher>> matchers = null;
 
         @Nonnull
@@ -579,27 +720,31 @@ public final class Revapi {
         }
 
         @Nonnull
+        @SuppressWarnings({"unchecked", "RedundantCast"})
         public Builder withFiltersFromThreadContextClassLoader() {
-            return withFilters(ServiceTypeLoader.load(ElementFilter.class));
+            withFilters(ServiceTypeLoader.load(ElementGateway.class));
+            return withFilters((Iterable<Class<? extends ElementGateway>>) (Iterable) ServiceTypeLoader.load(ElementFilter.class));
         }
 
         @Nonnull
+        @SuppressWarnings({"unchecked", "RedundantCast"})
         public Builder withFiltersFrom(@Nonnull ClassLoader cl) {
-            return withFilters(ServiceTypeLoader.load(ElementFilter.class, cl));
+            withFilters(ServiceTypeLoader.load(ElementGateway.class, cl));
+            return withFilters((Iterable<Class<? extends ElementGateway>>) (Iterable) ServiceTypeLoader.load(ElementFilter.class, cl));
         }
 
         @SafeVarargs
         @Nonnull
-        public final Builder withFilters(Class<? extends ElementFilter>... filters) {
+        public final Builder withFilters(Class<? extends ElementGateway>... filters) {
             return withFilters(Arrays.asList(filters));
         }
 
         @Nonnull
-        public Builder withFilters(@Nonnull Iterable<Class<? extends ElementFilter>> filters) {
+        public Builder withFilters(@Nonnull Iterable<Class<? extends ElementGateway>> filters) {
             if (this.filters == null) {
                 this.filters = new HashSet<>();
             }
-            for (Class<? extends ElementFilter> f : filters) {
+            for (Class<? extends ElementGateway> f : filters) {
                 this.filters.add(f);
             }
 
@@ -671,36 +816,4 @@ public final class Revapi {
             return new Revapi(analyzers, reporters, transforms, filters, matchers);
         }
     }
-
-    private static boolean filtersApply(Element element, Iterable<? extends ElementFilter> filters) {
-        for (ElementFilter f : filters) {
-            String name = f.getClass().getName() + ".applies";
-            Stats.of(name).start();
-            boolean applies = f.applies(element);
-            Stats.of(name).end(element);
-            if (!applies) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean filtersDescend(Element element, Iterable<? extends ElementFilter> filters) {
-        Iterator<? extends ElementFilter> it = filters.iterator();
-        boolean hasNoFilters = !it.hasNext();
-
-        while (it.hasNext()) {
-            ElementFilter f = it.next();
-            String name = f.getClass().getName() + ".shouldDescendInto";
-            Stats.of(name).start();
-            boolean should = f.shouldDescendInto(element);
-            Stats.of(name).end(element);
-            if (should) {
-                return true;
-            }
-        }
-
-        return hasNoFilters;
-    }
-
 }
