@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.revapi.java.spi.Util;
+import org.revapi.java.test.support.Jar;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -38,9 +39,9 @@ public class ToStringsTest {
 
     @Test
     public void testMethodParameterStringRepresentation() throws Exception {
-        Jar.Environment env = jar.compile("ToStrings.java");
+        Jar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
 
-        Element cls = env.getElementUtils().getTypeElement("ToStrings");
+        Element cls = env.elements().getTypeElement("ToStrings");
         List<ExecutableElement> methods = ElementFilter.methodsIn(cls.getEnclosedElements());
         ExecutableElement method = methods.stream()
                 .filter(m -> m.getSimpleName().contentEquals("methodWithTypeParamsInMethodParams"))
