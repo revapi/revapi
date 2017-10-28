@@ -4,6 +4,7 @@ You can subscribe to the link:news.atom[RSS feed] to be automatically informed a
 
 ---
 
+* link:news/20171029-compatibility-release.html[2017-10-29 New Releases Restoring Compatibility]
 * link:news/20171015-releases.html[2017-10-15 New Releases]
 * link:news/20170712-releases.html[2017-07-24 New Releases]
 * link:news/20170424-intro.html[2017-04-24 Introducing online API diff]

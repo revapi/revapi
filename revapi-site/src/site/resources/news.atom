@@ -67,4 +67,22 @@
       There hasn't been much public progress on Revapi lately but it nevertheless slowly crawls forward in its quest to become the best programming API checking tool in the multiverse :)
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20171029-compatibility-release.html</id>
+    <title>New Releases Restoring Compatibility</title>
+    <updated>2017-10-29T00:00:00+00:00</updated>
+    <published>2017-10-29T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20171029-compatibility-release.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
+        plugin. This has proven to be problematic and the last releases could not be used with
+        Java 8. This should be now fixed and compatibility with Java 8 restored.
+    </summary>
+    <content type="html">
+      Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
+      plugin. This has proven to be problematic and the last releases could not be used with
+      Java 8. This should be now fixed and compatibility with Java 8 restored.
+    </content>
+  </entry>
 </feed>
