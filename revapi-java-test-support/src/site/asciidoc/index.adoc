@@ -1,0 +1,40 @@
+== Revapi Java Test Support
+
+If you're developing a Revapi extension you might find it useful to be able to compose a new jar file out of sources
+and resources present on the test classpath or somewhere on the filesystem and then be able to inspect the classes
+that you included in that jar.
+
+Revapi offers a `revapi-java-test-support` artifact that may help you in JUnit4-based tests. It defines are rule that
+provides you with the means to compile jars and inspect the compiled classes using the Java annotation processing
+means.
+
+The usage is simple. Just declare are rule in your test class:
+
+```java
+
+@Rule
+public Jar jar = new Jar();
+
+```
+
+and then use it in your test methods like so:
+
+```java
+@Test
+public void shouldTestSomething() {
+    Jar.BuildOutput output = jar.from().classPathSources("/my-test/sources/", "com/acme/Acme.java").build();
+
+    //access the built jar file
+    File jarFile = output.jarFile();
+
+    //inspect the compiled code
+    Jar.Environment env = output.analyze();
+
+    TypeElement type = env.elements().getTypeElement("com.acme.Acme");
+    ...
+}
+
+```
+
+Please consult the link:apidocs/org/revapi/java/test/support/package-summary.html[javadoc] of the class for more information.
+

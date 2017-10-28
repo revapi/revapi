@@ -53,6 +53,7 @@
       <item name="Basic Features" href="${web.url}/modules/revapi-basic-features/index.html"/>
       <item name="Java Extension" href="${web.url}/modules/revapi-java/index.html"/>
       <item name="Java Extension SPI" href="${web.url}/modules/revapi-java-spi/index.html"/>
+      <item name="Java Test Support" href="${web.url}/modules/revapi-java-test-support/index.html"/>
       <item name="Text Report Extension" href="${web.url}/modules/revapi-reporter-text/index.html"/>
       <item name="Maven Plugin" href="${web.url}/modules/revapi-maven-plugin/index.html"/>
     </menu>
