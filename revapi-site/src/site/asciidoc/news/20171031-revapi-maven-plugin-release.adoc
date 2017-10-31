@@ -1,0 +1,8 @@
+== Released Revapi Maven Plugin 0.9.5
+
+In quick succession to the link:20171031-revapi-java-release.html[new release] of `revapi-java` I also released a new
+bugfix version of `revapi-maven-plugin`. The new version `0.9.5` fixes the problem with the resolution of dependencies
+when `LATEST` is used as the (old or new) version of the artifact to check.
+
+As with the last release of `revapi-java`, thanks go out to Martin Monperrus who discovered and helped analyze
+the issue.

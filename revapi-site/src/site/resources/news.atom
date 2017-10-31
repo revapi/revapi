@@ -103,4 +103,22 @@
         revapi-java-0.14.4 if possible.
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20171031-revapi-maven-plugin-release.html</id>
+    <title>Released Revapi Maven Plugin 0.9.5</title>
+    <updated>2017-10-31T00:00:00+00:00</updated>
+    <published>2017-10-31T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20171031-revapi-maven-plugin-release.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        In quick succession to the new release of revapi-java I also released a new bugfix version of
+        revapi-maven-plugin. The new version 0.9.5 fixes the problem with the resolution of dependencies when LATEST is
+        used as the (old or new) version of the artifact to check.
+    </summary>
+    <content type="html">
+        In quick succession to the new release of revapi-java I also released a new bugfix version of
+        revapi-maven-plugin. The new version 0.9.5 fixes the problem with the resolution of dependencies when LATEST is
+        used as the (old or new) version of the artifact to check.
+    </content>
+  </entry>
 </feed>

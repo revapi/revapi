@@ -4,6 +4,7 @@ You can subscribe to the link:news.atom[RSS feed] to be automatically informed a
 
 ---
 
+* link:news/20171031-revapi-maven-plugin-release.html[2017-10-31 Released Revapi Maven Plugin 0.9.5]
 * link:news/20171031-revapi-java-release.html[2017-10-31 New Revapi Java Extension Release]
 * link:news/20171029-compatibility-release.html[2017-10-29 New Releases Restoring Compatibility]
 * link:news/20171015-releases.html[2017-10-15 New Releases]
