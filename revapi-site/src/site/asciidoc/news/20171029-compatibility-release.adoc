@@ -18,3 +18,5 @@ The following were released:
 In addition to the above fix, a new artifact is now released `revapi-java-test-support` starting at version `0.1.0`.
 This artifact is supposed to help custom extensions with testing by providing simple utilities to build, compile and
 inspect custom jar files.
+
+Thanks go out to Petr Široký who found, diagnosed and fixed the compatibility issue. Petr, you're a star!
