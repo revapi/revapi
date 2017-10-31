@@ -42,6 +42,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
@@ -223,9 +224,7 @@ final class ClasspathScanner {
         });
 
         for (Map.Entry<TypeElement, Boolean> e : rts.entrySet()) {
-            if (e.getKey().asType().getKind() != TypeKind.ERROR) {
-                scanner.scanClass(systemClassPath, e.getKey(), false);
-            }
+            scanner.scanClass(systemClassPath, e.getKey(), false);
         }
 
         scanner.initEnvironment();
@@ -280,6 +279,11 @@ final class ClasspathScanner {
             @Override
             public TypeElement visitNoType(NoType t, Void aVoid) {
                 return null;
+            }
+
+            @Override
+            public TypeElement visitError(ErrorType t, Void aVoid) {
+                return (TypeElement) t.asElement();
             }
         };
 
