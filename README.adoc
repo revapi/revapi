@@ -118,6 +118,7 @@ See the http://revapi.org/architecture.html[site] for more info.
 
 == Getting in touch
 
+Twitter:: https://twitter.com/revapi_org[@revapi_org]
 IRC:: #revapi @ freenode
 Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
 Issues:: https://github.com/revapi/revapi/issues
