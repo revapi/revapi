@@ -321,10 +321,10 @@ public final class Analyzer {
             Set<MavenArchive> newTransitiveDeps = new HashSet<>();
 
             if (resolveDependencies) {
-                oldTransitiveDeps.addAll(collectDeps("old", resolver, oldGavs));
-                oldTransitiveDeps.addAll(collectDeps("old", resolver, oldArtifacts));
-                newTransitiveDeps.addAll(collectDeps("new", resolver, newGavs));
-                newTransitiveDeps.addAll(collectDeps("new", resolver, newArtifacts));
+                String[] resolvedOld = oldArchives.stream().map(MavenArchive::getName).toArray(String[]::new);
+                String[] resolvedNew = newArchives.stream().map(MavenArchive::getName).toArray(String[]::new);
+                oldTransitiveDeps.addAll(collectDeps("old", resolver, resolvedOld));
+                newTransitiveDeps.addAll(collectDeps("new", resolver, resolvedNew));
             }
 
             resolvedOldApi = API.of(oldArchives).supportedBy(oldTransitiveDeps).build();

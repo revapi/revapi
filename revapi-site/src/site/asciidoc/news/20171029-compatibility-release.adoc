@@ -1,0 +1,22 @@
+== New Releases Restoring Compatibility
+
+Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
+plugin. This has proven to be problematic and the link:20171015-releases.html[last] releases could not be used with
+Java 8. This should be now fixed and compatibility with Java 8 restored.
+
+The following were released:
+
+* Revapi API 0.8.4
+* Revapi Basic Features 0.6.3
+* Revapi Ant Task 0.6.3
+* Revapi Java SPI 0.14.0
+* Revapi Java Extension 0.14.3
+* Revapi Text Reporter 0.8.2
+* Revapi Standalone 0.6.4
+* Revapi Maven Plugin 0.9.4
+
+In addition to the above fix, a new artifact is now released `revapi-java-test-support` starting at version `0.1.0`.
+This artifact is supposed to help custom extensions with testing by providing simple utilities to build, compile and
+inspect custom jar files.
+
+Thanks go out to Petr Široký who found, diagnosed and fixed the compatibility issue. Petr, you're a star!

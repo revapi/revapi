@@ -3,7 +3,7 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>9-SNAPSHOT</version>
+        <version>10-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -15,7 +15,7 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>34-SNAPSHOT</version>
+    <version>35-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>${web.url}</url>
 
@@ -29,12 +29,18 @@
         <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
         <version.org.slf4j>1.7.5</version.org.slf4j>
 
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.release>8</maven.compiler.release>
 
         <version.pw.krejci.multi-release-jar-maven-plugin>0.1.4</version.pw.krejci.multi-release-jar-maven-plugin>
 
         <automatic.module.name>define this in child modules</automatic.module.name>
+
+	<!--
+            Work around Intellij's lack for maven.compiler.release attribute
+            See https://youtrack.jetbrains.com/issue/IDEA-173143
+	-->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <dependencyManagement>
@@ -235,23 +241,6 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>animal-sniffer-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>java8-api</id>
-                        <goals><goal>check</goal></goals>
-                        <configuration>
-                            <signature>
-                                <groupId>org.codehaus.mojo.signature</groupId>
-                                <artifactId>java18</artifactId>
-                                <version>1.0</version>
-                            </signature>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 

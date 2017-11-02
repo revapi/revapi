@@ -1,0 +1,64 @@
+package org.revapi.java.test.support;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import javax.lang.model.element.NestingKind;
+import javax.tools.SimpleJavaFileObject;
+
+final class ArchiveProbeObject extends SimpleJavaFileObject {
+    public static final String CLASS_NAME = "Probe";
+
+    private String source;
+
+    public ArchiveProbeObject() {
+        super(getSourceFileName(), Kind.SOURCE);
+    }
+
+    private static URI getSourceFileName() {
+        try {
+            return new URI(CLASS_NAME + ".java");
+        } catch (URISyntaxException e) {
+            //doesn't happen
+            return null;
+        }
+    }
+
+    @Override
+    public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
+        generateIfNeeded();
+        return source;
+    }
+
+    @Override
+    public NestingKind getNestingKind() {
+        return NestingKind.TOP_LEVEL;
+    }
+
+    @Override
+    public InputStream openInputStream() throws IOException {
+        generateIfNeeded();
+        return new ByteArrayInputStream(source.getBytes());
+    }
+
+    @Override
+    public Reader openReader(boolean ignoreEncodingErrors) throws IOException {
+        generateIfNeeded();
+        return new StringReader(source);
+    }
+
+    private void generateIfNeeded() throws IOException {
+        if (source != null) {
+            return;
+        }
+
+        //notice that we don't actually need to generate any complicated code. Having the classes on the classpath
+        //is enough for them to be present in the model captured during the annotation processing.
+        source = "@" + MarkerAnnotationObject.CLASS_NAME + "\npublic class " + CLASS_NAME + "\n{}\n";
+    }
+}

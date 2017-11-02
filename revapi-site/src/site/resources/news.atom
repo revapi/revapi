@@ -67,4 +67,58 @@
       There hasn't been much public progress on Revapi lately but it nevertheless slowly crawls forward in its quest to become the best programming API checking tool in the multiverse :)
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20171029-compatibility-release.html</id>
+    <title>New Releases Restoring Compatibility</title>
+    <updated>2017-10-29T00:00:00+00:00</updated>
+    <published>2017-10-29T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20171029-compatibility-release.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
+        plugin. This has proven to be problematic and the last releases could not be used with
+        Java 8. This should be now fixed and compatibility with Java 8 restored.
+    </summary>
+    <content type="html">
+      Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
+      plugin. This has proven to be problematic and the last releases could not be used with
+      Java 8. This should be now fixed and compatibility with Java 8 restored.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20171031-revapi-java-release.html</id>
+    <title>New Revapi Java Extension Release</title>
+    <updated>2017-10-31T00:00:00+00:00</updated>
+    <published>2017-10-31T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20171031-revapi-java-release.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        It was discovered that the analysis may fail if it encounters classes that are missing from the dependency graph
+        in certain situations. This should now be fixed and all users are encouraged to upgrade to using
+        revapi-java-0.14.4 if possible.
+    </summary>
+    <content type="html">
+        It was discovered that the analysis may fail if it encounters classes that are missing from the dependency graph
+        in certain situations. This should now be fixed and all users are encouraged to upgrade to using
+        revapi-java-0.14.4 if possible.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20171031-revapi-maven-plugin-release.html</id>
+    <title>Released Revapi Maven Plugin 0.9.5</title>
+    <updated>2017-10-31T00:00:00+00:00</updated>
+    <published>2017-10-31T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20171031-revapi-maven-plugin-release.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        In quick succession to the new release of revapi-java I also released a new bugfix version of
+        revapi-maven-plugin. The new version 0.9.5 fixes the problem with the resolution of dependencies when LATEST is
+        used as the (old or new) version of the artifact to check.
+    </summary>
+    <content type="html">
+        In quick succession to the new release of revapi-java I also released a new bugfix version of
+        revapi-maven-plugin. The new version 0.9.5 fixes the problem with the resolution of dependencies when LATEST is
+        used as the (old or new) version of the artifact to check.
+    </content>
+  </entry>
 </feed>

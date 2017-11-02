@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>34-SNAPSHOT</version>
+        <version>35-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -32,7 +32,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-reporter-text</artifactId>
-    <version>0.8.2-SNAPSHOT</version>
+    <version>0.8.3-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.reporter.text</automatic.module.name>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.8.3</version>
+            <version>0.8.4</version>
         </dependency>
 
         <dependency>

@@ -34,7 +34,7 @@ public class B {
      * this change though, should be detected, because T2 is technically part of the API, because it is leaked into
      * the API as a type of public field in class A.
      */
-    public static final class T$2 {
+    public static final class T$2 extends Exception {
         public T$1 f;
         public T$1.Private f2;
     };

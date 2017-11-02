@@ -21,4 +21,9 @@ public class A {
 
     //this tests that a public field or method of a private class doesn't move it to API.
     private enum PrivateEnum {ONE, TWO}
+
+    //this tests missing classes can be used as throws declarations, too
+    public void m() throws B.T$2 {
+
+    }
 }

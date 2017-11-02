@@ -24,7 +24,7 @@ public class B {
         }
     };
 
-    public static class T$2 {
+    public static class T$2 extends Exception {
         public T$1 f;
     };
 }
