@@ -4,16 +4,6 @@
     <name>${project.name}</name>
     <href>${project.url}</href>
   </bannerLeft>
-  <body>
-    <menu name="Project Details">
-      <item name="Detected API differences" href="differences.html"/>
-      <item name="Extending Java API Checks" href="enhance-java-checks.html"/>
-      <item name="Java Extension Configuration" href="extensions/java.html"/>
-      <item name="Annotated Element Filter Extension Configuration" href="extensions/annotated-elem-filter.html"/>
-      <item name="Class Filter Extension" href="extensions/class-filter.html"/>
-      <item name="Package Filter Extension" href="extensions/package-filter.html"/>
-    </menu>
-  </body>
 
   <custom>
     <msb3Skin>
