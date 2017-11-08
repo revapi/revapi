@@ -61,6 +61,7 @@ get in touch on the following places:
 
 Code:: https://github.com/revapi/revapi[GitHub]
 Documentation:: link:getting-started.html[here]
+Twitter:: https://twitter.com/revapi_org[@revapi_org]
 IRC:: #revapi on freenode.net
 Forum:: http://stackoverflow.com[stackoverflow]
 Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
