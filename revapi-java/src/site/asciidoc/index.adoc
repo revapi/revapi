@@ -2214,8 +2214,8 @@ implementation detail of a library public. Such classes are often included in pa
 hint at their non-public nature.
 
 While Revapi offers the basic filtering capabilities using the
-link:../../revapi-basic-features/extensions/filter.html[basic filter], it often is much simpler to exclude classes or
-packages like that using this filter (or the link:package-filter.html[package filter]), specifically made for this
+link:../../revapi-basic-features/extensions/filter.html[basic filter], it is often  simpler to exclude classes or
+packages using this class / package filters specifically made for this
 purpose (if for nothing else then for the simpler configuration).
 
 By default, all classes are included. If the include filter is specified, only the classes matching the include
