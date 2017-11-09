@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2014-2017 Lukas Krejci
+    and other contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>revapi-parent</artifactId>
@@ -20,14 +38,16 @@
     <url>${web.url}</url>
 
     <properties>
-        <self-api-check.maven-version>0.9.3</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.14.2</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.9.5</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.14.4</self-api-check.java-extension-version>
 
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
         <version.junit>4.11</version.junit>
         <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
         <version.org.slf4j>1.7.5</version.org.slf4j>
+
+        <version.revapi-build-support>5-SNAPSHOT</version.revapi-build-support>
 
         <maven.compiler.release>8</maven.compiler.release>
 
@@ -241,6 +261,44 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <header>license-template.ftl</header>
+                    <excludes>
+                        <exclude>**/README</exclude>
+                        <exclude>**/README.*</exclude>
+                        <exclude>LICENSE</exclude>
+                        <exclude>**/*.adoc</exclude>
+                    </excludes>
+                    <mapping>
+                        <css>SLASHSTAR_STYLE</css>
+                        <java>SLASHSTAR_STYLE</java>
+                        <groovy>SLASHSTAR_STYLE</groovy>
+                        <atom>XML_STYLE</atom>
+                    </mapping>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin-git</artifactId>
+                        <version>3.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.revapi</groupId>
+                        <artifactId>revapi-build-support</artifactId>
+                        <version>${version.revapi-build-support}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </build>
 
@@ -333,7 +391,7 @@
                             <dependency>
                                 <groupId>org.revapi</groupId>
                                 <artifactId>revapi-build-support</artifactId>
-                                <version>4</version>
+                                <version>${version.revapi-build-support}</version>
                             </dependency>
                         </dependencies>
                         <configuration>
