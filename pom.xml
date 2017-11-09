@@ -58,6 +58,15 @@
         <plugins>
             <plugin>
                 <artifactId>maven-site-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>

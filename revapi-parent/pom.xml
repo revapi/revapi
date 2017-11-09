@@ -33,6 +33,7 @@
         <web.url>https://revapi.org</web.url>
         <web.repo>scm:git:git@github.com:revapi/revapi.github.io.git</web.repo>
         <web.repo.branch>staging</web.repo.branch>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
@@ -122,6 +123,11 @@
                     <artifactId>maven-enforcer-plugin</artifactId>
                     <version>3.0.0-M1</version>
                 </plugin>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>3.0</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -171,6 +177,8 @@
             </plugin>
         </plugins>
     </reporting>
+
+    <inceptionYear>2014</inceptionYear>
 
     <licenses>
         <license>
