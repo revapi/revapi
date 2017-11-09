@@ -122,7 +122,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
             ArchiveAnalyzer archiveAnalyzer = apiAnalyzer.getArchiveAnalyzer(
                     new API(Collections.singletonList(new ShrinkwrapArchive(archive.archive)), null));
 
-            ElementForest forest = archiveAnalyzer.analyze(e -> FilterResult.passAndDescend());
+            ElementForest forest = archiveAnalyzer.analyze(e -> FilterResult.matchAndDescend());
 
             List<Element> results = forest.search(Element.class, true, new AcceptingFilter(), null);
 

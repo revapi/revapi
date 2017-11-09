@@ -1,5 +1,7 @@
 package org.revapi;
 
+import java.util.Optional;
+
 import org.revapi.configuration.Configurable;
 
 /**
@@ -11,17 +13,25 @@ import org.revapi.configuration.Configurable;
 public interface ElementMatcher extends Configurable, AutoCloseable {
 
     /**
-     * Decides whether given element matches the provided recipe.
+     * Tries to compile the provided recipe into a form that can test individual elements.
      *
-     * <p>Note that the callers need to be able to repeat the undecidable recipes again after the whole element tree
-     * has been processed.
+     * @param recipe the recipe to compile
      *
-     * @param recipe the recipe for the match. This might or might not be in an expected format for this matcher.
-     *               If the recipe cannot be processed by this matcher, {@link FilterMatch#DOESNT_MATCH} ought to be
-     *               returned.
-     * @param element the element to match
-     * @return a match result - {@link FilterMatch#UNDECIDED} means that the decision could not be made in this round
+     * @return a compiled recipe or empty optional if the string cannot be compiled by this matcher
      */
-    FilterMatch test(String recipe, Element element);
+    Optional<CompiledRecipe> compile(String recipe);
 
+    interface CompiledRecipe {
+
+        /**
+         * Decides whether given element matches this recipe.
+         *
+         * <p>Note that the callers need to be able to retry the elements undecidable by this recipe again after
+         * the whole element tree has been processed.
+         *
+         * @param element the element to match
+         * @return a match result - {@link FilterMatch#UNDECIDED} means that the decision could not be made in this round
+         */
+        FilterMatch test(Element element);
+    }
 }

@@ -70,7 +70,7 @@ public interface ElementGateway extends Configurable, AutoCloseable {
      * @param stage   the current analysis pipeline stage
      * @param element the element to be decided about
      * @return whether to let the element pass to the next stage or not or {@link FilterMatch#UNDECIDED} if the decision
-     * should ne deferred until all other elements have been processed in the given stage.
+     * should be deferred until all other elements have been processed in the given stage.
      */
     FilterResult filter(AnalysisStage stage, Element element);
 
@@ -81,8 +81,8 @@ public interface ElementGateway extends Configurable, AutoCloseable {
 
     enum AnalysisStage {
         /**
-         * The element forest is currently being constructed. This is when most of the {@link FilterMatch#UNDECIDED} checks
-         * will happen.
+         * The element forest is currently being constructed. This is when most of the {@link FilterMatch#UNDECIDED}
+         * checks will happen.
          */
         FOREST_INCOMPLETE,
 

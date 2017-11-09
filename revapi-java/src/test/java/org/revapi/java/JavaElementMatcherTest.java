@@ -641,7 +641,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testTypeParameters() throws Exception {
         testOn("elementmatcher/TypeParameters.java", types -> {
-           Element top = types.getRoots().first();
+            Element top = types.getRoots().first();
             JavaTypeElement base = top.searchChildren(JavaTypeElement.class, false,
                     Filter.shallow(t -> "Base".equals(t.getDeclaringElement().getSimpleName().toString()))).get(0);
             JavaTypeElement concreteChild = top.searchChildren(JavaTypeElement.class, false,
@@ -660,11 +660,19 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
     }
 
     private void assertMatches(String test, Element element) {
-        assertTrue("Expecting match for [" + test + "] on " + element, matcher.test(test, element) == FilterMatch.MATCHES);
+        assertTrue("Expecting match for [" + test + "] on " + element,
+                matcher.compile(test)
+                        .map(r -> r.test(element))
+                        .map(m -> m == FilterMatch.MATCHES)
+                        .orElse(false));
     }
 
     private void assertDoesntMatch(String test, Element element) {
-        assertTrue("Expecting no match for [" + test + "] on " + element, matcher.test(test, element) == FilterMatch.DOESNT_MATCH);
+        assertTrue("Expecting no match for [" + test + "] on " + element,
+                matcher.compile(test)
+                        .map(r -> r.test(element))
+                        .map(m -> m == FilterMatch.DOESNT_MATCH)
+                        .orElse(false));
     }
 
     private <T extends Element> void testSimpleMatchForElementType(Class<T> elementType, String quality, String expectedValue, Filter<T> filter) throws Exception {
@@ -673,7 +681,10 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
             Element el = cls.searchChildren(elementType, true, filter).get(0);
 
             assertTrue("Testing [" + quality + " = " + expectedValue + "] on " + el,
-                    matcher.test("has " + quality + expectedValue, el) == FilterMatch.MATCHES);
+                    matcher.compile("has " + quality + expectedValue)
+                            .map(r -> r.test(el))
+                            .map(m -> m == FilterMatch.MATCHES)
+                            .orElse(false));
         });
     }
 
@@ -685,7 +696,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
                     null), Executors.newSingleThreadExecutor(), null, false,
                     InclusionFilter.acceptAll());
 
-            JavaElementForest results = analyzer.analyze(e -> FilterResult.passAndDescend());
+            JavaElementForest results = analyzer.analyze(e -> FilterResult.matchAndDescend());
 
             test.accept(results);
         } finally {

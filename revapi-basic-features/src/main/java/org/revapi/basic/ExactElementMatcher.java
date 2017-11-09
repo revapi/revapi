@@ -3,6 +3,7 @@ package org.revapi.basic;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Reader;
+import java.util.Optional;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
@@ -14,8 +15,8 @@ import org.revapi.FilterMatch;
  */
 public final class ExactElementMatcher implements ElementMatcher {
     @Override
-    public FilterMatch test(String recipe, Element element) {
-        return FilterMatch.fromBoolean(recipe.equals(element.getFullHumanReadableString()));
+    public Optional<CompiledRecipe> compile(String recipe) {
+        return Optional.of(new StringMatch(recipe));
     }
 
     @Override
@@ -38,5 +39,18 @@ public final class ExactElementMatcher implements ElementMatcher {
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
 
+    }
+
+    private static final class StringMatch implements CompiledRecipe {
+        final String match;
+
+        private StringMatch(String match) {
+            this.match = match;
+        }
+
+        @Override
+        public FilterMatch test(Element element) {
+            return FilterMatch.fromBoolean(match.equals(element.getFullHumanReadableString()));
+        }
     }
 }

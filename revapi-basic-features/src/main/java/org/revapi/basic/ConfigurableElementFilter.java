@@ -21,21 +21,24 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jboss.dmr.ModelNode;
+import org.jboss.dmr.ModelType;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
-import org.revapi.ElementFilter;
-
-import org.jboss.dmr.ModelNode;
+import org.revapi.ElementMatcher;
+import org.revapi.FilterResult;
+import org.revapi.simple.SimpleElementGateway;
 
 /**
  * An element filter that can filter out elements based on matching their full human readable representations.
  * Archive filter can filter out elements that belong to specified archives.
- *
+ * <p>
  * <p>The configuration looks like follows:
  * <pre><code>
  * {
@@ -53,7 +56,7 @@ import org.jboss.dmr.ModelNode;
  *      }
  * }
  * </code></pre>
- *
+ * <p>
  * <p>If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
  * elements matching it are included. Out of the included elements, some may be further excluded by the exclude
  * filters.
@@ -61,9 +64,9 @@ import org.jboss.dmr.ModelNode;
  * @author Lukas Krejci
  * @since 0.1
  */
-public class ConfigurableElementFilter implements ElementFilter {
-    private final List<Pattern> elementIncludes = new ArrayList<>();
-    private final List<Pattern> elementExcludes = new ArrayList<>();
+public class ConfigurableElementFilter extends SimpleElementGateway {
+    private final List<ComplexFilter> elementIncludes = new ArrayList<>();
+    private final List<ComplexFilter> elementExcludes = new ArrayList<>();
     private final List<Pattern> archiveIncludes = new ArrayList<>();
     private final List<Pattern> archiveExcludes = new ArrayList<>();
 
@@ -92,12 +95,12 @@ public class ConfigurableElementFilter implements ElementFilter {
 
         ModelNode elements = root.get("elements");
         if (elements.isDefined()) {
-            readFilter(elements, elementIncludes, elementExcludes);
+            readComplexFilter(elements, analysisContext.getMatchers(), elementIncludes, elementExcludes);
         }
 
         ModelNode archives = root.get("archives");
         if (archives.isDefined()) {
-            readFilter(archives, archiveIncludes, archiveExcludes);
+            readSimpleFilter(archives, archiveIncludes, archiveExcludes);
         }
 
         doNothing = elementIncludes.isEmpty() && elementExcludes.isEmpty() && archiveIncludes.isEmpty() &&
@@ -105,39 +108,35 @@ public class ConfigurableElementFilter implements ElementFilter {
     }
 
     @Override
-    public boolean applies(@Nullable Element element) {
+    public FilterResult filter(AnalysisStage stage, Element element) {
         if (doNothing) {
-            return true;
+            return FilterResult.matchAndDescend();
         }
 
-        String archive = element == null ? null : (element.getArchive() == null ? null :
-            element.getArchive().getName());
+        String archive = element.getArchive() == null ? null : element.getArchive().getName();
 
-        boolean include = true;
-        if (archive != null) {
-            include = isIncluded(archive, archiveIncludes, archiveExcludes);
+        if (archive != null && !isIncluded(archive, archiveIncludes, archiveExcludes)) {
+            return FilterResult.doesntMatch();
         }
 
-        if (include) {
-            String representation = element == null ? null : element.getFullHumanReadableString();
-            if (representation != null) {
-                include = isIncluded(representation, elementIncludes, elementExcludes);
-            }
-        }
+        FilterResult include = elementIncludes.stream()
+                .map(cf -> new FilterResult(cf.recipe.test(element), cf.reevaluateChildren))
+                .reduce(FilterResult::or)
+                .orElse(FilterResult.matchAndDescend());
 
-        return include;
-    }
+        FilterResult exclude = elementExcludes.stream()
+                .map(cf -> new FilterResult(cf.recipe.test(element), cf.reevaluateChildren))
+                .reduce(FilterResult::or)
+                .orElse(FilterResult.doesntMatch());
 
-    @Override
-    public boolean shouldDescendInto(@Nullable Object element) {
-        return true;
+        return include.and(exclude.negate());
     }
 
     @Override
     public void close() {
     }
 
-    private static void readFilter(ModelNode root, List<Pattern> include, List<Pattern> exclude) {
+    private static void readSimpleFilter(ModelNode root, List<Pattern> include, List<Pattern> exclude) {
         ModelNode includeNode = root.get("include");
 
         if (includeNode.isDefined()) {
@@ -155,7 +154,58 @@ public class ConfigurableElementFilter implements ElementFilter {
         }
     }
 
-    private static boolean isIncluded(String representation, List<Pattern> includePatterns, List<Pattern> excludePatterns) {
+    private static void readComplexFilter(ModelNode root, Map<String, ElementMatcher> availableMatchers,
+            List<ComplexFilter> include, List<ComplexFilter> exclude) {
+        ModelNode includeNode = root.get("include");
+
+        if (includeNode.isDefined()) {
+            for (ModelNode inc : includeNode.asList()) {
+                ComplexFilter filter = parse(inc, availableMatchers);
+                include.add(filter);
+            }
+        }
+
+        ModelNode excludeNode = root.get("exclude");
+
+        if (excludeNode.isDefined()) {
+            for (ModelNode exc : excludeNode.asList()) {
+                ComplexFilter filter = parse(exc, availableMatchers);
+                exclude.add(filter);
+            }
+        }
+    }
+
+    @Nullable
+    private static ComplexFilter parse(ModelNode filterDefinition,
+            Map<String, ElementMatcher> availableMatchers) {
+        String recipe;
+        boolean reevaluateChildren;
+        ElementMatcher matcher;
+        if (filterDefinition.getType() == ModelType.STRING) {
+            recipe = filterDefinition.asString();
+            //this is the default
+            reevaluateChildren = false;
+            matcher = new RegexElementMatcher();
+        } else {
+            recipe = filterDefinition.get("recipe").asString();
+            ModelNode reevaluateChildrenNode = filterDefinition.get("reevaluateChildren");
+
+            //false is the default
+            reevaluateChildren = reevaluateChildrenNode.isDefined() && reevaluateChildrenNode.asBoolean();
+
+            matcher = availableMatchers.get(filterDefinition.get("matcher").asString());
+        }
+
+        if (matcher == null) {
+            throw new IllegalStateException("Element matcher with id '" + filterDefinition.get("matcher").asString()
+                    + "' was not found.");
+        }
+
+        return matcher.compile(recipe).map(cr -> new ComplexFilter(cr, reevaluateChildren)).orElse(null);
+    }
+
+    private static boolean isIncluded(String representation, List<Pattern> includePatterns,
+            List<Pattern> excludePatterns) {
         boolean include = true;
 
         if (!includePatterns.isEmpty()) {
@@ -178,5 +228,15 @@ public class ConfigurableElementFilter implements ElementFilter {
         }
 
         return include;
+    }
+
+    private static final class ComplexFilter {
+        final ElementMatcher.CompiledRecipe recipe;
+        final boolean reevaluateChildren;
+
+        private ComplexFilter(ElementMatcher.CompiledRecipe recipe, boolean reevaluateChildren) {
+            this.recipe = recipe;
+            this.reevaluateChildren = reevaluateChildren;
+        }
     }
 }

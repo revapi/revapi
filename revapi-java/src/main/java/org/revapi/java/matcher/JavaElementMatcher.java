@@ -24,9 +24,8 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
@@ -43,7 +42,6 @@ import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.revapi.AnalysisContext;
-import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
 import org.revapi.java.matcher.ElementMatcherParser.ExpressionContext;
@@ -59,21 +57,25 @@ import org.revapi.java.spi.JavaTypeElement;
  * @author Lukas Krejci
  */
 public final class JavaElementMatcher implements ElementMatcher {
-    private final Map<String, MatchExpression> parsedMatchers = new HashMap<>();
-
     @Override
-    public FilterMatch test(String recipe, Element element) {
-        if (!(element instanceof JavaElement)) {
-            return FilterMatch.DOESNT_MATCH;
-        }
+    public Optional<CompiledRecipe> compile(String recipe) {
+        try {
+            MatchExpression expr = createMatcher(recipe);
 
-        MatchExpression matcher = parsedMatchers.computeIfAbsent(recipe, this::createMatcher);
-        return matcher.matches((JavaElement) element);
+            return Optional.of(element -> {
+                if (!(element instanceof JavaElement)) {
+                    return FilterMatch.DOESNT_MATCH;
+                }
+
+                return expr.matches((JavaElement) element);
+            });
+        } catch (IllegalArgumentException __) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public void close() throws Exception {
-        parsedMatchers.clear();
     }
 
     @Override
@@ -89,7 +91,6 @@ public final class JavaElementMatcher implements ElementMatcher {
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
-        parsedMatchers.clear();
     }
 
     private MatchExpression createMatcher(String recipe) {

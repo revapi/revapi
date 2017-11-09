@@ -51,7 +51,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 InclusionFilter.acceptAll());
 
         try {
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
 
             Assert.assertEquals(6, forest.getRoots().size());
         } finally {
@@ -81,7 +81,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 false, InclusionFilter.acceptAll());
 
         try {
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
 
             Assert.assertEquals(3, forest.getRoots().size());
 
@@ -113,7 +113,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 InclusionFilter.acceptAll());
 
         try {
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
 
             forest.getRoots();
 
@@ -163,7 +163,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 false, InclusionFilter.acceptAll());
 
         try {
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
 
             Set<TypeElement> roots = forest.getRoots();
 

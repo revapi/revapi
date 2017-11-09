@@ -8,12 +8,16 @@ public final class FilterResult {
     private final FilterMatch match;
     private final boolean descend;
 
-    public static FilterResult passAndDescend() {
+    public static FilterResult matchAndDescend() {
         return new FilterResult(FilterMatch.MATCHES, true);
     }
 
     public static FilterResult undecidedAndDescend() {
         return new FilterResult(FilterMatch.UNDECIDED, true);
+    }
+
+    public static FilterResult doesntMatch() {
+        return new FilterResult(FilterMatch.DOESNT_MATCH, false);
     }
 
     public FilterResult(FilterMatch match, boolean descend) {
@@ -59,6 +63,10 @@ public final class FilterResult {
         }
 
         return new FilterResult(resultingMatch, resultingDescend);
+    }
+
+    public FilterResult negate() {
+        return new FilterResult(match.negate(), !descend);
     }
 
     @Override

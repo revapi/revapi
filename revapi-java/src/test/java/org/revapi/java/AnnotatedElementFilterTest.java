@@ -211,7 +211,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                     Executors.newSingleThreadExecutor(), null, false,
                     InclusionFilter.acceptAll());
 
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.passAndDescend());
+            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
 
             AnnotatedElementFilter filter = new AnnotatedElementFilter();
             Revapi r = new Revapi(emptySet(), emptySet(), emptySet(), singleton(AnnotatedElementFilter.class),

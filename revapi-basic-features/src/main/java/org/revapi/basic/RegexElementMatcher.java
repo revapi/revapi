@@ -3,9 +3,11 @@ package org.revapi.basic;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Reader;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
@@ -16,17 +18,17 @@ import org.revapi.FilterMatch;
  * @author Lukas Krejci
  */
 public final class RegexElementMatcher implements ElementMatcher {
-    private final Map<String, Pattern> patternCache = new HashMap<>();
-
     @Override
-    public FilterMatch test(String recipe, Element element) {
-        Pattern pattern = patternCache.computeIfAbsent(recipe, __ -> Pattern.compile(recipe));
-        return FilterMatch.fromBoolean(pattern.matcher(element.getFullHumanReadableString()).matches());
+    public Optional<CompiledRecipe> compile(String recipe) {
+        try {
+            return Optional.of(new PatternMatch(Pattern.compile(recipe)));
+        } catch (PatternSyntaxException __) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public void close() throws Exception {
-        patternCache.clear();
     }
 
     @Nullable
@@ -43,6 +45,18 @@ public final class RegexElementMatcher implements ElementMatcher {
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
-        patternCache.clear();
+    }
+
+    private static final class PatternMatch implements CompiledRecipe {
+        final Pattern match;
+
+        private PatternMatch(Pattern match) {
+            this.match = match;
+        }
+
+        @Override
+        public FilterMatch test(Element element) {
+            return FilterMatch.fromBoolean(match.matcher(element.getFullHumanReadableString()).matches());
+        }
     }
 }

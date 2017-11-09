@@ -12,10 +12,10 @@
                 "type": "string"
             },
             "old": {
-                "type": "string"
+                "$ref": "#/definitions/elementMatch"
             },
             "new": {
-                "type": "string"
+                "$ref": "#/definitions/elementMatch"
             },
             "classify": {
                 "type": "object",
@@ -46,6 +46,24 @@
         "classification": {
             "type": "string",
             "enum": [ "EQUIVALENT", "NON_BREAKING", "POTENTIALLY_BREAKING", "BREAKING" ]
+        },
+        "elementMatch": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "matcher": {
+                            "type": "string"
+                        },
+                        "recipe": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
         }
     }
 }

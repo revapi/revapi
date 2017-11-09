@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "definitions": {
-        "patterns": {
+        "simplePatterns": {
             "type": "array",
             "items": {
                 "type": "string"
@@ -9,14 +9,54 @@
             "minItems": 1,
             "uniqueItems": true
         },
-        "filter" : {
+        "complexPatterns": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "matcher": {
+                                "type": "string"
+                            },
+                            "recipe": {
+                                "type": "string"
+                            },
+                            "reevaluateChildren": {
+                                "type": "boolean",
+                                "default": false
+                            }
+                        },
+                        "required": ["matcher", "recipe"]
+                    }
+                ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+        },
+        "complexFilter" : {
             "type" : "object",
             "properties" : {
                 "include": {
-                    "$ref": "#/definitions/patterns"
+                    "$ref": "#/definitions/complexPatterns"
                 },
                 "exclude": {
-                    "$ref": "#/definitions/patterns"
+                    "$ref": "#/definitions/complexPatterns"
+                }
+            },
+            "minProperties" : 1
+        },
+        "simpleFilter" : {
+            "type" : "object",
+            "properties" : {
+                "include": {
+                    "$ref": "#/definitions/simplePatterns"
+                },
+                "exclude": {
+                    "$ref": "#/definitions/simplePatterns"
                 }
             },
             "minProperties" : 1
@@ -26,10 +66,10 @@
     "type": "object",
     "properties": {
         "elements" : {
-            "$ref" : "#/definitions/filter"
+            "$ref" : "#/definitions/complexFilter"
         },
         "archives" : {
-            "$ref" : "#/definitions/filter"
+            "$ref" : "#/definitions/simpleFilter"
         }
     },
     "minProperties": 1

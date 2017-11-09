@@ -12,10 +12,10 @@
                 "type": "string"
             },
             "old": {
-                "type": "string"
+                "$ref": "#/definitions/elementMatch"
             },
             "new": {
-                "type": "string"
+                "$ref": "#/definitions/elementMatch"
             },
             "justification": {
                 "type": "string"
@@ -25,5 +25,25 @@
             "type": "string"
         },
         "required": [ "code", "justification" ]
+    },
+    "definitions": {
+        "elementMatch": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "matcher": {
+                            "type": "string"
+                        },
+                        "recipe": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        }
     }
 }

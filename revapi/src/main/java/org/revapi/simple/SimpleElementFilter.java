@@ -24,6 +24,8 @@ import javax.annotation.Nullable;
 /**
  * @author Lukas Krejci
  * @since 0.4.0
+ *
+ * @deprecated use {@link SimpleElementGateway} instead
  */
 public class SimpleElementFilter extends SimpleConfigurable implements ElementFilter {
     @Override

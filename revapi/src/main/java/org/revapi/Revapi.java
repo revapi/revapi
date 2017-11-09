@@ -17,6 +17,7 @@
 package org.revapi;
 
 import java.io.Reader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +33,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -165,6 +167,15 @@ public final class Revapi {
         Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
         Map<ElementMatcher, AnalysisContext> matchers = splitByConfiguration(analysisContext, availableMatchers);
 
+        BiFunction<Object, AnalysisContext, AnalysisContext> addMatchers =
+                (__, ctx) -> ctx.copyWithMatchers(matchers.keySet());
+
+        filters.replaceAll(addMatchers);
+        reporters.replaceAll(addMatchers);
+        analyzers.replaceAll(addMatchers);
+        transforms.replaceAll(addMatchers);
+        matchers.replaceAll(addMatchers);
+
         return new AnalysisResult.Extensions(analyzers, filters, reporters, transforms, matchers);
     }
 
@@ -264,12 +275,8 @@ public final class Revapi {
         ElementGateway filter = unionGateway(extensions);
         filter.start(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
 
-        ArchiveAnalyzer.Filter analyzerFilter = new ArchiveAnalyzer.Filter() {
-            @Override
-            public FilterResult filter(Element element) {
-                return filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, element);
-            }
-        };
+        ArchiveAnalyzer.Filter analyzerFilter = element ->
+                filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, element);
 
         TIMING_LOG.debug("Obtaining API trees.");
 
@@ -361,10 +368,10 @@ public final class Revapi {
 
             Stats.of("filters").start();
             FilterResult aFilterResult = a == null
-                    ? FilterResult.passAndDescend()
+                    ? FilterResult.matchAndDescend()
                     : filter.filter(ElementGateway.AnalysisStage.FOREST_COMPLETE, a);
             FilterResult bFilterResult = b == null
-                    ? FilterResult.passAndDescend()
+                    ? FilterResult.matchAndDescend()
                     : filter.filter(ElementGateway.AnalysisStage.FOREST_COMPLETE, b);
 
             Stats.of("filters").end(a, b);
@@ -386,8 +393,7 @@ public final class Revapi {
                 Stats.of("analysisBegins").end(a, b);
                 beginDuration = Stats.of("analyses").reset();
             }
-
-            boolean shouldDescend = aFilterResult.isDescend() && bFilterResult.isDescend();
+            boolean shouldDescend = a != null && b != null && aFilterResult.isDescend() && bFilterResult.isDescend();
 
             if (shouldDescend) {
                 analyze(deducer, elementDifferenceAnalyzer, filter, a.getChildren(), b.getChildren(),
@@ -407,8 +413,8 @@ public final class Revapi {
 
     private <T> T instantiate(Class<? extends T> type) {
         try {
-            return type.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return type.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Failed to instantiate extension: " + type, e);
         }
     }
@@ -455,7 +461,7 @@ public final class Revapi {
                 if (!failures.isEmpty()) {
                     Iterator<Exception> it = failures.iterator();
                     Exception ex = new Exception(it.next());
-                    it.forEachRemaining(e -> ex.addSuppressed(e));
+                    it.forEachRemaining(ex::addSuppressed);
                     throw ex;
                 }
             }
@@ -474,7 +480,7 @@ public final class Revapi {
 
             @Override
             public void initialize(@Nonnull AnalysisContext analysisContext) {
-                extensions.getFilters().forEach((f, c) -> f.initialize(c));
+                extensions.getFilters().forEach(Configurable::initialize);
             }
 
             private void onAllDo(Consumer<ElementGateway> action) {

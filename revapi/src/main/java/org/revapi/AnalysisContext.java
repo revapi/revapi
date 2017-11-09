@@ -33,6 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -129,7 +130,7 @@ public final class AnalysisContext {
     private final ModelNode configuration;
     private final API oldApi;
     private final API newApi;
-    private final Set<ElementMatcher> matchers;
+    private final Map<String, ElementMatcher> matchers;
     private final Map<String, Object> data;
 
     /**
@@ -141,7 +142,7 @@ public final class AnalysisContext {
      * @param data          the data that should be attached to the analysis context
      */
     private AnalysisContext(@Nonnull Locale locale, @Nullable ModelNode configuration, @Nonnull API oldApi,
-                           @Nonnull API newApi, Set<ElementMatcher> elementMatchers, @Nonnull Map<String, Object> data) {
+                           @Nonnull API newApi, Collection<ElementMatcher> elementMatchers, @Nonnull Map<String, Object> data) {
         this.locale = locale;
         if (configuration == null) {
             this.configuration = new ModelNode();
@@ -151,7 +152,10 @@ public final class AnalysisContext {
         }
         this.oldApi = oldApi;
         this.newApi = newApi;
-        this.matchers = elementMatchers == null ? Collections.emptySet() : elementMatchers;
+        this.matchers = elementMatchers == null
+                ? Collections.emptyMap()
+                : Collections.unmodifiableMap(elementMatchers.stream()
+                .collect(Collectors.toMap(Configurable::getExtensionId, Function.identity())));
         this.data = data;
     }
 
@@ -196,18 +200,18 @@ public final class AnalysisContext {
      * one.
      */
     public AnalysisContext copyWithConfiguration(ModelNode configuration) {
-        return new AnalysisContext(this.locale, configuration, this.oldApi, this.newApi, this.matchers, this.data);
+        return new AnalysisContext(this.locale, configuration, this.oldApi, this.newApi, this.matchers.values(),
+                this.data);
     }
 
     /**
-     * A package private method to instantiate a new analysis context with the provided set of matchers.
-     * This is only meant to be used during analysis initialization and the users of the context should
-     * not be able to change the set of matchers, nor specify it upfront.
+     * A helper method to instantiate a new analysis context with the provided set of matchers.
+     * This is only meant to be used during analysis initialization.
      *
      * @param matchers the list of matchers to provide through this context
      * @return a copy of this instance with the provided matchers replacing any existing in this instance
      */
-    AnalysisContext copyWithMatchers(Set<ElementMatcher> matchers) {
+    public AnalysisContext copyWithMatchers(Set<ElementMatcher> matchers) {
         return new AnalysisContext(this.locale, this.configuration, this.oldApi, this.newApi, matchers, this.data);
     }
 
@@ -232,7 +236,7 @@ public final class AnalysisContext {
     }
 
     @Nonnull
-    public Set<ElementMatcher> getMatchers() {
+    public Map<String, ElementMatcher> getMatchers() {
         return matchers;
     }
 
