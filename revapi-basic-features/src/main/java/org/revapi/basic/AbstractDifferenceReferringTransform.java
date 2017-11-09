@@ -35,7 +35,7 @@ import org.revapi.Element;
  * @author Lukas Krejci
  * @since 0.1
  */
-public abstract class AbstractDifferenceReferringTransform<Recipe extends DifferenceMatchRecipe, ConfigContext>
+public abstract class AbstractDifferenceReferringTransform<Recipe extends DifferenceMatchRecipe>
     implements DifferenceTransform<Element> {
 
     private final String extensionId;
@@ -56,19 +56,14 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
         return codes;
     }
 
-    @Nullable
-    protected abstract ConfigContext initConfiguration();
-
     @Nonnull
-    protected abstract Recipe newRecipe(@Nullable ConfigContext context, ModelNode configNode)
+    protected abstract Recipe newRecipe(AnalysisContext context, ModelNode configNode)
         throws IllegalArgumentException;
 
     @Override
     public final void initialize(@Nonnull AnalysisContext analysisContext) {
-        ConfigContext ctx = initConfiguration();
         configuredRecipes = new ArrayList<>();
 
-        int idx = 0;
         ModelNode myNode = analysisContext.getConfiguration();
 
         if (myNode.getType() != ModelType.LIST) {
@@ -79,7 +74,7 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
         List<Pattern> codes = new ArrayList<>();
 
         for (ModelNode config : myNode.asList()) {
-            Recipe recipe = newRecipe(ctx, config);
+            Recipe recipe = newRecipe(analysisContext, config);
             codes.add(
                 recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code) + "$") :
                     recipe.codeRegex);

@@ -23,6 +23,19 @@ public enum FilterMatch {
         return value ? MATCHES : DOESNT_MATCH;
     }
 
+    public boolean toBoolean(boolean undecidedValue) {
+        switch (this) {
+            case MATCHES:
+                return true;
+            case DOESNT_MATCH:
+                return false;
+            case UNDECIDED:
+                return undecidedValue;
+            default:
+                throw new IllegalStateException("Unhandled FilterMatch value: " + this);
+        }
+    }
+
     public FilterMatch and(FilterMatch other) {
         switch (this) {
             case MATCHES:

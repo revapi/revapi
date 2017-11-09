@@ -38,28 +38,12 @@ import org.revapi.simple.SimpleElementGateway;
 /**
  * An element filter that can filter out elements based on matching their full human readable representations.
  * Archive filter can filter out elements that belong to specified archives.
- * <p>
- * <p>The configuration looks like follows:
- * <pre><code>
- * {
- *      "revapi" : {
- *          "filter" : {
- *              "elements" : {
- *                  "include" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"],
- *                  "exclude" : ["REGEX_ON_ELEMENT_FULL_REPRESENTATIONS", "ANOTHER_REGEX_ON_ELEMENT_FULL_REPRESENTATIONS"]
- *              },
- *              "archives" : {
- *                  "include" : ["REGEX_ON_ARCHIVE_NAMES", "ANOTHER_REGEX_ON_ARCHIVE_NAMES"],
- *                  "exclude" : ["REGEX_ON_ARCHIVE_NAMES", "ANOTHER_REGEX_ON_ARCHIVE_NAMES"]
- *              }
- *          }
- *      }
- * }
- * </code></pre>
- * <p>
+ *
  * <p>If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
  * elements matching it are included. Out of the included elements, some may be further excluded by the exclude
  * filters.
+ *
+ * <p>See {@code META-INF/filter-schema.json} for the schema of the configuration.
  *
  * @author Lukas Krejci
  * @since 0.1
