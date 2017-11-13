@@ -261,23 +261,18 @@ public class ReportAggregateMojo extends ReportMojo {
             return null;
         }
 
-        boolean failOnMissingConfigurationFiles = false;
-        boolean failOnMissingArchives = false;
-        boolean failOnMissingSupportArchives = false;
-        boolean alwaysUpdate = true;
-        boolean resolveDependencies = true;
         String versionRegex = getValueOfChild(runConfig, "versionFormat");
 
         AnalyzerBuilder bld = AnalyzerBuilder.forArtifacts(oldArtifacts, newArtifacts)
-                .withAlwaysCheckForReleasedVersion(alwaysUpdate)
+                .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
                 .withAnalysisConfiguration(this.analysisConfiguration)
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
-                .withCheckDependencies(resolveDependencies)
-                .withResolveProvidedDependencies(resolveProvidedDependencies)
+                .withCheckDependencies(this.checkDependencies)
+                .withResolveProvidedDependencies(this.resolveProvidedDependencies)
                 .withDisallowedExtensions(disallowedExtensions)
-                .withFailOnMissingConfigurationFiles(failOnMissingConfigurationFiles)
-                .withFailOnUnresolvedArtifacts(failOnMissingArchives)
-                .withFailOnUnresolvedDependencies(failOnMissingSupportArchives)
+                .withFailOnMissingConfigurationFiles(this.failOnMissingConfigurationFiles)
+                .withFailOnUnresolvedArtifacts(this.failOnUnresolvedArtifacts)
+                .withFailOnUnresolvedDependencies(this.failOnUnresolvedDependencies)
                 .withLocale(locale)
                 .withLog(getLog())
                 .withProject(project)
