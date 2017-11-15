@@ -81,7 +81,7 @@
 
   <custom>
     <msb3Skin>
-      <theme>bootswatch-cosmo</theme>
+      <theme>bootswatch-3/cosmo</theme>
       <highlightJs>true</highlightJs>
       <toc>sidebar</toc>
       <slogan>${project.description}</slogan>
