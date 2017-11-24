@@ -61,6 +61,8 @@ import javax.tools.ToolProvider;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class can be used in tests to make it easy to compile custom source code into jars and then use the Java
@@ -92,6 +94,8 @@ import org.junit.runners.model.Statement;
  * @since 0.1.0
  */
 public class Jar implements TestRule {
+    private static final Logger LOG = LoggerFactory.getLogger(Jar.class);
+
     private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
     private Map<File, Semaphore> compiledStuff = new HashMap<>();
@@ -371,29 +375,31 @@ public class Jar implements TestRule {
     /**
      * If you're using the Jar instance as a JUnit rule, you don't have to call this method. Otherwise this can be used
      * to remove the compiled jar files from the filesystem.
-     *
-     * @throws IOException on error
      */
     @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
-    public void cleanUp() throws IOException {
+    public void cleanUp() {
         for (Map.Entry<File, Semaphore> e : compiledStuff.entrySet()) {
             if (e.getValue() != null) {
                 e.getValue().release();
             }
 
-            Files.walkFileTree(e.getKey().toPath(), new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
+            try {
+                Files.walkFileTree(e.getKey().toPath(), new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
 
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    Files.delete(dir);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (IOException ex) {
+                LOG.warn("Failed to clean up directory " + e.getKey().getAbsolutePath(), ex);
+            }
         }
     }
 
