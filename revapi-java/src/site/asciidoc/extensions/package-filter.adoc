@@ -1,3 +1,0 @@
-== Package Filter
-
-NOTE: This has been merged into link:java.html[java extension] itself.

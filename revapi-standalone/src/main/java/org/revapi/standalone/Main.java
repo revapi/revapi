@@ -17,34 +17,34 @@
 package org.revapi.standalone;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toSet;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Properties;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.dmr.ModelNode;
-import org.jboss.forge.furnace.Furnace;
-import org.jboss.forge.furnace.addons.Addon;
-import org.jboss.forge.furnace.addons.AddonId;
-import org.jboss.forge.furnace.impl.FurnaceImpl;
-import org.jboss.forge.furnace.impl.addons.AddonRepositoryImpl;
-import org.jboss.forge.furnace.manager.AddonManager;
-import org.jboss.forge.furnace.manager.impl.AddonManagerImpl;
-import org.jboss.forge.furnace.manager.maven.MavenContainer;
-import org.jboss.forge.furnace.manager.request.InstallRequest;
-import org.jboss.forge.furnace.util.Addons;
+import org.jboss.modules.DependencySpec;
+import org.jboss.modules.Module;
+import org.jboss.modules.ModuleSpec;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
@@ -52,11 +52,11 @@ import org.revapi.Revapi;
 import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.maven.utils.ScopeDependencySelector;
 import org.revapi.maven.utils.ScopeDependencyTraverser;
+import org.revapi.simple.FileArchive;
 import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
+import pw.krejci.modules.maven.MavenBootstrap;
+import pw.krejci.modules.maven.ModuleSpecController;
+import pw.krejci.modules.maven.ProjectModule;
 
 /**
  * @author Lukas Krejci
@@ -77,7 +77,7 @@ public final class Main {
         }
 
         System.out.println(progName +
-            " [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]* [-s <FILE>[,<FILE>]*] [-t <FILE>[,<FILE>]*] [-D<CONFIG_OPTION>=<VALUE>]* [-c <FILE>[,<FILE>]*] [-r <DIR>]");
+                " [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]* [-s <FILE>[,<FILE>]*] [-t <FILE>[,<FILE>]*] [-D<CONFIG_OPTION>=<VALUE>]* [-c <FILE>[,<FILE>]*] [-r <DIR>]");
         System.out.println();
         System.out.println(pad + " -u");
         System.out.println(pad + " -h");
@@ -107,23 +107,23 @@ public final class Main {
         System.out.println(pad + "    Comma-separated list of files that supplement the new version of API");
         System.out.println(pad + " -D");
         System.out
-            .println(pad + "    A key-value pair representing a single configuration option of revapi or one of " +
-                "the loaded extensions");
+                .println(pad + "    A key-value pair representing a single configuration option of revapi or one of " +
+                        "the loaded extensions");
         System.out.println(pad + " -c");
         System.out.println(pad + " --config-files=<FILE>[,<FILE>]*");
         System.out.println(pad + "    Comma-separated list of configuration files in JSON format.");
         System.out.println(pad + " -d");
         System.out.println(pad + " --cache-dir=<DIR>");
         System.out.println(pad + "    The location of local cache of extensions to use to locate artifacts. " +
-            "Defaults to 'extensions' directory under revapi installation dir.");
+                "Defaults to 'extensions' directory under revapi installation dir.");
         System.out.println();
         System.out.println("You can specify the old API either using -o and -s where you specify the filesystem paths" +
-            " to the archives and supplementary archives respectively or you can use -a to specify the GAVs of the" +
-            " old API archives and the supplementary archives (i.e. their transitive dependencies) will be determined" +
-            " automatically using Maven. But you cannot do both obviously.");
+                " to the archives and supplementary archives respectively or you can use -a to specify the GAVs of the" +
+                " old API archives and the supplementary archives (i.e. their transitive dependencies) will be determined" +
+                " automatically using Maven. But you cannot do both obviously.");
         System.out.println();
         System.out.println("Of course you can do the same for the new version of the API by using -n and -t for file" +
-            " paths or -b for GAVs.");
+                " paths or -b for GAVs.");
     }
 
     @SuppressWarnings("unchecked")
@@ -132,13 +132,6 @@ public final class Main {
             usage(null);
             System.exit(1);
         }
-
-        //redirect logging to slf4j - furnace is using jul
-        SLF4JBridgeHandler.removeHandlersForRootLogger();
-        SLF4JBridgeHandler.install();
-        Logger.getLogger("").setLevel(Level.INFO);
-
-        //and now continue
 
         String scriptFileName = args[0];
         String baseDir = args[1];
@@ -155,7 +148,7 @@ public final class Main {
         String[] newSupplementaryArchivePaths = null;
         Map<String, String> additionalConfigOptions = new HashMap<>();
         String[] configFiles = null;
-        File cacheDir = new File(baseDir, "extensions");
+        File cacheDir = new File(baseDir, "cache");
 
         LongOpt[] longOpts = new LongOpt[12];
         longOpts[0] = new LongOpt("usage", LongOpt.NO_ARGUMENT, null, 'u');
@@ -175,59 +168,59 @@ public final class Main {
         int c;
         while ((c = opts.getopt()) != -1) {
             switch (c) {
-            case 'u':
-            case 'h':
-                usage(scriptFileName);
-                System.exit(0);
-            case 'e':
-                extensionGAVs = opts.getOptarg().split(",");
-                break;
-            case 'o':
-                oldArchivePaths = opts.getOptarg().split(",");
-                break;
-            case 'n':
-                newArchivePaths = opts.getOptarg().split(",");
-                break;
-            case 's':
-                oldSupplementaryArchivePaths = opts.getOptarg().split(",");
-                break;
-            case 't':
-                newSupplementaryArchivePaths = opts.getOptarg().split(",");
-                break;
-            case 'c':
-                configFiles = opts.getOptarg().split(",");
-                break;
-            case 'D':
-                String[] keyValue = opts.getOptarg().split("=");
-                additionalConfigOptions.put(keyValue[0], keyValue.length > 1 ? keyValue[1] : null);
-                break;
-            case 'd':
-                cacheDir = new File(opts.getOptarg());
-                break;
-            case 'a':
-                oldGavs = opts.getOptarg().split(",");
-                break;
-            case 'b':
-                newGavs = opts.getOptarg().split(",");
-                break;
-            case ':':
-                System.err.println("Argument required for option " +
-                    (char) opts.getOptopt());
-                break;
-            case '?':
-                System.err.println("The option '" + (char) opts.getOptopt() +
-                    "' is not valid");
-                System.exit(1);
-                break;
-            default:
-                System.err.println("getopt() returned " + c);
-                System.exit(1);
-                break;
+                case 'u':
+                case 'h':
+                    usage(scriptFileName);
+                    System.exit(0);
+                case 'e':
+                    extensionGAVs = opts.getOptarg().split(",");
+                    break;
+                case 'o':
+                    oldArchivePaths = opts.getOptarg().split(",");
+                    break;
+                case 'n':
+                    newArchivePaths = opts.getOptarg().split(",");
+                    break;
+                case 's':
+                    oldSupplementaryArchivePaths = opts.getOptarg().split(",");
+                    break;
+                case 't':
+                    newSupplementaryArchivePaths = opts.getOptarg().split(",");
+                    break;
+                case 'c':
+                    configFiles = opts.getOptarg().split(",");
+                    break;
+                case 'D':
+                    String[] keyValue = opts.getOptarg().split("=");
+                    additionalConfigOptions.put(keyValue[0], keyValue.length > 1 ? keyValue[1] : null);
+                    break;
+                case 'd':
+                    cacheDir = new File(opts.getOptarg());
+                    break;
+                case 'a':
+                    oldGavs = opts.getOptarg().split(",");
+                    break;
+                case 'b':
+                    newGavs = opts.getOptarg().split(",");
+                    break;
+                case ':':
+                    System.err.println("Argument required for option " +
+                            (char) opts.getOptopt());
+                    break;
+                case '?':
+                    System.err.println("The option '" + (char) opts.getOptopt() +
+                            "' is not valid");
+                    System.exit(1);
+                    break;
+                default:
+                    System.err.println("getopt() returned " + c);
+                    System.exit(1);
+                    break;
             }
         }
 
         if (extensionGAVs == null || (oldArchivePaths == null && oldGavs == null) ||
-            (newArchivePaths == null && newGavs == null)) {
+                (newArchivePaths == null && newGavs == null)) {
 
             usage(scriptFileName);
             System.exit(1);
@@ -238,29 +231,31 @@ public final class Main {
         List<FileArchive> oldSupplementaryArchives = null;
         List<FileArchive> newSupplementaryArchives = null;
 
+        LOG.info("Downloading checked archives");
+
         if (oldArchivePaths == null) {
-            ArchivesAndSupplementaryArchives res = convertGavs(oldGavs, "Old API Maven artifact");
+            ArchivesAndSupplementaryArchives res = convertGavs(oldGavs, "Old API Maven artifact", cacheDir);
             oldArchives = res.archives;
             oldSupplementaryArchives = res.supplementaryArchives;
         } else {
             oldArchives = convertPaths(oldArchivePaths, "Old API files");
             oldSupplementaryArchives = oldSupplementaryArchivePaths == null ? emptyList() :
-                convertPaths(oldSupplementaryArchivePaths, "Old API supplementary files");
+                    convertPaths(oldSupplementaryArchivePaths, "Old API supplementary files");
         }
 
         if (newArchivePaths == null) {
-            ArchivesAndSupplementaryArchives res = convertGavs(newGavs, "New API Maven artifact");
+            ArchivesAndSupplementaryArchives res = convertGavs(newGavs, "New API Maven artifact", cacheDir);
             newArchives = res.archives;
             newSupplementaryArchives = res.supplementaryArchives;
         } else {
             newArchives = convertPaths(newArchivePaths, "New API files");
             newSupplementaryArchives = newSupplementaryArchivePaths == null ? emptyList() :
-                convertPaths(newSupplementaryArchivePaths, "New API supplementary files");
+                    convertPaths(newSupplementaryArchivePaths, "New API supplementary files");
         }
 
         try {
             run(cacheDir, extensionGAVs, oldArchives, oldSupplementaryArchives, newArchives,
-                newSupplementaryArchives, configFiles, additionalConfigOptions);
+                    newSupplementaryArchives, configFiles, additionalConfigOptions);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -268,81 +263,122 @@ public final class Main {
         System.exit(0);
     }
 
+    @SuppressWarnings("ConstantConditions")
     private static void run(File cacheDir, String[] extensionGAVs, List<FileArchive> oldArchives,
-        List<FileArchive> oldSupplementaryArchives, List<FileArchive> newArchives,
-        List<FileArchive> newSupplementaryArchives, String[] configFiles, Map<String, String> additionalConfig)
-        throws Exception {
+            List<FileArchive> oldSupplementaryArchives, List<FileArchive> newArchives,
+            List<FileArchive> newSupplementaryArchives, String[] configFiles, Map<String, String> additionalConfig)
+            throws Exception {
 
-        ExtensionResolver.init();
+        ProjectModule.Builder bld = ProjectModule.build();
+        bld.localRepository(cacheDir);
 
-        Furnace furnace = new FurnaceImpl();
+        if (extensionGAVs != null) {
+            for (String gav : extensionGAVs) {
+                bld.addDependency(gav);
+            }
+        }
 
-        furnace.addRepository(AddonRepositoryImpl.forDirectory(furnace, cacheDir));
+        Properties libraryVersionsProps = new Properties();
+        libraryVersionsProps.load(Main.class.getResourceAsStream("/library.versions"));
+        Set<Artifact> globalArtifacts = libraryVersionsProps.stringPropertyNames().stream()
+                .map(p -> {
+                    String gav = p + ':' + libraryVersionsProps.get(p);
+                    return new DefaultArtifact(gav);
+                })
+                .collect(toSet());
 
-        furnace.startAsync();
+        bld.moduleSpecController(new ModuleSpecController() {
+            private boolean override;
+            private String currentModuleName;
 
-        try {
-            AddonManager manager = new AddonManagerImpl(furnace, new ExtensionResolver());
+            @Override
+            public void start(String moduleName) {
+                currentModuleName = moduleName;
+            }
 
-            if (extensionGAVs != null) {
-                for (String gav : extensionGAVs) {
-                    DefaultArtifact artifact = new DefaultArtifact(gav);
-                    String ga = artifact.getGroupId() + ":" + artifact.getArtifactId();
-                    String v = artifact.getBaseVersion();
+            //TODO add warnings when the deps depend on another revapi version than the one bundled...
 
-                    InstallRequest request = manager.install(AddonId.from(ga, v));
-                    request.perform();
+            @Override
+            public DependencySpec modifyDependency(String dependencyName, DependencySpec original) {
+                boolean overrideThis = false;
+                Artifact a = new DefaultArtifact(dependencyName);
+
+                for (Artifact ga : globalArtifacts) {
+                    if (ga.getGroupId().equals(a.getGroupId()) && ga.getArtifactId().equals(a.getArtifactId())
+                            && !ga.getVersion().equals(a.getVersion())) {
+                        LOG.warn("Detected version conflict in dependencies of extension " + currentModuleName +
+                                ". The extension depends on " + a + " while the CLI has " + ga + " on global" +
+                                " classpath. This will likely cause problems.");
+                    }
+                }
+
+                override = override || overrideThis;
+                return overrideThis ? null : original;
+            }
+
+            @Override
+            public void modify(ModuleSpec.Builder bld) {
+                if (override) {
+                    Set<String> revapiPaths = new HashSet<>(Arrays.asList("org/revapi", "org/revapi/configuration",
+                            "org/revapi/query", "org/revapi/simple"));
+
+                    bld.addDependency(DependencySpec.createSystemDependencySpec(revapiPaths));
+                    override = false;
                 }
             }
 
-            Revapi.Builder builder = Revapi.builder();
-
-            for (Addon addon : furnace.getAddonRegistry().getAddons()) {
-                Addons.waitUntilStarted(addon);
-                builder.withAllExtensionsFrom(addon.getClassLoader());
+            @Override
+            public void end(String moduleName) {
+                currentModuleName = null;
             }
+        });
 
-            Revapi revapi = builder.withAllExtensionsFromThreadContextClassLoader().build();
+        LOG.info("Downloading extensions");
 
-            AnalysisContext.Builder ctxBld = AnalysisContext.builder(revapi)
+        Module project = bld.create();
+
+        Revapi revapi = Revapi.builder()
+                .withAllExtensionsFrom(project.getClassLoader())
+                .withAllExtensionsFromThreadContextClassLoader().build();
+
+        AnalysisContext.Builder ctxBld = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(oldArchives).supportedBy(oldSupplementaryArchives).build())
                 .withNewAPI(API.of(newArchives).supportedBy(newSupplementaryArchives).build());
 
-            if (configFiles != null) {
-                for (String cf : configFiles) {
-                    File f = new File(cf);
-                    checkCanRead(f, "Configuration file");
+        if (configFiles != null) {
+            for (String cf : configFiles) {
+                File f = new File(cf);
+                checkCanRead(f, "Configuration file");
 
-                    try (FileInputStream is = new FileInputStream(f)) {
-                        ctxBld.mergeConfigurationFromJSONStream(is);
-                    }
+                try (FileInputStream is = new FileInputStream(f)) {
+                    ctxBld.mergeConfigurationFromJSONStream(is);
                 }
             }
+        }
 
-            for (Map.Entry<String, String> e : additionalConfig.entrySet()) {
-                String[] keyPath = e.getKey().split("\\.");
-                ModelNode additionalNode = new ModelNode();
-                ModelNode key = additionalNode.get(keyPath);
+        for (Map.Entry<String, String> e : additionalConfig.entrySet()) {
+            String[] keyPath = e.getKey().split("\\.");
+            ModelNode additionalNode = new ModelNode();
+            ModelNode key = additionalNode.get(keyPath);
 
-                String value = e.getValue();
-                if (value.startsWith("[") && value.endsWith("]")) {
-                    String[] values = value.substring(1, value.length() - 1).split("\\s*,\\s*");
-                    for(String v : values) {
-                        key.add(v);
-                    }
-                } else {
-                    key.set(value);
+            String value = e.getValue();
+            if (value.startsWith("[") && value.endsWith("]")) {
+                String[] values = value.substring(1, value.length() - 1).split("\\s*,\\s*");
+                for (String v : values) {
+                    key.add(v);
                 }
-                ctxBld.mergeConfiguration(additionalNode);
+            } else {
+                key.set(value);
             }
+            ctxBld.mergeConfiguration(additionalNode);
+        }
 
-            try (AnalysisResult result = revapi.analyze(ctxBld.build())) {
-                if (!result.isSuccess()) {
-                    throw result.getFailure();
-                }
+        LOG.info("Starting analysis");
+
+        try (AnalysisResult result = revapi.analyze(ctxBld.build())) {
+            if (!result.isSuccess()) {
+                throw result.getFailure();
             }
-        } finally {
-            furnace.stop();
         }
     }
 
@@ -357,24 +393,18 @@ public final class Main {
         return archives;
     }
 
-    private static ArchivesAndSupplementaryArchives convertGavs(String[] gavs, String errorMessagePrefix) {
-        MavenContainer mvn = new MavenContainer();
-        RepositorySystem repositorySystem = mvn.getRepositorySystem();
-        DefaultRepositorySystemSession session = mvn.setupRepoSession(repositorySystem, mvn.getSettings());
+    private static ArchivesAndSupplementaryArchives convertGavs(String[] gavs, String errorMessagePrefix,
+            File localRepo) {
+        RepositorySystem repositorySystem = MavenBootstrap.newRepositorySystem();
+        DefaultRepositorySystemSession session = MavenBootstrap.newRepositorySystemSession(repositorySystem, localRepo);
 
         session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
         session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
 
-        List<RemoteRepository> remoteRepositories = mvn.getEnabledRepositoriesFromProfile(mvn.getSettings());
-
-        //RemoteRepository local = new RemoteRepository.Builder("@@forced-local@@", "default", System.getenv("M2_HOME")).build();
         RemoteRepository mavenCentral = new RemoteRepository.Builder("@@forced-maven-central@@", "default",
-            "http://repo.maven.apache.org/maven2/").build();
+                "http://repo.maven.apache.org/maven2/").build();
 
-        if (remoteRepositories.isEmpty()) {
-            //remoteRepositories.add(local);
-            remoteRepositories.add(mavenCentral);
-        }
+        List<RemoteRepository> remoteRepositories = singletonList(mavenCentral);
 
         ArtifactResolver resolver = new ArtifactResolver(repositorySystem, session, remoteRepositories);
 
@@ -406,7 +436,7 @@ public final class Main {
 
         if (!f.isFile() || !f.canRead()) {
             throw new IllegalArgumentException(
-                errorMessagePrefix + " '" + f.getAbsolutePath() + "' is not a file or cannot be read.");
+                    errorMessagePrefix + " '" + f.getAbsolutePath() + "' is not a file or cannot be read.");
         }
     }
 
@@ -415,7 +445,7 @@ public final class Main {
         final List<FileArchive> supplementaryArchives;
 
         public ArchivesAndSupplementaryArchives(List<FileArchive> archives,
-            List<FileArchive> supplementaryArchives) {
+                List<FileArchive> supplementaryArchives) {
             this.archives = archives;
             this.supplementaryArchives = supplementaryArchives;
         }

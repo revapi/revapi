@@ -33,17 +33,18 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-standalone</artifactId>
-    <version>0.6.5-SNAPSHOT</version>
+    <version>0.7.0-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
+        <version.org.revapi.revapi>0.8.4</version.org.revapi.revapi>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.8.4</version>
+            <version>${version.org.revapi.revapi}</version>
         </dependency>
 
         <dependency>
@@ -56,7 +57,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.8.2</version>
+            <version>0.8.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -66,21 +67,15 @@
         </dependency>
 
         <dependency>
-            <groupId>org.jboss.forge.furnace</groupId>
-            <artifactId>furnace-manager</artifactId>
-            <version>2.0.0.Final</version>
+            <groupId>org.jboss.modules</groupId>
+            <artifactId>jboss-modules</artifactId>
+            <version>1.6.1.Final</version>
         </dependency>
 
         <dependency>
-            <groupId>org.jboss.forge.furnace</groupId>
-            <artifactId>furnace-manager-resolver-maven</artifactId>
-            <version>2.0.0.Final</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.forge.furnace</groupId>
-            <artifactId>furnace</artifactId>
-            <version>2.0.0.Final</version>
+            <groupId>pw.krejci</groupId>
+            <artifactId>maven-repo-jboss-modules</artifactId>
+            <version>0.1.0</version>
         </dependency>
 
         <dependency>
@@ -96,6 +91,13 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -115,6 +117,16 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <excludes combine.children="append">
+                        <exclude>**/library.versions</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

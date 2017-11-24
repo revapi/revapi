@@ -36,33 +36,33 @@
     <version>0.8.3-SNAPSHOT</version>
 
     <properties>
-        <aether.version>0.9.1.v20140329</aether.version>
+        <maven-resolver.version>1.1.0</maven-resolver.version>
         <automatic.module.name>org.revapi.maven.utils</automatic.module.name>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.eclipse.aether</groupId>
-                <artifactId>aether-api</artifactId>
-                <version>${aether.version}</version>
+                <groupId>org.apache.maven.resolver</groupId>
+                <artifactId>maven-resolver-api</artifactId>
+                <version>${maven-resolver.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.eclipse.aether</groupId>
-                <artifactId>aether-util</artifactId>
-                <version>${aether.version}</version>
+                <groupId>org.apache.maven.resolver</groupId>
+                <artifactId>maven-resolver-util</artifactId>
+                <version>${maven-resolver.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-api</artifactId>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-util</artifactId>
+            <groupId>org.apache.maven.resolver</groupId>
+            <artifactId>maven-resolver-util</artifactId>
         </dependency>
     </dependencies>
 

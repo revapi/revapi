@@ -20,10 +20,10 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %msg%n</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>WARN</level>
+            <level>INFO</level>
         </filter>
     </appender>
 
