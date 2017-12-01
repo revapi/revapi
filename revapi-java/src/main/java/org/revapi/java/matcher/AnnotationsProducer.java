@@ -45,7 +45,7 @@ final class AnnotationsProducer implements ChoiceProducer {
     @Override
     public Stream<? extends JavaElement> choiceFor(JavaElement element) {
         if (onlyDirect) {
-            return element.stream(JavaAnnotationElement.class, false, null);
+            return element.stream(JavaAnnotationElement.class, false);
         } else {
             ArrayList<JavaAnnotationElement> ret = new ArrayList<>();
             fillAlsoWithInheritedAnnotations(element, ret, element.getTypeEnvironment());

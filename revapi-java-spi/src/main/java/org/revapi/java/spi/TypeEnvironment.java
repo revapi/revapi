@@ -87,30 +87,4 @@ public interface TypeEnvironment {
             }
         }, null);
     }
-
-    /**
-     * This returns true for elements that are included by the means of configuration. I.e. even though they could
-     * otherwise be excluded from the API, the user chose to include them.
-     * <p>
-     * Note that this is not a mere opposite of {@link #isExplicitlyExcluded(Element)}. Both methods can return false
-     * for a single element, which means that the inclusion state of that element is implicit. Usually this means that
-     * the inclusion is dependent on the parent element.
-     *
-     * @param element the element to check
-     * @return true if this element is explicitly included by configuration, false otherwise
-     */
-    boolean isExplicitlyIncluded(Element element);
-
-    /**
-     * This returns true for elements that are excluded by the means of configuration. I.e. even though they would
-     * otherwise be included in the API, they are excluded by the user.
-     * <p>
-     * It does not mean that the element is to be included in the API checks if this method returns false. That merely
-     * means that the user didn't explicitly exclude it and further checks need to be made to establish whether to check
-     * the element or not (see for example {@link CheckBase#isAccessible(JavaModelElement)}).
-     *
-     * @param element the element to check (might be type, method, whatever)
-     * @return true if the the user explicitly excluded this element from the API checks, false otherwise.
-     */
-    boolean isExplicitlyExcluded(Element element);
 }

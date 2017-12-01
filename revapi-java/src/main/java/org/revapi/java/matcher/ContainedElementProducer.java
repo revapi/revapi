@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
-import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
@@ -37,7 +36,7 @@ final class ContainedElementProducer implements ChoiceProducer {
 
     @Override
     public Stream<? extends JavaElement> choiceFor(JavaElement element) {
-        return element.stream(expectedType, false, Filter.shallow(e -> onlyDeclared != e.isInherited()));
+        return element.stream(expectedType, false).filter(e -> onlyDeclared != e.isInherited());
     }
 }
 

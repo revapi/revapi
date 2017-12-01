@@ -99,7 +99,9 @@ public interface Element extends Comparable<Element> {
      *                   given type potentially satisfying given filter
      *
      * @return the list of found elements
+     * @deprecated in favor of {@link #stream(Class, boolean)}
      */
+    @Deprecated
     @Nonnull
     <T extends Element> List<T> searchChildren(@Nonnull Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);
@@ -116,7 +118,9 @@ public interface Element extends Comparable<Element> {
      * @param resultType the type of the elements to look for
      * @param recurse    false to search only in direct children of the element, true to search recursively
      * @param filter     optional filter to further trim the number of results
+     * @deprecated in favor of {@link #stream(Class, boolean)}
      */
+    @Deprecated
     <T extends Element> void searchChildren(@Nonnull List<T> results, @Nonnull Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);
 
@@ -132,7 +136,9 @@ public interface Element extends Comparable<Element> {
      * @return the iterator that will iterate over the results
      *
      * @see #searchChildren(Class, boolean, org.revapi.query.Filter)
+     * @deprecated in favor of {@link #stream(Class, boolean)}
      */
+    @Deprecated
     @Nonnull
     <T extends Element> Iterator<T> iterateOverChildren(@Nonnull Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);
@@ -141,15 +147,14 @@ public interface Element extends Comparable<Element> {
      * A stream equivalent of {@link #iterateOverChildren(Class, boolean, Filter)}. The resulting stream contains
      * distinct non-null elements.
      *
+     * @param <T>         the type of the elements to look for
      * @param elementType the type of elements to look for
      * @param recurse     if true, the iterator traverses the element forest using depth first search
-     * @param filter      optional filter to further trim the number of results
-     * @param <T>         the type of the elements to look for
      * @return the stream of elements complying to the filter
      * @see #iterateOverChildren(Class, boolean, Filter)
      */
-    default <T extends Element> Stream<T> stream(Class<T> elementType, boolean recurse, @Nullable Filter<? super T> filter) {
-        Iterator<T> it = iterateOverChildren(elementType, recurse, filter);
+    default <T extends Element> Stream<T> stream(Class<T> elementType, boolean recurse) {
+        Iterator<T> it = iterateOverChildren(elementType, recurse, null);
         Spliterator<T> sit = Spliterators.spliteratorUnknownSize(it,
                 Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED);
 

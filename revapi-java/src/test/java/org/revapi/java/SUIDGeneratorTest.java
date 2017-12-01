@@ -82,16 +82,6 @@ public class SUIDGeneratorTest {
                 public JavaTypeElement getModelElement(TypeElement e) {
                     return null;
                 }
-
-                @Override
-                public boolean isExplicitlyIncluded(Element element) {
-                    return false;
-                }
-
-                @Override
-                public boolean isExplicitlyExcluded(Element element) {
-                    return false;
-                }
             };
 
             generatedSUID = SerialVersionUidUnchanged.computeSerialVersionUID(testType, fakeEnv);

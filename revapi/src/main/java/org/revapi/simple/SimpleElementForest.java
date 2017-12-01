@@ -53,7 +53,7 @@ public class SimpleElementForest implements ElementForest {
     @Nonnull
     public SortedSet<? extends SimpleElement> getRoots() {
         if (roots == null) {
-            roots = new TreeSet<>();
+            roots = newRootsInstance();
         }
         return roots;
     }
@@ -95,6 +95,10 @@ public class SimpleElementForest implements ElementForest {
         addToString(bld, 1, getRoots());
 
         return bld.toString();
+    }
+
+    protected SortedSet<? extends SimpleElement> newRootsInstance() {
+        return new TreeSet<>();
     }
 
     private void addToString(StringBuilder bld, int indent, SortedSet<? extends Element> elements) {

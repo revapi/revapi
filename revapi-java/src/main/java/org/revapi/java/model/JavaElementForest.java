@@ -27,7 +27,9 @@ import javax.annotation.Nullable;
 import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.java.Timing;
+import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.query.Filter;
+import org.revapi.simple.SimpleElement;
 import org.revapi.simple.SimpleElementForest;
 
 /**
@@ -37,6 +39,7 @@ import org.revapi.simple.SimpleElementForest;
 public final class JavaElementForest extends SimpleElementForest {
 
     private Future<?> compilation;
+    private final ProbingEnvironment environment;
     private static final ThreadLocal<Boolean> UNSAFE_MODE = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
@@ -44,8 +47,9 @@ public final class JavaElementForest extends SimpleElementForest {
         }
     };
 
-    public JavaElementForest(API api) {
+    public JavaElementForest(API api, ProbingEnvironment environment) {
         super(api);
+        this.environment = environment;
     }
 
     public void setCompilationFuture(Future<?> compilation) {
@@ -107,6 +111,11 @@ public final class JavaElementForest extends SimpleElementForest {
         } finally {
             UNSAFE_MODE.set(unsafe);
         }
+    }
+
+    @Override
+    protected SortedSet<? extends SimpleElement> newRootsInstance() {
+        return new UseSiteUpdatingSortedSet<>(environment, super.newRootsInstance());
     }
 
     private void waitForCompilation() {

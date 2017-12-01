@@ -58,11 +58,14 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     @Nonnull
     protected abstract String getHumanReadableElementType();
 
-    @Nullable @Override public JavaModelElement getParent() {
+    @Nullable
+    @Override
+    public JavaModelElement getParent() {
         return (JavaModelElement) super.getParent();
     }
 
-    @Override public void setParent(@Nullable org.revapi.Element parent) {
+    @Override
+    public void setParent(@Nullable org.revapi.Element parent) {
         if (parent != null && !(parent instanceof JavaModelElement)) {
             throw new IllegalArgumentException("A parent must be a java model element.");
         }
@@ -100,7 +103,8 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
         return element;
     }
 
-    @Override public T getModelRepresentation() {
+    @Override
+    public T getModelRepresentation() {
         return representation;
     }
 
@@ -111,7 +115,8 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
         return (SortedSet<JavaElement>) super.getChildren();
     }
 
-    @Override public boolean isInherited() {
+    @Override
+    public boolean isInherited() {
         return inherited;
     }
 
@@ -163,7 +168,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
         }
 
         return obj != null && obj instanceof JavaElementBase &&
-            getFullHumanReadableString().equals(((JavaElementBase<?, ?>) obj).getFullHumanReadableString());
+                getFullHumanReadableString().equals(((JavaElementBase<?, ?>) obj).getFullHumanReadableString());
     }
 
     @Override
@@ -180,4 +185,10 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     }
 
     protected abstract String createComparableSignature();
+
+    @Nonnull
+    @Override
+    protected final SortedSet<org.revapi.Element> newChildrenInstance() {
+        return new UseSiteUpdatingSortedSet<>(environment, super.newChildrenInstance());
+    }
 }

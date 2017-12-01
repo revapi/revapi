@@ -17,6 +17,7 @@
 package org.revapi.java.model;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -115,7 +116,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     @Override public Set<UseSite> getUseSites() {
         if (useSites == null) {
             if (rawUseSites == null) {
-                useSites = Collections.emptySet();
+                useSites = new HashSet<>(1);
             } else {
                 useSites = rawUseSites.stream()
                         .map(u -> {

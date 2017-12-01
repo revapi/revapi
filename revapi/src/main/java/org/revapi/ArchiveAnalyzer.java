@@ -16,8 +16,6 @@
  */
 package org.revapi;
 
-import javax.annotation.Nonnull;
-
 /**
  * The instances of implementations of this interface are produced by the {@link org.revapi.ApiAnalyzer}s to
  * analyze the API archives and create an element tree that is then used for API comparison.
@@ -29,12 +27,24 @@ public interface ArchiveAnalyzer {
 
     /**
      * Analyzes the API archives and filters the forest using the provided filter.
+     * <p>
+     * This produces a preliminary forest which can be too "wide" because of {@link FilterMatch#UNDECIDED} elements.
+     * Once the preliminary forest is obtained and filtered down, it can then be {@link #prune(ElementForest) pruned}
+     * by this analyzer to account for "non-local" effects removal of elements can have on it (like for example removal
+     * of elements that are no longer used by any other element in the forest, if the analyzer deems it necessary).
      *
      * @param filter the filter to use to "prune" the forest
      * @return the element forest ready for analysis
      */
-    @Nonnull
     ElementForest analyze(Filter filter);
+
+    /**
+     * Once all the filtering on the element forest is done, the analyzer is allowed one final "pass" through the forest
+     * to remove any elements that should not be there any longer.
+     *
+     * @param forest the forest to prune
+     */
+    void prune(ElementForest forest);
 
     /**
      * Implementation of this interface will be provided to the archive analyzer so that it can filter out elements

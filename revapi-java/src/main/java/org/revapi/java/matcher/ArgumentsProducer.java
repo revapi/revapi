@@ -22,7 +22,6 @@ import java.util.stream.Stream;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaMethodParameterElement;
-import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
@@ -40,10 +39,9 @@ final class ArgumentsProducer implements ChoiceProducer {
         if (!(element instanceof JavaMethodElement)) {
             return Stream.empty();
         } else if (concreteIndex != null) {
-            return element.stream(JavaMethodParameterElement.class, false,
-                    Filter.shallow(p -> p.getIndex() == concreteIndex - 1));
+            return element.stream(JavaMethodParameterElement.class, false).filter(p -> p.getIndex() == concreteIndex - 1);
         } else {
-            return element.stream(JavaMethodParameterElement.class, false, null);
+            return element.stream(JavaMethodParameterElement.class, false);
         }
     }
 }

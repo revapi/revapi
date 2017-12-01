@@ -1,0 +1,4 @@
+@A
+public interface B {
+
+}

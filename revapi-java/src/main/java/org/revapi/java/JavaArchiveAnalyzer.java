@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 
 import org.revapi.API;
 import org.revapi.ArchiveAnalyzer;
+import org.revapi.ElementForest;
 import org.revapi.java.compilation.CompilationFuture;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.Compiler;
@@ -44,9 +45,9 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private InclusionFilter inclusionFilter;
 
     public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
-                               AnalysisConfiguration.MissingClassReporting missingClassReporting,
-                               boolean ignoreMissingAnnotations,
-                               InclusionFilter inclusionFilter) {
+            AnalysisConfiguration.MissingClassReporting missingClassReporting,
+            boolean ignoreMissingAnnotations,
+            InclusionFilter inclusionFilter) {
         this.api = api;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
@@ -63,7 +64,8 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         }
 
         StringWriter output = new StringWriter();
-        Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives());
+        Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives(),
+                filter);
         try {
             compilationValve = compiler
                 .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, inclusionFilter);
@@ -78,6 +80,12 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         } catch (Exception e) {
             throw new IllegalStateException("Failed to analyze archives in api " + api, e);
         }
+    }
+
+    @Override
+    public void prune(ElementForest forest) {
+        // TODO implement - remove elements dragged into the API that no longer have any uses that would move them to API
+        // the logic is already present in classpath scanner...
     }
 
     public ProbingEnvironment getProbingEnvironment() {

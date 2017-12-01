@@ -34,6 +34,8 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import org.revapi.Archive;
+import org.revapi.ArchiveAnalyzer;
+import org.revapi.ElementMatcher;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.Timing;
 import org.slf4j.Logger;
@@ -51,9 +53,10 @@ public final class Compiler {
     private final Iterable<? extends Archive> classPath;
     private final Iterable<? extends Archive> additionalClassPath;
     private final ExecutorService executor;
+    private final ArchiveAnalyzer.Filter filter;
 
     public Compiler(ExecutorService executor, Writer reportingOutput, Iterable<? extends Archive> classPath,
-        Iterable<? extends Archive> additionalClassPath) {
+        Iterable<? extends Archive> additionalClassPath, ArchiveAnalyzer.Filter filter) {
 
         compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
@@ -64,6 +67,7 @@ public final class Compiler {
         this.output = reportingOutput;
         this.classPath = classPath;
         this.additionalClassPath = additionalClassPath;
+        this.filter = filter;
     }
 
     public CompilationValve compile(final ProbingEnvironment environment,
@@ -120,7 +124,7 @@ public final class Compiler {
 
             try {
                 new ClasspathScanner(fileManager, environment, classPathFiles, additionClassPathFiles,
-                        missingClassReporting, ignoreMissingAnnotations, inclusionFilter).initTree();
+                        missingClassReporting, ignoreMissingAnnotations, inclusionFilter, filter).initTree();
             } catch (IOException e) {
                 throw new IllegalStateException("Failed to scan the classpath.", e);
             }

@@ -30,7 +30,6 @@ import java.nio.charset.Charset;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -45,9 +44,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.jar.JarOutputStream;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
@@ -67,18 +70,18 @@ import org.slf4j.LoggerFactory;
 /**
  * This class can be used in tests to make it easy to compile custom source code into jars and then use the Java
  * Annotation processing API to analyze the compiled classes.
- *
+ * <p>
  * <p>Simply declare a JUnit rule field:<pre><code>
  *    {@literal @Rule}
  *     public Jar jar = new Jar();
  * </code></pre>
- *
+ * <p>
  * <p>and then use it in your test methods to compile and use code:<pre><code>
  *     Jar.BuildOutput build = jar.from()
  *         .classPathSources("/", "my/package/MySource.java")
  *         .classPathResources("/", "META-INF/my-file-in-jar.txt")
  *         .build();
- *
+ * <p>
  *     Jar.Environment env = build.analyze();
  *     TypeElement mySourceClass = env.elements().getElement("my.package.MySource");
  *     ...
@@ -86,7 +89,7 @@ import org.slf4j.LoggerFactory;
  *     Files.copy(jarFile.toPath(), Paths.get("/"));
  *     ...
  * </code></pre>
- *
+ * <p>
  * If you use this class as a JUnit rule, you don't have to handle cleanup of the compilation results. It will be done
  * automagically.
  *
@@ -122,10 +125,33 @@ public class Jar implements TestRule {
 
     /**
      * Instantiates a builder using which the contents of a compiled jar file can be composed.
+     *
      * @return a builder to gather sources and resources to compile and compose a jar file
      */
     public Builder from() {
         return new Builder();
+    }
+
+    /**
+     * If you already have a compiled jar file, you can start analyzing its contents using this method.
+     * <p>
+     * Note that this file is not automatically deleted after a test as would a jar file built using the {@link #from()}
+     * method. If you want this file to also be cleaned up, use the {@link #manage(File)} method.
+     *
+     * @param jarFile the jar file to analyze
+     * @return object using which the classes within the jar file can be inspected.
+     */
+    public BuildOutput of(File jarFile) {
+        return new BuildOutput(jarFile, null);
+    }
+
+    /**
+     * Given file will be automatically cleaned up after the test.
+     *
+     * @param jarFile a file to delete once the test is finished.
+     */
+    public void manage(File jarFile) {
+        compiledStuff.put(jarFile, null);
     }
 
     public final class Builder {
@@ -139,7 +165,7 @@ public class Jar implements TestRule {
          * Finds given sources under given root in the classpath. The resulting jar file will contain the compiled
          * classes on the same relatives paths as the provided sources.
          *
-         * @param root the root path in the classloader to resolve the sources against
+         * @param root    the root path in the classloader to resolve the sources against
          * @param sources the list of relative paths on which the source files are located in the classloader
          * @return this instance
          */
@@ -160,10 +186,9 @@ public class Jar implements TestRule {
          * Adds given resources to the compiled jar file. The paths to the resources are resolved in the same way
          * as with sources.
          *
-         * @param root the root against which to resolve the resource paths in the classloader
+         * @param root      the root against which to resolve the resource paths in the classloader
          * @param resources the relative paths of the resources
          * @return this instance
-         *
          * @see #classPathSources(String, String...)
          */
         public Builder classPathResources(String root, String... resources) {
@@ -228,7 +253,7 @@ public class Jar implements TestRule {
         public BuildOutput build() throws IOException {
             File dir = Files.createTempDirectory("revapi-java-spi").toFile();
 
-            File compiledSourcesOutput = new File(dir, "sources");
+            File compiledSourcesOutput = new File(dir, "classes");
             if (!compiledSourcesOutput.mkdirs()) {
                 throw new IllegalStateException("Could not create output location for compiling test sources.");
             }
@@ -267,7 +292,7 @@ public class Jar implements TestRule {
 
             compiledStuff.put(dir, null);
 
-            return new BuildOutput(compiledJar);
+            return new BuildOutput(compiledJar, compiledSourcesOutput);
         }
 
         private URI toUri(String path) {
@@ -284,9 +309,12 @@ public class Jar implements TestRule {
      */
     public final class BuildOutput {
         private final File jarFile;
+        private final File classes;
+        private File[] classpath;
 
-        public BuildOutput(File jarFile) {
+        private BuildOutput(File jarFile, File classes) {
             this.jarFile = jarFile;
+            this.classes = classes;
         }
 
         /**
@@ -294,6 +322,26 @@ public class Jar implements TestRule {
          */
         public File jarFile() {
             return jarFile;
+        }
+
+        /**
+         * @return the root directory containing the compiled classes or null if {@link #of(File)} was used to obtain
+         * this instance.
+         */
+        @Nullable
+        public File classes() {
+            return classes;
+        }
+
+        /**
+         * Additional jar files to be put on the classpath when analyzing the compiled jar file.
+         * <p>
+         * Note that these files are not managed and will not be cleaned up after the test finishes automatically.
+         *
+         * @param jarFiles the jar files to be put on the classpath
+         */
+        public void classpath(File... jarFiles) {
+            classpath = jarFiles;
         }
 
         /**
@@ -306,7 +354,12 @@ public class Jar implements TestRule {
                 throw new IllegalArgumentException("Failed to create directory " + dir.getAbsolutePath());
             }
 
-            List<String> options = Arrays.asList("-cp", jarFile.getAbsolutePath(),
+            String classpathString = classpath == null
+                    ? jarFile.getAbsolutePath()
+                    : Stream.concat(Stream.of(jarFile), Stream.of(classpath))
+                    .map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator));
+
+            List<String> options = Arrays.asList("-cp", classpathString,
                     "-d", dir.getAbsolutePath());
 
             List<JavaFileObject> sourceObjects = new ArrayList<>(2);
@@ -341,6 +394,7 @@ public class Jar implements TestRule {
                     if (roundEnv.processingOver()) {
                         ret.elements = processingEnv.getElementUtils();
                         ret.types = processingEnv.getTypeUtils();
+                        ret.processingEnvironment = processingEnv;
 
                         initSemaphore.release();
 
@@ -407,11 +461,15 @@ public class Jar implements TestRule {
         Elements elements();
 
         Types types();
+
+        ProcessingEnvironment processingEnvironment();
     }
 
     private static final class EnvironmentImpl implements Environment {
         private Elements elements;
         private Types types;
+        private ProcessingEnvironment processingEnvironment;
+
 
         @Override
         public Elements elements() {
@@ -421,6 +479,11 @@ public class Jar implements TestRule {
         @Override
         public Types types() {
             return types;
+        }
+
+        @Override
+        public ProcessingEnvironment processingEnvironment() {
+            return processingEnvironment;
         }
     }
 }

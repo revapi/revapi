@@ -189,6 +189,11 @@ public class AnalysisTest {
             ret.getRoots().add(new DummyElement(api, new DummyArchive()));
             return ret;
         }
+
+        @Override
+        public void prune(ElementForest forest) {
+
+        }
     }
 
     public static final class DummyDifferenceAnalyzer implements DifferenceAnalyzer {

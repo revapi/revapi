@@ -79,6 +79,9 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 
 import org.revapi.Archive;
+import org.revapi.ArchiveAnalyzer;
+import org.revapi.FilterMatch;
+import org.revapi.FilterResult;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.model.JavaElementBase;
@@ -112,13 +115,15 @@ final class ClasspathScanner {
     private final Map<Archive, File> additionalClassPath;
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
     private final boolean ignoreMissingAnnotations;
-    private final InclusionFilter inclusionFilter;
-    private final boolean defaultInclusionCase;
+//    private final InclusionFilter inclusionFilter;
+//    private final boolean defaultInclusionCase;
+    private final ArchiveAnalyzer.Filter filter;
 
     ClasspathScanner(StandardJavaFileManager fileManager, ProbingEnvironment environment,
-                     Map<Archive, File> classPath, Map<Archive, File> additionalClassPath,
-                     AnalysisConfiguration.MissingClassReporting missingClassReporting,
-                     boolean ignoreMissingAnnotations, InclusionFilter inclusionFilter) {
+            Map<Archive, File> classPath, Map<Archive, File> additionalClassPath,
+            AnalysisConfiguration.MissingClassReporting missingClassReporting,
+            boolean ignoreMissingAnnotations, InclusionFilter inclusionFilter,
+            ArchiveAnalyzer.Filter filter) {
         this.fileManager = fileManager;
         this.environment = environment;
         this.classPath = classPath;
@@ -127,8 +132,9 @@ final class ClasspathScanner {
                 ? ERROR
                 : missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
-        this.inclusionFilter = inclusionFilter;
-        this.defaultInclusionCase = inclusionFilter.defaultCase();
+//        this.inclusionFilter = inclusionFilter;
+//        this.defaultInclusionCase = inclusionFilter.defaultCase();
+        this.filter = filter;
     }
 
     void initTree() throws IOException {
@@ -328,11 +334,6 @@ final class ClasspathScanner {
                 processed.add(type);
                 Boolean wasAnno = requiredTypes.remove(type);
 
-                String bn = environment.getElementUtils().getBinaryName(type).toString();
-                String cn = type.getQualifiedName().toString();
-                boolean includes = inclusionFilter.accepts(bn, cn);
-                boolean excludes = inclusionFilter.rejects(bn, cn);
-
                 //technically, we could find this out later on in the method, but doing this here ensures that the
                 //javac tries to fully load the class (and therefore throw any completion failures.
                 //Doing this then ensures that we get a correct TypeKind after this call.
@@ -351,16 +352,16 @@ final class ClasspathScanner {
                         new org.revapi.java.model.TypeElement(environment, loc.getArchive(), type,
                                 (DeclaredType) type.asType());
 
+
                 TypeRecord tr = getTypeRecord(type);
+                tr.inclusionState = filter.filter(t);
                 tr.modelElement = t;
                 //this will be revisited... in here we're just establishing the types that are in the API for sure...
-                tr.inApi = !excludes &&
+                tr.inApi = tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH &&
                         (primaryApi && !shouldBeIgnored(type) && !(type.getEnclosingElement() instanceof TypeElement));
                 tr.primaryApi = primaryApi;
-                tr.explicitlyExcluded = excludes;
-                tr.explicitlyIncluded = includes;
 
-                if (tr.explicitlyExcluded) {
+                if (!tr.inclusionState.isDescend()) {
                     return;
                 }
 
@@ -710,59 +711,46 @@ final class ClasspathScanner {
                 if (r.modelElement != null
                         && (r.modelElement.getArchive() == null
                         || !r.modelElement.getArchive().getName().equals(SYSTEM_CLASSPATH_NAME))) {
-                    String cn = t.getQualifiedName().toString();
-                    boolean includes = r.explicitlyIncluded;
-                    boolean excludes = r.explicitlyExcluded;
+                    boolean include = r.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH;
+                    Element owner = t.getEnclosingElement();
 
-                    if (includes) {
-                        environment.addExplicitInclusion(cn);
+                    if (owner != null && owner instanceof TypeElement) {
+                        ArrayDeque<TypeElement> owners = new ArrayDeque<>();
+                        while (owner != null && owner instanceof TypeElement) {
+                            owners.push((TypeElement) owner);
+                            owner = owner.getEnclosingElement();
+                        }
+
+                        //find the first owning class that is part of our model
+                        List<TypeElement> siblings = environment.getTree().getRootsUnsafe().stream().map(
+                                org.revapi.java.model.TypeElement::getDeclaringElement).collect(Collectors.toList());
+
+                        while (!owners.isEmpty()) {
+                            if (ignored.contains(owners.peek()) || siblings.contains(owners.peek())) {
+                                break;
+                            }
+                            owners.pop();
+                        }
+
+                        //if the user doesn't want this type included explicitly, we need to check in the parents
+                        //if some of them wasn't explicitly excluded
+                        if (!include && !owners.isEmpty()) {
+                            do {
+                                TypeElement o = owners.pop();
+                                include = !ignored.contains(o) && siblings.contains(o);
+                                siblings = ElementFilter.typesIn(o.getEnclosedElements());
+                            } while (include && !owners.isEmpty());
+                        }
                     }
 
-                    if (excludes) {
-                        environment.addExplicitExclusion(cn);
-                        ignored.add(t);
-                    } else {
-                        boolean include = defaultInclusionCase || includes;
-                        Element owner = t.getEnclosingElement();
-
-                        if (owner != null && owner instanceof TypeElement) {
-                            ArrayDeque<TypeElement> owners = new ArrayDeque<>();
-                            while (owner != null && owner instanceof TypeElement) {
-                                owners.push((TypeElement) owner);
-                                owner = owner.getEnclosingElement();
-                            }
-
-                            //find the first owning class that is part of our model
-                            List<TypeElement> siblings = environment.getTree().getRootsUnsafe().stream().map(
-                                    org.revapi.java.model.TypeElement::getDeclaringElement).collect(Collectors.toList());
-
-                            while (!owners.isEmpty()) {
-                                if (ignored.contains(owners.peek()) || siblings.contains(owners.peek())) {
-                                    break;
-                                }
-                                owners.pop();
-                            }
-
-                            //if the user doesn't want this type included explicitly, we need to check in the parents
-                            //if some of them wasn't explicitly excluded
-                            if (!includes && !owners.isEmpty()) {
-                                do {
-                                    TypeElement o = owners.pop();
-                                    include = !ignored.contains(o) && siblings.contains(o);
-                                    siblings = ElementFilter.typesIn(o.getEnclosedElements());
-                                } while (include && !owners.isEmpty());
-                            }
-                        }
-
-                        if (include) {
-                            placeInTree(r);
-                            r.modelElement.setRawUseSites(r.useSites);
-                            types.add(r);
-                            environment.setSuperTypes(r.javacElement,
-                                    r.superTypes.stream().map(tr -> tr.javacElement).collect(toList()));
-                            r.modelElement.setInApi(r.inApi);
-                            r.modelElement.setInApiThroughUse(r.inApiThroughUse);
-                        }
+                    if (include) {
+                        placeInTree(r);
+                        r.modelElement.setRawUseSites(r.useSites);
+                        types.add(r);
+                        environment.setSuperTypes(r.javacElement,
+                                r.superTypes.stream().map(tr -> tr.javacElement).collect(toList()));
+                        r.modelElement.setInApi(r.inApi);
+                        r.modelElement.setInApiThroughUse(r.inApiThroughUse);
                     }
                 }
             });
@@ -774,18 +762,17 @@ final class ClasspathScanner {
             Set<TypeRecord> undetermined = new HashSet<>(this.types.values());
             while (!undetermined.isEmpty()) {
                 undetermined = undetermined.stream()
-                        .filter(tr -> !tr.explicitlyExcluded)
+                        .filter(tr -> tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH)
                         .filter(tr -> tr.inApi)
                         .flatMap(tr -> tr.usedTypes.entrySet().stream()
                                 .map(e -> new AbstractMap.SimpleImmutableEntry<>(tr, e)))
                         .filter(e -> movesToApi(e.getValue().getKey()))
                         .flatMap(e -> e.getValue().getValue().stream())
                         .filter(usedTr -> !usedTr.inApi)
-                        .filter(usedTr -> !usedTr.explicitlyExcluded)
-                        .map(usedTr -> {
+                        .filter(usedTr -> usedTr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH)
+                        .peek(usedTr -> {
                             usedTr.inApi = true;
                             usedTr.inApiThroughUse = true;
-                            return usedTr;
                         })
                         .collect(toSet());
             }
@@ -803,10 +790,7 @@ final class ClasspathScanner {
                         .flatMap(tr -> tr.usedTypes.getOrDefault(UseSite.Type.CONTAINS, Collections.emptySet()).stream())
                         .filter(containedTr -> containedTr.modelElement != null)
                         .filter(containedTr -> !shouldBeIgnored(containedTr.modelElement.getDeclaringElement()))
-                        .map(containedTr -> {
-                            containedTr.inApi = true;
-                            return containedTr;
-                        })
+                        .peek(containedTr -> containedTr.inApi = true)
                         .collect(toSet());
             }
         }
@@ -1045,8 +1029,7 @@ final class ClasspathScanner {
         Set<Element> inaccessibleDeclaredNonClassMembers = new HashSet<>(4);
         //important for this to be a linked hashset so that superclasses are processed prior to implemented interfaces
         Set<TypeRecord> superTypes = new LinkedHashSet<>(2);
-        boolean explicitlyExcluded;
-        boolean explicitlyIncluded;
+        FilterResult inclusionState;
         boolean inApi;
         boolean inApiThroughUse;
         boolean primaryApi;

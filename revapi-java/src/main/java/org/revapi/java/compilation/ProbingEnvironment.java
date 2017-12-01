@@ -28,7 +28,6 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.Nonnull;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -39,7 +38,6 @@ import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
-import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -51,15 +49,13 @@ public final class ProbingEnvironment implements TypeEnvironment {
     private final CountDownLatch compilationProgressLatch = new CountDownLatch(1);
     private final CountDownLatch compilationEnvironmentTeardownLatch = new CountDownLatch(1);
     private final JavaElementForest tree;
-    private final Set<String> explicitExclusions = new HashSet<>();
-    private final Set<String> explicitInclusions = new HashSet<>();
     private Map<TypeElement, org.revapi.java.model.TypeElement> typeMap;
     private Map<TypeElement, Set<TypeElement>> derivedTypes = new HashMap<>();
     private Map<TypeElement, Set<TypeElement>> superTypes = new HashMap<>();
 
     public ProbingEnvironment(API api) {
         this.api = api;
-        this.tree = new JavaElementForest(api);
+        this.tree = new JavaElementForest(api, this);
     }
 
     public API getApi() {
@@ -84,14 +80,6 @@ public final class ProbingEnvironment implements TypeEnvironment {
 
     public boolean hasProcessingEnvironment() {
         return processingEnvironment != null;
-    }
-
-    public boolean isExplicitlyIncluded(Element element) {
-        return explicitInclusions.contains(Util.toHumanReadableString(element));
-    }
-
-    public boolean isExplicitlyExcluded(Element element) {
-        return explicitExclusions.contains(Util.toHumanReadableString(element));
     }
 
     public boolean isScanningComplete() {
@@ -164,13 +152,5 @@ public final class ProbingEnvironment implements TypeEnvironment {
                 setSuperTypes(derivedType, grandTypes);
             }
         }
-    }
-
-    public void addExplicitExclusion(String canonicalName) {
-        explicitExclusions.add(canonicalName);
-    }
-
-    public void addExplicitInclusion(String canonicalName) {
-        explicitInclusions.add(canonicalName);
     }
 }

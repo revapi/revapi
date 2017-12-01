@@ -31,8 +31,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -273,19 +271,14 @@ public final class Revapi {
         ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
 
         ElementGateway filter = unionGateway(extensions);
-        filter.start(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
-
-        ArchiveAnalyzer.Filter analyzerFilter = element ->
-                filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, element);
 
         TIMING_LOG.debug("Obtaining API trees.");
 
-        ElementForest oldTree = oldAnalyzer.analyze(analyzerFilter);
-        ElementForest newTree = newAnalyzer.analyze(analyzerFilter);
-        TIMING_LOG.debug("API trees obtained");
-
+        ElementForest oldTree = filterAndPrune(oldAnalyzer, filter);
+        ElementForest newTree = filterAndPrune(newAnalyzer, filter);
         filter.end(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
-        filter.start(ElementGateway.AnalysisStage.FOREST_COMPLETE);
+
+        TIMING_LOG.debug("API trees obtained");
 
         try (DifferenceAnalyzer elementDifferenceAnalyzer = apiAnalyzer.getDifferenceAnalyzer(oldAnalyzer, newAnalyzer)) {
             TIMING_LOG.debug("Obtaining API roots");
@@ -298,58 +291,51 @@ public final class Revapi {
                 LOG.debug("New tree: {}", newTree);
             }
 
-            TreeMap<Element, Element> undecidedElements = new TreeMap<>((a, b) -> {
-                //this is super inefficient but I'm not sure sorting the undecided elements warrants a change in the API
-                //for the Element to report its depth.
-                int aDepth = 0;
-                int bDepth = 0;
-
-                while (a != null) {
-                    a = a.getParent();
-                    aDepth++;
-                }
-
-                while (b != null) {
-                    b = b.getParent();
-                    bDepth++;
-                }
-
-                return aDepth - bDepth;
-            });
-
             TIMING_LOG.debug("Opening difference analyzer");
             elementDifferenceAnalyzer.open();
 
-            do {
-                analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, filter, as, bs,
-                        undecidedElements, extensions);
-
-                Iterator<Map.Entry<Element, Element>> it = undecidedElements.entrySet().iterator();
-                if (it.hasNext()) {
-                    Map.Entry<Element, Element> pair = it.next();
-                    as = new TreeSet<>(Collections.singleton(pair.getKey()));
-                    bs = new TreeSet<>(Collections.singleton(pair.getValue()));
-                    it.remove();
-                } else {
-                    as = Collections.emptySortedSet();
-                    bs = Collections.emptySortedSet();
-                }
-                //TODO possible infinite loop!!!
-            } while (!as.isEmpty() && !bs.isEmpty());
+            analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs,
+                    extensions);
 
             TIMING_LOG.debug("Closing difference analyzer");
         }
 
-        filter.end(ElementGateway.AnalysisStage.FOREST_COMPLETE);
-
         TIMING_LOG.debug("Difference analyzer closed");
     }
 
+    private ElementForest filterAndPrune(ArchiveAnalyzer analyzer, ElementGateway filter) {
+        ArchiveAnalyzer.Filter analyzerFilter = element ->
+                filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, element);
+
+
+        filter.start(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
+        ElementForest forest = analyzer.analyze(analyzerFilter);
+        filter.end(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
+
+        filter.start(ElementGateway.AnalysisStage.FOREST_COMPLETE);
+        forest.getRoots().removeIf(element -> filterTree(element, filter) == FilterMatch.DOESNT_MATCH);
+        filter.end(ElementGateway.AnalysisStage.FOREST_COMPLETE);
+
+        analyzer.prune(forest);
+
+        return forest;
+    }
+
+    private FilterMatch filterTree(Element root, ElementGateway filter) {
+        FilterResult result = filter.filter(ElementGateway.AnalysisStage.FOREST_COMPLETE, root);
+        switch (result.getMatch()) {
+            case DOESNT_MATCH:
+                break;
+            default:
+                root.getChildren().removeIf(c -> filterTree(c, filter) == FilterMatch.DOESNT_MATCH);
+        }
+
+        return result.getMatch();
+    }
+
     private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
-                         ElementGateway filter,
-                         SortedSet<? extends Element> as, SortedSet<? extends Element> bs,
-                         Map<Element, Element> undecidedElementPairs,
-                         AnalysisResult.Extensions extensions) {
+            SortedSet<? extends Element> as, SortedSet<? extends Element> bs,
+            AnalysisResult.Extensions extensions) {
 
         List<Element> sortedAs = new ArrayList<>(as);
         List<Element> sortedBs = new ArrayList<>(bs);
@@ -366,48 +352,27 @@ public final class Revapi {
             Element a = it.getLeft();
             Element b = it.getRight();
 
-            Stats.of("filters").start();
-            FilterResult aFilterResult = a == null
-                    ? FilterResult.matchAndDescend()
-                    : filter.filter(ElementGateway.AnalysisStage.FOREST_COMPLETE, a);
-            FilterResult bFilterResult = b == null
-                    ? FilterResult.matchAndDescend()
-                    : filter.filter(ElementGateway.AnalysisStage.FOREST_COMPLETE, b);
+            long beginDuration;
+            Stats.of("analyses").start();
+            Stats.of("analysisBegins").start();
 
-            Stats.of("filters").end(a, b);
+            elementDifferenceAnalyzer.beginAnalysis(a, b);
 
-            if (aFilterResult.getMatch() == FilterMatch.UNDECIDED
-                    || bFilterResult.getMatch() == FilterMatch.UNDECIDED) {
-                undecidedElementPairs.put(a, b);
-                return;
-            }
+            Stats.of("analysisBegins").end(a, b);
+            beginDuration = Stats.of("analyses").reset();
 
-            boolean analyzeThis = aFilterResult.getMatch() == FilterMatch.MATCHES
-                    && bFilterResult.getMatch() == FilterMatch.MATCHES;
+            analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren(),
+                    extensions);
 
-            long beginDuration = 0;
-            if (analyzeThis) {
-                Stats.of("analyses").start();
-                Stats.of("analysisBegins").start();
-                elementDifferenceAnalyzer.beginAnalysis(a, b);
-                Stats.of("analysisBegins").end(a, b);
-                beginDuration = Stats.of("analyses").reset();
-            }
-            boolean shouldDescend = a != null && b != null && aFilterResult.isDescend() && bFilterResult.isDescend();
+            Stats.of("analyses").start();
+            Stats.of("analysisEnds").start();
 
-            if (shouldDescend) {
-                analyze(deducer, elementDifferenceAnalyzer, filter, a.getChildren(), b.getChildren(),
-                        undecidedElementPairs, extensions);
-            }
+            Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
 
-            if (analyzeThis) {
-                Stats.of("analyses").start();
-                Stats.of("analysisEnds").start();
-                Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
-                Stats.of("analysisEnds").end(a, b);
-                Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
-                transformAndReport(r, extensions);
-            }
+            Stats.of("analysisEnds").end(a, b);
+            Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
+
+            transformAndReport(r, extensions);
         }
     }
 
@@ -433,6 +398,14 @@ public final class Revapi {
                             String name = f.getClass().getName() + ".check";
                             Stats.of(name).start();
                             FilterResult res = f.filter(stage, element);
+
+                            if (stage == AnalysisStage.FOREST_COMPLETE && res.getMatch() == FilterMatch.UNDECIDED) {
+                                throw new IllegalStateException("Filter '" + f.getExtensionId() +
+                                        "' could not decide whether element '" + element.getFullHumanReadableString() +
+                                        "' should be included in the analysis or not. This should not happen when" +
+                                        " the tree of elements is fully constructed already.");
+                            }
+
                             Stats.of(name).end(element);
 
                             return res;
