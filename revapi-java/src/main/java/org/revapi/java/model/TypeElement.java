@@ -16,11 +16,16 @@
  */
 package org.revapi.java.model;
 
-import java.util.Collections;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
@@ -51,6 +56,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     private Set<ClassPathUseSite> rawUseSites;
     private boolean inApi;
     private boolean inApiThroughUse;
+    private Map<UseSite.Type, Map<TypeElement, Set<JavaModelElement>>> usedTypes;
+    private Map<UseSite.Type, Map<TypeElement, Set<Element>>> rawUsedTypes;
 
     /**
      * This is a helper constructor used only in {@link MissingClassElement}. Inheritors using this constructor need
@@ -123,12 +130,45 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                             JavaModelElement model = getModel(u.site, u.indexInParent);
                             return model == null ? null : new UseSite(u.useType, model);
                         }).filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
+                        .collect(toSet());
             }
             rawUseSites = null;
         }
 
         return useSites;
+    }
+
+    /**
+     * This provides the types used by this type. The keys are the types of use, values are maps from the used type
+     * to the set of concrete users of the type (the users represent some child of this element).
+     * @return the types used by this type
+     */
+    public Map<UseSite.Type, Map<TypeElement, Set<JavaModelElement>>> getUsedTypes() {
+        if (usedTypes == null) {
+            usedTypes = new HashMap<>();
+            if (rawUsedTypes != null) {
+                for (Map.Entry<UseSite.Type, Map<TypeElement, Set<Element>>> e : rawUsedTypes.entrySet()) {
+                    Map<TypeElement, Set<JavaModelElement>> value = e.getValue().entrySet().stream()
+                        .collect(toMap(
+                                Map.Entry::getKey,
+                                entry -> entry.getValue().stream().map(el -> {
+                                    int index = -1;
+                                    if (el instanceof VariableElement && el.getEnclosingElement() instanceof ExecutableElement) {
+                                        //find the index of the method parameter
+                                        index = el.getEnclosingElement().getEnclosedElements().indexOf(el);
+                                    }
+                                    return getModel(el, index);
+                                }).collect(toSet())));
+
+                    usedTypes.put(e.getKey(), value);
+                }
+            }
+        }
+        return usedTypes;
+    }
+
+    public void setRawUsedTypes(Map<UseSite.Type, Map<TypeElement, Set<Element>>> usedTypes) {
+        this.rawUsedTypes = usedTypes;
     }
 
     public void setInApi(boolean inApi) {

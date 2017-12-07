@@ -3,28 +3,18 @@ package org.revapi.java.model;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
-import javax.lang.model.AnnotatedConstruct;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.ExecutableType;
-import javax.lang.model.type.IntersectionType;
-import javax.lang.model.type.TypeVariable;
-import javax.lang.model.type.WildcardType;
-import javax.lang.model.util.SimpleElementVisitor8;
-import javax.lang.model.util.SimpleTypeVisitor8;
-
+import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
-import org.revapi.java.spi.JavaTypeElement;
 
-final class UseSiteUpdatingSortedSet<T> implements SortedSet<T> {
+final class UseSiteUpdatingSortedSet<T extends Element> implements SortedSet<T> {
     private final ProbingEnvironment environment;
     private final SortedSet<T> set;
 
@@ -35,8 +25,12 @@ final class UseSiteUpdatingSortedSet<T> implements SortedSet<T> {
 
     @Override
     public boolean remove(Object o) {
+        Element currentParent = o instanceof Element
+                ? ((Element) o).getParent()
+                : null;
+
         if (set.remove(o)) {
-            removeFromUseSites(o);
+            removeFromUseSites(o, currentParent);
             return true;
         }
 
@@ -144,7 +138,7 @@ final class UseSiteUpdatingSortedSet<T> implements SortedSet<T> {
     @Override
     public void clear() {
         for (T o : this) {
-            removeFromUseSites(o);
+            removeFromUseSites(o, o.getParent());
         }
         set.clear();
     }
@@ -164,113 +158,65 @@ final class UseSiteUpdatingSortedSet<T> implements SortedSet<T> {
 
             @Override
             public void remove() {
+                Element currentParent = current.getParent();
                 it.remove();
-                removeFromUseSites(current);
+                removeFromUseSites(current, currentParent);
             }
         };
     }
 
-    private void removeFromUseSites(Object element) {
+    private void removeFromUseSites(Object element, Element parent) {
         if (element instanceof JavaElement) {
-            withUsedTypes((JavaElement) element, usedType -> {
-                JavaTypeElement usedTypeModel = environment.getModelElement(usedType);
-                if (usedTypeModel == null) {
+            BiConsumer<org.revapi.java.model.TypeElement, JavaElement> handleType = (usedType, actualUseSite) -> {
+                usedType.getUseSites().removeIf(site -> site.getSite().equals(actualUseSite));
+
+                if (!usedType.isInApiThroughUse() || !usedType.getUseSites().isEmpty()) {
                     return;
                 }
 
-                usedTypeModel.getUseSites().removeIf(site -> site.getSite().equals(element));
-
-                if (!usedTypeModel.isInApiThroughUse() || !usedTypeModel.getUseSites().isEmpty()) {
-                    return;
-                }
-
-                if (usedTypeModel.getParent() != null) {
-                    usedTypeModel.getParent().getChildren().remove(usedTypeModel);
+                if (usedType.getParent() != null) {
+                    usedType.getParent().getChildren().remove(usedType);
                 } else {
-                    environment.getTree().getRootsUnsafe().remove(usedTypeModel);
+                    environment.getTree().getRootsUnsafe().remove(usedType);
                 }
-            });
+            };
+
+            JavaElement je = (JavaElement) element;
+            withUsedTypes(je, parent, handleType);
+            je.stream(JavaElement.class, true).forEach(e -> withUsedTypes(e, je, handleType));
         }
     }
 
-    private void withUsedTypes(JavaElement model, Consumer<javax.lang.model.element.TypeElement> action) {
-
+    private void withUsedTypes(JavaElement model, Element parent, BiConsumer<org.revapi.java.model.TypeElement, JavaElement> action) {
         if (model instanceof JavaAnnotationElement) {
-            ((JavaAnnotationElement) model).getAnnotation().getAnnotationType().asElement()
-                    .accept(new SimpleElementVisitor8<Void, Void>() {
-                        @Override
-                        public Void visitType(javax.lang.model.element.TypeElement e, Void __) {
-                            action.accept(e);
-                            return null;
-                        }
-                    }, null);
+            org.revapi.java.model.TypeElement t = (org.revapi.java.model.TypeElement) model.getTypeEnvironment()
+                    .getModelElement(((JavaAnnotationElement) model).getAnnotation().getAnnotationType());
+            if (t != null) {
+                action.accept(t, model);
+            }
         } else if (model instanceof JavaModelElement) {
-            ((JavaModelElement) model).getModelRepresentation().accept(new SimpleTypeVisitor8<Void, Void>() {
-                @Override
-                public Void visitArray(ArrayType t, Void aVoid) {
-                    t.getComponentType().accept(this, null);
-                    visitAnnotations(t);
-                    return null;
-                }
+            org.revapi.java.model.TypeElement ownerType = null;
+            if (model instanceof org.revapi.java.model.TypeElement) {
+                ownerType = (org.revapi.java.model.TypeElement) model;
+            } else if (model instanceof FieldElement) {
+                ownerType = (org.revapi.java.model.TypeElement) parent;
+            } else if (model instanceof MethodElement) {
+                ownerType = (org.revapi.java.model.TypeElement) parent;
+            } else if (model instanceof MethodParameterElement) {
+                ownerType = (org.revapi.java.model.TypeElement) parent.getParent();
+            }
 
-                @Override
-                public Void visitDeclared(DeclaredType t, Void __) {
-                    t.asElement().accept(new SimpleElementVisitor8<Void, Void>() {
-                        @Override
-                        public Void visitType(TypeElement e, Void ___) {
-                            action.accept(e);
-                            return null;
-                        }
-                    }, null);
-                    t.getTypeArguments().forEach(a -> a.accept(this, null));
-                    visitAnnotations(t);
-                    return null;
-                }
+            if (ownerType == null) {
+                throw new IllegalStateException("Could not determine the owning type of " + model);
+            }
 
-                @Override
-                public Void visitTypeVariable(TypeVariable t, Void aVoid) {
-                    t.getLowerBound().accept(this, null);
-                    t.getUpperBound().accept(this, null);
-                    visitAnnotations(t);
-                    return null;
-                }
-
-                @Override
-                public Void visitWildcard(WildcardType t, Void aVoid) {
-                    if (t.getExtendsBound() != null) {
-                        t.getExtendsBound().accept(this, null);
-                    }
-
-                    if (t.getSuperBound() != null) {
-                        t.getSuperBound().accept(this, null);
-                    }
-
-                    visitAnnotations(t);
-                    return null;
-                }
-
-                @Override
-                public Void visitExecutable(ExecutableType t, Void aVoid) {
-                    t.getParameterTypes().forEach(p -> p.accept(this, null));
-                    t.getReturnType().accept(this, null);
-                    t.getThrownTypes().forEach(p -> p.accept(this, null));
-                    t.getTypeVariables().forEach(v -> v.accept(this, null));
-                    visitAnnotations(t);
-                    return null;
-                }
-
-                @Override
-                public Void visitIntersection(IntersectionType t, Void aVoid) {
-                    t.getBounds().forEach(b -> b.accept(this, null));
-                    return null;
-                }
-
-                private void visitAnnotations(AnnotatedConstruct construct) {
-                    for (AnnotationMirror annotationMirror : construct.getAnnotationMirrors()) {
-                        annotationMirror.getAnnotationType().accept(this, null);
+            ownerType.getUsedTypes().values().forEach(usersByUsedType -> {
+                for (Map.Entry<org.revapi.java.model.TypeElement, Set<JavaModelElement>> e : usersByUsedType.entrySet()) {
+                    if (e.getValue().contains(model)) {
+                        action.accept(e.getKey(), model);
                     }
                 }
-            }, null);
+            });
         }
     }
 }

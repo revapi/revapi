@@ -84,8 +84,8 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
 
     @Override
     public void prune(ElementForest forest) {
-        // TODO implement - remove elements dragged into the API that no longer have any uses that would move them to API
-        // the logic is already present in classpath scanner...
+        // nothing to be done here actually the java element forest updates the use sites while the elements
+        // are removed from it automatically
     }
 
     public ProbingEnvironment getProbingEnvironment() {

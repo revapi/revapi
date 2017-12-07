@@ -115,8 +115,6 @@ final class ClasspathScanner {
     private final Map<Archive, File> additionalClassPath;
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
     private final boolean ignoreMissingAnnotations;
-//    private final InclusionFilter inclusionFilter;
-//    private final boolean defaultInclusionCase;
     private final ArchiveAnalyzer.Filter filter;
 
     ClasspathScanner(StandardJavaFileManager fileManager, ProbingEnvironment environment,
@@ -235,11 +233,15 @@ final class ClasspathScanner {
         Map<TypeElement, Boolean> rts = new HashMap<>(scanner.requiredTypes);
 
         ArchiveLocation systemClassPath = new ArchiveLocation(new Archive() {
-            @Nonnull @Override public String getName() {
+            @Nonnull
+            @Override
+            public String getName() {
                 return SYSTEM_CLASSPATH_NAME;
             }
 
-            @Nonnull @Override public InputStream openStream() throws IOException {
+            @Nonnull
+            @Override
+            public InputStream openStream() throws IOException {
                 throw new UnsupportedOperationException();
             }
         });
@@ -553,16 +555,19 @@ final class ClasspathScanner {
         void addTypeParamUses(TypeRecord userType, Element user, TypeMirror usedType) {
             HashSet<String> visited = new HashSet<>(4);
             usedType.accept(new SimpleTypeVisitor8<Void, Void>() {
-                @Override public Void visitIntersection(IntersectionType t, Void aVoid) {
+                @Override
+                public Void visitIntersection(IntersectionType t, Void aVoid) {
                     t.getBounds().forEach(b -> b.accept(this, null));
                     return null;
                 }
 
-                @Override public Void visitArray(ArrayType t, Void ignored) {
+                @Override
+                public Void visitArray(ArrayType t, Void ignored) {
                     return t.getComponentType().accept(this, null);
                 }
 
-                @Override public Void visitDeclared(DeclaredType t, Void ignored) {
+                @Override
+                public Void visitDeclared(DeclaredType t, Void ignored) {
                     String type = Util.toUniqueString(t);
                     if (!visited.contains(type)) {
                         visited.add(type);
@@ -576,11 +581,13 @@ final class ClasspathScanner {
                     return null;
                 }
 
-                @Override public Void visitTypeVariable(TypeVariable t, Void ignored) {
+                @Override
+                public Void visitTypeVariable(TypeVariable t, Void ignored) {
                     return t.getUpperBound().accept(this, null);
                 }
 
-                @Override public Void visitWildcard(WildcardType t, Void ignored) {
+                @Override
+                public Void visitWildcard(WildcardType t, Void ignored) {
                     TypeMirror bound = t.getExtendsBound();
                     if (bound != null) {
                         bound.accept(this, null);
@@ -603,13 +610,9 @@ final class ClasspathScanner {
             Set<ClassPathUseSite> sites = usedTr.useSites;
             sites.add(new ClassPathUseSite(useType, user, indexInParent));
 
-            Set<TypeRecord> usedTypes = userType.usedTypes.get(useType);
-            if (usedTypes == null) {
-                usedTypes = new HashSet<>(4);
-                userType.usedTypes.put(useType, usedTypes);
-            }
+            Map<TypeRecord, Set<Element>> usedTypes = userType.usedTypes.computeIfAbsent(useType, k -> new HashMap<>(4));
 
-            usedTypes.add(usedTr);
+            usedTypes.computeIfAbsent(usedTr, __ -> new HashSet<>(4)).add(user);
         }
 
         TypeRecord getTypeRecord(TypeElement type) {
@@ -746,6 +749,13 @@ final class ClasspathScanner {
                     if (include) {
                         placeInTree(r);
                         r.modelElement.setRawUseSites(r.useSites);
+                        r.modelElement.setRawUsedTypes(r.usedTypes.entrySet().stream()
+                                .collect(Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        entry -> entry.getValue().entrySet().stream()
+                                                .collect(Collectors.toMap(
+                                                        typeE -> typeE.getKey().modelElement,
+                                                        Map.Entry::getValue)))));
                         types.add(r);
                         environment.setSuperTypes(r.javacElement,
                                 r.superTypes.stream().map(tr -> tr.javacElement).collect(toList()));
@@ -767,7 +777,7 @@ final class ClasspathScanner {
                         .flatMap(tr -> tr.usedTypes.entrySet().stream()
                                 .map(e -> new AbstractMap.SimpleImmutableEntry<>(tr, e)))
                         .filter(e -> movesToApi(e.getValue().getKey()))
-                        .flatMap(e -> e.getValue().getValue().stream())
+                        .flatMap(e -> e.getValue().getValue().keySet().stream())
                         .filter(usedTr -> !usedTr.inApi)
                         .filter(usedTr -> usedTr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH)
                         .peek(usedTr -> {
@@ -787,7 +797,8 @@ final class ClasspathScanner {
 
             while (!primaries.isEmpty()) {
                 primaries = primaries.stream()
-                        .flatMap(tr -> tr.usedTypes.getOrDefault(UseSite.Type.CONTAINS, Collections.emptySet()).stream())
+                        .flatMap(tr -> tr.usedTypes.getOrDefault(UseSite.Type.CONTAINS, Collections.emptyMap())
+                                .keySet().stream())
                         .filter(containedTr -> containedTr.modelElement != null)
                         .filter(containedTr -> !shouldBeIgnored(containedTr.modelElement.getDeclaringElement()))
                         .peek(containedTr -> containedTr.inApi = true)
@@ -902,7 +913,7 @@ final class ClasspathScanner {
         }
 
         private void initNonClassElementChildrenAndMoveToApi(TypeRecord targetType, JavaElementBase<?, ?> parent,
-                                                             boolean inherited) {
+                boolean inherited) {
             Types types = environment.getTypeUtils();
 
             if (targetType.inApi && !shouldBeIgnored(parent.getDeclaringElement())) {
@@ -910,7 +921,8 @@ final class ClasspathScanner {
                         parent.getDeclaringElement());
 
                 representation.accept(new SimpleTypeVisitor8<Void, Void>() {
-                    @Override protected Void defaultAction(TypeMirror e, Void aVoid) {
+                    @Override
+                    protected Void defaultAction(TypeMirror e, Void aVoid) {
                         if (e.getKind().isPrimitive() || e.getKind() == TypeKind.VOID) {
                             return null;
                         }
@@ -928,7 +940,8 @@ final class ClasspathScanner {
                         return null;
                     }
 
-                    @Override public Void visitExecutable(ExecutableType t, Void aVoid) {
+                    @Override
+                    public Void visitExecutable(ExecutableType t, Void aVoid) {
                         t.getReturnType().accept(this, null);
                         t.getParameterTypes().forEach(p -> p.accept(this, null));
                         return null;
@@ -938,15 +951,18 @@ final class ClasspathScanner {
 
             List<? extends Element> children =
                     parent.getDeclaringElement().accept(new SimpleElementVisitor8<List<? extends Element>, Void>() {
-                        @Override protected List<? extends Element> defaultAction(Element e, Void aVoid) {
+                        @Override
+                        protected List<? extends Element> defaultAction(Element e, Void aVoid) {
                             return Collections.emptyList();
                         }
 
-                        @Override public List<? extends Element> visitType(TypeElement e, Void aVoid) {
+                        @Override
+                        public List<? extends Element> visitType(TypeElement e, Void aVoid) {
                             return e.getEnclosedElements();
                         }
 
-                        @Override public List<? extends Element> visitExecutable(ExecutableElement e, Void aVoid) {
+                        @Override
+                        public List<? extends Element> visitExecutable(ExecutableElement e, Void aVoid) {
                             return e.getParameters();
                         }
                     }, null);
@@ -1024,7 +1040,7 @@ final class ClasspathScanner {
         Set<ClassPathUseSite> useSites = new HashSet<>(2);
         TypeElement javacElement;
         org.revapi.java.model.TypeElement modelElement;
-        Map<UseSite.Type, Set<TypeRecord>> usedTypes = new EnumMap<>(UseSite.Type.class);
+        Map<UseSite.Type, Map<TypeRecord, Set<Element>>> usedTypes = new EnumMap<>(UseSite.Type.class);
         Set<Element> accessibleDeclaredNonClassMembers = new HashSet<>(4);
         Set<Element> inaccessibleDeclaredNonClassMembers = new HashSet<>(4);
         //important for this to be a linked hashset so that superclasses are processed prior to implemented interfaces
@@ -1036,7 +1052,8 @@ final class ClasspathScanner {
         int nestingDepth;
         boolean errored;
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             final StringBuilder sb = new StringBuilder("TypeRecord[");
             sb.append("inApi=").append(inApi);
             sb.append(", modelElement=").append(modelElement);

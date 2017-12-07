@@ -1,13 +1,15 @@
 package org.revapi.java.compilation;
 
+import static org.junit.Assert.assertFalse;
+
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.util.ElementFilter;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.revapi.API;
@@ -86,6 +88,18 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
         B.getUseSites().add(new UseSite(UseSite.Type.TYPE_PARAMETER_OR_BOUND, C));
         E.getUseSites().add(new UseSite(UseSite.Type.IS_THROWN, Cm));
 
+        B.getUsedTypes().computeIfAbsent(UseSite.Type.ANNOTATES, __ -> new HashMap<>())
+                .computeIfAbsent(A, __ -> new HashSet<>()).add(B);
+
+        C.getUsedTypes().computeIfAbsent(UseSite.Type.IS_IMPLEMENTED, __ -> new HashMap<>())
+                .computeIfAbsent(B, __ -> new HashSet<>()).add(C);
+        C.getUsedTypes().computeIfAbsent(UseSite.Type.PARAMETER_TYPE, __ -> new HashMap<>())
+                .computeIfAbsent(B, __ -> new HashSet<>()).add(Cm);
+        C.getUsedTypes().computeIfAbsent(UseSite.Type.TYPE_PARAMETER_OR_BOUND, __ -> new HashMap<>())
+                .computeIfAbsent(B, __ -> new HashSet<>()).add(C);
+        C.getUsedTypes().computeIfAbsent(UseSite.Type.IS_THROWN, __ -> new HashMap<>())
+                .computeIfAbsent(E, __ -> new HashSet<>()).add(Cm);
+
         //and one more thing - we declare E as coming from supplementary archives, so that it is automagically
         //removed once it is not used anymore.
         A.setInApi(true);
@@ -105,23 +119,31 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testRootTypesAffected() throws Exception {
         createEnvironment();
+
+        forest.getRoots().remove(C);
+        assertFalse(B.getUseSites().contains(new UseSite(UseSite.Type.IS_IMPLEMENTED, C)));
+        assertFalse(B.getUseSites().contains(new UseSite(UseSite.Type.PARAMETER_TYPE, Cm)));
+        assertFalse(B.getUseSites().contains(new UseSite(UseSite.Type.TYPE_PARAMETER_OR_BOUND, C)));
+        assertFalse(E.getUseSites().contains(new UseSite(UseSite.Type.IS_THROWN, Cm)));
+
         forest.getRoots().remove(B);
-        Assert.assertFalse(A.getUseSites().contains(new UseSite(UseSite.Type.ANNOTATES, B)));
+        assertFalse(A.getUseSites().contains(new UseSite(UseSite.Type.ANNOTATES, B)));
     }
 
     @Test
     public void testRootTypesRemoved() throws Exception {
         createEnvironment();
         Cm.getParent().getChildren().remove(Cm);
-        Assert.assertFalse(forest.getRoots().contains(E));    }
+        assertFalse(forest.getRoots().contains(E));
+    }
 
     @Test
     public void testInnerTypesAffected() {
-
+        //TODO implement
     }
 
     @Test
     public void testInnerTypesRemoved() {
-
+        //TODO implement
     }
 }

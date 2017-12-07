@@ -229,11 +229,10 @@ public abstract class SimpleElement implements Element {
 
             @Override
             public void remove() {
+                it.remove();
                 if (last != null) {
                     last.setParent(null);
                 }
-
-                it.remove();
             }
         }
     }
