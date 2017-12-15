@@ -21,13 +21,13 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-	<version>34</version>
+	<version>35-SNAPSHOT</version>
 	<relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>revapi-java-test-support</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1-SNAPSHOT</version>
 
     <name>Revapi Java-based extensions test support</name>
     <description>
@@ -64,6 +64,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>revapi-java-test-support-0.2.0</tag>
+        <tag>HEAD</tag>
     </scm>
 </project>
