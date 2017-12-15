@@ -254,6 +254,32 @@ public class Jar implements TestRule {
             try (JarOutputStream out = new JarOutputStream(new FileOutputStream(compiledJar))) {
                 Path root = compiledSourcesOutput.toPath();
                 HashSet<String> added = new HashSet<>();
+
+                // The JAR file spec assumes that the MANIFEST.MF is the first or the second entry in the jar file.
+                // Because we don't know what we're putting in, we have to manually scan what we were instructed to
+                // put in the jar file and try to find the MANIFEST.MF.
+                Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        if ("MANIFEST.MF".equals(file.getFileName().toString())
+                                && "META-INF".equals(file.getParent().getFileName().toString())) {
+
+                            ZipEntry entry = new ZipEntry("META-INF/");
+                            out.putNextEntry(entry);
+                            out.closeEntry();
+
+                            entry = new ZipEntry("META-INF/MANIFEST.MF");
+                            out.putNextEntry(entry);
+                            Files.copy(file, out);
+                            out.closeEntry();
+
+                            added.add("META-INF/");
+                            added.add("META-INF/MANIFEST.MF");
+                        }
+                        return super.visitFile(file, attrs);
+                    }
+                });
+
                 Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
