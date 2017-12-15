@@ -30,13 +30,13 @@ import java.nio.charset.Charset;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -122,6 +122,7 @@ public class Jar implements TestRule {
 
     /**
      * Instantiates a builder using which the contents of a compiled jar file can be composed.
+     *
      * @return a builder to gather sources and resources to compile and compose a jar file
      */
     public Builder from() {
@@ -139,7 +140,7 @@ public class Jar implements TestRule {
          * Finds given sources under given root in the classpath. The resulting jar file will contain the compiled
          * classes on the same relatives paths as the provided sources.
          *
-         * @param root the root path in the classloader to resolve the sources against
+         * @param root    the root path in the classloader to resolve the sources against
          * @param sources the list of relative paths on which the source files are located in the classloader
          * @return this instance
          */
@@ -160,10 +161,9 @@ public class Jar implements TestRule {
          * Adds given resources to the compiled jar file. The paths to the resources are resolved in the same way
          * as with sources.
          *
-         * @param root the root against which to resolve the resource paths in the classloader
+         * @param root      the root against which to resolve the resource paths in the classloader
          * @param resources the relative paths of the resources
          * @return this instance
-         *
          * @see #classPathSources(String, String...)
          */
         public Builder classPathResources(String root, String... resources) {
@@ -253,13 +253,39 @@ public class Jar implements TestRule {
             File compiledJar = new File(dir, "compiled.jar");
             try (JarOutputStream out = new JarOutputStream(new FileOutputStream(compiledJar))) {
                 Path root = compiledSourcesOutput.toPath();
+                HashSet<String> added = new HashSet<>();
                 Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        ZipEntry entry = new ZipEntry(root.relativize(file).toFile().getPath());
-                        out.putNextEntry(entry);
-                        Files.copy(file, out);
-                        out.closeEntry();
+                        StringBuilder path = new StringBuilder();
+                        Iterator<Path> it = root.relativize(file).iterator();
+                        while (it.hasNext()) {
+                            Path p = it.next();
+                            boolean isDir = it.hasNext();
+
+                            path.append(p.toString());
+                            if (isDir) {
+                                path.append("/");
+                            }
+
+                            String currentPath = path.toString();
+
+                            if (added.contains(currentPath)) {
+                                continue;
+                            }
+
+                            ZipEntry entry = new ZipEntry(currentPath);
+                            out.putNextEntry(entry);
+
+                            if (!isDir) {
+                                Files.copy(file, out);
+                            }
+
+                            out.closeEntry();
+
+                            added.add(currentPath);
+                        }
+
                         return FileVisitResult.CONTINUE;
                     }
                 });
