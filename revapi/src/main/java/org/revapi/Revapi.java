@@ -18,6 +18,7 @@ package org.revapi;
 
 import static java.util.Collections.emptySortedSet;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -312,7 +313,7 @@ public final class Revapi {
                         && (b == null || filtersDescend(b, filters))
                         && elementDifferenceAnalyzer.isDescendRequired(a, b);
             } else {
-                shouldDescend = filtersDescend(a, filters) && filtersDescend(b, filters);;
+                shouldDescend = filtersDescend(a, filters) && filtersDescend(b, filters);
             }
             Stats.of("descends").end(a, b);
 
@@ -334,8 +335,8 @@ public final class Revapi {
 
     private <T> T instantiate(Class<? extends T> type) {
         try {
-            return type.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return type.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Failed to instantiate extension: " + type, e);
         }
     }
@@ -469,6 +470,7 @@ public final class Revapi {
         return ret;
     }
 
+    @SuppressWarnings({"unused", "WeakerAccess"})
     public static final class Builder {
         private Set<Class<? extends ApiAnalyzer>> analyzers = null;
         private Set<Class<? extends Reporter>> reporters = null;
