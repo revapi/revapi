@@ -57,6 +57,17 @@ import org.revapi.configuration.Configurable;
 public interface Check extends Configurable {
 
     /**
+     * When the analyzer encounters an element that doesn't have a matching counterpart in the other version of the
+     * API, by default, the analysis doesn't descend into the children of the existing element. I.e. if the new API
+     * has an element that didn't exist in the old API, it is usually not necessary to also analyze the children of
+     * the element in the new API, because that would usually just add noise to the report. Certain checks though might
+     * want to inspect the child elements anyway because they look for qualities that could otherwise be missed.
+     *
+     * @return true if this check wants to descend into child elements even for incomplete element pairs
+     */
+    boolean isDescendingOnNonExisting();
+
+    /**
      * The environment containing the old version of the classes. This can be used to reason about the
      * classes when doing the checks.
      * 

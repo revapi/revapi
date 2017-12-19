@@ -286,8 +286,8 @@ public final class Analyzer {
                 if (failOnMissingArchives) {
                     throw new IllegalStateException(message, e);
                 } else {
-                    log.warn(message + " The API analysis will not proceed.");
-                    return;
+                    log.warn(message + " The API analysis will proceed comparing the new archives against an empty" +
+                            " archive.");
                 }
             }
 
@@ -402,13 +402,6 @@ public final class Analyzer {
 
     @SuppressWarnings("unchecked")
     AnalysisResult analyze() throws MojoExecutionException {
-        //This is useful so that users know what RELEASE actually resolved to.
-        Function<MavenArchive, String> extractName = new Function<MavenArchive, String>() {
-            @Override public String apply(MavenArchive mavenArchive) {
-                return mavenArchive.getName();
-            }
-        };
-
         resolveArtifacts();
 
         if (resolvedOldApi == null || resolvedNewApi == null) {
@@ -417,11 +410,11 @@ public final class Analyzer {
 
         List<?> oldArchives = StreamSupport.stream(
                 (Spliterator<MavenArchive>) resolvedOldApi.getArchives().spliterator(), false)
-                .map(extractName).collect(toList());
+                .map(MavenArchive::getName).collect(toList());
 
         List<?> newArchives =  StreamSupport.stream(
                 (Spliterator<MavenArchive>) resolvedNewApi.getArchives().spliterator(), false)
-                .map(extractName).collect(toList());
+                .map(MavenArchive::getName).collect(toList());
 
         log.info("Comparing " + oldArchives + " against " + newArchives +
                 (resolveDependencies ? " (including their transitive dependencies)." : "."));

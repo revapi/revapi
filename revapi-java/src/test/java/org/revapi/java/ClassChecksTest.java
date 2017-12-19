@@ -181,4 +181,12 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertNull(reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
     }
+
+    @Test
+    public void testUnmatchedNonPublicMembersReported() throws Exception {
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                null, "misc/NonPublicDescendsDownChildren.java");
+
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+    }
 }

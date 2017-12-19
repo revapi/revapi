@@ -17,34 +17,14 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>mvn</groupId>
-    <artifactId>plugin</artifactId>
-    <packaging>maven-plugin</packaging>
-    <version>2.0.0</version>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-plugin-api</artifactId>
-            <version>@maven.version@</version>
-        </dependency>
-    </dependencies>
+    <groupId>first-version-checks</groupId>
+    <artifactId>first-version-checks</artifactId>
+    <version>1.0.0</version>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <artifactId>maven-plugin-plugin</artifactId>
-                    <version>@maven-plugin-plugin.version@</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
         <plugins>
             <plugin>
                 <groupId>org.revapi</groupId>
@@ -59,10 +39,8 @@
                 </dependencies>
                 <executions>
                     <execution>
-                        <id>api-check</id>
                         <goals>
                             <goal>check</goal>
-                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>

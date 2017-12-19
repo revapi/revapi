@@ -16,6 +16,8 @@
  */
 package org.revapi;
 
+import static java.util.Collections.emptySortedSet;
+
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -304,12 +306,19 @@ public final class Revapi {
             }
 
             Stats.of("descends").start();
-            boolean shouldDescend = a != null && b != null && filtersDescend(a, filters) &&
-                    filtersDescend(b, filters);
+            boolean shouldDescend;
+            if (a == null || b == null) {
+                shouldDescend = (a == null || filtersDescend(a, filters))
+                        && (b == null || filtersDescend(b, filters))
+                        && elementDifferenceAnalyzer.isDescendRequired(a, b);
+            } else {
+                shouldDescend = filtersDescend(a, filters) && filtersDescend(b, filters);;
+            }
             Stats.of("descends").end(a, b);
 
             if (shouldDescend) {
-                analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren(), extensions);
+                analyze(deducer, elementDifferenceAnalyzer, a == null ? emptySortedSet() : a.getChildren(),
+                        b == null ? emptySortedSet() : b.getChildren(), extensions);
             }
 
             if (analyzeThis) {

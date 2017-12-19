@@ -16,14 +16,19 @@
  */
 package org.revapi.java;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -67,6 +72,19 @@ import org.slf4j.LoggerFactory;
  */
 public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private static final Logger LOG = LoggerFactory.getLogger(JavaElementDifferenceAnalyzer.class);
+
+    private static final Map<Check.Type, Set<Check.Type>> POSSIBLE_CHILDREN_TYPES;
+    static {
+        Map<Check.Type, Set<Check.Type>> map = new EnumMap<>(Check.Type.class);
+        map.put(Check.Type.ANNOTATION, emptySet());
+        map.put(Check.Type.CLASS,
+                EnumSet.of(Check.Type.CLASS, Check.Type.FIELD, Check.Type.METHOD, Check.Type.METHOD_PARAMETER,
+                        Check.Type.ANNOTATION));
+        map.put(Check.Type.FIELD, singleton(Check.Type.ANNOTATION));
+        map.put(Check.Type.METHOD, EnumSet.of(Check.Type.METHOD_PARAMETER, Check.Type.ANNOTATION));
+        map.put(Check.Type.METHOD_PARAMETER, singleton(Check.Type.ANNOTATION));
+        POSSIBLE_CHILDREN_TYPES = Collections.unmodifiableMap(map);
+    }
 
     //see #forceClearCompilerCache for what these are
     private static final Method CLEAR_COMPILER_CACHE;
@@ -115,6 +133,14 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     // So, when reported for their parent element, we can be sure that there are no more children
     // coming for given parent.
     private List<Difference> lastAnnotationResults;
+    // if one of the checked elements is null, we might enter a different check mode where only checks that require
+    // descending on non-existing elements are used for both speed and correctness reasons. For it to work correctly
+    // we need to track where did we enter this special mode.
+    private boolean nonExistenceMode;
+    private Element nonExistenceOldRoot;
+    private Element nonExistenceNewRoot;
+
+    private final Map<Check.Type, Set<Check>> descendingChecksByTypes;
 
     public JavaElementDifferenceAnalyzer(AnalysisContext analysisContext, ProbingEnvironment oldEnvironment,
         CompilationValve oldValve,
@@ -124,11 +150,16 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         this.oldCompilationValve = oldValve;
         this.newCompilationValve = newValve;
 
+        this.descendingChecksByTypes = new HashMap<>();
+
         this.checks = checks;
         for (Check c : checks) {
             c.initialize(analysisContext);
             c.setOldTypeEnvironment(oldEnvironment);
             c.setNewTypeEnvironment(newEnvironment);
+            if (c.isDescendingOnNonExisting()) {
+                c.getInterest().forEach(t -> descendingChecksByTypes.computeIfAbsent(t, __ -> new HashSet<>()).add(c));
+            }
         }
 
         this.analysisConfiguration = analysisConfiguration;
@@ -172,10 +203,15 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     public void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
         Timing.LOG.trace("Beginning analysis of {} and {}.", oldElement, newElement);
 
+        Check.Type elementsType = getCheckType(oldElement, newElement);
+        Collection<Check> possibleChecks = nonExistenceMode
+                ? descendingChecksByTypes.getOrDefault(elementsType, emptySet())
+                : checksByInterest.get(elementsType);
+
         if (conforms(oldElement, newElement, TypeElement.class)) {
             checkTypeStack.push(CheckType.CLASS);
             lastAnnotationResults = null;
-            for (Check c : checksByInterest.get(Check.Type.CLASS)) {
+            for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
                 c.visitClass(oldElement == null ? null : (TypeElement) oldElement,
                     newElement == null ? null : (TypeElement) newElement);
@@ -189,7 +225,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             }
             //DO NOT push the ANNOTATION type to the checkTypeStack. Annotations are handled differently and this would
             //lead to the stack corruption and missed problems!!!
-            for (Check c : checksByInterest.get(Check.Type.ANNOTATION)) {
+            for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
                 List<Difference> cps = c
                     .visitAnnotation(oldElement == null ? null : (AnnotationElement) oldElement,
@@ -200,22 +236,45 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else if (conforms(oldElement, newElement, FieldElement.class)) {
-            doRestrictedCheck((FieldElement) oldElement, (FieldElement) newElement, CheckType.FIELD);
+            doRestrictedCheck((FieldElement) oldElement, (FieldElement) newElement, CheckType.FIELD, possibleChecks);
         } else if (conforms(oldElement, newElement, MethodElement.class)) {
-            doRestrictedCheck((MethodElement) oldElement, (MethodElement) newElement, CheckType.METHOD);
+            doRestrictedCheck((MethodElement) oldElement, (MethodElement) newElement, CheckType.METHOD, possibleChecks);
         } else if (conforms(oldElement, newElement, MethodParameterElement.class)) {
             doRestrictedCheck((MethodParameterElement) oldElement, (MethodParameterElement) newElement,
-                    CheckType.METHOD_PARAMETER);
+                    CheckType.METHOD_PARAMETER, possibleChecks);
+        }
+
+        if (!nonExistenceMode && (oldElement == null || newElement == null)) {
+            nonExistenceMode = true;
+            nonExistenceOldRoot = oldElement;
+            nonExistenceNewRoot = newElement;
         }
     }
 
-    private <T extends JavaModelElement> void doRestrictedCheck(T oldElement, T newElement, CheckType interest) {
+    @Override
+    public boolean isDescendRequired(@Nullable Element oldElement, @Nullable Element newElement) {
+        if (oldElement != null && newElement != null) {
+            return true;
+        }
+
+        Check.Type type = getCheckType(oldElement, newElement);
+
+        if (type == null) {
+            return false;
+        }
+
+        Set<Check.Type> possibleChildren = POSSIBLE_CHILDREN_TYPES.get(type);
+
+        return descendingChecksByTypes.keySet().stream().anyMatch(possibleChildren::contains);
+    }
+
+    private <T extends JavaModelElement> void doRestrictedCheck(T oldElement, T newElement, CheckType interest, Collection<Check> possibleChecks) {
         lastAnnotationResults = null;
 
         if (!(isCheckedElsewhere(oldElement, oldEnvironment)
                 && isCheckedElsewhere(newElement, newEnvironment))) {
             checkTypeStack.push(interest);
-            for (Check c : checksByInterest.get(interest.getCheckType())) {
+            for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
                 switch (interest) {
                     case FIELD:
@@ -238,6 +297,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
     @Override
     public Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
+        if (oldElement == nonExistenceOldRoot && newElement == nonExistenceNewRoot) {
+            nonExistenceMode = false;
+            nonExistenceOldRoot = null;
+            nonExistenceNewRoot = null;
+        }
+
         if (conforms(oldElement, newElement, AnnotationElement.class)) {
             //the annotations are always reported at the parent element
             return new Report(Collections.emptyList(), oldElement, newElement);
@@ -304,6 +369,32 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         boolean cb = b == null || cls.isAssignableFrom(b.getClass());
 
         return ca && cb;
+    }
+
+    private Check.Type getCheckType(Element a, Element b) {
+        if (a != null) {
+            return getCheckType(a);
+        } else if (b != null) {
+            return getCheckType(b);
+        } else {
+            return null;
+        }
+    }
+
+    private Check.Type getCheckType(Element e) {
+        if (e instanceof TypeElement) {
+            return Check.Type.CLASS;
+        } else if (e instanceof AnnotationElement) {
+            return Check.Type.ANNOTATION;
+        } else if (e instanceof FieldElement) {
+            return Check.Type.FIELD;
+        } else if (e instanceof MethodElement) {
+            return Check.Type.METHOD;
+        } else if (e instanceof MethodParameterElement) {
+            return Check.Type.METHOD_PARAMETER;
+        } else {
+            return null;
+        }
     }
 
     private void append(StringBuilder bld, TypeAndUseSite typeAndUseSite) {

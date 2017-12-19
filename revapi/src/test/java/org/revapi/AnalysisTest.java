@@ -208,6 +208,11 @@ public class AnalysisTest {
         }
 
         @Override
+        public boolean isDescendRequired(@Nullable Element oldElement, @Nullable Element newElement) {
+            return false;
+        }
+
+        @Override
         public Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
             return reportingFunction.apply(oldElement, newElement);
         }

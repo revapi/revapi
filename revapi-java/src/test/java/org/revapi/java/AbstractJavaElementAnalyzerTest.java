@@ -222,7 +222,9 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
     protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String configJSON, String v1Source, String v2Source)
             throws Exception {
-        return runAnalysis(reporterType, configJSON, new String[]{v1Source}, new String[]{v2Source});
+        String[] v1 = v1Source == null ? new String[0] : new String[]{v1Source};
+        String[] v2 = v2Source == null ? new String[0] : new String[]{v2Source};
+        return runAnalysis(reporterType, configJSON, v1, v2);
     }
 
     protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String[] v1Source, String[] v2Source) throws Exception {
@@ -231,14 +233,22 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
     protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String configurationJSON, String[] v1Source,
                                                  String[] v2Source) throws Exception {
-        ArchiveAndCompilationPath v1Archive = createCompiledJar("v1", v1Source);
-        ArchiveAndCompilationPath v2Archive = createCompiledJar("v2", v2Source);
+        boolean doV1 = v1Source != null && v1Source.length > 0;
+        boolean doV2 = v2Source != null && v2Source.length > 0;
+
+        ArchiveAndCompilationPath v1Archive = doV1
+                ? createCompiledJar("v1", v1Source)
+                : new ArchiveAndCompilationPath(null, null);
+
+        ArchiveAndCompilationPath v2Archive = doV2
+                ? createCompiledJar("v2", v2Source)
+                : new ArchiveAndCompilationPath(null, null);
 
         Revapi revapi = createRevapi(reporterType);
 
         AnalysisContext.Builder bld = AnalysisContext.builder(revapi)
-                .withOldAPI(API.of(new ShrinkwrapArchive(v1Archive.archive)).build())
-                .withNewAPI(API.of(new ShrinkwrapArchive(v2Archive.archive)).build());
+                .withOldAPI(doV1 ? API.of(new ShrinkwrapArchive(v1Archive.archive)).build() : API.builder().build())
+                .withNewAPI(doV2 ? API.of(new ShrinkwrapArchive(v2Archive.archive)).build() : API.builder().build());
 
         if (configurationJSON != null) {
             bld.withConfigurationFromJSON(configurationJSON);
@@ -252,8 +262,13 @@ public abstract class AbstractJavaElementAnalyzerTest {
             result.throwIfFailed();
             return result.getExtensions().getFirstExtension(reporterType, null);
         } finally {
-            deleteDir(v1Archive.compilationPath);
-            deleteDir(v2Archive.compilationPath);
+            if (doV1) {
+                deleteDir(v1Archive.compilationPath);
+            }
+
+            if (doV2) {
+                deleteDir(v2Archive.compilationPath);
+            }
         }
     }
 

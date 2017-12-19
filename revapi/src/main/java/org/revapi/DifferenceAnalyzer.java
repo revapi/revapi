@@ -44,6 +44,20 @@ public interface DifferenceAnalyzer extends AutoCloseable {
     void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement);
 
     /**
+     * Tells whether the analyzer needs to descend "into" the two provided elements. This is called after
+     * {@link #beginAnalysis(Element, Element)} and before {@link #endAnalysis(Element, Element)} with the same pair of
+     * elements.
+     * <p>
+     * Note that this decision is made on the "filtered" trees. I.e. if the filters filter out children of an element,
+     * the analyzer cannot override that decision and try to include such elements in the analysis again.
+     *
+     * @param oldElement the element from the old archives
+     * @param newElement the element from the new archives
+     * @return true when the analysis should also include the children of the provided elements, false otherwise.
+     */
+    boolean isDescendRequired(@Nullable Element oldElement, @Nullable Element newElement);
+
+    /**
      * Called when the analysis of the two elements ends (i.e. all the children have been visited).
      *
      * @param oldElement the element from the old archives

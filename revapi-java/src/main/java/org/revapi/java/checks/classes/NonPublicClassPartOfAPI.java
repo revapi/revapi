@@ -38,6 +38,11 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
     }
 
     @Override
+    public boolean isDescendingOnNonExisting() {
+        return true;
+    }
+
+    @Override
     protected void doVisitClass(JavaTypeElement oldType, JavaTypeElement newType) {
         if (newType == null) {
             return;
