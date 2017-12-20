@@ -662,6 +662,38 @@ capacity (i.e. return type of a method, type of a method parameter, type of an a
 
 By default, Revapi even outputs the "usage chain" from some public API element to the non-public class.
 
+The check is done only on a new version of the API. It serves little purpose to report this on the old which has already
+been released, while the new one might still not be out in the wild. It does make sense though to accept that some parts
+of the API use non-public classes, because such API has already existed. Therefore, you can configure Revapi to only
+report new violations but let the old ones be. The default behavior is to always report non-public class in the API even
+if it existed in the old version (the `reportUnchanged` attribute below defaults to `true`) but you can override it as
+such:
+
+```xml
+<revapi.java>
+  <checks>
+    <nonPublicPartOfAPI>
+      <reportUnchanged>false</reportUnchanged>
+    </nonPublicPartOfAPI>
+  </checks>
+</revapi.java>
+```
+
+or
+
+```
+{
+  "extension": "revapi.java",
+  "configuration": {
+    "checks": {
+      "nonPublicPartOfAPI": {
+        "reportUnchanged": false
+      }
+    }
+  }
+}
+```
+
 [options=header]
 |====
 2+| Match parameters

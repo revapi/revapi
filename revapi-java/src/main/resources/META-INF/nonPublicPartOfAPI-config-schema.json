@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "reportUnchanged": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

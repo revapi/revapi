@@ -177,7 +177,7 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testPublicInNonPublicNotInApi() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                "v1/classes/NonPublic.java", "v2/classes/NonPublic.java");
+                "v1/classes/HiddenPublic.java", "v2/classes/HiddenPublic.java");
 
         Assert.assertNull(reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
     }
@@ -185,6 +185,30 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testUnmatchedNonPublicMembersReported() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                null, "misc/NonPublicDescendsDownChildren.java");
+
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+    }
+
+    @Test
+    public void testMatchingNonPublicMembersNotReportedIfConfigured() throws Exception {
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "[{" +
+                        "\"extension\": \"revapi.java\"," +
+                        "\"configuration\": {" +
+                        "\"reportUnchanged\": false" +
+                        "}}]",
+                "misc/NonPublicDescendsDownChildren.java", "misc/NonPublicDescendsDownChildren.java");
+
+        Assert.assertNull(reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+    }
+
+    @Test
+    public void testMatchingNonPublicMembersReportedIfConfigured() throws Exception {
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "[{" +
+                        "\"extension\": \"revapi.java\"," +
+                        "\"configuration\": {" +
+                        "\"reportUnchanged\": true" +
+                        "}}]",
                 null, "misc/NonPublicDescendsDownChildren.java");
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
