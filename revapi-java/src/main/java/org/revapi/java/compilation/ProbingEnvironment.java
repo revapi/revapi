@@ -117,7 +117,7 @@ public final class ProbingEnvironment implements TypeEnvironment {
 
     @Override
     public JavaTypeElement getModelElement(TypeElement javaType) {
-        JavaTypeElement ret = typeMap.get(javaType);
+        JavaTypeElement ret = typeMap == null ? null : typeMap.get(javaType);
 
         if (ret != null) {
             return ret;

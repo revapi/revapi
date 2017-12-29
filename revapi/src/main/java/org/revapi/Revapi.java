@@ -16,6 +16,8 @@
  */
 package org.revapi;
 
+import static java.util.Collections.emptySortedSet;
+
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
@@ -276,7 +278,6 @@ public final class Revapi {
 
         ElementForest oldTree = filterAndPrune(oldAnalyzer, filter);
         ElementForest newTree = filterAndPrune(newAnalyzer, filter);
-        filter.end(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
 
         TIMING_LOG.debug("API trees obtained");
 
@@ -310,10 +311,12 @@ public final class Revapi {
 
         filter.start(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
         ElementForest forest = analyzer.analyze(analyzerFilter);
+        // forest may init its contents lazily, but we need it ready right here...
+        Set<? extends Element> roots = forest.getRoots();
         filter.end(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
 
         filter.start(ElementGateway.AnalysisStage.FOREST_COMPLETE);
-        forest.getRoots().removeIf(element -> filterTree(element, filter) == FilterMatch.DOESNT_MATCH);
+        roots.removeIf(element -> filterTree(element, filter) == FilterMatch.DOESNT_MATCH);
         filter.end(ElementGateway.AnalysisStage.FOREST_COMPLETE);
 
         analyzer.prune(forest);
@@ -323,14 +326,20 @@ public final class Revapi {
 
     private FilterMatch filterTree(Element root, ElementGateway filter) {
         FilterResult result = filter.filter(ElementGateway.AnalysisStage.FOREST_COMPLETE, root);
-        switch (result.getMatch()) {
-            case DOESNT_MATCH:
-                break;
-            default:
-                root.getChildren().removeIf(c -> filterTree(c, filter) == FilterMatch.DOESNT_MATCH);
-        }
+        FilterMatch match = result.getMatch();
 
-        return result.getMatch();
+        root.getChildren().removeIf(c -> filterTree(c, filter) == FilterMatch.DOESNT_MATCH);
+        boolean hasChildren = !root.getChildren().isEmpty();
+        switch (match) {
+            case DOESNT_MATCH:
+                if (result.isDescend()) {
+                    return hasChildren ? FilterMatch.MATCHES : match;
+                } else {
+                    return match;
+                }
+            default:
+                return match;
+        }
     }
 
     private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
@@ -361,8 +370,17 @@ public final class Revapi {
             Stats.of("analysisBegins").end(a, b);
             beginDuration = Stats.of("analyses").reset();
 
-            analyze(deducer, elementDifferenceAnalyzer, a.getChildren(), b.getChildren(),
-                    extensions);
+            boolean shouldDescend = a != null && b != null;
+            if (!shouldDescend) {
+                shouldDescend = elementDifferenceAnalyzer.isDescendRequired(a, b);
+            }
+
+            if (shouldDescend) {
+                analyze(deducer, elementDifferenceAnalyzer,
+                        a == null ? emptySortedSet() : a.getChildren(),
+                        b == null ? emptySortedSet() : b.getChildren(),
+                        extensions);
+            }
 
             Stats.of("analyses").start();
             Stats.of("analysisEnds").start();
@@ -411,7 +429,7 @@ public final class Revapi {
                             return res;
                         })
                         .reduce(FilterResult::and)
-                        .orElse(new FilterResult(FilterMatch.MATCHES, true));
+                        .orElse(FilterResult.from(FilterMatch.MATCHES, true));
             }
 
             @Override
@@ -591,6 +609,7 @@ public final class Revapi {
         return ret;
     }
 
+    @SuppressWarnings({"unused", "WeakerAccess"})
     public static final class Builder {
         private Set<Class<? extends ApiAnalyzer>> analyzers = null;
         private Set<Class<? extends Reporter>> reporters = null;

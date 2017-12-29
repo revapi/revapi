@@ -16,10 +16,18 @@
  */
 package org.revapi.java.checks.classes;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.jboss.dmr.ModelNode;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
@@ -32,9 +40,40 @@ import org.revapi.java.spi.Util;
  */
 public final class NonPublicClassPartOfAPI extends CheckBase {
 
+    private boolean reportUnchanged;
+
+    @Override
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        super.initialize(analysisContext);
+        ModelNode reportUnchanged = analysisContext.getConfiguration().get("reportUnchanged");
+        if (reportUnchanged.isDefined()) {
+            this.reportUnchanged = reportUnchanged.asBoolean();
+        } else {
+            this.reportUnchanged = true;
+        }
+    }
+
+    @Nullable
+    @Override
+    public String getExtensionId() {
+        return "nonPublicPartOfAPI";
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema() {
+        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/nonPublicPartOfAPI-config-schema.json"),
+                Charset.forName("UTF-8"));
+    }
+
     @Override
     public EnumSet<Type> getInterest() {
         return EnumSet.of(Type.CLASS);
+    }
+
+    @Override
+    public boolean isDescendingOnNonExisting() {
+        return true;
     }
 
     @Override
@@ -43,7 +82,7 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
             return;
         }
 
-        if (newType.isInAPI() && !isAccessible(newType)) {
+        if ((reportUnchanged || oldType == null) && newType.isInAPI() && !isAccessible(newType)) {
             pushActive(oldType, newType);
         }
     }

@@ -359,8 +359,8 @@ final class ClasspathScanner {
                 tr.inclusionState = filter.filter(t);
                 tr.modelElement = t;
                 //this will be revisited... in here we're just establishing the types that are in the API for sure...
-                tr.inApi = tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH &&
-                        (primaryApi && !shouldBeIgnored(type) && !(type.getEnclosingElement() instanceof TypeElement));
+                tr.inApi = (tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH || tr.inclusionState.isDescend())
+                        && (primaryApi && !shouldBeIgnored(type) && !(type.getEnclosingElement() instanceof TypeElement));
                 tr.primaryApi = primaryApi;
 
                 if (!tr.inclusionState.isDescend()) {
@@ -714,7 +714,7 @@ final class ClasspathScanner {
                 if (r.modelElement != null
                         && (r.modelElement.getArchive() == null
                         || !r.modelElement.getArchive().getName().equals(SYSTEM_CLASSPATH_NAME))) {
-                    boolean include = r.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH;
+                    boolean include = r.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH || r.inclusionState.isDescend();
                     Element owner = t.getEnclosingElement();
 
                     if (owner != null && owner instanceof TypeElement) {
@@ -753,6 +753,7 @@ final class ClasspathScanner {
                                 .collect(Collectors.toMap(
                                         Map.Entry::getKey,
                                         entry -> entry.getValue().entrySet().stream()
+                                                .filter(typeE -> typeE.getKey().modelElement != null)
                                                 .collect(Collectors.toMap(
                                                         typeE -> typeE.getKey().modelElement,
                                                         Map.Entry::getValue)))));
@@ -772,14 +773,14 @@ final class ClasspathScanner {
             Set<TypeRecord> undetermined = new HashSet<>(this.types.values());
             while (!undetermined.isEmpty()) {
                 undetermined = undetermined.stream()
-                        .filter(tr -> tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH)
+                        .filter(tr -> tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH || tr.inclusionState.isDescend())
                         .filter(tr -> tr.inApi)
                         .flatMap(tr -> tr.usedTypes.entrySet().stream()
                                 .map(e -> new AbstractMap.SimpleImmutableEntry<>(tr, e)))
                         .filter(e -> movesToApi(e.getValue().getKey()))
                         .flatMap(e -> e.getValue().getValue().keySet().stream())
                         .filter(usedTr -> !usedTr.inApi)
-                        .filter(usedTr -> usedTr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH)
+                        .filter(usedTr -> usedTr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH || usedTr.inclusionState.isDescend())
                         .peek(usedTr -> {
                             usedTr.inApi = true;
                             usedTr.inApiThroughUse = true;
@@ -1045,7 +1046,7 @@ final class ClasspathScanner {
         Set<Element> inaccessibleDeclaredNonClassMembers = new HashSet<>(4);
         //important for this to be a linked hashset so that superclasses are processed prior to implemented interfaces
         Set<TypeRecord> superTypes = new LinkedHashSet<>(2);
-        FilterResult inclusionState;
+        FilterResult inclusionState = FilterResult.undecidedAndDescend();
         boolean inApi;
         boolean inApiThroughUse;
         boolean primaryApi;

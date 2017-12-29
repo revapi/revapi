@@ -54,7 +54,7 @@ public class TextReporterTest {
     public void testDefaultTemplate() throws Exception {
         TextReporter reporter = new TextReporter();
 
-        Revapi r = new Revapi(emptySet(), singleton(TextReporter.class), emptySet(), emptySet());
+        Revapi r = new Revapi(emptySet(), singleton(TextReporter.class), emptySet(), emptySet(), emptySet());
 
         AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
@@ -101,7 +101,7 @@ public class TextReporterTest {
 
             TextReporter reporter = new TextReporter();
 
-            Revapi r = new Revapi(emptySet(), singleton(TextReporter.class), emptySet(), emptySet());
+            Revapi r = new Revapi(emptySet(), singleton(TextReporter.class), emptySet(), emptySet(), emptySet());
 
             AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(
                     "{\"revapi\": {\"reporter\": {\"text\": {\"template\": \"" + tempFile.toString() + "\"}}}}")

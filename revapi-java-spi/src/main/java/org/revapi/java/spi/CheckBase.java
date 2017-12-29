@@ -46,6 +46,16 @@ import org.revapi.Difference;
 public abstract class CheckBase implements Check {
 
     /**
+     * The default implementation returns false, because that is the right decision most of the time.
+     *
+     * @return false
+     */
+    @Override
+    public boolean isDescendingOnNonExisting() {
+        return false;
+    }
+
+    /**
      * Checks whether both provided elements are (package) private. If one of them is null, the fact cannot be
      * determined and therefore this method would return false.
      *

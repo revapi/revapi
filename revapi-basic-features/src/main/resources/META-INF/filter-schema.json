@@ -22,12 +22,12 @@
                             "matcher": {
                                 "type": "string"
                             },
-                            "recipe": {
+                            "match": {
                                 "type": "string"
                             },
-                            "reevaluateChildren": {
+                            "orChildren": {
                                 "type": "boolean",
-                                "default": false
+                                "default": true
                             }
                         },
                         "required": ["matcher", "recipe"]

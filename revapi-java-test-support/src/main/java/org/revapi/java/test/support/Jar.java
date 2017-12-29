@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -278,13 +279,65 @@ public class Jar implements TestRule {
             File compiledJar = new File(dir, "compiled.jar");
             try (JarOutputStream out = new JarOutputStream(new FileOutputStream(compiledJar))) {
                 Path root = compiledSourcesOutput.toPath();
+                HashSet<String> added = new HashSet<>();
+
+                // The JAR file spec assumes that the MANIFEST.MF is the first or the second entry in the jar file.
+                // Because we don't know what we're putting in, we have to manually scan what we were instructed to
+                // put in the jar file and try to find the MANIFEST.MF.
                 Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        ZipEntry entry = new ZipEntry(root.relativize(file).toFile().getPath());
-                        out.putNextEntry(entry);
-                        Files.copy(file, out);
-                        out.closeEntry();
+                        if ("MANIFEST.MF".equals(file.getFileName().toString())
+                                && "META-INF".equals(file.getParent().getFileName().toString())) {
+
+                            ZipEntry entry = new ZipEntry("META-INF/");
+                            out.putNextEntry(entry);
+                            out.closeEntry();
+
+                            entry = new ZipEntry("META-INF/MANIFEST.MF");
+                            out.putNextEntry(entry);
+                            Files.copy(file, out);
+                            out.closeEntry();
+
+                            added.add("META-INF/");
+                            added.add("META-INF/MANIFEST.MF");
+                        }
+                        return super.visitFile(file, attrs);
+                    }
+                });
+
+                Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        StringBuilder path = new StringBuilder();
+                        Iterator<Path> it = root.relativize(file).iterator();
+                        while (it.hasNext()) {
+                            Path p = it.next();
+                            boolean isDir = it.hasNext();
+
+                            path.append(p.toString());
+                            if (isDir) {
+                                path.append("/");
+                            }
+
+                            String currentPath = path.toString();
+
+                            if (added.contains(currentPath)) {
+                                continue;
+                            }
+
+                            ZipEntry entry = new ZipEntry(currentPath);
+                            out.putNextEntry(entry);
+
+                            if (!isDir) {
+                                Files.copy(file, out);
+                            }
+
+                            out.closeEntry();
+
+                            added.add(currentPath);
+                        }
+
                         return FileVisitResult.CONTINUE;
                     }
                 });

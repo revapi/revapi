@@ -93,6 +93,7 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
 
     @Override
     public FilterResult filter(AnalysisStage stage, Element element) {
+        // TODO copy the behavior from the java annotation filter
         if (doNothing) {
             return FilterResult.matchAndDescend();
         }
@@ -104,12 +105,12 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
         }
 
         FilterResult include = elementIncludes.stream()
-                .map(cf -> new FilterResult(cf.recipe.test(element), cf.reevaluateChildren))
+                .map(cf -> FilterResult.from(cf.recipe.test(element), cf.reevaluateChildren))
                 .reduce(FilterResult::or)
                 .orElse(FilterResult.matchAndDescend());
 
         FilterResult exclude = elementExcludes.stream()
-                .map(cf -> new FilterResult(cf.recipe.test(element), cf.reevaluateChildren))
+                .map(cf -> FilterResult.from(cf.recipe.test(element), cf.reevaluateChildren))
                 .reduce(FilterResult::or)
                 .orElse(FilterResult.doesntMatch());
 
@@ -168,14 +169,14 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
         if (filterDefinition.getType() == ModelType.STRING) {
             recipe = filterDefinition.asString();
             //this is the default
-            reevaluateChildren = false;
+            reevaluateChildren = true;
             matcher = new RegexElementMatcher();
         } else {
-            recipe = filterDefinition.get("recipe").asString();
-            ModelNode reevaluateChildrenNode = filterDefinition.get("reevaluateChildren");
+            recipe = filterDefinition.get("match").asString();
+            ModelNode reevaluateChildrenNode = filterDefinition.get("orChildren");
 
-            //false is the default
-            reevaluateChildren = reevaluateChildrenNode.isDefined() && reevaluateChildrenNode.asBoolean();
+            //true is the default
+            reevaluateChildren = !reevaluateChildrenNode.isDefined() || reevaluateChildrenNode.asBoolean();
 
             matcher = availableMatchers.get(filterDefinition.get("matcher").asString());
         }

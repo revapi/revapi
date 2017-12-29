@@ -1,40 +1,68 @@
+/*
+ * Copyright 2014-2017 Lukas Krejci
+ * and other contributors as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.revapi;
 
 /**
  * The result of the element filtering in {@link ElementGateway}. The result tells the analysis whether to let
  * the element pass or not to the next stage but also whether to descend to its children or not.
  */
-public final class FilterResult {
-    private final FilterMatch match;
-    private final boolean descend;
+public abstract class FilterResult {
+    private static final FilterResult MATCH_AND_DESCEND = new MatchAndDescend();
+    private static final FilterResult MATCH_AND_NOT_DESCEND = new MatchAndNotDescend();
+    private static final FilterResult DOESNT_MATCH_AND_DESCEND = new DoesntMatchAndDescend();
+    private static final FilterResult DOESNT_MATCH_AND_NOT_DESCEND = new DoesntMatchAndNotDescend();
+    private static final FilterResult UNDECIDED_AND_DESCEND = new UndecidedAndDescend();
+    private static final FilterResult UNDECIDED_AND_NOT_DESCEND = new UndecidedAndNotDescend();
 
     public static FilterResult matchAndDescend() {
-        return new FilterResult(FilterMatch.MATCHES, true);
+        return from(FilterMatch.MATCHES, true);
     }
 
     public static FilterResult undecidedAndDescend() {
-        return new FilterResult(FilterMatch.UNDECIDED, true);
+        return from(FilterMatch.UNDECIDED, true);
     }
 
     public static FilterResult doesntMatch() {
-        return new FilterResult(FilterMatch.DOESNT_MATCH, false);
+        return from(FilterMatch.DOESNT_MATCH, false);
     }
 
-    public FilterResult(FilterMatch match, boolean descend) {
-        this.match = match;
-        this.descend = descend;
+    public static FilterResult from(FilterMatch match, boolean descend) {
+        switch (match) {
+            case DOESNT_MATCH:
+                return descend ? DOESNT_MATCH_AND_DESCEND : DOESNT_MATCH_AND_NOT_DESCEND;
+            case MATCHES:
+                return descend ? MATCH_AND_DESCEND : MATCH_AND_NOT_DESCEND;
+            case UNDECIDED:
+                return descend ? UNDECIDED_AND_DESCEND : UNDECIDED_AND_NOT_DESCEND;
+            default:
+                throw new IllegalArgumentException("Unhandled filter match value: " + match);
+        }
     }
 
-    public FilterMatch getMatch() {
-        return match;
+    private FilterResult() {
+
     }
 
-    public boolean isDescend() {
-        return descend;
-    }
+    public abstract FilterMatch getMatch();
+
+    public abstract boolean isDescend();
 
     public FilterResult and(FilterResult other) {
-        return new FilterResult(getMatch().and(other.getMatch()), isDescend() && other.isDescend());
+        return from(getMatch().and(other.getMatch()), isDescend() && other.isDescend());
     }
 
     public FilterResult and(Iterable<FilterResult> others) {
@@ -46,11 +74,11 @@ public final class FilterResult {
             resultingDescend = resultingDescend && r.isDescend();
         }
 
-        return new FilterResult(resultingState, resultingDescend);
+        return from(resultingState, resultingDescend);
     }
 
     public FilterResult or(FilterResult other) {
-        return new FilterResult(getMatch().or(other.getMatch()), isDescend() || other.isDescend());
+        return from(getMatch().or(other.getMatch()), isDescend() || other.isDescend());
     }
 
     public FilterResult or(Iterable<FilterResult> others) {
@@ -62,11 +90,11 @@ public final class FilterResult {
             resultingDescend = resultingDescend || r.isDescend();
         }
 
-        return new FilterResult(resultingMatch, resultingDescend);
+        return from(resultingMatch, resultingDescend);
     }
 
     public FilterResult negate() {
-        return new FilterResult(match.negate(), !descend);
+        return from(getMatch().negate(), !isDescend());
     }
 
     @Override
@@ -76,25 +104,102 @@ public final class FilterResult {
 
         FilterResult filterResult = (FilterResult) o;
 
-        if (descend != filterResult.descend) return false;
-        if (match != filterResult.match) return false;
+        if (isDescend() != filterResult.isDescend()) return false;
+        if (getMatch() != filterResult.getMatch()) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = match.hashCode();
-        result = 31 * result + (descend ? 1 : 0);
+        int result = getMatch().hashCode();
+        result = 31 * result + (isDescend() ? 1 : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "FilterResult{" +
-                "state=" + match +
-                ", descend=" + descend +
+                "state=" + getMatch() +
+                ", descend=" + isDescend() +
                 '}';
     }
 
+    private static final class MatchAndDescend extends FilterResult {
+
+        @Override
+        public FilterMatch getMatch() {
+            return FilterMatch.MATCHES;
+        }
+
+        @Override
+        public boolean isDescend() {
+            return true;
+        }
+    }
+
+    private static final class MatchAndNotDescend extends FilterResult {
+
+        @Override
+        public FilterMatch getMatch() {
+            return FilterMatch.MATCHES;
+        }
+
+        @Override
+        public boolean isDescend() {
+            return false;
+        }
+    }
+
+    private static final class DoesntMatchAndDescend extends FilterResult {
+
+        @Override
+        public FilterMatch getMatch() {
+            return FilterMatch.DOESNT_MATCH;
+        }
+
+        @Override
+        public boolean isDescend() {
+            return true;
+        }
+    }
+
+    private static final class DoesntMatchAndNotDescend extends FilterResult {
+
+        @Override
+        public FilterMatch getMatch() {
+            return FilterMatch.DOESNT_MATCH;
+        }
+
+        @Override
+        public boolean isDescend() {
+            return false;
+        }
+    }
+
+    private static final class UndecidedAndDescend extends FilterResult {
+
+        @Override
+        public FilterMatch getMatch() {
+            return FilterMatch.UNDECIDED;
+        }
+
+        @Override
+        public boolean isDescend() {
+            return true;
+        }
+    }
+
+    private static final class UndecidedAndNotDescend extends FilterResult {
+
+        @Override
+        public FilterMatch getMatch() {
+            return FilterMatch.UNDECIDED;
+        }
+
+        @Override
+        public boolean isDescend() {
+            return false;
+        }
+    }
 }

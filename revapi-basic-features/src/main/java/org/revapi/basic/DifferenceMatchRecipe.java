@@ -161,7 +161,7 @@ public abstract class DifferenceMatchRecipe {
             return (regex ? new RegexElementMatcher() : new ExactElementMatcher()).compile(recipe).orElse(null);
         } else {
             String matcherId = elementRoot.get("matcher").asString();
-            String recipe = elementRoot.get("recipe").asString();
+            String recipe = elementRoot.get("match").asString();
 
             ElementMatcher matcher = matchers.get(matcherId);
             return matcher == null

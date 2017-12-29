@@ -39,6 +39,11 @@ public final class Missing extends CheckBase {
     }
 
     @Override
+    public boolean isDescendingOnNonExisting() {
+        return true;
+    }
+
+    @Override
     protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
         boolean oldMissing = oldType != null && isMissing(oldType.getDeclaringElement());
         boolean oldInApi = oldType != null && oldType.isInAPI();

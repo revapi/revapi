@@ -51,6 +51,7 @@ public class AnalysisTest {
             Assert.assertTrue(res.isSuccess());
         }
     }
+
     public static final class CloningDifferenceTransform implements DifferenceTransform<Element> {
 
         @Override
@@ -210,6 +211,11 @@ public class AnalysisTest {
 
         @Override
         public void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
+        }
+
+        @Override
+        public boolean isDescendRequired(@Nullable Element oldElement, @Nullable Element newElement) {
+            return false;
         }
 
         @Override

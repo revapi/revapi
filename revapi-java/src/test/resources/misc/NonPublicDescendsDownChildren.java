@@ -14,10 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class NonPublic {
-    static class PackagePrivate {
-        public static class Public {
-            //this class should not be in the API, because it is enclosed in a package private class
+public class NonPublicDescendsDownChildren {
+    class NonAccessible {
+        class InnerNonAccessible {
+
         }
+    }
+
+    public NonAccessible method() {
+        return null;
+    }
+
+    public void method(NonAccessible.InnerNonAccessible a) {
+
     }
 }

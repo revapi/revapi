@@ -170,6 +170,8 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                     "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"ignore\" }}}}").build()
         );
 
+        res.throwIfFailed();
+
         List<Report> allReports =
                 res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
 

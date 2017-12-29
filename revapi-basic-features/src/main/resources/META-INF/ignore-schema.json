@@ -38,7 +38,7 @@
                         "matcher": {
                             "type": "string"
                         },
-                        "recipe": {
+                        "match": {
                             "type": "string"
                         }
                     }

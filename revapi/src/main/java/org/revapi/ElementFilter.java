@@ -51,7 +51,7 @@ public interface ElementFilter extends ElementGateway, Filter<Element>, AutoClos
         boolean applies = applies(element);
         boolean descend = shouldDescendInto(element);
 
-        return new FilterResult(applies ? FilterMatch.MATCHES : FilterMatch.DOESNT_MATCH, descend);
+        return FilterResult.from(applies ? FilterMatch.MATCHES : FilterMatch.DOESNT_MATCH, descend);
     }
 
     @Override
