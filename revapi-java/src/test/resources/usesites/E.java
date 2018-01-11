@@ -15,5 +15,7 @@
  * limitations under the License.
  */
 public class E extends Exception {
-
+    public F.FF m() {
+        return null;
+    }
 }

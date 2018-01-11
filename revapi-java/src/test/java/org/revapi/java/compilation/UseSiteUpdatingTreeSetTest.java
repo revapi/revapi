@@ -17,6 +17,8 @@
 package org.revapi.java.compilation;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,15 +54,22 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
     private MethodElement Cm;
     private TypeElement E;
     private MethodElement Ector;
+    private MethodElement Em;
+    private TypeElement F;
+    private MethodElement Fctor;
+    private TypeElement FFF;
+    private MethodElement FFFctor;
+
+    private ProbingEnvironment environment;
 
     private void createEnvironment() throws Exception {
         API fakeApi = API.builder().build();
         Archive archive = new FileArchive(null);
 
-        ProbingEnvironment environment = new ProbingEnvironment(fakeApi);
+        environment = new ProbingEnvironment(fakeApi);
         HashMap<javax.lang.model.element.TypeElement, TypeElement> typeMap = new HashMap<>();
 
-        Jar.Environment env = jar.from().classPathSources("/usesites/", "A.java", "B.java", "C.java", "E.java").build().analyze();
+        Jar.Environment env = jar.from().classPathSources("/usesites/", "A.java", "B.java", "C.java", "E.java", "F.java").build().analyze();
         environment.setProcessingEnvironment(env.processingEnvironment());
 
         forest = environment.getTree();
@@ -96,6 +105,27 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
         model.getChildren().add(methodModel);
         E = model;
         Ector = methodModel;
+        method = ElementFilter.methodsIn(type.getEnclosedElements()).get(0);
+        methodModel = new MethodElement(environment, archive, method, (ExecutableType) method.asType());
+        Em = methodModel;
+        E.getChildren().add(Em);
+
+        type = env.elements().getTypeElement("F");
+        model = new TypeElement(environment, archive, type, (DeclaredType) type.asType());
+        F = model;
+        forest.getRoots().add(model);
+        method = ElementFilter.constructorsIn(type.getEnclosedElements()).get(0);
+        methodModel = new MethodElement(environment, archive, method, (ExecutableType) method.asType());
+        model.getChildren().add(methodModel);
+
+        type = env.elements().getTypeElement("F.FF");
+        model = new TypeElement(environment, archive, type, (DeclaredType) type.asType());
+        FFF = model;
+        F.getChildren().add(model);
+        method = ElementFilter.constructorsIn(type.getEnclosedElements()).get(0);
+        methodModel = new MethodElement(environment, archive, method, (ExecutableType) method.asType());
+        FFFctor = methodModel;
+        FFF.getChildren().add(FFFctor);
 
         //k now we have all the elements in our model, but we still need to add the use sites
         A.getUseSites().add(new UseSite(UseSite.Type.ANNOTATES, B));
@@ -103,6 +133,8 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
         B.getUseSites().add(new UseSite(UseSite.Type.PARAMETER_TYPE, Cm));
         B.getUseSites().add(new UseSite(UseSite.Type.TYPE_PARAMETER_OR_BOUND, C));
         E.getUseSites().add(new UseSite(UseSite.Type.IS_THROWN, Cm));
+        FFF.getUseSites().add(new UseSite(UseSite.Type.RETURN_TYPE, Em));
+        F.getUseSites().add(new UseSite(UseSite.Type.CONTAINS, FFF));
 
         B.getUsedTypes().computeIfAbsent(UseSite.Type.ANNOTATES, __ -> new HashMap<>())
                 .computeIfAbsent(A, __ -> new HashSet<>()).add(B);
@@ -116,6 +148,12 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
         C.getUsedTypes().computeIfAbsent(UseSite.Type.IS_THROWN, __ -> new HashMap<>())
                 .computeIfAbsent(E, __ -> new HashSet<>()).add(Cm);
 
+        E.getUsedTypes().computeIfAbsent(UseSite.Type.RETURN_TYPE, __ -> new HashMap<>())
+                .computeIfAbsent(FFF, __ -> new HashSet<>()).add(Em);
+
+        FFF.getUsedTypes().computeIfAbsent(UseSite.Type.CONTAINS, __ -> new HashMap<>())
+                .computeIfAbsent(F, __ -> new HashSet<>()).add(FFF);
+
         //and one more thing - we declare E as coming from supplementary archives, so that it is automagically
         //removed once it is not used anymore.
         A.setInApi(true);
@@ -123,12 +161,17 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
         C.setInApi(true);
         E.setInApi(true);
         E.setInApiThroughUse(true);
+        FFF.setInApi(true);
+        FFF.setInApiThroughUse(true);
 
         //setup the type map
         typeMap.put(A.getDeclaringElement(), A);
         typeMap.put(B.getDeclaringElement(), B);
         typeMap.put(C.getDeclaringElement(), C);
         typeMap.put(E.getDeclaringElement(), E);
+        typeMap.put(F.getDeclaringElement(), F);
+        typeMap.put(FFF.getDeclaringElement(), FFF);
+
         environment.setTypeMap(typeMap);
     }
 
@@ -154,12 +197,11 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
     }
 
     @Test
-    public void testInnerTypesAffected() {
-        //TODO implement
-    }
+    public void testInnerTypesAffected() throws Exception {
+        createEnvironment();
 
-    @Test
-    public void testInnerTypesRemoved() {
-        //TODO implement
+        assertTrue(forest.getRoots().contains(F));
+        forest.getRoots().remove(E);
+        assertFalse(forest.getRoots().contains(F));
     }
 }

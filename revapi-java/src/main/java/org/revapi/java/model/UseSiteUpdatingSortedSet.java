@@ -186,7 +186,15 @@ final class UseSiteUpdatingSortedSet<T extends Element> implements SortedSet<T> 
             BiConsumer<org.revapi.java.model.TypeElement, JavaElement> handleType = (usedType, actualUseSite) -> {
                 usedType.getUseSites().removeIf(site -> site.getSite().equals(actualUseSite));
 
-                if (!usedType.isInApiThroughUse() || !usedType.getUseSites().isEmpty()) {
+                if (usedType.isInAPI() && !usedType.isInApiThroughUse()) {
+                    return;
+                }
+
+                boolean hasSignificantUseSites = usedType.getUseSites().stream()
+                        .map(us -> us.getUseType().isMovingToApi())
+                        .reduce(false, (a, b) -> a || b);
+
+                if (hasSignificantUseSites) {
                     return;
                 }
 

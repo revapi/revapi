@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
@@ -81,7 +79,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
      * @param env     the probing environment
      * @param element the model element to be represented
      */
-    public TypeElement(ProbingEnvironment env, Archive archive, javax.lang.model.element.TypeElement element, DeclaredType type) {
+    public TypeElement(ProbingEnvironment env, Archive archive, javax.lang.model.element.TypeElement element,
+            DeclaredType type) {
         super(env, archive, element, type);
         binaryName = env.getElementUtils().getBinaryName(element).toString();
         canonicalName = element.getQualifiedName().toString();
@@ -112,15 +111,18 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return canonicalName;
     }
 
-    @Override public boolean isInAPI() {
+    @Override
+    public boolean isInAPI() {
         return inApi;
     }
 
-    @Override public boolean isInApiThroughUse() {
+    @Override
+    public boolean isInApiThroughUse() {
         return inApiThroughUse;
     }
 
-    @Override public Set<UseSite> getUseSites() {
+    @Override
+    public Set<UseSite> getUseSites() {
         if (useSites == null) {
             if (rawUseSites == null) {
                 useSites = new HashSet<>(1);
@@ -141,6 +143,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     /**
      * This provides the types used by this type. The keys are the types of use, values are maps from the used type
      * to the set of concrete users of the type (the users represent some child of this element).
+     *
      * @return the types used by this type
      */
     public Map<UseSite.Type, Map<TypeElement, Set<JavaModelElement>>> getUsedTypes() {
@@ -149,16 +152,16 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
             if (rawUsedTypes != null) {
                 for (Map.Entry<UseSite.Type, Map<TypeElement, Set<Element>>> e : rawUsedTypes.entrySet()) {
                     Map<TypeElement, Set<JavaModelElement>> value = e.getValue().entrySet().stream()
-                        .collect(toMap(
-                                Map.Entry::getKey,
-                                entry -> entry.getValue().stream().map(el -> {
-                                    int index = -1;
-                                    if (el instanceof VariableElement && el.getEnclosingElement() instanceof ExecutableElement) {
-                                        //find the index of the method parameter
-                                        index = el.getEnclosingElement().getEnclosedElements().indexOf(el);
-                                    }
-                                    return getModel(el, index);
-                                }).collect(toSet())));
+                            .collect(toMap(
+                                    Map.Entry::getKey,
+                                    entry -> entry.getValue().stream().map(el -> {
+                                        int index = -1;
+                                        if (el instanceof VariableElement && el.getEnclosingElement() instanceof ExecutableElement) {
+                                            //find the index of the method parameter
+                                            index = el.getEnclosingElement().getEnclosedElements().indexOf(el);
+                                        }
+                                        return getModel(el, index);
+                                    }).filter(Objects::nonNull).collect(toSet())));
 
                     usedTypes.put(e.getKey(), value);
                 }
@@ -192,7 +195,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return binaryName.compareTo(((TypeElement) o).binaryName);
     }
 
-    @Override protected String createFullHumanReadableString() {
+    @Override
+    protected String createFullHumanReadableString() {
         TypeMirror rep = getModelRepresentation();
         return getHumanReadableElementType() + " " + (rep == null ? canonicalName : Util.toHumanReadableString(rep));
     }
@@ -205,7 +209,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
     private JavaModelElement getModel(Element element, int indexInParent) {
         return element.accept(new SimpleElementVisitor8<JavaModelElement, Void>() {
-            @Override public JavaModelElement visitVariable(VariableElement e, Void ignored) {
+            @Override
+            public JavaModelElement visitVariable(VariableElement e, Void ignored) {
                 if (e.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
                     //this is a field
                     TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
@@ -215,7 +220,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
                     List<FieldElement> fs = type.searchChildren(FieldElement.class, false,
                             Filter.shallow(f -> f.getDeclaringElement().equals(e)));
-                    return fs.get(0);
+                    return fs.isEmpty() ? null : fs.get(0);
                 } else if (e.getEnclosingElement() instanceof javax.lang.model.element.ExecutableElement) {
                     //this is a method parameter
                     Element methodEl = e.getEnclosingElement();
@@ -227,23 +232,29 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                     List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
                             Filter.shallow(m -> m.getDeclaringElement().equals(methodEl)));
 
+                    if (ms.isEmpty()) {
+                        return null;
+                    }
+
                     MethodElement method = ms.get(0);
 
                     //now look for the parameter
                     List<MethodParameterElement> params =
                             method.searchChildren(MethodParameterElement.class, false, Filter.shallow(p -> true));
 
-                    return params.get(indexInParent);
+                    return params.size() > indexInParent ? params.get(indexInParent) : null;
                 } else {
                     return null;
                 }
             }
 
-            @Override public JavaModelElement visitType(javax.lang.model.element.TypeElement e, Void ignored) {
+            @Override
+            public JavaModelElement visitType(javax.lang.model.element.TypeElement e, Void ignored) {
                 return environment.getTypeMap().get(e);
             }
 
-            @Override public JavaModelElement visitExecutable(ExecutableElement e, Void ignored) {
+            @Override
+            public JavaModelElement visitExecutable(ExecutableElement e, Void ignored) {
                 TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
                 if (type == null) {
                     return null;
@@ -252,7 +263,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
                         Filter.shallow(m -> m.getDeclaringElement().equals(e)));
 
-                return ms.get(0);
+                return ms.isEmpty() ? null : ms.get(0);
             }
         }, null);
     }
