@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.FilterResult;
-import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
 
@@ -47,8 +46,8 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null, false,
-                InclusionFilter.acceptAll());
+                null), Executors.newSingleThreadExecutor(), null, false
+        );
 
         try {
             JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
@@ -78,7 +77,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
-                false, InclusionFilter.acceptAll());
+                false);
 
         try {
             JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
@@ -109,8 +108,8 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null, false,
-                InclusionFilter.acceptAll());
+                null), Executors.newSingleThreadExecutor(), null, false
+        );
 
         try {
             JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
@@ -160,7 +159,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
-                false, InclusionFilter.acceptAll());
+                false);
 
         try {
             JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());

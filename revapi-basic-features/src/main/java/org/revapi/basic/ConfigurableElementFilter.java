@@ -20,6 +20,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -32,6 +33,7 @@ import org.jboss.dmr.ModelType;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
+import org.revapi.FilterMatch;
 import org.revapi.FilterResult;
 import org.revapi.simple.SimpleElementGateway;
 
@@ -53,6 +55,7 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
     private final List<ComplexFilter> elementExcludes = new ArrayList<>();
     private final List<Pattern> archiveIncludes = new ArrayList<>();
     private final List<Pattern> archiveExcludes = new ArrayList<>();
+    private final IdentityHashMap<Element, FilterResult> filterResults = new IdentityHashMap<>();
 
     private boolean doNothing;
 
@@ -92,6 +95,11 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
     }
 
     @Override
+    public void start(AnalysisStage stage) {
+        filterResults.clear();
+    }
+
+    @Override
     public FilterResult filter(AnalysisStage stage, Element element) {
         // TODO copy the behavior from the java annotation filter
         if (doNothing) {
@@ -104,21 +112,50 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
             return FilterResult.doesntMatch();
         }
 
-        FilterResult include = elementIncludes.stream()
-                .map(cf -> FilterResult.from(cf.recipe.test(element), cf.reevaluateChildren))
-                .reduce(FilterResult::or)
-                .orElse(FilterResult.matchAndDescend());
+        // exploit the fact that parent elements are always filtered before the children
+        Element parent = element.getParent();
+        FilterResult ret = parent == null ? FilterResult.undecidedAndDescend()
+                : filterResults.get(parent);
 
-        FilterResult exclude = elementExcludes.stream()
-                .map(cf -> FilterResult.from(cf.recipe.test(element), cf.reevaluateChildren))
-                .reduce(FilterResult::or)
-                .orElse(FilterResult.doesntMatch());
+        FilterResult exclusion = excludeFilter(element).negateMatch();
 
-        return include.and(exclude.negate());
+        switch (ret.getMatch()) {
+            case MATCHES:
+                // the parent was explicitly included in the results. We therefore only need to check if the current
+                // element should be excluded
+                ret = ret.and(exclusion);
+                break;
+            default:
+                ret = includeFilter(element, ret).and(exclusion);
+                break;
+
+        }
+
+        if (parent == null && ret.getMatch() == FilterMatch.UNDECIDED) {
+            ret = FilterResult.from(FilterMatch.MATCHES, ret.isDescend());
+        }
+
+        filterResults.put(element, ret);
+
+        return ret;
     }
 
     @Override
     public void close() {
+    }
+
+    private FilterResult includeFilter(Element element, FilterResult defaultResult) {
+        return elementIncludes.stream()
+                .map(cf -> FilterResult.from(cf.recipe.test(element), cf.reevaluateChildren))
+                .reduce(FilterResult::or)
+                .orElse(defaultResult);
+    }
+
+    private FilterResult excludeFilter(Element element) {
+        return elementExcludes.stream()
+                .map(cf -> FilterResult.from(cf.recipe.test(element), cf.reevaluateChildren))
+                .reduce(FilterResult::or)
+                .orElse(FilterResult.doesntMatchAndDescend());
     }
 
     private static void readSimpleFilter(ModelNode root, List<Pattern> include, List<Pattern> exclude) {
@@ -173,7 +210,7 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
             matcher = new RegexElementMatcher();
         } else {
             recipe = filterDefinition.get("match").asString();
-            ModelNode reevaluateChildrenNode = filterDefinition.get("orChildren");
+            ModelNode reevaluateChildrenNode = filterDefinition.get("reincludedByChildren");
 
             //true is the default
             reevaluateChildren = !reevaluateChildrenNode.isDefined() || reevaluateChildrenNode.asBoolean();

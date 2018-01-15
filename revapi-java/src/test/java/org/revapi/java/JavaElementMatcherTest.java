@@ -35,7 +35,6 @@ import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.FilterMatch;
 import org.revapi.FilterResult;
-import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.matcher.JavaElementMatcher;
 import org.revapi.java.model.FieldElement;
 import org.revapi.java.model.JavaElementForest;
@@ -709,8 +708,8 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                     Arrays.asList(new ShrinkwrapArchive(ar.archive)),
-                    null), Executors.newSingleThreadExecutor(), null, false,
-                    InclusionFilter.acceptAll());
+                    null), Executors.newSingleThreadExecutor(), null, false
+            );
 
             JavaElementForest results = analyzer.analyze(e -> FilterResult.matchAndDescend());
 

@@ -39,12 +39,17 @@ import org.revapi.ElementFilter;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
  * @since 0.7.0
  */
+@Deprecated
 abstract class AbstractIncludeExcludeFilter implements ElementFilter {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractIncludeExcludeFilter.class);
+
     private final String configurationRootPath;
     private final String schemaPath;
     private final IdentityHashMap<Object, InclusionState> elementResults = new IdentityHashMap<>();
@@ -114,6 +119,11 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
         this.includeTest = composeTest(fullMatches, patterns);
 
         doNothing = includeTest == null && excludeTest == null;
+
+        if (!doNothing) {
+            LOG.warn("Filtering using the revapi.java.filter.annotated has been deprecated in favor of revapi.filter" +
+                    " together with the java specific matchers (matcher.java).");
+        }
     }
 
     protected abstract void validateConfiguration(boolean excludes, List<String> fullMatches, List<Pattern> patterns,

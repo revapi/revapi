@@ -15,6 +15,8 @@ topExpression
     | subTypeExpression
     | overridesExpression
     | returnsExpression
+    | stringExpression
+    | regexExpression
     ;
 
 expression

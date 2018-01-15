@@ -24,7 +24,7 @@ import org.revapi.java.spi.UseSite;
  * @author Lukas Krejci
  * @since 0.11.0
  */
-public final class ClassPathUseSite {
+public class ClassPathUseSite {
     public final UseSite.Type useType;
     public final Element site;
     public final int indexInParent;

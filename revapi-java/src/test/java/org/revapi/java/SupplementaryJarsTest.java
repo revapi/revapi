@@ -167,8 +167,8 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
-                .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
-                        "\"filter\": {\"classes\": {\"exclude\": [\"C\"]}}}}}").build();
+                .withConfigurationFromJSON("{\"revapi\": {\"filter\": {" +
+                        "\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"'class C'\"}]}}}}").build();
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             allReports =
@@ -199,10 +199,11 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
-                .withConfigurationFromJSON("{\"revapi\": {\"java\": {" +
-                        "\"filter\": {\"classes\": {\"exclude\": [\"C\", \"B.T$2\"]}}}}}").build();
+                .withConfigurationFromJSON("{\"revapi\": {" +
+                        "\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"'class C' or 'class B.T$2'\"}]}}}}").build();
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
+            res.throwIfFailed();
             allReports =
                     res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }

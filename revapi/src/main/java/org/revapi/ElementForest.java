@@ -16,13 +16,21 @@
  */
 package org.revapi;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.revapi.query.DFSFilteringIterator;
 import org.revapi.query.Filter;
+import org.revapi.query.FilteringIterator;
 
 /**
  * A representation of some "unit" understood by an API analyzer. Typically an abstract syntax tree of a language.
@@ -48,8 +56,8 @@ public interface ElementForest {
 
     /**
      * Searches through the forest for elements of given type, potentially further filtering.
-     *
-     * <p>If the {@code searchRoot} is not null, this is technically equivalent to calling the
+     * <p>
+     * If the {@code searchRoot} is not null, this is technically equivalent to calling the
      * {@link Element#searchChildren(java.lang.Class, boolean, org.revapi.query.Filter)} on the
      * {@code searchRoot}.
      *
@@ -58,11 +66,38 @@ public interface ElementForest {
      * @param recurse    false to only search direct children, true for searching recursively
      * @param filter     the optional filter
      * @param searchRoot optional element from which to conduct the search
-     *
      * @return a list of elements of given type (or any subtype) from the forest, filtered by the filter if provided
      */
     @Nonnull
-    <T extends Element> List<T> search(@Nonnull Class<T> resultType, boolean recurse,
-        @Nullable Filter<? super T> filter,
-        @Nullable Element searchRoot);
+    default <T extends Element> List<T> search(@Nonnull Class<T> resultType, boolean recurse,
+            @Nullable Filter<? super T> filter, @Nullable Element searchRoot) {
+
+        ArrayList<T> ret = new ArrayList<>();
+        Iterator<T> it = iterateOverElements(resultType, recurse, filter, searchRoot);
+        while (it.hasNext()) {
+            ret.add(it.next());
+        }
+
+        return ret;
+    }
+
+    @Nonnull
+    default <T extends Element> Iterator<T> iterateOverElements(@Nonnull Class<T> resultType, boolean recurse,
+            @Nullable Filter<? super T> filter, @Nullable Element searchRoot) {
+
+        SortedSet<? extends Element> set = searchRoot == null ? getRoots() : searchRoot.getChildren();
+
+        return recurse ? new DFSFilteringIterator<>(set.iterator(), resultType, filter) :
+                new FilteringIterator<>(set.iterator(), resultType, filter);
+    }
+
+    @Nonnull
+    default <T extends Element> Stream<T> stream(@Nonnull Class<T> resultType, boolean recurse,
+            @Nullable Element searchRoot) {
+        Iterator<T> it = iterateOverElements(resultType, recurse, null, searchRoot);
+        Spliterator<T> sit = Spliterators.spliteratorUnknownSize(it,
+                Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED);
+
+        return StreamSupport.stream(sit, false);
+    }
 }

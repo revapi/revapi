@@ -33,11 +33,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.AnalysisResult;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementForest;
 import org.revapi.FilterResult;
 import org.revapi.Revapi;
+import org.revapi.basic.ConfigurableElementFilter;
+import org.revapi.java.matcher.JavaElementMatcher;
 import org.revapi.simple.SimpleElementFilter;
 
 /**
@@ -47,7 +50,7 @@ import org.revapi.simple.SimpleElementFilter;
 public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testSimpleFilterByName_exclude() throws Exception {
-        testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"exclude\": [\"classfilter.A\"]}}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"'class classfilter.A'\"}]}}}}",
                 Stream.of(
                         "class classfilter.B",
                         "field classfilter.B.field",
@@ -61,7 +64,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testSimpleFilterByName_include() throws Exception {
-        testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"include\": [\"classfilter.A\"]}}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"'class classfilter.A'\"}]}}}}",
                 Stream.of(
                         "class classfilter.A",
                         "method void classfilter.A::m()",
@@ -76,8 +79,8 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testInnerClassExclusionOverride() throws Exception {
-        testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"exclude\": [\"classfilter.A\"]," +
-                " \"include\": [\"classfilter.A.AA.AAA\", \"classfilter.B\"]}}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"'class classfilter.A'\"}]," +
+                " \"include\": [{\"matcher\": \"matcher.java\", \"match\": \"'class classfilter.A.AA.AAA' or 'class classfilter.B'\"}]}}}}",
                 Stream.of(
                         "class classfilter.A.AA.AAA",
                         "method void classfilter.A.AA.AAA::<init>()",
@@ -93,8 +96,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testRegexFilter() throws Exception {
-        testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"regex\": true," +
-                " \"exclude\": [\"classfilter\\.(A|B\\.BB)\"]}}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"/class classfilter\\.(A|B\\.BB)/\"}]}}}}",
                 Stream.of(
                         "class classfilter.B",
                         "field classfilter.B.field",
@@ -114,17 +116,29 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
             throws Exception {
         try {
             JavaApiAnalyzer apiAnalyzer = new JavaApiAnalyzer(Collections.emptyList());
-            Revapi r = new Revapi(singleton(JavaApiAnalyzer.class), emptySet(), emptySet(), emptySet(), emptySet());
+            Revapi r = new Revapi(singleton(JavaApiAnalyzer.class), emptySet(), emptySet(),
+                    singleton(ConfigurableElementFilter.class), singleton(JavaElementMatcher.class));
+
             AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(configJSON).build();
-            AnalysisContext analyzerCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JavaApiAnalyzer.class);
+            AnalysisResult.Extensions extensions = r.prepareAnalysis(ctx);
+
+            AnalysisContext filterCtx = extensions.getFirstConfigurationOrNull(ConfigurableElementFilter.class);
+            AnalysisContext analyzerCtx = extensions.getFirstConfigurationOrNull(JavaApiAnalyzer.class);
+
+            ConfigurableElementFilter filter = new ConfigurableElementFilter();
+
+            Assert.assertNotNull(analyzerCtx);
+            Assert.assertNotNull(filterCtx);
+
             apiAnalyzer.initialize(analyzerCtx);
+            filter.initialize(filterCtx);
 
             ArchiveAnalyzer archiveAnalyzer = apiAnalyzer.getArchiveAnalyzer(
                     new API(Collections.singletonList(new ShrinkwrapArchive(archive.archive)), null));
 
             ElementForest forest = archiveAnalyzer.analyze(e -> FilterResult.matchAndDescend());
 
-            List<Element> results = forest.search(Element.class, true, new AcceptingFilter(), null);
+            List<Element> results = forest.search(Element.class, true, filter.asFilter(), null);
 
             ((JavaArchiveAnalyzer) archiveAnalyzer).getCompilationValve().removeCompiledResults();
 

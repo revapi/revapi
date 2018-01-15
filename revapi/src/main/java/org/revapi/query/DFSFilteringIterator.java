@@ -38,6 +38,7 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
     private final Deque<Iterator<? extends Element>> dfsStack = new LinkedList<>();
     private final Filter<? super E> filter;
     private E current;
+    private Iterator<?> removePointer;
 
     /**
      * Constructor.
@@ -60,6 +61,7 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
         if (current != null) {
             return true;
         } else {
+            removePointer = null;
             while (true) {
                 while (!dfsStack.isEmpty() && !dfsStack.peek().hasNext()) {
                     dfsStack.pop();
@@ -87,6 +89,7 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
 
                         if (filter == null || filter.applies(cur)) {
                             current = cur;
+                            removePointer = currentIterator;
                             found = true;
                         }
                     }
@@ -127,12 +130,15 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
         return ret;
     }
 
-    /**
-     * @throws UnsupportedOperationException This is not supported.
-     */
     @Override
     public void remove() {
-        //is this worth implementing?
-        throw new UnsupportedOperationException();
+        // the contract is such that remove() can be only called after next()
+        // hasNext() sets the current and removePointer fields
+        // next() calls hasNext() and clears current, but leaves the removePointer
+        if (current != null || removePointer == null) {
+            throw new IllegalStateException();
+        }
+
+        removePointer.remove();
     }
 }

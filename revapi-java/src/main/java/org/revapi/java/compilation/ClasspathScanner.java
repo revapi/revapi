@@ -120,7 +120,7 @@ final class ClasspathScanner {
     ClasspathScanner(StandardJavaFileManager fileManager, ProbingEnvironment environment,
             Map<Archive, File> classPath, Map<Archive, File> additionalClassPath,
             AnalysisConfiguration.MissingClassReporting missingClassReporting,
-            boolean ignoreMissingAnnotations, InclusionFilter inclusionFilter,
+            boolean ignoreMissingAnnotations,
             ArchiveAnalyzer.Filter filter) {
         this.fileManager = fileManager;
         this.environment = environment;
@@ -130,8 +130,6 @@ final class ClasspathScanner {
                 ? ERROR
                 : missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
-//        this.inclusionFilter = inclusionFilter;
-//        this.defaultInclusionCase = inclusionFilter.defaultCase();
         this.filter = filter;
     }
 
@@ -407,7 +405,7 @@ final class ClasspathScanner {
                     }
                 }
 
-                type.getAnnotationMirrors().forEach(a -> scanAnnotation(tr, type, a));
+                type.getAnnotationMirrors().forEach(a -> scanAnnotation(tr, type, a, -1));
             } catch (Exception e) {
                 LOG.error("Failed to scan class " + type.getQualifiedName().toString()
                         + ". Analysis results may be skewed.", e);
@@ -491,7 +489,7 @@ final class ClasspathScanner {
             addType(fieldType, false);
             addTypeParamUses(owningType, field, field.asType());
 
-            field.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, field, a));
+            field.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, field, a, -1));
         }
 
         void scanMethod(TypeRecord owningType, ExecutableElement method) {
@@ -513,12 +511,15 @@ final class ClasspathScanner {
             for (VariableElement p : method.getParameters()) {
                 TypeElement pt = p.asType().accept(getTypeElement, null);
                 if (pt != null) {
-                    addUse(owningType, method, pt, UseSite.Type.PARAMETER_TYPE, idx++);
+                    addUse(owningType, method, pt, UseSite.Type.PARAMETER_TYPE, idx);
                     addType(pt, false);
                     addTypeParamUses(owningType, method, p.asType());
                 }
 
-                p.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, p, a));
+                int tmp = idx;
+                p.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, p, a, tmp));
+
+                idx++;
             }
 
             method.getThrownTypes().forEach(t -> {
@@ -529,16 +530,16 @@ final class ClasspathScanner {
                     addTypeParamUses(owningType, method, t);
                 }
 
-                t.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a));
+                t.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a, -1));
             });
 
-            method.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a));
+            method.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a, -1));
         }
 
-        void scanAnnotation(TypeRecord owningType, Element annotated, AnnotationMirror annotation) {
+        void scanAnnotation(TypeRecord owningType, Element annotated, AnnotationMirror annotation, int indexOfAnnotated) {
             TypeElement type = annotation.getAnnotationType().accept(getTypeElement, null);
             if (type != null) {
-                addUse(owningType, annotated, type, UseSite.Type.ANNOTATES);
+                addUse(owningType, annotated, type, UseSite.Type.ANNOTATES, indexOfAnnotated);
                 addType(type, true);
             }
         }
@@ -610,9 +611,9 @@ final class ClasspathScanner {
             Set<ClassPathUseSite> sites = usedTr.useSites;
             sites.add(new ClassPathUseSite(useType, user, indexInParent));
 
-            Map<TypeRecord, Set<Element>> usedTypes = userType.usedTypes.computeIfAbsent(useType, k -> new HashMap<>(4));
+            Map<TypeRecord, Set<UseSitePath>> usedTypes = userType.usedTypes.computeIfAbsent(useType, k -> new HashMap<>(4));
 
-            usedTypes.computeIfAbsent(usedTr, __ -> new HashSet<>(4)).add(user);
+            usedTypes.computeIfAbsent(usedTr, __ -> new HashSet<>(4)).add(new UseSitePath(userType.javacElement, user));
         }
 
         TypeRecord getTypeRecord(TypeElement type) {
@@ -886,11 +887,30 @@ final class ClasspathScanner {
 
                         element.setInherited(true);
 
+                        if (e instanceof ExecutableElement) {
+                            // we need to add the use sites to the inherited method, too
+                            superType.usedTypes.forEach((useType, sites) -> sites.forEach((usedType, useSites) -> {
+                                useSites.forEach(site -> {
+                                    if (site.useSite != e) {
+                                        return;
+                                    }
+
+                                    int index = useType == UseSite.Type.PARAMETER_TYPE
+                                            ? site.useSite.getEnclosingElement().getEnclosedElements().indexOf(site.useSite)
+                                            : -1;
+
+                                    usedType.useSites.add(new InheritedUseSite(useType, site.useSite, target.modelElement, index));
+                                    target.usedTypes.computeIfAbsent(useType, __ -> new HashMap<>())
+                                            .computeIfAbsent(usedType, __ -> new HashSet<>()).add(new UseSitePath(target.javacElement, site.useSite));
+                                });
+                            }));
+                        }
+
                         initNonClassElementChildrenAndMoveToApi(target, element, true);
 
                         return element;
                     })
-                    .filter(e -> e != null)
+                    .filter(Objects::nonNull)
                     .forEach(c -> target.modelElement.getChildren().add(c));
 
             for (TypeRecord st : superType.superTypes) {
@@ -1041,7 +1061,7 @@ final class ClasspathScanner {
         Set<ClassPathUseSite> useSites = new HashSet<>(2);
         TypeElement javacElement;
         org.revapi.java.model.TypeElement modelElement;
-        Map<UseSite.Type, Map<TypeRecord, Set<Element>>> usedTypes = new EnumMap<>(UseSite.Type.class);
+        Map<UseSite.Type, Map<TypeRecord, Set<UseSitePath>>> usedTypes = new EnumMap<>(UseSite.Type.class);
         Set<Element> accessibleDeclaredNonClassMembers = new HashSet<>(4);
         Set<Element> inaccessibleDeclaredNonClassMembers = new HashSet<>(4);
         //important for this to be a linked hashset so that superclasses are processed prior to implemented interfaces

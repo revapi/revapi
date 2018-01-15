@@ -189,6 +189,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     @Nonnull
     @Override
     protected final SortedSet<org.revapi.Element> newChildrenInstance() {
-        return new UseSiteUpdatingSortedSet<>(environment, super.newChildrenInstance());
+        //return new UseSiteUpdatingSortedSet<>(environment, super.newChildrenInstance());
+        return super.newChildrenInstance();
     }
 }

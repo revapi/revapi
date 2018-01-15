@@ -113,6 +113,9 @@ public final class JavaElementMatcher implements ElementMatcher {
             public void exitTopExpression(TopExpressionContext ctx) {
                 if (ctx.getChildCount() == 3) {
                     exitLogicalExpression(ctx.getChild(1).getText());
+                } else if (ctx.getChildCount() == 1 && expressionStack.peek() instanceof DataExtractorNeededMarker) {
+                    expressionStack.push(
+                            convertNakedStringOrRegexUsing(expressionStack.pop(), RepresentationExtractor::new));
                 }
             }
 

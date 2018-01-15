@@ -17,19 +17,24 @@
 package org.revapi.java;
 
 import java.io.StringWriter;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.Nonnull;
 
 import org.revapi.API;
 import org.revapi.ArchiveAnalyzer;
+import org.revapi.Element;
 import org.revapi.ElementForest;
 import org.revapi.java.compilation.CompilationFuture;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.Compiler;
-import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementForest;
+import org.revapi.java.model.TypeElement;
+import org.revapi.java.spi.UseSite;
 
 /**
  * @author Lukas Krejci
@@ -42,18 +47,15 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
     private final boolean ignoreMissingAnnotations;
     private CompilationValve compilationValve;
-    private InclusionFilter inclusionFilter;
 
     public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
             AnalysisConfiguration.MissingClassReporting missingClassReporting,
-            boolean ignoreMissingAnnotations,
-            InclusionFilter inclusionFilter) {
+            boolean ignoreMissingAnnotations) {
         this.api = api;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.probingEnvironment = new ProbingEnvironment(api);
-        this.inclusionFilter = inclusionFilter;
     }
 
     @Nonnull
@@ -68,7 +70,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
                 filter);
         try {
             compilationValve = compiler
-                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, inclusionFilter);
+                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations);
 
             probingEnvironment.getTree()
                 .setCompilationFuture(new CompilationFuture(compilationValve, output));
@@ -84,8 +86,71 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
 
     @Override
     public void prune(ElementForest forest) {
-        // nothing to be done here actually the java element forest updates the use sites while the elements
-        // are removed from it automatically
+        if (!(forest instanceof JavaElementForest)) {
+            return;
+        }
+
+        boolean changed;
+
+        Set<TypeElement> toRemove = new HashSet<>();
+
+        do {
+            Iterator<TypeElement> it = forest.iterateOverElements(TypeElement.class, true, null, null);
+
+            toRemove.clear();
+
+            while (it.hasNext()) {
+                TypeElement type = it.next();
+
+                boolean remove = true;
+
+                Iterator<UseSite> usit = type.getUseSites().iterator();
+                while (usit.hasNext()) {
+                    UseSite useSite = usit.next();
+                    if (isInForest(forest, useSite.getSite())) {
+                        if (useSite.getUseType().isMovingToApi()) {
+                            remove = false;
+                        }
+                    } else {
+                        usit.remove();
+                    }
+                }
+
+                // keep the types that are in the API because they are, not just because something dragged them into it.
+                if (isInApi(type)) {
+                    continue;
+                }
+
+                if (remove) {
+                    toRemove.add(type);
+                }
+            }
+
+            changed = !toRemove.isEmpty();
+
+            for (TypeElement t : toRemove) {
+                if (t.getParent() == null) {
+                    forest.getRoots().remove(t);
+                } else {
+                    t.getParent().getChildren().remove(t);
+                }
+
+                t.getUsedTypes().entrySet().removeIf(e -> {
+                    UseSite.Type useType = e.getKey();
+                    e.getValue().entrySet().removeIf(e2 -> {
+                        TypeElement usedType = e2.getKey();
+                        usedType.getUseSites().removeIf(us -> {
+                            //noinspection SuspiciousMethodCalls
+                            return us.getUseType() == useType && e2.getValue().contains(us.getSite());
+                        });
+
+                        return usedType.getUseSites().isEmpty();
+                    });
+
+                    return e.getValue().isEmpty();
+                });
+            }
+        } while (changed);
     }
 
     public ProbingEnvironment getProbingEnvironment() {
@@ -94,5 +159,31 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
 
     public CompilationValve getCompilationValve() {
         return compilationValve;
+    }
+
+    private static boolean isInForest(ElementForest forest, Element element) {
+        Element parent = element.getParent();
+        while (parent != null) {
+            element = parent;
+            parent = parent.getParent();
+        }
+
+        return forest.getRoots().contains(element);
+    }
+
+    private static boolean isInApi(TypeElement element) {
+        while (element != null) {
+            if (element.isInAPI() && !element.isInApiThroughUse()) {
+                return true;
+            }
+
+            if (element.getParent() instanceof TypeElement) {
+                element = (TypeElement) element.getParent();
+            } else {
+                element = null;
+            }
+        }
+
+        return false;
     }
 }

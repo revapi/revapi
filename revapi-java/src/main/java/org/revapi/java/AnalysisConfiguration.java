@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jboss.dmr.ModelNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
@@ -30,26 +32,17 @@ import org.jboss.dmr.ModelNode;
  */
 public final class AnalysisConfiguration {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AnalysisConfiguration.class);
+
     private final MissingClassReporting missingClassReporting;
     private final Set<String> useReportingCodes;
     private final boolean ignoreMissingAnnotations;
-    private final Set<Pattern> classInclusionFilters;
-    private final Set<Pattern> classExclusionFilters;
-    private final Set<Pattern> packageInclusionFilters;
-    private final Set<Pattern> packageExclusionFilters;
 
-    public AnalysisConfiguration(MissingClassReporting missingClassReporting, Set<String> useReportingCodes,
-                                 boolean ignoreMissingAnnotations,
-                                 Set<Pattern> classInclusionFilters,
-                                 Set<Pattern> classExclusionFilters,
-                                 Set<Pattern> packageInclusionFilters, Set<Pattern> packageExclusionFilters) {
+    AnalysisConfiguration(MissingClassReporting missingClassReporting, Set<String> useReportingCodes,
+                                 boolean ignoreMissingAnnotations) {
         this.missingClassReporting = missingClassReporting;
         this.useReportingCodes = useReportingCodes;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
-        this.classInclusionFilters = classInclusionFilters;
-        this.classExclusionFilters = classExclusionFilters;
-        this.packageInclusionFilters = packageInclusionFilters;
-        this.packageExclusionFilters = packageExclusionFilters;
     }
 
     public static AnalysisConfiguration fromModel(ModelNode node) {
@@ -69,9 +62,13 @@ public final class AnalysisConfiguration {
         Set<Pattern> packageExclusionFilters = readFilter(node.get("filter", "packages", "exclude"),
                 packagesRegex);
 
-        return new AnalysisConfiguration(reporting, useReportingCodes,
-                ignoreMissingAnnotations, classInclusionFilters,
-                classExclusionFilters, packageInclusionFilters, packageExclusionFilters);
+        if (!(classInclusionFilters.isEmpty() && classExclusionFilters.isEmpty() && packageInclusionFilters.isEmpty()
+                && packageExclusionFilters.isEmpty())) {
+            LOG.warn("Filtering using the revapi.java.filter.* has been deprecated in favor of revapi.filter" +
+                    " together with the java specific matchers (matcher.java).");
+        }
+
+        return new AnalysisConfiguration(reporting, useReportingCodes, ignoreMissingAnnotations);
     }
 
     public MissingClassReporting getMissingClassReporting() {
@@ -88,22 +85,6 @@ public final class AnalysisConfiguration {
 
     public boolean isIgnoreMissingAnnotations() {
         return ignoreMissingAnnotations;
-    }
-
-    public Set<Pattern> getClassExclusionFilters() {
-        return classExclusionFilters;
-    }
-
-    public Set<Pattern> getClassInclusionFilters() {
-        return classInclusionFilters;
-    }
-
-    public Set<Pattern> getPackageExclusionFilters() {
-        return packageExclusionFilters;
-    }
-
-    public Set<Pattern> getPackageInclusionFilters() {
-        return packageInclusionFilters;
     }
 
     private static MissingClassReporting readMissingClassReporting(ModelNode analysisConfig) {

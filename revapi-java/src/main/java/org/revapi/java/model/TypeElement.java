@@ -36,7 +36,9 @@ import javax.lang.model.util.SimpleElementVisitor8;
 
 import org.revapi.Archive;
 import org.revapi.java.compilation.ClassPathUseSite;
+import org.revapi.java.compilation.InheritedUseSite;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.compilation.UseSitePath;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
@@ -55,7 +57,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     private boolean inApi;
     private boolean inApiThroughUse;
     private Map<UseSite.Type, Map<TypeElement, Set<JavaModelElement>>> usedTypes;
-    private Map<UseSite.Type, Map<TypeElement, Set<Element>>> rawUsedTypes;
+    private Map<UseSite.Type, Map<TypeElement, Set<UseSitePath>>> rawUsedTypes;
 
     /**
      * This is a helper constructor used only in {@link MissingClassElement}. Inheritors using this constructor need
@@ -129,8 +131,14 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
             } else {
                 useSites = rawUseSites.stream()
                         .map(u -> {
-                            JavaModelElement model = getModel(u.site, u.indexInParent);
-                            return model == null ? null : new UseSite(u.useType, model);
+                            if (u instanceof InheritedUseSite) {
+                                JavaModelElement model = getModel(u.site, ((InheritedUseSite) u).inheritor,
+                                        u.indexInParent);
+                                return model == null ? null : new UseSite(u.useType, model);
+                            } else {
+                                JavaModelElement model = getModel(u.site, null, u.indexInParent);
+                                return model == null ? null : new UseSite(u.useType, model);
+                            }
                         }).filter(Objects::nonNull)
                         .collect(toSet());
             }
@@ -150,17 +158,25 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         if (usedTypes == null) {
             usedTypes = new HashMap<>();
             if (rawUsedTypes != null) {
-                for (Map.Entry<UseSite.Type, Map<TypeElement, Set<Element>>> e : rawUsedTypes.entrySet()) {
+                for (Map.Entry<UseSite.Type, Map<TypeElement, Set<UseSitePath>>> e : rawUsedTypes.entrySet()) {
                     Map<TypeElement, Set<JavaModelElement>> value = e.getValue().entrySet().stream()
                             .collect(toMap(
                                     Map.Entry::getKey,
-                                    entry -> entry.getValue().stream().map(el -> {
+                                    entry -> entry.getValue().stream().map(path -> {
                                         int index = -1;
-                                        if (el instanceof VariableElement && el.getEnclosingElement() instanceof ExecutableElement) {
+                                        if (path instanceof VariableElement && path.useSite instanceof ExecutableElement) {
                                             //find the index of the method parameter
-                                            index = el.getEnclosingElement().getEnclosedElements().indexOf(el);
+                                            index = path.useSite.getEnclosingElement().getEnclosedElements()
+                                                    .indexOf(path.useSite);
                                         }
-                                        return getModel(el, index);
+
+                                        TypeElement owner = null;
+
+                                        if (path.owner != null) {
+                                            owner = (TypeElement) getModel(path.owner, null, -1);
+                                        }
+
+                                        return getModel(path.useSite, owner, index);
                                     }).filter(Objects::nonNull).collect(toSet())));
 
                     usedTypes.put(e.getKey(), value);
@@ -170,7 +186,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return usedTypes;
     }
 
-    public void setRawUsedTypes(Map<UseSite.Type, Map<TypeElement, Set<Element>>> usedTypes) {
+    public void setRawUsedTypes(Map<UseSite.Type, Map<TypeElement, Set<UseSitePath>>> usedTypes) {
         this.rawUsedTypes = usedTypes;
     }
 
@@ -207,13 +223,13 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return null;
     }
 
-    private JavaModelElement getModel(Element element, int indexInParent) {
+    private JavaModelElement getModel(Element element, TypeElement owner, int indexInParent) {
         return element.accept(new SimpleElementVisitor8<JavaModelElement, Void>() {
             @Override
             public JavaModelElement visitVariable(VariableElement e, Void ignored) {
                 if (e.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
                     //this is a field
-                    TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
+                    TypeElement type = findModelType(e.getEnclosingElement());
                     if (type == null) {
                         return null;
                     }
@@ -224,7 +240,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 } else if (e.getEnclosingElement() instanceof javax.lang.model.element.ExecutableElement) {
                     //this is a method parameter
                     Element methodEl = e.getEnclosingElement();
-                    TypeElement type = environment.getTypeMap().get(methodEl.getEnclosingElement());
+                    TypeElement type = findModelType(methodEl.getEnclosingElement());
                     if (type == null) {
                         return null;
                     }
@@ -250,12 +266,12 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
             @Override
             public JavaModelElement visitType(javax.lang.model.element.TypeElement e, Void ignored) {
-                return environment.getTypeMap().get(e);
+                return findModelType(e);
             }
 
             @Override
             public JavaModelElement visitExecutable(ExecutableElement e, Void ignored) {
-                TypeElement type = environment.getTypeMap().get(e.getEnclosingElement());
+                TypeElement type = findModelType(e.getEnclosingElement());
                 if (type == null) {
                     return null;
                 }
@@ -264,6 +280,14 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                         Filter.shallow(m -> m.getDeclaringElement().equals(e)));
 
                 return ms.isEmpty() ? null : ms.get(0);
+            }
+
+            private TypeElement findModelType(Element enclosingElement) {
+                if (owner == null) {
+                    return environment.getTypeMap().get(enclosingElement);
+                } else {
+                    return owner;
+                }
             }
         }, null);
     }

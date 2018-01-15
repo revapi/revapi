@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.Archive;
 import org.revapi.java.AbstractJavaElementAnalyzerTest;
+import org.revapi.java.JavaArchiveAnalyzer;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.TypeElement;
@@ -40,8 +41,7 @@ import org.revapi.java.spi.UseSite;
 import org.revapi.java.test.support.Jar;
 import org.revapi.simple.FileArchive;
 
-//This needs to be in this package so that it has access to package private method in ProbingEnvironment
-public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest {
+public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
 
     @Rule
     public Jar jar = new Jar();
@@ -61,6 +61,7 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
     private MethodElement FFFctor;
 
     private ProbingEnvironment environment;
+    private JavaArchiveAnalyzer analyzer;
 
     private void createEnvironment() throws Exception {
         API fakeApi = API.builder().build();
@@ -159,8 +160,8 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
         A.setInApi(true);
         B.setInApi(true);
         C.setInApi(true);
-        E.setInApi(true);
-        E.setInApiThroughUse(true);
+        E.setInApi(false);
+        E.setInApiThroughUse(false);
         FFF.setInApi(true);
         FFF.setInApiThroughUse(true);
 
@@ -173,6 +174,8 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
         typeMap.put(FFF.getDeclaringElement(), FFF);
 
         environment.setTypeMap(typeMap);
+
+        analyzer = new JavaArchiveAnalyzer(fakeApi, null, null, true);
     }
 
     @Test
@@ -180,12 +183,16 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
         createEnvironment();
 
         forest.getRoots().remove(C);
+        analyzer.prune(forest);
+
         assertFalse(B.getUseSites().contains(new UseSite(UseSite.Type.IS_IMPLEMENTED, C)));
         assertFalse(B.getUseSites().contains(new UseSite(UseSite.Type.PARAMETER_TYPE, Cm)));
         assertFalse(B.getUseSites().contains(new UseSite(UseSite.Type.TYPE_PARAMETER_OR_BOUND, C)));
         assertFalse(E.getUseSites().contains(new UseSite(UseSite.Type.IS_THROWN, Cm)));
 
         forest.getRoots().remove(B);
+        analyzer.prune(forest);
+
         assertFalse(A.getUseSites().contains(new UseSite(UseSite.Type.ANNOTATES, B)));
     }
 
@@ -193,6 +200,7 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
     public void testRootTypesRemoved() throws Exception {
         createEnvironment();
         Cm.getParent().getChildren().remove(Cm);
+        analyzer.prune(forest);
         assertFalse(forest.getRoots().contains(E));
     }
 
@@ -202,6 +210,7 @@ public class UseSiteUpdatingTreeSetTest extends AbstractJavaElementAnalyzerTest 
 
         assertTrue(forest.getRoots().contains(F));
         forest.getRoots().remove(E);
+        analyzer.prune(forest);
         assertFalse(forest.getRoots().contains(F));
     }
 }

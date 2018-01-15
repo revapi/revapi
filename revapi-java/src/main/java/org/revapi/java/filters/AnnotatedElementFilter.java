@@ -27,6 +27,7 @@ import org.revapi.java.spi.Util;
  * @author Lukas Krejci
  * @since 0.5.1
  */
+@Deprecated
 public final class AnnotatedElementFilter extends AbstractIncludeExcludeFilter {
     public AnnotatedElementFilter() {
         super("revapi.java.filter.annotated", "/META-INF/annotated-elem-filter-schema.json");

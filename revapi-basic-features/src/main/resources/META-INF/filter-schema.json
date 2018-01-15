@@ -25,7 +25,7 @@
                             "match": {
                                 "type": "string"
                             },
-                            "orChildren": {
+                            "reincludedByChildren": {
                                 "type": "boolean",
                                 "default": true
                             }

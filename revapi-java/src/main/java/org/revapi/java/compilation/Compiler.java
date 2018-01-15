@@ -35,7 +35,6 @@ import javax.tools.ToolProvider;
 
 import org.revapi.Archive;
 import org.revapi.ArchiveAnalyzer;
-import org.revapi.ElementMatcher;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.Timing;
 import org.slf4j.Logger;
@@ -71,9 +70,8 @@ public final class Compiler {
     }
 
     public CompilationValve compile(final ProbingEnvironment environment,
-                                    final AnalysisConfiguration.MissingClassReporting missingClassReporting,
-                                    final boolean ignoreMissingAnnotations,
-                                    final InclusionFilter inclusionFilter)
+            final AnalysisConfiguration.MissingClassReporting missingClassReporting,
+            final boolean ignoreMissingAnnotations)
             throws Exception {
 
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
@@ -124,7 +122,7 @@ public final class Compiler {
 
             try {
                 new ClasspathScanner(fileManager, environment, classPathFiles, additionClassPathFiles,
-                        missingClassReporting, ignoreMissingAnnotations, inclusionFilter, filter).initTree();
+                        missingClassReporting, ignoreMissingAnnotations, filter).initTree();
             } catch (IOException e) {
                 throw new IllegalStateException("Failed to scan the classpath.", e);
             }

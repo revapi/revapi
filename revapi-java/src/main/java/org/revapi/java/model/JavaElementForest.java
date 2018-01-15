@@ -112,11 +112,11 @@ public final class JavaElementForest extends SimpleElementForest {
             UNSAFE_MODE.set(unsafe);
         }
     }
-
-    @Override
-    protected SortedSet<? extends SimpleElement> newRootsInstance() {
-        return new UseSiteUpdatingSortedSet<>(environment, super.newRootsInstance());
-    }
+//
+//    @Override
+//    protected SortedSet<? extends SimpleElement> newRootsInstance() {
+//        return new UseSiteUpdatingSortedSet<>(environment, super.newRootsInstance());
+//    }
 
     private void waitForCompilation() {
         try {

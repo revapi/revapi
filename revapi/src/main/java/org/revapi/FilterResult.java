@@ -40,6 +40,10 @@ public abstract class FilterResult {
         return from(FilterMatch.DOESNT_MATCH, false);
     }
 
+    public static FilterResult doesntMatchAndDescend() {
+        return from(FilterMatch.DOESNT_MATCH, true);
+    }
+
     public static FilterResult from(FilterMatch match, boolean descend) {
         switch (match) {
             case DOESNT_MATCH:
@@ -94,7 +98,14 @@ public abstract class FilterResult {
     }
 
     public FilterResult negate() {
-        return from(getMatch().negate(), !isDescend());
+        FilterMatch negatedMatch = getMatch().negate();
+
+        //noinspection SimplifiableConditionalExpression
+        return from(negatedMatch, negatedMatch == FilterMatch.UNDECIDED ? isDescend() : !isDescend());
+    }
+
+    public FilterResult negateMatch() {
+        return from(getMatch().negate(), isDescend());
     }
 
     @Override

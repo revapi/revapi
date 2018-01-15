@@ -136,9 +136,7 @@ public interface Element extends Comparable<Element> {
      * @return the iterator that will iterate over the results
      *
      * @see #searchChildren(Class, boolean, org.revapi.query.Filter)
-     * @deprecated in favor of {@link #stream(Class, boolean)}
      */
-    @Deprecated
     @Nonnull
     <T extends Element> Iterator<T> iterateOverChildren(@Nonnull Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);

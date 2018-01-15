@@ -463,10 +463,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Override
     public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
-        InclusionFilter inclusionFilter = composeInclusionFilter(configuration);
-
         return new JavaArchiveAnalyzer(api, compilationExecutor, configuration.getMissingClassReporting(),
-                ignoreMissingAnnotations, inclusionFilter);
+                ignoreMissingAnnotations);
     }
 
     @Nonnull
@@ -488,61 +486,6 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Override
     public void close() {
         compilationExecutor.shutdown();
-    }
-
-    private static InclusionFilter composeInclusionFilter(AnalysisConfiguration config) {
-        final Set<Pattern> inclClasses = config.getClassInclusionFilters();
-        final Set<Pattern> exclClasses = config.getClassExclusionFilters();
-        final Set<Pattern> inclPkgs = config.getPackageInclusionFilters();
-        final Set<Pattern> exclPkgs = config.getPackageExclusionFilters();
-
-        return new InclusionFilter() {
-            @Override
-            public boolean accepts(String typeBinaryName, String typeCanonicalName) {
-                for (Pattern p : inclClasses) {
-                    if (p.matcher(typeCanonicalName).matches()) {
-                        return true;
-                    }
-                }
-
-                int lastDot = typeBinaryName.lastIndexOf('.');
-                String pkg = lastDot == -1 ? "" : typeBinaryName.substring(0, lastDot);
-
-
-                for (Pattern p : inclPkgs) {
-                    if (p.matcher(pkg).matches()) {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            @Override
-            public boolean rejects(String typeBinaryName, String typeCanonicalName) {
-                for (Pattern p : exclClasses) {
-                    if (p.matcher(typeCanonicalName).matches()) {
-                        return true;
-                    }
-                }
-
-                int lastDot = typeBinaryName.lastIndexOf('.');
-                String pkg = lastDot == -1 ? "" : typeBinaryName.substring(0, lastDot);
-
-                for (Pattern p : exclPkgs) {
-                    if (p.matcher(pkg).matches()) {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            @Override
-            public boolean defaultCase() {
-                return inclClasses.isEmpty() && inclPkgs.isEmpty();
-            }
-        };
     }
 
     private static String consume(Reader rdr) throws IOException {
