@@ -139,7 +139,7 @@
                     <tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
                     <releaseProfiles>release,release-profile</releaseProfiles>
                     <pushChanges>false</pushChanges>
-                    <preparationGoals>clean verify</preparationGoals>
+                    <preparationGoals>license:format clean verify</preparationGoals>
                 </configuration>
             </plugin>
 
