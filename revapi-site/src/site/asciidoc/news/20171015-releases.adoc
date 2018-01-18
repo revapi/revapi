@@ -1,4 +1,5 @@
 == New Releases and Updates to The Site
+:docname: 20171015-releases
 
 There hasn't been much public progress on Revapi lately but it nevertheless slowly crawls forward in its quest to become the best programming API checking tool in the multiverse :)
 
@@ -37,4 +38,6 @@ Many thanks go out to Anton Klaren for fixing the XML-to-JSON list conversion bu
 Due to limited time available I am still not finished with the greatly enhanced element matching mentioned in the last link:20170712-releases.html[release notes].
 
 Revapi still has many other link:https://github.com/revapi/revapi/issues[areas to improve in]. Your help of any kind is greatly appreciated.
+
+include::../util/disqus.adoc[]
 

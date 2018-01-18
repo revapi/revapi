@@ -1,4 +1,5 @@
 == Introducing Online API Difference Checking
+:docname: 20170424-intro
 
 Starting today there is an online tool for checking the difference between different versions of libraries on
 https://diff.revapi.org.
@@ -14,3 +15,5 @@ As everything in Revapi, the site is in beta, so your feedback, suggestions and 
 NOTE: The tool is meant to aid in deciding whether it is safe to upgrade to a newer versions of some library. While it can
 detect API changes, it cannot detect behavioral changes, so you should not base any decision solely on the output
 of this tool.
+
+include::../util/disqus.adoc[]

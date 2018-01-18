@@ -97,6 +97,9 @@
         <name>Revapi</name>
         <href>${web.url}</href>
       </brand>
+      <endContent>
+        <script id="dsq-count-scr" src="//revapi-org.disqus.com/count.js" async="true"></script>
+      </endContent>
     </msb3Skin>
   </custom>
 

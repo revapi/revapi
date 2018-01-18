@@ -1,4 +1,5 @@
 == New Releases Restoring Compatibility
+:docname: 20171029-compatibility-release
 
 Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
 plugin. This has proven to be problematic and the link:20171015-releases.html[last] releases could not be used with
@@ -20,3 +21,5 @@ This artifact is supposed to help custom extensions with testing by providing si
 inspect custom jar files.
 
 Thanks go out to Petr Široký who found, diagnosed and fixed the compatibility issue. Petr, you're a star!
+
+include::../util/disqus.adoc[]
