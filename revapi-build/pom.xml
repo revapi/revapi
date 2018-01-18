@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2017 Lukas Krejci
+    Copyright 2014-2018 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@
         <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
         <version.org.slf4j>1.7.5</version.org.slf4j>
 
-        <version.revapi-build-support>5-SNAPSHOT</version.revapi-build-support>
+        <version.revapi-build-support>5</version.revapi-build-support>
 
         <maven.compiler.release>8</maven.compiler.release>
 
