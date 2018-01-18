@@ -21,7 +21,7 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>10-SNAPSHOT</version>
+        <version>10</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,7 +33,7 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>35-SNAPSHOT</version>
+    <version>35</version>
     <packaging>pom</packaging>
     <url>${web.url}</url>
 
@@ -495,6 +495,6 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
+        <tag>revapi-build-35</tag>
     </scm>
 </project>
