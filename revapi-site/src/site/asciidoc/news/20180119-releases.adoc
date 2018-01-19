@@ -1,0 +1,65 @@
+== New Releases and Updates to the Site
+:docname: 20180119-releases
+
+Today, I've released new versions of all revapi components (required by an API change in the core revapi API). Also,
+the Revapi site underwent a couple of changes worth mentioning.
+
+I've implemented `osgi-revapi-extension` https://github.com/revapi/osgi-revapi-extension[module] that basically works as
+a filter to only include classes exported from an OSGi bundle. If you're working with OSGi, give it a spin by adding it
+as a dependency to the `revapi-maven-plugin`:
+
+```xml
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    <configuration>
+       ...
+    </configuration>
+    <dependencies>
+       <dependency>
+          <groupId>org.revapi</groupId>
+          <artifactId>revapi-java</artifactId>
+          <version>...</version>
+       </dependency>
+       <dependency>
+          <groupId>org.revapi</groupId>
+          <artifactId>osgi-revapi-extension</artifactId>
+          <version>...</version>
+       </dependency>
+    </dependencies>
+</plugin>
+```
+
+It is now possible to traverse the API even if there is no counterpart in the other API and run (some of) the checks
+only on the classes of that API. This is useful for example for checking the non-public class usage when the very first
+version of a library is being developed. This was reported as https://github.com/revapi/revapi/issues/109[#109].
+
+In addition, the `java.class.nonPublicPartOfAPI` check can now be
+https://revapi.org/modules/revapi-java/index.html#class_is_non_public_part_of_api[configured] to not report violations
+that already exist in the prior version (while the default is still to report the violations even if they are already
+present). This was reported as https://github.com/revapi/revapi/issues/108[#108].
+
+The standalone CLI has been changed to only use JBoss Modules when establishing the classpath for the extensions which
+should improve the reliability of it. Also, it can now report the possibility of errors when the extensions use
+a different version of the core revapi API than the one bundled with the CLI. Overall, the CLI should now be more usable
+and the problems with extensions more easily identifiable.
+
+The `report-aggregate` goal no longer hardcodes some of the properties that are configurable in other goals. This was
+reported as https://github.com/revapi/revapi/issues/105[#105].
+
+The `revapi-java-test-support` which enables JUnit4 based tests to easily compile source code into jars and then
+programmatically access the classes in those jars using `javax.lang.model` classes (as annotation processors do) has
+been fixed to be actually useful.
+
+The link:../https://revapi.org/modules/revapi-java/[Java Extension] navigation has been greatly simplified and all the
+docs are now on a single page, making it hopefully easier to find stuff.
+
+And last but not least, comments are now enabled on the news articles such as this as another communication channel you
+can use to get in touch.
+
+Thanks go out to Martin Monperrus for his work on making the site more usable, Ricardo Ferreira for fixing the
+`report-aggregate` goal and to Matthew Kavanagh for reporting the problems with the `java.class.nonPublicPartOfAPI`
+check. Your contributions are very much appreciated.
+
+include::../utils/disqus.adoc[]
