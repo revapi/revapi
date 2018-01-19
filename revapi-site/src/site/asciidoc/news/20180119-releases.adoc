@@ -62,4 +62,4 @@ Thanks go out to Martin Monperrus for his work on making the site more usable, R
 `report-aggregate` goal and to Matthew Kavanagh for reporting the problems with the `java.class.nonPublicPartOfAPI`
 check. Your contributions are very much appreciated.
 
-include::../utils/disqus.adoc[]
+include::../util/disqus.adoc[]
