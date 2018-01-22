@@ -137,4 +137,20 @@
         The diff.revapi.org site should be back up now.
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20180119-releases.html</id>
+    <title>New Releases and Updates to the Site</title>
+    <updated>2018-01-19T00:00:00+00:00</updated>
+    <published>2018-01-19T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180119-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+	oday, I've released new versions of all revapi components (required by an API change in the core revapi API). Also,
+    the Revapi site underwent a couple of changes worth mentioning.
+    </summary>
+    <content type="html">
+        oday, I've released new versions of all revapi components (required by an API change in the core revapi API). Also,
+        the Revapi site underwent a couple of changes worth mentioning.
+    </content>
+  </entry>
 </feed>

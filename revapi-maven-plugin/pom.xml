@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2017 Lukas Krejci
+    Copyright 2014-2018 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>35-SNAPSHOT</version>
+        <version>36-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -34,7 +34,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-maven-plugin</artifactId>
-    <version>0.10.0-SNAPSHOT</version>
+    <version>0.11.0-SNAPSHOT</version>
 
     <properties>
         <maven.version>3.2.5</maven.version>
@@ -44,9 +44,9 @@
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi-java.version>0.15.0-SNAPSHOT</revapi-java.version>
-        <revapi-java-spi.version>0.15.0-SNAPSHOT</revapi-java-spi.version>
-        <revapi-reporter-text.version>0.8.1</revapi-reporter-text.version>
+        <revapi-java.version>0.16.0-SNAPSHOT</revapi-java.version>
+        <revapi-java-spi.version>0.16.0-SNAPSHOT</revapi-java-spi.version>
+        <revapi-reporter-text.version>0.10.0-SNAPSHOT</revapi-reporter-text.version>
 
         <automatic.module.name>org.revapi.maven.plugin</automatic.module.name>
     </properties>
@@ -59,20 +59,20 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.10.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.6.3</version>
+            <version>0.8.0-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.8.2</version>
+            <version>0.8.3</version>
         </dependency>
 
         <dependency>

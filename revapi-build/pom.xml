@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2017 Lukas Krejci
+    Copyright 2014-2018 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>10-SNAPSHOT</version>
+        <version>11-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,13 +33,13 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>35-SNAPSHOT</version>
+    <version>36-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>${web.url}</url>
 
     <properties>
-        <self-api-check.maven-version>0.9.5</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.14.4</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.10.0</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.15.0</self-api-check.java-extension-version>
 
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
@@ -47,7 +47,7 @@
         <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
         <version.org.slf4j>1.7.5</version.org.slf4j>
 
-        <version.revapi-build-support>5-SNAPSHOT</version.revapi-build-support>
+        <version.revapi-build-support>5</version.revapi-build-support>
 
         <maven.compiler.release>8</maven.compiler.release>
 

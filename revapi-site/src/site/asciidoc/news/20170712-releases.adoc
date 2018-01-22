@@ -1,4 +1,5 @@
 == New Releases and Updates to The Site
+:docname: 20170712-releases
 
 After a couple of silent weeks I've finally managed to release new versions of the Revapi components. There are exactly
 2 fixes, one new feature and many improvements to the site.
@@ -24,3 +25,5 @@ not in a package ending in ".impl" or which are annotated by "@my.annos.Public" 
 
 Even though I think the above is a great and much needed improvement, Revapi still has many other
 link:https://github.com/revapi/revapi/issues[areas to improve in]. Your help of any kind is greatly appreciated.
+
+include::../util/disqus.adoc[]

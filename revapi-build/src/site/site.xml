@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
 
-    Copyright 2014-2017 Lukas Krejci
+    Copyright 2014-2018 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -97,6 +97,9 @@
         <name>Revapi</name>
         <href>${web.url}</href>
       </brand>
+      <endContent>
+        <script id="dsq-count-scr" src="//revapi-org.disqus.com/count.js" async="true"></script>
+      </endContent>
     </msb3Skin>
   </custom>
 
