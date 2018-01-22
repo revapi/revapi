@@ -115,7 +115,7 @@ public class ClassificationTransformTest {
 
     @Test
     public void testReclassifyByComplexElementMatch() throws Exception {
-        test("[{\"extension\": \"revapi.reclassify\", \"configuration\":[{\"code\":\"code\", \"new\": {\"matcher\": \"matcher.regex\", \"recipe\": \"n.*\"}, \"classify\": {\"BINARY\" : \"BREAKING\"}}]}]",
+        test("[{\"extension\": \"revapi.reclassify\", \"configuration\":[{\"code\":\"code\", \"new\": {\"matcher\": \"matcher.regex\", \"match\": \"n.*\"}, \"classify\": {\"BINARY\" : \"BREAKING\"}}]}]",
                 new RegexElementMatcher(), difference -> {
                     Assert.assertNotNull(difference);
                     Assert.assertEquals(BREAKING, difference.classification.get(CompatibilityType.BINARY));

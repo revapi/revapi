@@ -144,7 +144,7 @@ public class ConfigurableElementFilterTest {
     @Test
     public void testInclusionByMatch() throws Exception {
         testWithConfig("{\"elements\": {" +
-                "\"include\": [{\"matcher\": \"matcher.exact\", \"recipe\": \"el1\"}]" +
+                "\"include\": [{\"matcher\": \"matcher.exact\", \"match\": \"el1\"}]" +
                 "}}", setOf(new ExactElementMatcher()), filter -> {
 
             assertEquals(FilterMatch.MATCHES, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el1)
@@ -157,7 +157,7 @@ public class ConfigurableElementFilterTest {
     @Test
     public void testExclusionByMatch() throws Exception {
         testWithConfig("{\"elements\": {" +
-                "\"exclude\": [{\"matcher\": \"matcher.regex\", \"recipe\": \"e.1\"}]" +
+                "\"exclude\": [{\"matcher\": \"matcher.regex\", \"match\": \"e.1\"}]" +
                 "}}", setOf(new RegexElementMatcher()), filter -> {
 
             assertEquals(FilterMatch.DOESNT_MATCH, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el1)
