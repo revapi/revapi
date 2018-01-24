@@ -19,6 +19,7 @@ package org.revapi.java.matcher;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -38,7 +39,7 @@ final class HasOuterClassExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaModelElement element) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
         if (!(element instanceof JavaTypeElement)) {
             return FilterMatch.DOESNT_MATCH;
         }
@@ -56,12 +57,12 @@ final class HasOuterClassExpression implements MatchExpression {
         }
 
         if (direct) {
-            return outerClassMatch.matches(enclosingType);
+            return outerClassMatch.matches(stage, enclosingType);
         }
 
         FilterMatch ret = FilterMatch.DOESNT_MATCH;
         while (enclosingType != null) {
-            ret = ret.or(outerClassMatch.matches(enclosingType));
+            ret = ret.or(outerClassMatch.matches(stage, enclosingType));
 
             if (ret == FilterMatch.MATCHES || ret == FilterMatch.UNDECIDED) {
                 return ret;
@@ -79,17 +80,17 @@ final class HasOuterClassExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(AnnotationAttributeElement attribute) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(JavaAnnotationElement annotation) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
         return FilterMatch.DOESNT_MATCH;
     }
 }

@@ -22,6 +22,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 
@@ -36,7 +37,8 @@ final class AttributeArrayValueEqualsExpression extends AbstractAttributeValueEx
     }
 
     @Override
-    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationValue value, Archive archive,
+            ProbingEnvironment env) {
         return value.accept(new SimpleAnnotationValueVisitor8<FilterMatch, Void>(FilterMatch.DOESNT_MATCH) {
             @Override
             public FilterMatch visitArray(List<? extends AnnotationValue> vals, Void __) {
@@ -49,7 +51,7 @@ final class AttributeArrayValueEqualsExpression extends AbstractAttributeValueEx
                     AnnotationValue value = vals.get(i);
                     AbstractAttributeValueExpression match = expectedMatches.get(i);
 
-                    FilterMatch partialResult = match.matches(i, value, archive, env);
+                    FilterMatch partialResult = match.matches(stage, i, value, archive, env);
                     if (partialResult != FilterMatch.MATCHES) {
                         return partialResult;
                     }

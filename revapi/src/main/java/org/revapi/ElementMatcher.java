@@ -45,9 +45,11 @@ public interface ElementMatcher extends Configurable, AutoCloseable {
          * <p>Note that the callers need to be able to retry the elements undecidable by this recipe again after
          * the whole element tree has been processed.
          *
+         *
+         * @param stage
          * @param element the element to match
          * @return a match result - {@link FilterMatch#UNDECIDED} means that the decision could not be made in this round
          */
-        FilterMatch test(Element element);
+        FilterMatch test(ElementGateway.AnalysisStage stage, Element element);
     }
 }

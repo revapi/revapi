@@ -19,14 +19,13 @@ package org.revapi.basic;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Reader;
-import java.util.Map;
 import java.util.Optional;
-import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
+import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
 
@@ -71,7 +70,7 @@ public final class RegexElementMatcher implements ElementMatcher {
         }
 
         @Override
-        public FilterMatch test(Element element) {
+        public FilterMatch test(ElementGateway.AnalysisStage stage, Element element) {
             return FilterMatch.fromBoolean(match.matcher(element.getFullHumanReadableString()).matches());
         }
     }

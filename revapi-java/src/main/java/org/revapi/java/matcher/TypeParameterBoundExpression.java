@@ -24,6 +24,7 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleTypeVisitor8;
 
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JavaAnnotationElement;
@@ -42,22 +43,22 @@ final class TypeParameterBoundExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaModelElement element) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(JavaAnnotationElement annotation) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(AnnotationAttributeElement attribute) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
 
         return typeParameter.getType().accept(new SimpleTypeVisitor8<FilterMatch, Void>() {
             @Override
@@ -91,7 +92,7 @@ final class TypeParameterBoundExpression implements MatchExpression {
                                 (javax.lang.model.element.TypeElement) t.asElement(), t);
                         type.setParent(typeParameter);
 
-                        return boundMatch.matches(type);
+                        return boundMatch.matches(stage, type);
                     }
 
                     @Override
@@ -100,7 +101,7 @@ final class TypeParameterBoundExpression implements MatchExpression {
                                 typeParameter.getApi(), typeParameter.getArchive(), t);
                         tp.setParent(typeParameter);
 
-                        return boundMatch.matches(tp);
+                        return boundMatch.matches(stage, tp);
                     }
 
                     @Override

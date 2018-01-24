@@ -22,6 +22,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 
@@ -38,7 +39,8 @@ final class AttributeElementCountExpression extends AbstractAttributeValueExpres
     }
 
     @Override
-    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationValue value, Archive archive,
+            ProbingEnvironment env) {
         return FilterMatch.fromBoolean(value.accept(new SimpleAnnotationValueVisitor8<Boolean, Void>() {
             @Override
             protected Boolean defaultAction(Object o, Void __) {

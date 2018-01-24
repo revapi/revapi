@@ -18,6 +18,7 @@ package org.revapi.java.matcher;
 
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -37,7 +38,7 @@ final class HasSuperTypeExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaModelElement element) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
         if (!(element instanceof JavaTypeElement)) {
             return FilterMatch.DOESNT_MATCH;
         }
@@ -46,25 +47,25 @@ final class HasSuperTypeExpression implements MatchExpression {
 
         TypeMirror superType = ((JavaTypeElement) element).getDeclaringElement().getSuperclass();
 
-        return superTypeMatches(env, superType);
+        return superTypeMatches(stage, env, superType);
     }
 
     @Override
-    public FilterMatch matches(JavaAnnotationElement annotation) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(AnnotationAttributeElement attribute) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
         return FilterMatch.DOESNT_MATCH;
     }
 
-    private FilterMatch superTypeMatches(TypeEnvironment env, TypeMirror superType) {
+    private FilterMatch superTypeMatches(ElementGateway.AnalysisStage stage, TypeEnvironment env, TypeMirror superType) {
         JavaTypeElement superTypeElement = superType == null ? null : env.getModelElement(superType);
 
         if (superTypeElement == null) {
@@ -72,13 +73,13 @@ final class HasSuperTypeExpression implements MatchExpression {
         }
 
         if (direct) {
-            return superTypeExpression.matches(superTypeElement);
+            return superTypeExpression.matches(stage, superTypeElement);
         }
 
         FilterMatch ret = FilterMatch.DOESNT_MATCH;
 
         while (superTypeElement != null) {
-            ret = ret.or(superTypeExpression.matches(superTypeElement));
+            ret = ret.or(superTypeExpression.matches(stage, superTypeElement));
 
             if (ret != FilterMatch.DOESNT_MATCH) {
                 return ret;

@@ -17,6 +17,7 @@
 package org.revapi.java.matcher;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -26,6 +27,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -34,31 +36,33 @@ import org.revapi.java.spi.JavaModelElement;
  * @author Lukas Krejci
  */
 final class AttributeExpression implements MatchExpression {
-    private final Function<AnnotationAttributeElement, FilterMatch> filter;
+    private final BiFunction<ElementGateway.AnalysisStage, AnnotationAttributeElement, FilterMatch> filter;
     private final boolean onlyExplicitValues;
 
     public AttributeExpression(@Nullable MatchExpression attributeNameMatch, @Nullable MatchExpression valueMatch,
                                boolean onlyExplicitValues) {
         this.onlyExplicitValues = onlyExplicitValues;
 
-        Function<AnnotationAttributeElement, FilterMatch> nameFilter = attributeNameMatch == null
-                ? __ -> FilterMatch.MATCHES
+        BiFunction<ElementGateway.AnalysisStage, AnnotationAttributeElement, FilterMatch> nameFilter =
+                attributeNameMatch == null
+                ? (__, ___) -> FilterMatch.MATCHES
                 : attributeNameMatch::matches;
 
-        Function<AnnotationAttributeElement, Supplier<FilterMatch>> valueFilter = valueMatch == null
-                ? __ -> () -> FilterMatch.MATCHES
-                : e -> () -> valueMatch.matches(e);
+        BiFunction<ElementGateway.AnalysisStage, AnnotationAttributeElement, Supplier<FilterMatch>> valueFilter =
+                valueMatch == null
+                ? (__, ___) -> () -> FilterMatch.MATCHES
+                : (s, e) -> () -> valueMatch.matches(s, e);
 
-        filter = e -> nameFilter.apply(e).and(valueFilter.apply(e));
+        filter = (s, e) -> nameFilter.apply(s, e).and(valueFilter.apply(s, e));
     }
 
     @Override
-    public FilterMatch matches(JavaModelElement element) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(JavaAnnotationElement annotation) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
         AnnotationMirror am = annotation.getAnnotation();
         Map<? extends ExecutableElement, ? extends AnnotationValue> attrs;
 
@@ -73,7 +77,7 @@ final class AttributeExpression implements MatchExpression {
         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> e : attrs.entrySet()) {
             AnnotationAttributeElement el = new AnnotationAttributeElement(annotation, e.getKey(), e.getValue());
 
-            res = res.or(filter.apply(el));
+            res = res.or(filter.apply(stage, el));
 
             if (res == FilterMatch.MATCHES) {
                 return res;
@@ -84,17 +88,17 @@ final class AttributeExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(AnnotationAttributeElement attribute) {
-        return filter.apply(attribute);
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
+        return filter.apply(stage, attribute);
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(TypeMirror type) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeMirror type) {
         return FilterMatch.DOESNT_MATCH;
     }
 }

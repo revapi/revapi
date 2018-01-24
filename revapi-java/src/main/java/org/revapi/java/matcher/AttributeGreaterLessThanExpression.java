@@ -25,6 +25,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.AbstractAnnotationValueVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 
@@ -41,7 +42,8 @@ final class AttributeGreaterLessThanExpression extends AbstractAttributeValueExp
     }
 
     @Override
-    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationValue value, Archive archive,
+            ProbingEnvironment env) {
         return FilterMatch.fromBoolean(value.accept(new AbstractAnnotationValueVisitor8<Boolean, Void>() {
             @Override
             public Boolean visitBoolean(boolean b, Void __) {

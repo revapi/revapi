@@ -21,6 +21,7 @@ import java.util.List;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaMethodElement;
@@ -42,7 +43,7 @@ final class ReturnsExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaModelElement element) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
         if (!(element instanceof JavaMethodElement)) {
             return FilterMatch.DOESNT_MATCH;
         }
@@ -53,12 +54,12 @@ final class ReturnsExpression implements MatchExpression {
 
         TypeMirror rt = methodElement.getModelRepresentation().getReturnType();
         if (rt.getKind() == TypeKind.VOID || rt.getKind().isPrimitive()) {
-            return returnTypeMatch.matches(rt);
+            return returnTypeMatch.matches(stage, rt);
         }
 
         JavaTypeElement returnType = typeEnvironment.getModelElement(rt);
 
-        FilterMatch ret = returnTypeMatch.matches(returnType);
+        FilterMatch ret = returnTypeMatch.matches(stage, returnType);
         if (ret == FilterMatch.MATCHES) {
             return ret;
         }
@@ -71,7 +72,7 @@ final class ReturnsExpression implements MatchExpression {
                         if (type == null) {
                             return partial.or(FilterMatch.DOESNT_MATCH);
                         } else {
-                            return partial.or(returnTypeMatch.matches(type));
+                            return partial.or(returnTypeMatch.matches(stage, type));
                         }
                     },
                     FilterMatch::or);
@@ -81,17 +82,17 @@ final class ReturnsExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaAnnotationElement annotation) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(AnnotationAttributeElement attribute) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
         return FilterMatch.DOESNT_MATCH;
     }
 }

@@ -20,6 +20,7 @@ import java.util.Objects;
 
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -37,27 +38,27 @@ final class StringExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaModelElement element) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
         return test(extractor.extract(element));
     }
 
     @Override
-    public FilterMatch matches(JavaAnnotationElement annotation) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
         return test(extractor.extract(annotation));
     }
 
     @Override
-    public FilterMatch matches(TypeMirror type) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeMirror type) {
         return test(extractor.extract(type));
     }
 
     @Override
-    public FilterMatch matches(AnnotationAttributeElement attribute) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
         return test(extractor.extract(attribute));
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
         return test(extractor.extract(typeParameter));
     }
 

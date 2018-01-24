@@ -16,6 +16,7 @@
  */
 package org.revapi.java.matcher;
 
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -35,23 +36,23 @@ final class LogicalExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaModelElement element) {
-        return applyOperator(left.matches(element), right.matches(element));
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
+        return applyOperator(left.matches(stage, element), right.matches(stage, element));
     }
 
     @Override
-    public FilterMatch matches(AnnotationAttributeElement attribute) {
-        return applyOperator(left.matches(attribute), right.matches(attribute));
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
+        return applyOperator(left.matches(stage, attribute), right.matches(stage, attribute));
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
-        return applyOperator(left.matches(typeParameter), right.matches(typeParameter));
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
+        return applyOperator(left.matches(stage, typeParameter), right.matches(stage, typeParameter));
     }
 
     @Override
-    public FilterMatch matches(JavaAnnotationElement annotation) {
-        return applyOperator(left.matches(annotation), right.matches(annotation));
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
+        return applyOperator(left.matches(stage, annotation), right.matches(stage, annotation));
     }
 
     private FilterMatch applyOperator(FilterMatch left, FilterMatch right) {

@@ -19,6 +19,7 @@ package org.revapi.java.matcher;
 import javax.lang.model.element.AnnotationValue;
 
 import org.revapi.Archive;
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 
@@ -37,12 +38,13 @@ final class AttributeValueLogicalExpression extends AbstractAttributeValueExpres
     }
 
     @Override
-    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationValue value, Archive archive,
+            ProbingEnvironment env) {
         switch (operator) {
             case AND:
-                return left.matches(value, archive, env).and(() -> right.matches(value, archive, env));
+                return left.matches(stage, value, archive, env).and(() -> right.matches(stage, value, archive, env));
             case OR:
-                return left.matches(value, archive, env).or(() -> right.matches(value, archive, env));
+                return left.matches(stage, value, archive, env).or(() -> right.matches(stage, value, archive, env));
             default:
                 return FilterMatch.DOESNT_MATCH;
         }

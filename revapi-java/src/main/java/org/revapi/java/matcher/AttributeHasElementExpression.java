@@ -23,6 +23,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.util.SimpleAnnotationValueVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 
@@ -41,7 +42,8 @@ final class AttributeHasElementExpression extends AbstractAttributeValueExpressi
     }
 
     @Override
-    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationValue value, Archive archive,
+            ProbingEnvironment env) {
         return value.accept(new SimpleAnnotationValueVisitor8<FilterMatch, Void>() {
             @Override
             protected FilterMatch defaultAction(Object o, Void aVoid) {
@@ -56,7 +58,7 @@ final class AttributeHasElementExpression extends AbstractAttributeValueExpressi
                     } else {
                         boolean hasUndecided = false;
                         for (int i = 0; i < vals.size(); ++i) {
-                            FilterMatch elementResult = elementMatch.matches(i, vals.get(i), archive, env);
+                            FilterMatch elementResult = elementMatch.matches(stage, i, vals.get(i), archive, env);
 
                             if (elementResult == FilterMatch.MATCHES) {
                                 return FilterMatch.MATCHES;
@@ -74,7 +76,7 @@ final class AttributeHasElementExpression extends AbstractAttributeValueExpressi
                         if (vals.size() <= elementIndex) {
                             return FilterMatch.DOESNT_MATCH;
                         } else {
-                            return elementMatch.matches(elementIndex, vals.get(elementIndex), archive, env);
+                            return elementMatch.matches(stage, elementIndex, vals.get(elementIndex), archive, env);
                         }
                     }
                 }

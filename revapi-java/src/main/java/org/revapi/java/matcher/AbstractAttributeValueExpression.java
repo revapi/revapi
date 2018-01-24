@@ -20,6 +20,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaAnnotationElement;
@@ -30,33 +31,36 @@ import org.revapi.java.spi.JavaModelElement;
  */
 abstract class AbstractAttributeValueExpression implements MatchExpression {
     @Override
-    public final FilterMatch matches(JavaModelElement element) {
+    public final FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public final FilterMatch matches(JavaAnnotationElement annotation) {
+    public final FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public final FilterMatch matches(AnnotationAttributeElement attribute) {
-        return matches(attribute.getAnnotationValue(), attribute.getArchive(), (ProbingEnvironment) attribute.getTypeEnvironment());
+    public final FilterMatch matches(ElementGateway.AnalysisStage stage,
+            AnnotationAttributeElement attribute) {
+        return matches(stage, attribute.getAnnotationValue(), attribute.getArchive(), (ProbingEnvironment) attribute.getTypeEnvironment());
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public final FilterMatch matches(TypeMirror type) {
+    public final FilterMatch matches(ElementGateway.AnalysisStage stage, TypeMirror type) {
         return FilterMatch.DOESNT_MATCH;
     }
 
-    public FilterMatch matches(int index, AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return matches(value, archive, env);
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, int index, AnnotationValue value,
+            Archive archive, ProbingEnvironment env) {
+        return matches(stage, value, archive, env);
     }
 
-    public abstract FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env);
+    public abstract FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationValue value, Archive archive,
+            ProbingEnvironment env);
 }

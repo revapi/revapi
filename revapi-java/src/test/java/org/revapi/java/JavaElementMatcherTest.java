@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.FilterResult;
 import org.revapi.java.matcher.JavaElementMatcher;
@@ -677,7 +678,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
     private void assertMatches(String test, Element element) {
         assertTrue("Expecting match for [" + test + "] on " + element,
                 matcher.compile(test)
-                        .map(r -> r.test(element))
+                        .map(r -> r.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, element))
                         .map(m -> m == FilterMatch.MATCHES)
                         .orElse(false));
     }
@@ -685,7 +686,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
     private void assertDoesntMatch(String test, Element element) {
         assertTrue("Expecting no match for [" + test + "] on " + element,
                 matcher.compile(test)
-                        .map(r -> r.test(element))
+                        .map(r -> r.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, element))
                         .map(m -> m == FilterMatch.DOESNT_MATCH)
                         .orElse(false));
     }
@@ -697,7 +698,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
 
             assertTrue("Testing [" + quality + " = " + expectedValue + "] on " + el,
                     matcher.compile("has " + quality + expectedValue)
-                            .map(r -> r.test(el))
+                            .map(r -> r.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, el))
                             .map(m -> m == FilterMatch.MATCHES)
                             .orElse(false));
         });

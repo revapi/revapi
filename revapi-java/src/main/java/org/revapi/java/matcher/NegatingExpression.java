@@ -18,6 +18,7 @@ package org.revapi.java.matcher;
 
 import javax.lang.model.type.TypeMirror;
 
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
@@ -33,27 +34,27 @@ final class NegatingExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaModelElement element) {
-        return expr.matches(element).negate();
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
+        return expr.matches(stage, element).negate();
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
-        return expr.matches(typeParameter).negate();
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
+        return expr.matches(stage, typeParameter).negate();
     }
 
     @Override
-    public FilterMatch matches(JavaAnnotationElement annotation) {
-        return expr.matches(annotation).negate();
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
+        return expr.matches(stage, annotation).negate();
     }
 
     @Override
-    public FilterMatch matches(TypeMirror type) {
-        return expr.matches(type).negate();
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeMirror type) {
+        return expr.matches(stage, type).negate();
     }
 
     @Override
-    public FilterMatch matches(AnnotationAttributeElement attribute) {
-        return expr.matches(attribute).negate();
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
+        return expr.matches(stage, attribute).negate();
     }
 }

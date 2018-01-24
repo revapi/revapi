@@ -101,7 +101,6 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
 
     @Override
     public FilterResult filter(AnalysisStage stage, Element element) {
-        // TODO copy the behavior from the java annotation filter
         if (doNothing) {
             return FilterResult.matchAndDescend();
         }
@@ -117,7 +116,7 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
         FilterResult ret = parent == null ? FilterResult.undecidedAndDescend()
                 : filterResults.get(parent);
 
-        FilterResult exclusion = excludeFilter(element).negateMatch();
+        FilterResult exclusion = excludeFilter(stage, element).negateMatch();
 
         switch (ret.getMatch()) {
             case MATCHES:
@@ -126,7 +125,7 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
                 ret = ret.and(exclusion);
                 break;
             default:
-                ret = includeFilter(element, ret).and(exclusion);
+                ret = includeFilter(stage, element, ret).and(exclusion);
                 break;
 
         }
@@ -144,16 +143,16 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
     public void close() {
     }
 
-    private FilterResult includeFilter(Element element, FilterResult defaultResult) {
+    private FilterResult includeFilter(AnalysisStage stage, Element element, FilterResult defaultResult) {
         return elementIncludes.stream()
-                .map(cf -> FilterResult.from(cf.recipe.test(element), cf.reevaluateChildren))
+                .map(cf -> FilterResult.from(cf.recipe.test(stage, element), cf.reevaluateChildren))
                 .reduce(FilterResult::or)
                 .orElse(defaultResult);
     }
 
-    private FilterResult excludeFilter(Element element) {
+    private FilterResult excludeFilter(AnalysisStage stage, Element element) {
         return elementExcludes.stream()
-                .map(cf -> FilterResult.from(cf.recipe.test(element), cf.reevaluateChildren))
+                .map(cf -> FilterResult.from(cf.recipe.test(stage, element), cf.reevaluateChildren))
                 .reduce(FilterResult::or)
                 .orElse(FilterResult.doesntMatchAndDescend());
     }

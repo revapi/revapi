@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
+import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
 
@@ -65,7 +66,7 @@ public final class ExactElementMatcher implements ElementMatcher {
         }
 
         @Override
-        public FilterMatch test(Element element) {
+        public FilterMatch test(ElementGateway.AnalysisStage stage, Element element) {
             return FilterMatch.fromBoolean(match.equals(element.getFullHumanReadableString()));
         }
     }

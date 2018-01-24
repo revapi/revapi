@@ -41,6 +41,7 @@ import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.revapi.AnalysisContext;
+import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
 import org.revapi.java.matcher.ElementMatcherParser.ExpressionContext;
@@ -61,12 +62,12 @@ public final class JavaElementMatcher implements ElementMatcher {
         try {
             MatchExpression expr = createMatcher(recipe);
 
-            return Optional.of(element -> {
+            return Optional.of((stage, element) -> {
                 if (!(element instanceof JavaElement)) {
                     return FilterMatch.DOESNT_MATCH;
                 }
 
-                return expr.matches((JavaElement) element);
+                return expr.matches(stage, (JavaElement) element);
             });
         } catch (IllegalArgumentException __) {
             return Optional.empty();
@@ -807,22 +808,22 @@ public final class JavaElementMatcher implements ElementMatcher {
         }
 
         @Override
-        public FilterMatch matches(JavaModelElement element) {
+        public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public FilterMatch matches(JavaAnnotationElement annotation) {
+        public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public FilterMatch matches(AnnotationAttributeElement attribute) {
+        public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 
         @Override
-        public FilterMatch matches(TypeParameterElement typeParameter) {
+        public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
             throw new IllegalStateException("Internal expression should never be evaluated. This is a bug.");
         }
 

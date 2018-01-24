@@ -23,6 +23,7 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaMethodElement;
@@ -43,7 +44,7 @@ final class OverridesExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaModelElement element) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaModelElement element) {
         if (!(element instanceof JavaMethodElement)) {
             return FilterMatch.DOESNT_MATCH;
         }
@@ -83,7 +84,7 @@ final class OverridesExpression implements MatchExpression {
                 while (ms.hasNext()) {
                     JavaMethodElement m = ms.next();
 
-                    ret = ret.or(overriddenMethodMatch.matches(m));
+                    ret = ret.or(overriddenMethodMatch.matches(stage, m));
 
                     if (ret == FilterMatch.MATCHES) {
                         return ret;
@@ -98,17 +99,17 @@ final class OverridesExpression implements MatchExpression {
     }
 
     @Override
-    public FilterMatch matches(JavaAnnotationElement annotation) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, JavaAnnotationElement annotation) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(AnnotationAttributeElement attribute) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationAttributeElement attribute) {
         return FilterMatch.DOESNT_MATCH;
     }
 
     @Override
-    public FilterMatch matches(TypeParameterElement typeParameter) {
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, TypeParameterElement typeParameter) {
         return FilterMatch.DOESNT_MATCH;
     }
 }

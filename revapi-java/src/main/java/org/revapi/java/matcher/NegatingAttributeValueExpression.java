@@ -19,6 +19,7 @@ package org.revapi.java.matcher;
 import javax.lang.model.element.AnnotationValue;
 
 import org.revapi.Archive;
+import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.compilation.ProbingEnvironment;
 
@@ -33,12 +34,14 @@ final class NegatingAttributeValueExpression extends AbstractAttributeValueExpre
     }
 
     @Override
-    public FilterMatch matches(int index, AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return match.matches(index, value, archive, env).negate();
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, int index, AnnotationValue value,
+            Archive archive, ProbingEnvironment env) {
+        return match.matches(stage, index, value, archive, env).negate();
     }
 
     @Override
-    public FilterMatch matches(AnnotationValue value, Archive archive, ProbingEnvironment env) {
-        return match.matches(value, archive, env).negate();
+    public FilterMatch matches(ElementGateway.AnalysisStage stage, AnnotationValue value, Archive archive,
+            ProbingEnvironment env) {
+        return match.matches(stage, value, archive, env).negate();
     }
 }

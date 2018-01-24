@@ -18,23 +18,18 @@ package org.revapi.basic;
 
 import static java.util.stream.Collectors.toMap;
 
-import java.io.Reader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.Element;
+import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
 
@@ -99,10 +94,10 @@ public abstract class DifferenceMatchRecipe {
 
         FilterMatch oldMatch = this.oldElement == null
                 ? FilterMatch.MATCHES
-                : this.oldElement.test(oldElement);
+                : this.oldElement.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, oldElement);
         FilterMatch newMatch = this.newElement == null
                 ? FilterMatch.MATCHES
-                : this.newElement.test(newElement);
+                : this.newElement.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, newElement);
 
         boolean elementsMatch = oldMatch.and(newMatch).toBoolean(false);
 
@@ -165,7 +160,7 @@ public abstract class DifferenceMatchRecipe {
 
             ElementMatcher matcher = matchers.get(matcherId);
             return matcher == null
-                    ? __ -> FilterMatch.DOESNT_MATCH
+                    ? (__, ___) -> FilterMatch.DOESNT_MATCH
                     : matcher.compile(recipe).orElse(null);
         }
     }
