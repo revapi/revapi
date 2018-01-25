@@ -153,4 +153,20 @@
         the Revapi site underwent a couple of changes worth mentioning.
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20180125-revapi-java-release.html</id>
+    <title>Revapi Java Extension 0.15.1 Released</title>
+    <updated>2018-01-25T00:00:00+00:00</updated>
+    <published>2018-01-25T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180125-revapi-java-release.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        Shortly after releasing version 0.15.0, there is a new `revapi-java` extension release that fixes a regression which
+        caused inherited methods to seemingly break API in classes that were present in excluded archives (wow, a mouthful).
+    </summary>
+    <content type="html">
+        Shortly after releasing version 0.15.0, there is a new `revapi-java` extension release that fixes a regression which
+        caused inherited methods to seemingly break API in classes that were present in excluded archives (wow, a mouthful).
+    </content>
+  </entry>
 </feed>
