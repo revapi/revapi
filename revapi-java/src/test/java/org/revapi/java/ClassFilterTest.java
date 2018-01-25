@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementForest;
 import org.revapi.Revapi;
+import org.revapi.java.spi.JavaModelElement;
 import org.revapi.simple.SimpleElementFilter;
 
 /**
@@ -129,9 +130,22 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
             List<String> expected = new ArrayList<>(expectedResults);
             List<String> actual = results.stream()
-                    //don't include stuff from the system classpath, because that makes the results unnecessarily
-                    //huge, while we don't actually need to check the system classpath element at all in the tests
-                    .filter(e -> e.getArchive() != null && !e.getArchive().getName().equals("<system classpath>"))
+                    //don't include inherited stuff and annotations. We don't work with inherited classes or annotations
+                    //here and we're actually not interested in seeing stuff from java.lang.Object in the tests, because
+                    //that is just unnecessarily verbose for the purpose of the tests we're doing here.
+                    .filter(e -> {
+                        if (e.getArchive() == null) {
+                            return false;
+                        }
+
+                        if (!(e instanceof JavaModelElement)) {
+                            //exclude annotations
+                            return false;
+                        }
+
+                        JavaModelElement el = (JavaModelElement) e;
+                        return !el.isInherited();
+                    })
                     .map(Element::getFullHumanReadableString).collect(toList());
 
             Collections.sort(expected);
