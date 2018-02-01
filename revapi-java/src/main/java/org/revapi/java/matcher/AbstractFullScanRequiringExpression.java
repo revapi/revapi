@@ -8,7 +8,10 @@ import org.revapi.ElementGateway;
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaElement;
+import org.revapi.java.spi.JavaFieldElement;
+import org.revapi.java.spi.JavaMethodParameterElement;
 import org.revapi.java.spi.JavaModelElement;
+import org.revapi.java.spi.JavaTypeElement;
 
 abstract class AbstractFullScanRequiringExpression implements MatchExpression {
     private final MatchExpression scan;
@@ -19,6 +22,22 @@ abstract class AbstractFullScanRequiringExpression implements MatchExpression {
         this.scan = scan;
         matchedInScan = new ArrayList<>();
         undecidedInScan = new ArrayList<>();
+    }
+
+    protected static JavaTypeElement typeOf(JavaElement el) {
+        if (el instanceof JavaTypeElement) {
+            return (JavaTypeElement) el;
+        } else if (el instanceof JavaFieldElement) {
+            return el.getTypeEnvironment().getModelElement(((JavaFieldElement) el).getModelRepresentation());
+        } else if (el instanceof JavaAnnotationElement) {
+            return el.getTypeEnvironment().getModelElement(((JavaAnnotationElement) el).getAnnotation().getAnnotationType());
+        } else if (el instanceof JavaMethodParameterElement) {
+            return el.getTypeEnvironment().getModelElement(((JavaMethodParameterElement) el).getModelRepresentation());
+        } else if (el instanceof AnnotationAttributeElement) {
+            return el.getTypeEnvironment().getModelElement(((AnnotationAttributeElement) el).getAttributeMethod().getReturnType());
+        } else {
+            return null;
+        }
     }
 
     @Override

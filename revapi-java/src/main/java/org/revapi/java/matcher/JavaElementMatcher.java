@@ -723,7 +723,7 @@ public final class JavaElementMatcher implements ElementMatcher {
                     token = textAt(ctx, 1);
                 }
 
-                MatchExpression subExpr = expressionStack.pop();
+                MatchExpression subExpr = convertNakedStringOrRegexUsing(expressionStack.pop(), RepresentationExtractor::new);
                 MatchExpression expr = null;
 
                 switch (token) {
@@ -732,7 +732,7 @@ public final class JavaElementMatcher implements ElementMatcher {
                         expr = new IsArgumentOfExpression(subExpr, order);
                         break;
                     case "typeParameter":
-                        // TODO implement
+                        expr = new IsTypeParameterOfExpression(subExpr);
                         break;
                     case "annotated":
                         // TODO implement

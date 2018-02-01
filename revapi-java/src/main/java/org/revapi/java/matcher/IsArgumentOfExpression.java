@@ -8,10 +8,7 @@ import javax.lang.model.type.TypeMirror;
 
 import org.revapi.FilterMatch;
 import org.revapi.java.spi.JavaAnnotationElement;
-import org.revapi.java.spi.JavaElement;
-import org.revapi.java.spi.JavaFieldElement;
 import org.revapi.java.spi.JavaMethodElement;
-import org.revapi.java.spi.JavaMethodParameterElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
@@ -74,21 +71,5 @@ public class IsArgumentOfExpression extends AbstractFullScanRequiringExpression 
         }
 
         return FilterMatch.fromBoolean(params.anyMatch(test));
-    }
-
-    private static JavaTypeElement typeOf(JavaElement el) {
-        if (el instanceof JavaTypeElement) {
-            return (JavaTypeElement) el;
-        } else if (el instanceof JavaFieldElement) {
-            return el.getTypeEnvironment().getModelElement(((JavaFieldElement) el).getModelRepresentation());
-        } else if (el instanceof JavaAnnotationElement) {
-            return el.getTypeEnvironment().getModelElement(((JavaAnnotationElement) el).getAnnotation().getAnnotationType());
-        } else if (el instanceof JavaMethodParameterElement) {
-            return el.getTypeEnvironment().getModelElement(((JavaMethodParameterElement) el).getModelRepresentation());
-        } else if (el instanceof AnnotationAttributeElement) {
-            return el.getTypeEnvironment().getModelElement(((AnnotationAttributeElement) el).getAttributeMethod().getReturnType());
-        } else {
-            return null;
-        }
     }
 }

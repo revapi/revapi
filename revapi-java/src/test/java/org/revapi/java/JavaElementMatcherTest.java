@@ -717,6 +717,28 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
         });
     }
 
+    @Test
+    public void testIsTypeParameterOf() throws Exception {
+        testOn("elementmatcher/IsTypeParameterOf.java", forest -> {
+            Element cls = forest.getRoots().first();
+
+            JavaTypeElement C = findByHumanReadableString(cls, JavaTypeElement.class, "class element.matcher.IsTypeParameterOf.C<T extends element.matcher.IsTypeParameterOf>");
+            JavaTypeElement X = findByHumanReadableString(cls, JavaTypeElement.class, "class element.matcher.IsTypeParameterOf.X");
+
+            assertMatches("is typeParameter of (has erased signature 'element.matcher.IsTypeParameterOf.C')", cls, forest);
+            assertDoesntMatch("is typeParameter of (has name 'method2')", cls, forest);
+            assertDoesntMatch("is typeParameter of (has name 'method1')", cls, forest);
+
+            assertDoesntMatch("is typeParameter of (has erased signature 'element.matcher.IsTypeParameterOf.C')", C, forest);
+            assertMatches("is typeParameter of (has name 'method1')", C, forest);
+            assertDoesntMatch("is typeParameter of (has name 'method2')", C, forest);
+
+            assertDoesntMatch("is typeParameter of (has erased signature 'element.matcher.IsTypeParameterOf.C')", X, forest);
+            assertDoesntMatch("is typeParameter of (has name 'method1')", X, forest);
+            assertMatches("is typeParameter of (has name 'method2')", X, forest);
+        });
+    }
+    
     private void assertMatches(String test, Element element) {
         assertTrue("Expecting match for [" + test + "] on " + element,
                 matcher.compile(test)
