@@ -738,7 +738,52 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
             assertMatches("is typeParameter of (has name 'method2')", X, forest);
         });
     }
-    
+
+    @Test
+    public void testIsAnnotatedBy() throws Exception {
+        testOn("elementmatcher/Annotations.java", types -> {
+            Element cls = types.getRoots().first();
+
+            Function<String, MethodElement> getMethod = methodName ->
+                    cls.searchChildren(MethodElement.class, false,
+                            Filter.shallow(m -> m.getDeclaringElement().getSimpleName().contentEquals(methodName)))
+                            .get(0);
+            Function<String, TypeElement> getClass = typeName ->
+                    cls.searchChildren(TypeElement.class, false,
+                            Filter.shallow(m -> m.getDeclaringElement().getSimpleName().contentEquals(typeName)))
+                            .get(0);
+
+            MethodElement method1 = getMethod.apply("method1");
+            MethodElement method2 = getMethod.apply("method2");
+            MethodElement method3 = getMethod.apply("method3");
+            MethodElement method4 = getMethod.apply("method4");
+
+            TypeElement base = getClass.apply("Base");
+            TypeElement iface = getClass.apply("Iface");
+            TypeElement inheritingChild = getClass.apply("InheritingChild");
+            TypeElement notInheritingChild = getClass.apply("NotInheritingChild");
+
+            String hasAnnotation = "is annotated by '@element.matcher.Annotations.A'";
+            String hasDeclaredInheritableAnnotation = "is directly annotated by '@element.matcher.Annotations.B'";
+            String hasInheritableAnnotation = "is annotated by '@element.matcher.Annotations.B'";
+
+            assertMatches(hasAnnotation, method1);
+            assertDoesntMatch(hasAnnotation, method2);
+            assertMatches(hasAnnotation, method3);
+            assertMatches(hasAnnotation, method4);
+
+            assertMatches(hasDeclaredInheritableAnnotation, base);
+            assertMatches(hasDeclaredInheritableAnnotation, iface);
+            assertDoesntMatch(hasDeclaredInheritableAnnotation, inheritingChild);
+            assertDoesntMatch(hasDeclaredInheritableAnnotation, notInheritingChild);
+
+            assertMatches(hasInheritableAnnotation, base);
+            assertMatches(hasInheritableAnnotation, iface);
+            assertMatches(hasInheritableAnnotation, inheritingChild);
+            assertDoesntMatch(hasInheritableAnnotation, notInheritingChild);
+        });
+    }
+
     private void assertMatches(String test, Element element) {
         assertTrue("Expecting match for [" + test + "] on " + element,
                 matcher.compile(test)

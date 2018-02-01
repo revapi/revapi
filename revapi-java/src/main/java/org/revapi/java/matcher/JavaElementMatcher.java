@@ -347,6 +347,8 @@ public final class JavaElementMatcher implements ElementMatcher {
 
                 Integer concreteIdx = null;
 
+                // TODO declared et al not handled!!!
+
                 switch (ctx.getChild(0).getText()) {
                     case "argument":
                         match = convertNakedStringOrRegexUsing(match, SignatureExtractor::new);
@@ -723,19 +725,19 @@ public final class JavaElementMatcher implements ElementMatcher {
                     token = textAt(ctx, 1);
                 }
 
-                MatchExpression subExpr = convertNakedStringOrRegexUsing(expressionStack.pop(), RepresentationExtractor::new);
+                MatchExpression subExpr = expressionStack.pop();
                 MatchExpression expr = null;
 
                 switch (token) {
                     case "argument":
                         Integer order = ctx.NUMBER() == null ? null : Integer.valueOf(ctx.NUMBER().getText());
-                        expr = new IsArgumentOfExpression(subExpr, order);
+                        expr = new IsArgumentOfExpression(convertNakedStringOrRegexUsing(subExpr, RepresentationExtractor::new), order);
                         break;
                     case "typeParameter":
-                        expr = new IsTypeParameterOfExpression(subExpr);
+                        expr = new IsTypeParameterOfExpression(convertNakedStringOrRegexUsing(subExpr, RepresentationExtractor::new));
                         break;
                     case "annotated":
-                        // TODO implement
+                        expr = new ChoiceExpression(convertNakedStringOrRegexUsing(subExpr, NameExtractor::new), new AnnotationsProducer(immediate));
                         break;
                     case "method":
                         // TODO implement
