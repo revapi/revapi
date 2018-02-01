@@ -193,11 +193,12 @@ public final class Util {
             if (superBound != null) {
                 superBound.accept(this, state);
                 state.bld.append("-");
-            }
-
-            if (extendsBound != null) {
+            } else if (extendsBound != null) {
                 extendsBound.accept(this, state);
                 state.bld.append("+");
+            } else {
+                //unbound wildcard
+                state.bld.append("java.lang.Object+");
             }
 
             return null;
