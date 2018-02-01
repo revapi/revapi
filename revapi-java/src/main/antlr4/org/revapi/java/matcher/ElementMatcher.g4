@@ -159,8 +159,8 @@ hasExpression_match
     ;
 
 isExpression
-    : 'is' 'not'? ( isExpression_subExpr | isExpression_kind | isExpression_package )
-    | 'isn\'t' ( isExpression_subExpr | isExpression_kind | isExpression_package )
+    : 'is' 'not'? ( isExpression_subExpr | isExpression_kind | isExpression_package | isExpression_inherited)
+    | 'isn\'t' ( isExpression_subExpr | isExpression_kind | isExpression_package | isExpression_inherited)
     ;
 
 isExpression_subExpr
@@ -169,12 +169,13 @@ isExpression_subExpr
         | 'directly'? 'annotated' 'by'
         | 'declared'? 'method' 'of'
         | 'declared'? 'field' 'of'
-        | 'outerclass' 'of'
-        | 'innerclass' 'of'
+        | 'outerClass' 'of'
+        | 'innerClass' 'of'
         | 'thrown' 'from'
         | 'direct'? 'superType' 'of'
-        | 'overriden' 'by'
+        | 'overridden' 'by'
         | 'in' 'class'
+        | 'directly'? 'used' 'by'
         )
         subExpression
     ;
@@ -185,4 +186,8 @@ isExpression_kind
 
 isExpression_package
     : 'in' 'package' (STRING | REGEX)
+    ;
+
+isExpression_inherited
+    : 'inherited' ('from' subExpression)?
     ;

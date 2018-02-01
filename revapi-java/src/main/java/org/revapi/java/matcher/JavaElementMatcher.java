@@ -709,6 +709,11 @@ public final class JavaElementMatcher implements ElementMatcher {
             }
 
             @Override
+            public void exitIsExpression_inherited(ElementMatcherParser.IsExpression_inheritedContext ctx) {
+                // TODO implement
+            }
+
+            @Override
             public void exitIsExpression_subExpr(ElementMatcherParser.IsExpression_subExprContext ctx) {
                 String token = textAt(ctx, 0);
                 boolean immediate = "directly".equals(token) || "declared".equals(token) ||
@@ -727,26 +732,37 @@ public final class JavaElementMatcher implements ElementMatcher {
                         expr = new IsArgumentOfExpression(subExpr, order);
                         break;
                     case "typeParameter":
+                        // TODO implement
                         break;
                     case "annotated":
+                        // TODO implement
                         break;
                     case "method":
+                        // TODO implement
                         break;
                     case "field":
+                        // TODO implement
                         break;
                     case "outerClass":
+                        // TODO implement
                         break;
                     case "innerClass":
+                        // TODO implement
                         break;
                     case "thrown":
+                        // TODO implement
                         break;
                     case "superType":
+                        // TODO implement
                         break;
                     case "overridden":
+                        // TODO implement
                         break;
                     case "in":
+                        // TODO implement
                         break;
                     case "used":
+                        // TODO implement
                         break;
                     default:
                         throw new IllegalArgumentException("Unexpected \"is\" expression: " + ctx.getText());
