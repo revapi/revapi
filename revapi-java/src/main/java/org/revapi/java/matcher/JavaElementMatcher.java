@@ -98,7 +98,8 @@ public final class JavaElementMatcher implements ElementMatcher {
 
         ElementMatcherParser parser = createNewParser(recipe, new BaseErrorListener() {
             @Override
-            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
+            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
+                    int charPositionInLine, String msg, RecognitionException e) {
                 throw new ParseCancellationException("Syntax error @ " + line + ":" + charPositionInLine + " - " + msg);
             }
         });
@@ -464,7 +465,8 @@ public final class JavaElementMatcher implements ElementMatcher {
             }
 
             @Override
-            public void exitHasExpression_typeParameterBounds(ElementMatcherParser.HasExpression_typeParameterBoundsContext ctx) {
+            public void exitHasExpression_typeParameterBounds(
+                    ElementMatcherParser.HasExpression_typeParameterBoundsContext ctx) {
                 MatchExpression subExpr = convertNakedStringOrRegexUsing(expressionStack.pop(), SignatureExtractor::new);
                 int boundTypeIdx = "doesn't".equals(textAt(ctx, 0)) ? 2 : 1;
 
@@ -553,7 +555,8 @@ public final class JavaElementMatcher implements ElementMatcher {
             }
 
             @Override
-            public void exitHasExpression_attribute_values(ElementMatcherParser.HasExpression_attribute_valuesContext ctx) {
+            public void exitHasExpression_attribute_values(
+                    ElementMatcherParser.HasExpression_attribute_valuesContext ctx) {
                 String check;
                 AbstractAttributeValueExpression match = null;
                 TerminalNode numberNode;
@@ -686,7 +689,7 @@ public final class JavaElementMatcher implements ElementMatcher {
                 String stringOrRegex = textAt(ctx, 1);
                 if (isRegex(stringOrRegex)) {
                     expressionStack.push(
-                    new PatternExpression(new ElementKindExtractor(), extractStringOrRegex(stringOrRegex)));
+                            new PatternExpression(new ElementKindExtractor(), extractStringOrRegex(stringOrRegex)));
                 } else {
                     expressionStack.push(
                             new StringExpression(new ElementKindExtractor(), extractStringOrRegex(stringOrRegex)));
@@ -703,6 +706,53 @@ public final class JavaElementMatcher implements ElementMatcher {
                     expressionStack.push(
                             new StringExpression(new PackageExtractor(), extractStringOrRegex(stringOrRegex)));
                 }
+            }
+
+            @Override
+            public void exitIsExpression_subExpr(ElementMatcherParser.IsExpression_subExprContext ctx) {
+                String token = textAt(ctx, 0);
+                boolean immediate = "directly".equals(token) || "declared".equals(token) ||
+                        "direct".equals(token);
+
+                if (immediate) {
+                    token = textAt(ctx, 1);
+                }
+
+                MatchExpression subExpr = expressionStack.pop();
+                MatchExpression expr = null;
+
+                switch (token) {
+                    case "argument":
+                        Integer order = ctx.NUMBER() == null ? null : Integer.valueOf(ctx.NUMBER().getText());
+                        expr = new IsArgumentOfExpression(subExpr, order);
+                        break;
+                    case "typeParameter":
+                        break;
+                    case "annotated":
+                        break;
+                    case "method":
+                        break;
+                    case "field":
+                        break;
+                    case "outerClass":
+                        break;
+                    case "innerClass":
+                        break;
+                    case "thrown":
+                        break;
+                    case "superType":
+                        break;
+                    case "overridden":
+                        break;
+                    case "in":
+                        break;
+                    case "used":
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unexpected \"is\" expression: " + ctx.getText());
+                }
+
+                expressionStack.push(expr);
             }
 
             @Override
@@ -729,7 +779,8 @@ public final class JavaElementMatcher implements ElementMatcher {
                 return ctx.getChild(childIndex).getText();
             }
 
-            private AbstractAttributeValueExpression getAttributeValueMatcher(ElementMatcherParser.HasExpression_attribute_values_subExprContext ctx) {
+            private AbstractAttributeValueExpression getAttributeValueMatcher(
+                    ElementMatcherParser.HasExpression_attribute_values_subExprContext ctx) {
                 if (ctx.hasExpression_attribute_values_subExpr().isEmpty()) {
                     String val = ctx.getChild(0).getText();
                     if (isRegex(val)) {

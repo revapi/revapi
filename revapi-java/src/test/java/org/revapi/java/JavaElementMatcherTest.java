@@ -19,6 +19,7 @@ package org.revapi.java;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -33,7 +34,9 @@ import org.junit.runner.RunWith;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
+import org.revapi.ElementForest;
 import org.revapi.ElementGateway;
+import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
 import org.revapi.FilterResult;
 import org.revapi.java.matcher.JavaElementMatcher;
@@ -552,7 +555,7 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
             "has explicit attribute that doesn't have type 'element.matcher.Annotations.B[]',true,true,true,true"
     })
     public void testHasAnnotationAttribute(String test, boolean matchesMethod1, boolean matchesMethod2,
-                                           boolean matchesMethod3, boolean matchesMethod4) throws Exception {
+            boolean matchesMethod3, boolean matchesMethod4) throws Exception {
         testOn("elementmatcher/Annotations.java", types -> {
             Element cls = types.getRoots().first();
 
@@ -675,10 +678,61 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
         });
     }
 
+    @Test
+    public void testIsArgumentOf() throws Exception {
+        testOn("elementmatcher/IsArgumentOf.java", forest -> {
+            Element cls = forest.getRoots().first();
+
+            JavaTypeElement A = findByHumanReadableString(cls, JavaTypeElement.class, "class element.matcher.IsArgumentOf.A");
+            JavaTypeElement B = findByHumanReadableString(cls, JavaTypeElement.class, "class element.matcher.IsArgumentOf.B");
+            JavaTypeElement C = findByHumanReadableString(cls, JavaTypeElement.class, "class element.matcher.IsArgumentOf.C");
+
+            assertMatches("is argument of (has name 'a')", A, forest);
+            assertDoesntMatch("is argument of (has name 'a')", B, forest);
+            assertDoesntMatch("is argument of (has name 'a')", C, forest);
+
+            assertDoesntMatch("is argument of (has name 'b')", A, forest);
+            assertMatches("is argument of (has name 'b')", B, forest);
+            assertDoesntMatch("is argument of (has name 'b')", C, forest);
+
+            assertDoesntMatch("is argument of (has name 'c')", A, forest);
+            assertDoesntMatch("is argument of (has name 'c')", B, forest);
+            assertMatches("is argument of (has name 'c')", C, forest);
+
+            assertMatches("is argument of (has name 'd')", A, forest);
+            assertMatches("is argument of (has name 'd')", B, forest);
+            assertDoesntMatch("is argument of (has name 'd')", C, forest);
+
+            assertMatches("is argument of (has name 'e')", A, forest);
+            assertDoesntMatch("is argument of (has name 'e')", B, forest);
+            assertMatches("is argument of (has name 'e')", C, forest);
+
+            assertMatches("is argument of (has name 'f')", A, forest);
+            assertMatches("is argument of (has name 'f')", B, forest);
+            assertMatches("is argument of (has name 'f')", C, forest);
+
+            assertDoesntMatch("is argument 1 of (has name 'f')", A, forest);
+            assertMatches("is argument 1 of (has name 'f')", B, forest);
+            assertDoesntMatch("is argument 1 of (has name 'f')", C, forest);
+        });
+    }
+
     private void assertMatches(String test, Element element) {
         assertTrue("Expecting match for [" + test + "] on " + element,
                 matcher.compile(test)
                         .map(r -> r.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, element))
+                        .map(m -> m == FilterMatch.MATCHES)
+                        .orElse(false));
+    }
+
+    private void assertMatches(String test, Element element, ElementForest forest) {
+        Optional<ElementMatcher.CompiledRecipe> recipe = matcher.compile(test);
+
+        forest.stream(Element.class, true, null)
+                .forEach(e -> recipe.map(r -> r.test(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, e)));
+
+        assertTrue("Expecting match for [" + test + "] on " + element,
+                recipe.map(r -> r.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, element))
                         .map(m -> m == FilterMatch.MATCHES)
                         .orElse(false));
     }
@@ -691,7 +745,20 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
                         .orElse(false));
     }
 
-    private <T extends Element> void testSimpleMatchForElementType(Class<T> elementType, String quality, String expectedValue, Filter<T> filter) throws Exception {
+    private void assertDoesntMatch(String test, Element element, ElementForest forest) {
+        Optional<ElementMatcher.CompiledRecipe> recipe = matcher.compile(test);
+
+        forest.stream(Element.class, true, null)
+                .forEach(e -> recipe.map(r -> r.test(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, e)));
+
+        assertTrue("Expecting no match for [" + test + "] on " + element,
+                recipe.map(r -> r.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, element))
+                        .map(m -> m == FilterMatch.DOESNT_MATCH)
+                        .orElse(false));
+    }
+
+    private <T extends Element> void testSimpleMatchForElementType(Class<T> elementType, String quality,
+            String expectedValue, Filter<T> filter) throws Exception {
         testOn("elementmatcher/MatchByKind.java", types -> {
             Element cls = types.getRoots().first();
             Element el = cls.searchChildren(elementType, true, filter).get(0);
@@ -718,5 +785,12 @@ public class JavaElementMatcherTest extends AbstractJavaElementAnalyzerTest {
         } finally {
             deleteDir(ar.compilationPath);
         }
+    }
+
+    private <T extends Element> T findByHumanReadableString(Element top, Class<T> type, String fhrs) {
+        return top.stream(type, true)
+                .filter(e -> fhrs.equals(e.getFullHumanReadableString()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Could not find: " + fhrs));
     }
 }

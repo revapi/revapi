@@ -20,7 +20,10 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
@@ -83,6 +86,27 @@ public interface TypeEnvironment {
                     return getModelElement((TypeElement) el);
                 } else {
                     return null;
+                }
+            }
+
+            @Override
+            public JavaTypeElement visitIntersection(IntersectionType t, Void aVoid) {
+                return t.getBounds().get(0).accept(this, null);
+            }
+
+            @Override
+            public JavaTypeElement visitTypeVariable(TypeVariable t, Void aVoid) {
+                return t.getUpperBound().accept(this, null);
+            }
+
+            @Override
+            public JavaTypeElement visitWildcard(WildcardType t, Void aVoid) {
+                if (t.getSuperBound() != null) {
+                    return t.getSuperBound().accept(this, null);
+                } else if (t.getExtendsBound() != null) {
+                    return t.getExtendsBound().accept(this, null);
+                } else {
+                    return getModelElement(getElementUtils().getTypeElement("java.lang.Object"));
                 }
             }
         }, null);

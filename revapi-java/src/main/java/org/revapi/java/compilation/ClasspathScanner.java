@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -480,14 +481,11 @@ final class ClasspathScanner {
             TypeElement fieldType = field.asType().accept(getTypeElement, null);
 
             //fieldType == null means primitive type, if no type can be found, exception is thrown
-            if (fieldType == null) {
-                return;
+            if (fieldType != null) {
+                addUse(owningType, field, fieldType, UseSite.Type.HAS_TYPE);
+                addType(fieldType, false);
+                addTypeParamUses(owningType, field, field.asType());
             }
-
-
-            addUse(owningType, field, fieldType, UseSite.Type.HAS_TYPE);
-            addType(fieldType, false);
-            addTypeParamUses(owningType, field, field.asType());
 
             field.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, field, a, -1));
         }
@@ -830,33 +828,34 @@ final class ClasspathScanner {
                 //actually visible on a type.
                 Set<String> methods = new HashSet<>(8);
 
-                Function<JavaElementBase<?, ?>, JavaElementBase<?, ?>> addOverride = e -> {
+                Consumer<JavaElementBase<?, ?>> addOverride = e -> {
                     if (e instanceof MethodElement) {
                         MethodElement me = (MethodElement) e;
                         methods.add(getOverrideMapKey(me.getDeclaringElement()));
                     }
-                    return e;
                 };
 
-                Function<JavaElementBase<?, ?>, JavaElementBase<?, ?>> initChildren = e -> {
-                    initNonClassElementChildrenAndMoveToApi(tr, e, false);
-                    return e;
+                Consumer<JavaElementBase<?, ?>> initChildren = e -> {
+                    FilterResult fr = filter.filter(e);
+                    if (fr.isDescend()) {
+                        initNonClassElementChildrenAndMoveToApi(tr, e, false);
+                    }
                 };
 
                 //add declared stuff
                 tr.accessibleDeclaredNonClassMembers.stream()
                         .map(e ->
                                 elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
-                        .map(addOverride)
-                        .map(initChildren)
-                        .forEach(c -> tr.modelElement.getChildren().add(c));
+                        .peek(addOverride)
+                        .peek(c -> tr.modelElement.getChildren().add(c))
+                        .forEach(initChildren);
 
                 tr.inaccessibleDeclaredNonClassMembers.stream()
                         .map(e ->
                                 elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
-                        .map(addOverride)
-                        .map(initChildren)
-                        .forEach(c -> tr.modelElement.getChildren().add(c));
+                        .peek(addOverride)
+                        .peek(c -> tr.modelElement.getChildren().add(c))
+                        .forEach(initChildren);
 
                 //now add inherited stuff
                 tr.superTypes.forEach(str -> addInherited(tr, str, methods));
@@ -871,47 +870,47 @@ final class ClasspathScanner {
         private void addInherited(TypeRecord target, TypeRecord superType, Set<String> methodOverrideMap) {
             Types types = environment.getTypeUtils();
 
-            superType.accessibleDeclaredNonClassMembers.stream()
-                    .map(e -> {
-                        if (e instanceof ExecutableElement) {
-                            ExecutableElement me = (ExecutableElement) e;
-                            if (!shouldAddInheritedMethodChild(me, methodOverrideMap)) {
-                                return null;
+            for (Element e : superType.accessibleDeclaredNonClassMembers) {
+                if (e instanceof ExecutableElement) {
+                    ExecutableElement me = (ExecutableElement) e;
+                    if (!shouldAddInheritedMethodChild(me, methodOverrideMap)) {
+                        continue;
+                    }
+                }
+
+                TypeMirror elementType = types.asMemberOf((DeclaredType) target.javacElement.asType(), e);
+
+                JavaElementBase<?, ?> element = JavaElementFactory
+                        .elementFor(e, elementType, environment, superType.modelElement.getArchive());
+
+                element.setInherited(true);
+
+                if (e instanceof ExecutableElement) {
+                    // we need to add the use sites to the inherited method, too
+                    superType.usedTypes.forEach((useType, sites) -> sites.forEach((usedType, useSites) -> {
+                        useSites.forEach(site -> {
+                            if (site.useSite != e) {
+                                return;
                             }
-                        }
 
-                        TypeMirror elementType = types.asMemberOf((DeclaredType) target.javacElement.asType(), e);
+                            int index = useType == UseSite.Type.PARAMETER_TYPE
+                                    ? site.useSite.getEnclosingElement().getEnclosedElements().indexOf(site.useSite)
+                                    : -1;
 
-                        JavaElementBase<?, ?> element = JavaElementFactory
-                                .elementFor(e, elementType, environment, superType.modelElement.getArchive());
+                            usedType.useSites.add(new InheritedUseSite(useType, site.useSite, target.modelElement, index));
+                            target.usedTypes.computeIfAbsent(useType, __ -> new HashMap<>())
+                                    .computeIfAbsent(usedType, __ -> new HashSet<>()).add(new UseSitePath(target.javacElement, site.useSite));
+                        });
+                    }));
+                }
 
-                        element.setInherited(true);
+                target.modelElement.getChildren().add(element);
 
-                        if (e instanceof ExecutableElement) {
-                            // we need to add the use sites to the inherited method, too
-                            superType.usedTypes.forEach((useType, sites) -> sites.forEach((usedType, useSites) -> {
-                                useSites.forEach(site -> {
-                                    if (site.useSite != e) {
-                                        return;
-                                    }
-
-                                    int index = useType == UseSite.Type.PARAMETER_TYPE
-                                            ? site.useSite.getEnclosingElement().getEnclosedElements().indexOf(site.useSite)
-                                            : -1;
-
-                                    usedType.useSites.add(new InheritedUseSite(useType, site.useSite, target.modelElement, index));
-                                    target.usedTypes.computeIfAbsent(useType, __ -> new HashMap<>())
-                                            .computeIfAbsent(usedType, __ -> new HashSet<>()).add(new UseSitePath(target.javacElement, site.useSite));
-                                });
-                            }));
-                        }
-
-                        initNonClassElementChildrenAndMoveToApi(target, element, true);
-
-                        return element;
-                    })
-                    .filter(Objects::nonNull)
-                    .forEach(c -> target.modelElement.getChildren().add(c));
+                FilterResult fr = filter.filter(element);
+                if (fr.isDescend()) {
+                    initNonClassElementChildrenAndMoveToApi(target, element, true);
+                }
+            }
 
             for (TypeRecord st : superType.superTypes) {
                 addInherited(target, st, methodOverrideMap);
@@ -1008,7 +1007,10 @@ final class ClasspathScanner {
 
                 parent.getChildren().add(childEl);
 
-                initNonClassElementChildrenAndMoveToApi(targetType, childEl, inherited);
+                FilterResult fr = filter.filter(childEl);
+                if (fr.isDescend()) {
+                    initNonClassElementChildrenAndMoveToApi(targetType, childEl, inherited);
+                }
             }
 
             for (AnnotationMirror m : parent.getDeclaringElement().getAnnotationMirrors()) {

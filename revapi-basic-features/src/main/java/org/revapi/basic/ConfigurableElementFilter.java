@@ -108,6 +108,7 @@ public class ConfigurableElementFilter extends SimpleElementGateway {
         String archive = element.getArchive() == null ? null : element.getArchive().getName();
 
         if (archive != null && !isIncluded(archive, archiveIncludes, archiveExcludes)) {
+            filterResults.put(element, FilterResult.doesntMatch());
             return FilterResult.doesntMatch();
         }
 
