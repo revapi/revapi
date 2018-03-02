@@ -51,7 +51,6 @@
         <module>revapi-standalone</module>
         <module>revapi-site</module>
         <module>revapi-site-shared</module>
-        <module>revapi-java-test-support</module>
     </modules>
 
     <build>
