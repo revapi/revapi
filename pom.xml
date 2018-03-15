@@ -51,6 +51,7 @@
         <module>revapi-standalone</module>
         <module>revapi-site</module>
         <module>revapi-site-shared</module>
+        <module>coverage</module>
     </modules>
 
     <build>
