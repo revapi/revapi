@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -67,10 +68,12 @@ import org.revapi.java.spi.Util;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class SerialVersionUidUnchanged extends CheckBase {
+public final class SerialVersionUidChecker extends CheckBase {
 
-    private static final String SERIAL_VERSION_UID_FIELD_NAME = "serialVersionUID";
+    static final String SERIAL_VERSION_UID_FIELD_NAME = "serialVersionUID";
     private boolean strict = false;
+    private PrimitiveType oldLong;
+    private PrimitiveType newLong;
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -101,28 +104,24 @@ public final class SerialVersionUidUnchanged extends CheckBase {
 
     @Override
     protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
-        if (oldField == null || newField == null || !isAccessible(newField.getParent())) {
+        if (oldField == null || newField == null || !isBothAccessible(oldField.getParent(), newField.getParent())) {
             return;
         }
 
-        if (!SERIAL_VERSION_UID_FIELD_NAME.equals(oldField.getDeclaringElement().getSimpleName().toString())) {
+        if (!SERIAL_VERSION_UID_FIELD_NAME.contentEquals(oldField.getDeclaringElement().getSimpleName())) {
             return;
         }
 
-        if (!SERIAL_VERSION_UID_FIELD_NAME.equals(newField.getDeclaringElement().getSimpleName().toString())) {
+        if (!SERIAL_VERSION_UID_FIELD_NAME.contentEquals(newField.getDeclaringElement().getSimpleName())) {
             return;
         }
 
-        if (!isBothAccessible(oldField.getParent(), newField.getParent())) {
-            return;
-        }
+        ensurePrimitiveTypesLoaded();
 
-        PrimitiveType oldLong = getOldTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
         if (!getOldTypeEnvironment().getTypeUtils().isSameType(oldField.getModelRepresentation(), oldLong)) {
             return;
         }
 
-        PrimitiveType newLong = getNewTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
         if (!getNewTypeEnvironment().getTypeUtils().isSameType(newField.getModelRepresentation(), newLong)) {
             return;
         }
@@ -151,8 +150,8 @@ public final class SerialVersionUidUnchanged extends CheckBase {
         Long actualOldSUID = (Long) oldField.getDeclaringElement().getConstantValue();
         Long actualNewSUID = (Long) newField.getDeclaringElement().getConstantValue();
 
-        if (Objects.equals(actualOldSUID, actualNewSUID) && computedOldSUID != computedNewSUID) {
-            pushActive(oldField, newField, actualOldSUID);
+        if (!Objects.equals(actualOldSUID, actualNewSUID) || computedOldSUID != computedNewSUID) {
+            pushActive(oldField, newField, actualOldSUID, actualNewSUID, computedOldSUID, computedNewSUID);
         }
     }
 
@@ -163,10 +162,39 @@ public final class SerialVersionUidUnchanged extends CheckBase {
             return null;
         }
 
-        Long actualSUID = (Long) fields.context[0];
+        long actualOldSUID = (Long) fields.context[0];
+        long actualNewSUID = (Long) fields.context[1];
+        long computedOldSUID = (Long) fields.context[2];
+        long computedNewSUID = (Long) fields.context[3];
 
-        return Collections.singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED,
-                Code.attachmentsFor(fields.oldElement, fields.newElement, "serialVersionUID", actualSUID.toString())));
+        boolean reportUnchanged = false;
+        boolean reportChanged = false;
+
+        if (actualOldSUID == actualNewSUID && computedOldSUID != computedNewSUID) {
+            reportUnchanged = true;
+        }
+
+        if (actualOldSUID != actualNewSUID) {
+            reportChanged = true;
+        }
+
+        if (!reportChanged && !reportUnchanged) {
+            return Collections.emptyList();
+        }
+
+        List<Difference> ret = new ArrayList<>(1);
+
+        if (reportUnchanged) {
+            ret.add(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED,
+                    Code.attachmentsFor(fields.oldElement, fields.newElement, "serialVersionUID",
+                            Long.toString(actualOldSUID))));
+        } else {
+            ret.add(createDifference(Code.FIELD_SERIAL_VERSION_UID_CHANGED,
+                    Code.attachmentsFor(fields.oldElement, fields.newElement, "oldSerialVersionUID",
+                            Long.toString(actualOldSUID), "newSerialVersionUID", Long.toString(actualNewSUID))));
+        }
+
+        return ret;
     }
 
     public static long computeStructuralId(TypeElement type, TypeEnvironment environment) {
@@ -533,9 +561,8 @@ public final class SerialVersionUidUnchanged extends CheckBase {
     }
 
     /**
-     * Adapted from {@link java.io.ObjectStreamClass#getClassSignature(Class)}
-     * and {@link java.io.ObjectStreamClass#getMethodSignature(Class[], Class)}
-     *
+     * Adapted from {@link java.io.ObjectStreamClass}
+k     *
      * <p>Returns JVM type signature for given class.
      */
     private static String getSignature(TypeMirror type) {
@@ -619,5 +646,13 @@ public final class SerialVersionUidUnchanged extends CheckBase {
         }, sbuf);
 
         return sbuf.toString();
+    }
+
+    private void ensurePrimitiveTypesLoaded() {
+        if (oldLong != null) {
+            return;
+        }
+        oldLong = getOldTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
+        newLong = getNewTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
     }
 }

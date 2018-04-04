@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,8 @@
  */
 import java.io.Serializable;
 
-public class Serial implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class SerialChanged implements Serializable {
+    private static final long serialVersionUID = 2L;
 
     private int f1;
     private float f2;
