@@ -1224,7 +1224,13 @@ it break binary compatibility, it possibly may cause semantic problems because s
 depends on if and how the `readObject` and `writeObject` methods on the class are implemented, which is beyond the scope
 of this check.
 
-The behavior of this check can be configured using the `revapi.java.checks.serialVersionUID.changeDetection` configuration attribute. The default value of this attribute is `structural` meaning that the difference is reported only for classes that somehow change structurally between versions (i.e. a field is added/deleted or its type changed). When specifying `jvm` as the change detection algorithm the default serialVersionUID is computed for both old and new version of the class. This is more "sensitive" than the structural change because it also considers any changes to methods or static fields of the class (but it nevertheless is the algorithm that the JVM itself uses for computing the default serialization UID of a class).
+The behavior of this check can be configured using the `revapi.java.checks.serialVersionUID.changeDetection`
+configuration attribute. The default value of this attribute is `structural` meaning that the difference is reported
+only for classes that somehow change structurally between versions (i.e. a field is added/deleted or its type changed).
+When specifying `jvm` as the change detection algorithm the default serialVersionUID is computed for both old and new
+version of the class. This is more "sensitive" than the structural change because it also considers any changes to
+methods or static fields of the class (but it nevertheless is the algorithm that the JVM itself uses for computing the
+default serialization UID of a class).
 
 Example of the configuration in both XML and JSON:
 
@@ -1259,6 +1265,33 @@ or
 | `package` | the package of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
+| `serialVersionUID` | the value of the serial version UID field (as decimal number)
+| `elementKind` | See <<Match Parameters>> for possible values
+|====
+
+==== Field `serialVersionUID` Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.field.serialVersionUIDChanged+
+| Binary severity   | equivalent
+| Source severity   | equivalent
+| Semantic severity | breaking
+|=============
+
+This is reported as a breaking change because it is assumed that if a class is serializable it actually is
+serialized and deserialized. Changing the value of the `serialVersionUID` static field causes the new class to no longer
+be able to deserialize objects that were serialized using the old version of the class.
+
+This check can be configured the same way as <<Field serialVersionUID Unchanged>>.
+
+[options=header]
+|====
+2+| Match parameters
+| `package` | the package of the class
+| `classSimpleName` | the simple name of the class
+| `fieldName` | the name of the field
+| `oldSerialVersionUID` | the value of the serial version UID field in the old version (as decimal number)
+| `newSerialVersionUID` | the value of the serial version UID field in the new version (as decimal number)
 | `elementKind` | See <<Match Parameters>> for possible values
 |====
 

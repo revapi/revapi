@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,7 @@ import javax.tools.ToolProvider;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.revapi.java.checks.fields.SerialVersionUidUnchanged;
+import org.revapi.java.checks.fields.SerialVersionUidChecker;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.suid.Empty;
 import org.revapi.java.suid.TestClass;
@@ -88,8 +88,8 @@ public class SUIDGeneratorTest {
                 }
             };
 
-            generatedSUID = SerialVersionUidUnchanged.computeSerialVersionUID(testType, fakeEnv);
-            generatedStructuralId = SerialVersionUidUnchanged.computeStructuralId(testType, fakeEnv);
+            generatedSUID = SerialVersionUidChecker.computeSerialVersionUID(testType, fakeEnv);
+            generatedStructuralId = SerialVersionUidChecker.computeStructuralId(testType, fakeEnv);
             return true;
         }
     }

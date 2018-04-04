@@ -42,7 +42,7 @@ org.revapi.java.checks.fields.NoLongerStatic
 org.revapi.java.checks.fields.NowConstant
 org.revapi.java.checks.fields.NowFinal
 org.revapi.java.checks.fields.NowStatic
-org.revapi.java.checks.fields.SerialVersionUidUnchanged
+org.revapi.java.checks.fields.SerialVersionUidChecker
 org.revapi.java.checks.fields.TypeChanged
 org.revapi.java.checks.fields.VisibilityIncreased
 org.revapi.java.checks.fields.VisibilityReduced

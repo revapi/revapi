@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -111,6 +111,7 @@ public enum Code {
     FIELD_TYPE_CHANGED("java.field.typeChanged", BREAKING, BREAKING, null),
     FIELD_SERIAL_VERSION_UID_UNCHANGED("java.field.serialVersionUIDUnchanged", EQUIVALENT, EQUIVALENT,
         POTENTIALLY_BREAKING),
+    FIELD_SERIAL_VERSION_UID_CHANGED("java.field.serialVersionUIDChanged", EQUIVALENT, EQUIVALENT, BREAKING),
     FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", EQUIVALENT, EQUIVALENT, null),
     FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null),
     FIELD_ENUM_CONSTANT_ORDER_CHANGED("java.field.enumConstantOrderChanged", NON_BREAKING, NON_BREAKING,
