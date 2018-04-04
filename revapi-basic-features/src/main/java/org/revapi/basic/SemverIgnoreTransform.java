@@ -112,8 +112,16 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
         enabled = node.get("enabled").isDefined() && node.get("enabled").asBoolean();
 
         if (enabled) {
-            Archive oldArchive = analysisContext.getOldApi().getArchives().iterator().next();
-            Archive newArchive = analysisContext.getNewApi().getArchives().iterator().next();
+            Iterator<? extends Archive> oldArchives = analysisContext.getOldApi().getArchives().iterator();
+            Iterator<? extends Archive> newArchives = analysisContext.getNewApi().getArchives().iterator();
+
+            if (!oldArchives.hasNext() || !newArchives.hasNext()) {
+                enabled = false;
+                return;
+            }
+
+            Archive oldArchive = oldArchives.next();
+            Archive newArchive = newArchives.next();
 
             if (!(oldArchive instanceof Archive.Versioned)) {
                 throw new IllegalArgumentException("Old archive doesn't support extracting the version.");
