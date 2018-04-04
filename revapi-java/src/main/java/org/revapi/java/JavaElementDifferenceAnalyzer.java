@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.revapi.java;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
@@ -74,6 +75,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private static final Logger LOG = LoggerFactory.getLogger(JavaElementDifferenceAnalyzer.class);
 
     private static final Map<Check.Type, Set<Check.Type>> POSSIBLE_CHILDREN_TYPES;
+
     static {
         Map<Check.Type, Set<Check.Type>> map = new EnumMap<>(Check.Type.class);
         map.put(Check.Type.ANNOTATION, emptySet());
@@ -89,6 +91,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     //see #forceClearCompilerCache for what these are
     private static final Method CLEAR_COMPILER_CACHE;
     private static final Object SHARED_ZIP_FILE_INDEX_CACHE;
+
     static {
         String javaVersion = System.getProperty("java.version");
         if (javaVersion.startsWith("1.")) {
@@ -118,7 +121,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
     }
 
-    private final Iterable<Check> checks;
     private final CompilationValve oldCompilationValve;
     private final CompilationValve newCompilationValve;
     private final AnalysisConfiguration analysisConfiguration;
@@ -127,6 +129,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private final ProbingEnvironment newEnvironment;
     private final Map<Check.Type, List<Check>> checksByInterest;
     private final Deque<CheckType> checkTypeStack = new ArrayDeque<>();
+    private final Deque<Collection<Check>> checksStack = new ArrayDeque<>();
 
     // NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
     // are always sorted as last amongst sibling model elements.
@@ -152,7 +155,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
         this.descendingChecksByTypes = new HashMap<>();
 
-        this.checks = checks;
         for (Check c : checks) {
             c.initialize(analysisContext);
             c.setOldTypeEnvironment(oldEnvironment);
@@ -170,16 +172,10 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         this.newEnvironment = newEnvironment;
 
         this.checksByInterest = new EnumMap<>(Check.Type.class);
-        for (Check.Type c : Check.Type.values()) {
-            checksByInterest.put(c, new ArrayList<>());
-        }
-
-        for (Check c : checks) {
-            for (Check.Type t : c.getInterest()) {
-                List<Check> cs = checksByInterest.get(t);
-                cs.add(c);
-            }
-        }
+        checks.forEach(c ->
+                c.getInterest().forEach(i ->
+                        checksByInterest.computeIfAbsent(i, __ -> new ArrayList<>()).add(c)
+                ));
     }
 
 
@@ -210,6 +206,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
         if (conforms(oldElement, newElement, TypeElement.class)) {
             checkTypeStack.push(CheckType.CLASS);
+            checksStack.push(possibleChecks);
             lastAnnotationResults = null;
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
@@ -223,8 +220,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             if (lastAnnotationResults == null) {
                 lastAnnotationResults = new ArrayList<>(4);
             }
-            //DO NOT push the ANNOTATION type to the checkTypeStack. Annotations are handled differently and this would
-            //lead to the stack corruption and missed problems!!!
+            //DO NOT push the ANNOTATION type to the checkTypeStack nor push the applied checks to the checksStack.
+            //Annotations are handled differently and this would lead to the stack corruption and missed problems!!!
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
                 List<Difference> cps = c
@@ -274,6 +271,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         if (!(isCheckedElsewhere(oldElement, oldEnvironment)
                 && isCheckedElsewhere(newElement, newEnvironment))) {
             checkTypeStack.push(interest);
+            checksStack.push(possibleChecks);
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
                 switch (interest) {
@@ -292,6 +290,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         } else {
             //"ignore what's on the stack because no checks actually happened".
             checkTypeStack.push(CheckType.NONE);
+            checksStack.push(emptyList());
         }
     }
 
@@ -310,8 +309,9 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
         List<Difference> differences = new ArrayList<>();
         CheckType lastInterest = checkTypeStack.pop();
+
         if (lastInterest.isConcrete()) {
-            for (Check c : checksByInterest.get(lastInterest.getCheckType())) {
+            for (Check c : checksStack.pop()) {
                 List<Difference> p = c.visitEnd();
                 if (p != null) {
                     differences.addAll(p);
