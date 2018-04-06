@@ -174,7 +174,7 @@
     <title>New Check and 2 Fixes</title>
     <updated>2018-04-06T00:00:00+00:00</updated>
     <published>2018-04-06T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20180406-releases.html" rel="alternate" type="text/html" />
+    <link href="https://revapi.org/news/20180406-new-check-and-2-fixes.html" rel="alternate" type="text/html" />
     <author>Lukas Krejci</author>
     <summary>
         New releases of components to incorporate a new Java check and fixes for 2 issues.
