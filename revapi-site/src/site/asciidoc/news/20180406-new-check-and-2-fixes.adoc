@@ -5,7 +5,8 @@ I fixed 3 issues for which there are releases of the following components:
 
 * `revapi-basic-features-0.7.1` that contains a fix for https://github.com/revapi/revapi/issues/119[#119] which means
 that the semver transform should no longer crash when there is no prior version of artifacts
-* `revapi-java-spi-0.15.1` that includes the definition of the new `serialVersionUIDChanged` check (prompted by
+* `revapi-java-spi-0.15.1` that includes the definition of the new `serialVersionUIDChanged`
+https://revapi.org/modules/revapi-java/index.html#field_code_serialversionuid_code_changed[check] (prompted by
 https://github.com/revapi/revapi/issues/120[#120])
 * `revapi-java-0.16.0` that contains the implementation of `serialVersionUIDChanged` and additionally contains
 an important fix that could cause problems be reported on wrong elements in some cases.
