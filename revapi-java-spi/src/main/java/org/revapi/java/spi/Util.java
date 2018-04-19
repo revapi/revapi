@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1021,64 +1021,259 @@ public final class Util {
      * @return the type element with given binary name
      */
     public static TypeElement findTypeByBinaryName(Elements elements, String binaryName) {
-        return findTypeByBinaryName(elements, binaryName, 0);
+        return findTypeByBinaryName(elements, new StringBuilder(binaryName));
     }
 
-    private static TypeElement findTypeByBinaryName(Elements elements, String binaryName, int swapStartPos) {
+    private static TypeElement findTypeByBinaryName(Elements elements, StringBuilder binaryName) {
         TypeElement ret;
 
-        String attemptedName = binaryName;
-
-        //this is optimized for the most common scenario of classes having no $ in their names...
-        if (swapStartPos >= binaryName.length()) {
+        //first, a quick check for the case where the name has just dollars in it, but is not a nested class.
+        //Scala seems to use this for its generated classes.
+        //Javac can have real trouble trying to initialize member classes... Let's guard for that here...
+        try {
+            ret = elements.getTypeElement(binaryName);
+            if (ret != null) {
+                return ret;
+            }
+        } catch (Exception __) {
+            //k, we're most probably dealing with a member class. There is no point in continuing, the class is not
+            //reachable by any caller but from within a method the member class is defined.
             return null;
         }
 
-        if (attemptedName.indexOf('$', swapStartPos) == -1) {
-            return elements.getTypeElement(attemptedName);
-        }
+        int lastIndex = binaryName.length() - 1;
 
-        int dollarPos = swapStartPos;
+        //remember the exact positions of the $ in the binaryName
+        List<Integer> tmp = new ArrayList<>(4);
+        int dollarPos = -1;
         while (true) {
-            final String tmp = attemptedName;
-
-            //Javac can have real trouble trying to initialize member classes... Let's guard for that here...
-            if ((ret = returnNullOnException(() -> elements.getTypeElement(tmp))) == null) {
+            dollarPos = binaryName.indexOf("$", dollarPos + 1);
+            if (dollarPos != -1) {
+                //the $ at the start or end of the class name cannot be an inner class marker - it is always part of
+                //the name
+                if (dollarPos > 0 && dollarPos < lastIndex && binaryName.charAt(dollarPos - 1) != '.'
+                        && binaryName.charAt(dollarPos + 1) != '.') {
+                    tmp.add(dollarPos);
+                }
+            } else {
                 break;
-            }
-
-            dollarPos = attemptedName.indexOf('$', dollarPos);
-            if (dollarPos == -1) {
-                break;
-            }
-
-            if (dollarPos < binaryName.length()) {
-                attemptedName = attemptedName.substring(0, dollarPos) + "." + attemptedName.substring(dollarPos + 1);
             }
         }
 
-        if (ret == null) {
-            //ok, we need to try if there isn't a match with a dollar on the current position...
-            dollarPos = binaryName.indexOf('$', swapStartPos);
-            if (dollarPos != -1) {
-                ret = findTypeByBinaryName(elements, binaryName, dollarPos + 1);
+        //convert to a faster int[]
+        int[] dollarPoses = new int[tmp.size()];
+        for (int i = 0; i < dollarPoses.length; ++i) {
+            dollarPoses[i] = tmp.get(i);
+        }
 
-                if (ret == null) {
-                    //still nothing, so let's try a dot instead of a dollar on the current position
-                    binaryName = binaryName.substring(0, dollarPos) + "." + binaryName.substring(dollarPos + 1);
-                    ret = findTypeByBinaryName(elements, binaryName, swapStartPos + 1);
+        //ok, $ in class names are uncommon (at least in java), so let's try just replacing all dollars first
+        //if the name is valid even if all dollars were replaced by . (i.e. all class names without $), let's try
+        //resolve it as such..
+        if (isValidDotConstellation(dollarPoses, dollarPoses.length)) {
+            for (int i = 0; i < dollarPoses.length; ++i) {
+                binaryName.setCharAt(dollarPoses[i], '.');
+            }
+
+            try {
+                ret = elements.getTypeElement(binaryName);
+                if (ret != null) {
+                    return ret;
+                } else {
+                    //shame, we need to go through the slow path
+                    for (int i = 0; i < dollarPoses.length; ++i) {
+                        binaryName.setCharAt(dollarPoses[i], '$');
+                    }
                 }
+            } catch (Exception __) {
+                return null;
+            }
+        }
+
+        //we'll need to remember what were the positions of dots as we iterate through all the possibilities..
+        int[] dotPoses = new int[dollarPoses.length];
+
+        //we already tried no nesting
+        int nestingLevel = 1;
+
+        //we already tried the maximum nesting level (i.e. all dollars replaced)
+        while (ret == null && nestingLevel < dollarPoses.length) {
+            // set the initial positions of dots
+            firstDotConstellation(dollarPoses, dotPoses, nestingLevel);
+
+            boolean constellationFound = false;
+            long constellations = nChooseK(dollarPoses.length, nestingLevel);
+            int attempt = 0;
+
+            while (attempt++ < constellations) {
+                if (!isValidDotConstellation(dotPoses, nestingLevel)) {
+                    nextDotConstellation(dollarPoses, dotPoses, nestingLevel);
+                    continue;
+                }
+
+                constellationFound = true;
+                for (int i = 0; i < dotPoses.length; ++i) {
+                    if (dotPoses[i] != -1) {
+                        binaryName.setCharAt(dotPoses[i], '.');
+                    }
+                }
+
+                try {
+                    ret = elements.getTypeElement(binaryName);
+                    if (ret != null) {
+                        break;
+                    }
+                } catch (Exception e) {
+                    //see the top of the method for the reason we're breaking out here...
+                    return null;
+                }
+
+                for (int i = 0; i < dotPoses.length; ++i) {
+                    if (dotPoses[i] != -1) {
+                        binaryName.setCharAt(dotPoses[i], '$');
+                    }
+                }
+
+                nextDotConstellation(dollarPoses, dotPoses, nestingLevel);
+            }
+
+            if (!constellationFound) {
+                break;
+            } else {
+                nestingLevel++;
             }
         }
 
         return ret;
     }
 
-    private static <T> T returnNullOnException(Callable<T> call) {
-        try {
-            return call.call();
-        } catch (Exception e) {
-            return null;
+    /**
+     * This will set the last nestingLevel elements in the dotPositions to the values present in the dollarPositions.
+     * The rest will be set to -1.
+     *
+     * <p>In another words the dotPositions array will contain the rightmost dollar positions.
+     *
+     * @param dollarPositions the positions of the $ in the binary class name
+     * @param dotPositions the positions of the dots to initialize from the dollarPositions
+     * @param nestingLevel the number of dots (i.e. how deep is the nesting of the classes)
+     */
+    private static void firstDotConstellation(int[] dollarPositions, int[] dotPositions, int nestingLevel) {
+        int i = 0;
+        int unassigned = dotPositions.length - nestingLevel;
+
+        for (; i < unassigned; ++i) {
+            dotPositions[i] = -1;
         }
+
+        for (; i < dotPositions.length; ++i) {
+            dotPositions[i] = dollarPositions[i];
+        }
+    }
+
+    /**
+     * If we think of the dotPositions as a binary number (-1 is a "zero", other values represent 1), this basically
+     * increments this "binary number" in such a way that there are always nestingLevel non-zero values.
+     *
+     * The values for non-zeros are taken from the dollarPositions array.
+     *
+     * @param dollarPositions the positions of $ in the binary class names
+     * @param dotPositions the positions of dots to update with a next available "constellation"
+     * @param nestingLevel the number of $ to replace with .
+     */
+    private static void nextDotConstellation(int[] dollarPositions, int[] dotPositions, int nestingLevel) {
+        if (nestingLevel == 0) {
+            return;
+        }
+
+        int firstAssignedIdx = 0;
+        while (dotPositions[firstAssignedIdx] == -1) {
+            firstAssignedIdx++;
+        }
+
+        if (firstAssignedIdx > 0) {
+            dotPositions[firstAssignedIdx] = -1;
+            dotPositions[--firstAssignedIdx] = dollarPositions[firstAssignedIdx];
+        } else {
+            int nofAssigned = 0;
+            while (firstAssignedIdx < dotPositions.length && dotPositions[firstAssignedIdx++] != -1) {
+                nofAssigned++;
+            }
+
+            if (nofAssigned < nestingLevel) {
+                while (firstAssignedIdx < dotPositions.length && dotPositions[firstAssignedIdx] == -1) {
+                    firstAssignedIdx++;
+                }
+
+                if (firstAssignedIdx < dotPositions.length && firstAssignedIdx > 0) {
+                    dotPositions[firstAssignedIdx] = -1;
+                    dotPositions[--firstAssignedIdx] = dollarPositions[firstAssignedIdx];
+                }
+            }
+        }
+    }
+
+    private static long nChooseK(long n, long k) {
+        if (n < k) {
+            return 0;
+        }
+
+        if (k == 0 || k == n) {
+            return 1;
+        }
+
+        if (k == 1) {
+            return n;
+        }
+
+        if (k == 2) {
+            return n * (n - 1) / 2;
+        }
+
+        return nChooseK(n - 1, k - 1) + nChooseK(n - 1, k);
+    }
+
+    private static boolean isValidDotConstellation(int[] dotPositions, int nestingLevel) {
+        int assigned = 0;
+        int lastAssignedIndex = -1;
+
+        for (int i = 0; i < dotPositions.length; ++i) {
+            if (dotPositions[i] != -1) {
+                //disallow 2 consecutive $
+                if (lastAssignedIndex != -1 && dotPositions[lastAssignedIndex] == dotPositions[i] - 1) {
+                    return false;
+                }
+
+                assigned++;
+                lastAssignedIndex = i;
+            }
+        }
+
+        return assigned == nestingLevel;
+    }
+
+    private static int nextValidDotPos(int currentPos, int[] positions) {
+        if (currentPos <= 0) {
+            return -1;
+        }
+
+        while (currentPos > 0) {
+            //'..' is invalid in the class name
+            if (positions[currentPos - 1] < positions[currentPos]) {
+                break;
+            } else {
+                currentPos--;
+            }
+        }
+
+        return currentPos;
+    }
+
+    private static int indexOf(int value, int[] array, int startIndex) {
+        for (int i = startIndex; i >= 0; --i) {
+            if (array[i] == value) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }
