@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.revapi.standalone;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
@@ -271,7 +272,8 @@ public final class Main {
 
         ProjectModule.Builder bld = ProjectModule.build();
         bld.localRepository(cacheDir);
-
+        remoteRepositories().forEach(r -> bld.addRemoteRepository(r.getId(), r.getUrl()));
+        
         if (extensionGAVs != null) {
             for (String gav : extensionGAVs) {
                 bld.addDependency(gav);
@@ -296,8 +298,6 @@ public final class Main {
                 currentModuleName = moduleName;
             }
 
-            //TODO add warnings when the deps depend on another revapi version than the one bundled...
-
             @Override
             public DependencySpec modifyDependency(String dependencyName, DependencySpec original) {
                 boolean overrideThis = false;
@@ -319,7 +319,7 @@ public final class Main {
             @Override
             public void modify(ModuleSpec.Builder bld) {
                 if (override) {
-                    Set<String> revapiPaths = new HashSet<>(Arrays.asList("org/revapi", "org/revapi/configuration",
+                    Set<String> revapiPaths = new HashSet<>(asList("org/revapi", "org/revapi/configuration",
                             "org/revapi/query", "org/revapi/simple"));
 
                     bld.addDependency(DependencySpec.createSystemDependencySpec(revapiPaths));
@@ -401,10 +401,7 @@ public final class Main {
         session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
         session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
 
-        RemoteRepository mavenCentral = new RemoteRepository.Builder("@@forced-maven-central@@", "default",
-                "http://repo.maven.apache.org/maven2/").build();
-
-        List<RemoteRepository> remoteRepositories = singletonList(mavenCentral);
+        List<RemoteRepository> remoteRepositories = remoteRepositories();
 
         ArtifactResolver resolver = new ArtifactResolver(repositorySystem, session, remoteRepositories);
 
@@ -427,6 +424,18 @@ public final class Main {
         }
 
         return new ArchivesAndSupplementaryArchives(archives, supplementaryArchives);
+    }
+
+    private static List<RemoteRepository> remoteRepositories() {
+        RemoteRepository mavenCentral = new RemoteRepository.Builder("@@forced-maven-central@@", "default",
+                "http://repo.maven.apache.org/maven2/").build();
+
+        File localMaven = new File(new File(System.getProperties().getProperty("user.home"), ".m2"), "repository");
+
+        RemoteRepository mavenCache = new RemoteRepository.Builder("@@~/.m2/repository@@", "local",
+                localMaven.toURI().toString()).build();
+
+        return asList(mavenCentral, mavenCache);
     }
 
     private static void checkCanRead(File f, String errorMessagePrefix) throws IllegalArgumentException {
