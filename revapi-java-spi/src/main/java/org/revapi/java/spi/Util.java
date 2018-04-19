@@ -1249,31 +1249,4 @@ public final class Util {
 
         return assigned == nestingLevel;
     }
-
-    private static int nextValidDotPos(int currentPos, int[] positions) {
-        if (currentPos <= 0) {
-            return -1;
-        }
-
-        while (currentPos > 0) {
-            //'..' is invalid in the class name
-            if (positions[currentPos - 1] < positions[currentPos]) {
-                break;
-            } else {
-                currentPos--;
-            }
-        }
-
-        return currentPos;
-    }
-
-    private static int indexOf(int value, int[] array, int startIndex) {
-        for (int i = startIndex; i >= 0; --i) {
-            if (array[i] == value) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
 }
