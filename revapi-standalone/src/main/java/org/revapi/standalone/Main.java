@@ -375,10 +375,14 @@ public final class Main {
 
         LOG.info("Starting analysis");
 
+        long time = System.currentTimeMillis();
+
         try (AnalysisResult result = revapi.analyze(ctxBld.build())) {
             if (!result.isSuccess()) {
                 throw result.getFailure();
             }
+        } finally {
+            LOG.info("Analysis took " + (System.currentTimeMillis() - time) + "ms.");
         }
     }
 
