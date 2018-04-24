@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,8 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
 
     private static final Set<String> HARMLESS_ANNOTATIONS = new HashSet<>(Arrays.asList(
             "java.lang.FunctionalInterface", //having this is purely informational
-            "java.lang.annotation.Documented" //this doesn't affect the runtime at any rate
+            "java.lang.annotation.Documented", //this doesn't affect the runtime at any rate
+            "jdk.internal.HotSpotIntrinsicCandidate" //
     ));
 
     @Nonnull @Override public Pattern[] getDifferenceCodePatterns() {
