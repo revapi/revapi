@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -163,8 +165,27 @@ public class TextReporter implements Reporter {
             Element r1El = r1.getOldElement() == null ? r1.getNewElement() : r1.getOldElement();
             Element r2El = r2.getOldElement() == null ? r2.getNewElement() : r2.getOldElement();
 
-            //noinspection ConstantConditions
-            return r1El.compareTo(r2El);
+            Deque<Element> r1Ancestry = new ArrayDeque<>();
+            Deque<Element> r2Ancestry = new ArrayDeque<>();
+
+            while (r1El != null) {
+                r1Ancestry.push(r1El);
+                r1El = r1El.getParent();
+            }
+
+            while (r2El != null) {
+                r2Ancestry.push(r2El);
+                r2El = r2El.getParent();
+            }
+
+            while (!r1Ancestry.isEmpty() && !r2Ancestry.isEmpty()) {
+                int order = r1Ancestry.pop().compareTo(r2Ancestry.pop());
+                if (order != 0) {
+                    return order;
+                }
+            }
+
+            return r1Ancestry.size() - r2Ancestry.size();
         });
 
         Configuration freeMarker = createFreeMarkerConfiguration();
@@ -208,6 +229,8 @@ public class TextReporter implements Reporter {
 
     @Override
     public void report(@Nonnull Report report) {
+        LOG.trace("Received report {}", report);
+
         if (report.getDifferences().isEmpty()) {
             return;
         }
