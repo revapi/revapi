@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,14 +66,12 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
     @Override
     public int compareTo(@Nonnull Element o) {
-        int ret = super.compareTo(o);
-
-        if (ret == 0) {
-            MethodParameterElement other = (MethodParameterElement) o;
-            ret = index - other.index;
+        if (!(o.getClass().equals(MethodParameterElement.class))) {
+            return JavaElementFactory.compareByType(this, o);
         }
 
-        return ret;
+        MethodParameterElement other = (MethodParameterElement) o;
+        return index - other.index;
     }
 
     @Override
@@ -107,9 +105,7 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
     @Override
     protected String createComparableSignature() {
-        String myType = Util.toUniqueString(getDeclaringElement().getEnclosingElement().getEnclosingElement().asType());
-        String myMethod = getDeclaringElement().getEnclosingElement().getSimpleName().toString();
-
-        return myType + "::" + myMethod;
+        //not used
+        return null;
     }
 }
