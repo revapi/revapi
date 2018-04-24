@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -82,11 +83,13 @@ import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.FlatFilter;
 import org.revapi.java.model.AnnotationElement;
+import org.revapi.java.model.InitializationOptimizations;
 import org.revapi.java.model.JavaElementBase;
 import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MissingClassElement;
 import org.revapi.java.spi.IgnoreCompletionFailures;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
 import org.revapi.query.Filter;
@@ -783,10 +786,9 @@ final class ClasspathScanner {
                         .flatMap(e -> e.getValue().getValue().stream())
                         .filter(usedTr -> !usedTr.inApi)
                         .filter(usedTr -> !usedTr.explicitlyExcluded)
-                        .map(usedTr -> {
+                        .peek(usedTr -> {
                             usedTr.inApi = true;
                             usedTr.inApiThroughUse = true;
-                            return usedTr;
                         })
                         .collect(toSet());
             }
@@ -825,77 +827,110 @@ final class ClasspathScanner {
         }
 
         private void initChildren() {
-            for (TypeRecord tr : this.types.values()) {
-                if (tr.modelElement == null) {
-                    continue;
+            this.types.values().forEach(this::initChildren);
+        }
+
+        private void initChildren(TypeRecord tr) {
+            if (tr.modelElement == null) {
+                tr.inheritableElements = Collections.emptySet();
+                return;
+            }
+
+            if (tr.inheritableElements != null) {
+                return;
+            }
+
+            tr.inheritableElements = new HashSet<>(4);
+
+            //the set of methods' override-sensitive signatures - I.e. this is the list of methods
+            //actually visible on a type.
+            Set<String> methods = new HashSet<>(8);
+
+            Consumer<JavaElementBase<?, ?>> addOverride = e -> {
+                if (e instanceof MethodElement) {
+                    MethodElement me = (MethodElement) e;
+                    methods.add(getOverrideMapKey(me));
                 }
+            };
 
-                //the set of methods' override-sensitive signatures - I.e. this is the list of methods
-                //actually visible on a type.
-                Set<String> methods = new HashSet<>(8);
-
-                Function<JavaElementBase<?, ?>, JavaElementBase<?, ?>> addOverride = e -> {
-                    if (e instanceof MethodElement) {
-                        MethodElement me = (MethodElement) e;
-                        methods.add(getOverrideMapKey(me.getDeclaringElement()));
-                    }
-                    return e;
-                };
-
-                Function<JavaElementBase<?, ?>, JavaElementBase<?, ?>> initChildren = e -> {
+            Consumer<JavaElementBase<?, ?>> initChildren = e ->
                     initNonClassElementChildrenAndMoveToApi(tr, e, false);
-                    return e;
-                };
 
-                //add declared stuff
-                tr.accessibleDeclaredNonClassMembers.stream()
-                        .map(e ->
-                                elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
-                        .map(addOverride)
-                        .map(initChildren)
-                        .forEach(c -> tr.modelElement.getChildren().add(c));
+            //add declared stuff
+            tr.accessibleDeclaredNonClassMembers.stream()
+                    .map(e ->
+                            elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
+                    .peek(addOverride)
+                    .peek(initChildren)
+                    .forEach(c -> {
+                        tr.modelElement.getChildren().add(c);
+                        tr.inheritableElements.add(c);
+                    });
 
-                tr.inaccessibleDeclaredNonClassMembers.stream()
-                        .map(e ->
-                                elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
-                        .map(addOverride)
-                        .map(initChildren)
-                        .forEach(c -> tr.modelElement.getChildren().add(c));
+            tr.inaccessibleDeclaredNonClassMembers.stream()
+                    .map(e ->
+                            elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
+                    .peek(addOverride)
+                    .peek(initChildren)
+                    .forEach(c -> tr.modelElement.getChildren().add(c));
 
-                //now add inherited stuff
-                tr.superTypes.forEach(str -> addInherited(tr, str, methods));
+            //now add inherited stuff
+            tr.superTypes.forEach(str -> addInherited(tr, str, methods));
 
-                //and finally the annotations
-                for (AnnotationMirror m : tr.javacElement.getAnnotationMirrors()) {
-                    tr.modelElement.getChildren().add(new AnnotationElement(environment, tr.modelElement.getArchive(), m));
-                }
+            //and finally the annotations
+            for (AnnotationMirror m : tr.javacElement.getAnnotationMirrors()) {
+                tr.modelElement.getChildren().add(new AnnotationElement(environment, tr.modelElement.getArchive(), m));
             }
         }
 
+        @SuppressWarnings("EqualsWithItself")
         private void addInherited(TypeRecord target, TypeRecord superType, Set<String> methodOverrideMap) {
             Types types = environment.getTypeUtils();
 
-            superType.accessibleDeclaredNonClassMembers.stream()
+            if (superType.inheritableElements == null) {
+                initChildren(superType);
+            }
+
+            superType.inheritableElements.stream()
                     .map(e -> {
-                        if (e instanceof ExecutableElement) {
-                            ExecutableElement me = (ExecutableElement) e;
-                            if (!shouldAddInheritedMethodChild(me, methodOverrideMap)) {
+                        if (e instanceof MethodElement) {
+                            if (!shouldAddInheritedMethodChild((MethodElement) e, methodOverrideMap)) {
                                 return null;
                             }
                         }
 
-                        TypeMirror elementType = types.asMemberOf((DeclaredType) target.javacElement.asType(), e);
+                        JavaElementBase<?, ?> ret;
+                        if (isGeneric(e.getDeclaringElement())) {
+                            //we need to generate the new element fully, because it is generic and thus can have
+                            //a different signature in the target type than it has in the supertype.
+                            TypeMirror elementType = types.asMemberOf((DeclaredType) target.javacElement.asType(),
+                                    e.getDeclaringElement());
 
-                        JavaElementBase<?, ?> element = JavaElementFactory
-                                .elementFor(e, elementType, environment, target.modelElement.getArchive());
+                            ret = JavaElementFactory
+                                    .elementFor(e.getDeclaringElement(), elementType, environment,
+                                            target.modelElement.getArchive());
 
-                        element.setInherited(true);
+                            initNonClassElementChildrenAndMoveToApi(target, ret, true);
+                        } else {
+                            //this element is not generic, so we can merely copy it...
+                            if (target.inApi) {
+                                //this element will for sure be in the API and hence API checked... let's optimize
+                                //this case and pre-create the comparable signature of the element before we copy it
+                                //so that we don't have to re-create it in every inherited class. This is especially
+                                //useful for methods from java.lang.Object, and in deep large hierarchies.
+                                InitializationOptimizations.initializeComparator(e);
+                            }
 
-                        initNonClassElementChildrenAndMoveToApi(target, element, true);
+                            ret = e.clone();
 
-                        return element;
+                            copyInheritedNonClassElementChildrenAndMoveToApi(target, ret, e.getChildren(), target.inApi);
+                        }
+
+                        ret.setInherited(true);
+
+                        return ret;
                     })
-                    .filter(e -> e != null)
+                    .filter(Objects::nonNull)
                     .forEach(c -> target.modelElement.getChildren().add(c));
 
             for (TypeRecord st : superType.superTypes) {
@@ -903,8 +938,8 @@ final class ClasspathScanner {
             }
         }
 
-        private boolean shouldAddInheritedMethodChild(ExecutableElement methodElement, Set<String> overrideMap) {
-            if (methodElement.getKind() == ElementKind.CONSTRUCTOR) {
+        private boolean shouldAddInheritedMethodChild(MethodElement methodElement, Set<String> overrideMap) {
+            if (methodElement.getDeclaringElement().getKind() == ElementKind.CONSTRUCTOR) {
                 return false;
             }
             String overrideKey = getOverrideMapKey(methodElement);
@@ -918,13 +953,10 @@ final class ClasspathScanner {
             }
         }
 
-        private void initNonClassElementChildrenAndMoveToApi(TypeRecord targetType, JavaElementBase<?, ?> parent,
-                                                             boolean inherited) {
-            Types types = environment.getTypeUtils();
-
-            if (targetType.inApi && !shouldBeIgnored(parent.getDeclaringElement())) {
-                TypeMirror representation = types.asMemberOf(targetType.modelElement.getModelRepresentation(),
-                        parent.getDeclaringElement());
+        private void moveUsedToApi(Types types, TypeRecord owningType, Element user) {
+            if (owningType.inApi && !shouldBeIgnored(user)) {
+                TypeMirror representation = types.asMemberOf(owningType.modelElement.getModelRepresentation(),
+                        user);
 
                 representation.accept(new SimpleTypeVisitor8<Void, Void>() {
                     @Override protected Void defaultAction(TypeMirror e, Void aVoid) {
@@ -952,6 +984,13 @@ final class ClasspathScanner {
                     }
                 }, null);
             }
+        }
+
+        private void initNonClassElementChildrenAndMoveToApi(TypeRecord parentOwner, JavaElementBase<?, ?> parent,
+                                                             boolean inherited) {
+            Types types = environment.getTypeUtils();
+
+            moveUsedToApi(types, parentOwner, parent.getDeclaringElement());
 
             List<? extends Element> children =
                     parent.getDeclaringElement().accept(new SimpleElementVisitor8<List<? extends Element>, Void>() {
@@ -974,9 +1013,9 @@ final class ClasspathScanner {
                 }
 
                 TypeMirror representation;
-                if (child.getKind() == ElementKind.METHOD || child.getKind() == ElementKind.CONSTRUCTOR) {
-                    representation = types.asMemberOf(targetType.modelElement.getModelRepresentation(),
-                            child);
+                if ((child.getKind() == ElementKind.METHOD || child.getKind() == ElementKind.CONSTRUCTOR)
+                        && isGeneric(child)) {
+                    representation = types.asMemberOf(parentOwner.modelElement.getModelRepresentation(), child);
                 } else {
                     representation = child.asType();
                 }
@@ -988,17 +1027,95 @@ final class ClasspathScanner {
 
                 parent.getChildren().add(childEl);
 
-                initNonClassElementChildrenAndMoveToApi(targetType, childEl, inherited);
+                initNonClassElementChildrenAndMoveToApi(parentOwner, childEl, inherited);
             }
 
             for (AnnotationMirror m : parent.getDeclaringElement().getAnnotationMirrors()) {
                 parent.getChildren().add(new AnnotationElement(environment, parent.getArchive(), m));
             }
         }
+
+        @SuppressWarnings("EqualsWithItself")
+        private void copyInheritedNonClassElementChildrenAndMoveToApi(TypeRecord parentOwner,
+                JavaElementBase<?, ?> parent, Iterable<? extends JavaElement> sourceChildren,
+                boolean forceComparatorInitialization) {
+
+            Types types = environment.getTypeUtils();
+
+            moveUsedToApi(types, parentOwner, parent.getDeclaringElement());
+
+            for (JavaElement c : sourceChildren) {
+                if (c instanceof TypeElement) {
+                    continue;
+                }
+
+                if (forceComparatorInitialization) {
+                    InitializationOptimizations.initializeComparator(c);
+                }
+
+                JavaElement cc = InitializationOptimizations.clone(c);
+
+                parent.getChildren().add(cc);
+                if (cc instanceof JavaElementBase) {
+                    JavaElementBase<?, ?> mcc = (JavaElementBase<?, ?>) cc;
+                    mcc.setInherited(true);
+                    copyInheritedNonClassElementChildrenAndMoveToApi(parentOwner, mcc, c.getChildren(),
+                            forceComparatorInitialization);
+                }
+            }
+        }
     }
 
-    private static String getOverrideMapKey(ExecutableElement method) {
-        return method.getSimpleName() + "#" + Util.toUniqueString(method.asType());
+    private boolean isGeneric(Element element) {
+        return element.accept(new SimpleElementVisitor8<Boolean, Void>(false) {
+            TypeVisitor<Boolean, Void> isGeneric = new SimpleTypeVisitor8<Boolean, Void>(false) {
+                @Override
+                public Boolean visitIntersection(IntersectionType t, Void __) {
+                    return t.getBounds().stream().anyMatch(this::visit);
+                }
+
+                @Override
+                public Boolean visitDeclared(DeclaredType t, Void __) {
+                    return t.getTypeArguments().stream().anyMatch(this::visit);
+                }
+
+                @Override
+                public Boolean visitTypeVariable(TypeVariable t, Void __) {
+                    return true;
+                }
+
+                @Override
+                public Boolean visitWildcard(WildcardType t, Void __) {
+                    if (t.getExtendsBound() != null) {
+                        return visit(t.getExtendsBound());
+                    } else if (t.getSuperBound() != null) {
+                        return visit(t.getSuperBound());
+                    } else {
+                        return false;
+                    }
+                }
+            };
+
+            @Override
+            public Boolean visitVariable(VariableElement e, Void aVoid) {
+                return e.asType().accept(isGeneric, null);
+            }
+
+            @Override
+            public Boolean visitType(TypeElement e, Void aVoid) {
+                return !e.getTypeParameters().isEmpty();
+            }
+
+            @Override
+            public Boolean visitExecutable(ExecutableElement e, Void aVoid) {
+                return !e.getTypeParameters().isEmpty() || isGeneric.visit(e.getReturnType()) ||
+                        e.getParameters().stream().anyMatch(this::visit);
+            }
+        }, null);
+    }
+
+    private static String getOverrideMapKey(MethodElement method) {
+        return InitializationOptimizations.getMethodComparisonKey(method);
     }
 
     private static final class ArchiveLocation implements JavaFileManager.Location {
@@ -1044,6 +1161,7 @@ final class ClasspathScanner {
         Map<UseSite.Type, Set<TypeRecord>> usedTypes = new EnumMap<>(UseSite.Type.class);
         Set<Element> accessibleDeclaredNonClassMembers = new HashSet<>(4);
         Set<Element> inaccessibleDeclaredNonClassMembers = new HashSet<>(4);
+        Set<JavaElementBase<?, ?>> inheritableElements;
         //important for this to be a linked hashset so that superclasses are processed prior to implemented interfaces
         Set<TypeRecord> superTypes = new LinkedHashSet<>(2);
         boolean explicitlyExcluded;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
+import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
@@ -53,5 +54,10 @@ public final class MethodElement extends JavaElementBase<ExecutableElement, Exec
         //legal character in a method name in the ASCII table
         return getDeclaringElement().getSimpleName() + "#" +
             Util.toUniqueString(getModelRepresentation());
+    }
+
+    @Override
+    public MethodElement clone() {
+        return (MethodElement) super.clone();
     }
 }

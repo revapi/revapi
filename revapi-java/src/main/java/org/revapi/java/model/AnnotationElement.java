@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 package org.revapi.java.model;
+
+import java.lang.annotation.Annotation;
+import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -65,6 +68,13 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
 
     @Nonnull
     @Override
+    @SuppressWarnings("unchecked")
+    public SortedSet<AnnotationElement> getChildren() {
+        return (SortedSet<AnnotationElement>) super.getChildren();
+    }
+
+    @Nonnull
+    @Override
     public AnnotationMirror getAnnotation() {
         return annotation;
     }
@@ -92,6 +102,11 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
     @Override
     public String toString() {
         return getFullHumanReadableString();
+    }
+
+    @Override
+    public AnnotationElement clone() {
+        return (AnnotationElement) super.clone();
     }
 
     private String getComparableSignature() {

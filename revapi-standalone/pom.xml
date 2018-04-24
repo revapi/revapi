@@ -33,11 +33,11 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-standalone</artifactId>
-    <version>0.7.1-SNAPSHOT</version>
+    <version>0.8.0-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
-        <version.org.revapi.revapi>0.9.0</version.org.revapi.revapi>
+        <version.org.revapi.revapi>0.10.0-SNAPSHOT</version.org.revapi.revapi>
     </properties>
 
     <dependencies>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import javax.lang.model.type.DeclaredType;
 
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
@@ -58,4 +59,8 @@ public final class MissingClassElement extends TypeElement {
         return getBinaryName().compareTo(((MissingClassElement) o).getBinaryName());
     }
 
+    @Override
+    public MissingClassElement clone() {
+        return (MissingClassElement) super.clone();
+    }
 }

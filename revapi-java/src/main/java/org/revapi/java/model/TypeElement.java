@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,6 +38,7 @@ import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
+import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
@@ -161,6 +162,11 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     protected String createComparableSignature() {
         //this isn't used, because compareTo is implemented differently
         return null;
+    }
+
+    @Override
+    public TypeElement clone() {
+        return (TypeElement) super.clone();
     }
 
     private JavaModelElement getModel(Element element, int indexInParent) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaFieldElement;
 import org.revapi.java.spi.JavaTypeElement;
+import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
@@ -49,5 +50,10 @@ public final class FieldElement extends JavaElementBase<VariableElement, TypeMir
     @Override
     protected String createComparableSignature() {
         return getDeclaringElement().getSimpleName().toString();
+    }
+
+    @Override
+    public FieldElement clone() {
+        return (FieldElement) super.clone();
     }
 }
