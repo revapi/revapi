@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -291,6 +291,8 @@ public final class Revapi {
             Element a = it.getLeft();
             Element b = it.getRight();
 
+            LOG.trace("Inspecting {} and {}", a, b);
+
             Stats.of("filters").start();
             Set<ElementFilter> filters = extensions.getFilters().keySet();
             boolean analyzeThis =
@@ -299,11 +301,14 @@ public final class Revapi {
 
             long beginDuration = 0;
             if (analyzeThis) {
+                LOG.trace("Starting analysis of {} and {}.", a, b);
                 Stats.of("analyses").start();
                 Stats.of("analysisBegins").start();
                 elementDifferenceAnalyzer.beginAnalysis(a, b);
                 Stats.of("analysisBegins").end(a, b);
                 beginDuration = Stats.of("analyses").reset();
+            } else {
+                LOG.trace("Elements {} and {} were filtered out of analysis.", a, b);
             }
 
             Stats.of("descends").start();
@@ -318,17 +323,23 @@ public final class Revapi {
             Stats.of("descends").end(a, b);
 
             if (shouldDescend) {
+                LOG.trace("Descending into {}, {} pair.", a, b);
                 analyze(deducer, elementDifferenceAnalyzer, a == null ? emptySortedSet() : a.getChildren(),
                         b == null ? emptySortedSet() : b.getChildren(), extensions);
+            } else {
+                LOG.trace("Filters disallowed descending into {} and {}.", a, b);
             }
 
             if (analyzeThis) {
+                LOG.trace("Ending the analysis of {} and {}.", a, b);
                 Stats.of("analyses").start();
                 Stats.of("analysisEnds").start();
                 Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
                 Stats.of("analysisEnds").end(a, b);
                 Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
                 transformAndReport(r, extensions);
+            } else {
+                LOG.trace("Finished the skipped analysis of {} and {}.", a, b);
             }
         }
     }
