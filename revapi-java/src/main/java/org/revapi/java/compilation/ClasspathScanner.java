@@ -364,6 +364,10 @@ final class ClasspathScanner {
                 tr.explicitlyExcluded = excludes;
                 tr.explicitlyIncluded = includes;
 
+                if (type.getEnclosingElement() instanceof TypeElement) {
+                    tr.parent = getTypeRecord((TypeElement) type.getEnclosingElement());
+                }
+
                 if (tr.explicitlyExcluded) {
                     return;
                 }
@@ -417,56 +421,28 @@ final class ClasspathScanner {
         }
 
         void placeInTree(TypeRecord typeRecord) {
-            TypeElement type = typeRecord.modelElement.getDeclaringElement();
-
-            if (!(type.getEnclosingElement() instanceof TypeElement)) {
+            //we exploit the fact that constructTree processes the less-nested elements
+            //first. So by this time, we can be sure that our parents have been processed
+            if (typeRecord.parent == null) {
+                //if it's top-level type, easy
                 environment.getTree().getRootsUnsafe().add(typeRecord.modelElement);
             } else {
-                ArrayDeque<String> nesting = new ArrayDeque<>();
-                type = (TypeElement) type.getEnclosingElement();
-                while (type != null) {
-                    nesting.push(type.getQualifiedName().toString());
-                    type = type.getEnclosingElement() instanceof TypeElement
-                            ? (TypeElement) type.getEnclosingElement()
-                            : null;
-                }
-
-                Function<String, Filter<org.revapi.java.model.TypeElement>> findByCN =
-                        cn -> FlatFilter.by(e -> cn.equals(e.getCanonicalName()));
-
-                List<org.revapi.java.model.TypeElement> parents = Collections.emptyList();
-                while (parents.isEmpty() && !nesting.isEmpty()) {
-                    parents = environment.getTree().searchUnsafe(
-                            org.revapi.java.model.TypeElement.class, false, findByCN.apply(nesting.pop()), null);
-                }
-
-                org.revapi.java.model.TypeElement parent = parents.isEmpty() ? null : parents.get(0);
-                while (!nesting.isEmpty()) {
-                    String cn = nesting.pop();
-                    parents = environment.getTree().searchUnsafe(
-                            org.revapi.java.model.TypeElement.class, false, findByCN.apply(cn),
-                            parent);
-                    if (parents.isEmpty()) {
-                        //we found a "gap" in the parents included in the model. let's start from the top
-                        //again
-                        do {
-                            parents = environment.getTree().searchUnsafe(
-                                    org.revapi.java.model.TypeElement.class, false, findByCN.apply(cn), null);
-                            if (parents.isEmpty() && !nesting.isEmpty()) {
-                                cn = nesting.pop();
-                            } else {
-                                break;
-                            }
-                        } while (!nesting.isEmpty());
+                if (typeRecord.parent.inTree) {
+                    typeRecord.parent.modelElement.getChildren().add(typeRecord.modelElement);
+                } else {
+                    //if it's not top level type, but the parent is not in the tree, we found a "gap" in the model
+                    //included.. Therefore we just add the this type to the first parent in the tree or to the top
+                    //level if none found
+                    TypeRecord parent = typeRecord.parent;
+                    while (parent != null && (!parent.inTree || parent.modelElement == null)) {
+                        parent = parent.parent;
                     }
 
-                    parent = parents.isEmpty() ? null : parents.get(0);
-                }
-
-                if (parent == null) {
-                    environment.getTree().getRootsUnsafe().add(typeRecord.modelElement);
-                } else {
-                    parent.getChildren().add(typeRecord.modelElement);
+                    if (parent == null) {
+                        environment.getTree().getRootsUnsafe().add(typeRecord.modelElement);
+                    } else {
+                        parent.modelElement.getChildren().add(typeRecord.modelElement);
+                    }
                 }
             }
         }
@@ -729,9 +705,9 @@ final class ClasspathScanner {
                         boolean include = defaultInclusionCase || includes;
                         Element owner = t.getEnclosingElement();
 
-                        if (owner != null && owner instanceof TypeElement) {
+                        if (owner instanceof TypeElement) {
                             ArrayDeque<TypeElement> owners = new ArrayDeque<>();
-                            while (owner != null && owner instanceof TypeElement) {
+                            while (owner instanceof TypeElement) {
                                 owners.push((TypeElement) owner);
                                 owner = owner.getEnclosingElement();
                             }
@@ -760,6 +736,7 @@ final class ClasspathScanner {
 
                         if (include) {
                             placeInTree(r);
+                            r.inTree = true;
                             r.modelElement.setRawUseSites(r.useSites);
                             types.add(r);
                             environment.setSuperTypes(r.javacElement,
@@ -1164,6 +1141,7 @@ final class ClasspathScanner {
         Set<JavaElementBase<?, ?>> inheritableElements;
         //important for this to be a linked hashset so that superclasses are processed prior to implemented interfaces
         Set<TypeRecord> superTypes = new LinkedHashSet<>(2);
+        TypeRecord parent;
         boolean explicitlyExcluded;
         boolean explicitlyIncluded;
         boolean inApi;
@@ -1171,6 +1149,7 @@ final class ClasspathScanner {
         boolean primaryApi;
         int nestingDepth;
         boolean errored;
+        boolean inTree;
 
         @Override public String toString() {
             final StringBuilder sb = new StringBuilder("TypeRecord[");
