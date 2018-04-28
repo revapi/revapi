@@ -103,15 +103,15 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
     @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
         ModelNode node = analysisContext.getConfiguration();
 
-        if (hasMultipleElements(analysisContext.getOldApi().getArchives())
-                || hasMultipleElements(analysisContext.getNewApi().getArchives())) {
-            throw new IllegalArgumentException(
-                    "The semver extension doesn't handle changes in multiple archives at once.");
-        }
-
         enabled = node.get("enabled").isDefined() && node.get("enabled").asBoolean();
 
         if (enabled) {
+            if (hasMultipleElements(analysisContext.getOldApi().getArchives())
+                    || hasMultipleElements(analysisContext.getNewApi().getArchives())) {
+                throw new IllegalArgumentException(
+                        "The semver extension doesn't handle changes in multiple archives at once.");
+            }
+
             Iterator<? extends Archive> oldArchives = analysisContext.getOldApi().getArchives().iterator();
             Iterator<? extends Archive> newArchives = analysisContext.getNewApi().getArchives().iterator();
 
