@@ -81,7 +81,6 @@ import javax.tools.StandardLocation;
 
 import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
-import org.revapi.java.FlatFilter;
 import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.model.InitializationOptimizations;
 import org.revapi.java.model.JavaElementBase;
@@ -92,7 +91,6 @@ import org.revapi.java.spi.IgnoreCompletionFailures;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
-import org.revapi.query.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

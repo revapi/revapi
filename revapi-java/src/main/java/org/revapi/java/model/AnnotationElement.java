@@ -16,7 +16,6 @@
  */
 package org.revapi.java.model;
 
-import java.lang.annotation.Annotation;
 import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
