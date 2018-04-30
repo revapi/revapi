@@ -33,6 +33,8 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
@@ -52,9 +54,6 @@ import org.revapi.maven.utils.ScopeDependencySelector;
 import org.revapi.maven.utils.ScopeDependencyTraverser;
 import org.revapi.simple.FileArchive;
 import org.slf4j.LoggerFactory;
-
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
 import pw.krejci.modules.maven.MavenBootstrap;
 import pw.krejci.modules.maven.ModuleSpecController;
 import pw.krejci.modules.maven.ProjectModule;
