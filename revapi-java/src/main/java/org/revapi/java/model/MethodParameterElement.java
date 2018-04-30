@@ -26,8 +26,6 @@ import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaMethodParameterElement;
-import org.revapi.java.spi.Util;
-import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci

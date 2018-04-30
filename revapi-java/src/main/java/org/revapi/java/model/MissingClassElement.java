@@ -21,7 +21,6 @@ import javax.lang.model.type.DeclaredType;
 
 import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
-import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci

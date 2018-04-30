@@ -24,7 +24,6 @@ import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaFieldElement;
 import org.revapi.java.spi.JavaTypeElement;
-import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci

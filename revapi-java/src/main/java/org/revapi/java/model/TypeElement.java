@@ -38,7 +38,6 @@ import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
-import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
