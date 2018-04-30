@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,8 +33,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
@@ -53,6 +52,9 @@ import org.revapi.maven.utils.ScopeDependencySelector;
 import org.revapi.maven.utils.ScopeDependencyTraverser;
 import org.revapi.simple.FileArchive;
 import org.slf4j.LoggerFactory;
+
+import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
 import pw.krejci.modules.maven.MavenBootstrap;
 import pw.krejci.modules.maven.ModuleSpecController;
 import pw.krejci.modules.maven.ProjectModule;
@@ -116,7 +118,7 @@ public final class Main {
         System.out.println(pad + "    The location of local cache of extensions to use to locate artifacts. " +
                 "Defaults to 'extensions' directory under revapi installation dir.");
         System.out.println(pad + " -r");
-        System.out.println(pad + " --remote-repository=<URL>");
+        System.out.println(pad + " --remote-repositories=<URL>[,<URL>]*");
         System.out.println(pad + "    The url of the remote Maven repository to use for artifact resolution. " +
                 "Defaults to Maven Central (http://repo.maven.apache.org/maven2/).");
         System.out.println();
@@ -152,7 +154,7 @@ public final class Main {
         Map<String, String> additionalConfigOptions = new HashMap<>();
         String[] configFiles = null;
         File cacheDir = new File(baseDir, "cache");
-        String remoteRepositoryUrl = null;
+        String[] remoteRepositoryUrls = null;
 
         LongOpt[] longOpts = new LongOpt[13];
         longOpts[0] = new LongOpt("usage", LongOpt.NO_ARGUMENT, null, 'u');
@@ -167,7 +169,7 @@ public final class Main {
         longOpts[9] = new LongOpt("cache-dir", LongOpt.REQUIRED_ARGUMENT, null, 'd');
         longOpts[10] = new LongOpt("old-gavs", LongOpt.REQUIRED_ARGUMENT, null, 'a');
         longOpts[11] = new LongOpt("new-gavs", LongOpt.REQUIRED_ARGUMENT, null, 'b');
-        longOpts[12] = new LongOpt("remote-repository", LongOpt.REQUIRED_ARGUMENT, null, 'r');
+        longOpts[12] = new LongOpt("remote-repositories", LongOpt.REQUIRED_ARGUMENT, null, 'r');
 
         Getopt opts = new Getopt(scriptFileName, realArgs, "uhe:o:n:s:t:D:c:d:a:b:r:", longOpts);
         int c;
@@ -209,7 +211,7 @@ public final class Main {
                     newGavs = opts.getOptarg().split(",");
                     break;
                 case 'r':
-                    remoteRepositoryUrl = opts.getOptarg();
+                    remoteRepositoryUrls = opts.getOptarg().split(",");
                     break;
                 case ':':
                     System.err.println("Argument required for option " +
@@ -234,9 +236,8 @@ public final class Main {
             System.exit(1);
         }
 
-        final RemoteRepository remoteRepository = remoteRepositoryUrl == null
-            ? new RemoteRepository.Builder("@@forced-maven-central@@", "default", "http://repo.maven.apache.org/maven2/").build()
-            : new RemoteRepository.Builder("@@remote-repository-override@@", "default", remoteRepositoryUrl).build();
+        final List<RemoteRepository> remoteRepositories = Collections.unmodifiableList(
+            remoteRepositories(remoteRepositoryUrls == null ? new String[0] : remoteRepositoryUrls));
 
         List<FileArchive> oldArchives = null;
         List<FileArchive> newArchives = null;
@@ -246,7 +247,7 @@ public final class Main {
         LOG.info("Downloading checked archives");
 
         if (oldArchivePaths == null) {
-            ArchivesAndSupplementaryArchives res = convertGavs(oldGavs, "Old API Maven artifact", cacheDir, remoteRepository);
+            ArchivesAndSupplementaryArchives res = convertGavs(oldGavs, "Old API Maven artifact", cacheDir, remoteRepositories);
             oldArchives = res.archives;
             oldSupplementaryArchives = res.supplementaryArchives;
         } else {
@@ -256,7 +257,7 @@ public final class Main {
         }
 
         if (newArchivePaths == null) {
-            ArchivesAndSupplementaryArchives res = convertGavs(newGavs, "New API Maven artifact", cacheDir, remoteRepository);
+            ArchivesAndSupplementaryArchives res = convertGavs(newGavs, "New API Maven artifact", cacheDir, remoteRepositories);
             newArchives = res.archives;
             newSupplementaryArchives = res.supplementaryArchives;
         } else {
@@ -268,7 +269,7 @@ public final class Main {
         try {
             run(cacheDir, extensionGAVs, oldArchives, oldSupplementaryArchives, newArchives,
                     newSupplementaryArchives, configFiles, additionalConfigOptions,
-                    remoteRepository);
+                    remoteRepositories);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -280,12 +281,12 @@ public final class Main {
     private static void run(File cacheDir, String[] extensionGAVs, List<FileArchive> oldArchives,
             List<FileArchive> oldSupplementaryArchives, List<FileArchive> newArchives,
             List<FileArchive> newSupplementaryArchives, String[] configFiles, Map<String, String> additionalConfig,
-            RemoteRepository remoteRepository)
+            List<RemoteRepository> remoteRepositories)
             throws Exception {
 
         ProjectModule.Builder bld = ProjectModule.build();
         bld.localRepository(cacheDir);
-        remoteRepositories(remoteRepository).forEach(r -> bld.addRemoteRepository(r.getId(), r.getUrl()));
+        remoteRepositories.forEach(r -> bld.addRemoteRepository(r.getId(), r.getUrl()));
 
         if (extensionGAVs != null) {
             for (String gav : extensionGAVs) {
@@ -411,14 +412,12 @@ public final class Main {
     }
 
     private static ArchivesAndSupplementaryArchives convertGavs(String[] gavs, String errorMessagePrefix,
-            File localRepo, RemoteRepository remoteRepository) {
+            File localRepo, List<RemoteRepository> remoteRepositories) {
         RepositorySystem repositorySystem = MavenBootstrap.newRepositorySystem();
         DefaultRepositorySystemSession session = MavenBootstrap.newRepositorySystemSession(repositorySystem, localRepo);
 
         session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
         session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
-
-        List<RemoteRepository> remoteRepositories = remoteRepositories(remoteRepository);
 
         ArtifactResolver resolver = new ArtifactResolver(repositorySystem, session, remoteRepositories);
 
@@ -443,13 +442,22 @@ public final class Main {
         return new ArchivesAndSupplementaryArchives(archives, supplementaryArchives);
     }
 
-    private static List<RemoteRepository> remoteRepositories(RemoteRepository remoteRepository) {
+    private static List<RemoteRepository> remoteRepositories(String[] customRepositoryUrls) {
+        List<RemoteRepository> remoteRepositories = new ArrayList<>();
+
+        for (int i = 0; i < customRepositoryUrls.length; i++) {
+            String repositoryId = "@@custom-remote-repository-" + i + "@@";
+            remoteRepositories.add(new RemoteRepository.Builder(repositoryId, "default", customRepositoryUrls[i]).build());
+        }
+
+        if (remoteRepositories.isEmpty()) {
+            remoteRepositories.add(new RemoteRepository.Builder("@@forced-maven-central@@", "default", "http://repo.maven.apache.org/maven2/").build());
+        }
+
         File localMaven = new File(new File(System.getProperties().getProperty("user.home"), ".m2"), "repository");
+        remoteRepositories.add(new RemoteRepository.Builder("@@~/.m2/repository@@", "local", localMaven.toURI().toString()).build());
 
-        RemoteRepository mavenCache = new RemoteRepository.Builder("@@~/.m2/repository@@", "local",
-                localMaven.toURI().toString()).build();
-
-        return asList(remoteRepository, mavenCache);
+        return remoteRepositories;
     }
 
     private static void checkCanRead(File f, String errorMessagePrefix) throws IllegalArgumentException {
