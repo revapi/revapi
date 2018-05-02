@@ -231,6 +231,7 @@ possible values of `ignore`, `report` and `error`, e.g.:
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 |====
@@ -292,6 +293,7 @@ and is reported for completeness sake. The visibility is ordered as follows: +pr
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
@@ -315,6 +317,7 @@ runtime when trying to use the new version of the library.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
@@ -338,6 +341,7 @@ compile time and at runtime.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `oldKind` | The kind of the type as it was in the old version.
 | `newKind` | The kind of the type in the new version.
@@ -359,6 +363,7 @@ A class that used to be final is now not. This is no API breakage and is reporte
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
@@ -386,6 +391,7 @@ the class will no longer be compatible with the new version of the library, in w
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
@@ -409,6 +415,7 @@ A class that used to be abstract is now not. This is no API breakage and is repo
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
@@ -433,6 +440,7 @@ possible to create instances of such class.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
@@ -456,6 +464,7 @@ A new class appeared in the new version of the API. This is a non-breaking chang
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 |====
@@ -476,6 +485,7 @@ the users of the API will no longer be able to use that class in any capacity.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 |====
@@ -497,6 +507,7 @@ but you don't want the changed API to leak to your users).
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 |====
@@ -518,6 +529,7 @@ will usually cause other differences to be reported, too).
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 |====
@@ -537,6 +549,7 @@ This is a breaking change because it is no longer possible to cast the class to 
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `interface` | The fully qualified name of the interface that is no longer implemented.
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -557,6 +570,7 @@ No API breakage reported for the completeness sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `interface` | The fully qualified name of the interface that is now implemented.
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -579,6 +593,7 @@ reported separately).
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the new super class.
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -601,6 +616,7 @@ checked one, they will get compilation or linkage errors.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the new super class.
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -622,6 +638,7 @@ declared in the +throws+ declarations of the methods.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 |====
@@ -642,6 +659,7 @@ that super class nor can the methods declared in the super class be called using
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the superclass that is no longer inherited.
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -698,6 +716,7 @@ or
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 |====
@@ -726,6 +745,7 @@ inherited from the super class (which would be the cause of the binary and sourc
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `oldSuperType` | The old signature of the super type.
 | `newSuperType` | The new signature of the super type.
@@ -894,6 +914,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -914,6 +935,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -935,6 +957,7 @@ Note that this si reported only for publicly accessible fields.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -958,6 +981,7 @@ Note that this si reported only for publicly accessible fields.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -978,6 +1002,7 @@ The field was moved to a super class. From the point of view of the field user t
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `oldClass` | The class the field used to be declared in.
@@ -1001,6 +1026,7 @@ represents no noticeable change. If the field was also removed from the super cl
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `oldClass` | The class the field used to be declared in.
@@ -1027,6 +1053,7 @@ semantics.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1049,6 +1076,7 @@ because the constant values are inlined. This is therefore reported as breaking 
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `oldValue` | The old value of the constant field.
@@ -1072,6 +1100,7 @@ code, which is something that didn't happen before. You may want to re-evaluate 
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `value` | The constant value of the field.
@@ -1097,6 +1126,7 @@ NOT what the API author had in mind when making the change.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `value` | The constant value the field used to have.
@@ -1119,6 +1149,7 @@ binary incompatibility.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1139,6 +1170,7 @@ This is no API breakage and is reported for completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1160,6 +1192,7 @@ this is both source and binary incompatibility.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1182,6 +1215,7 @@ When recompiling the user code against the new version, everything works fine.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1202,6 +1236,7 @@ The field has a different type than it used to in the old version of the API. Th
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `oldType` | The fully qualified name of the old field type.
@@ -1263,6 +1298,7 @@ or
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `serialVersionUID` | the value of the serial version UID field (as decimal number)
@@ -1288,6 +1324,7 @@ This check can be configured the same way as <<Field serialVersionUID Unchanged>
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `oldSerialVersionUID` | the value of the serial version UID field in the old version (as decimal number)
@@ -1310,6 +1347,7 @@ No API breakage, reported for completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `oldVisibility` | The visibility of the type as it was in the old version.
@@ -1332,6 +1370,7 @@ Field's visibility was reduced, which means that code that used to be able to ac
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `oldVisibility` | The visibility of the type as it was in the old version.
@@ -1355,6 +1394,7 @@ method to determine the order of an enum constant and relies on a specific value
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `oldOrdinal` | The old ordinal number of the enum value.
@@ -1378,6 +1418,7 @@ Declaring a default value to an annotation attribute is not an API breakage and 
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `value` | the default value of the annotation attribute represented by the method
@@ -1403,6 +1444,7 @@ the API. This might or might not be a problem.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldValue` | the old default value of the annotation attribute represented by the method
@@ -1429,6 +1471,7 @@ attribute).
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `value` | the removed default value of the annotation attribute represented by the method
@@ -1462,6 +1505,7 @@ old SPI implementation.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1482,6 +1526,7 @@ This represents no API breakage and is included for completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1502,6 +1547,7 @@ This represents no API breakage and is included for completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1529,6 +1575,7 @@ assumes an explicit value for the annotation attribute.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1549,6 +1596,7 @@ This does not break compatibility and is reported for completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1570,6 +1618,7 @@ implementation of it and will therefore break.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1590,6 +1639,7 @@ A new concrete method added to a concrete class. This is always safe.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1611,6 +1661,7 @@ as the newly introduced final method.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1632,6 +1683,7 @@ Note that if the super class is part of the API, the removal of the method from 
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldClass` | the class that the method was originally declared in
@@ -1654,6 +1706,7 @@ Removing a method from a class is an incompatible change.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1677,6 +1730,7 @@ Otherwise this is a compatible change and is reported for completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldClass` | the class that the method was originally declared in
@@ -1699,6 +1753,7 @@ This is identical to <<a_method_removed, Method Removed>> but specialized for an
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -1719,6 +1774,7 @@ No API breakage, reported for completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
@@ -1741,6 +1797,7 @@ Any subclasses that overrode the method will break both at compile time and at r
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
@@ -1763,6 +1820,7 @@ The class is final and cannot be subclassed. Therefore making its method final m
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
@@ -1786,6 +1844,7 @@ and source compatibility.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
@@ -1809,6 +1868,7 @@ It is not binary compatible though because static methods are called using a dif
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
@@ -1832,6 +1892,7 @@ to before.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
@@ -1854,6 +1915,7 @@ This is a compatible change reported for the completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
@@ -1876,6 +1938,7 @@ No API breakage, reported for completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldVisibility` | The visibility of the type as it was in the old version.
@@ -1898,6 +1961,7 @@ A method might no longer be visible to code that used to call it. This is a brea
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldVisibility` | The visibility of the type as it was in the old version.
@@ -1921,6 +1985,7 @@ recompiling the user code), it might be OK at compile time due to implicit conve
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldType` | the old return type
@@ -1946,6 +2011,7 @@ incompatibility though because the method signature changes and users of the old
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldType` | the old return type
@@ -1969,6 +2035,7 @@ it is a source incompatible change. It is binary compatible because of type eras
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldType` | the old return type
@@ -1991,6 +2058,7 @@ Obviously, this is a breaking change - you can no longer call the method with th
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
@@ -2012,6 +2080,7 @@ is strictly bigger than the old one and the old one is implicitly convertible to
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `parameterIndex` | the index of the method parameter
@@ -2036,6 +2105,7 @@ type changed. This is binary compatible because of the type erasure but it can b
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `parameterIndex` | the index of the method parameter
@@ -2060,6 +2130,7 @@ new version of the method will have to be modified to handle the checked excepti
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the added exception type
@@ -2082,6 +2153,7 @@ that might want to catch the newly thrown exception.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the added exception type
@@ -2105,6 +2177,7 @@ therefore the catch clauses for it will be invalid.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the removed exception type
@@ -2126,6 +2199,7 @@ This is a compatible change added for completeness' sake.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the removed exception type
@@ -2147,6 +2221,7 @@ The method is now a default method. This is completely transparent.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
@@ -2170,6 +2245,7 @@ will now have to supply an implementation for it.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
@@ -2196,6 +2272,7 @@ might start assuming uniform types in the list).
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 2+| _Optionally_
@@ -2219,6 +2296,7 @@ definition of the formal type parameter.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 2+| _Optionally_
@@ -2242,6 +2320,7 @@ parameter that is no longer required.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
 2+| _Optionally_
@@ -2264,6 +2343,7 @@ declared against the old version of the API will use wrong constraints.
 |====
 2+| Match parameters
 | `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `oldTypeParameter` | The old type parameter that changed.
 | `newTypeParameter` | The new type parameter.
