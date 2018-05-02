@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ package org.revapi.java.spi;
 import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -164,15 +165,15 @@ public abstract class CheckBase implements Check {
     private AnalysisContext analysisContext;
 
     @Nonnull
-    protected Difference createDifference(@Nonnull Code code, String[] attachments) {
+    protected Difference createDifference(@Nonnull Code code, LinkedHashMap<String, String> attachments) {
         return code.createDifference(getAnalysisContext().getLocale(), attachments);
     }
 
     @Nonnull
     protected Difference createDifferenceWithExplicitParams(@Nonnull Code code,
-                                                            String[] attachments,
+                                                            LinkedHashMap<String, String> attachments,
                                                             String... params) {
-            return code.createDifferenceWithExplicitParams(getAnalysisContext().getLocale(), attachments, params);
+            return code.createDifference(getAnalysisContext().getLocale(), attachments, params);
     }
 
     @Nonnull
