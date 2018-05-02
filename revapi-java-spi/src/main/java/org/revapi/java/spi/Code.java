@@ -215,54 +215,62 @@ public enum Code {
         } else if (representative instanceof JavaFieldElement) {
             //package, classSimpleName, fieldName
             JavaFieldElement field = representative.as(JavaFieldElement.class);
-            retLen = customAttachments.length + 8;
+            retLen = customAttachments.length + 10;
             ret = new String[retLen];
             System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
             ret[idx] = "package";
             ret[idx + 1] = getPackageName(field);
-            ret[idx + 2] = "classSimpleName";
-            ret[idx + 3] = getClassSimpleName(field);
-            ret[idx + 4] = "fieldName";
-            ret[idx + 5] = field.getDeclaringElement().getSimpleName().toString();
+            ret[idx + 2] = "classQualifiedName";
+            ret[idx + 3] = getClassQualifiedName(field);
+            ret[idx + 4] = "classSimpleName";
+            ret[idx + 5] = getClassSimpleName(field);
+            ret[idx + 6] = "fieldName";
+            ret[idx + 7] = field.getDeclaringElement().getSimpleName().toString();
         } else if (representative instanceof JavaTypeElement) {
             //package, classSimpleName
             JavaTypeElement type = representative.as(JavaTypeElement.class);
-            retLen = customAttachments.length + 6;
-            ret = new String[retLen];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "package";
-            ret[idx + 1] = getPackageName(type);
-            ret[idx + 2] = "classSimpleName";
-            ret[idx + 3] = getClassSimpleName(type);
-            ret[idx + 4] = "elementType";
-        } else if (representative instanceof JavaMethodElement) {
-            //package, classSimpleName, methodName
-            JavaMethodElement method = representative.as(JavaMethodElement.class);
             retLen = customAttachments.length + 8;
             ret = new String[retLen];
             System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
             ret[idx] = "package";
-            ret[idx + 1] = getPackageName(method);
-            ret[idx + 2] = "classSimpleName";
-            ret[idx + 3] = getClassSimpleName(method);
-            ret[idx + 4] = "methodName";
-            ret[idx + 5] = method.getDeclaringElement().getSimpleName().toString();
-        } else if (representative instanceof JavaMethodParameterElement) {
-            //package, classSimpleName, methodName, parameterIndex
-            JavaMethodParameterElement param = (JavaMethodParameterElement) representative;
-            @SuppressWarnings("ConstantConditions")
-            JavaMethodElement method = representative.getParent().as(JavaMethodElement.class);
+            ret[idx + 1] = getPackageName(type);
+            ret[idx + 2] = "classQualifiedName";
+            ret[idx + 3] = getClassQualifiedName(type);
+            ret[idx + 4] = "classSimpleName";
+            ret[idx + 5] = getClassSimpleName(type);
+            ret[idx + 6] = "elementType";
+        } else if (representative instanceof JavaMethodElement) {
+            //package, classSimpleName, methodName
+            JavaMethodElement method = representative.as(JavaMethodElement.class);
             retLen = customAttachments.length + 10;
             ret = new String[retLen];
             System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
             ret[idx] = "package";
             ret[idx + 1] = getPackageName(method);
-            ret[idx + 2] = "classSimpleName";
-            ret[idx + 3] = getClassSimpleName(method);
-            ret[idx + 4] = "methodName";
-            ret[idx + 5] = method.getDeclaringElement().getSimpleName().toString();
-            ret[idx + 6] = "parameterIndex";
-            ret[idx + 7] = Integer.toString(param.getIndex());
+            ret[idx + 2] = "classQualifiedName";
+            ret[idx + 3] = getClassQualifiedName(method);
+            ret[idx + 4] = "classSimpleName";
+            ret[idx + 5] = getClassSimpleName(method);
+            ret[idx + 6] = "methodName";
+            ret[idx + 7] = method.getDeclaringElement().getSimpleName().toString();
+        } else if (representative instanceof JavaMethodParameterElement) {
+            //package, classSimpleName, methodName, parameterIndex
+            JavaMethodParameterElement param = (JavaMethodParameterElement) representative;
+            @SuppressWarnings("ConstantConditions")
+            JavaMethodElement method = representative.getParent().as(JavaMethodElement.class);
+            retLen = customAttachments.length + 12;
+            ret = new String[retLen];
+            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
+            ret[idx] = "package";
+            ret[idx + 1] = getPackageName(method);
+            ret[idx + 2] = "classQualifiedName";
+            ret[idx + 3] = getClassQualifiedName(method);
+            ret[idx + 4] = "classSimpleName";
+            ret[idx + 5] = getClassSimpleName(method);
+            ret[idx + 6] = "methodName";
+            ret[idx + 7] = method.getDeclaringElement().getSimpleName().toString();
+            ret[idx + 8] = "parameterIndex";
+            ret[idx + 9] = Integer.toString(param.getIndex());
         } else {
             retLen = -1;
             ret = customAttachments;
@@ -348,15 +356,20 @@ public enum Code {
     }
 
     private static String getClassSimpleName(JavaModelElement element) {
+        TypeElement declaringClass = getDeclaringClass(element);
+        return declaringClass == null ? null : declaringClass.getSimpleName().toString();
+    }
+
+    private static String getClassQualifiedName(JavaModelElement element) {
+        TypeElement declaringClass = getDeclaringClass(element);
+        return declaringClass == null ? null : declaringClass.getQualifiedName().toString();
+    }
+
+    private static TypeElement getDeclaringClass(JavaModelElement element) {
         while (element != null && !(element instanceof JavaTypeElement)) {
             element = element.getParent();
         }
-
-        if (element == null) {
-            return null;
-        } else {
-            return element.as(JavaTypeElement.class).getDeclaringElement().getSimpleName().toString();
-        }
+        return element == null ? null : element.as(JavaTypeElement.class).getDeclaringElement();
     }
 
     public String code() {
