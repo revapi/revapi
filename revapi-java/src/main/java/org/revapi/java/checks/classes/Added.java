@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.revapi.java.checks.classes;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.lang.model.element.TypeElement;
@@ -39,7 +40,7 @@ public final class Added extends CheckBase {
             TypeElement typeInOld = getOldTypeEnvironment().getElementUtils()
                     .getTypeElement(types.newElement.getDeclaringElement().getQualifiedName());
 
-            String[] attachments = Code.attachmentsFor(types.oldElement, types.newElement);
+            LinkedHashMap<String, String> attachments = Code.attachmentsFor(types.oldElement, types.newElement);
             Difference difference = typeInOld == null
                     ? createDifference(Code.CLASS_ADDED, attachments)
                     : createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API, attachments);

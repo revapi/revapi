@@ -192,91 +192,60 @@ public enum Code {
     }
 
     public static <T extends JavaElement>
-    String[] attachmentsFor(@Nullable T oldElement, @Nullable T newElement, String... customAttachments) {
+    LinkedHashMap<String, String> attachmentsFor(@Nullable T oldElement, @Nullable T newElement, String... customAttachments) {
         T representative = oldElement == null ? newElement : oldElement;
         if (representative == null) {
             throw new IllegalArgumentException("At least one of the oldElement and newElement must not be null");
         }
 
-        String[] ret;
-        int retLen;
-        int idx = customAttachments.length;
+        LinkedHashMap<String, String> ret = keyVals(customAttachments);
+        final boolean addElementKind;
         if (representative instanceof JavaAnnotationElement) {
             //annotationType
             JavaAnnotationElement anno = representative.as(JavaAnnotationElement.class);
-            //indicate we don't want element kind added in the code below
-            retLen = -1;
-            ret = new String[customAttachments.length + 4];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "annotationType";
-            ret[idx + 1] = Util.toHumanReadableString(anno.getAnnotation().getAnnotationType());
-            ret[idx + 2] = "elementKind";
-            ret[idx + 3] = "annotation";
+            addElementKind = false;
+            ret.put("annotationType", Util.toHumanReadableString(anno.getAnnotation().getAnnotationType()));
+            ret.put("elementKind", "annotation");
         } else if (representative instanceof JavaFieldElement) {
             //package, classSimpleName, fieldName
             JavaFieldElement field = representative.as(JavaFieldElement.class);
-            retLen = customAttachments.length + 10;
-            ret = new String[retLen];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "package";
-            ret[idx + 1] = getPackageName(field);
-            ret[idx + 2] = "classQualifiedName";
-            ret[idx + 3] = getClassQualifiedName(field);
-            ret[idx + 4] = "classSimpleName";
-            ret[idx + 5] = getClassSimpleName(field);
-            ret[idx + 6] = "fieldName";
-            ret[idx + 7] = field.getDeclaringElement().getSimpleName().toString();
+            addElementKind = true;
+            ret.put("package", getPackageName(field));
+            ret.put("classQualifiedName", getClassQualifiedName(field));
+            ret.put("classSimpleName", getClassSimpleName(field));
+            ret.put("fieldName", field.getDeclaringElement().getSimpleName().toString());
         } else if (representative instanceof JavaTypeElement) {
             //package, classSimpleName
             JavaTypeElement type = representative.as(JavaTypeElement.class);
-            retLen = customAttachments.length + 8;
-            ret = new String[retLen];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "package";
-            ret[idx + 1] = getPackageName(type);
-            ret[idx + 2] = "classQualifiedName";
-            ret[idx + 3] = getClassQualifiedName(type);
-            ret[idx + 4] = "classSimpleName";
-            ret[idx + 5] = getClassSimpleName(type);
-            ret[idx + 6] = "elementType";
+            addElementKind = true;
+            ret.put("package", getPackageName(type));
+            ret.put("classQualifiedName", getClassQualifiedName(type));
+            ret.put("classSimpleName", getClassSimpleName(type));
+            ret.put("elementType", null);
         } else if (representative instanceof JavaMethodElement) {
             //package, classSimpleName, methodName
             JavaMethodElement method = representative.as(JavaMethodElement.class);
-            retLen = customAttachments.length + 10;
-            ret = new String[retLen];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "package";
-            ret[idx + 1] = getPackageName(method);
-            ret[idx + 2] = "classQualifiedName";
-            ret[idx + 3] = getClassQualifiedName(method);
-            ret[idx + 4] = "classSimpleName";
-            ret[idx + 5] = getClassSimpleName(method);
-            ret[idx + 6] = "methodName";
-            ret[idx + 7] = method.getDeclaringElement().getSimpleName().toString();
+            addElementKind = true;
+            ret.put("package", getPackageName(method));
+            ret.put("classQualifiedName", getClassQualifiedName(method));
+            ret.put("classSimpleName", getClassSimpleName(method));
+            ret.put("methodName", method.getDeclaringElement().getSimpleName().toString());
         } else if (representative instanceof JavaMethodParameterElement) {
             //package, classSimpleName, methodName, parameterIndex
             JavaMethodParameterElement param = (JavaMethodParameterElement) representative;
             @SuppressWarnings("ConstantConditions")
             JavaMethodElement method = representative.getParent().as(JavaMethodElement.class);
-            retLen = customAttachments.length + 12;
-            ret = new String[retLen];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "package";
-            ret[idx + 1] = getPackageName(method);
-            ret[idx + 2] = "classQualifiedName";
-            ret[idx + 3] = getClassQualifiedName(method);
-            ret[idx + 4] = "classSimpleName";
-            ret[idx + 5] = getClassSimpleName(method);
-            ret[idx + 6] = "methodName";
-            ret[idx + 7] = method.getDeclaringElement().getSimpleName().toString();
-            ret[idx + 8] = "parameterIndex";
-            ret[idx + 9] = Integer.toString(param.getIndex());
+            addElementKind = true;
+            ret.put("package", getPackageName(method));
+            ret.put("classQualifiedName", getClassQualifiedName(method));
+            ret.put("classSimpleName", getClassSimpleName(method));
+            ret.put("methodName", method.getDeclaringElement().getSimpleName().toString());
+            ret.put("parameterIndex", Integer.toString(param.getIndex()));
         } else {
-            retLen = -1;
-            ret = customAttachments;
+            addElementKind = false;
         }
 
-        if (retLen > 0) {
+        if (addElementKind) {
             String kind;
             ElementKind elementKind = ((JavaModelElement) representative).getDeclaringElement().getKind();
             switch (elementKind) {
@@ -326,11 +295,10 @@ public enum Code {
                 default:
                     kind = "unknownKind(" + elementKind + ")";
             }
-            ret[retLen - 2] = "elementKind";
-            ret[retLen - 1] = kind;
+            ret.put("elementKind", kind);
         }
 
-        return  ret;
+        return ret;
     }
 
     private static String getPackageName(JavaModelElement element) {
@@ -387,34 +355,12 @@ public enum Code {
         return bld.build();
     }
 
-    public Difference createDifference(@Nonnull Locale locale, String... attachments) {
-        return createDifference(locale, keyVals(attachments));
-    }
-
     public Difference createDifference(@Nonnull Locale locale, LinkedHashMap<String, String> attachments) {
         String[] params = attachments.values().toArray(new String[attachments.size()]);
         return createDifference(locale, attachments, params);
     }
 
-    private static String[] vals(String... keyVals) {
-        if (keyVals.length % 2 != 0) {
-            throw new IllegalArgumentException("Uneven key-value pairs.");
-        }
-
-        String[] ret = new String[keyVals.length / 2];
-        for (int i = 1; i < keyVals.length; i += 2) {
-            ret[(i - 1) / 2] = keyVals[i];
-        }
-
-        return ret;
-    }
-
-    public Difference createDifferenceWithExplicitParams(@Nonnull Locale locale, String[] attachments, String... params) {
-        LinkedHashMap<String, String> ats = keyVals(attachments);
-        return createDifference(locale, ats, params);
-    }
-
-    private Difference createDifference(@Nonnull Locale locale, LinkedHashMap<String, String> attachments,
+    public Difference createDifference(@Nonnull Locale locale, LinkedHashMap<String, String> attachments,
                                        String... parameters) {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, parameters);
