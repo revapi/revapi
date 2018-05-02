@@ -221,7 +221,6 @@ public enum Code {
             ret.put("package", getPackageName(type));
             ret.put("classQualifiedName", getClassQualifiedName(type));
             ret.put("classSimpleName", getClassSimpleName(type));
-            ret.put("elementType", null);
         } else if (representative instanceof JavaMethodElement) {
             //package, classSimpleName, methodName
             JavaMethodElement method = representative.as(JavaMethodElement.class);
