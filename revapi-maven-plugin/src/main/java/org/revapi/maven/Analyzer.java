@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,7 +129,7 @@ public final class Analyzer {
              Class<? extends Reporter> reporterType, Map<String, Object> contextData,
              Locale locale, Log log, boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
              boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-             boolean resolveProvidedDependencies,
+             boolean resolveProvidedDependencies, boolean resolveTransitiveProvidedDependencies,
              String versionRegex, Supplier<Revapi.Builder> revapiConstructor, Revapi sharedRevapi) {
 
         this.analysisConfiguration = analysisConfiguration;
@@ -146,12 +146,15 @@ public final class Analyzer {
         this.versionRegex = versionRegex == null ? null : Pattern.compile(versionRegex);
 
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
-        String[] scopes = resolveProvidedDependencies
+        String[] topLevelScopes = resolveProvidedDependencies
                 ? new String[] {"compile", "provided"}
                 : new String[] {"compile"};
+        String[] transitiveScopes = resolveTransitiveProvidedDependencies
+                ? new String[]{"compile", "provided"}
+                : new String[]{"compile"};
 
-        session.setDependencySelector(new ScopeDependencySelector(scopes));
-        session.setDependencyTraverser(new ScopeDependencyTraverser(scopes));
+        session.setDependencySelector(new ScopeDependencySelector(topLevelScopes, transitiveScopes));
+        session.setDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes));
 
         if (alwaysUpdate) {
             session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
@@ -338,19 +341,6 @@ public final class Analyzer {
                 return Collections.emptySet();
             }
             ArtifactResolver.CollectionResult res = resolver.collectTransitiveDeps(gavs);
-            return collectDeps(depDescription, res);
-        } catch (RepositoryException e) {
-            return handleResolutionError(e, depDescription, null);
-        }
-    }
-
-    private Set<MavenArchive> collectDeps(String depDescription, ArtifactResolver resolver, Artifact... gavs) {
-        try {
-            if (gavs == null) {
-                return Collections.emptySet();
-            }
-            ArtifactResolver.CollectionResult res = resolver.collectTransitiveDeps(Stream.of(gavs).map(Object::toString)
-                    .toArray(String[]::new));
             return collectDeps(depDescription, res);
         } catch (RepositoryException e) {
             return handleResolutionError(e, depDescription, null);

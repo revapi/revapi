@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,6 +94,11 @@ final class Props {
     static final class resolveProvidedDependencies {
         static final String NAME = PREFIX + "resolveProvidedDependencies";
         static final String DEFAULT_VALUE = "true";
+    }
+
+    static final class resolveTransitiveProvidedDependencies {
+        static final String NAME = PREFIX + "resolveTransitiveProvidedDependencies";
+        static final String DEFAULT_VALUE = "false";
     }
 
     static final class versionFormat {
