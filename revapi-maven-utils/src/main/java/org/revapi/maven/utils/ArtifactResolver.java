@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,12 +58,16 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResult;
 import org.eclipse.aether.util.graph.visitor.TreeDependencyVisitor;
 import org.eclipse.aether.version.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
  * @since 0.3.0
  */
 public class ArtifactResolver {
+    private static final Logger LOG = LoggerFactory.getLogger(ArtifactResolver.class);
+
     private final RepositorySystem repositorySystem;
     private final RepositorySystemSession session;
     private final List<RemoteRepository> repositories;
@@ -129,6 +133,7 @@ public class ArtifactResolver {
         Set<Exception> failures = new HashSet<>();
 
         for (String gav : gavs) {
+            LOG.debug("Artifact resolution for {}", gav);
             collectTransitiveDeps(gav, artifacts, failures);
         }
 
@@ -152,9 +157,19 @@ public class ArtifactResolver {
             result = dre.getResult();
         }
 
+        int[] tmp = null;
+        if (LOG.isDebugEnabled()) {
+            tmp = new int[1];
+        }
+
+        int[] indentation = tmp;
+
         result.getRoot().accept(new TreeDependencyVisitor(new DependencyVisitor() {
             @Override
             public boolean visitEnter(DependencyNode node) {
+                if (LOG.isDebugEnabled()) {
+                    indentation[0] += 1;
+                }
                 return true;
             }
 
@@ -163,6 +178,17 @@ public class ArtifactResolver {
                 Dependency dep = node.getDependency();
                 if (dep == null || dep.getArtifact().equals(rootArtifact)) {
                     return true;
+                }
+
+                if (LOG.isDebugEnabled()) {
+                    StringBuilder msg = new StringBuilder();
+                    for (int i = 0; i < indentation[0]; ++i) {
+                        msg.append("    ");
+                    }
+                    msg.append(dep);
+                    LOG.debug(msg.toString());
+
+                    indentation[0]--;
                 }
 
                 resolvedArtifacts.add(dep.getArtifact());
