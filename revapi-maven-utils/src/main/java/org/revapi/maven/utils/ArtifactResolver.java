@@ -157,38 +157,31 @@ public class ArtifactResolver {
             result = dre.getResult();
         }
 
-        int[] tmp = null;
-        if (LOG.isDebugEnabled()) {
-            tmp = new int[1];
-        }
-
-        int[] indentation = tmp;
-
         result.getRoot().accept(new TreeDependencyVisitor(new DependencyVisitor() {
+            int depth = 0;
+
             @Override
             public boolean visitEnter(DependencyNode node) {
                 if (LOG.isDebugEnabled()) {
-                    indentation[0] += 1;
+                    StringBuilder msg = new StringBuilder();
+                    for (int i = 0; i < depth; ++i) {
+                        msg.append("    ");
+                    }
+                    msg.append(node);
+                    LOG.debug(msg.toString());
                 }
+
+                depth++;
                 return true;
             }
 
             @Override
             public boolean visitLeave(DependencyNode node) {
+                depth--;
+
                 Dependency dep = node.getDependency();
                 if (dep == null || dep.getArtifact().equals(rootArtifact)) {
                     return true;
-                }
-
-                if (LOG.isDebugEnabled()) {
-                    StringBuilder msg = new StringBuilder();
-                    for (int i = 0; i < indentation[0]; ++i) {
-                        msg.append("    ");
-                    }
-                    msg.append(dep);
-                    LOG.debug(msg.toString());
-
-                    indentation[0]--;
                 }
 
                 resolvedArtifacts.add(dep.getArtifact());

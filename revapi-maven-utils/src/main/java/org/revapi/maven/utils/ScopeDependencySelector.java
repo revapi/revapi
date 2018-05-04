@@ -30,21 +30,21 @@ import org.eclipse.aether.graph.Exclusion;
 public class ScopeDependencySelector implements DependencySelector {
     private final String[] topLevelScopes;
     private final String[] transitiveScopes;
-    private final boolean useTransitiveScopes;
+    private final int depth;
     private final Dependency parent;
     private final ScopeDependencySelector parentSelector;
 
     public ScopeDependencySelector(String[] topLevelScopes, String[] transitiveScopes) {
-        this(topLevelScopes, transitiveScopes, null, null, false);
+        this(topLevelScopes, transitiveScopes, null, null, 0);
     }
 
     private ScopeDependencySelector(String[] topLevelScopes, String[] transitiveScopes, Dependency parent,
-            ScopeDependencySelector parentSelector, boolean useTransitive) {
+            ScopeDependencySelector parentSelector, int depth) {
         this.topLevelScopes = topLevelScopes;
         this.transitiveScopes = transitiveScopes;
         this.parent = parent;
         this.parentSelector = parentSelector;
-        this.useTransitiveScopes = useTransitive;
+        this.depth = depth;
     }
 
     private boolean hasRequiredScope(Dependency dep) {
@@ -53,7 +53,7 @@ public class ScopeDependencySelector implements DependencySelector {
             scope = "compile";
         }
 
-        for (String s : useTransitiveScopes ? transitiveScopes : topLevelScopes) {
+        for (String s : depth > 1 ? transitiveScopes : topLevelScopes) {
             if (s.equals(scope)) {
                 return true;
             }
@@ -101,10 +101,10 @@ public class ScopeDependencySelector implements DependencySelector {
 
     @Override
     public org.eclipse.aether.collection.DependencySelector deriveChildSelector(DependencyCollectionContext context) {
-        if (useTransitiveScopes) {
+        if (depth > 1) {
             return this;
         } else {
-            return new ScopeDependencySelector(topLevelScopes, transitiveScopes, context.getDependency(), this, true);
+            return new ScopeDependencySelector(topLevelScopes, transitiveScopes, context.getDependency(), this, depth + 1);
         }
     }
 
@@ -117,13 +117,13 @@ public class ScopeDependencySelector implements DependencySelector {
         }
 
         ScopeDependencySelector that = (ScopeDependencySelector) obj;
-        return useTransitiveScopes == that.useTransitiveScopes &&
-                (useTransitiveScopes ? Arrays.equals(transitiveScopes, that.transitiveScopes)
+        return depth == that.depth &&
+                (depth > 1 ? Arrays.equals(transitiveScopes, that.transitiveScopes)
                         : Arrays.equals(topLevelScopes, that.topLevelScopes));
     }
 
     @Override
     public int hashCode() {
-        return useTransitiveScopes ? Arrays.hashCode(transitiveScopes) : Arrays.hashCode(topLevelScopes);
+        return depth > 1 ? Arrays.hashCode(transitiveScopes) : Arrays.hashCode(topLevelScopes);
     }
 }

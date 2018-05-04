@@ -27,16 +27,16 @@ import org.eclipse.aether.graph.Dependency;
 public class ScopeDependencyTraverser implements DependencyTraverser {
     private final String[] topLevelScopes;
     private final String[] transitiveScopes;
-    private final boolean useTransitiveScopes;
+    private final int depth;
 
     public ScopeDependencyTraverser(String[] topLevelScopes, String[] transitiveScopes) {
-        this(topLevelScopes, transitiveScopes, false);
+        this(topLevelScopes, transitiveScopes, 0);
     }
 
-    private ScopeDependencyTraverser(String[] topLevelScopes, String[] transitiveScopes, boolean useTransitiveScopes) {
+    private ScopeDependencyTraverser(String[] topLevelScopes, String[] transitiveScopes, int depth) {
         this.topLevelScopes = topLevelScopes;
         this.transitiveScopes = transitiveScopes;
-        this.useTransitiveScopes = useTransitiveScopes;
+        this.depth = depth;
     }
 
     private boolean hasRequiredScope(Dependency dep) {
@@ -45,7 +45,7 @@ public class ScopeDependencyTraverser implements DependencyTraverser {
             scope = "compile";
         }
 
-        for (String s : useTransitiveScopes ? transitiveScopes : topLevelScopes) {
+        for (String s : depth > 1 ? transitiveScopes : topLevelScopes) {
             if (s.equals(scope)) {
                 return true;
             }
@@ -61,6 +61,6 @@ public class ScopeDependencyTraverser implements DependencyTraverser {
 
     @Override
     public DependencyTraverser deriveChildTraverser(DependencyCollectionContext context) {
-        return useTransitiveScopes ? this : new ScopeDependencyTraverser(topLevelScopes, transitiveScopes, true);
+        return depth > 1 ? this : new ScopeDependencyTraverser(topLevelScopes, transitiveScopes, depth + 1);
     }
 }
