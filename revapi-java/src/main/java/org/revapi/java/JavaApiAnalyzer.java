@@ -455,6 +455,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                 ModelNode checkConfig = analysisContext.getConfiguration().get("checks", c.getExtensionId());
                 AnalysisContext checkCtx = analysisContext.copyWithConfiguration(checkConfig);
                 c.initialize(checkCtx);
+            } else {
+                c.initialize(analysisContext.copyWithConfiguration(new ModelNode()));
             }
         }
     }

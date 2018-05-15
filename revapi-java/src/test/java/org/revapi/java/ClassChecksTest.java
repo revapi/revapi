@@ -195,8 +195,10 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "[{" +
                         "\"extension\": \"revapi.java\"," +
                         "\"configuration\": {" +
+                        "\"checks\": {" +
+                        "\"nonPublicPartOfAPI\": {" +
                         "\"reportUnchanged\": false" +
-                        "}}]",
+                        "}}}}]",
                 "misc/NonPublicDescendsDownChildren.java", "misc/NonPublicDescendsDownChildren.java");
 
         Assert.assertNull(reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));

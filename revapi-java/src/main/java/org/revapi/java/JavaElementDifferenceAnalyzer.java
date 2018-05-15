@@ -156,7 +156,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         this.descendingChecksByTypes = new HashMap<>();
 
         for (Check c : checks) {
-            c.initialize(analysisContext);
             c.setOldTypeEnvironment(oldEnvironment);
             c.setNewTypeEnvironment(newEnvironment);
             if (c.isDescendingOnNonExisting()) {
