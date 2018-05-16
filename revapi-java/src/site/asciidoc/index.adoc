@@ -665,6 +665,35 @@ that super class nor can the methods declared in the super class be called using
 | `elementKind` | See <<Match Parameters>> for possible values
 |====
 
+==== Default Serialization of Class Changed
+[cols="35s,<65d"]
+|=============
+| Code              | +java.class.defaultSerializationChanged+
+| Binary severity   | equivalent
+| Source severity   | equivalent
+| Semantic severity | breaking
+|=============
+
+This is reported on serializable classes that don't explicitly define a `serialVersionUID` field and that have changed
+with regards to serializability. Note that this doesn't accept the same configuration properties as the
+`java.field.serialVersionUIDChanged` or `java.field.serialVersionUIDUnchanged` because for classes without
+the `serialVersionUID` the default JVM method of computing the serial version is always used.
+
+NOTE: This check is not perfect. It will not detect a serializability change of a class if a type of one of its
+fields changes its serialization format. This imperfection is shared with java serialization itself though.
+
+[options=header]
+|====
+2+| Match parameters
+| `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
+| `classSimpleName` | the simple name of the class
+| `fieldName` | the name of the field
+| `oldSerialVersionUID` | the value of the computed serial version UID in the old version (as decimal number)
+| `newSerialVersionUID` | the value of the computed serial version UID in the new version (as decimal number)
+| `elementKind` | See <<Match Parameters>> for possible values
+|====
+
 ==== Class Is Non-Public Part of API
 [cols="35s,<65d"]
 |=============

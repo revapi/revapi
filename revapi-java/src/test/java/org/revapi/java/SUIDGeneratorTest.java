@@ -37,7 +37,7 @@ import javax.tools.ToolProvider;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.revapi.java.checks.fields.SerialVersionUidChecker;
+import org.revapi.java.checks.common.SerializationChecker;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.suid.Empty;
 import org.revapi.java.suid.TestClass;
@@ -88,8 +88,8 @@ public class SUIDGeneratorTest {
                 }
             };
 
-            generatedSUID = SerialVersionUidChecker.computeSerialVersionUID(testType, fakeEnv);
-            generatedStructuralId = SerialVersionUidChecker.computeStructuralId(testType, fakeEnv);
+            generatedSUID = SerializationChecker.computeSerialVersionUID(testType, fakeEnv);
+            generatedStructuralId = SerializationChecker.computeStructuralId(testType, fakeEnv);
             return true;
         }
     }

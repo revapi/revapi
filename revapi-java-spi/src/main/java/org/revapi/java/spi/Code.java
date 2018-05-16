@@ -83,6 +83,8 @@ public enum Code {
             POTENTIALLY_BREAKING),
     CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API("java.class.externalClassNoLongerExposedInAPI", NON_BREAKING,
             NON_BREAKING, null),
+    CLASS_DEFAULT_SERIALIZATION_CHANGED("java.class.defaultSerializationChanged", EQUIVALENT, EQUIVALENT,
+            BREAKING),
 
     ANNOTATION_ADDED("java.annotation.added", EQUIVALENT, EQUIVALENT, POTENTIALLY_BREAKING),
     ANNOTATION_REMOVED("java.annotation.removed", EQUIVALENT, EQUIVALENT, POTENTIALLY_BREAKING),
