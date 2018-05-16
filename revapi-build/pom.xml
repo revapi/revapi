@@ -442,7 +442,7 @@
         <profile>
             <id>api-check</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+		    <jdk>[,]</jdk>
             </activation>
 
             <build>

@@ -415,8 +415,11 @@ public final class Main {
         RepositorySystem repositorySystem = MavenBootstrap.newRepositorySystem();
         DefaultRepositorySystemSession session = MavenBootstrap.newRepositorySystemSession(repositorySystem, localRepo);
 
-        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
-        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
+        String[] topLevelScopes = new String[]{"compile", "provided"};
+        String[] transitiveScopes = new String[]{"compile"};
+
+        session.setDependencySelector(new ScopeDependencySelector(topLevelScopes, transitiveScopes));
+        session.setDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes));
 
         ArtifactResolver resolver = new ArtifactResolver(repositorySystem, session, remoteRepositories);
 
