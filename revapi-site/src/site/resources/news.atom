@@ -183,4 +183,18 @@
         New releases of components to incorporate a new Java check and fixes for 2 issues.
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20180516-releases.html</id>
+    <title>Speedup and fixes</title>
+    <updated>2018-05-16T00:00:00+00:00</updated>
+    <published>2018-05-16T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180516-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        After the great feedback from the community, new versions of the various Revapi components were released.
+    </summary>
+    <content type="html">
+        After the great feedback from the community, new versions of the various Revapi components were released.
+    </content>
+  </entry>
 </feed>

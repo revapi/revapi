@@ -1,0 +1,47 @@
+== Speedup and fixes
+:docname: 20180516-releases
+
+After the great feedback from the community, new versions of the various Revapi components were released.
+
+The Java analyzer, `revapi-java`, has seen a couple of improvements in version 0.17.0:
+
+* The classes are now correctly located by their binary name in (hopefully) all cornercases
+(link:https://github.com/revapi/revapi/issues/112[#112]).
+* The analysis is up now to 30% faster thanks to various optimizations.
+* The `jdk.internal.HotSpotIntrinsicCandidate` annotation is no longer reported.
+* `classQualifiedName` is now included in the attachments of the reported differences making it possible to ignore
+  problems on inner classes for which the combinations of previously existing `package` and `simpleName` would not
+  work (link:https://github.com/revapi/revapi/issues/127[#127]).
+* The configuration of the individual java checks is now correctly read from the `checks` sub map instead of from
+  the root of the `revapi-java` configuration (link:https://github.com/revapi/revapi/issues/130[#130]).
+* The analyzer now reports changes to the serialization even if the classes don't contain the `serialVersionUID` field
+using a new `java.class.defaultSerializationChanged` difference code.
+
+Revapi maven plugin introduced the following in 0.10.2:
+
+* The provided dependencies are no longer resolved transitively by default. This reduces the sometimes surprising
+and on other occasions incorrect findings. Namely if two dependencies require the same artifact in a different version
+as provided, revapi no longer reports gets confused when the archives are resolved in a certain order. The original
+behavior can be restored by setting the new `resolveTransitiveProvidedDependencies` property to true.
+* The extensions can now use a `maven-log` and `writer` context objects to be able to access the maven log or the
+output writer of the maven reporter. This can be used by the extensions to contribute to the maven build output.
+
+Revapi standalone introduced the following in 0.8.0:
+
+* It is now possible to specify a list of remote repositories to use for artifact resolution instead of the default
+maven central (link:https://github.com/revapi/revapi/issues/125[#125]).
+* In line with the revapi maven plugin, the standalone also changed the way provided dependencies are resolved.
+
+
+The basic feature introduced the following in 0.8.0:
+
+* Previously the semver extension would fail the build if there were multiple archives specified as the main ones for
+either old or new version even if the semver extension was disabled. This is no longer the case and the build will break
+only when the semver extension is enabled (because it cannot work in such situation).
+
+Special thanks go out to Steve Gutz who contributed the remote repo support to the standalone CLI and
+the `classQualifiedName` to the java reports, Rostislav Svoboda for spending the time on analyzing revapi behavior on
+huge archives (namely the whole Wildfly server distribution) and David Pereira for pointing out the need for checking
+the serialization changes for classes with default serialization.
+
+include::../util/disqus.adoc[]
