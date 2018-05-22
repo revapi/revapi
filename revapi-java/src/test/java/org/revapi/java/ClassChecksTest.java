@@ -45,9 +45,40 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testClassAdded() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, new String[]{"v1/classes/ClassVisibilityReduced.java"},
-            new String[]{"v2/classes/ClassVisibilityReduced.java", "v2/classes/ClassAdded.java"});
+                new String[]{"v2/classes/ClassVisibilityReduced.java", "v2/classes/ClassAdded.java"});
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_ADDED.code()));
+    }
+
+    @Test
+    public void testExternalClassAdded() throws Exception {
+        ArchiveAndCompilationPath external = createCompiledJar("external", "misc/I.java");
+        try {
+            ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, null,
+                    new String[]{"v1/classes/ExternalTypeExposed.java"},
+                    new String[]{"v2/classes/ExternalTypeExposed.java"},
+                    external);
+
+            Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
+        } finally {
+            deleteDir(external.compilationPath);
+        }
+    }
+
+    @Test
+    public void testInternalClassAdded() throws Exception {
+        ArchiveAndCompilationPath external = createCompiledJar("external", "misc/I.java");
+        try {
+            ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                    "{\"revapi\":{\"java\":{\"checks\":{\"externalClassExposedInAPI\":{\"internalTypes\":[\"misc\\\\..*\"]}}}}}",
+                    new String[]{"v1/classes/ExternalTypeExposed.java"},
+                    new String[]{"v2/classes/ExternalTypeExposed.java"},
+                    external);
+
+            Assert.assertNull(reporter.getProblemCounters().get(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
+        } finally {
+            deleteDir(external.compilationPath);
+        }
     }
 
     @Test
@@ -57,6 +88,37 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
                 new String[]{"v1/classes/ClassVisibilityReduced.java"});
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_REMOVED.code()));
+    }
+
+    @Test
+    public void testExternalClassRemoved() throws Exception {
+        ArchiveAndCompilationPath external = createCompiledJar("external", "misc/I.java");
+        try {
+            ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, null,
+                    new String[]{"v2/classes/ExternalTypeExposed.java"},
+                    new String[]{"v1/classes/ExternalTypeExposed.java"},
+                    external);
+
+            Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API.code()));
+        } finally {
+            deleteDir(external.compilationPath);
+        }
+    }
+
+    @Test
+    public void testInternalClassRemoved() throws Exception {
+        ArchiveAndCompilationPath external = createCompiledJar("external", "misc/I.java");
+        try {
+            ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                    "{\"revapi\":{\"java\":{\"checks\":{\"externalClassNoLongerExposedInAPI\":{\"internalTypes\":[\"misc\\\\..*\"]}}}}}",
+                    new String[]{"v2/classes/ExternalTypeExposed.java"},
+                    new String[]{"v1/classes/ExternalTypeExposed.java"},
+                    external);
+
+            Assert.assertNull(reporter.getProblemCounters().get(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API.code()));
+        } finally {
+            deleteDir(external.compilationPath);
+        }
     }
 
     @Test
