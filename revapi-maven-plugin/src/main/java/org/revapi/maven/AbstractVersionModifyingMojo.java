@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,15 +32,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
-import org.eclipse.aether.artifact.DefaultArtifact;
-import org.revapi.AnalysisResult;
-
 import com.ximpleware.AutoPilot;
 import com.ximpleware.ModifyException;
 import com.ximpleware.NavException;
@@ -50,6 +41,14 @@ import com.ximpleware.VTDNav;
 import com.ximpleware.XMLModifier;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.revapi.AnalysisResult;
 
 /**
  * @author Lukas Krejci
@@ -106,7 +105,8 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         return singleVersionForAllModules;
     }
 
-    @Override public void execute() throws MojoExecutionException, MojoFailureException {
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
             return;
         }
@@ -379,5 +379,11 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
             this.apiChangeLevel = apiChangeLevel;
             this.baseVersion = baseVersion;
         }
+    }
+
+    private Map<String, Object> getPropertyOverrideMap() {
+        Map<String, Object> ret = new HashMap<>(1);
+        ret.put("disallowedExtensions", disallowedExtensions);
+        return ret;
     }
 }

@@ -16,6 +16,7 @@
  */
 package org.revapi.maven;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -301,31 +302,60 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         return res.isOnClasspath ? res.analyzer : null;
     }
 
+    protected Analyzer prepareAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
+            Map<String, Object> contextData, Map<String, Object> propertyOverrides) {
+        AnalyzerBuilder.Result res = buildAnalyzer(project, reporter, contextData, propertyOverrides);
+
+        if (res.skip) {
+            this.skip = true;
+        }
+
+        this.oldArtifacts = res.oldArtifacts;
+        this.newArtifacts = res.newArtifacts;
+
+        return res.isOnClasspath ? res.analyzer : null;
+    }
+
     AnalyzerBuilder.Result buildAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
                                                    Map<String, Object> contextData) {
+        return buildAnalyzer(project, reporter, contextData, Collections.emptyMap());
+    }
+
+    AnalyzerBuilder.Result buildAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
+            Map<String, Object> contextData, Map<String, Object> propertyOverrides) {
         return AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
-                .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
-                .withAnalysisConfiguration(this.analysisConfiguration)
-                .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
-                .withCheckDependencies(this.checkDependencies)
-                .withResolveProvidedDependencies(this.resolveProvidedDependencies)
-                .withResolveTransitiveProvidedDependencies(this.resolveTransitiveProvidedDependencies)
-                .withDisallowedExtensions(this.disallowedExtensions)
-                .withFailOnMissingConfigurationFiles(this.failOnMissingConfigurationFiles)
-                .withFailOnUnresolvedArtifacts(this.failOnUnresolvedArtifacts)
-                .withFailOnUnresolvedDependencies(this.failOnUnresolvedDependencies)
+                .withAlwaysCheckForReleasedVersion(overrideOrDefault("alwaysCheckForReleaseVersion", this.alwaysCheckForReleaseVersion, propertyOverrides))
+                .withAnalysisConfiguration(overrideOrDefault("analysisConfiguration", this.analysisConfiguration, propertyOverrides))
+                .withAnalysisConfigurationFiles(overrideOrDefault("analysisConfigurationFiles", this.analysisConfigurationFiles, propertyOverrides))
+                .withCheckDependencies(overrideOrDefault("checkDependencies", this.checkDependencies, propertyOverrides))
+                .withResolveProvidedDependencies(overrideOrDefault("resolveProvidedDependencies", this.resolveProvidedDependencies, propertyOverrides))
+                .withResolveTransitiveProvidedDependencies(overrideOrDefault("resolveTransitiveProvidedDependencies", this.resolveTransitiveProvidedDependencies, propertyOverrides))
+                .withDisallowedExtensions(overrideOrDefault("disallowedExtensions", this.disallowedExtensions, propertyOverrides))
+                .withFailOnMissingConfigurationFiles(overrideOrDefault("failOnMissingConfigurationFiles", this.failOnMissingConfigurationFiles, propertyOverrides))
+                .withFailOnUnresolvedArtifacts(overrideOrDefault("failOnUnresolvedArtifacts", this.failOnUnresolvedArtifacts, propertyOverrides))
+                .withFailOnUnresolvedDependencies(overrideOrDefault("failOnUnresolvedDependencies", this.failOnUnresolvedDependencies, propertyOverrides))
                 .withLocale(Locale.getDefault())
                 .withLog(getLog())
-                .withNewVersion(this.newVersion)
-                .withOldVersion(this.oldVersion)
+                .withNewVersion(overrideOrDefault("newVersion", this.newVersion, propertyOverrides))
+                .withOldVersion(overrideOrDefault("oldVersion", this.oldVersion, propertyOverrides))
                 .withProject(project)
                 .withReporter(reporter)
                 .withRepositorySystem(this.repositorySystem)
                 .withRepositorySystemSession(this.repositorySystemSession)
-                .withSkip(this.skip)
-                .withVersionFormat(this.versionFormat)
+                .withSkip(overrideOrDefault("skip", this.skip, propertyOverrides))
+                .withVersionFormat(overrideOrDefault("versionFormat", this.versionFormat, propertyOverrides))
                 .withContextData(contextData)
                 .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T overrideOrDefault(String propertyName, T defaultValue, Map<String, Object> overrides) {
+        Object val = overrides.get(propertyName);
+        if (val == null) {
+            return defaultValue;
+        } else {
+            return (T) val;
+        }
     }
 
     /**
