@@ -81,6 +81,7 @@ import javax.tools.StandardLocation;
 
 import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
+import org.revapi.java.model.AbstractJavaElement;
 import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.model.InitializationOptimizations;
 import org.revapi.java.model.JavaElementBase;
@@ -897,6 +898,8 @@ final class ClasspathScanner {
                             }
 
                             ret = e.clone();
+                            //the cloned element needs to look like it originated in the archive of the target.
+                            ret.setArchive(target.modelElement.getArchive());
 
                             copyInheritedNonClassElementChildrenAndMoveToApi(target, ret, e.getChildren(), target.inApi);
                         }
@@ -1031,11 +1034,16 @@ final class ClasspathScanner {
                 JavaElement cc = InitializationOptimizations.clone(c);
 
                 parent.getChildren().add(cc);
-                if (cc instanceof JavaElementBase) {
-                    JavaElementBase<?, ?> mcc = (JavaElementBase<?, ?>) cc;
-                    mcc.setInherited(true);
-                    copyInheritedNonClassElementChildrenAndMoveToApi(parentOwner, mcc, c.getChildren(),
-                            forceComparatorInitialization);
+
+                if (cc instanceof AbstractJavaElement) {
+                    ((AbstractJavaElement) cc).setArchive(parent.getArchive());
+
+                    if (cc instanceof JavaElementBase) {
+                        JavaElementBase<?, ?> mcc = (JavaElementBase<?, ?>) cc;
+                        mcc.setInherited(true);
+                        copyInheritedNonClassElementChildrenAndMoveToApi(parentOwner, mcc, c.getChildren(),
+                                forceComparatorInitialization);
+                    }
                 }
             }
         }

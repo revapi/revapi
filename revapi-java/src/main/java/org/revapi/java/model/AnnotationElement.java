@@ -19,7 +19,6 @@ package org.revapi.java.model;
 import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.revapi.API;
@@ -30,20 +29,17 @@ import org.revapi.java.spi.JavaAnnotationElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
-import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class AnnotationElement extends SimpleElement implements JavaAnnotationElement {
+public final class AnnotationElement extends AbstractJavaElement implements JavaAnnotationElement {
     private final AnnotationMirror annotation;
-    private final ProbingEnvironment environment;
-    private final Archive archive;
     private String comparableSignature;
 
     public AnnotationElement(ProbingEnvironment environment, Archive archive, AnnotationMirror annotation) {
-        this.environment = environment;
+        super(environment);
         this.annotation = annotation;
         this.archive = archive;
     }
@@ -57,12 +53,6 @@ public final class AnnotationElement extends SimpleElement implements JavaAnnota
     @Override
     public API getApi() {
         return environment.getApi();
-    }
-
-    @Nullable
-    @Override
-    public Archive getArchive() {
-        return archive;
     }
 
     @Nonnull
