@@ -18,6 +18,6 @@
 /**
  * @author James Phillpotts, ForgeRock AS.
  */
-public class ExternalTypeExposed {
+public interface ExternalTypeExposed {
 
 }
