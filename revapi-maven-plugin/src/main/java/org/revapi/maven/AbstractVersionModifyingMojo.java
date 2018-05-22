@@ -344,7 +344,8 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     }
 
     private AnalysisResults analyzeProject(MavenProject project) throws MojoExecutionException {
-        Analyzer analyzer = prepareAnalyzer(project, ApiBreakageHintingReporter.class, Collections.emptyMap());
+        Analyzer analyzer = prepareAnalyzer(project, ApiBreakageHintingReporter.class, Collections.emptyMap(),
+                getPropertyOverrideMap());
 
         try {
             analyzer.resolveArtifacts();
