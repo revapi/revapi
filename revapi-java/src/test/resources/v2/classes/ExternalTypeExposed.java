@@ -21,7 +21,8 @@ import misc.I;
  * @author James Phillpotts, ForgeRock AS.
  */
 public class ExternalTypeExposed {
+    private final I i;
     public ExternalTypeExposed(I i) {
-
+        this.i = i;
     }
 }
