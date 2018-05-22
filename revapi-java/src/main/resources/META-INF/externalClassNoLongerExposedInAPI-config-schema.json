@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "internalTypes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  }
+}

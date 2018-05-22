@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -188,15 +189,26 @@ public abstract class AbstractJavaElementAnalyzerTest {
         }
     };
 
-    @SuppressWarnings("ConstantConditions")
     protected ArchiveAndCompilationPath createCompiledJar(String jarName, String... sourceFiles) throws Exception {
+        return createCompiledJar(jarName, new ArchiveAndCompilationPath[0], sourceFiles);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    protected ArchiveAndCompilationPath createCompiledJar(String jarName, ArchiveAndCompilationPath[] supporting, String... sourceFiles) throws Exception {
         File targetPath = Files.createTempDirectory("element-analyzer-test-" + jarName + ".jar-").toAbsolutePath()
             .toFile();
 
-        List<String> options = Arrays.asList("-d", targetPath.getAbsolutePath());
+        List<String> options = new ArrayList<>(Arrays.asList("-d", targetPath.getAbsolutePath()));
         List<JavaFileObject> sources = new ArrayList<>();
         for (String source : sourceFiles) {
             sources.add(new SourceInClassLoader(source));
+        }
+
+        if (supporting != null && supporting.length > 0) {
+            String classpath = Arrays.stream(supporting)
+                    .map(support -> support.compilationPath.toString())
+                    .collect(Collectors.joining(File.pathSeparator));
+            options.addAll(Arrays.asList("-cp", classpath));
         }
 
         if (!ToolProvider.getSystemJavaCompiler().getTask(null, null, null, options, null, sources).call()) {
@@ -232,23 +244,23 @@ public abstract class AbstractJavaElementAnalyzerTest {
     }
 
     protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String configurationJSON, String[] v1Source,
-                                                 String[] v2Source) throws Exception {
+                                                 String[] v2Source, ArchiveAndCompilationPath... supporting) throws Exception {
         boolean doV1 = v1Source != null && v1Source.length > 0;
         boolean doV2 = v2Source != null && v2Source.length > 0;
 
         ArchiveAndCompilationPath v1Archive = doV1
-                ? createCompiledJar("v1", v1Source)
+                ? createCompiledJar("v1", supporting, v1Source)
                 : new ArchiveAndCompilationPath(null, null);
 
         ArchiveAndCompilationPath v2Archive = doV2
-                ? createCompiledJar("v2", v2Source)
+                ? createCompiledJar("v2", supporting, v2Source)
                 : new ArchiveAndCompilationPath(null, null);
 
         Revapi revapi = createRevapi(reporterType);
 
         AnalysisContext.Builder bld = AnalysisContext.builder(revapi)
-                .withOldAPI(doV1 ? API.of(new ShrinkwrapArchive(v1Archive.archive)).build() : API.builder().build())
-                .withNewAPI(doV2 ? API.of(new ShrinkwrapArchive(v2Archive.archive)).build() : API.builder().build());
+                .withOldAPI(makeApi(doV1, v1Archive, supporting))
+                .withNewAPI(makeApi(doV2, v2Archive, supporting));
 
         if (configurationJSON != null) {
             bld.withConfigurationFromJSON(configurationJSON);
@@ -270,6 +282,17 @@ public abstract class AbstractJavaElementAnalyzerTest {
                 deleteDir(v2Archive.compilationPath);
             }
         }
+    }
+
+    private API makeApi(boolean useSource, ArchiveAndCompilationPath sourceArchive, ArchiveAndCompilationPath... supporting) {
+        API.Builder api = API.builder();
+        if (useSource) {
+            api.addArchive(new ShrinkwrapArchive(sourceArchive.archive));
+        }
+        for (ArchiveAndCompilationPath support : supporting) {
+            api.addSupportArchive(new ShrinkwrapArchive(support.archive));
+        }
+        return api.build();
     }
 
     protected static void deleteDir(final Path path) throws IOException {

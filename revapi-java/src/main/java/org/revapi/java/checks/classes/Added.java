@@ -16,6 +16,9 @@
  */
 package org.revapi.java.checks.classes;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -24,15 +27,15 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.Difference;
-import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
+ * @author James Phillpotts, ForgeRock AS.
  * @since 0.1
  */
-public final class Added extends CheckBase {
+public final class Added extends InternalTypeWhitelistCheckBase {
     @Override
     protected List<Difference> doEnd() {
         ActiveElements<JavaTypeElement> types = popIfActive();
@@ -41,14 +44,25 @@ public final class Added extends CheckBase {
                     .getTypeElement(types.newElement.getDeclaringElement().getQualifiedName());
 
             LinkedHashMap<String, String> attachments = Code.attachmentsFor(types.oldElement, types.newElement);
-            Difference difference = typeInOld == null
-                    ? createDifference(Code.CLASS_ADDED, attachments)
-                    : createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API, attachments);
-
-            return Collections.singletonList(difference);
+            if (typeInOld == null) {
+                return Collections.singletonList(createDifference(Code.CLASS_ADDED, attachments));
+            } else if (!isInternalType(typeInOld.toString())) {
+                return Collections.singletonList(createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API, attachments));
+            }
         }
 
         return null;
+    }
+
+    @Override
+    public String getExtensionId() {
+        return "externalClassExposedInAPI";
+    }
+
+    @Override
+    public Reader getJSONSchema() {
+        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/externalClassExposedInAPI-config-schema.json"),
+                Charset.forName("UTF-8"));
     }
 
     @Override

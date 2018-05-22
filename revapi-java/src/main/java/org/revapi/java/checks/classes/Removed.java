@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,22 +16,26 @@
  */
 package org.revapi.java.checks.classes;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.Difference;
-import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
+ * @author James Phillpotts, ForgeRock AS.
  * @since 0.1
  */
-public final class Removed extends CheckBase {
+public final class Removed extends InternalTypeWhitelistCheckBase {
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -46,18 +50,29 @@ public final class Removed extends CheckBase {
     }
 
     @Override
+    public String getExtensionId() {
+        return "externalClassNoLongerExposedInAPI";
+    }
+
+    @Override
+    public Reader getJSONSchema() {
+        return new InputStreamReader(getClass().getResourceAsStream("/META-INF/externalClassNoLongerExposedInAPI-config-schema.json"),
+                Charset.forName("UTF-8"));
+    }
+
+    @Override
     protected List<Difference> doEnd() {
         ActiveElements<JavaTypeElement> types = popIfActive();
         if (types != null) {
             TypeElement typeInNew = getNewTypeEnvironment().getElementUtils()
                     .getTypeElement(types.oldElement.getDeclaringElement().getQualifiedName());
 
-            Difference difference = typeInNew == null ? createDifference(Code.CLASS_REMOVED,
-                    Code.attachmentsFor(types.oldElement, types.newElement)) :
-                    createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API,
-                            Code.attachmentsFor(types.oldElement, types.newElement));
-
-            return Collections.singletonList(difference);
+            LinkedHashMap<String, String> attachments = Code.attachmentsFor(types.oldElement, types.newElement);
+            if (typeInNew == null) {
+                return Collections.singletonList(createDifference(Code.CLASS_REMOVED, attachments));
+            } else if (!isInternalType(typeInNew.toString())) {
+                return Collections.singletonList(createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API, attachments));
+            }
         }
 
         return null;
