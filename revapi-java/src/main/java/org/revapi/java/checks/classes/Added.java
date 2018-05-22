@@ -24,6 +24,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.Difference;
@@ -54,11 +55,13 @@ public final class Added extends InternalTypeWhitelistCheckBase {
         return null;
     }
 
+    @Nullable
     @Override
     public String getExtensionId() {
         return "externalClassExposedInAPI";
     }
 
+    @Nullable
     @Override
     public Reader getJSONSchema() {
         return new InputStreamReader(getClass().getResourceAsStream("/META-INF/externalClassExposedInAPI-config-schema.json"),
