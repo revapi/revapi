@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -100,11 +101,12 @@ public final class AnalysisResult implements AutoCloseable {
     }
 
     @Override public void close() throws Exception {
+        TIMING_LOG.debug(Stats.asString());
         TIMING_LOG.debug("Closing all extensions");
-        for (Map.Entry<?, AnalysisContext> e : extensions) {
-            Object ext = e.getKey();
+
+        Consumer<Object> close = ext -> {
             if (!(ext instanceof AutoCloseable)) {
-                continue;
+                return;
             }
 
             AutoCloseable c = (AutoCloseable) ext;
@@ -113,9 +115,17 @@ public final class AnalysisResult implements AutoCloseable {
             } catch (Exception ex) {
                 LOG.warn("Failed to close " + c, ex);
             }
-        }
+        };
+
+        //the order here is quite important - we need for first close the reporters, because they use the outcomes
+        //of the filters/transforms/analyzer and the outcomes might be dependent on some state within those that might
+        //get destroyed when they're closed.
+        extensions.reporters.keySet().forEach(close);
+        extensions.transforms.keySet().forEach(close);
+        extensions.filters.keySet().forEach(close);
+        extensions.analyzers.keySet().forEach(close);
+
         TIMING_LOG.debug("Extensions closed. Analysis complete.");
-        TIMING_LOG.debug(Stats.asString());
     }
 
     public static final class Extensions implements Iterable<Map.Entry<?, AnalysisContext>> {

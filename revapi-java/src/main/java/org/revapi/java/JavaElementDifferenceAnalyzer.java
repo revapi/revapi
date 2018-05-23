@@ -20,8 +20,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -43,7 +41,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.type.DeclaredType;
-import javax.tools.ToolProvider;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
@@ -51,7 +48,6 @@ import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Stats;
-import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.model.FieldElement;
@@ -88,41 +84,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         POSSIBLE_CHILDREN_TYPES = Collections.unmodifiableMap(map);
     }
 
-    //see #forceClearCompilerCache for what these are
-    private static final Method CLEAR_COMPILER_CACHE;
-    private static final Object SHARED_ZIP_FILE_INDEX_CACHE;
-
-    static {
-        String javaVersion = System.getProperty("java.version");
-        if (javaVersion.startsWith("1.")) {
-            Method clearCompilerCache = null;
-            Object sharedInstance = null;
-            try {
-                Class<?> zipFileIndexCacheClass = ToolProvider.getSystemToolClassLoader()
-                        .loadClass("com.sun.tools.javac.file.ZipFileIndexCache");
-
-                clearCompilerCache = zipFileIndexCacheClass.getDeclaredMethod("clearCache");
-                Method getSharedInstance = zipFileIndexCacheClass.getDeclaredMethod("getSharedInstance");
-                sharedInstance = getSharedInstance.invoke(null);
-            } catch (Exception e) {
-                LOG.warn("Failed to initialize the force-clearing of javac file caches. We will probably leak resources.", e);
-            }
-
-            if (clearCompilerCache != null && sharedInstance != null) {
-                CLEAR_COMPILER_CACHE = clearCompilerCache;
-                SHARED_ZIP_FILE_INDEX_CACHE = sharedInstance;
-            } else {
-                CLEAR_COMPILER_CACHE = null;
-                SHARED_ZIP_FILE_INDEX_CACHE = null;
-            }
-        } else {
-            CLEAR_COMPILER_CACHE = null;
-            SHARED_ZIP_FILE_INDEX_CACHE = null;
-        }
-    }
-
-    private final CompilationValve oldCompilationValve;
-    private final CompilationValve newCompilationValve;
     private final AnalysisConfiguration analysisConfiguration;
     private final ResourceBundle messages;
     private final ProbingEnvironment oldEnvironment;
@@ -146,12 +107,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private final Map<Check.Type, Set<Check>> descendingChecksByTypes;
 
     public JavaElementDifferenceAnalyzer(AnalysisContext analysisContext, ProbingEnvironment oldEnvironment,
-        CompilationValve oldValve,
-        ProbingEnvironment newEnvironment, CompilationValve newValve, Iterable<Check> checks,
-        AnalysisConfiguration analysisConfiguration) {
-
-        this.oldCompilationValve = oldValve;
-        this.newCompilationValve = newValve;
+            ProbingEnvironment newEnvironment, Iterable<Check> checks,
+            AnalysisConfiguration analysisConfiguration) {
 
         this.descendingChecksByTypes = new HashMap<>();
 
@@ -185,12 +142,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
     @Override
     public void close() {
-        Timing.LOG.debug("About to close difference analyzer.");
-        oldCompilationValve.removeCompiledResults();
-        newCompilationValve.removeCompiledResults();
-
-        forceClearCompilerCache();
-
         Timing.LOG.debug("Difference analyzer closed.");
     }
 
@@ -663,19 +614,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         JavaTypeElement declaringClass = env.getTypeMap().get(declaringType);
 
         return declaringClass != null && declaringClass.isInAPI();
-    }
-
-    //Javac's standard file manager is leaking resources across compilation tasks because it doesn't clear a shared
-    //"zip file index" cache, when it is close()'d. We try to clear it by force.
-    private static void forceClearCompilerCache() {
-        if (CLEAR_COMPILER_CACHE != null && SHARED_ZIP_FILE_INDEX_CACHE != null) {
-            try {
-                CLEAR_COMPILER_CACHE.invoke(SHARED_ZIP_FILE_INDEX_CACHE);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                LOG.warn("Failed to force-clear compiler caches, even though it should have been possible." +
-                                "This will probably leak memory", e);
-            }
-        }
     }
 
     private static class TypeAndUseSite {
