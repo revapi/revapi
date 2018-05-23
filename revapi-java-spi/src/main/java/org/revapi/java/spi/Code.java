@@ -246,6 +246,14 @@ public enum Code {
             addElementKind = false;
         }
 
+        if (oldElement != null && oldElement.getArchive() != null) {
+            ret.put("oldArchive", oldElement.getArchive().getName());
+        }
+
+        if (newElement != null && newElement.getArchive() != null) {
+            ret.put("newArchive", newElement.getArchive().getName());
+        }
+
         if (addElementKind) {
             String kind;
             ElementKind elementKind = ((JavaModelElement) representative).getDeclaringElement().getKind();

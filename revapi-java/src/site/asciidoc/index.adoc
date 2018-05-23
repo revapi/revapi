@@ -234,6 +234,8 @@ possible values of `ignore`, `report` and `error`, e.g.:
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Element No Longer Deprecated
@@ -254,6 +256,8 @@ users to know about such cases.
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.Deprecated`.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Element Now Deprecated
@@ -274,6 +278,8 @@ users to know about such cases.
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.Deprecated`.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class Visibility Increased
@@ -298,6 +304,8 @@ and is reported for completeness sake. The visibility is ordered as follows: +pr
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class Visibility Reduced
@@ -322,6 +330,8 @@ runtime when trying to use the new version of the library.
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class Kind Changed
@@ -346,6 +356,8 @@ compile time and at runtime.
 | `oldKind` | The kind of the type as it was in the old version.
 | `newKind` | The kind of the type in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class No Longer Final
@@ -368,6 +380,8 @@ A class that used to be final is now not. This is no API breakage and is reporte
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 NOTE: Modifiers are sorted according to the
@@ -396,6 +410,8 @@ the class will no longer be compatible with the new version of the library, in w
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 NOTE: See <<Class No Longer Final>> for the ordering of the modifiers.
@@ -420,6 +436,8 @@ A class that used to be abstract is now not. This is no API breakage and is repo
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 NOTE: See <<Class No Longer Final>> for the ordering of the modifiers.
@@ -445,6 +463,8 @@ possible to create instances of such class.
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 NOTE: See <<Class No Longer Final>> for the ordering of the modifiers.
@@ -467,6 +487,8 @@ A new class appeared in the new version of the API. This is a non-breaking chang
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class Removed
@@ -488,6 +510,8 @@ the users of the API will no longer be able to use that class in any capacity.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== External Class Exposed In API
@@ -510,6 +534,8 @@ but you don't want the changed API to leak to your users).
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== External Class No Longer Exposed In API
@@ -532,6 +558,8 @@ will usually cause other differences to be reported, too).
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class No Longer Implements Interface
@@ -553,6 +581,8 @@ This is a breaking change because it is no longer possible to cast the class to 
 | `classSimpleName` | the simple name of the class
 | `interface` | The fully qualified name of the interface that is no longer implemented.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class Now Implements Interface
@@ -574,6 +604,8 @@ No API breakage reported for the completeness sake.
 | `classSimpleName` | the simple name of the class
 | `interface` | The fully qualified name of the interface that is now implemented.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Final Class Inherits From New Class
@@ -597,6 +629,8 @@ reported separately).
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the new super class.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Non-final Class Inherits From New Class
@@ -620,6 +654,8 @@ checked one, they will get compilation or linkage errors.
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the new super class.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class Now Checked Exception
@@ -641,6 +677,8 @@ declared in the +throws+ declarations of the methods.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class No Longer Inherits From Class
@@ -663,6 +701,8 @@ that super class nor can the methods declared in the super class be called using
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the superclass that is no longer inherited.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Default Serialization of Class Changed
@@ -692,6 +732,8 @@ fields changes its serialization format. This imperfection is shared with java s
 | `oldSerialVersionUID` | the value of the computed serial version UID in the old version (as decimal number)
 | `newSerialVersionUID` | the value of the computed serial version UID in the new version (as decimal number)
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Class Is Non-Public Part of API
@@ -748,6 +790,8 @@ or
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 NOTE: This is NOT reported on a non-accessible class that is used solely as a super class of another API classes or that
@@ -779,6 +823,8 @@ inherited from the super class (which would be the cause of the binary and sourc
 | `oldSuperType` | The old signature of the super type.
 | `newSuperType` | The new signature of the super type.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Annotation Added
@@ -799,6 +845,8 @@ processing, reflection, etc.).
 2+| Match parameters
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Annotation Removed
@@ -819,6 +867,8 @@ processing, reflection, etc.).
 2+| Match parameters
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Annotation Attribute Value Changed
@@ -842,6 +892,8 @@ generation, processing, reflection, etc.).
 | `oldValue`   | The old value of the attribute.
 | `newValue`   | The new value of the attribute.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Annotation Attribute Added
@@ -864,6 +916,8 @@ used (code generation, processing, reflection, etc.).
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
 | `value`      | The value of the attribute.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Annotation Attribute Removed
@@ -886,6 +940,8 @@ annotations can be used (code generation, processing, reflection, etc.).
 | `value`      | The value of the attribute that was removed,
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Annotation No Longer Inherited
@@ -906,6 +962,8 @@ annotations can be used (code generation, processing, reflection, etc.).
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.annotation.Inherited`.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Annotation Now Inherited
@@ -926,6 +984,8 @@ annotations can be used (code generation, processing, reflection, etc.).
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.annotation.Inherited`.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Static Field Added
@@ -947,6 +1007,8 @@ No API breakage, provided for completeness sake. Note that this si reported only
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field Added
@@ -968,6 +1030,8 @@ No API breakage, provided for completeness sake. Note that this si reported only
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field Removed
@@ -990,6 +1054,8 @@ Note that this si reported only for publicly accessible fields.
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Constant Field Removed
@@ -1014,6 +1080,8 @@ Note that this si reported only for publicly accessible fields.
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field Moved To Superclass
@@ -1037,6 +1105,8 @@ The field was moved to a super class. From the point of view of the field user t
 | `oldClass` | The class the field used to be declared in.
 | `newClass` | The class the field is now declared in.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Inherited Field Now Declared On Class
@@ -1061,6 +1131,8 @@ represents no noticeable change. If the field was also removed from the super cl
 | `oldClass` | The class the field used to be declared in.
 | `newClass` | The class the field is now declared in.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Constant Field Removed
@@ -1086,6 +1158,8 @@ semantics.
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Constant Field Changed Value
@@ -1111,6 +1185,8 @@ because the constant values are inlined. This is therefore reported as breaking 
 | `oldValue` | The old value of the constant field.
 | `newValue` |  The new value of the constant field.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field Now Constant
@@ -1134,6 +1210,8 @@ code, which is something that didn't happen before. You may want to re-evaluate 
 | `fieldName` | the name of the field
 | `value` | The constant value of the field.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field No Longer Constant
@@ -1160,6 +1238,8 @@ NOT what the API author had in mind when making the change.
 | `fieldName` | the name of the field
 | `value` | The constant value the field used to have.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field Now Final
@@ -1182,6 +1262,8 @@ binary incompatibility.
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field No Longer Final
@@ -1203,6 +1285,8 @@ This is no API breakage and is reported for completeness' sake.
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field No Longer Static
@@ -1225,6 +1309,8 @@ this is both source and binary incompatibility.
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field Now Static
@@ -1248,6 +1334,8 @@ When recompiling the user code against the new version, everything works fine.
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field Type Changed
@@ -1271,6 +1359,8 @@ The field has a different type than it used to in the old version of the API. Th
 | `oldType` | The fully qualified name of the old field type.
 | `newType` | The fully qualified name of the new field type.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field `serialVersionUID` Unchanged
@@ -1332,6 +1422,8 @@ or
 | `fieldName` | the name of the field
 | `serialVersionUID` | the value of the serial version UID field (as decimal number)
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field `serialVersionUID` Changed
@@ -1359,6 +1451,8 @@ This check can be configured the same way as <<Field serialVersionUID Unchanged>
 | `oldSerialVersionUID` | the value of the serial version UID field in the old version (as decimal number)
 | `newSerialVersionUID` | the value of the serial version UID field in the new version (as decimal number)
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field Visibility Increased
@@ -1382,6 +1476,8 @@ No API breakage, reported for completeness' sake.
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Field Visibility Reduced
@@ -1405,6 +1501,8 @@ Field's visibility was reduced, which means that code that used to be able to ac
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Enum Constant Order Changed
@@ -1429,6 +1527,8 @@ method to determine the order of an enum constant and relies on a specific value
 | `oldOrdinal` | The old ordinal number of the enum value.
 | `newOrdinal` | The new ordinal number of the enum value.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Default Value Added To Method
@@ -1452,6 +1552,8 @@ Declaring a default value to an annotation attribute is not an API breakage and 
 | `methodName` | the name of the method added
 | `value` | the default value of the annotation attribute represented by the method
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method's Default Value Changed
@@ -1479,6 +1581,8 @@ the API. This might or might not be a problem.
 | `oldValue` | the old default value of the annotation attribute represented by the method
 | `newValue` | the new default value of the annotation attribute represented by the method
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Default Value Removed From Method
@@ -1505,6 +1609,8 @@ attribute).
 | `methodName` | the name of the method added
 | `value` | the removed default value of the annotation attribute represented by the method
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Added To Interface
@@ -1538,6 +1644,8 @@ old SPI implementation.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Default Method Added To Interface
@@ -1559,6 +1667,8 @@ This represents no API breakage and is included for completeness' sake.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Static Method Added To Interface
@@ -1580,6 +1690,8 @@ This represents no API breakage and is included for completeness' sake.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method With No Default Value Added To Annotation Type
@@ -1608,6 +1720,8 @@ assumes an explicit value for the annotation attribute.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method With Default Value Added To Annotation Type
@@ -1629,6 +1743,8 @@ This does not break compatibility and is reported for completeness' sake.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Abstract Method Added
@@ -1651,6 +1767,8 @@ implementation of it and will therefore break.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Added
@@ -1672,6 +1790,8 @@ A new concrete method added to a concrete class. This is always safe.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Final Method Added To Non-final Class
@@ -1694,6 +1814,8 @@ as the newly introduced final method.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Inherited Method Moved To Class
@@ -1718,6 +1840,8 @@ Note that if the super class is part of the API, the removal of the method from 
 | `oldClass` | the class that the method was originally declared in
 | `newClass` | the class that now declares the method
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Removed
@@ -1739,6 +1863,8 @@ Removing a method from a class is an incompatible change.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Moved To Superclass
@@ -1765,6 +1891,8 @@ Otherwise this is a compatible change and is reported for completeness' sake.
 | `oldClass` | the class that the method was originally declared in
 | `newClass` | the class that now declares the method
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Attribute Removed From Annotation Type
@@ -1786,6 +1914,8 @@ This is identical to <<a_method_removed, Method Removed>> but specialized for an
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method No Longer Final
@@ -1809,6 +1939,8 @@ No API breakage, reported for completeness' sake.
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Now Final
@@ -1832,6 +1964,8 @@ Any subclasses that overrode the method will break both at compile time and at r
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Now Final In Final Class
@@ -1855,6 +1989,8 @@ The class is final and cannot be subclassed. Therefore making its method final m
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method No Longer Static
@@ -1879,6 +2015,8 @@ and source compatibility.
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Now Static
@@ -1903,6 +2041,8 @@ It is not binary compatible though because static methods are called using a dif
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Now Abstract
@@ -1927,6 +2067,8 @@ to before.
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method No Longer Abstract
@@ -1950,6 +2092,8 @@ This is a compatible change reported for the completeness' sake.
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Visibility Increased
@@ -1973,6 +2117,8 @@ No API breakage, reported for completeness' sake.
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Visibility Reduced
@@ -1996,6 +2142,8 @@ A method might no longer be visible to code that used to call it. This is a brea
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Return Type Changed
@@ -2020,6 +2168,8 @@ recompiling the user code), it might be OK at compile time due to implicit conve
 | `oldType` | the old return type
 | `newType` | the new return type
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Return Type Changed Covariantly
@@ -2046,6 +2196,8 @@ incompatibility though because the method signature changes and users of the old
 | `oldType` | the old return type
 | `newType` | the new return type
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Type Parameters of The Return Type Changed
@@ -2070,6 +2222,8 @@ it is a source incompatible change. It is binary compatible because of type eras
 | `oldType` | the old return type
 | `newType` | the new return type
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Number of Method Parameters Changed
@@ -2091,6 +2245,8 @@ Obviously, this is a breaking change - you can no longer call the method with th
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Parameter Type Changed
@@ -2116,6 +2272,8 @@ is strictly bigger than the old one and the old one is implicitly convertible to
 | `oldType` | the old type of the parameter
 | `newType` | the new type of the parameter
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Parameter Type Parameter Changed
@@ -2141,6 +2299,8 @@ type changed. This is binary compatible because of the type erasure but it can b
 | `oldType` | the old type of the parameter
 | `newType` | the new type of the parameter
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Now Throws a Checked Exception
@@ -2164,6 +2324,8 @@ new version of the method will have to be modified to handle the checked excepti
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the added exception type
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Now Throws a Runtime Exception
@@ -2187,6 +2349,8 @@ that might want to catch the newly thrown exception.
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the added exception type
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method No Longer Throws a Checked Exception
@@ -2211,6 +2375,8 @@ therefore the catch clauses for it will be invalid.
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the removed exception type
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method No Longer Throws a Runtime Exception
@@ -2233,6 +2399,8 @@ This is a compatible change added for completeness' sake.
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the removed exception type
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method Now Default
@@ -2256,6 +2424,8 @@ The method is now a default method. This is completely transparent.
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Method No Longer Default
@@ -2280,6 +2450,8 @@ will now have to supply an implementation for it.
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 |====
 
 ==== Element Now Parameterized
@@ -2304,6 +2476,8 @@ might start assuming uniform types in the list).
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
@@ -2328,6 +2502,8 @@ definition of the formal type parameter.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
@@ -2352,6 +2528,8 @@ parameter that is no longer required.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
@@ -2377,6 +2555,8 @@ declared against the old version of the API will use wrong constraints.
 | `oldTypeParameter` | The old type parameter that changed.
 | `newTypeParameter` | The new type parameter.
 | `elementKind` | See <<Match Parameters>> for possible values
+| `oldArchive` | The archive the old element is coming from if any
+| `newArchive` | The archive the new element is coming from if any
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
