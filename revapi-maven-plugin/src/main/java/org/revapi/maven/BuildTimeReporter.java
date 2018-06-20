@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,6 @@ public final class BuildTimeReporter implements Reporter {
 
     public String getAllProblemsMessage() {
         StringBuilder errors = new StringBuilder("The following API problems caused the build to fail:\n");
-        StringBuilder ignores = new StringBuilder();
         for (Report r : allProblems) {
             Element element = r.getNewElement();
             Archive archive;
@@ -70,38 +69,48 @@ public final class BuildTimeReporter implements Reporter {
                         errors.append(" [").append(archive.getName()).append("]");
                     }
                     errors.append("\n");
-
-                    ignores.append("{\n");
-                    ignores.append("  \"code\": \"").append(escape(d.code)).append("\",\n");
-                    if (r.getOldElement() != null) {
-                        ignores.append("  \"old\": \"").append(escape(r.getOldElement())).append("\",\n");
-                    }
-                    if (r.getNewElement() != null) {
-                        ignores.append("  \"new\": \"").append(escape(r.getNewElement())).append("\",\n");
-                    }
-
-                    for (Map.Entry<String, String> e : d.attachments.entrySet()) {
-                        ignores.append("  \"").append(escape(e.getKey())).append("\": \"").append(escape(e.getValue()))
-                                .append("\",\n");
-                    }
-
-                    ignores.append("  \"justification\": <<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE" +
-                            " >>>>>\n");
-                    ignores.append("},\n");
                 }
             }
         }
 
-        if (errors.length() == 0) {
+        return errors.toString();
+    }
+
+    public String getIgnoreSuggestion() {
+        if (allProblems.isEmpty()) {
             return null;
-        } else {
-            ignores.replace(ignores.length() - 2, ignores.length(), "");
-            return errors.toString() +
-                    "\nIf you're using the semver-ignore extension, update your module's version to one compatible " +
-                    "with the current changes (e.g. mvn package revapi:update-versions). If you want to " +
-                    "explicitly ignore this change and provide a justification for it, add the following JSON snippet " +
-                    "to your Revapi configuration under \"revapi.ignore\" path:\n" + ignores.toString();
         }
+
+        StringBuilder ignores = new StringBuilder();
+
+        for (Report r : allProblems) {
+            for (Difference d : r.getDifferences()) {
+                if (!isReportable(d)) {
+                    continue;
+                }
+
+                ignores.append("{\n");
+                ignores.append("  \"code\": \"").append(escape(d.code)).append("\",\n");
+                if (r.getOldElement() != null) {
+                    ignores.append("  \"old\": \"").append(escape(r.getOldElement())).append("\",\n");
+                }
+                if (r.getNewElement() != null) {
+                    ignores.append("  \"new\": \"").append(escape(r.getNewElement())).append("\",\n");
+                }
+
+                for (Map.Entry<String, String> e : d.attachments.entrySet()) {
+                    ignores.append("  \"").append(escape(e.getKey())).append("\": \"").append(escape(e.getValue()))
+                            .append("\",\n");
+                }
+
+                ignores.append("  \"justification\": <<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE" +
+                        " >>>>>\n");
+                ignores.append("},\n");
+
+            }
+        }
+
+        return ignores.toString();
     }
 
     @Nullable @Override public String getExtensionId() {

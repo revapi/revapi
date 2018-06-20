@@ -145,4 +145,9 @@ final class Props {
         static final String NAME = PREFIX + "convertAnalysisConfigurationFiles";
         static final String DEFAULT_VALUE = "false";
     }
+
+    static final class outputIgnoreSuggestions {
+        static final String NAME = PREFIX + "outputIgnoreSuggestions";
+        static final String DEFAULT_VALUE = "true";
+    }
 }
