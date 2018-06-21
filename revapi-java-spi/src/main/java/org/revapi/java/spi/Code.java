@@ -52,9 +52,12 @@ import org.revapi.DifferenceSeverity;
  * @since 0.1
  */
 public enum Code {
-    //these two are used during class tree initialization even before any "normal" checks can occur
-    MISSING_IN_OLD_API("java.missing.oldClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                MISSING_IN_OLD_API("java.missing.oldClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
     MISSING_IN_NEW_API("java.missing.newClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
+    MISSING_OLD_SUPERTYPE("java.missing.oldSuperType", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING,
+            null),
+    MISSING_NEW_SUPERTYPE("java.missing.newSuperType", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING,
+            null),
 
     ELEMENT_NO_LONGER_DEPRECATED("java.element.noLongerDeprecated", EQUIVALENT, EQUIVALENT, null),
     ELEMENT_NOW_DEPRECATED("java.element.nowDeprecated", EQUIVALENT, EQUIVALENT, null),

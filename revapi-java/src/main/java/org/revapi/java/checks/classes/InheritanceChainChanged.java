@@ -1,5 +1,21 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
+ * and other contributors as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+     * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +41,12 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ErrorType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVisitor;
+import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 
 import org.revapi.CoIterator;
@@ -41,6 +62,19 @@ import org.revapi.java.spi.Util;
  * @since 0.1
  */
 public final class InheritanceChainChanged extends CheckBase {
+
+    private static final TypeVisitor<Boolean, Void> IS_MISSING_VISITOR =
+            new SimpleTypeVisitor8<Boolean, Void>(false) {
+                @Override
+                public Boolean visitError(ErrorType t, Void __) {
+                    return true;
+                }
+
+                @Override
+                public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+                    return t.asElement().asType().getKind() == TypeKind.ERROR;
+                }
+            };
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -59,6 +93,12 @@ public final class InheritanceChainChanged extends CheckBase {
             @SuppressWarnings("unchecked")
             List<TypeMirror> newSuperClasses = (List<TypeMirror>) types.context[1];
 
+            reportMissingSuperTypes(ret, oldSuperClasses, Code.MISSING_OLD_SUPERTYPE, types);
+            reportMissingSuperTypes(ret, newSuperClasses, Code.MISSING_NEW_SUPERTYPE, types);
+            if (!ret.isEmpty()) {
+                return ret;
+            }
+
             Comparator<TypeMirror> typeNameComparator = Comparator.comparing(Util::toUniqueString);
 
             List<TypeMirror> removedSuperClasses = new ArrayList<>();
@@ -68,7 +108,7 @@ public final class InheritanceChainChanged extends CheckBase {
             newSuperClasses.sort(typeNameComparator);
 
             CoIterator<TypeMirror> iterator = new CoIterator<>(oldSuperClasses.iterator(), newSuperClasses.iterator(),
-                typeNameComparator);
+                    typeNameComparator);
             while (iterator.hasNext()) {
                 iterator.next();
 
@@ -113,8 +153,8 @@ public final class InheritanceChainChanged extends CheckBase {
             for (TypeMirror t : addedSuperClasses) {
                 String str = Util.toHumanReadableString(t);
                 Code code = types.oldElement.getDeclaringElement().getModifiers().contains(Modifier.FINAL)
-                    ? Code.CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS
-                    : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
+                        ? Code.CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS
+                        : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
 
                 ret.add(createDifference(code, Code.attachmentsFor(types.oldElement, types.newElement, "superClass", str)));
 
@@ -141,9 +181,9 @@ public final class InheritanceChainChanged extends CheckBase {
         TypeElement newType = newEl.getDeclaringElement();
 
         List<TypeMirror> oldSuperTypes = Util
-            .getAllSuperClasses(getOldTypeEnvironment().getTypeUtils(), oldType.asType());
+                .getAllSuperClasses(getOldTypeEnvironment().getTypeUtils(), oldType.asType());
         List<TypeMirror> newSuperTypes = Util
-            .getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(), newType.asType());
+                .getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(), newType.asType());
 
         if (oldSuperTypes.size() != newSuperTypes.size()) {
             pushActive(oldEl, newEl, oldSuperTypes, newSuperTypes);
@@ -166,7 +206,7 @@ public final class InheritanceChainChanged extends CheckBase {
     }
 
     private boolean changedToCheckedException(@Nonnull Types newTypeEnv, @Nonnull TypeMirror newType,
-        @Nonnull List<TypeMirror> oldTypes) {
+            @Nonnull List<TypeMirror> oldTypes) {
 
         if ("java.lang.Exception".equals(Util.toHumanReadableString(newType))) {
             return isTypeThrowable(oldTypes);
@@ -203,7 +243,7 @@ public final class InheritanceChainChanged extends CheckBase {
     }
 
     private void removeClassesWithEquivalentSuperClassChain(Iterator<TypeMirror> candidates,
-        TypeEnvironment candidateEnvironment, TypeEnvironment oppositeEnvironment) {
+            TypeEnvironment candidateEnvironment, TypeEnvironment oppositeEnvironment) {
 
         while (candidates.hasNext()) {
             boolean report = true;
@@ -215,10 +255,10 @@ public final class InheritanceChainChanged extends CheckBase {
                 TypeMirror opposite = el.asType();
 
                 List<String> candidateSuperChain = superClassChainAsUniqueStrings(candidate,
-                    candidateEnvironment.getTypeUtils());
+                        candidateEnvironment.getTypeUtils());
 
                 List<String> oppositeSuperChain = superClassChainAsUniqueStrings(opposite,
-                    oppositeEnvironment.getTypeUtils());
+                        oppositeEnvironment.getTypeUtils());
 
                 report = !candidateSuperChain.equals(oppositeSuperChain);
             }
@@ -233,5 +273,21 @@ public final class InheritanceChainChanged extends CheckBase {
         List<TypeMirror> tmp = new ArrayList<>(all);
         tmp.retainAll(retained);
         return tmp;
+    }
+
+    private void reportMissingSuperTypes(List<Difference> diffs, List<TypeMirror> superTypes, Code code,
+            ActiveElements<?> activeElements) {
+        for(TypeMirror t : superTypes) {
+            if (isMissing(t)) {
+                String type = Util.toHumanReadableString(t);
+                diffs.add(createDifferenceWithExplicitParams(code, Code.attachmentsFor(
+                        activeElements.oldElement, activeElements.newElement,
+                        "superClass", type), type));
+            }
+        }
+    }
+
+    private static boolean isMissing(TypeMirror type) {
+        return type.accept(IS_MISSING_VISITOR, null);
     }
 }

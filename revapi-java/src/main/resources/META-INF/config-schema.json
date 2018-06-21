@@ -24,7 +24,8 @@
                         "type": "string"
                     },
                     "uniqueItems": true,
-                    "default": ["java.missing.newClass", "java.missing.oldClass", "java.class.nonPublicPartOfAPI",
+                    "default": ["java.missing.newClass", "java.missing.oldClass", "java.missing.oldSuperType",
+                        "java.missing.newSuperType", "java.class.nonPublicPartOfAPI",
                         "java.class.externalClassNoLongerExposedInAPI", "java.class.externalClassExposedInAPI"]
                 },
                 {

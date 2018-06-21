@@ -117,6 +117,7 @@ final class ClasspathScanner {
     private final boolean ignoreMissingAnnotations;
     private final InclusionFilter inclusionFilter;
     private final boolean defaultInclusionCase;
+    private final TypeElement objectType;
 
     ClasspathScanner(StandardJavaFileManager fileManager, ProbingEnvironment environment,
                      Map<Archive, File> classPath, Map<Archive, File> additionalClassPath,
@@ -132,6 +133,7 @@ final class ClasspathScanner {
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.inclusionFilter = inclusionFilter;
         this.defaultInclusionCase = inclusionFilter.defaultCase();
+        this.objectType = environment.getElementUtils().getTypeElement("java.lang.Object");
     }
 
     void initTree() throws IOException {
@@ -365,6 +367,17 @@ final class ClasspathScanner {
 
                 if (type.getEnclosingElement() instanceof TypeElement) {
                     tr.parent = getTypeRecord((TypeElement) type.getEnclosingElement());
+                }
+
+                // make sure we always have java.lang.Object in the set of super types. If the current class' super type
+                // is missing, we might not be able to climb the full hierarchy up to java.lang.Object. But that would
+                // be highly misleading to the users.
+                if (type.getKind() != ElementKind.INTERFACE && type.getKind() != ElementKind.ANNOTATION_TYPE
+                        && !type.equals(objectType)) {
+                    tr.superTypes.add(getTypeRecord(objectType));
+                    if (!processed.contains(objectType)) {
+                        requiredTypes.put(objectType, false);
+                    }
                 }
 
                 if (tr.explicitlyExcluded) {
