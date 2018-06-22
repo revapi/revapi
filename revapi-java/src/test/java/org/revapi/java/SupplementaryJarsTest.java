@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -123,7 +123,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert.assertTrue(containsDifference(allReports, "class B.UsedByIgnoredClass", "interface B.UsedByIgnoredClass",
@@ -181,7 +181,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert.assertFalse(containsDifference(allReports, "class B.UsedByIgnoredClass", "class B.UsedByIgnoredClass",
@@ -213,7 +213,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertFalse(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
         Assert.assertFalse(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert.assertFalse(containsDifference(allReports, "class B.UsedByIgnoredClass", "class B.UsedByIgnoredClass",

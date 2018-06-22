@@ -18,11 +18,15 @@ package org.revapi.java.checks.classes;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
-import javax.lang.model.element.TypeElement;
+import javax.annotation.Nonnull;
 
+import org.revapi.AnalysisContext;
+import org.revapi.Archive;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
@@ -33,15 +37,24 @@ import org.revapi.java.spi.JavaTypeElement;
  * @since 0.1
  */
 public final class Added extends CheckBase {
+    private Set<Archive> primaryApi;
+
+    @Override
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        super.initialize(analysisContext);
+
+        // the primary API most often consists of a single archive. Let's reserve capacity for 2 just to be sure, but
+        // don't waste space just because of the unlikely possibility of more primary archives.
+        primaryApi = new HashSet<>(2);
+        analysisContext.getNewApi().getArchives().forEach(primaryApi::add);
+    }
+
     @Override
     protected List<Difference> doEnd() {
         ActiveElements<JavaTypeElement> types = popIfActive();
         if (types != null) {
-            TypeElement typeInOld = getOldTypeEnvironment().getElementUtils()
-                    .getTypeElement(types.newElement.getDeclaringElement().getQualifiedName());
-
             LinkedHashMap<String, String> attachments = Code.attachmentsFor(types.oldElement, types.newElement);
-            Difference difference = typeInOld == null
+            Difference difference = primaryApi.contains(types.newElement.getArchive())
                     ? createDifference(Code.CLASS_ADDED, attachments)
                     : createDifference(Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API, attachments);
 
