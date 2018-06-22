@@ -253,7 +253,9 @@ public class SerializationChecker extends CheckBase {
     }
     
     private boolean isSerializable(JavaTypeElement type) {
-        return type.getDeclaringElement().getInterfaces().stream().anyMatch(IS_SERIALIZABLE::visit);
+        TypeElement t = type.getDeclaringElement();
+
+        return t.getKind().isClass() && t.getInterfaces().stream().anyMatch(IS_SERIALIZABLE::visit);
     }
 
     private boolean isSerialVersionUid(JavaFieldElement field, TypeEnvironment env, PrimitiveType longType) {
