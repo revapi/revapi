@@ -1,0 +1,27 @@
+== Speedup and fixes
+:docname: 20180626-releases
+
+The time has come to issue another set of releases.
+
+In the core `revapi-0.10.1` you will find a long standing bug (https://github.com/revapi/issues/111[#111]) fixed
+that caused revapi throwing weird exceptions after the analysis when run on Java9+.
+
+`revapi-java-0.18.0` improves on reporting of classes from dependencies that are added to or removed from the API.
+It also will no longer report default serialization problems on interfaces (d'oh). Further it will no longer
+be confused if a super type of some class in the API is missing from analysis and will no longer report methods
+from `java.lang.Object` as removed on such classes.
+
+`revapi-maven-plugin-0.10.4` changes the way it reports errors on the maven console. The error reported at the
+end of maven output will no longer contain the JSON for ignoring the changes. Instead, the JSON is only printed
+out in the plugin output at sooner point in time (i.e. you need to scroll up a bit to see the JSON ;) ).
+As an added benefit of this change, the JSON is now directly copy&pasteable. Additionally the new
+`outputIgnoreSuggestions` configuration parameter can be used to completely turn off the output of the JSON
+configuration hint.
+
+All other components have been re-released to depend on the latest `revapi-0.10.1` so that they work reliably
+on Java9+. Consult link:../downloads.html[downloads] for the latest released versions of all the components.
+
+Thanks go out to Jesper B. Kjaer for suggesting the change of the Maven plugin output and to Marc Philipp
+for reporting the issues with Java9.
+
+include::../util/disqus.adoc[]

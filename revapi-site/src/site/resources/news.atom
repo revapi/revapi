@@ -211,4 +211,18 @@
         After the last week's new releases a regression has been discovered which warranted a quick new release.
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20180626-releases.html</id>
+    <title>New Releases</title>
+    <updated>2018-06-26T00:00:00+00:00</updated>
+    <published>2018-06-26T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180626-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        The time has come to issue another set of releases.
+    </summary>
+    <content type="html">
+        The time has come to issue another set of releases.
+    </content>
+  </entry>
 </feed>
