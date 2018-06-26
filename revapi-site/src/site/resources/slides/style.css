@@ -1,0 +1,52 @@
+.reveal section .small {
+	font-size: 75% !important;
+}
+
+.reveal section .contacts {
+	font-size: 80%;
+}
+
+.reveal section .huge {
+	font-size: 200%;
+}
+
+.reveal div.no-bullet ul {
+	text-align: center;
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+.reveal .no-borders * {
+	border: 0;
+}
+
+.reveal .left {
+	text-align: left;
+}
+
+.reveal table {
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+.reveal td * {
+	margin: 0 !important;
+}
+
+.reveal .logos img {
+	border: 0 !important;
+	background: unset !important;
+	box-shadow: unset !important;
+	margin: 20px;
+}
+
+.reveal .highlight {
+	width: 100%;
+}
+
+.reveal .invisible {
+	visibility: hidden;
+}

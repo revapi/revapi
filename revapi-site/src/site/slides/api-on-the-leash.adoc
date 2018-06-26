@@ -1,0 +1,1607 @@
+[.stretch]
+= API on the leash
+:source-highlighter: highlightjs
+:icons: font
+:customcss: style.css
+:blank: pass:[ +]
+:revealjs_theme: beige
+:highlightjs-theme: github.css
+:revealjs_slideNumber: true
+
+== About me
+
+_Lukas Krejci_
+
+[.small]
+Java head since before generics
+
+@ CA, Vienna, ex-Redhatter
+
+== What is this NOT about?
+
+[.step.no-bullet]
+* How to write a good API
+
+== What IS this about?
+
+[.no-bullet]
+* How to ease the pain when...
+* you try to upgrade to a new dependency version
+* you realize you accidentally broke the code of your users 
+
+== What IS this about?
+
+* Get the stuff I don't have much to say about out of the way quickly
+* Fly through the boring definitions
+* Pique the curiosity
+* Satisfy the curiosity 
+* Rejoice in mutual understanding
+
+== Upgrades
+
+[.no-bullet]
+* Just try it!
+* Really, that's the best option
+* Thorough test-suite helps (no kidding!)
+
+[NOTE.speaker]
+--
+
+* API changes could be reviewed upfront
+* Time-consuming to figure out semantic changes
+
+--
+
+== Upgrades
+
+Tooling for API change review
+
+[.step.no-bullet]
+* CLIs: Revapi, Sigtest, japicmp
++
+can produce reports in various formats
+* https://diff.revapi.org
+
+== What Is an API?
+
+"An application programming interface (API) is a set of subroutine definitions, 
+protocols, and tools for building application software. In general terms, 
+it is a set of clearly defined methods of communication between various software 
+components."
+-- wikipedia.org
+
+== API Evolution
+
+An art of keeping it the same but different
+
+=== Staying Compatible
+
+Java recognizes 3 kinds of compatibility:
+
+* Source
+* Binary
+* Behavioral / Semantic
+
+=== Source compatibility
+
+Code written against an old version of a library can be *compiled*
+against the new version of the library without modification.
+
+[cols=2*,options=header]
+|====
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source, java]
+----
+package org.mylogger;
+
+public interface Logger {
+     void debug(String message);
+}
+----
+
+a|
+
+[source, java]
+----
+package org.mylogger;
+
+public interface Logger {
+     void debug(CharSequence message);
+}
+----
+
+|====
+
+=== Binary compatibility
+
+Code written against an old version of a library can be *run*
+with the new version of the library without modification.
+
+[cols=2*,options=header]
+|====
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source, java]
+----
+package org.mylogger;
+
+public interface Logger {
+     void debug(String message);
+}
+----
+
+a|
+
+[source, java]
+----
+package org.mylogger;
+
+public interface Logger {
+     void debug(CharSequence message);
+}
+----
+
+|====
+
+[.step.no-bullet]
+* icon:thumbs-down[] NOT a good example!
+
+=== Behavioral Compatibility
+
+Compatible "bug for bug"
+
+Hard to assess by tooling
+
+== !
+
+[.huge]
+Let's play a short game!
+
+Guess what happens!
+
+[.small,transition=none]
+== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public void method() throws IOException {
+  }
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public void method() {
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+try {
+  new A().method();
+} catch (IOException e) {
+}
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.invisible.huge]#icon:thumbs-up[]#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public void method() throws IOException {
+  }
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public void method() {
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+try {
+  new A().method();
+} catch (IOException e) {
+}
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.huge]#icon:thumbs-up[]#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public void method() throws IOException {
+  }
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public void method() {
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+try {
+  new A().method();
+} catch (IOException e) {
+}
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.invisible.huge]#icon:thumbs-down[]#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public void method() throws IOException {
+  }
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public void method() {
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+try {
+  new A().method();
+} catch (IOException e) {
+}
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.huge]#icon:thumbs-down[]#
+
+[.small,transition=none]
+== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public final void method() {
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+public class B extends A {
+  public void method() {
+  }
+}
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.invisible.huge]#icon:thumbs-down[]#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public final void method() {
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+public class B extends A {
+  public void method() {
+  }
+}
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.huge]#icon:thumbs-down[]#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public final void method() {
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+public class B extends A {
+  public void method() {
+  }
+}
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.invisible.huge]#icon:thumbs-down[]#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public final void method() {
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+public class B extends A {
+  public void method() {
+  }
+}
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.huge]#icon:thumbs-down[]#
+
+[.small,transition=none]
+== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 42;
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 43;
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.invisible.huge]#*42*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 42;
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 43;
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.huge]#*42*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 42;
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 43;
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.invisible.huge]#*43*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 42;
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 43;
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.huge]#*43*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final Integer CONST = new Integer(42);
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final Integer CONST = new Integer(43);
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.invisible.huge]#*43*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final Integer CONST = new Integer(42);
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final Integer CONST = new Integer(43);
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.huge]#*43*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final String CONST = "42";
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final String CONST = "43";
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.invisible.huge]#*42*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final String CONST = "42";
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final String CONST = "43";
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.huge]#*42*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final String CONST = "42";
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final String CONST = "43";
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.invisible.huge]#*43*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final String CONST = "42";
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final String CONST = "43";
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.huge]#*43*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 42;
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.invisible.huge]#*42*#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public static final int CONST = 42;
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+System.out.println(A.CONST);
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.huge]#*42*#
+
+[.small,transition=none]
+== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public Collection<String> method() {
+    ...
+  }
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public List<String> method() {
+    ...
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+Collection<String> col = new A().method();
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.invisible.huge]#icon:thumbs-down[]#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public Collection<String> method() {
+    ...
+  }
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public List<String> method() {
+    ...
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+Collection<String> col = new A().method();
+----
+
+|===
+
+Compile with lib-1.0, run with lib-2.0? [.huge]#icon:thumbs-down[]#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public Collection<String> method() {
+    ...
+  }
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public List<String> method() {
+    ...
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+Collection<String> col = new A().method();
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.invisible.huge]#icon:thumbs-up[]#
+
+[.small,transition=none]
+=== !
+
+[cols=2*50%,options=header]
+|===
+|lib-1.0
+|lib-2.0
+
+a|
+
+[source,java]
+----
+public class A {
+  public Collection<String> method() {
+    ...
+  }
+}
+----
+
+a|
+
+[source,java]
+----
+public class A {
+  public List<String> method() {
+    ...
+  }
+}
+----
+
+2+a|
+
+*Main*
+
+2+a|
+
+[source,java]
+----
+Collection<String> col = new A().method();
+----
+
+|===
+
+Compile with lib-2.0, run with lib-2.0? [.huge]#icon:thumbs-up[]#
+
+[.small,transition=none]
+== !
+
+[source,java]
+----
+public class A {
+  public void method(B param) {}
+}
+
+class B {
+}
+----
+
+What's wrong here?
+
+== What Defines a Java API
+
+We're at an interesting point in Java history
+
+=== Java 8-
+
+Packages used to separate code
+
+Inheritance can "trascend" package boundaries
+
+Anything to be reached outside of a package must be public
+(or protected to be visible in subclasses).
+
+=== Java 8-
+
+Packages represent a conflict between:
+
+* Code organization
+* API surface
+
+=== Java 8-
+Various conventions:
+
+* `@API`, `@Public`, `@Stable`
+* `impl` packages
+* `Impl` classes
+* api jars and impl jars
+* ...
+
+=== Java 8-
+
+API more or less subjective
+
+Fun for tooling
+
+=== Java 9+
+
+Modules save the day!
+
+[.step.no-bullet]
+* ... or do they?
+
+=== Java 9+
+
+[.step]
+* Modules don't declare versions
+** undeterministic runtime "evironment"
+* Consider exported `@Unstable` classes
+
+=== Java 9+
+
+Nothing really changed apart from another level of encapsulation
+
+The language encourages better API hygiene than prior to Java9
+
+== Tooling to the rescue
+
+To err is human
+
+Tooling to the rescue
+
+== Tooling to the rescue
+
+We need:
+
+* Find API breakages
+* Specify the API "surface"
+** Easier in Java 9
+* Mark intentional changes
+* Produce reports / stabilize builds
+* Assign semantic version
+[.step]
+** does anyone care in 2018?
+
+== Revapi to the rescue
+
+[.logos] 
+image:images/apache-camel-logo.png[width=200]
+image:images/neo4j-logo.png[width=200]
+image:images/apache-tinkerpop-logo.png[width=200]
+image:images/drools-logo.png[width=200]
+image:images/xwiki-logo.png[width=200]
+
+[NOTE.speaker]
+--
+
+Revapi's not exactly new. Has been around for almost 4 yrs.
+
+--
+
+== Revapi to the rescue
+
+* Build-time tool to catch API changes early
+* Language agnostic core
+** Only Java really implemented
+
+== Revapi to the rescue
+
+* Integrates into:
+** Maven
+** CLI
+** Ant
+** Gradle
+[.step]
+*** If community steps up :)
+
+== Revapi's raison d'être
+
+* Several other tools doing similar thing
+** Sigtest, japicmp, ...
+* No other offers:
+
+icon:long-arrow-right[]
+
+== Revapi's raison d'être
+
+* Detailed classification
+** Nuances
+** Severities 
+* Ignore intentional changes 
+* Powerful filtering
+* Extensibility
+
+[NOTE.speaker]
+--
+
+* Nuances
+** method added / final method added to non-final class,
+** method removed vs. moved to superclass
+* Ignore - japicmp comes close, but not as detailed as revapi
+* Extensibility 
+** deduce filters from OSGi manifest, mule module, module-info, ...
+** non-standard "policies" based on assumed conventions
+
+--
+      
+== Tooling to the rescue
+
+* Find API breakages
+* Specify the API "surface"
+* Mark intentional changes
+* Produce reports / stabilize builds
+* Assign semantic version
+
+== !
+
+[.huge]
+DEMO
+
+== Finding API Breakages
+
+* Distinguishes between primary API and dependencies
+** Maven can supply this info
+* Any type from dependencies exposed in the primary API is included
+into the API (recursively)
+* Full usage graph produced
+** Enables detection of exposed non-public classes
+
+== Finding API Breakages
+
+In Maven
+
+* reasonable defaults
+** build output vs. the latest release
+* possible to
+** manually specify the version(s)
+** compare against latest remote snapshot
+** require version format
+*** distinguish between `1.2.3.Beta` and `1.2.3`
+** ...
+
+[NOTE.speaker]
+--
+
+defaults: break build on potentially breaking changes
+
+--
+
+== !
+
+[source,xml]
+----
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>org.revapi</groupId>
+      <artifactId>revapi-java</artifactId>
+    </dependency>
+  </dependencies>
+  <executions>...</executions>
+</plugin>
+----
+
+== Tooling to the rescue
+
+* icon:check-circle[] Find API breakages
+* Specify the API "surface"
+* Mark intentional changes
+* Produce reports / stabilize builds
+* Assign semantic version
+
+== Specifying API Surface
+
+Can filter by:
+
+* regex on element signature
+* package
+* class
+* archive
+
+== !
+
+[.small,source,xml]
+----
+<plugin>
+  ...
+  <configuration>
+    <analysisConfiguration>
+      <revapi.filter>
+        <elements>
+          <exclude>
+            <item>class my\.great\.app\..*\.impl\..*</item>
+          </exclude>
+        </elements>
+        <archives>
+          <include>
+            <item>com\.acme:acme-foo:.*</item>
+          </include>
+        </archives>
+      </revapi.filter>    
+    </analysisConfiguration>
+  </configuration>
+</plugin>
+----
+
+== Tooling to the rescue
+
+* icon:check-circle[] Find API breakages
+* icon:check-circle[] Specify the API "surface"
+* Mark intentional changes
+* Produce reports / stabilize builds
+* Assign semantic version
+
+== Mark Intentional Changes
+
+Revapi supports transforming found differences
+
+One such transformation might be to discard them
+
+== !
+
+[source,xml]
+----
+<plugin>
+  ...
+  <configuration>
+    <analysisConfiguration>
+      <revapi.ignore>
+        <item>
+          <code>java.method.removed</code>
+          <old>method com.acme.MyClass::myMethod(int)</old>
+          <justification>'Cause I can!</justification> # <1>
+        </item>
+      </revapi.ignore>
+    </analysisConfiguration>
+  </configuration>
+</plugin>
+----
+
+[.small]
+<1> It's nice to say why you're breaking stuff for others 
+
+== !
+
+[source,json]
+----
+{
+  "1.0.1": [ # <1>
+    {
+      "extension": "revapi.ignore",
+      "configuration": [
+        {
+          "code": "java.method.removed",
+          "old": "method com.acme.MyClass:myMethod(int)",
+          "justification": "'Cause I can!"
+        }
+      ]
+    }
+  ]
+}
+----
+
+[.small]
+<1> Configuration can be version-specific, giving you 1 file to track the evolution
+of the API across many versions.
++
+Also notice JSON.
+
+[NOTE.speaker]
+--
+Mention the ability to split the config across multiple files. 
+--
+
+== Tooling to the rescue
+
+* icon:check-circle[] Find API breakages
+* icon:check-circle[] Specify the API "surface"
+* icon:check-circle[] Mark intentional changes
+* Produce reports / stabilize builds
+* Assign semantic version
+
+== Produce Reports
+
+* Maven plugin has a `report` goal
+** The report is lacking in luster
+* `revapi-reporter-text` extension
+** FreeMarker based swiss-army knife for reporting
+
+== !
+
+[.logos]
+image:images/spoon-pr-integration.png[width=500]
+image:images/jooq-build-failure.png[]
+
+== Tooling to the rescue
+
+* icon:check-circle[] Find API breakages
+* icon:check-circle[] Specify the API "surface"
+* icon:check-circle[] Mark intentional changes
+* icon:check-circle[] Produce reports / stabilize builds
+* Assign semantic version
+
+== Assign Semantic Version
+
+Based on the API change "level" revapi can:
+
+* break the build
+* automatically update the version in `pom.xml`
+** using the `update-versions` goal
+
+== Tooling to the rescue
+
+* icon:check-circle[] Find API breakages
+* icon:check-circle[] Specify the API "surface"
+* icon:check-circle[] Mark intentional changes
+* icon:check-circle[] Produce reports / stabilize builds
+* icon:check-circle[] Assign semantic version
+
+== Revapi's Future
+
+* Enhanced matching
+** Flag all elements from the `@Stable` API that (indirectly) expose `@Unstable` elements
+* Tap into territories other than just core Java
+** JAX-RS
+** JPA
+** OpenAPI
+
+== Wrap up
+
+[cols=2*]
+|====
+^a|
+APIs are:
+
+* crucial for interoperability
+* brittle
+
+^a|
+Revapi and other tools:
+
+* avoid accidental changes
+* figure out what changed
+* should be used by everyone icon:smile[]
+
+>a|
+
+[.contacts]
+icon:globe[]{nbsp}https://revapi.org[https://revapi.org] 
+
+[.contacts]
+icon:github[]{nbsp}https://github.com/revapi[https://github.com/revapi]
+
+[.contacts]
+icon:twitter[]{nbsp}@revapi_org
+
+a|
+
+[.contacts]
+icon:twitter[]{nbsp}@krejcil
+
+|====
+
