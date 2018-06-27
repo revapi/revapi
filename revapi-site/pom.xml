@@ -83,7 +83,8 @@
         <configuration>
           <excludes combine.children="append">
             <exclude>src/site/resources/.nojekyll</exclude>
-            <exclude>src/site/resources/CNAME</exclude>
+	    <exclude>src/site/resources/CNAME</exclude>
+	    <exclude>src/site/resources/slides/github.css</exclude>
           </excludes>
         </configuration>
       </plugin>
