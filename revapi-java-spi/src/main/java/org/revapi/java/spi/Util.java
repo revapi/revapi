@@ -427,7 +427,10 @@ public final class Util {
 
             TypeVisitor<Void, StringBuilderAndState<TypeMirror>> me = this;
 
-            it.forEachRemaining(b -> { state.bld.append(", "); b.accept(me, state); });
+            it.forEachRemaining(b -> {
+                state.bld.append(", ");
+                b.accept(me, state);
+            });
 
             return null;
         }

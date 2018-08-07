@@ -16,6 +16,8 @@
  */
 package org.revapi.maven;
 
+import java.util.Collections;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -96,6 +98,7 @@ public class BuildTimeReporterTest {
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
                 /**/.addAttachment("shouldBeEscaped", "{\"a\", \"b\"}")
+                /**/.withIdentifyingAttachments(Collections.singletonList("shouldBeEscaped"))
                 .done()
                 .build();
 
@@ -114,5 +117,157 @@ public class BuildTimeReporterTest {
 
         Assert.assertEquals("diffs\\myDiff", parsed.get("code").asString());
         Assert.assertEquals("{\"a\", \"b\"}", parsed.get("shouldBeEscaped").asString());
+    }
+
+    @Test
+    public void testNonIdentifyingAttachmentsHiddenInsideComment() {
+        BuildTimeReporter reporter = new BuildTimeReporter();
+
+        API oldApi = API.builder().build();
+        API newApi = API.builder().build();
+
+        AnalysisContext ctx = AnalysisContext.builder()
+                .withOldAPI(oldApi)
+                .withNewAPI(newApi)
+                .withData(BuildTimeReporter.BREAKING_SEVERITY_KEY, DifferenceSeverity.EQUIVALENT)
+                .build();
+
+        reporter.initialize(ctx);
+
+        Element oldEl = new SimpleElement() {
+            @Nonnull @Override public API getApi() {
+                return oldApi;
+            }
+
+            @Nullable @Override public Archive getArchive() {
+                return null;
+            }
+
+            @Override public int compareTo(Element o) {
+                return 0;
+            }
+
+            @Override public String toString() {
+                return "old element";
+            }
+        };
+
+        Element newEl = new SimpleElement() {
+            @Nonnull @Override public API getApi() {
+                return newApi;
+            }
+
+            @Nullable @Override public Archive getArchive() {
+                return null;
+            }
+
+            @Override public int compareTo(Element o) {
+                return 0;
+            }
+
+            @Override public String toString() {
+                return "new element";
+            }
+        };
+
+        Report report = Report.builder()
+                .withNew(newEl)
+                .withOld(oldEl)
+                .addProblem()
+                /**/.withCode("diffs\\myDiff")
+                /**/.withDescription("the problem")
+                /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
+                /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")
+                .done()
+                .build();
+
+        reporter.report(report);
+
+        String resultMessage = reporter.getIgnoreSuggestion();
+        Assert.assertNotNull(resultMessage);
+
+        int commentStart = resultMessage.indexOf("/*");
+        int commentEnd = resultMessage.indexOf("*/");
+        int nonIdentifyingIndex = resultMessage.indexOf("nonIdentifying");
+
+        Assert.assertTrue(commentStart < nonIdentifyingIndex);
+        Assert.assertTrue(commentEnd > nonIdentifyingIndex);
+    }
+
+    @Test
+    public void testNoNonIdentifyingAttachmentsOutputIfConfigured() {
+        BuildTimeReporter reporter = new BuildTimeReporter();
+
+        API oldApi = API.builder().build();
+        API newApi = API.builder().build();
+
+        AnalysisContext ctx = AnalysisContext.builder()
+                .withOldAPI(oldApi)
+                .withNewAPI(newApi)
+                .withData(BuildTimeReporter.BREAKING_SEVERITY_KEY, DifferenceSeverity.EQUIVALENT)
+                .withData(BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, false)
+                .build();
+
+        reporter.initialize(ctx);
+
+        Element oldEl = new SimpleElement() {
+            @Nonnull @Override public API getApi() {
+                return oldApi;
+            }
+
+            @Nullable @Override public Archive getArchive() {
+                return null;
+            }
+
+            @Override public int compareTo(Element o) {
+                return 0;
+            }
+
+            @Override public String toString() {
+                return "old element";
+            }
+        };
+
+        Element newEl = new SimpleElement() {
+            @Nonnull @Override public API getApi() {
+                return newApi;
+            }
+
+            @Nullable @Override public Archive getArchive() {
+                return null;
+            }
+
+            @Override public int compareTo(Element o) {
+                return 0;
+            }
+
+            @Override public String toString() {
+                return "new element";
+            }
+        };
+
+        Report report = Report.builder()
+                .withNew(newEl)
+                .withOld(oldEl)
+                .addProblem()
+                /**/.withCode("diffs\\myDiff")
+                /**/.withDescription("the problem")
+                /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
+                /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")
+                .done()
+                .build();
+
+        reporter.report(report);
+
+        String resultMessage = reporter.getIgnoreSuggestion();
+        Assert.assertNotNull(resultMessage);
+
+        int commentStart = resultMessage.indexOf("/*");
+        int commentEnd = resultMessage.indexOf("*/");
+        int nonIdentifyingIndex = resultMessage.indexOf("nonIdentifying");
+
+        Assert.assertEquals(-1, commentStart);
+        Assert.assertEquals(-1, commentEnd);
+        Assert.assertEquals(-1, nonIdentifyingIndex);
     }
 }

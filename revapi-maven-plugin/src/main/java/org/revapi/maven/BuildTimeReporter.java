@@ -39,10 +39,12 @@ import org.revapi.Reporter;
  */
 public final class BuildTimeReporter implements Reporter {
     static final String BREAKING_SEVERITY_KEY = "org.revapi.maven.buildTimeBreakingSeverity";
+    static final String OUTPUT_NON_IDENTIFYING_ATTACHMENTS = "org.revapi.maven.outputNonIdentifyingAttachments";
     private DifferenceSeverity breakingSeverity;
     private List<Report> allProblems;
     private List<Archive> oldApi;
     private List<Archive> newApi;
+    private boolean outputNonIdentifyingAttachments;
 
     public boolean hasBreakingProblems() {
         return allProblems != null && !allProblems.isEmpty();
@@ -98,13 +100,30 @@ public final class BuildTimeReporter implements Reporter {
                     ignores.append("  \"new\": \"").append(escape(r.getNewElement())).append("\",\n");
                 }
 
+                boolean hasOptionalAttachments = false;
                 for (Map.Entry<String, String> e : d.attachments.entrySet()) {
-                    ignores.append("  \"").append(escape(e.getKey())).append("\": \"").append(escape(e.getValue()))
-                            .append("\",\n");
+                    if (d.isIdentifyingAttachment(e.getKey())) {
+                        ignores.append("  \"").append(escape(e.getKey())).append("\": \"").append(escape(e.getValue()))
+                                .append("\",\n");
+                    } else {
+                        hasOptionalAttachments = true;
+                    }
                 }
 
                 ignores.append("  \"justification\": <<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE" +
                         " >>>>>\n");
+
+                if (outputNonIdentifyingAttachments && hasOptionalAttachments) {
+                    ignores.append("  /*\n  Additionally, the following attachments can be used to further identify the difference:\n\n");
+                    for (Map.Entry<String, String> e : d.attachments.entrySet()) {
+                        if (!d.isIdentifyingAttachment(e.getKey())) {
+                            ignores.append("  \"").append(escape(e.getKey())).append("\": \"").append(escape(e.getValue()))
+                                    .append("\",\n");
+                        }
+                    }
+                    ignores.append("  */\n");
+                }
+
                 ignores.append("},\n");
 
             }
@@ -133,6 +152,10 @@ public final class BuildTimeReporter implements Reporter {
             newApi.add(a);
         }
         this.breakingSeverity = (DifferenceSeverity) context.getData(BREAKING_SEVERITY_KEY);
+        Boolean outputNonIdentifyingAttachments = (Boolean) context.getData(OUTPUT_NON_IDENTIFYING_ATTACHMENTS);
+        this.outputNonIdentifyingAttachments = outputNonIdentifyingAttachments == null
+                ? true
+                : outputNonIdentifyingAttachments;
     }
 
     @Override
