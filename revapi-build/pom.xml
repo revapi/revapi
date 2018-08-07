@@ -375,17 +375,15 @@
                     </reportSet>
                 </reportSets>
                 <configuration>
-                    <analysisConfiguration><![CDATA[
-                       {
-                         "revapi": {
-                           "filter": {
-                             "archives": {
-                               "include": ["${project.groupId}:${project.artifactId}:.*"]
-                             }
-                           }
-                         }
-                       }
-                    ]]></analysisConfiguration>
+                    <analysisConfiguration>
+                        <revapi.filter>
+                            <archives>
+                                <include>
+                                    <item>${project.groupId}:${project.artifactId}:.*</item>
+                                </include>
+                            </archives>
+                        </revapi.filter>
+                    </analysisConfiguration>
                 </configuration>
             </plugin>
         </plugins>
@@ -458,23 +456,19 @@
                         </dependencies>
                         <configuration>
                             <failOnMissingConfigurationFiles>false</failOnMissingConfigurationFiles>
-                            <analysisConfiguration><![CDATA[
-                                {
-                                    "revapi" : {
-                                        "java" : {
-                                            "missing-classes" : {
-                                                "behavior" : "report"
-                                            }
-                                        },
-                                        "semver": {
-                                          "ignore": {
-                                            "enabled": true,
-                                            "passThroughDifferences": ["java.class.nonPublicPartOfAPI"]
-                                          }
-                                        }
-                                    }
-                                }
-                            ]]></analysisConfiguration>
+                            <analysisConfiguration>
+                                <revapi.java>
+                                    <missing-classes>
+                                        <behavior>report</behavior>
+                                    </missing-classes>
+                                </revapi.java>
+                                <revapi.semver.ignore>
+                                    <enabled>true</enabled>
+                                    <passThroughDifferences>
+                                        <item>java.class.nonPublicPartOfAPI</item>
+                                    </passThroughDifferences>
+                                </revapi.semver.ignore>
+                            </analysisConfiguration>
                             <analysisConfigurationFiles>
                                 <configurationFile>
                                     <path>api-changes.json</path>
