@@ -38,8 +38,8 @@
     <url>${web.url}</url>
 
     <properties>
-        <self-api-check.maven-version>0.10.1</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.16.0</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.10.4</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.18.0</self-api-check.java-extension-version>
 
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
@@ -214,7 +214,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.9</version>
+                <version>0.8.1</version>
                 <executions>
                     <execution>
                         <id>prepare-unit-test</id>
@@ -296,6 +296,28 @@
                         <version>${version.revapi-build-support}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.revapi</groupId>
+                        <artifactId>revapi-build-support</artifactId>
+                        <version>${version.revapi-build-support}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <consoleOutput>true</consoleOutput>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals><goal>check</goal></goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -395,44 +417,6 @@
                                 <configuration>
                                     <skip>true</skip>
                                 </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <!-- checkstyle currently doesn't work with Java 9, so let's only use it on lower java versions -->
-            <id>checkstyle</id>
-            <activation>
-                <jdk>[,1.8]</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-checkstyle-plugin</artifactId>
-                        <dependencies>
-                            <dependency>
-                                <groupId>com.puppycrawl.tools</groupId>
-                                <artifactId>checkstyle</artifactId>
-                                <version>6.4</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.revapi</groupId>
-                                <artifactId>revapi-build-support</artifactId>
-                                <version>${version.revapi-build-support}</version>
-                            </dependency>
-                        </dependencies>
-                        <configuration>
-                            <consoleOutput>true</consoleOutput>
-                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                            <configLocation>checkstyle.xml</configLocation>
-                            <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals><goal>check</goal></goals>
-                                <phase>verify</phase>
                             </execution>
                         </executions>
                     </plugin>
