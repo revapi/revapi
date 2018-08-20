@@ -17,11 +17,7 @@ sudo: false
 git:
   depth: false
 
-#force travis to use a newer version of Java8.
 addons:
-  apt:
-    packages:
-      - oracle-java9-installer
   coverity_scan:
     project:
       name: "revapi/revapi"
