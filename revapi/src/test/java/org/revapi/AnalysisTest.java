@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,11 @@
  */
 package org.revapi;
 
+import org.junit.Assert;
+import org.junit.Test;
+import org.revapi.simple.SimpleElement;
+import org.revapi.simple.SimpleElementForest;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,14 +28,8 @@ import java.io.Reader;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.revapi.simple.SimpleElement;
-import org.revapi.simple.SimpleElementForest;
 
 /**
  * @author Lukas Krejci
@@ -51,6 +50,88 @@ public class AnalysisTest {
             Assert.assertTrue(res.isSuccess());
         }
     }
+
+    @Test
+    public void testMultipleTransformersProcessDifferences() throws Exception {
+        Revapi r = Revapi.builder().withAnalyzers(DummyAnalyzer.class)
+                .withTransforms(SemVerImitationDifferenceTransform.class)
+                .withTransforms(BreakingDifferenceTransform.class).withReporters(FailingReporter.class).build();
+
+        AnalysisContext ctx = AnalysisContext.builder(r).withNewAPI(API.of().build()).withOldAPI(API.of().build())
+                .build();
+
+        //should throw exception
+        try (AnalysisResult res = r.analyze(ctx)) {
+            Assert.assertFalse(res.isSuccess());
+        }
+    }
+
+    public static final class SemVerImitationDifferenceTransform implements DifferenceTransform<Element> {
+
+        @Override
+        public @Nonnull Pattern[] getDifferenceCodePatterns() {
+            return new Pattern[]{Pattern.compile("code")};
+        }
+
+        @Override
+        public @Nullable Difference transform(@Nullable Element oldElement, @Nullable Element newElement, @Nonnull Difference d) {
+            if ( d.classification.get( CompatibilityType.BINARY ) != null ) {
+                return d;
+            }
+            return null;
+        }
+
+        @Override
+        public void close() throws Exception {
+        }
+
+        @Override
+        public @Nullable String getExtensionId() {
+            return null;
+        }
+
+        @Override
+        public @Nullable Reader getJSONSchema() {
+            return null;
+        }
+
+        @Override
+        public void initialize(@Nonnull AnalysisContext analysisContext) {
+        }
+    }
+
+    public static final class BreakingDifferenceTransform implements DifferenceTransform<Element> {
+
+        @Override
+        public @Nonnull Pattern[] getDifferenceCodePatterns() {
+            return new Pattern[]{Pattern.compile("code")};
+        }
+
+        @Override
+        public @Nullable Difference transform(@Nullable Element oldElement, @Nullable Element newElement, @Nonnull Difference d) {
+            return Difference.builder().withCode(d.code).withName(d.name).withDescription(d.description)
+                    .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).build();
+        }
+
+        @Override
+        public void close() throws Exception {
+        }
+
+        @Override
+        public @Nullable String getExtensionId() {
+            return null;
+        }
+
+        @Override
+        public @Nullable Reader getJSONSchema() {
+            return null;
+        }
+
+        @Override
+        public void initialize(@Nonnull AnalysisContext analysisContext) {
+        }
+    }
+
     public static final class CloningDifferenceTransform implements DifferenceTransform<Element> {
 
         @Override
@@ -226,6 +307,34 @@ public class AnalysisTest {
 
         @Override
         public void report(@Nonnull Report report) {
+        }
+
+        @Override
+        public void close() throws Exception {
+        }
+
+        @Nullable
+        @Override
+        public String getExtensionId() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Reader getJSONSchema() {
+            return null;
+        }
+
+        @Override
+        public void initialize(@Nonnull AnalysisContext analysisContext) {
+        }
+    }
+
+    public static final class FailingReporter implements Reporter {
+
+        @Override
+        public void report(@Nonnull Report report) {
+            throw new RuntimeException("Report difference.");
         }
 
         @Override

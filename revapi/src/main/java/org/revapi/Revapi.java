@@ -16,7 +16,12 @@
  */
 package org.revapi;
 
-import static java.util.Collections.emptySortedSet;
+import org.jboss.dmr.ModelNode;
+import org.revapi.configuration.Configurable;
+import org.revapi.configuration.ConfigurationValidator;
+import org.revapi.configuration.ValidationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
@@ -35,15 +40,9 @@ import java.util.SortedSet;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
 import javax.annotation.Nonnull;
 
-import org.jboss.dmr.ModelNode;
-import org.revapi.configuration.Configurable;
-import org.revapi.configuration.ConfigurationValidator;
-import org.revapi.configuration.ValidationResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.util.Collections.emptySortedSet;
 
 /**
  * The main entry point to the library. The instance of this class is initialized with the different extensions and then
@@ -387,7 +386,6 @@ public final class Revapi {
             while (it.hasNext()) {
                 Difference d = it.next();
                 transformed.clear();
-                boolean shouldBeRemoved = false;
                 boolean differenceChanged = false;
                 for (DifferenceTransform<?> t : getTransformsForDifference(d, extensions)) {
                     // it is the responsibility of the transform to declare the proper type.
@@ -408,7 +406,6 @@ public final class Revapi {
 
                     // ignore if transformation returned null, meaning that it "swallowed" the difference..
                     if (td == null) {
-                        shouldBeRemoved = true;
                         listChanged = true;
                         differenceChanged = true;
                     } else if (!d.equals(td)) {
@@ -425,7 +422,7 @@ public final class Revapi {
                 if (differenceChanged) {
                     //we need to remove the element in either case
                     it.remove();
-                    if (!shouldBeRemoved) {
+                    if (!transformed.isEmpty()) {
                         //if it was not removed, but transformed, let's add the transformed difference in the place of
                         //our currently removed element
                         for (Difference td : transformed) {
