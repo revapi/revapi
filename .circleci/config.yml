@@ -67,6 +67,7 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
       - run: mvn verify --batch-mode --fail-at-end
 workflows:
+  version: 2
   build:
     jobs:
       - java8
