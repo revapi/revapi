@@ -24,7 +24,14 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
       - run: mvn verify --batch-mode --fail-at-end
-      - run: mkdir /tmp/test-results && cp */target/surefire-reports/*.xml /tmp/test-results
+      - run:
+          command: |
+            for test in `find -name 'TEST-*.xml'`; do
+              test_name=${test//+(*\/|.xml)}
+              mkdir -p /tmp/test-results/$test_name
+              cp $test /tmp/test-results/$test_name/results.xml
+            done
+          when: always
       - store_test_results:
           path: /tmp/test-results
       # upload the coverage report to codecov
@@ -49,7 +56,14 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
       - run: mvn verify --batch-mode --fail-at-end
-      - run: mkdir /tmp/test-results && cp */target/surefire-reports/*.xml /tmp/test-results
+      - run:
+          command: |
+            for test in `find -name 'TEST-*.xml'`; do
+              test_name=${test//+(*\/|.xml)}
+              mkdir -p /tmp/test-results/$test_name
+              cp $test /tmp/test-results/$test_name/results.xml
+            done
+          when: always
       - store_test_results:
           path: /tmp/test-results
   java10:
@@ -72,7 +86,14 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
       - run: mvn verify --batch-mode --fail-at-end
-      - run: mkdir /tmp/test-results && cp */target/surefire-reports/*.xml /tmp/test-results
+      - run:
+          command: |
+            for test in `find -name 'TEST-*.xml'`; do
+              test_name=${test//+(*\/|.xml)}
+              mkdir -p /tmp/test-results/$test_name
+              cp $test /tmp/test-results/$test_name/results.xml
+            done
+          when: always
       - store_test_results:
           path: /tmp/test-results
 workflows:
