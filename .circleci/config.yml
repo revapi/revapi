@@ -4,39 +4,65 @@
 #
 version: 2
 jobs:
-  build:
+  java8:
     docker:
-      # specify the version you desire here
       - image: circleci/openjdk:8-jdk
-      
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
     working_directory: ~/repo
-
     environment:
-      # Customize the JVM maximum heap limit
       MAVEN_OPTS: -Xmx3200m
-    
     steps:
       - checkout
-
       # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pom.xml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-
       - run: mvn dependency:go-offline
-
       - save_cache:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
-        
-      # run tests!
-      - run: mvn integration-test
-
+      - run: mvn verify --batch-mode --fail-at-end
+      # upload the coverage report to codecov
+      - run: bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -X xcode
+  java9:
+    docker:
+      - image: circleci/openjdk:9-jdk
+    working_directory: ~/repo
+    environment:
+      MAVEN_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pom.xml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: mvn dependency:go-offline
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+      - run: mvn verify --batch-mode --fail-at-end
+  java10:
+    docker:
+      - image: circleci/openjdk:10-jdk
+    working_directory: ~/repo
+    environment:
+      MAVEN_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pom.xml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: mvn dependency:go-offline
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+      - run: mvn verify --batch-mode --fail-at-end
