@@ -387,7 +387,6 @@ public final class Revapi {
             while (it.hasNext()) {
                 Difference d = it.next();
                 transformed.clear();
-                boolean shouldBeRemoved = false;
                 boolean differenceChanged = false;
                 for (DifferenceTransform<?> t : getTransformsForDifference(d, extensions)) {
                     // it is the responsibility of the transform to declare the proper type.
@@ -408,7 +407,6 @@ public final class Revapi {
 
                     // ignore if transformation returned null, meaning that it "swallowed" the difference..
                     if (td == null) {
-                        shouldBeRemoved = true;
                         listChanged = true;
                         differenceChanged = true;
                     } else if (!d.equals(td)) {
@@ -425,7 +423,7 @@ public final class Revapi {
                 if (differenceChanged) {
                     //we need to remove the element in either case
                     it.remove();
-                    if (!shouldBeRemoved) {
+                    if (!transformed.isEmpty()) {
                         //if it was not removed, but transformed, let's add the transformed difference in the place of
                         //our currently removed element
                         for (Difference td : transformed) {
