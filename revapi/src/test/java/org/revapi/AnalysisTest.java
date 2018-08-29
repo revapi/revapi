@@ -16,11 +16,6 @@
  */
 package org.revapi;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.revapi.simple.SimpleElement;
-import org.revapi.simple.SimpleElementForest;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,8 +23,14 @@ import java.io.Reader;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.revapi.simple.SimpleElement;
+import org.revapi.simple.SimpleElementForest;
 
 /**
  * @author Lukas Krejci

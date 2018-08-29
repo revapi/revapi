@@ -16,12 +16,7 @@
  */
 package org.revapi;
 
-import org.jboss.dmr.ModelNode;
-import org.revapi.configuration.Configurable;
-import org.revapi.configuration.ConfigurationValidator;
-import org.revapi.configuration.ValidationResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.util.Collections.emptySortedSet;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
@@ -40,9 +35,15 @@ import java.util.SortedSet;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
 import javax.annotation.Nonnull;
 
-import static java.util.Collections.emptySortedSet;
+import org.jboss.dmr.ModelNode;
+import org.revapi.configuration.Configurable;
+import org.revapi.configuration.ConfigurationValidator;
+import org.revapi.configuration.ValidationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The main entry point to the library. The instance of this class is initialized with the different extensions and then
