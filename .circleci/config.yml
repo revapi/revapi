@@ -66,3 +66,10 @@ jobs:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
       - run: mvn verify --batch-mode --fail-at-end
+workflows:
+  build:
+    jobs:
+      - java8
+      - java9
+      - java10
+
