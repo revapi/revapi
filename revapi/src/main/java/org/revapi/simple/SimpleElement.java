@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ import org.revapi.query.FilteringIterator;
  * @author Lukas Krejci
  * @since 0.1
  */
-public abstract class SimpleElement implements Element {
+public abstract class SimpleElement implements Element, Cloneable {
     private Element parent;
     private SortedSet<Element> children;
 
@@ -235,6 +235,23 @@ public abstract class SimpleElement implements Element {
 
                 it.remove();
             }
+        }
+    }
+
+    /**
+     * Returns a shallow copy of this element. In particular, its parent and children will be cleared.
+     * @return a copy of this element
+     */
+    @Override
+    public SimpleElement clone() {
+        try {
+            SimpleElement ret = (SimpleElement) super.clone();
+            ret.parent = null;
+            ret.children = null;
+
+            return ret;
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException("All simple elements need to be cloneable.", e);
         }
     }
 

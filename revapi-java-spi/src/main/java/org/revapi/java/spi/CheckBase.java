@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ package org.revapi.java.spi;
 import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -147,13 +148,16 @@ public abstract class CheckBase implements Check {
         public final T oldElement;
         public final T newElement;
         public final Object[] context;
+        public final ActiveElements<?> previous;
         private final int depth;
 
-        private ActiveElements(int depth, T oldElement, T newElement, Object... context) {
+        private ActiveElements(int depth, T oldElement, T newElement, ActiveElements<?> previous, Object... context) {
+
             this.depth = depth;
             this.oldElement = oldElement;
             this.newElement = newElement;
             this.context = context;
+            this.previous = previous;
         }
     }
 
@@ -164,15 +168,15 @@ public abstract class CheckBase implements Check {
     private AnalysisContext analysisContext;
 
     @Nonnull
-    protected Difference createDifference(@Nonnull Code code, String[] attachments) {
+    protected Difference createDifference(@Nonnull Code code, LinkedHashMap<String, String> attachments) {
         return code.createDifference(getAnalysisContext().getLocale(), attachments);
     }
 
     @Nonnull
     protected Difference createDifferenceWithExplicitParams(@Nonnull Code code,
-                                                            String[] attachments,
+                                                            LinkedHashMap<String, String> attachments,
                                                             String... params) {
-            return code.createDifferenceWithExplicitParams(getAnalysisContext().getLocale(), attachments, params);
+            return code.createDifference(getAnalysisContext().getLocale(), attachments, params);
     }
 
     @Nonnull
@@ -339,7 +343,7 @@ public abstract class CheckBase implements Check {
      */
     protected final <T extends JavaElement> void pushActive(@Nullable T oldElement, @Nullable T newElement,
         Object... context) {
-        ActiveElements<T> r = new ActiveElements<>(depth, oldElement, newElement, context);
+        ActiveElements<T> r = new ActiveElements<>(depth, oldElement, newElement, activations.peek(), context);
         activations.push(r);
     }
 
@@ -359,5 +363,14 @@ public abstract class CheckBase implements Check {
     protected <T extends JavaElement> ActiveElements<T> popIfActive() {
         return (ActiveElements<T>) (!activations.isEmpty() && activations.peek().depth == depth ? activations.pop() :
             null);
+    }
+
+    /**
+     * @return the last activation. This can be called at any point and can refer to any of the enclosing elements of
+     * the currently processed element pair, depending on how this check activated them.
+     */
+    @Nullable
+    protected ActiveElements<?> peekLastActive() {
+        return activations.peek();
     }
 }

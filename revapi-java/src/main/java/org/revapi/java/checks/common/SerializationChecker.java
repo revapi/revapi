@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.revapi.java.checks.fields;
+package org.revapi.java.checks.common;
+
+import static java.util.Collections.singletonList;
+
+import static org.revapi.java.spi.Code.attachmentsFor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -30,7 +34,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -50,6 +53,7 @@ import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
@@ -60,21 +64,27 @@ import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaFieldElement;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 
-/**
- * @author Lukas Krejci
- * @since 0.1
- */
-public final class SerialVersionUidUnchanged extends CheckBase {
-
+public class SerializationChecker extends CheckBase {
     private static final String SERIAL_VERSION_UID_FIELD_NAME = "serialVersionUID";
-    private boolean strict = false;
+
+    private PrimitiveType oldLongType;
+    private PrimitiveType newLongType;
+    private boolean strict;
+
+    private static final TypeVisitor<Boolean, Void> IS_SERIALIZABLE = new SimpleTypeVisitor7<Boolean, Void>(false) {
+        @Override
+        public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+            return "java.io.Serializable".contentEquals(((TypeElement) t.asElement()).getQualifiedName());
+        }
+    };
 
     @Override
     public EnumSet<Type> getInterest() {
-        return EnumSet.of(Type.FIELD);
+        return EnumSet.of(Type.CLASS, Type.FIELD);
     }
 
     @Override
@@ -86,13 +96,11 @@ public final class SerialVersionUidUnchanged extends CheckBase {
         }
     }
 
-    @Nullable
     @Override
     public String getExtensionId() {
         return "serialVersionUID";
     }
 
-    @Nullable
     @Override
     public Reader getJSONSchema() {
         return new InputStreamReader(getClass().getResourceAsStream("/META-INF/serialVersionUID-config-schema.json"),
@@ -100,73 +108,176 @@ public final class SerialVersionUidUnchanged extends CheckBase {
     }
 
     @Override
-    protected void doVisitField(JavaFieldElement oldField, JavaFieldElement newField) {
-        if (oldField == null || newField == null || !isAccessible(newField.getParent())) {
-            return;
-        }
+    protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
+        boolean serializable = oldType != null && newType != null && isSerializable(oldType) && isSerializable(newType)
+                && isBothAccessible(oldType, newType);
 
-        if (!SERIAL_VERSION_UID_FIELD_NAME.equals(oldField.getDeclaringElement().getSimpleName().toString())) {
-            return;
-        }
-
-        if (!SERIAL_VERSION_UID_FIELD_NAME.equals(newField.getDeclaringElement().getSimpleName().toString())) {
-            return;
-        }
-
-        if (!isBothAccessible(oldField.getParent(), newField.getParent())) {
-            return;
-        }
-
-        PrimitiveType oldLong = getOldTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
-        if (!getOldTypeEnvironment().getTypeUtils().isSameType(oldField.getModelRepresentation(), oldLong)) {
-            return;
-        }
-
-        PrimitiveType newLong = getNewTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
-        if (!getNewTypeEnvironment().getTypeUtils().isSameType(newField.getModelRepresentation(), newLong)) {
-            return;
-        }
-
-        if (!oldField.getDeclaringElement().getModifiers().contains(Modifier.STATIC)
-                || !oldField.getDeclaringElement().getModifiers().contains(Modifier.FINAL)) {
-            return;
-        }
-
-        if (!newField.getDeclaringElement().getModifiers().contains(Modifier.STATIC)
-                || !newField.getDeclaringElement().getModifiers().contains(Modifier.FINAL)) {
-            return;
-        }
-
-        TypeElement oldType = (TypeElement) oldField.getDeclaringElement().getEnclosingElement();
-        TypeElement newType = (TypeElement) newField.getDeclaringElement().getEnclosingElement();
-
-        long computedOldSUID = strict
-                ? computeSerialVersionUID(oldType, getOldTypeEnvironment())
-                : computeStructuralId(oldType, getOldTypeEnvironment());
-
-        long computedNewSUID = strict
-                ? computeSerialVersionUID(newType, getNewTypeEnvironment())
-                : computeStructuralId(newType, getNewTypeEnvironment());
-
-        Long actualOldSUID = (Long) oldField.getDeclaringElement().getConstantValue();
-        Long actualNewSUID = (Long) newField.getDeclaringElement().getConstantValue();
-
-        if (Objects.equals(actualOldSUID, actualNewSUID) && computedOldSUID != computedNewSUID) {
-            pushActive(oldField, newField, actualOldSUID);
+        if (serializable) {
+            pushActive(oldType, newType, new Object[2]);
         }
     }
 
     @Override
+    protected void doVisitField(@Nullable JavaFieldElement oldField, @Nullable JavaFieldElement newField) {
+        // check that the last activation of this check was indeed for the class in which the fields are located
+        // (important for non-serializable inner class of a serializable class for example).
+        ActiveElements<?> lastActive = peekLastActive();
+
+        if (lastActive == null) {
+            return;
+        }
+
+        if (oldField != null && oldField.getParent() != lastActive.oldElement) {
+            return;
+        }
+
+        if (newField != null && newField.getParent() != lastActive.newElement) {
+            return;
+        }
+
+        ensurePrimitiveTypesLoaded();
+
+        if (isSerialVersionUid(oldField, getOldTypeEnvironment(), oldLongType)) {
+            lastActive.context[0] = oldField.getDeclaringElement().getConstantValue();
+        }
+
+        if (isSerialVersionUid(newField, getNewTypeEnvironment(), newLongType)) {
+            lastActive.context[1] = newField.getDeclaringElement().getConstantValue();
+            // we're going to report on the field in this case, so let's push the field as the active element to
+            // be able to retrieve it in #doEnd()
+            pushActive(oldField, newField, lastActive.context);
+        }
+    }
+
+    @Nullable
+    @Override
     protected List<Difference> doEnd() {
-        ActiveElements<JavaFieldElement> fields = popIfActive();
-        if (fields == null) {
+        ActiveElements<?> els = popIfActive();
+        if (els == null) {
             return null;
         }
 
-        Long actualSUID = (Long) fields.context[0];
+        List<Difference> diffs = null;
 
-        return Collections.singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED,
-                Code.attachmentsFor(fields.oldElement, fields.newElement, "serialVersionUID", actualSUID.toString())));
+        Long oldSerialVersionUid = (Long) els.context[0];
+        Long newSerialVersionUid = (Long) els.context[1];
+
+        if (els.newElement instanceof JavaFieldElement) {
+            // we're reporting on the new serialVersionUID field. The old version may or may not be there.
+            // Note that in the case where the old version of the serialization was without the serialVersionUID field
+            // we don't use the configuration option to choose between serialization "sensitiveness" as we do in the
+            // SerialVersionUidChecker because the old version must have used the default JVM-generated serialVersionUID
+            // because it didn't contain an explicit one.
+            if (oldSerialVersionUid == null) {
+                TypeElement oldType = ((JavaTypeElement) els.previous.oldElement).getDeclaringElement();
+                long oldUid = computeSerialVersionUID(oldType, getOldTypeEnvironment());
+                long newUid = newSerialVersionUid;
+
+                if (oldUid != newUid) {
+                    diffs = singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_CHANGED,
+                            attachmentsFor(els.oldElement, els.newElement,
+                                    "oldSerialVersionUID", Long.toString(oldUid),
+                                    "newSerialVersionUID", Long.toString(newUid))));
+                }
+            } else {
+                // k, both old and new classes have the serialVersionUID fields. We can apply the configured comparison
+                // style here..
+                // also, we're actually need to check for 2 things here.
+
+                @SuppressWarnings("ConstantConditions")
+                TypeElement oldType = ((JavaTypeElement) els.oldElement.getParent()).getDeclaringElement();
+                @SuppressWarnings("ConstantConditions")
+                TypeElement newType = ((JavaTypeElement) els.newElement.getParent()).getDeclaringElement();
+
+                long computedOldSUID = strict
+                        ? computeSerialVersionUID(oldType, getOldTypeEnvironment())
+                        : computeStructuralId(oldType, getOldTypeEnvironment());
+
+                long computedNewSUID = strict
+                        ? computeSerialVersionUID(newType, getNewTypeEnvironment())
+                        : computeStructuralId(newType, getNewTypeEnvironment());
+
+                long actualOldSUID = oldSerialVersionUid;
+                long actualNewSUID = newSerialVersionUid;
+
+                boolean reportUnchanged = false;
+                boolean reportChanged = false;
+
+                if (actualOldSUID == actualNewSUID && computedOldSUID != computedNewSUID) {
+                    reportUnchanged = true;
+                }
+
+                if (actualOldSUID != actualNewSUID) {
+                    reportChanged = true;
+                }
+
+                if (!reportChanged && !reportUnchanged) {
+                    return Collections.emptyList();
+                }
+
+                if (reportUnchanged) {
+                    diffs = singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED,
+                            Code.attachmentsFor(els.oldElement, els.newElement, "serialVersionUID",
+                                    Long.toString(actualOldSUID))));
+                } else {
+                    diffs = singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_CHANGED,
+                            Code.attachmentsFor(els.oldElement, els.newElement, "oldSerialVersionUID",
+                                    Long.toString(actualOldSUID), "newSerialVersionUID", Long.toString(actualNewSUID))));
+                }
+
+            }
+        } else if (newSerialVersionUid == null
+                && (els.newElement instanceof JavaTypeElement || els.oldElement instanceof JavaTypeElement)) {
+            // if newSerialVersionUid weren't null, we'd end up in the other branch of the if
+
+            // we're reporting on the classes that may have had serialVersionUID in the old version or not
+            TypeElement oldType = ((JavaTypeElement) els.oldElement).getDeclaringElement();
+            @SuppressWarnings("ConstantConditions")
+            TypeElement newType = ((JavaTypeElement) els.newElement).getDeclaringElement();
+
+            long oldUid = oldSerialVersionUid == null
+                    ? computeSerialVersionUID(oldType, getOldTypeEnvironment())
+                    : oldSerialVersionUid;
+
+            long newUid = computeSerialVersionUID(newType, getNewTypeEnvironment());
+
+            if (oldUid != newUid) {
+                diffs = singletonList(createDifference(Code.CLASS_DEFAULT_SERIALIZATION_CHANGED,
+                        attachmentsFor(els.oldElement, els.newElement,
+                                "oldSerialVersionUID", Long.toString(oldUid),
+                                "newSerialVersionUID", Long.toString(newUid))));
+            }
+        }
+
+        return diffs;
+    }
+    
+    private boolean isSerializable(JavaTypeElement type) {
+        TypeElement t = type.getDeclaringElement();
+
+        return t.getKind().isClass() && t.getInterfaces().stream().anyMatch(IS_SERIALIZABLE::visit);
+    }
+
+    private boolean isSerialVersionUid(JavaFieldElement field, TypeEnvironment env, PrimitiveType longType) {
+        if (field == null || !field.getDeclaringElement().getSimpleName().contentEquals(SERIAL_VERSION_UID_FIELD_NAME)) {
+            return false;
+        }
+
+        Set<Modifier> mods = field.getDeclaringElement().getModifiers();
+
+        if (!mods.contains(Modifier.STATIC) || !mods.contains(Modifier.FINAL)) {
+            return false;
+        }
+
+        return env.getTypeUtils().isSameType(field.getModelRepresentation(), longType);
+    }
+
+    private void ensurePrimitiveTypesLoaded() {
+        if (oldLongType != null) {
+            return;
+        }
+        oldLongType = getOldTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
+        newLongType = getNewTypeEnvironment().getTypeUtils().getPrimitiveType(TypeKind.LONG);
     }
 
     public static long computeStructuralId(TypeElement type, TypeEnvironment environment) {
@@ -272,7 +383,7 @@ public final class SerialVersionUidUnchanged extends CheckBase {
                 String[] ifaceNames = new String[interfaces.size()];
                 for (int i = 0; i < interfaces.size(); i++) {
                     ifaceNames[i] = ((TypeElement) ((DeclaredType) interfaces.get(i)).asElement()).getQualifiedName()
-                        .toString();
+                            .toString();
                 }
 //                Class[] interfaces = cl.getInterfaces();
 //                String[] ifaceNames = new String[interfaces.length];
@@ -306,14 +417,14 @@ public final class SerialVersionUidUnchanged extends CheckBase {
             for (int i = 0; i < fieldSigs.length; i++) {
                 MemberSignature sig = fieldSigs[i];
                 int mods = asReflectiveModifiers(sig.member, Modifier.PUBLIC, Modifier.PRIVATE, Modifier.PROTECTED,
-                    Modifier.STATIC, Modifier.FINAL, Modifier.VOLATILE, Modifier.TRANSIENT);
+                        Modifier.STATIC, Modifier.FINAL, Modifier.VOLATILE, Modifier.TRANSIENT);
 //                int mods = sig.member.getModifiers() &
 //                    (Modifier.PUBLIC | Modifier.PRIVATE | Modifier.PROTECTED |
 //                        Modifier.STATIC | Modifier.FINAL | Modifier.VOLATILE |
 //                        Modifier.TRANSIENT);
 
                 if (((mods & java.lang.reflect.Modifier.PRIVATE) == 0) ||
-                    ((mods & (java.lang.reflect.Modifier.STATIC | java.lang.reflect.Modifier.TRANSIENT)) == 0)) {
+                        ((mods & (java.lang.reflect.Modifier.STATIC | java.lang.reflect.Modifier.TRANSIENT)) == 0)) {
                     dout.writeUTF(sig.name);
                     dout.writeInt(mods);
                     dout.writeUTF(sig.signature);
@@ -367,8 +478,8 @@ public final class SerialVersionUidUnchanged extends CheckBase {
 
             for (MemberSignature sig : consSigs) {
                 int mods = asReflectiveModifiers(sig.member, Modifier.PUBLIC, Modifier.PRIVATE, Modifier.PROTECTED,
-                    Modifier.STATIC, Modifier.FINAL, Modifier.SYNCHRONIZED, Modifier.NATIVE, Modifier.ABSTRACT,
-                    Modifier.STRICTFP);
+                        Modifier.STATIC, Modifier.FINAL, Modifier.SYNCHRONIZED, Modifier.NATIVE, Modifier.ABSTRACT,
+                        Modifier.STRICTFP);
                 if ((mods & java.lang.reflect.Modifier.PRIVATE) == 0) {
                     dout.writeUTF("<init>");
                     dout.writeInt(mods);
@@ -423,8 +534,8 @@ public final class SerialVersionUidUnchanged extends CheckBase {
 
             for (MemberSignature sig : methSigs) {
                 int mods = asReflectiveModifiers(sig.member, Modifier.PUBLIC, Modifier.PRIVATE, Modifier.PROTECTED,
-                    Modifier.STATIC, Modifier.FINAL, Modifier.SYNCHRONIZED, Modifier.NATIVE, Modifier.ABSTRACT,
-                    Modifier.STRICTFP);
+                        Modifier.STATIC, Modifier.FINAL, Modifier.SYNCHRONIZED, Modifier.NATIVE, Modifier.ABSTRACT,
+                        Modifier.STRICTFP);
                 if ((mods & java.lang.reflect.Modifier.PRIVATE) == 0) {
                     dout.writeUTF(sig.name);
                     dout.writeInt(mods);
@@ -456,29 +567,29 @@ public final class SerialVersionUidUnchanged extends CheckBase {
             return hash;
         } catch (IOException | NoSuchAlgorithmException ex) {
             throw new IllegalStateException(
-                "Could not compute default serialization UID for class: " + type.getQualifiedName().toString(), ex);
+                    "Could not compute default serialization UID for class: " + type.getQualifiedName().toString(), ex);
         }
     }
-
+    
     /**
      * Adapted from {@link java.io.ObjectStreamClass.MemberSignature}
      *
      * <p>Class for computing and caching field/constructor/method signatures
      * during serialVersionUID calculation.
      */
-    private static class MemberSignature {
+    private static final class MemberSignature {
 
-        public final Element member;
-        public final String name;
-        public final String signature;
+        final Element member;
+        final String name;
+        final String signature;
 
-        public MemberSignature(VariableElement field) {
+        MemberSignature(VariableElement field) {
             member = field;
             name = field.getSimpleName().toString();
             signature = getSignature(field.asType());
         }
 
-        public MemberSignature(ExecutableElement meth) {
+        MemberSignature(ExecutableElement meth) {
             member = meth;
             name = meth.getSimpleName().toString();
             signature = getSignature(meth.asType());
@@ -490,41 +601,41 @@ public final class SerialVersionUidUnchanged extends CheckBase {
         for (Modifier m : applicableModifiers) {
             if (el.getModifiers().contains(m)) {
                 switch (m) {
-                case ABSTRACT:
-                    mods |= java.lang.reflect.Modifier.ABSTRACT;
-                    break;
-                case FINAL:
-                    mods |= java.lang.reflect.Modifier.FINAL;
-                    break;
-                case NATIVE:
-                    mods |= java.lang.reflect.Modifier.NATIVE;
-                    break;
-                case PRIVATE:
-                    mods |= java.lang.reflect.Modifier.PRIVATE;
-                    break;
-                case PROTECTED:
-                    mods |= java.lang.reflect.Modifier.PROTECTED;
-                    break;
-                case PUBLIC:
-                    mods |= java.lang.reflect.Modifier.PUBLIC;
-                    break;
-                case STATIC:
-                    mods |= java.lang.reflect.Modifier.STATIC;
-                    break;
-                case STRICTFP:
-                    mods |= java.lang.reflect.Modifier.STRICT;
-                    break;
-                case SYNCHRONIZED:
-                    mods |= java.lang.reflect.Modifier.SYNCHRONIZED;
-                    break;
-                case TRANSIENT:
-                    mods |= java.lang.reflect.Modifier.TRANSIENT;
-                    break;
-                case VOLATILE:
-                    mods |= java.lang.reflect.Modifier.VOLATILE;
-                    break;
-                default:
-                    break;
+                    case ABSTRACT:
+                        mods |= java.lang.reflect.Modifier.ABSTRACT;
+                        break;
+                    case FINAL:
+                        mods |= java.lang.reflect.Modifier.FINAL;
+                        break;
+                    case NATIVE:
+                        mods |= java.lang.reflect.Modifier.NATIVE;
+                        break;
+                    case PRIVATE:
+                        mods |= java.lang.reflect.Modifier.PRIVATE;
+                        break;
+                    case PROTECTED:
+                        mods |= java.lang.reflect.Modifier.PROTECTED;
+                        break;
+                    case PUBLIC:
+                        mods |= java.lang.reflect.Modifier.PUBLIC;
+                        break;
+                    case STATIC:
+                        mods |= java.lang.reflect.Modifier.STATIC;
+                        break;
+                    case STRICTFP:
+                        mods |= java.lang.reflect.Modifier.STRICT;
+                        break;
+                    case SYNCHRONIZED:
+                        mods |= java.lang.reflect.Modifier.SYNCHRONIZED;
+                        break;
+                    case TRANSIENT:
+                        mods |= java.lang.reflect.Modifier.TRANSIENT;
+                        break;
+                    case VOLATILE:
+                        mods |= java.lang.reflect.Modifier.VOLATILE;
+                        break;
+                    default:
+                        break;
                 }
             }
         }
@@ -533,8 +644,7 @@ public final class SerialVersionUidUnchanged extends CheckBase {
     }
 
     /**
-     * Adapted from {@link java.io.ObjectStreamClass#getClassSignature(Class)}
-     * and {@link java.io.ObjectStreamClass#getMethodSignature(Class[], Class)}
+     * Adapted from {@link java.io.ObjectStreamClass}
      *
      * <p>Returns JVM type signature for given class.
      */
@@ -549,32 +659,32 @@ public final class SerialVersionUidUnchanged extends CheckBase {
             @Override
             public Void visitPrimitive(PrimitiveType t, StringBuilder stringBuilder) {
                 switch (t.getKind()) {
-                case BOOLEAN:
-                    stringBuilder.append("Z");
-                    break;
-                case BYTE:
-                    stringBuilder.append("B");
-                    break;
-                case CHAR:
-                    stringBuilder.append("C");
-                    break;
-                case DOUBLE:
-                    stringBuilder.append("D");
-                    break;
-                case FLOAT:
-                    stringBuilder.append("F");
-                    break;
-                case INT:
-                    stringBuilder.append("I");
-                    break;
-                case LONG:
-                    stringBuilder.append("J");
-                    break;
-                case SHORT:
-                    stringBuilder.append("S");
-                    break;
-                default:
-                    break;
+                    case BOOLEAN:
+                        stringBuilder.append("Z");
+                        break;
+                    case BYTE:
+                        stringBuilder.append("B");
+                        break;
+                    case CHAR:
+                        stringBuilder.append("C");
+                        break;
+                    case DOUBLE:
+                        stringBuilder.append("D");
+                        break;
+                    case FLOAT:
+                        stringBuilder.append("F");
+                        break;
+                    case INT:
+                        stringBuilder.append("I");
+                        break;
+                    case LONG:
+                        stringBuilder.append("J");
+                        break;
+                    case SHORT:
+                        stringBuilder.append("S");
+                        break;
+                    default:
+                        break;
                 }
 
                 return null;

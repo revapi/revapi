@@ -1,0 +1,68 @@
+/*
+ * Copyright 2014-2018 Lukas Krejci
+ * and other contributors as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+.reveal section .small {
+	font-size: 75% !important;
+}
+
+.reveal section .contacts {
+	font-size: 80%;
+}
+
+.reveal section .huge {
+	font-size: 200%;
+}
+
+.reveal div.no-bullet ul {
+	text-align: center;
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+.reveal .no-borders * {
+	border: 0;
+}
+
+.reveal .left {
+	text-align: left;
+}
+
+.reveal table {
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+.reveal td * {
+	margin: 0 !important;
+}
+
+.reveal .logos img {
+	border: 0 !important;
+	background: unset !important;
+	box-shadow: unset !important;
+	margin: 20px;
+}
+
+.reveal .highlight {
+	width: 100%;
+}
+
+.reveal .invisible {
+	visibility: hidden;
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,7 +101,7 @@ public class BuildTimeReporterTest {
 
         reporter.report(report);
 
-        String resultMessage = reporter.getAllProblemsMessage();
+        String resultMessage = reporter.getIgnoreSuggestion();
         Assert.assertNotNull(resultMessage);
 
         int start = resultMessage.indexOf('{');

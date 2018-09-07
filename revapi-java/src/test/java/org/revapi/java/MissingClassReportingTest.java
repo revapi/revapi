@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.revapi.java;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -177,4 +178,62 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
     }
 
+    @Test
+    public void testReportMissingSuperType() throws Exception {
+        ArchiveAndCompilationPath v1 = null, v2 = null;
+
+        try {
+            v1 = createCompiledJar("superType1",
+                    "v1/supplementary/superType/A.java",
+                    "v1/supplementary/superType/B.java");
+            v2 = createCompiledJar("superType2",
+                    "v2/supplementary/superType/A.java",
+                    "v2/supplementary/superType/B.java");
+
+            JavaArchive a1 = ShrinkWrap.create(JavaArchive.class, "superTypeV1.jar")
+                    .addAsResource(v1.compilationPath.resolve("A.class").toFile(), "A.class")
+                    .addAsResource(v1.compilationPath.resolve("B.class").toFile(), "B.class");
+            JavaArchive a2 = ShrinkWrap.create(JavaArchive.class, "superTypeV2.jar")
+                    .addAsResource(v2.compilationPath.resolve("B.class").toFile(), "B.class");
+
+            API oldApi = API.of(new ShrinkwrapArchive(a1)).build();
+            API newApi = API.of(new ShrinkwrapArchive(a2)).build();
+
+            AnalysisResult res = revapi.analyze(
+                    AnalysisContext.builder()
+                            .withOldAPI(oldApi)
+                            .withNewAPI(newApi)
+                            .build()
+            );
+
+            List<Report> allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null)
+                    .getReports();
+
+            Assert.assertEquals(2, allReports.size());
+            Assert.assertTrue(containsDifference(allReports, "class B", "class B", Code.MISSING_NEW_SUPERTYPE.code()));
+            Assert.assertTrue(containsDifference(allReports, "class A", null, Code.CLASS_REMOVED.code()));
+
+            res = revapi.analyze(
+                    AnalysisContext.builder()
+                            .withOldAPI(newApi)
+                            .withNewAPI(oldApi)
+                            .build()
+            );
+
+            allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null)
+                    .getReports();
+
+            Assert.assertEquals(2, allReports.size());
+            Assert.assertTrue(containsDifference(allReports, "class B", "class B", Code.MISSING_OLD_SUPERTYPE.code()));
+            Assert.assertTrue(containsDifference(allReports, null, "class A", Code.CLASS_ADDED.code()));
+        } finally {
+            compilationPaths = new ArrayList<>(compilationPaths);
+            if (v1 != null) {
+                compilationPaths.add(v1.compilationPath);
+            }
+            if (v2 != null) {
+                compilationPaths.add(v2.compilationPath);
+            }
+        }
+    }
 }

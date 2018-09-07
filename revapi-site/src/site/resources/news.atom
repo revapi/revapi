@@ -169,4 +169,60 @@
         caused inherited methods to seemingly break API in classes that were present in excluded archives (wow, a mouthful).
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20180406-new-check-and-2-fixes.html</id>
+    <title>New Check and 2 Fixes</title>
+    <updated>2018-04-06T00:00:00+00:00</updated>
+    <published>2018-04-06T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180406-new-check-and-2-fixes.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        New releases of components to incorporate a new Java check and fixes for 2 issues.
+    </summary>
+    <content type="html">
+        New releases of components to incorporate a new Java check and fixes for 2 issues.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20180516-releases.html</id>
+    <title>Speedup and fixes</title>
+    <updated>2018-05-16T00:00:00+00:00</updated>
+    <published>2018-05-16T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180516-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        After the great feedback from the community, new versions of the various Revapi components were released.
+    </summary>
+    <content type="html">
+        After the great feedback from the community, new versions of the various Revapi components were released.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20180523-fixes.html</id>
+    <title>Regression fixes</title>
+    <updated>2018-05-23T00:00:00+00:00</updated>
+    <published>2018-05-23T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180523-fixes.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        After the last week's new releases a regression has been discovered which warranted a quick new release.
+    </summary>
+    <content type="html">
+        After the last week's new releases a regression has been discovered which warranted a quick new release.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20180626-releases.html</id>
+    <title>New Releases</title>
+    <updated>2018-06-26T00:00:00+00:00</updated>
+    <published>2018-06-26T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180626-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        The time has come to issue another set of releases.
+    </summary>
+    <content type="html">
+        The time has come to issue another set of releases.
+    </content>
+  </entry>
 </feed>

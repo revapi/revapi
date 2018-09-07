@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2017 Lukas Krejci
+    Copyright 2014-2018 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,14 @@
             <version>@revapi-java.version@</version>
           </dependency>
         </dependencies>
+        <configuration>
+          <!-- this is to test that enabling semver-ignore extension doesn't mess with the update versions -->
+          <analysisConfiguration>
+            <revapi.semver.ignore>
+              <enabled>true</enabled>
+            </revapi.semver.ignore>
+          </analysisConfiguration>
+        </configuration>
         <executions>
           <execution>
             <id>update-versions</id>

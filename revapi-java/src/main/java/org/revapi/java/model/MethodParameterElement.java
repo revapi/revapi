@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,6 @@ import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaMethodParameterElement;
-import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -66,14 +65,12 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
     @Override
     public int compareTo(@Nonnull Element o) {
-        int ret = super.compareTo(o);
-
-        if (ret == 0) {
-            MethodParameterElement other = (MethodParameterElement) o;
-            ret = index - other.index;
+        if (!(o.getClass().equals(MethodParameterElement.class))) {
+            return JavaElementFactory.compareByType(this, o);
         }
 
-        return ret;
+        MethodParameterElement other = (MethodParameterElement) o;
+        return index - other.index;
     }
 
     @Override
@@ -107,9 +104,12 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
     @Override
     protected String createComparableSignature() {
-        String myType = Util.toUniqueString(getDeclaringElement().getEnclosingElement().getEnclosingElement().asType());
-        String myMethod = getDeclaringElement().getEnclosingElement().getSimpleName().toString();
+        //not used
+        return null;
+    }
 
-        return myType + "::" + myMethod;
+    @Override
+    public MethodParameterElement clone() {
+        return (MethodParameterElement) super.clone();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,10 +25,18 @@ import org.eclipse.aether.graph.Dependency;
  * @since 0.1
  */
 public class ScopeDependencyTraverser implements DependencyTraverser {
-    private final String[] scopes;
+    private final String[] topLevelScopes;
+    private final String[] transitiveScopes;
+    private final int depth;
 
-    public ScopeDependencyTraverser(String... scopes) {
-        this.scopes = scopes;
+    public ScopeDependencyTraverser(String[] topLevelScopes, String[] transitiveScopes) {
+        this(topLevelScopes, transitiveScopes, 0);
+    }
+
+    private ScopeDependencyTraverser(String[] topLevelScopes, String[] transitiveScopes, int depth) {
+        this.topLevelScopes = topLevelScopes;
+        this.transitiveScopes = transitiveScopes;
+        this.depth = depth;
     }
 
     private boolean hasRequiredScope(Dependency dep) {
@@ -37,7 +45,7 @@ public class ScopeDependencyTraverser implements DependencyTraverser {
             scope = "compile";
         }
 
-        for (String s : scopes) {
+        for (String s : depth > 1 ? transitiveScopes : topLevelScopes) {
             if (s.equals(scope)) {
                 return true;
             }
@@ -53,6 +61,6 @@ public class ScopeDependencyTraverser implements DependencyTraverser {
 
     @Override
     public DependencyTraverser deriveChildTraverser(DependencyCollectionContext context) {
-        return this;
+        return depth > 1 ? this : new ScopeDependencyTraverser(topLevelScopes, transitiveScopes, depth + 1);
     }
 }

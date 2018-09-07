@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,9 +52,12 @@ import org.revapi.DifferenceSeverity;
  * @since 0.1
  */
 public enum Code {
-    //these two are used during class tree initialization even before any "normal" checks can occur
-    MISSING_IN_OLD_API("java.missing.oldClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                MISSING_IN_OLD_API("java.missing.oldClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
     MISSING_IN_NEW_API("java.missing.newClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
+    MISSING_OLD_SUPERTYPE("java.missing.oldSuperType", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING,
+            null),
+    MISSING_NEW_SUPERTYPE("java.missing.newSuperType", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING,
+            null),
 
     ELEMENT_NO_LONGER_DEPRECATED("java.element.noLongerDeprecated", EQUIVALENT, EQUIVALENT, null),
     ELEMENT_NOW_DEPRECATED("java.element.nowDeprecated", EQUIVALENT, EQUIVALENT, null),
@@ -83,6 +86,8 @@ public enum Code {
             POTENTIALLY_BREAKING),
     CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API("java.class.externalClassNoLongerExposedInAPI", NON_BREAKING,
             NON_BREAKING, null),
+    CLASS_DEFAULT_SERIALIZATION_CHANGED("java.class.defaultSerializationChanged", EQUIVALENT, EQUIVALENT,
+            BREAKING),
 
     ANNOTATION_ADDED("java.annotation.added", EQUIVALENT, EQUIVALENT, POTENTIALLY_BREAKING),
     ANNOTATION_REMOVED("java.annotation.removed", EQUIVALENT, EQUIVALENT, POTENTIALLY_BREAKING),
@@ -111,6 +116,7 @@ public enum Code {
     FIELD_TYPE_CHANGED("java.field.typeChanged", BREAKING, BREAKING, null),
     FIELD_SERIAL_VERSION_UID_UNCHANGED("java.field.serialVersionUIDUnchanged", EQUIVALENT, EQUIVALENT,
         POTENTIALLY_BREAKING),
+    FIELD_SERIAL_VERSION_UID_CHANGED("java.field.serialVersionUIDChanged", EQUIVALENT, EQUIVALENT, BREAKING),
     FIELD_VISIBILITY_INCREASED("java.field.visibilityIncreased", EQUIVALENT, EQUIVALENT, null),
     FIELD_VISIBILITY_REDUCED("java.field.visibilityReduced", BREAKING, BREAKING, null),
     FIELD_ENUM_CONSTANT_ORDER_CHANGED("java.field.enumConstantOrderChanged", NON_BREAKING, NON_BREAKING,
@@ -191,83 +197,67 @@ public enum Code {
     }
 
     public static <T extends JavaElement>
-    String[] attachmentsFor(@Nullable T oldElement, @Nullable T newElement, String... customAttachments) {
+    LinkedHashMap<String, String> attachmentsFor(@Nullable T oldElement, @Nullable T newElement, String... customAttachments) {
         T representative = oldElement == null ? newElement : oldElement;
         if (representative == null) {
             throw new IllegalArgumentException("At least one of the oldElement and newElement must not be null");
         }
 
-        String[] ret;
-        int retLen;
-        int idx = customAttachments.length;
+        LinkedHashMap<String, String> ret = keyVals(customAttachments);
+        final boolean addElementKind;
         if (representative instanceof JavaAnnotationElement) {
             //annotationType
             JavaAnnotationElement anno = representative.as(JavaAnnotationElement.class);
-            //indicate we don't want element kind added in the code below
-            retLen = -1;
-            ret = new String[customAttachments.length + 4];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "annotationType";
-            ret[idx + 1] = Util.toHumanReadableString(anno.getAnnotation().getAnnotationType());
-            ret[idx + 2] = "elementKind";
-            ret[idx + 3] = "annotation";
+            addElementKind = false;
+            ret.put("annotationType", Util.toHumanReadableString(anno.getAnnotation().getAnnotationType()));
+            ret.put("elementKind", "annotation");
         } else if (representative instanceof JavaFieldElement) {
             //package, classSimpleName, fieldName
             JavaFieldElement field = representative.as(JavaFieldElement.class);
-            retLen = customAttachments.length + 8;
-            ret = new String[retLen];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "package";
-            ret[idx + 1] = getPackageName(field);
-            ret[idx + 2] = "classSimpleName";
-            ret[idx + 3] = getClassSimpleName(field);
-            ret[idx + 4] = "fieldName";
-            ret[idx + 5] = field.getDeclaringElement().getSimpleName().toString();
+            addElementKind = true;
+            ret.put("package", getPackageName(field));
+            ret.put("classQualifiedName", getClassQualifiedName(field));
+            ret.put("classSimpleName", getClassSimpleName(field));
+            ret.put("fieldName", field.getDeclaringElement().getSimpleName().toString());
         } else if (representative instanceof JavaTypeElement) {
             //package, classSimpleName
             JavaTypeElement type = representative.as(JavaTypeElement.class);
-            retLen = customAttachments.length + 6;
-            ret = new String[retLen];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "package";
-            ret[idx + 1] = getPackageName(type);
-            ret[idx + 2] = "classSimpleName";
-            ret[idx + 3] = getClassSimpleName(type);
-            ret[idx + 4] = "elementType";
+            addElementKind = true;
+            ret.put("package", getPackageName(type));
+            ret.put("classQualifiedName", getClassQualifiedName(type));
+            ret.put("classSimpleName", getClassSimpleName(type));
         } else if (representative instanceof JavaMethodElement) {
             //package, classSimpleName, methodName
             JavaMethodElement method = representative.as(JavaMethodElement.class);
-            retLen = customAttachments.length + 8;
-            ret = new String[retLen];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "package";
-            ret[idx + 1] = getPackageName(method);
-            ret[idx + 2] = "classSimpleName";
-            ret[idx + 3] = getClassSimpleName(method);
-            ret[idx + 4] = "methodName";
-            ret[idx + 5] = method.getDeclaringElement().getSimpleName().toString();
+            addElementKind = true;
+            ret.put("package", getPackageName(method));
+            ret.put("classQualifiedName", getClassQualifiedName(method));
+            ret.put("classSimpleName", getClassSimpleName(method));
+            ret.put("methodName", method.getDeclaringElement().getSimpleName().toString());
         } else if (representative instanceof JavaMethodParameterElement) {
             //package, classSimpleName, methodName, parameterIndex
             JavaMethodParameterElement param = (JavaMethodParameterElement) representative;
             @SuppressWarnings("ConstantConditions")
             JavaMethodElement method = representative.getParent().as(JavaMethodElement.class);
-            retLen = customAttachments.length + 10;
-            ret = new String[retLen];
-            System.arraycopy(customAttachments, 0, ret, 0, customAttachments.length);
-            ret[idx] = "package";
-            ret[idx + 1] = getPackageName(method);
-            ret[idx + 2] = "classSimpleName";
-            ret[idx + 3] = getClassSimpleName(method);
-            ret[idx + 4] = "methodName";
-            ret[idx + 5] = method.getDeclaringElement().getSimpleName().toString();
-            ret[idx + 6] = "parameterIndex";
-            ret[idx + 7] = Integer.toString(param.getIndex());
+            addElementKind = true;
+            ret.put("package", getPackageName(method));
+            ret.put("classQualifiedName", getClassQualifiedName(method));
+            ret.put("classSimpleName", getClassSimpleName(method));
+            ret.put("methodName", method.getDeclaringElement().getSimpleName().toString());
+            ret.put("parameterIndex", Integer.toString(param.getIndex()));
         } else {
-            retLen = -1;
-            ret = customAttachments;
+            addElementKind = false;
         }
 
-        if (retLen > 0) {
+        if (oldElement != null && oldElement.getArchive() != null) {
+            ret.put("oldArchive", oldElement.getArchive().getName());
+        }
+
+        if (newElement != null && newElement.getArchive() != null) {
+            ret.put("newArchive", newElement.getArchive().getName());
+        }
+
+        if (addElementKind) {
             String kind;
             ElementKind elementKind = ((JavaModelElement) representative).getDeclaringElement().getKind();
             switch (elementKind) {
@@ -317,11 +307,10 @@ public enum Code {
                 default:
                     kind = "unknownKind(" + elementKind + ")";
             }
-            ret[retLen - 2] = "elementKind";
-            ret[retLen - 1] = kind;
+            ret.put("elementKind", kind);
         }
 
-        return  ret;
+        return ret;
     }
 
     private static String getPackageName(JavaModelElement element) {
@@ -347,15 +336,20 @@ public enum Code {
     }
 
     private static String getClassSimpleName(JavaModelElement element) {
+        TypeElement declaringClass = getDeclaringClass(element);
+        return declaringClass == null ? null : declaringClass.getSimpleName().toString();
+    }
+
+    private static String getClassQualifiedName(JavaModelElement element) {
+        TypeElement declaringClass = getDeclaringClass(element);
+        return declaringClass == null ? null : declaringClass.getQualifiedName().toString();
+    }
+
+    private static TypeElement getDeclaringClass(JavaModelElement element) {
         while (element != null && !(element instanceof JavaTypeElement)) {
             element = element.getParent();
         }
-
-        if (element == null) {
-            return null;
-        } else {
-            return element.as(JavaTypeElement.class).getDeclaringElement().getSimpleName().toString();
-        }
+        return element == null ? null : element.as(JavaTypeElement.class).getDeclaringElement();
     }
 
     public String code() {
@@ -373,34 +367,12 @@ public enum Code {
         return bld.build();
     }
 
-    public Difference createDifference(@Nonnull Locale locale, String... attachments) {
-        return createDifference(locale, keyVals(attachments));
-    }
-
     public Difference createDifference(@Nonnull Locale locale, LinkedHashMap<String, String> attachments) {
         String[] params = attachments.values().toArray(new String[attachments.size()]);
         return createDifference(locale, attachments, params);
     }
 
-    private static String[] vals(String... keyVals) {
-        if (keyVals.length % 2 != 0) {
-            throw new IllegalArgumentException("Uneven key-value pairs.");
-        }
-
-        String[] ret = new String[keyVals.length / 2];
-        for (int i = 1; i < keyVals.length; i += 2) {
-            ret[(i - 1) / 2] = keyVals[i];
-        }
-
-        return ret;
-    }
-
-    public Difference createDifferenceWithExplicitParams(@Nonnull Locale locale, String[] attachments, String... params) {
-        LinkedHashMap<String, String> ats = keyVals(attachments);
-        return createDifference(locale, ats, params);
-    }
-
-    private Difference createDifference(@Nonnull Locale locale, LinkedHashMap<String, String> attachments,
+    public Difference createDifference(@Nonnull Locale locale, LinkedHashMap<String, String> attachments,
                                        String... parameters) {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, parameters);

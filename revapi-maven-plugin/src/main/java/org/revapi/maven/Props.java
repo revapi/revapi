@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,6 +96,11 @@ final class Props {
         static final String DEFAULT_VALUE = "true";
     }
 
+    static final class resolveTransitiveProvidedDependencies {
+        static final String NAME = PREFIX + "resolveTransitiveProvidedDependencies";
+        static final String DEFAULT_VALUE = "false";
+    }
+
     static final class versionFormat {
         static final String NAME = PREFIX + "versionFormat";
         static final String DEFAULT_VALUE = "";
@@ -139,5 +144,10 @@ final class Props {
     static final class convertAnalysisConfigurationFiles {
         static final String NAME = PREFIX + "convertAnalysisConfigurationFiles";
         static final String DEFAULT_VALUE = "false";
+    }
+
+    static final class outputIgnoreSuggestions {
+        static final String NAME = PREFIX + "outputIgnoreSuggestions";
+        static final String DEFAULT_VALUE = "true";
     }
 }

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>36-SNAPSHOT</version>
+        <version>37-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -34,18 +34,17 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-maven-plugin</artifactId>
-    <version>0.10.1-SNAPSHOT</version>
+    <version>0.10.5-SNAPSHOT</version>
 
     <properties>
         <maven.version>3.2.5</maven.version>
         <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
         <maven-invoker.version>1.9</maven-invoker.version>
-        <aether.version>0.9.1.v20140329</aether.version>
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi-java.version>0.15.0</revapi-java.version>
-        <revapi-java-spi.version>0.15.0</revapi-java-spi.version>
+        <revapi-java.version>0.16.0</revapi-java.version>
+        <revapi-java-spi.version>0.15.1</revapi-java-spi.version>
         <revapi-reporter-text.version>0.9.0</revapi-reporter-text.version>
 
         <automatic.module.name>org.revapi.maven.plugin</automatic.module.name>
@@ -59,20 +58,20 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.9.0</version>
+            <version>0.10.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.7.0</version>
+            <version>0.7.3</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.8.3</version>
+            <version>0.9.0</version>
         </dependency>
 
         <dependency>
@@ -95,21 +94,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-api</artifactId>
-            <version>${aether.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-util</artifactId>
-            <version>${aether.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.maven.reporting</groupId>
             <artifactId>maven-reporting-impl</artifactId>
-            <version>2.4</version>
+            <version>3.0.0</version>
         </dependency>
 
         <dependency>
@@ -121,6 +108,27 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <configuration>
+                    <analysisConfiguration>
+                        <revapi.filter>
+                            <archives>
+                                <!-- 
+                                    We're running in the Maven environment, so whatever Maven breaks during our upgrades, 
+                                    the users will have to deal with anyway...
+                                -->
+                                <exclude>
+                                    <item>org\.apache\.maven[.:].*</item>
+                                    <item>org\.codehaus\.plexus:.*</item>
+                                    <item>org\.eclipse\.sisu:.*</item>	    
+                                </exclude>
+                            </archives>
+                        </revapi.filter>
+                    </analysisConfiguration>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>

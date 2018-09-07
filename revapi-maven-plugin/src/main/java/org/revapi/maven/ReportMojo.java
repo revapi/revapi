@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,8 +53,9 @@ import org.revapi.Element;
 public class ReportMojo extends AbstractMavenReport {
 
     /**
-     * The JSON configuration of various analysis options. The available options depend on what
-     * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
+     * The JSON or XML configuration of various analysis options. The available options depend on what
+     * analyzers are present on the plugin classpath through the {@code &lt;dependencies&gt;}.
+     * Consult <a href="examples/configuration.html">configuration documentation</a> for more details.
      *
      * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
@@ -205,9 +206,26 @@ public class ReportMojo extends AbstractMavenReport {
      * <p>In rare circumstances this is not a desired behavior though. It is undesired if for example the classes from
      * the provided dependency are used only for establishing desired build order or when they are used in some
      * non-standard scenarios during the build and actually not needed at runtime.
+     *
+     * <p>Note that this property only influences the resolution of provided dependencies of the main artifacts, not
+     * the transitively reachable provided dependencies. For those, use the {@link #resolveTransitiveProvidedDependencies}
+     * parameter.
      */
     @Parameter(property = Props.resolveProvidedDependencies.NAME, defaultValue = Props.resolveProvidedDependencies.DEFAULT_VALUE)
     protected boolean resolveProvidedDependencies;
+
+    /**
+     * In addition to {@link #resolveProvidedDependencies} this property further controls how provided dependencies
+     * are resolved. Using this property you can control how the indirect, transitively reachable, provided dependencies
+     * are treated. The default is to not consider them, which is almost always the right thing to do. It might be
+     * necessary to set this property to {@code true} in the rare circumstances where the API of the main artifacts
+     * includes types from such transitively included provided dependencies. Such occurrence will manifest itself by
+     * Revapi considering such types as missing (which is by default reported as a potentially breaking change). When
+     * you then resolve the transitive provided dependencies (by setting this parameter to true), Revapi will be able to
+     * find such types and do a proper analysis of them.
+     */
+    @Parameter(property = Props.resolveTransitiveProvidedDependencies.NAME, defaultValue = Props.resolveTransitiveProvidedDependencies.DEFAULT_VALUE)
+    protected boolean resolveTransitiveProvidedDependencies;
 
     /**
      * If set, this property demands a format of the version string when the {@link #oldVersion} or {@link #newVersion}
@@ -388,6 +406,7 @@ public class ReportMojo extends AbstractMavenReport {
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
                 .withCheckDependencies(this.checkDependencies)
                 .withResolveProvidedDependencies(this.resolveProvidedDependencies)
+                .withResolveTransitiveProvidedDependencies(this.resolveTransitiveProvidedDependencies)
                 .withDisallowedExtensions(this.disallowedExtensions)
                 .withFailOnMissingConfigurationFiles(this.failOnMissingConfigurationFiles)
                 .withFailOnUnresolvedArtifacts(this.failOnUnresolvedArtifacts)

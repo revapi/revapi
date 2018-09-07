@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.function.Predicate;
@@ -37,6 +38,8 @@ import org.revapi.Element;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
+import org.revapi.java.spi.JavaElement;
+import org.revapi.java.spi.JavaTypeElement;
 
 
 /**
@@ -203,6 +206,32 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             Assert.assertFalse(roots.stream().anyMatch(hasName("class GenericsParams.Unused")));
         } finally {
             deleteDir(compRes.compilationPath);
+            analyzer.getCompilationValve().removeCompiledResults();
+        }
+    }
+
+    @Test
+    public void testInheritedMembersResetArchiveToThatOfInheritingClass() throws Exception {
+        ArchiveAndCompilationPath archive = createCompiledJar("c.jar", "misc/C.java");
+
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
+                Arrays.asList(new ShrinkwrapArchive(archive.archive)),
+                null), Executors.newSingleThreadExecutor(), null, false,
+                InclusionFilter.acceptAll());
+
+        try {
+            JavaElementForest forest = analyzer.analyze();
+
+            forest.getRoots();
+
+            Assert.assertEquals(1, forest.getRoots().size());
+
+            JavaTypeElement C = forest.getRoots().first();
+
+            Assert.assertTrue(C.getChildren().stream().allMatch(e -> Objects.equals(((JavaElement) e).getArchive(),
+                    C.getArchive())));
+        } finally {
+            deleteDir(archive.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();
         }
     }

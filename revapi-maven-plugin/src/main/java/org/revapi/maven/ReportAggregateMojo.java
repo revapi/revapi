@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -217,9 +217,16 @@ public class ReportAggregateMojo extends ReportMojo {
         String versionRegexString = getValueOfChild(pluginConfig, "versionFormat");
         Pattern versionRegex = versionRegexString == null ? null : Pattern.compile(versionRegexString);
 
+        String[] topLevelScopes = resolveProvidedDependencies
+                ? new String[] {"compile", "provided"}
+                : new String[] {"compile"};
+        String[] transitiveScopes = resolveTransitiveProvidedDependencies
+            ? new String[]{"compile", "provided"}
+            : new String[]{"compile"};
+
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
-        session.setDependencySelector(new ScopeDependencySelector("compile", "provided"));
-        session.setDependencyTraverser(new ScopeDependencyTraverser("compile", "provided"));
+        session.setDependencySelector(new ScopeDependencySelector(topLevelScopes, transitiveScopes));
+        session.setDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes));
 
         if (alwaysCheckForReleaseVersion) {
             session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
@@ -268,6 +275,7 @@ public class ReportAggregateMojo extends ReportMojo {
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
                 .withCheckDependencies(this.checkDependencies)
                 .withResolveProvidedDependencies(this.resolveProvidedDependencies)
+                .withResolveTransitiveProvidedDependencies(this.resolveTransitiveProvidedDependencies)
                 .withDisallowedExtensions(disallowedExtensions)
                 .withFailOnMissingConfigurationFiles(this.failOnMissingConfigurationFiles)
                 .withFailOnUnresolvedArtifacts(this.failOnUnresolvedArtifacts)
