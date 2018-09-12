@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +18,14 @@ package org.revapi.java.checks.classes;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import javax.lang.model.element.TypeElement;
+import javax.annotation.Nonnull;
 
+import org.revapi.AnalysisContext;
+import org.revapi.Archive;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
@@ -32,6 +36,17 @@ import org.revapi.java.spi.JavaTypeElement;
  * @since 0.1
  */
 public final class Removed extends CheckBase {
+    private Set<Archive> primaryApi;
+
+    @Override
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        super.initialize(analysisContext);
+
+        // the primary API most often consists of a single archive. Let's reserve capacity for 2 just to be sure, but
+        // don't waste space just because of the unlikely possibility of more primary archives.
+        primaryApi = new HashSet<>(2);
+        analysisContext.getOldApi().getArchives().forEach(primaryApi::add);
+    }
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -49,12 +64,9 @@ public final class Removed extends CheckBase {
     protected List<Difference> doEnd() {
         ActiveElements<JavaTypeElement> types = popIfActive();
         if (types != null) {
-            TypeElement typeInNew = getNewTypeEnvironment().getElementUtils()
-                    .getTypeElement(types.oldElement.getDeclaringElement().getQualifiedName());
-
-            Difference difference = typeInNew == null ? createDifference(Code.CLASS_REMOVED,
-                    Code.attachmentsFor(types.oldElement, types.newElement)) :
-                    createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API,
+            Difference difference = primaryApi.contains(types.oldElement.getArchive())
+                    ? createDifference(Code.CLASS_REMOVED, Code.attachmentsFor(types.oldElement, types.newElement))
+                    : createDifference(Code.CLASS_EXTERNAL_CLASS_NO_LONGER_EXPOSED_IN_API,
                             Code.attachmentsFor(types.oldElement, types.newElement));
 
             return Collections.singletonList(difference);

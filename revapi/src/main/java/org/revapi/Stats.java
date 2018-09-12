@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,8 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
- * Quick and dirty execution time statistics collection class.
+ * Quick and dirty execution time statistics collection class. Note that the statistics collected during the
+ * {@code close()} methods of the extensions are not taken into account.
  *
  * @author Lukas Krejci
  * @since 0.4.1

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>36-SNAPSHOT</version>
+        <version>37-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,18 +33,18 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-standalone</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
-        <version.org.revapi.revapi>0.10.0-SNAPSHOT</version.org.revapi.revapi>
+        <version.org.revapi.revapi>0.11.0-SNAPSHOT</version.org.revapi.revapi>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>${version.org.revapi.revapi}</version>
+	        <version>${version.org.revapi.revapi}</version>
         </dependency>
 
         <dependency>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.8.3</version>
+            <version>0.9.0</version>
         </dependency>
 
         <dependency>

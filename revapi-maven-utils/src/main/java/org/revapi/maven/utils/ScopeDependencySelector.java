@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,8 @@
  */
 package org.revapi.maven.utils;
 
+import java.util.Arrays;
+
 import org.eclipse.aether.collection.DependencyCollectionContext;
 import org.eclipse.aether.collection.DependencySelector;
 import org.eclipse.aether.graph.Dependency;
@@ -26,18 +28,20 @@ import org.eclipse.aether.graph.Exclusion;
  * @since 0.1
  */
 public class ScopeDependencySelector implements DependencySelector {
-    private final String[] scopes;
+    private final String[] topLevelScopes;
+    private final String[] transitiveScopes;
     private final int depth;
     private final Dependency parent;
     private final ScopeDependencySelector parentSelector;
 
-    public ScopeDependencySelector(String... scopes) {
-        this(scopes, null, null, 0);
+    public ScopeDependencySelector(String[] topLevelScopes, String[] transitiveScopes) {
+        this(topLevelScopes, transitiveScopes, null, null, 0);
     }
 
-    protected ScopeDependencySelector(String[] scopes, Dependency parent, ScopeDependencySelector parentSelector,
-        int depth) {
-        this.scopes = scopes;
+    private ScopeDependencySelector(String[] topLevelScopes, String[] transitiveScopes, Dependency parent,
+            ScopeDependencySelector parentSelector, int depth) {
+        this.topLevelScopes = topLevelScopes;
+        this.transitiveScopes = transitiveScopes;
         this.parent = parent;
         this.parentSelector = parentSelector;
         this.depth = depth;
@@ -49,7 +53,7 @@ public class ScopeDependencySelector implements DependencySelector {
             scope = "compile";
         }
 
-        for (String s : scopes) {
+        for (String s : depth > 1 ? transitiveScopes : topLevelScopes) {
             if (s.equals(scope)) {
                 return true;
             }
@@ -68,7 +72,7 @@ public class ScopeDependencySelector implements DependencySelector {
         return false;
     }
 
-    protected boolean isExcluded(Dependency dependency) {
+    private boolean isExcluded(Dependency dependency) {
         boolean result = isExcludedFromParent(dependency);
         if (!result && parentSelector != null) {
             result = parentSelector.isExcluded(dependency);
@@ -97,7 +101,11 @@ public class ScopeDependencySelector implements DependencySelector {
 
     @Override
     public org.eclipse.aether.collection.DependencySelector deriveChildSelector(DependencyCollectionContext context) {
-        return new ScopeDependencySelector(scopes, context.getDependency(), this, depth + 1);
+        if (depth > 1) {
+            return this;
+        } else {
+            return new ScopeDependencySelector(topLevelScopes, transitiveScopes, context.getDependency(), this, depth + 1);
+        }
     }
 
     @Override
@@ -109,13 +117,13 @@ public class ScopeDependencySelector implements DependencySelector {
         }
 
         ScopeDependencySelector that = (ScopeDependencySelector) obj;
-        return depth == that.depth;
+        return depth == that.depth &&
+                (depth > 1 ? Arrays.equals(transitiveScopes, that.transitiveScopes)
+                        : Arrays.equals(topLevelScopes, that.topLevelScopes));
     }
 
     @Override
     public int hashCode() {
-        int hash = 17;
-        hash = hash * 31 + depth;
-        return hash;
+        return depth > 1 ? Arrays.hashCode(transitiveScopes) : Arrays.hashCode(topLevelScopes);
     }
 }

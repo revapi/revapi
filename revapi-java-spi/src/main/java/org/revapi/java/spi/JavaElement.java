@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 package org.revapi.java.spi;
+
+import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
 
@@ -32,4 +34,7 @@ import org.revapi.Element;
 public interface JavaElement extends Element {
     @Nonnull
     TypeEnvironment getTypeEnvironment();
+
+    @Override
+    SortedSet<? extends JavaElement> getChildren();
 }

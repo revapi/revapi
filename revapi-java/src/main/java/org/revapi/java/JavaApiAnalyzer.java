@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +45,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.util.Types;
+import javax.tools.ToolProvider;
 
 import org.jboss.dmr.ModelNode;
 import org.revapi.API;
@@ -61,12 +64,48 @@ import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Check;
 import org.revapi.java.spi.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
 public final class JavaApiAnalyzer implements ApiAnalyzer {
+    private static final Logger LOG = LoggerFactory.getLogger(JavaApiAnalyzer.class);
+
+    //see #forceClearCompilerCache for what these are
+    private static final Method CLEAR_COMPILER_CACHE;
+    private static final Object SHARED_ZIP_FILE_INDEX_CACHE;
+
+    static {
+        String javaVersion = System.getProperty("java.version");
+        if (javaVersion.startsWith("1.")) {
+            Method clearCompilerCache = null;
+            Object sharedInstance = null;
+            try {
+                Class<?> zipFileIndexCacheClass = ToolProvider.getSystemToolClassLoader()
+                        .loadClass("com.sun.tools.javac.file.ZipFileIndexCache");
+
+                clearCompilerCache = zipFileIndexCacheClass.getDeclaredMethod("clearCache");
+                Method getSharedInstance = zipFileIndexCacheClass.getDeclaredMethod("getSharedInstance");
+                sharedInstance = getSharedInstance.invoke(null);
+            } catch (Exception e) {
+                LOG.warn("Failed to initialize the force-clearing of javac file caches. We will probably leak resources.", e);
+            }
+
+            if (clearCompilerCache != null && sharedInstance != null) {
+                CLEAR_COMPILER_CACHE = clearCompilerCache;
+                SHARED_ZIP_FILE_INDEX_CACHE = sharedInstance;
+            } else {
+                CLEAR_COMPILER_CACHE = null;
+                SHARED_ZIP_FILE_INDEX_CACHE = null;
+            }
+        } else {
+            CLEAR_COMPILER_CACHE = null;
+            SHARED_ZIP_FILE_INDEX_CACHE = null;
+        }
+    }
 
     private final ExecutorService compilationExecutor = Executors.newFixedThreadPool(2, new ThreadFactory() {
         private volatile int cnt;
@@ -80,6 +119,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     private AnalysisContext analysisContext;
     private AnalysisConfiguration configuration;
     private final Iterable<Check> checks;
+    private final List<CompilationValve> activeCompilations = new ArrayList<>(2);
 
     public JavaApiAnalyzer() {
         this(ServiceLoader.load(Check.class, JavaApiAnalyzer.class.getClassLoader()));
@@ -455,6 +495,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                 ModelNode checkConfig = analysisContext.getConfiguration().get("checks", c.getExtensionId());
                 AnalysisContext checkCtx = analysisContext.copyWithConfiguration(checkConfig);
                 c.initialize(checkCtx);
+            } else {
+                c.initialize(analysisContext.copyWithConfiguration(new ModelNode()));
             }
         }
     }
@@ -479,13 +521,20 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         CompilationValve oldValve = oldA.getCompilationValve();
         CompilationValve newValve = newA.getCompilationValve();
 
-        return new JavaElementDifferenceAnalyzer(analysisContext, oldEnvironment, oldValve, newEnvironment, newValve,
-                checks, configuration);
+        activeCompilations.add(oldValve);
+        activeCompilations.add(newValve);
+
+        return new JavaElementDifferenceAnalyzer(analysisContext, oldEnvironment, newEnvironment, checks,
+                configuration);
     }
 
     @Override
     public void close() {
         compilationExecutor.shutdown();
+
+        activeCompilations.forEach(CompilationValve::removeCompiledResults);
+
+        forceClearCompilerCache();
     }
 
     private static String consume(Reader rdr) throws IOException {
@@ -512,6 +561,19 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
 
                 //noinspection ThrowFromFinallyBlock
                 throw e;
+            }
+        }
+    }
+
+    //Javac's standard file manager prior to Java 9 is leaking resources across compilation tasks because it doesn't
+    // clear a shared "zip file index" cache, when it is close()'d. We try to clear it by force.
+    private static void forceClearCompilerCache() {
+        if (CLEAR_COMPILER_CACHE != null && SHARED_ZIP_FILE_INDEX_CACHE != null) {
+            try {
+                CLEAR_COMPILER_CACHE.invoke(SHARED_ZIP_FILE_INDEX_CACHE);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                LOG.warn("Failed to force-clear compiler caches, even though it should have been possible." +
+                        "This will probably leak memory", e);
             }
         }
     }

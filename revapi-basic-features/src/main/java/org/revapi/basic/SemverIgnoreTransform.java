@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,17 +103,25 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
     @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
         ModelNode node = analysisContext.getConfiguration();
 
-        if (hasMultipleElements(analysisContext.getOldApi().getArchives())
-                || hasMultipleElements(analysisContext.getNewApi().getArchives())) {
-            throw new IllegalArgumentException(
-                    "The semver extension doesn't handle changes in multiple archives at once.");
-        }
-
         enabled = node.get("enabled").isDefined() && node.get("enabled").asBoolean();
 
         if (enabled) {
-            Archive oldArchive = analysisContext.getOldApi().getArchives().iterator().next();
-            Archive newArchive = analysisContext.getNewApi().getArchives().iterator().next();
+            if (hasMultipleElements(analysisContext.getOldApi().getArchives())
+                    || hasMultipleElements(analysisContext.getNewApi().getArchives())) {
+                throw new IllegalArgumentException(
+                        "The semver extension doesn't handle changes in multiple archives at once.");
+            }
+
+            Iterator<? extends Archive> oldArchives = analysisContext.getOldApi().getArchives().iterator();
+            Iterator<? extends Archive> newArchives = analysisContext.getNewApi().getArchives().iterator();
+
+            if (!oldArchives.hasNext() || !newArchives.hasNext()) {
+                enabled = false;
+                return;
+            }
+
+            Archive oldArchive = oldArchives.next();
+            Archive newArchive = newArchives.next();
 
             if (!(oldArchive instanceof Archive.Versioned)) {
                 throw new IllegalArgumentException("Old archive doesn't support extracting the version.");

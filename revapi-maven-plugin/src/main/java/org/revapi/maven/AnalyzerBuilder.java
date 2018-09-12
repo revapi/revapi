@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,6 +71,7 @@ class AnalyzerBuilder {
     private boolean alwaysCheckForReleaseVersion;
     private boolean checkDependencies;
     private boolean resolveProvidedDependencies;
+    private boolean resolveTransitiveProvidedDependencies;
     private String versionFormat;
     private Revapi revapi;
     private Map<String, Object> contextData = new HashMap<>(2);
@@ -175,6 +176,11 @@ class AnalyzerBuilder {
         return this;
     }
 
+    AnalyzerBuilder withResolveTransitiveProvidedDependencies(boolean resolveTransitiveProvidedDependencies) {
+        this.resolveTransitiveProvidedDependencies = resolveTransitiveProvidedDependencies;
+        return this;
+    }
+
     AnalyzerBuilder withVersionFormat(String versionFormat) {
         this.versionFormat = versionFormat;
         return this;
@@ -227,8 +233,8 @@ class AnalyzerBuilder {
         return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, oldGavs,
                 newGavs, project, repositorySystem, repositorySystemSession, reporterType, contextData, locale, log,
                 failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies, resolveProvidedDependencies, versionFormat, ctor,
-                revapi);
+                alwaysCheckForReleaseVersion, checkDependencies, resolveProvidedDependencies,
+                resolveTransitiveProvidedDependencies, versionFormat, ctor, revapi);
     }
 
     /**

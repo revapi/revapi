@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +16,14 @@
  */
 package org.revapi.java;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Collections;
 import java.util.EnumSet;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
@@ -36,9 +37,9 @@ import org.revapi.java.spi.CheckBase;
 public class CheckSpecificConfigurationTest {
 
     @Test
-    public void testNoConfigNoInitialize() throws Exception {
+    public void testEmptyConfigWhenNoExtensionId() throws Exception {
         class FakeCheck extends CheckBase {
-            public boolean initializeCalled = false;
+            public boolean emptyConfig = false;
 
             @Override
             public EnumSet<Type> getInterest() {
@@ -47,16 +48,16 @@ public class CheckSpecificConfigurationTest {
 
             @Override
             public void initialize(@Nonnull AnalysisContext analysisContext) {
-                initializeCalled = true;
+                emptyConfig = !analysisContext.getConfiguration().isDefined();
             }
         }
 
         FakeCheck check = new FakeCheck();
         JavaApiAnalyzer analyzer = new JavaApiAnalyzer(Collections.singleton(check));
 
-        analyzer.initialize(AnalysisContext.builder().build().copyWithConfiguration(new ModelNode()));
+        analyzer.initialize(AnalysisContext.builder().build().copyWithConfiguration(ModelNode.fromJSONString("{}")));
 
-        Assert.assertFalse(check.initializeCalled);
+        Assert.assertTrue(check.emptyConfig);
     }
 
     @Test

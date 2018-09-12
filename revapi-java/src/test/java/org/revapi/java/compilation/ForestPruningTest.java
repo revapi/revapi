@@ -17,7 +17,6 @@
 package org.revapi.java.compilation;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -38,8 +37,9 @@ import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.UseSite;
-import org.revapi.java.test.support.Jar;
 import org.revapi.simple.FileArchive;
+import org.revapi.testjars.CompiledJar;
+import org.revapi.testjars.junit4.Jar;
 
 public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
 
@@ -70,7 +70,7 @@ public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
         environment = new ProbingEnvironment(fakeApi);
         HashMap<javax.lang.model.element.TypeElement, TypeElement> typeMap = new HashMap<>();
 
-        Jar.Environment env = jar.from().classPathSources("/usesites/", "A.java", "B.java", "C.java", "E.java", "F.java").build().analyze();
+        CompiledJar.Environment env = jar.from().classPathSources("/usesites/", "A.java", "B.java", "C.java", "E.java", "F.java").build().analyze();
         environment.setProcessingEnvironment(env.processingEnvironment());
 
         forest = environment.getTree();

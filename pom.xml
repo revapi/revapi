@@ -51,14 +51,13 @@
         <module>revapi-standalone</module>
         <module>revapi-site</module>
         <module>revapi-site-shared</module>
-        <module>revapi-java-test-support</module>
+        <module>coverage</module>
     </modules>
 
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.5.1</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>

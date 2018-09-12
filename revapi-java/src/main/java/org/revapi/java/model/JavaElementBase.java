@@ -29,27 +29,23 @@ import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
-import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
-import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public abstract class JavaElementBase<E extends Element, T extends TypeMirror> extends SimpleElement
+public abstract class JavaElementBase<E extends Element, T extends TypeMirror> extends AbstractJavaElement
         implements JavaModelElement {
 
-    protected final ProbingEnvironment environment;
     protected final E element;
     protected final T representation;
-    private final Archive archive;
     private String comparableSignature;
     private boolean inherited = false;
     private String stringRepre;
 
     JavaElementBase(ProbingEnvironment env, Archive archive, E element, T representation) {
-        this.environment = env;
+        super(env);
         this.element = element;
         this.archive = archive;
         this.representation = representation;
@@ -78,12 +74,6 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
         return environment.getApi();
     }
 
-    @Nullable
-    @Override
-    public Archive getArchive() {
-        return archive;
-    }
-
     @Override
     public int compareTo(@Nonnull org.revapi.Element o) {
         if (getClass() != o.getClass()) {
@@ -91,12 +81,6 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
         }
 
         return getComparableSignature().compareTo(((JavaElementBase<?, ?>) o).getComparableSignature());
-    }
-
-    @Nonnull
-    @Override
-    public TypeEnvironment getTypeEnvironment() {
-        return environment;
     }
 
     public E getDeclaringElement() {
@@ -174,6 +158,12 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     @Override
     public String toString() {
         return getFullHumanReadableString();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public JavaElementBase<E, T> clone() {
+        return (JavaElementBase<E, T>) super.clone();
     }
 
     protected String getComparableSignature() {

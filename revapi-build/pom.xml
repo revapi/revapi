@@ -33,13 +33,13 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>36-SNAPSHOT</version>
+    <version>37-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>${web.url}</url>
 
     <properties>
-        <self-api-check.maven-version>0.10.0</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.15.0</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.10.4</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.18.0</self-api-check.java-extension-version>
 
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
@@ -48,8 +48,6 @@
         <version.org.slf4j>1.7.5</version.org.slf4j>
 
         <version.revapi-build-support>5</version.revapi-build-support>
-
-        <maven.compiler.release>8</maven.compiler.release>
 
         <version.pw.krejci.multi-release-jar-maven-plugin>0.1.4</version.pw.krejci.multi-release-jar-maven-plugin>
 
@@ -154,7 +152,7 @@
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>common-checks</id>
+                        <id>java-version-check</id>
                         <goals>
                             <goal>enforce</goal>
                         </goals>
@@ -216,7 +214,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.9</version>
+                <version>0.8.2</version>
                 <executions>
                     <execution>
                         <id>prepare-unit-test</id>
@@ -299,6 +297,28 @@
                     </dependency>
                 </dependencies>
             </plugin>
+            <plugin>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.revapi</groupId>
+                        <artifactId>revapi-build-support</artifactId>
+                        <version>${version.revapi-build-support}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <consoleOutput>true</consoleOutput>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals><goal>check</goal></goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -355,17 +375,15 @@
                     </reportSet>
                 </reportSets>
                 <configuration>
-                    <analysisConfiguration><![CDATA[
-                       {
-                         "revapi": {
-                           "filter": {
-                             "archives": {
-                               "include": ["${project.groupId}:${project.artifactId}:.*"]
-                             }
-                           }
-                         }
-                       }
-                    ]]></analysisConfiguration>
+                    <analysisConfiguration>
+                        <revapi.filter>
+                            <archives>
+                                <include>
+                                    <item>${project.groupId}:${project.artifactId}:.*</item>
+                                </include>
+                            </archives>
+                        </revapi.filter>
+                    </analysisConfiguration>
                 </configuration>
             </plugin>
         </plugins>
@@ -373,37 +391,30 @@
 
     <profiles>
         <profile>
-            <!-- checkstyle currently doesn't work with Java 9, so let's only use it on lower java versions -->
-            <id>checkstyle</id>
+            <id>java9</id>
+            <activation>
+                <jdk>[9,]</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
+        <profile>
+            <id>java8</id>
             <activation>
                 <jdk>[,1.8]</jdk>
             </activation>
             <build>
                 <plugins>
+                    <!-- skip the java9 enforcer check -->
                     <plugin>
-                        <artifactId>maven-checkstyle-plugin</artifactId>
-                        <dependencies>
-                            <dependency>
-                                <groupId>com.puppycrawl.tools</groupId>
-                                <artifactId>checkstyle</artifactId>
-                                <version>6.4</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.revapi</groupId>
-                                <artifactId>revapi-build-support</artifactId>
-                                <version>${version.revapi-build-support}</version>
-                            </dependency>
-                        </dependencies>
-                        <configuration>
-                            <consoleOutput>true</consoleOutput>
-                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                            <configLocation>checkstyle.xml</configLocation>
-                            <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
-                        </configuration>
+                        <artifactId>maven-enforcer-plugin</artifactId>
                         <executions>
                             <execution>
-                                <goals><goal>check</goal></goals>
-                                <phase>verify</phase>
+                                <id>java-version-check</id>
+                                <configuration>
+                                    <skip>true</skip>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -413,7 +424,7 @@
         <profile>
             <id>api-check</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+		    <jdk>[,]</jdk>
             </activation>
 
             <build>
@@ -445,23 +456,19 @@
                         </dependencies>
                         <configuration>
                             <failOnMissingConfigurationFiles>false</failOnMissingConfigurationFiles>
-                            <analysisConfiguration><![CDATA[
-                                {
-                                    "revapi" : {
-                                        "java" : {
-                                            "missing-classes" : {
-                                                "behavior" : "report"
-                                            }
-                                        },
-                                        "semver": {
-                                          "ignore": {
-                                            "enabled": true,
-                                            "passThroughDifferences": ["java.class.nonPublicPartOfAPI"]
-                                          }
-                                        }
-                                    }
-                                }
-                            ]]></analysisConfiguration>
+                            <analysisConfiguration>
+                                <revapi.java>
+                                    <missing-classes>
+                                        <behavior>report</behavior>
+                                    </missing-classes>
+                                </revapi.java>
+                                <revapi.semver.ignore>
+                                    <enabled>true</enabled>
+                                    <passThroughDifferences>
+                                        <item>java.class.nonPublicPartOfAPI</item>
+                                    </passThroughDifferences>
+                                </revapi.semver.ignore>
+                            </analysisConfiguration>
                             <analysisConfigurationFiles>
                                 <configurationFile>
                                     <path>api-changes.json</path>

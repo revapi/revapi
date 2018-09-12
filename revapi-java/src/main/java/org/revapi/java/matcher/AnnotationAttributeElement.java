@@ -16,6 +16,8 @@
  */
 package org.revapi.java.matcher;
 
+import java.util.SortedSet;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationValue;
@@ -84,5 +86,12 @@ final class AnnotationAttributeElement extends SimpleElement implements JavaElem
 
     public AnnotationValue getAnnotationValue() {
         return annotationValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nonnull
+    @Override
+    public SortedSet<? extends JavaElement> getChildren() {
+        return (SortedSet<? extends JavaElement>) super.getChildren();
     }
 }

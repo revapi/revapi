@@ -113,18 +113,15 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return canonicalName;
     }
 
-    @Override
-    public boolean isInAPI() {
+    @Override public boolean isInAPI() {
         return inApi;
     }
 
-    @Override
-    public boolean isInApiThroughUse() {
+    @Override public boolean isInApiThroughUse() {
         return inApiThroughUse;
     }
 
-    @Override
-    public Set<UseSite> getUseSites() {
+    @Override public Set<UseSite> getUseSites() {
         if (useSites == null) {
             if (rawUseSites == null) {
                 useSites = new HashSet<>(1);
@@ -211,8 +208,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return binaryName.compareTo(((TypeElement) o).binaryName);
     }
 
-    @Override
-    protected String createFullHumanReadableString() {
+    @Override protected String createFullHumanReadableString() {
         TypeMirror rep = getModelRepresentation();
         return getHumanReadableElementType() + " " + (rep == null ? canonicalName : Util.toHumanReadableString(rep));
     }
@@ -223,10 +219,14 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return null;
     }
 
+    @Override
+    public TypeElement clone() {
+        return (TypeElement) super.clone();
+    }
+
     private JavaModelElement getModel(Element element, TypeElement owner, int indexInParent) {
         return element.accept(new SimpleElementVisitor8<JavaModelElement, Void>() {
-            @Override
-            public JavaModelElement visitVariable(VariableElement e, Void ignored) {
+            @Override public JavaModelElement visitVariable(VariableElement e, Void ignored) {
                 if (e.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
                     //this is a field
                     TypeElement type = findModelType(e.getEnclosingElement());
@@ -264,13 +264,11 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 }
             }
 
-            @Override
-            public JavaModelElement visitType(javax.lang.model.element.TypeElement e, Void ignored) {
+            @Override public JavaModelElement visitType(javax.lang.model.element.TypeElement e, Void ignored) {
                 return findModelType(e);
             }
 
-            @Override
-            public JavaModelElement visitExecutable(ExecutableElement e, Void ignored) {
+            @Override public JavaModelElement visitExecutable(ExecutableElement e, Void ignored) {
                 TypeElement type = findModelType(e.getEnclosingElement());
                 if (type == null) {
                     return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -137,11 +137,19 @@ public class FieldChecksTest extends AbstractJavaElementAnalyzerTest {
     }
 
     @Test
-    public void testSerializabilityChanges() throws Exception {
+    public void testSerializableUIDUnchanged() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                "v1/fields/Serial.java", "v2/fields/Serial.java");
+                "v1/fields/SerialUnchanged.java", "v2/fields/SerialUnchanged.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED.code()));
+    }
+
+    @Test
+    public void testSerializableUIChanged() throws Exception {
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/fields/SerialChanged.java", "v2/fields/SerialChanged.java");
+
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_SERIAL_VERSION_UID_CHANGED.code()));
     }
 
     @Test

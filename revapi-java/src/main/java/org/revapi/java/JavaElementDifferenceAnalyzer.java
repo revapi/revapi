@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +16,10 @@
  */
 package org.revapi.java;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -42,7 +41,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.type.DeclaredType;
-import javax.tools.ToolProvider;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
@@ -50,7 +48,6 @@ import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Stats;
-import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.AnnotationElement;
 import org.revapi.java.model.FieldElement;
@@ -74,6 +71,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private static final Logger LOG = LoggerFactory.getLogger(JavaElementDifferenceAnalyzer.class);
 
     private static final Map<Check.Type, Set<Check.Type>> POSSIBLE_CHILDREN_TYPES;
+
     static {
         Map<Check.Type, Set<Check.Type>> map = new EnumMap<>(Check.Type.class);
         map.put(Check.Type.ANNOTATION, emptySet());
@@ -86,47 +84,13 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         POSSIBLE_CHILDREN_TYPES = Collections.unmodifiableMap(map);
     }
 
-    //see #forceClearCompilerCache for what these are
-    private static final Method CLEAR_COMPILER_CACHE;
-    private static final Object SHARED_ZIP_FILE_INDEX_CACHE;
-    static {
-        String javaVersion = System.getProperty("java.version");
-        if (javaVersion.startsWith("1.")) {
-            Method clearCompilerCache = null;
-            Object sharedInstance = null;
-            try {
-                Class<?> zipFileIndexCacheClass = ToolProvider.getSystemToolClassLoader()
-                        .loadClass("com.sun.tools.javac.file.ZipFileIndexCache");
-
-                clearCompilerCache = zipFileIndexCacheClass.getDeclaredMethod("clearCache");
-                Method getSharedInstance = zipFileIndexCacheClass.getDeclaredMethod("getSharedInstance");
-                sharedInstance = getSharedInstance.invoke(null);
-            } catch (Exception e) {
-                LOG.warn("Failed to initialize the force-clearing of javac file caches. We will probably leak resources.", e);
-            }
-
-            if (clearCompilerCache != null && sharedInstance != null) {
-                CLEAR_COMPILER_CACHE = clearCompilerCache;
-                SHARED_ZIP_FILE_INDEX_CACHE = sharedInstance;
-            } else {
-                CLEAR_COMPILER_CACHE = null;
-                SHARED_ZIP_FILE_INDEX_CACHE = null;
-            }
-        } else {
-            CLEAR_COMPILER_CACHE = null;
-            SHARED_ZIP_FILE_INDEX_CACHE = null;
-        }
-    }
-
-    private final Iterable<Check> checks;
-    private final CompilationValve oldCompilationValve;
-    private final CompilationValve newCompilationValve;
     private final AnalysisConfiguration analysisConfiguration;
     private final ResourceBundle messages;
     private final ProbingEnvironment oldEnvironment;
     private final ProbingEnvironment newEnvironment;
     private final Map<Check.Type, List<Check>> checksByInterest;
     private final Deque<CheckType> checkTypeStack = new ArrayDeque<>();
+    private final Deque<Collection<Check>> checksStack = new ArrayDeque<>();
 
     // NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
     // are always sorted as last amongst sibling model elements.
@@ -143,18 +107,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private final Map<Check.Type, Set<Check>> descendingChecksByTypes;
 
     public JavaElementDifferenceAnalyzer(AnalysisContext analysisContext, ProbingEnvironment oldEnvironment,
-        CompilationValve oldValve,
-        ProbingEnvironment newEnvironment, CompilationValve newValve, Iterable<Check> checks,
-        AnalysisConfiguration analysisConfiguration) {
-
-        this.oldCompilationValve = oldValve;
-        this.newCompilationValve = newValve;
+            ProbingEnvironment newEnvironment, Iterable<Check> checks,
+            AnalysisConfiguration analysisConfiguration) {
 
         this.descendingChecksByTypes = new HashMap<>();
 
-        this.checks = checks;
         for (Check c : checks) {
-            c.initialize(analysisContext);
             c.setOldTypeEnvironment(oldEnvironment);
             c.setNewTypeEnvironment(newEnvironment);
             if (c.isDescendingOnNonExisting()) {
@@ -170,16 +128,10 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         this.newEnvironment = newEnvironment;
 
         this.checksByInterest = new EnumMap<>(Check.Type.class);
-        for (Check.Type c : Check.Type.values()) {
-            checksByInterest.put(c, new ArrayList<>());
-        }
-
-        for (Check c : checks) {
-            for (Check.Type t : c.getInterest()) {
-                List<Check> cs = checksByInterest.get(t);
-                cs.add(c);
-            }
-        }
+        checks.forEach(c ->
+                c.getInterest().forEach(i ->
+                        checksByInterest.computeIfAbsent(i, __ -> new ArrayList<>()).add(c)
+                ));
     }
 
 
@@ -190,12 +142,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
     @Override
     public void close() {
-        Timing.LOG.debug("About to close difference analyzer.");
-        oldCompilationValve.removeCompiledResults();
-        newCompilationValve.removeCompiledResults();
-
-        forceClearCompilerCache();
-
         Timing.LOG.debug("Difference analyzer closed.");
     }
 
@@ -210,6 +156,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
         if (conforms(oldElement, newElement, TypeElement.class)) {
             checkTypeStack.push(CheckType.CLASS);
+            checksStack.push(possibleChecks);
             lastAnnotationResults = null;
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
@@ -223,8 +170,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             if (lastAnnotationResults == null) {
                 lastAnnotationResults = new ArrayList<>(4);
             }
-            //DO NOT push the ANNOTATION type to the checkTypeStack. Annotations are handled differently and this would
-            //lead to the stack corruption and missed problems!!!
+            //DO NOT push the ANNOTATION type to the checkTypeStack nor push the applied checks to the checksStack.
+            //Annotations are handled differently and this would lead to the stack corruption and missed problems!!!
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
                 List<Difference> cps = c
@@ -274,6 +221,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         if (!(isCheckedElsewhere(oldElement, oldEnvironment)
                 && isCheckedElsewhere(newElement, newEnvironment))) {
             checkTypeStack.push(interest);
+            checksStack.push(possibleChecks);
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
                 switch (interest) {
@@ -292,6 +240,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         } else {
             //"ignore what's on the stack because no checks actually happened".
             checkTypeStack.push(CheckType.NONE);
+            checksStack.push(emptyList());
         }
     }
 
@@ -310,8 +259,9 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
         List<Difference> differences = new ArrayList<>();
         CheckType lastInterest = checkTypeStack.pop();
+
         if (lastInterest.isConcrete()) {
-            for (Check c : checksByInterest.get(lastInterest.getCheckType())) {
+            for (Check c : checksStack.pop()) {
                 List<Difference> p = c.visitEnd();
                 if (p != null) {
                     differences.addAll(p);
@@ -664,19 +614,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         JavaTypeElement declaringClass = env.getTypeMap().get(declaringType);
 
         return declaringClass != null && declaringClass.isInAPI();
-    }
-
-    //Javac's standard file manager is leaking resources across compilation tasks because it doesn't clear a shared
-    //"zip file index" cache, when it is close()'d. We try to clear it by force.
-    private static void forceClearCompilerCache() {
-        if (CLEAR_COMPILER_CACHE != null && SHARED_ZIP_FILE_INDEX_CACHE != null) {
-            try {
-                CLEAR_COMPILER_CACHE.invoke(SHARED_ZIP_FILE_INDEX_CACHE);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                LOG.warn("Failed to force-clear compiler caches, even though it should have been possible." +
-                                "This will probably leak memory", e);
-            }
-        }
     }
 
     private static class TypeAndUseSite {

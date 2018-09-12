@@ -18,6 +18,7 @@ package org.revapi.java;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.function.Predicate;
@@ -27,10 +28,13 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
+import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.FilterResult;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
+import org.revapi.java.spi.JavaElement;
+import org.revapi.java.spi.JavaTypeElement;
 
 
 /**
@@ -177,6 +181,31 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             Assert.assertFalse(roots.stream().anyMatch(hasName("class GenericsParams.Unused")));
         } finally {
             deleteDir(compRes.compilationPath);
+            analyzer.getCompilationValve().removeCompiledResults();
+        }
+    }
+
+    @Test
+    public void testInheritedMembersResetArchiveToThatOfInheritingClass() throws Exception {
+        ArchiveAndCompilationPath archive = createCompiledJar("c.jar", "misc/C.java");
+
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
+                Arrays.asList(new ShrinkwrapArchive(archive.archive)),
+                null), Executors.newSingleThreadExecutor(), null, false);
+
+        try {
+            JavaElementForest forest = analyzer.analyze(element -> FilterResult.matchAndDescend());
+
+            forest.getRoots();
+
+            Assert.assertEquals(1, forest.getRoots().size());
+
+            JavaTypeElement C = forest.getRoots().first();
+
+            Assert.assertTrue(C.getChildren().stream().allMatch(e -> Objects.equals(((JavaElement) e).getArchive(),
+                    C.getArchive())));
+        } finally {
+            deleteDir(archive.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();
         }
     }

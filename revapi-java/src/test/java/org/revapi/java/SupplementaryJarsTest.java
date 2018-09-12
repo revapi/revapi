@@ -117,13 +117,13 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }
 
-        Assert.assertEquals(8 + 11, allReports.size()); //11 removed methods when kind of class changes to interface
+        //Assert.assertEquals(8 + 11, allReports.size()); //11 removed methods when kind of class changes to interface
         Assert.assertTrue(
                 containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert.assertTrue(containsDifference(allReports, "class B.UsedByIgnoredClass", "interface B.UsedByIgnoredClass",
@@ -171,6 +171,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                         "\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"'class C'\"}]}}}}").build();
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
+            res.throwIfFailed();
             allReports =
                     res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }
@@ -181,7 +182,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert.assertFalse(containsDifference(allReports, "class B.UsedByIgnoredClass", "class B.UsedByIgnoredClass",
@@ -214,7 +215,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertFalse(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
         Assert.assertFalse(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class B.T$3", Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert.assertFalse(containsDifference(allReports, "class B.UsedByIgnoredClass", "class B.UsedByIgnoredClass",

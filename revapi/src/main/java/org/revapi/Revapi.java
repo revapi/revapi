@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -343,8 +343,8 @@ public final class Revapi {
     }
 
     private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
-            SortedSet<? extends Element> as, SortedSet<? extends Element> bs,
-            AnalysisResult.Extensions extensions) {
+                         SortedSet<? extends Element> as, SortedSet<? extends Element> bs,
+                         AnalysisResult.Extensions extensions) {
 
         List<Element> sortedAs = new ArrayList<>(as);
         List<Element> sortedBs = new ArrayList<>(bs);
@@ -376,10 +376,13 @@ public final class Revapi {
             }
 
             if (shouldDescend) {
+                LOG.trace("Descending into {}, {} pair.", a, b);
                 analyze(deducer, elementDifferenceAnalyzer,
                         a == null ? emptySortedSet() : a.getChildren(),
                         b == null ? emptySortedSet() : b.getChildren(),
                         extensions);
+            } else {
+                LOG.trace("Filters disallowed descending into {} and {}.", a, b);
             }
 
             Stats.of("analyses").start();
@@ -515,7 +518,6 @@ public final class Revapi {
             while (it.hasNext()) {
                 Difference d = it.next();
                 transformed.clear();
-                boolean shouldBeRemoved = false;
                 boolean differenceChanged = false;
                 for (DifferenceTransform<?> t : getTransformsForDifference(d, extensions)) {
                     // it is the responsibility of the transform to declare the proper type.
@@ -536,7 +538,6 @@ public final class Revapi {
 
                     // ignore if transformation returned null, meaning that it "swallowed" the difference..
                     if (td == null) {
-                        shouldBeRemoved = true;
                         listChanged = true;
                         differenceChanged = true;
                     } else if (!d.equals(td)) {
@@ -553,7 +554,7 @@ public final class Revapi {
                 if (differenceChanged) {
                     //we need to remove the element in either case
                     it.remove();
-                    if (!shouldBeRemoved) {
+                    if (!transformed.isEmpty()) {
                         //if it was not removed, but transformed, let's add the transformed difference in the place of
                         //our currently removed element
                         for (Difference td : transformed) {

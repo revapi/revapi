@@ -1,0 +1,6 @@
+== FAQ
+
+This is a collection of tips & tricks to help you get started with Revapi and to take full advantage of its many
+configuration options.
+
+TODO write some actual tips & tricks.

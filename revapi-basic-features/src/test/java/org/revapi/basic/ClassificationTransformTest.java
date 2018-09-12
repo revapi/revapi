@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,6 @@ import static org.revapi.DifferenceSeverity.BREAKING;
 import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
 import static org.revapi.basic.Util.getAnalysisContextFromFullConfig;
 
-import java.util.Collections;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;

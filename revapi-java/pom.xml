@@ -21,7 +21,7 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>36-SNAPSHOT</version>
+        <version>37-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,7 +33,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-java</artifactId>
-    <version>0.16.0-SNAPSHOT</version>
+    <version>0.18.1-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.java</automatic.module.name>
@@ -55,13 +55,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.10.0-SNAPSHOT</version>
+            <version>0.11.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-java-spi</artifactId>
-            <version>0.16.0-SNAPSHOT</version>
+            <version>0.18.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -102,9 +102,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-java-test-support</artifactId>
-            <version>0.3.0-SNAPSHOT</version>
+            <groupId>org.revapi.testjars</groupId>
+            <artifactId>testjars-junit4</artifactId>
+            <version>0.1.0</version>
             <scope>test</scope>
         </dependency>
 

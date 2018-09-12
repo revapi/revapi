@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -195,8 +195,10 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "[{" +
                         "\"extension\": \"revapi.java\"," +
                         "\"configuration\": {" +
+                        "\"checks\": {" +
+                        "\"nonPublicPartOfAPI\": {" +
                         "\"reportUnchanged\": false" +
-                        "}}]",
+                        "}}}}]",
                 "misc/NonPublicDescendsDownChildren.java", "misc/NonPublicDescendsDownChildren.java");
 
         Assert.assertNull(reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
@@ -212,5 +214,14 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
                 null, "misc/NonPublicDescendsDownChildren.java");
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+    }
+
+    @Test
+    public void testDefaultSerializationDetectionChanges() throws Exception {
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "v1/classes/Serialization.java", "v2/classes/Serialization.java");
+
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_DEFAULT_SERIALIZATION_CHANGED.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_SERIAL_VERSION_UID_CHANGED.code()));
     }
 }

@@ -16,6 +16,8 @@
  */
 package org.revapi.java.matcher;
 
+import java.util.SortedSet;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.type.TypeMirror;
@@ -98,5 +100,12 @@ final class TypeParameterElement extends SimpleElement implements JavaModelEleme
     @Override
     public boolean isInherited() {
         return false;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nonnull
+    @Override
+    public SortedSet<? extends JavaElement> getChildren() {
+        return (SortedSet<? extends JavaElement>) super.getChildren();
     }
 }

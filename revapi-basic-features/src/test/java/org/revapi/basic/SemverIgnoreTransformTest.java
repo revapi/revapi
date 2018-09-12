@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -145,15 +145,32 @@ public class SemverIgnoreTransformTest {
         Assert.assertNull(tr.transform(null, null, BREAKING));
     }
 
+    @Test
+    public void testNoOldVersion() {
+        DifferenceTransform<?> tr = getTestTransform(null, "15", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
+        Assert.assertSame(NON_BREAKING, tr.transform(null, null, NON_BREAKING));
+        Assert.assertSame(POTENTIALLY_BREAKING, tr.transform(null, null, POTENTIALLY_BREAKING));
+        Assert.assertSame(BREAKING, tr.transform(null, null, BREAKING));
+    }
+
     private boolean isBreaking(Difference difference) {
         return difference.classification.values().stream().anyMatch(ds -> ds == DifferenceSeverity.BREAKING);
     }
 
     private DifferenceTransform<Element> getTestTransform(String oldVersion, String newVersion,
                                                           String configuration) {
+
+        API oldApi = oldVersion != null
+                ? API.of(new Ar(oldVersion)).build()
+                : API.of().build();
+
+        API newApi = newVersion != null
+                ? API.of(new Ar(newVersion)).build()
+                : API.of().build();
+
         AnalysisContext ctx = Util.setAnalysisContextFullConfig(AnalysisContext.builder()
-                .withOldAPI(API.of(new Ar(oldVersion)).build())
-                .withNewAPI(API.of(new Ar(newVersion)).build()), SemverIgnoreTransform.class, configuration);
+                .withOldAPI(oldApi)
+                .withNewAPI(newApi), SemverIgnoreTransform.class, configuration);
 
         SemverIgnoreTransform tr = new SemverIgnoreTransform();
 

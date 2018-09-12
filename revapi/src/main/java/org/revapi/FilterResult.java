@@ -110,13 +110,21 @@ public abstract class FilterResult {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         FilterResult filterResult = (FilterResult) o;
 
-        if (isDescend() != filterResult.isDescend()) return false;
-        if (getMatch() != filterResult.getMatch()) return false;
+        if (isDescend() != filterResult.isDescend()) {
+            return false;
+        }
+        if (getMatch() != filterResult.getMatch()) {
+            return false;
+        }
 
         return true;
     }

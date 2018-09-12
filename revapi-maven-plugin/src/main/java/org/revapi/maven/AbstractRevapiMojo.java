@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.revapi.maven;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -229,9 +230,26 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * <p>In rare circumstances this is not a desired behavior though. It is undesired if for example the classes from
      * the provided dependency are used only for establishing desired build order or when they are used in some
      * non-standard scenarios during the build and actually not needed at runtime.
+     *
+     * <p>Note that this property only influences the resolution of provided dependencies of the main artifacts, not
+     * the transitively reachable provided dependencies. For those, use the {@link #resolveTransitiveProvidedDependencies}
+     * parameter.
      */
     @Parameter(property = Props.resolveProvidedDependencies.NAME, defaultValue = Props.resolveProvidedDependencies.DEFAULT_VALUE)
     protected boolean resolveProvidedDependencies;
+
+    /**
+     * In addition to {@link #resolveProvidedDependencies} this property further controls how provided dependencies
+     * are resolved. Using this property you can control how the indirect, transitively reachable, provided dependencies
+     * are treated. The default is to not consider them, which is almost always the right thing to do. It might be
+     * necessary to set this property to {@code true} in the rare circumstances where the API of the main artifacts
+     * includes types from such transitively included provided dependencies. Such occurrence will manifest itself by
+     * Revapi considering such types as missing (which is by default reported as a potentially breaking change). When
+     * you then resolve the transitive provided dependencies (by setting this parameter to true), Revapi will be able to
+     * find such types and do a proper analysis of them.
+     */
+    @Parameter(property = Props.resolveTransitiveProvidedDependencies.NAME, defaultValue = Props.resolveTransitiveProvidedDependencies.DEFAULT_VALUE)
+    protected boolean resolveTransitiveProvidedDependencies;
 
     /**
      * If set, this property demands a format of the version string when the {@link #oldVersion} or {@link #newVersion}
@@ -284,30 +302,60 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         return res.isOnClasspath ? res.analyzer : null;
     }
 
+    protected Analyzer prepareAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
+            Map<String, Object> contextData, Map<String, Object> propertyOverrides) {
+        AnalyzerBuilder.Result res = buildAnalyzer(project, reporter, contextData, propertyOverrides);
+
+        if (res.skip) {
+            this.skip = true;
+        }
+
+        this.oldArtifacts = res.oldArtifacts;
+        this.newArtifacts = res.newArtifacts;
+
+        return res.isOnClasspath ? res.analyzer : null;
+    }
+
     AnalyzerBuilder.Result buildAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
                                                    Map<String, Object> contextData) {
+        return buildAnalyzer(project, reporter, contextData, Collections.emptyMap());
+    }
+
+    AnalyzerBuilder.Result buildAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
+            Map<String, Object> contextData, Map<String, Object> propertyOverrides) {
         return AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
-                .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
-                .withAnalysisConfiguration(this.analysisConfiguration)
-                .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
-                .withCheckDependencies(this.checkDependencies)
-                .withResolveProvidedDependencies(this.resolveProvidedDependencies)
-                .withDisallowedExtensions(this.disallowedExtensions)
-                .withFailOnMissingConfigurationFiles(this.failOnMissingConfigurationFiles)
-                .withFailOnUnresolvedArtifacts(this.failOnUnresolvedArtifacts)
-                .withFailOnUnresolvedDependencies(this.failOnUnresolvedDependencies)
+                .withAlwaysCheckForReleasedVersion(overrideOrDefault("alwaysCheckForReleaseVersion", this.alwaysCheckForReleaseVersion, propertyOverrides))
+                .withAnalysisConfiguration(overrideOrDefault("analysisConfiguration", this.analysisConfiguration, propertyOverrides))
+                .withAnalysisConfigurationFiles(overrideOrDefault("analysisConfigurationFiles", this.analysisConfigurationFiles, propertyOverrides))
+                .withCheckDependencies(overrideOrDefault("checkDependencies", this.checkDependencies, propertyOverrides))
+                .withResolveProvidedDependencies(overrideOrDefault("resolveProvidedDependencies", this.resolveProvidedDependencies, propertyOverrides))
+                .withResolveTransitiveProvidedDependencies(overrideOrDefault("resolveTransitiveProvidedDependencies", this.resolveTransitiveProvidedDependencies, propertyOverrides))
+                .withDisallowedExtensions(overrideOrDefault("disallowedExtensions", this.disallowedExtensions, propertyOverrides))
+                .withFailOnMissingConfigurationFiles(overrideOrDefault("failOnMissingConfigurationFiles", this.failOnMissingConfigurationFiles, propertyOverrides))
+                .withFailOnUnresolvedArtifacts(overrideOrDefault("failOnUnresolvedArtifacts", this.failOnUnresolvedArtifacts, propertyOverrides))
+                .withFailOnUnresolvedDependencies(overrideOrDefault("failOnUnresolvedDependencies", this.failOnUnresolvedDependencies, propertyOverrides))
                 .withLocale(Locale.getDefault())
                 .withLog(getLog())
-                .withNewVersion(this.newVersion)
-                .withOldVersion(this.oldVersion)
+                .withNewVersion(overrideOrDefault("newVersion", this.newVersion, propertyOverrides))
+                .withOldVersion(overrideOrDefault("oldVersion", this.oldVersion, propertyOverrides))
                 .withProject(project)
                 .withReporter(reporter)
                 .withRepositorySystem(this.repositorySystem)
                 .withRepositorySystemSession(this.repositorySystemSession)
-                .withSkip(this.skip)
-                .withVersionFormat(this.versionFormat)
+                .withSkip(overrideOrDefault("skip", this.skip, propertyOverrides))
+                .withVersionFormat(overrideOrDefault("versionFormat", this.versionFormat, propertyOverrides))
                 .withContextData(contextData)
                 .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T overrideOrDefault(String propertyName, T defaultValue, Map<String, Object> overrides) {
+        Object val = overrides.get(propertyName);
+        if (val == null) {
+            return defaultValue;
+        } else {
+            return (T) val;
+        }
     }
 
     /**

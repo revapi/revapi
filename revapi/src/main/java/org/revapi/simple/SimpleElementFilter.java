@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
  *
  * @deprecated use {@link SimpleElementGateway} instead
  */
+@Deprecated
 public class SimpleElementFilter extends SimpleConfigurable implements ElementFilter {
     @Override
     public boolean applies(@Nullable Element element) {

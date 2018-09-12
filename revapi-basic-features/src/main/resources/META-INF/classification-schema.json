@@ -24,7 +24,7 @@
                         "$ref": "#/definitions/classification"
                     },
                     "BINARY": {
-                        "$ref": "#definitions/classification"
+                        "$ref": "#/definitions/classification"
                     },
                     "SEMANTIC": {
                         "$ref": "#/definitions/classification"

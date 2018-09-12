@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,17 +16,19 @@
  */
 package org.revapi.java.test;
 
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.revapi.java.spi.Util;
-import org.revapi.java.test.support.Jar;
+import java.util.List;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
-import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.revapi.java.spi.Util;
+import org.revapi.testjars.CompiledJar;
+import org.revapi.testjars.junit4.Jar;
 
 /**
  * @author Lukas Krejci
@@ -39,7 +41,7 @@ public class ToStringsTest {
 
     @Test
     public void testMethodParameterStringRepresentation() throws Exception {
-        Jar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
+        CompiledJar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
 
         Element cls = env.elements().getTypeElement("ToStrings");
         List<ExecutableElement> methods = ElementFilter.methodsIn(cls.getEnclosedElements());
