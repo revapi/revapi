@@ -92,6 +92,14 @@ public final class RevapiTask extends Task {
 
         try(AnalysisResult res = revapi.analyze(context)) {
             res.throwIfFailed();
+
+            AntReporter reporter = res.getExtensions().getFirstExtension(AntReporter.class, null);
+
+            if (reporter.isErrorsReported()) {
+                throw new BuildException("API analysis failed. Check the log for the API errors.");
+            }
+        } catch (BuildException e) {
+            throw e;
         } catch (Exception e) {
             throw new BuildException("API analysis failed.", e);
         }

@@ -43,6 +43,12 @@ public final class AntReporter implements Reporter {
     private ProjectComponent logger;
     private DifferenceSeverity minSeverity;
 
+    private boolean errorsReported;
+
+    public boolean isErrorsReported() {
+        return errorsReported;
+    }
+
     @Override
     public void report(@Nonnull Report report) {
         Element element = report.getOldElement();
@@ -65,6 +71,8 @@ public final class AntReporter implements Reporter {
             if (maxSeverity.compareTo(minSeverity) < 0) {
                 continue;
             }
+
+            errorsReported = true;
 
             StringBuilder message = new StringBuilder();
 
@@ -99,5 +107,6 @@ public final class AntReporter implements Reporter {
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         this.logger = (ProjectComponent) analysisContext.getData(ANT_REPORTER_LOGGER_KEY);
         this.minSeverity = (DifferenceSeverity) analysisContext.getData(MIN_SEVERITY_KEY);
+        this.errorsReported = false;
     }
 }
