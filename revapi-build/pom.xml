@@ -331,12 +331,12 @@
                     <reportSet>
                         <reports>
                             <report>index</report>
-                            <report>license</report>
-                            <report>mailing-list</report>
-                            <report>issue-tracking</report>
+                            <report>licenses</report>
+                            <report>mailing-lists</report>
+                            <report>issue-management</report>
                             <report>scm</report>
-                            <report>project-team</report>
-                            <report>cim</report>
+                            <report>team</report>
+                            <report>ci-management</report>
                         </reports>
                     </reportSet>
                 </reportSets>
