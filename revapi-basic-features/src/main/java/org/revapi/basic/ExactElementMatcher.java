@@ -19,6 +19,8 @@ package org.revapi.basic;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Reader;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 import org.revapi.AnalysisContext;
@@ -26,13 +28,16 @@ import org.revapi.Element;
 import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
+import org.revapi.FilterResult;
+import org.revapi.TreeFilter;
+import org.revapi.simple.RepeatingTreeFilter;
 
 /**
  * @author Lukas Krejci
  */
 public final class ExactElementMatcher implements ElementMatcher {
     @Override
-    public Optional<CompiledRecipe> compile(String recipe) {
+    public Optional<TreeFilter> compile2(String recipe) {
         return Optional.of(new StringMatch(recipe));
     }
 
@@ -58,7 +63,7 @@ public final class ExactElementMatcher implements ElementMatcher {
 
     }
 
-    private static final class StringMatch implements CompiledRecipe {
+    private static final class StringMatch extends RepeatingTreeFilter {
         final String match;
 
         private StringMatch(String match) {
@@ -66,8 +71,14 @@ public final class ExactElementMatcher implements ElementMatcher {
         }
 
         @Override
-        public FilterMatch test(ElementGateway.AnalysisStage stage, Element element) {
-            return FilterMatch.fromBoolean(match.equals(element.getFullHumanReadableString()));
+        protected FilterResult doStart(Element element) {
+            boolean m = match.equals(element.getFullHumanReadableString());
+            return FilterResult.from(FilterMatch.fromBoolean(m), m);
+        }
+
+        @Override
+        public Map<Element, FilterMatch> finish() {
+            return Collections.emptyMap();
         }
     }
 }

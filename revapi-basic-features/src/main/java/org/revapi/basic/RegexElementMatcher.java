@@ -19,6 +19,8 @@ package org.revapi.basic;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Reader;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -28,13 +30,16 @@ import org.revapi.Element;
 import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
+import org.revapi.FilterResult;
+import org.revapi.TreeFilter;
+import org.revapi.simple.RepeatingTreeFilter;
 
 /**
  * @author Lukas Krejci
  */
 public final class RegexElementMatcher implements ElementMatcher {
     @Override
-    public Optional<CompiledRecipe> compile(String recipe) {
+    public Optional<TreeFilter> compile2(String recipe) {
         try {
             return Optional.of(new PatternMatch(Pattern.compile(recipe)));
         } catch (PatternSyntaxException __) {
@@ -62,7 +67,7 @@ public final class RegexElementMatcher implements ElementMatcher {
     public void initialize(@Nonnull AnalysisContext analysisContext) {
     }
 
-    private static final class PatternMatch implements CompiledRecipe {
+    private static final class PatternMatch extends RepeatingTreeFilter {
         final Pattern match;
 
         private PatternMatch(Pattern match) {
@@ -70,8 +75,14 @@ public final class RegexElementMatcher implements ElementMatcher {
         }
 
         @Override
-        public FilterMatch test(ElementGateway.AnalysisStage stage, Element element) {
-            return FilterMatch.fromBoolean(match.matcher(element.getFullHumanReadableString()).matches());
+        protected FilterResult doStart(Element element) {
+            boolean m = match.matcher(element.getFullHumanReadableString()).matches();
+            return FilterResult.from(FilterMatch.fromBoolean(m), m);
+        }
+
+        @Override
+        public Map<Element, FilterMatch> finish() {
+            return Collections.emptyMap();
         }
     }
 }

@@ -266,7 +266,7 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nonnull ElementForest analyze(Filter filter) {
+        public @Nonnull ElementForest analyze(TreeFilter filter) {
             DummyElementForest ret = new DummyElementForest(api);
             ret.getRoots().add(new DummyElement(api, new DummyArchive()));
             return ret;

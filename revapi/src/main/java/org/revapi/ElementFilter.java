@@ -16,8 +16,14 @@
  */
 package org.revapi;
 
+import java.util.Collections;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+
 import org.revapi.configuration.Configurable;
 import org.revapi.query.Filter;
+import org.revapi.simple.RepeatingTreeFilter;
 
 /**
  * An element filter is a type of extension that can serve as an input filter on the element forest.
@@ -36,26 +42,25 @@ import org.revapi.query.Filter;
  * @deprecated use {@link ElementGateway} instead
  */
 @Deprecated
-public interface ElementFilter extends ElementGateway, Filter<Element>, AutoCloseable, Configurable {
+public interface ElementFilter extends FilterProvider, Filter<Element>, AutoCloseable, Configurable {
+    @Nullable
     @Override
-    default void start(AnalysisStage stage) {
+    default TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer) {
+        return new RepeatingTreeFilter() {
+            @Override
+            public FilterResult doStart(Element element) {
+                boolean applies = applies(element);
+                boolean descends = shouldDescendInto(element);
 
-    }
+                FilterMatch res = FilterMatch.fromBoolean(applies);
 
-    @Override
-    default FilterResult filter(AnalysisStage stage, Element element) {
-        if (stage != AnalysisStage.FOREST_COMPLETE) {
-            return FilterResult.undecidedAndDescend();
-        }
+                return FilterResult.from(res, descends);
+            }
 
-        boolean applies = applies(element);
-        boolean descend = shouldDescendInto(element);
-
-        return FilterResult.from(applies ? FilterMatch.MATCHES : FilterMatch.DOESNT_MATCH, descend);
-    }
-
-    @Override
-    default void end(AnalysisStage stage) {
-
+            @Override
+            public Map<Element, FilterMatch> finish() {
+                return Collections.emptyMap();
+            }
+        };
     }
 }

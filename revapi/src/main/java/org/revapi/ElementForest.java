@@ -39,6 +39,20 @@ import org.revapi.query.FilteringIterator;
  * @since 0.1
  */
 public interface ElementForest {
+    static void walk(ElementForest forest, Visitor visitor) {
+        for(Element r : forest.getRoots()) {
+            walk(r, visitor);
+        }
+        visitor.finishWalk();
+    }
+
+    static void walk(Element root, Visitor visitor) {
+        visitor.startWalk(root);
+        for (Element c : root.getChildren()) {
+            walk(c, visitor);
+        }
+        visitor.finishWalk(root);
+    }
 
     /**
      * @return the API this forest represents
@@ -99,5 +113,28 @@ public interface ElementForest {
                 Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED);
 
         return StreamSupport.stream(sit, false);
+    }
+
+    /**
+     * A visitor of the element forest. Passed to the {@link #walk(Element, Visitor)}  so that the callers can easily
+     * walk the forest.
+     */
+    interface Visitor {
+        /**
+         * Called when the provided element is first visited.
+         * @param element
+         */
+        void startWalk(Element element);
+
+        /**
+         * Called when all the children of the element were also visited.
+         * @param element
+         */
+        void finishWalk(Element element);
+
+        /**
+         * Called when the whole forest has been visited.
+         */
+        void finishWalk();
     }
 }

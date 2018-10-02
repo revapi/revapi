@@ -36,7 +36,7 @@ public interface ArchiveAnalyzer {
      * @param filter the filter to use to "prune" the forest
      * @return the element forest ready for analysis
      */
-    ElementForest analyze(Filter filter);
+    ElementForest analyze(TreeFilter filter);
 
     /**
      * Once all the filtering on the element forest is done, the analyzer is allowed one final "pass" through the forest
@@ -45,12 +45,4 @@ public interface ArchiveAnalyzer {
      * @param forest the forest to prune
      */
     void prune(ElementForest forest);
-
-    /**
-     * Implementation of this interface will be provided to the archive analyzer so that it can filter out elements
-     * that the user explicitly does/doesn't want included in the analysis.
-     */
-    interface Filter {
-        FilterResult filter(Element element);
-    }
 }

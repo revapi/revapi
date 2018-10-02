@@ -17,6 +17,7 @@
 package org.revapi;
 
 import static java.util.Collections.emptySortedSet;
+import static java.util.stream.Collectors.toList;
 
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
@@ -31,11 +32,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -62,7 +64,7 @@ public final class Revapi {
     private final Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers;
     private final Set<Class<? extends Reporter>> availableReporters;
     private final Set<Class<? extends DifferenceTransform<?>>> availableTransforms;
-    private final Set<Class<? extends ElementGateway>> availableFilters;
+    private final Set<Class<? extends FilterProvider>> availableFilters;
     private final Set<Class<? extends ElementMatcher>> availableMatchers;
     private final ConfigurationValidator configurationValidator;
     private final Map<String, List<DifferenceTransform<?>>> matchingTransformsCache = new HashMap<>();
@@ -79,7 +81,7 @@ public final class Revapi {
     public Revapi(@Nonnull Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers,
                   @Nonnull Set<Class<? extends Reporter>> availableReporters,
                   @Nonnull Set<Class<? extends DifferenceTransform<?>>> availableTransforms,
-                  @Nonnull Set<Class<? extends ElementGateway>> elementFilters,
+                  @Nonnull Set<Class<? extends FilterProvider>> elementFilters,
                   @Nonnull Set<Class<? extends ElementMatcher>> matchers) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
@@ -140,7 +142,7 @@ public final class Revapi {
     /**
      * @return the set of element filters available to this Revapi instance
      */
-    public Set<Class<? extends ElementGateway>> getElementFilterTypes() {
+    public Set<Class<? extends FilterProvider>> getElementFilterTypes() {
         return Collections.unmodifiableSet(availableFilters);
     }
 
@@ -161,7 +163,7 @@ public final class Revapi {
      * @return the instantiated extensions and their individual configurations
      */
     public AnalysisResult.Extensions prepareAnalysis(@Nonnull AnalysisContext analysisContext) {
-        Map<ElementGateway, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
+        Map<FilterProvider, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
         Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
         Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
         Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
@@ -272,12 +274,12 @@ public final class Revapi {
         ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
         ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
 
-        ElementGateway filter = unionGateway(extensions);
+        FilterProvider filter = unionFilter(extensions);
 
         TIMING_LOG.debug("Obtaining API trees.");
 
-        ElementForest oldTree = filterAndPrune(oldAnalyzer, filter);
-        ElementForest newTree = filterAndPrune(newAnalyzer, filter);
+        ElementForest oldTree = analyzeAndPrune(oldAnalyzer, filter);
+        ElementForest newTree = analyzeAndPrune(newAnalyzer, filter);
 
         TIMING_LOG.debug("API trees obtained");
 
@@ -304,42 +306,11 @@ public final class Revapi {
         TIMING_LOG.debug("Difference analyzer closed");
     }
 
-    private ElementForest filterAndPrune(ArchiveAnalyzer analyzer, ElementGateway filter) {
-        ArchiveAnalyzer.Filter analyzerFilter = element ->
-                filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, element);
-
-
-        filter.start(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
-        ElementForest forest = analyzer.analyze(analyzerFilter);
-        // forest may init its contents lazily, but we need it ready right here...
-        Set<? extends Element> roots = forest.getRoots();
-        filter.end(ElementGateway.AnalysisStage.FOREST_INCOMPLETE);
-
-        filter.start(ElementGateway.AnalysisStage.FOREST_COMPLETE);
-        roots.removeIf(element -> filterTree(element, filter) == FilterMatch.DOESNT_MATCH);
-        filter.end(ElementGateway.AnalysisStage.FOREST_COMPLETE);
-
+    private ElementForest analyzeAndPrune(ArchiveAnalyzer analyzer, FilterProvider filter) {
+        ElementForest forest = analyzer.analyze(filter.filterFor(analyzer));
         analyzer.prune(forest);
 
         return forest;
-    }
-
-    private FilterMatch filterTree(Element root, ElementGateway filter) {
-        FilterResult result = filter.filter(ElementGateway.AnalysisStage.FOREST_COMPLETE, root);
-        FilterMatch match = result.getMatch();
-
-        root.getChildren().removeIf(c -> filterTree(c, filter) == FilterMatch.DOESNT_MATCH);
-        boolean hasChildren = !root.getChildren().isEmpty();
-        switch (match) {
-            case DOESNT_MATCH:
-                if (result.isDescend()) {
-                    return hasChildren ? FilterMatch.MATCHES : match;
-                } else {
-                    return match;
-                }
-            default:
-                return match;
-        }
     }
 
     private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
@@ -405,46 +376,45 @@ public final class Revapi {
         }
     }
 
-    private ElementGateway unionGateway(AnalysisResult.Extensions extensions) {
-        return new ElementGateway() {
+    private FilterProvider unionFilter(AnalysisResult.Extensions extensions) {
+        return new FilterProvider() {
+            @Nullable
             @Override
-            public void start(AnalysisStage stage) {
-                onAllDo(e -> e.start(stage));
-            }
+            public TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer) {
+                List<TreeFilter> applicables = extensions.getFilters().keySet().stream()
+                        .map(f -> f.filterFor(archiveAnalyzer))
+                        .filter(Objects::nonNull)
+                        .collect(toList());
 
-            @Override
-            public FilterResult filter(AnalysisStage stage, Element element) {
-                return extensions.getFilters().keySet().stream()
-                        .map(f -> {
-                            String name = f.getClass().getName() + ".check";
-                            Stats.of(name).start();
-                            FilterResult res = f.filter(stage, element);
+                return new TreeFilter() {
+                    @Override
+                    public FilterResult start(Element element) {
+                        return applicables.stream().map(f -> f.start(element)).reduce(FilterResult::or)
+                                .orElse(FilterResult.matchAndDescend());
+                    }
 
-                            if (stage == AnalysisStage.FOREST_COMPLETE && res.getMatch() == FilterMatch.UNDECIDED) {
-                                throw new IllegalStateException("Filter '" + f.getExtensionId() +
-                                        "' could not decide whether element '" + element.getFullHumanReadableString() +
-                                        "' should be included in the analysis or not. This should not happen when" +
-                                        " the tree of elements is fully constructed already.");
-                            }
+                    @Override
+                    public FilterMatch finish(Element element) {
+                        return applicables.stream().map(f -> f.finish(element)).reduce(FilterMatch::or)
+                                .orElse(FilterMatch.DOESNT_MATCH);
+                    }
 
-                            Stats.of(name).end(element);
-
-                            return res;
-                        })
-                        .reduce(FilterResult::and)
-                        .orElse(FilterResult.from(FilterMatch.MATCHES, true));
-            }
-
-            @Override
-            public void end(AnalysisStage stage) {
-                onAllDo(e -> e.end(stage));
+                    @Override
+                    public Map<Element, FilterMatch> finish() {
+                        return applicables.stream().map(f -> f.finish())
+                                .reduce(new HashMap<>(), (ret, res) -> {
+                                    ret.putAll(res);
+                                    return ret;
+                                });
+                    }
+                };
             }
 
             @Override
             public void close() throws Exception {
                 List<Exception> failures = new ArrayList<>(1);
 
-                onAllDo(f -> {
+                extensions.getFilters().keySet().forEach(f -> {
                     try {
                         f.close();
                     } catch (Exception e) {
@@ -475,10 +445,6 @@ public final class Revapi {
             @Override
             public void initialize(@Nonnull AnalysisContext analysisContext) {
                 extensions.getFilters().forEach(Configurable::initialize);
-            }
-
-            private void onAllDo(Consumer<ElementGateway> action) {
-                extensions.getFilters().keySet().forEach(action);
             }
         };
     }
@@ -615,7 +581,7 @@ public final class Revapi {
         private Set<Class<? extends ApiAnalyzer>> analyzers = null;
         private Set<Class<? extends Reporter>> reporters = null;
         private Set<Class<? extends DifferenceTransform<?>>> transforms = null;
-        private Set<Class<? extends ElementGateway>> filters = null;
+        private Set<Class<? extends FilterProvider>> filters = null;
         private Set<Class<? extends ElementMatcher>> matchers = null;
 
         @Nonnull
@@ -721,29 +687,29 @@ public final class Revapi {
         @Nonnull
         @SuppressWarnings({"unchecked", "RedundantCast"})
         public Builder withFiltersFromThreadContextClassLoader() {
-            withFilters(ServiceTypeLoader.load(ElementGateway.class));
-            return withFilters((Iterable<Class<? extends ElementGateway>>) (Iterable) ServiceTypeLoader.load(ElementFilter.class));
+            withFilters(ServiceTypeLoader.load(FilterProvider.class));
+            return withFilters((Iterable<Class<? extends FilterProvider>>) (Iterable) ServiceTypeLoader.load(ElementFilter.class));
         }
 
         @Nonnull
         @SuppressWarnings({"unchecked", "RedundantCast"})
         public Builder withFiltersFrom(@Nonnull ClassLoader cl) {
-            withFilters(ServiceTypeLoader.load(ElementGateway.class, cl));
-            return withFilters((Iterable<Class<? extends ElementGateway>>) (Iterable) ServiceTypeLoader.load(ElementFilter.class, cl));
+            withFilters(ServiceTypeLoader.load(FilterProvider.class, cl));
+            return withFilters((Iterable<Class<? extends FilterProvider>>) (Iterable) ServiceTypeLoader.load(ElementFilter.class, cl));
         }
 
         @SafeVarargs
         @Nonnull
-        public final Builder withFilters(Class<? extends ElementGateway>... filters) {
+        public final Builder withFilters(Class<? extends FilterProvider>... filters) {
             return withFilters(Arrays.asList(filters));
         }
 
         @Nonnull
-        public Builder withFilters(@Nonnull Iterable<Class<? extends ElementGateway>> filters) {
+        public Builder withFilters(@Nonnull Iterable<Class<? extends FilterProvider>> filters) {
             if (this.filters == null) {
                 this.filters = new HashSet<>();
             }
-            for (Class<? extends ElementGateway> f : filters) {
+            for (Class<? extends FilterProvider> f : filters) {
                 this.filters.add(f);
             }
 

@@ -18,6 +18,8 @@ package org.revapi;
 
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 import org.revapi.configuration.Configurable;
 
 /**
@@ -38,18 +40,6 @@ public interface ElementMatcher extends Configurable, AutoCloseable {
     Optional<CompiledRecipe> compile(String recipe);
 
     interface CompiledRecipe {
-
-        /**
-         * Decides whether given element matches this recipe.
-         *
-         * <p>Note that the callers need to be able to retry the elements undecidable by this recipe again after
-         * the whole element tree has been processed.
-         *
-         *
-         * @param stage
-         * @param element the element to match
-         * @return a match result - {@link FilterMatch#UNDECIDED} means that the decision could not be made in this round
-         */
-        FilterMatch test(ElementGateway.AnalysisStage stage, Element element);
+        TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer);
     }
 }

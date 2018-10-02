@@ -42,7 +42,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import org.revapi.Archive;
-import org.revapi.ArchiveAnalyzer;
+import org.revapi.FilterProvider;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.Timing;
 import org.slf4j.Logger;
@@ -60,10 +60,10 @@ public final class Compiler {
     private final Iterable<? extends Archive> classPath;
     private final Iterable<? extends Archive> additionalClassPath;
     private final ExecutorService executor;
-    private final ArchiveAnalyzer.Filter filter;
+    private final FilterProvider filter;
 
     public Compiler(ExecutorService executor, Writer reportingOutput, Iterable<? extends Archive> classPath,
-        Iterable<? extends Archive> additionalClassPath, ArchiveAnalyzer.Filter filter) {
+        Iterable<? extends Archive> additionalClassPath, FilterProvider filter) {
 
         compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {

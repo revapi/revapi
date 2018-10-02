@@ -130,12 +130,12 @@ public final class AnalysisResult implements AutoCloseable {
 
     public static final class Extensions implements Iterable<Map.Entry<?, AnalysisContext>> {
         private final Map<ApiAnalyzer, AnalysisContext> analyzers;
-        private final Map<ElementGateway, AnalysisContext> filters;
+        private final Map<FilterProvider, AnalysisContext> filters;
         private final Map<Reporter, AnalysisContext> reporters;
         private final Map<DifferenceTransform<?>, AnalysisContext> transforms;
         private final Map<ElementMatcher, AnalysisContext> matchers;
 
-        Extensions(Map<ApiAnalyzer, AnalysisContext> analyzers, Map<ElementGateway, AnalysisContext> filters,
+        Extensions(Map<ApiAnalyzer, AnalysisContext> analyzers, Map<FilterProvider, AnalysisContext> filters,
                    Map<Reporter, AnalysisContext> reporters,
                    Map<DifferenceTransform<?>, AnalysisContext> transforms,
                    Map<ElementMatcher, AnalysisContext> matchers) {
@@ -150,7 +150,7 @@ public final class AnalysisResult implements AutoCloseable {
             return analyzers;
         }
 
-        public Map<ElementGateway, AnalysisContext> getFilters() {
+        public Map<FilterProvider, AnalysisContext> getFilters() {
             return filters;
         }
 

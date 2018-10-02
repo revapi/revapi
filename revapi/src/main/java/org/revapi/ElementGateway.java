@@ -16,6 +16,8 @@
  */
 package org.revapi;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.WeakHashMap;
 
 import javax.annotation.Nullable;
@@ -27,7 +29,10 @@ import org.revapi.query.Filter;
  * An element gateway lets the elements through to the next stage of the analysis pipeline.
  *
  * @author Lukas Krejci
+ *
+ * @deprecated use {@link FilterProvider} instead
  */
+@Deprecated
 public interface ElementGateway extends Configurable, AutoCloseable {
 
     default Filter<Element> asFilter() {
@@ -70,8 +75,25 @@ public interface ElementGateway extends Configurable, AutoCloseable {
      * @param element the element to be decided about
      * @return whether to let the element pass to the next stage or not or {@link FilterMatch#UNDECIDED} if the decision
      * should be deferred until all other elements have been processed in the given stage.
+     *
+     * @deprecated - we're gonna mimic what Classif does
      */
+    @Deprecated
     FilterResult filter(AnalysisStage stage, Element element);
+
+    default FilterResult start(Element element) {
+        // TODO implement
+        return FilterResult.doesntMatchAndDescend();
+    }
+
+    default FilterMatch finish(Element element) {
+        // TODO implement
+        return FilterMatch.DOESNT_MATCH;
+    }
+
+    default Map<Element, FilterMatch> finish() {
+        return Collections.emptyMap();
+    }
 
     /**
      * Called when given pipeline stage finished.

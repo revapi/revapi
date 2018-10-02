@@ -63,4 +63,16 @@ public interface DifferenceTransform<T extends Element> extends AutoCloseable, C
      */
     @Nullable
     Difference transform(@Nullable T oldElement, @Nullable T newElement, @Nonnull Difference difference);
+
+    /**
+     * Some difference transforms may need to initialize themselves first through a walk of the element forests before
+     * they can start transforming. If they need to do so, this method needs to return a visitor that will be walked
+     * through the forest before the transformations will start.
+     *
+     * @return null if no need to initialize or a visitor instance used for the transform initialization
+     */
+    @Nullable
+    default ElementForest.Visitor getStructuralInitializer() {
+        return null;
+    }
 }

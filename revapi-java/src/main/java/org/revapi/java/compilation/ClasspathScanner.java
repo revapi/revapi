@@ -80,9 +80,9 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 
 import org.revapi.Archive;
-import org.revapi.ArchiveAnalyzer;
 import org.revapi.FilterMatch;
 import org.revapi.FilterResult;
+import org.revapi.FilterProvider;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.model.AbstractJavaElement;
 import org.revapi.java.model.AnnotationElement;
@@ -118,14 +118,14 @@ final class ClasspathScanner {
     private final Map<Archive, File> additionalClassPath;
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
     private final boolean ignoreMissingAnnotations;
-    private final ArchiveAnalyzer.Filter filter;
+    private final FilterProvider filter;
     private final TypeElement objectType;
 
     ClasspathScanner(StandardJavaFileManager fileManager, ProbingEnvironment environment,
             Map<Archive, File> classPath, Map<Archive, File> additionalClassPath,
             AnalysisConfiguration.MissingClassReporting missingClassReporting,
             boolean ignoreMissingAnnotations,
-            ArchiveAnalyzer.Filter filter) {
+            FilterProvider filter) {
         this.fileManager = fileManager;
         this.environment = environment;
         this.classPath = classPath;
@@ -358,7 +358,7 @@ final class ClasspathScanner {
                                 (DeclaredType) type.asType());
 
                 TypeRecord tr = getTypeRecord(type);
-                tr.inclusionState = filter.filter(t);
+                tr.inclusionState = filter.start(t);
                 tr.modelElement = t;
                 //this will be revisited... in here we're just establishing the types that are in the API for sure...
                 tr.inApi = (tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH || tr.inclusionState.isDescend())
@@ -403,32 +403,42 @@ final class ClasspathScanner {
 
                 addTypeParamUses(tr, type, type.asType());
 
-                for (Element e : IgnoreCompletionFailures.in(type::getEnclosedElements)) {
-                    switch (e.getKind()) {
-                        case ANNOTATION_TYPE:
-                        case CLASS:
-                        case ENUM:
-                        case INTERFACE:
-                            addUse(tr, type, (TypeElement) e, UseSite.Type.CONTAINS);
-                            //the contained classes by default inherit the API status of their containing class
-                            scanClass(loc, (TypeElement) e, tr.inApi);
-                            break;
-                        case CONSTRUCTOR:
-                        case METHOD:
-                            scanMethod(tr, (ExecutableElement) e);
-                            break;
-                        case ENUM_CONSTANT:
-                        case FIELD:
-                            scanField(tr, (VariableElement) e);
-                            break;
+                if (tr.inclusionState.isDescend()) {
+                    for (Element e : IgnoreCompletionFailures.in(type::getEnclosedElements)) {
+                        switch (e.getKind()) {
+                            case ANNOTATION_TYPE:
+                            case CLASS:
+                            case ENUM:
+                            case INTERFACE:
+                                addUse(tr, type, (TypeElement) e, UseSite.Type.CONTAINS);
+                                //the contained classes by default inherit the API status of their containing class
+                                scanClass(loc, (TypeElement) e, tr.inApi);
+                                break;
+                            case CONSTRUCTOR:
+                            case METHOD:
+                                scanMethod(tr, (ExecutableElement) e);
+                                break;
+                            case ENUM_CONSTANT:
+                            case FIELD:
+                                scanField(tr, (VariableElement) e);
+                                break;
+                        }
                     }
                 }
 
                 type.getAnnotationMirrors().forEach(a -> scanAnnotation(tr, type, a, -1));
+
+                tr.inclusionState = FilterResult.from(filter.finish(t), tr.inclusionState.isDescend());
             } catch (Exception e) {
                 LOG.error("Failed to scan class " + type.getQualifiedName().toString()
                         + ". Analysis results may be skewed.", e);
-                getTypeRecord(type).errored = true;
+                TypeRecord tr = getTypeRecord(type);
+                tr.errored = true;
+                if (tr.modelElement != null && tr.inclusionState != null) {
+                    tr.inclusionState = FilterResult.from(filter.finish(tr.modelElement), tr.inclusionState.isDescend());
+                } else {
+                    tr.inclusionState = FilterResult.doesntMatch();
+                }
             }
         }
 
@@ -838,10 +848,11 @@ final class ClasspathScanner {
             };
 
             Consumer<JavaElementBase<?, ?>> initChildren = e -> {
-                FilterResult fr = filter.filter(e);
+                FilterResult fr = filter.start(e);
                 if (fr.isDescend()) {
                     initNonClassElementChildrenAndMoveToApi(tr, e, false);
                 }
+                tr.inclusionState = FilterResult.from(filter.finish(e), tr.inclusionState.isDescend());
             };
 
             //add declared stuff
@@ -899,10 +910,12 @@ final class ClasspathScanner {
 
                     target.modelElement.getChildren().add(ret);
 
-                    FilterResult fr = filter.filter(ret);
+                    FilterResult fr = filter.start(ret);
                     if (fr.isDescend()) {
                         initNonClassElementChildrenAndMoveToApi(target, ret, true);
                     }
+
+                    finishFiltering(ret);
                 } else {
                     //this element is not generic, so we can merely copy it...
                     if (target.inApi) {
@@ -919,10 +932,12 @@ final class ClasspathScanner {
 
                     target.modelElement.getChildren().add(ret);
 
-                    FilterResult fr = filter.filter(ret);
+                    FilterResult fr = filter.start(ret);
                     if (fr.isDescend()) {
                         copyInheritedNonClassElementChildrenAndMoveToApi(target, ret, e.getChildren(), target.inApi);
                     }
+
+                    finishFiltering(ret);
                 }
 
                 if (e instanceof MethodElement) {
@@ -950,6 +965,19 @@ final class ClasspathScanner {
 
             for (TypeRecord st : superType.superTypes) {
                 addInherited(target, st, methodOverrideMap);
+            }
+        }
+
+        private void finishFiltering(JavaElementBase<?, ?> el) {
+            FilterMatch finish = filter.finish(el);
+
+            if (el instanceof org.revapi.java.model.TypeElement) {
+                TypeRecord tr = getTypeRecord((TypeElement) el.getDeclaringElement());
+                tr.inclusionState = FilterResult.from(finish, tr.inclusionState.isDescend());
+            }
+
+            if (finish == FilterMatch.DOESNT_MATCH && el.getParent() != null) {
+                el.getParent().getChildren().remove(el);
             }
         }
 
@@ -1047,10 +1075,12 @@ final class ClasspathScanner {
 
                 parent.getChildren().add(childEl);
 
-                FilterResult fr = filter.filter(childEl);
+                FilterResult fr = filter.start(childEl);
                 if (fr.isDescend()) {
                     initNonClassElementChildrenAndMoveToApi(parentOwner, childEl, inherited);
                 }
+
+                finishFiltering(childEl);
             }
 
             for (AnnotationMirror m : parent.getDeclaringElement().getAnnotationMirrors()) {

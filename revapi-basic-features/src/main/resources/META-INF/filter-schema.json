@@ -24,13 +24,8 @@
                             },
                             "match": {
                                 "type": "string"
-                            },
-                            "reincludedByChildren": {
-                                "type": "boolean",
-                                "default": true
                             }
-                        },
-                        "required": ["matcher", "recipe"]
+                        }
                     }
                 ]
             },
