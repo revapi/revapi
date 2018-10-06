@@ -37,7 +37,7 @@
 
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
-        <version.org.revapi.revapi>0.10.1</version.org.revapi.revapi>
+        <version.org.revapi.revapi>0.10.2</version.org.revapi.revapi>
     </properties>
 
     <dependencies>
@@ -50,14 +50,14 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.7.3</version>
+            <version>0.7.4</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.9.0</version>
+            <version>0.9.1</version>
         </dependency>
 
         <dependency>
