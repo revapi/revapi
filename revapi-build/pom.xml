@@ -332,12 +332,12 @@
                     <reportSet>
                         <reports>
                             <report>index</report>
-                            <report>licenses</report>
-                            <report>mailing-lists</report>
-                            <report>issue-management</report>
+                            <report>license</report>
+                            <report>mailing-list</report>
+                            <report>issue-tracking</report>
                             <report>scm</report>
-                            <report>team</report>
-                            <report>ci-management</report>
+                            <report>project-team</report>
+                            <report>cim</report>
                         </reports>
                     </reportSet>
                 </reportSets>
