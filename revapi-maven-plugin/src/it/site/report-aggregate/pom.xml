@@ -54,13 +54,9 @@
         </plugin>
         <!-- need to specify these versions otherwise the report somehow doesn't work -->
         <plugin>
-          <artifactId>maven-site-plugin</artifactId>
-          <version>3.7.1</version>
-        </plugin>
-        <plugin>
           <artifactId>maven-project-info-reports-plugin</artifactId>
-          <version>3.0.0</version>
-        </plugin>
+          <version>2.7</version>
+       </plugin>
       </plugins>
     </pluginManagement>
 

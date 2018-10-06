@@ -38,7 +38,7 @@
 
     <properties>
         <maven.version>3.2.5</maven.version>
-        <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
+        <maven-plugin-plugin.version>3.4</maven-plugin-plugin.version>
         <maven-invoker.version>1.9</maven-invoker.version>
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
@@ -272,7 +272,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.4</version>
+                <version>${maven-plugin-plugin.version}</version>
             </plugin>
         </plugins>
     </reporting>
