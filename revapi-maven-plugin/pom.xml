@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>37-SNAPSHOT</version>
+        <version>38-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -38,14 +38,14 @@
 
     <properties>
         <maven.version>3.2.5</maven.version>
-        <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
+        <maven-plugin-plugin.version>3.4</maven-plugin-plugin.version>
         <maven-invoker.version>1.9</maven-invoker.version>
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi-java.version>0.16.0</revapi-java.version>
-        <revapi-java-spi.version>0.15.1</revapi-java-spi.version>
-        <revapi-reporter-text.version>0.9.0</revapi-reporter-text.version>
+        <revapi-java.version>0.18.1</revapi-java.version>
+        <revapi-java-spi.version>0.17.1</revapi-java-spi.version>
+        <revapi-reporter-text.version>0.9.1</revapi-reporter-text.version>
 
         <automatic.module.name>org.revapi.maven.plugin</automatic.module.name>
     </properties>
@@ -272,7 +272,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.4</version>
+                <version>${maven-plugin-plugin.version}</version>
             </plugin>
         </plugins>
     </reporting>

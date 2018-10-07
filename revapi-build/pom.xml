@@ -21,7 +21,7 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>11-SNAPSHOT</version>
+        <version>12-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,7 +33,7 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>37-SNAPSHOT</version>
+    <version>38-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>${web.url}</url>
 
@@ -327,6 +327,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.7</version>
                 <reportSets>
                     <reportSet>
                         <reports>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,6 +92,14 @@ public final class RevapiTask extends Task {
 
         try(AnalysisResult res = revapi.analyze(context)) {
             res.throwIfFailed();
+
+            AntReporter reporter = res.getExtensions().getFirstExtension(AntReporter.class, null);
+
+            if (reporter.isErrorsReported()) {
+                throw new BuildException("API analysis failed. Check the log for the API errors.");
+            }
+        } catch (BuildException e) {
+            throw e;
         } catch (Exception e) {
             throw new BuildException("API analysis failed.", e);
         }

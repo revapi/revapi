@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +16,11 @@
  */
 package org.revapi;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -37,6 +39,7 @@ public final class Difference {
         protected String description;
         protected Map<CompatibilityType, DifferenceSeverity> classification = new HashMap<>();
         protected Map<String, String> attachments = new LinkedHashMap<>(2);
+        protected List<String> identifyingAttachments = new ArrayList<>(2);
 
         @Nonnull
         public This withCode(@Nonnull String code) {
@@ -80,6 +83,12 @@ public final class Difference {
             return castThis();
         }
 
+        @Nonnull
+        public This withIdentifyingAttachments(@Nonnull List<String> attachments) {
+            this.identifyingAttachments = attachments;
+            return castThis();
+        }
+
         @SuppressWarnings("unchecked")
         private This castThis() {
             return (This) this;
@@ -94,7 +103,7 @@ public final class Difference {
 
         @Nonnull
         public Difference build() {
-            return new Difference(code, name, description, classification, attachments);
+            return new Difference(code, name, description, classification, attachments, identifyingAttachments);
         }
     }
 
@@ -107,7 +116,7 @@ public final class Difference {
 
         @Nonnull
         public Report.Builder done() {
-            Difference p = new Difference(code, name, description, classification, attachments);
+            Difference p = new Difference(code, name, description, classification, attachments, identifyingAttachments);
             reportBuilder.differences.add(p);
             return reportBuilder;
         }
@@ -140,6 +149,8 @@ public final class Difference {
      */
     public final Map<String, String> attachments;
 
+    private final List<String> identifyingAttachments;
+
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
         @Nonnull CompatibilityType compatibility,
         @Nonnull DifferenceSeverity severity, @Nonnull Map<String, String> attachments) {
@@ -149,12 +160,23 @@ public final class Difference {
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
         @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
                       @Nonnull Map<String, String> attachments) {
+        this(code, name, description, classification, attachments, Collections.emptyList());
+    }
+
+    public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
+            @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
+            @Nonnull Map<String, String> attachments, @Nonnull List<String> identifyingAttachments) {
         this.code = code;
         this.name = name;
         this.description = description;
         HashMap<CompatibilityType, DifferenceSeverity> tmp = new HashMap<>(classification);
         this.classification = Collections.unmodifiableMap(tmp);
         this.attachments = Collections.unmodifiableMap(new LinkedHashMap<>(attachments));
+        this.identifyingAttachments = Collections.unmodifiableList(identifyingAttachments);
+    }
+
+    public boolean isIdentifyingAttachment(String attachmentName) {
+        return identifyingAttachments.contains(attachmentName);
     }
 
     @Override

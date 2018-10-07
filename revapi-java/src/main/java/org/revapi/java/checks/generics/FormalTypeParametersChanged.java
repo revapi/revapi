@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -133,14 +133,16 @@ public final class FormalTypeParametersChanged extends CheckBase {
         for (TypeParameterElement e : added) {
             diffs.add(
                 createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED,
-                        Code.attachmentsFor(els.oldElement, els.newElement),
+                        Code.attachmentsFor(els.oldElement, els.newElement,
+                                "typeParameter", Util.toHumanReadableString(e)),
                         Util.toHumanReadableString(e))
             );
         }
 
         for (TypeParameterElement e : removed) {
             diffs.add(createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED,
-                    Code.attachmentsFor(els.oldElement, els.newElement),
+                    Code.attachmentsFor(els.oldElement, els.newElement,
+                            "typeParameter", Util.toHumanReadableString(e)),
                     Util.toHumanReadableString(e)));
         }
 

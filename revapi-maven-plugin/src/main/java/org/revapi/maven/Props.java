@@ -150,4 +150,9 @@ final class Props {
         static final String NAME = PREFIX + "outputIgnoreSuggestions";
         static final String DEFAULT_VALUE = "true";
     }
+
+    static final class outputNonIdentifyingDifferenceInfo {
+        static final String NAME = PREFIX + "outputNonIdentifyingDifferenceInfo";
+        static final String DEFAULT_VALUE = "true";
+    }
 }

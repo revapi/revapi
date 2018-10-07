@@ -46,6 +46,17 @@ public class CheckMojo extends AbstractRevapiMojo {
     @Parameter(property = Props.outputIgnoreSuggestions.NAME, defaultValue = Props.outputIgnoreSuggestions.DEFAULT_VALUE)
     private boolean outputIgnoreSuggestions;
 
+    /**
+     * When set to true, all the information about a difference is output in the ignore suggestions. This is useful if
+     * you want to modify the ignore suggestion to match some other (broader) set of differences. If you only ever
+     * want to suppress concrete differences one-by-one, you can set this to false. If set to false, the ignore
+     * suggestions will only contain the minimum information needed to identify the concrete difference.
+     *
+     * @since 0.10.5
+     */
+    @Parameter(property = Props.outputNonIdentifyingDifferenceInfo.NAME, defaultValue = Props.outputNonIdentifyingDifferenceInfo.DEFAULT_VALUE)
+    private boolean outputNonIdentifyingDifferenceInfo;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
@@ -59,7 +70,7 @@ public class CheckMojo extends AbstractRevapiMojo {
 
         try (AnalysisResult res = analyze(BuildTimeReporter.class,
                 BuildTimeReporter.BREAKING_SEVERITY_KEY, failSeverity.asDifferenceSeverity(), "maven-log", getLog(),
-                "writer", wrt)) {
+                "writer", wrt, BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, outputNonIdentifyingDifferenceInfo)) {
 
             res.throwIfFailed();
 
