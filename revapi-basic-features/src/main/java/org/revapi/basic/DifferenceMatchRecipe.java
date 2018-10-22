@@ -27,11 +27,14 @@ import java.util.regex.Pattern;
 
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.revapi.ArchiveAnalyzer;
 import org.revapi.Difference;
 import org.revapi.Element;
 import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
+import org.revapi.FilterResult;
+import org.revapi.TreeFilter;
 
 /**
  * A helper class to {@link org.revapi.basic.AbstractDifferenceReferringTransform} that defines the match of
@@ -41,12 +44,31 @@ import org.revapi.FilterMatch;
  * @since 0.1
  */
 public abstract class DifferenceMatchRecipe {
+    private static final TreeFilter NON_MATCHING_FILTER = new TreeFilter() {
+        @Override
+        public FilterResult start(Element element) {
+            return FilterResult.doesntMatchAndDescend();
+        }
+
+        @Override
+        public FilterMatch finish(Element element) {
+            return FilterMatch.DOESNT_MATCH;
+        }
+
+        @Override
+        public Map<Element, FilterMatch> finish() {
+            return Collections.emptyMap();
+        }
+    };
+
     final ModelNode config;
     final boolean regex;
     final String code;
     final Pattern codeRegex;
-    final ElementMatcher.CompiledRecipe oldElement;
-    final ElementMatcher.CompiledRecipe newElement;
+    final ElementMatcher.CompiledRecipe oldRecipe;
+    final ElementMatcher.CompiledRecipe newRecipe;
+    TreeFilter oldFilter;
+    TreeFilter newFilter;
     final Map<String, String> attachments;
     final Map<String, Pattern> attachmentRegexes;
 
@@ -68,8 +90,8 @@ public abstract class DifferenceMatchRecipe {
         regex = config.has("regex") && config.get("regex").asBoolean();
         code = config.get("code").asString();
         codeRegex = regex ? Pattern.compile(code) : null;
-        oldElement = getElement(regex, config.get("old"), matchers);
-        newElement = getElement(regex, config.get("new"), matchers);
+        oldRecipe = getElement(regex, config.get("old"), matchers);
+        newRecipe = getElement(regex, config.get("new"), matchers);
         attachments = getAttachments(config, reservedProperties);
         if (regex) {
             attachmentRegexes = attachments.entrySet().stream()
@@ -78,6 +100,11 @@ public abstract class DifferenceMatchRecipe {
             attachmentRegexes = null;
         }
         this.config = config;
+    }
+
+    public void setAnalyzers(ArchiveAnalyzer oldAnalyzer, ArchiveAnalyzer newAnalyzer) {
+        oldFilter = oldRecipe.filterFor(oldAnalyzer);
+        newFilter = newRecipe.filterFor(newAnalyzer);
     }
 
     public boolean matches(Difference difference, Element oldElement, Element newElement) {
@@ -92,12 +119,12 @@ public abstract class DifferenceMatchRecipe {
             return false;
         }
 
-        FilterMatch oldMatch = this.oldElement == null
+        FilterMatch oldMatch = this.oldRecipe == null
                 ? FilterMatch.MATCHES
-                : this.oldElement.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, oldElement);
-        FilterMatch newMatch = this.newElement == null
+                : this.oldRecipe.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, oldElement);
+        FilterMatch newMatch = this.newRecipe == null
                 ? FilterMatch.MATCHES
-                : this.newElement.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, newElement);
+                : this.newRecipe.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, newElement);
 
         boolean elementsMatch = oldMatch.and(newMatch).toBoolean(false);
 
@@ -160,7 +187,7 @@ public abstract class DifferenceMatchRecipe {
 
             ElementMatcher matcher = matchers.get(matcherId);
             return matcher == null
-                    ? (__, ___) -> FilterMatch.DOESNT_MATCH
+                    ? __ -> NON_MATCHING_FILTER
                     : matcher.compile(recipe).orElse(null);
         }
     }

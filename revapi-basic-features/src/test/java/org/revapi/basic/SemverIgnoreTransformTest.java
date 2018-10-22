@@ -16,6 +16,8 @@
  */
 package org.revapi.basic;
 
+import static org.revapi.basic.Util.transformAndAssumeOne;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -57,9 +59,9 @@ public class SemverIgnoreTransformTest {
     @Test
     public void testDisabledByDefault() {
         DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {}}]");
-        Assert.assertSame(NON_BREAKING, tr.transform(null, null, NON_BREAKING));
-        Assert.assertSame(POTENTIALLY_BREAKING, tr.transform(null, null, POTENTIALLY_BREAKING));
-        Assert.assertSame(BREAKING, tr.transform(null, null, BREAKING));
+        Assert.assertSame(NON_BREAKING, transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
+        Assert.assertSame(BREAKING, transformAndAssumeOne(tr, null, null, BREAKING));
     }
 
     @Test
@@ -67,34 +69,34 @@ public class SemverIgnoreTransformTest {
         String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]";
 
         DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", config);
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, POTENTIALLY_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
 
         tr = getTestTransform("0.0.0", "0.1.0", config);
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertNull(tr.transform(null, null, POTENTIALLY_BREAKING));
-        Assert.assertNull(tr.transform(null, null, BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, BREAKING));
 
         tr = getTestTransform("0.0.0", "1.0.0", config);
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertNull(tr.transform(null, null, POTENTIALLY_BREAKING));
-        Assert.assertNull(tr.transform(null, null, BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, BREAKING));
 
         tr = getTestTransform("1.0.0", "1.0.1", config);
-        Assert.assertTrue(isBreaking(tr.transform(null, null, NON_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, POTENTIALLY_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, NON_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
 
         tr = getTestTransform("1.0.0", "1.1.0", config);
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, POTENTIALLY_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
 
         tr = getTestTransform("1.0.0", "2.0.0", config);
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertNull(tr.transform(null, null, POTENTIALLY_BREAKING));
-        Assert.assertNull(tr.transform(null, null, BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, BREAKING));
     }
 
     @Test
@@ -104,34 +106,34 @@ public class SemverIgnoreTransformTest {
 
 
         DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", config);
-        Assert.assertTrue(isBreaking(tr.transform(null, null, NON_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, POTENTIALLY_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, NON_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
 
         tr = getTestTransform("0.0.0", "0.1.0", config);
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, POTENTIALLY_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
 
         tr = getTestTransform("0.0.0", "1.0.0", config);
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertNull(tr.transform(null, null, POTENTIALLY_BREAKING));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
 
         tr = getTestTransform("1.0.0", "1.0.1", config);
-        Assert.assertTrue(isBreaking(tr.transform(null, null, NON_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, POTENTIALLY_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, NON_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
 
         tr = getTestTransform("1.0.0", "1.1.0", config);
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, POTENTIALLY_BREAKING)));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
 
         tr = getTestTransform("1.0.0", "2.0.0", config);
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertNull(tr.transform(null, null, POTENTIALLY_BREAKING));
-        Assert.assertTrue(isBreaking(tr.transform(null, null, BREAKING)));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
+        Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
     }
 
     @Test
@@ -140,21 +142,21 @@ public class SemverIgnoreTransformTest {
 
         DifferenceTransform<?> tr = getTestTransform("1.0.0", "2.0.0", config);
 
-        Assert.assertNull(tr.transform(null, null, NON_BREAKING));
-        Assert.assertSame(POTENTIALLY_BREAKING, tr.transform(null, null, POTENTIALLY_BREAKING));
-        Assert.assertNull(tr.transform(null, null, BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
+        Assert.assertNull(transformAndAssumeOne(tr, null, null, BREAKING));
     }
 
     @Test
     public void testNoOldVersion() {
         DifferenceTransform<?> tr = getTestTransform(null, "15", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
-        Assert.assertSame(NON_BREAKING, tr.transform(null, null, NON_BREAKING));
-        Assert.assertSame(POTENTIALLY_BREAKING, tr.transform(null, null, POTENTIALLY_BREAKING));
-        Assert.assertSame(BREAKING, tr.transform(null, null, BREAKING));
+        Assert.assertSame(NON_BREAKING, transformAndAssumeOne(tr, null, null, NON_BREAKING));
+        Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
+        Assert.assertSame(BREAKING, transformAndAssumeOne(tr, null, null, BREAKING));
     }
 
     private boolean isBreaking(Difference difference) {
-        return difference.classification.values().stream().anyMatch(ds -> ds == DifferenceSeverity.BREAKING);
+        return difference != null && difference.classification.values().stream().anyMatch(ds -> ds == DifferenceSeverity.BREAKING);
     }
 
     private DifferenceTransform<Element> getTestTransform(String oldVersion, String newVersion,

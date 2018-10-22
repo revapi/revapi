@@ -86,7 +86,7 @@ public class IgnoreDifferenceTransformTest {
                     "[{\"extension\": \"revapi.ignore\", \"configuration\": [{\"code\":\"c\", \"justification\" : \"because\"}]}]");
 
             t.initialize(config);
-            difference = t.transform(oldE, newE, difference);
+            difference = Util.transformAndAssumeOne(t, oldE, newE, difference);
             Assert.assertNull(difference);
         }
     }
@@ -103,7 +103,7 @@ public class IgnoreDifferenceTransformTest {
                     "[{\"extension\": \"revapi.ignore\", \"configuration\": [{\"regex\": true, \"code\":\"c\", \"justification\" : \"because\"}]}]");
 
             t.initialize(config);
-            difference = t.transform(oldE, newE, difference);
+            difference = Util.transformAndAssumeOne(t, oldE, newE, difference);
             Assert.assertNull(difference);
         }
     }
@@ -123,13 +123,13 @@ public class IgnoreDifferenceTransformTest {
                     "[{\"extension\": \"revapi.ignore\", \"configuration\": [{\"code\":\"c\", \"kachna\": \"dobra\", \"justification\" : \"because\"}]}]");
 
             t.initialize(config);
-            difference = t.transform(oldE, newE, difference);
+            difference = Util.transformAndAssumeOne(t, oldE, newE, difference);
             Assert.assertNotNull(difference);
 
-            anotherDiff = t.transform(oldE, newE, anotherDiff);
+            anotherDiff = Util.transformAndAssumeOne(t, oldE, newE, anotherDiff);
             Assert.assertNotNull(anotherDiff);
 
-            matchingDiff = t.transform(oldE, newE, matchingDiff);
+            matchingDiff = Util.transformAndAssumeOne(t, oldE, newE, matchingDiff);
             Assert.assertNull(matchingDiff);
         }
     }
@@ -148,10 +148,10 @@ public class IgnoreDifferenceTransformTest {
                     "[{\"extension\": \"revapi.ignore\", \"configuration\": [{\"regex\": true, \"code\":\".*\", \"kachna\": \".*dobra$\", \"justification\" : \"because\"}]}]");
 
             t.initialize(config);
-            difference = t.transform(oldE, newE, difference);
+            difference = Util.transformAndAssumeOne(t, oldE, newE, difference);
             Assert.assertNull(difference);
 
-            anotherDiff = t.transform(oldE, newE, anotherDiff);
+            anotherDiff = Util.transformAndAssumeOne(t, oldE, newE, anotherDiff);
             Assert.assertNotNull(anotherDiff);
         }
     }

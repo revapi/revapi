@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.revapi.AnalysisContext;
+import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
@@ -37,8 +38,8 @@ import org.revapi.simple.RepeatingTreeFilter;
  */
 public final class ExactElementMatcher implements ElementMatcher {
     @Override
-    public Optional<TreeFilter> compile2(String recipe) {
-        return Optional.of(new StringMatch(recipe));
+    public Optional<CompiledRecipe> compile(String recipe) {
+        return Optional.of(__ -> new StringMatch(recipe));
     }
 
     @Override

@@ -43,6 +43,7 @@ import javax.tools.ToolProvider;
 
 import org.revapi.Archive;
 import org.revapi.FilterProvider;
+import org.revapi.TreeFilter;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.Timing;
 import org.slf4j.Logger;
@@ -60,10 +61,10 @@ public final class Compiler {
     private final Iterable<? extends Archive> classPath;
     private final Iterable<? extends Archive> additionalClassPath;
     private final ExecutorService executor;
-    private final FilterProvider filter;
+    private final TreeFilter filter;
 
     public Compiler(ExecutorService executor, Writer reportingOutput, Iterable<? extends Archive> classPath,
-        Iterable<? extends Archive> additionalClassPath, FilterProvider filter) {
+        Iterable<? extends Archive> additionalClassPath, TreeFilter filter) {
 
         compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {

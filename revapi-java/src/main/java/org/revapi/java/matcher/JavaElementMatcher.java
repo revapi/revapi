@@ -16,8 +16,13 @@
  */
 package org.revapi.java.matcher;
 
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
+
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -32,11 +37,9 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import org.revapi.AnalysisContext;
-import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
-import org.revapi.FilterProvider;
 import org.revapi.FilterResult;
 import org.revapi.TreeFilter;
 import org.revapi.classif.Classif;
@@ -47,13 +50,19 @@ import org.revapi.classif.TestResult;
 import org.revapi.classif.WalkInstruction;
 import org.revapi.java.JavaArchiveAnalyzer;
 import org.revapi.java.compilation.ProbingEnvironment;
-import org.revapi.java.model.JavaElementBase;
+import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.spi.JavaModelElement;
+import org.revapi.java.spi.JavaTypeElement;
+import org.revapi.java.spi.UseSite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
  */
 public final class JavaElementMatcher implements ElementMatcher {
+    private static final Logger LOG = LoggerFactory.getLogger(JavaElementMatcher.class);
+
     @Override
     public Optional<CompiledRecipe> compile(String recipe) {
         try {
@@ -85,7 +94,7 @@ public final class JavaElementMatcher implements ElementMatcher {
                     }
                 };
             });
-        } catch (IllegalArgumentException __) {
+        } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
     }
@@ -164,20 +173,84 @@ public final class JavaElementMatcher implements ElementMatcher {
 
         @Override
         public Set<Element> getUses(Element element) {
-            //TODO implement
-            return null;
+            if (!env.isScanningComplete()) {
+                return null;
+            } else if (element instanceof JavaModelElement) {
+                JavaModelElement user = (JavaModelElement) element;
+                while (element != null && !(element instanceof JavaTypeElement)) {
+                    element = element.getParent();
+                }
+
+                if (element == null) {
+                    return emptySet();
+                }
+
+                JavaTypeElement type = (JavaTypeElement) element;
+
+                Map<UseSite.Type, Map<JavaTypeElement, Set<JavaModelElement>>> usedTypes = type.getUsedTypes();
+
+                return usedTypes.values().stream()
+                        .flatMap(m -> m.entrySet().stream())
+                        .filter(e -> e.getValue().contains(user))
+                        .map(Map.Entry::getKey)
+                        .collect(toSet());
+            } else {
+                return emptySet();
+            }
         }
 
         @Override
         public Set<Element> getUseSites(Element element) {
-            //TODO implement
-            return null;
+            if (!env.isScanningComplete()) {
+                return null;
+            } else if (element instanceof JavaTypeElement) {
+                return ((JavaTypeElement) element).getUseSites().stream()
+                        .map(UseSite::getSite)
+                        .collect(toSet());
+            } else {
+                return emptySet();
+            }
         }
 
         @Override
         public Element fromElement(javax.lang.model.element.Element element) {
-            //TODO implement
-            return null;
+            if (!env.isScanningComplete()) {
+                return JavaElementFactory.elementFor(element, element.asType(), env, null);
+            } else {
+                List<javax.lang.model.element.Element> path = new ArrayList<>(3);
+                javax.lang.model.element.Element current = element;
+                while (current != null && !(current instanceof TypeElement)) {
+                    path.add(current);
+                    current = current.getEnclosingElement();
+                }
+
+                TypeElement type = (TypeElement) current;
+                JavaModelElement model = env.getTypeMap().get(type);
+                ListIterator<javax.lang.model.element.Element> it = path.listIterator(path.size());
+                while (it.hasPrevious()) {
+                    javax.lang.model.element.Element child = it.previous();
+                    boolean found = false;
+                    for (Element e : model.getChildren()) {
+                        if (!(e instanceof JavaModelElement)) {
+                            // annotations
+                            continue;
+                        }
+
+                        JavaModelElement m = (JavaModelElement) e;
+                        if (m.getDeclaringElement() == child) {
+                            model = m;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        return null;
+                    }
+                }
+
+                return model;
+            }
         }
 
         @Override

@@ -16,6 +16,7 @@
  */
 package org.revapi.java.spi;
 
+import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.TypeElement;
@@ -38,6 +39,14 @@ public interface JavaTypeElement extends JavaModelElement {
      * @return the set of "places" where this type element is used
      */
     Set<UseSite> getUseSites();
+
+    /**
+     * This provides the types used by this type. The keys are the types of use, values are maps from the used type
+     * to the set of concrete users of the type (the users represent some child of this element).
+     *
+     * @return the types used by this type
+     */
+    Map<UseSite.Type, Map<JavaTypeElement, Set<JavaModelElement>>> getUsedTypes();
 
     /**
      * Visits the uses of the provided type. The visit will stop as soon as a non-null value is returned

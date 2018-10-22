@@ -83,6 +83,7 @@ import org.revapi.Archive;
 import org.revapi.FilterMatch;
 import org.revapi.FilterResult;
 import org.revapi.FilterProvider;
+import org.revapi.TreeFilter;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.model.AbstractJavaElement;
 import org.revapi.java.model.AnnotationElement;
@@ -118,14 +119,14 @@ final class ClasspathScanner {
     private final Map<Archive, File> additionalClassPath;
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
     private final boolean ignoreMissingAnnotations;
-    private final FilterProvider filter;
+    private final TreeFilter filter;
     private final TypeElement objectType;
 
     ClasspathScanner(StandardJavaFileManager fileManager, ProbingEnvironment environment,
             Map<Archive, File> classPath, Map<Archive, File> additionalClassPath,
             AnalysisConfiguration.MissingClassReporting missingClassReporting,
             boolean ignoreMissingAnnotations,
-            FilterProvider filter) {
+            TreeFilter filter) {
         this.fileManager = fileManager;
         this.environment = environment;
         this.classPath = classPath;

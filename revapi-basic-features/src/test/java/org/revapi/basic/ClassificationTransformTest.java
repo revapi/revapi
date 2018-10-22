@@ -35,6 +35,7 @@ import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
+import org.revapi.DifferenceTransform;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.simple.SimpleElement;
@@ -141,7 +142,7 @@ public class ClassificationTransformTest {
 
         try (ClassificationTransform t = new ClassificationTransform()) {
             t.initialize(config);
-            difference = t.transform(oldE, newE, difference);
+            difference = Util.transformAndAssumeOne(t, oldE, newE, difference);
             test.accept(difference);
         }
     }

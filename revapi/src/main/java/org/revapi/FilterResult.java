@@ -17,7 +17,7 @@
 package org.revapi;
 
 /**
- * The result of the element filtering in {@link ElementGateway}. The result tells the analysis whether to let
+ * The result of the element filtering in {@link TreeFilter}. The result tells the analysis whether to let
  * the element pass or not to the next stage but also whether to descend to its children or not.
  */
 public abstract class FilterResult {

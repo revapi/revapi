@@ -56,7 +56,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     private Set<ClassPathUseSite> rawUseSites;
     private boolean inApi;
     private boolean inApiThroughUse;
-    private Map<UseSite.Type, Map<TypeElement, Set<JavaModelElement>>> usedTypes;
+    private Map<UseSite.Type, Map<JavaTypeElement, Set<JavaModelElement>>> usedTypes;
     private Map<UseSite.Type, Map<TypeElement, Set<UseSitePath>>> rawUsedTypes;
 
     /**
@@ -151,12 +151,12 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
      *
      * @return the types used by this type
      */
-    public Map<UseSite.Type, Map<TypeElement, Set<JavaModelElement>>> getUsedTypes() {
+    public Map<UseSite.Type, Map<JavaTypeElement, Set<JavaModelElement>>> getUsedTypes() {
         if (usedTypes == null) {
             usedTypes = new HashMap<>();
             if (rawUsedTypes != null) {
                 for (Map.Entry<UseSite.Type, Map<TypeElement, Set<UseSitePath>>> e : rawUsedTypes.entrySet()) {
-                    Map<TypeElement, Set<JavaModelElement>> value = e.getValue().entrySet().stream()
+                    Map<JavaTypeElement, Set<JavaModelElement>> value = e.getValue().entrySet().stream()
                             .collect(toMap(
                                     Map.Entry::getKey,
                                     entry -> entry.getValue().stream().map(path -> {

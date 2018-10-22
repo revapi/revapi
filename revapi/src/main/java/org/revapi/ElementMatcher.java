@@ -39,7 +39,22 @@ public interface ElementMatcher extends Configurable, AutoCloseable {
      */
     Optional<CompiledRecipe> compile(String recipe);
 
+    /**
+     * A "compiled" representation of a textual recipe. It is assumed that the element matchers will want to create
+     * some intermediate representation of the textual recipe that is faster to transform into a tree filter.
+     */
     interface CompiledRecipe {
+        /**
+         * The recipe needs to be transformed into a {@link TreeFilter} to be used for filtering of the element forest.
+         * It is assumed that the element matcher may want cooperate with the archive analyzer that produced the element
+         * forest to correctly set up the filter.
+         *
+         * @param archiveAnalyzer the archive analyzer that produced the element forest that will be filtered by the
+         *                        return tree filter
+         * @return a tree filter to use for filtering the forest or null if the recipe is not applicable to elements of
+         * the provided archive analyzer
+         */
+        @Nullable
         TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer);
     }
 }

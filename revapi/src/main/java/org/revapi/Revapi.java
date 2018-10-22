@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,7 +38,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -63,7 +63,7 @@ public final class Revapi {
     static final Logger TIMING_LOG = LoggerFactory.getLogger("revapi.analysis.timing");
     private final Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers;
     private final Set<Class<? extends Reporter>> availableReporters;
-    private final Set<Class<? extends DifferenceTransform<?>>> availableTransforms;
+    private final Set<Class<? extends DifferenceTransform<?>>> availableTransformers;
     private final Set<Class<? extends FilterProvider>> availableFilters;
     private final Set<Class<? extends ElementMatcher>> availableMatchers;
     private final ConfigurationValidator configurationValidator;
@@ -74,19 +74,19 @@ public final class Revapi {
      *
      * @param availableApiAnalyzers the set of analyzers to use
      * @param availableReporters    the set of reporters to use
-     * @param availableTransforms   the set of transforms to use
+     * @param availableTransformers   the set of transformers to use
      * @param elementFilters        the set of element filters to use
      * @throws java.lang.IllegalArgumentException if any of the parameters is null
      */
     public Revapi(@Nonnull Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers,
                   @Nonnull Set<Class<? extends Reporter>> availableReporters,
-                  @Nonnull Set<Class<? extends DifferenceTransform<?>>> availableTransforms,
+            @Nonnull Set<Class<? extends DifferenceTransform<?>>> availableTransformers,
                   @Nonnull Set<Class<? extends FilterProvider>> elementFilters,
                   @Nonnull Set<Class<? extends ElementMatcher>> matchers) {
 
         this.availableApiAnalyzers = availableApiAnalyzers;
         this.availableReporters = availableReporters;
-        this.availableTransforms = availableTransforms;
+        this.availableTransformers = availableTransformers;
         this.availableFilters = elementFilters;
         this.availableMatchers = matchers;
         this.configurationValidator = new ConfigurationValidator();
@@ -110,7 +110,7 @@ public final class Revapi {
                 availableApiAnalyzers.stream(),
                 availableFilters.stream(),
                 availableReporters.stream(),
-                availableTransforms.stream())
+                availableTransformers.stream())
                 .map(this::instantiate).iterator();
 
         validation = validate(analysisContext, validation, it);
@@ -136,7 +136,7 @@ public final class Revapi {
      * @return the set of difference transforms available to this Revapi instance
      */
     public Set<Class<? extends DifferenceTransform<?>>> getDifferenceTransformTypes() {
-        return Collections.unmodifiableSet(availableTransforms);
+        return Collections.unmodifiableSet(availableTransformers);
     }
 
     /**
@@ -166,7 +166,7 @@ public final class Revapi {
         Map<FilterProvider, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
         Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
         Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
-        Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
+        Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransformers);
         Map<ElementMatcher, AnalysisContext> matchers = splitByConfiguration(analysisContext, availableMatchers);
 
         BiFunction<Object, AnalysisContext, AnalysisContext> addMatchers =
@@ -297,8 +297,31 @@ public final class Revapi {
             TIMING_LOG.debug("Opening difference analyzer");
             elementDifferenceAnalyzer.open();
 
+            List<Report> reports = new ArrayList<>();
+
+            List<DifferenceTransform<?>> activeTransforms =
+                    extensions.getTransforms().keySet().stream()
+                            .filter(t -> t.startTraversal(apiAnalyzer, oldAnalyzer, newAnalyzer))
+                            .collect(toList());
+
             analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs,
-                    extensions);
+                    reports, activeTransforms);
+
+            extensions.getTransforms().keySet().forEach(t -> t.endTraversal(apiAnalyzer));
+
+            Set<Reporter> reporters = extensions.getReporters().keySet();
+
+            reports.forEach(r -> {
+                transform(r, activeTransforms, null, false);
+
+                if (!r.getDifferences().isEmpty()) {
+                    Stats.of("reports").start();
+                    for (Reporter reporter : reporters) {
+                        reporter.report(r);
+                    }
+                    Stats.of("reports").end(r);
+                }
+            });
 
             TIMING_LOG.debug("Closing difference analyzer");
         }
@@ -314,8 +337,8 @@ public final class Revapi {
     }
 
     private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
-                         SortedSet<? extends Element> as, SortedSet<? extends Element> bs,
-                         AnalysisResult.Extensions extensions) {
+            SortedSet<? extends Element> as, SortedSet<? extends Element> bs, Collection<Report> reports,
+            Collection<DifferenceTransform<?>> activeTransforms) {
 
         List<Element> sortedAs = new ArrayList<>(as);
         List<Element> sortedBs = new ArrayList<>(bs);
@@ -336,6 +359,10 @@ public final class Revapi {
             Stats.of("analyses").start();
             Stats.of("analysisBegins").start();
 
+            List<DifferenceTransform<?>> childTransforms = activeTransforms.stream()
+                    .filter(t -> (a != null && b != null) | t.startElements(a, b)) //intentional non-short-circuit "or"
+                    .collect(toList());
+
             elementDifferenceAnalyzer.beginAnalysis(a, b);
 
             Stats.of("analysisBegins").end(a, b);
@@ -351,7 +378,7 @@ public final class Revapi {
                 analyze(deducer, elementDifferenceAnalyzer,
                         a == null ? emptySortedSet() : a.getChildren(),
                         b == null ? emptySortedSet() : b.getChildren(),
-                        extensions);
+                        reports, childTransforms);
             } else {
                 LOG.trace("Filters disallowed descending into {} and {}.", a, b);
             }
@@ -361,10 +388,14 @@ public final class Revapi {
 
             Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
 
+            reports.add(r);
+
             Stats.of("analysisEnds").end(a, b);
             Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
 
-            transformAndReport(r, extensions);
+            for (DifferenceTransform<?> t : activeTransforms) {
+                t.endElements(a, b);
+            }
         }
     }
 
@@ -467,7 +498,9 @@ public final class Revapi {
         }
     }
 
-    private void transformAndReport(Report report, AnalysisResult.Extensions extensions) {
+    private void transform(Report report, Collection<DifferenceTransform<?>> eligibleTransforms,
+            Collection<Report> undecidedReports, boolean collectUndecided) {
+
         if (report == null) {
             return;
         }
@@ -485,39 +518,57 @@ public final class Revapi {
                 Difference d = it.next();
                 transformed.clear();
                 boolean differenceChanged = false;
-                for (DifferenceTransform<?> t : getTransformsForDifference(d, extensions)) {
+                boolean undecided = false;
+                for (DifferenceTransform<?> t : getTransformsForDifference(d, eligibleTransforms)) {
                     // it is the responsibility of the transform to declare the proper type.
                     // it will get a ClassCastException if it fails to declare a type that is common to all differences
                     // it can handle
                     @SuppressWarnings("unchecked")
                     DifferenceTransform<Element> tt = (DifferenceTransform<Element>) t;
 
-                    Difference td = d;
+                    TransformationResult res;
                     try {
-                        td = tt.transform(report.getOldElement(), report.getNewElement(), d);
+                        res = tt.tryTransform(report.getOldElement(), report.getNewElement(), d);
                     } catch (Exception e) {
+                        res = TransformationResult.keep();
                         LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an exception" +
                                 " while processing difference " + d + " on old element " + report.getOldElement() +
                                 " and" +
                                 " new element " + report.getNewElement(), e);
                     }
 
-                    // ignore if transformation returned null, meaning that it "swallowed" the difference..
-                    if (td == null) {
-                        listChanged = true;
-                        differenceChanged = true;
-                    } else if (!d.equals(td)) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Difference transform {} transforms {} to {}", t.getClass(), d, td);
-                        }
-
-                        transformed.add(td);
-                        listChanged = true;
-                        differenceChanged = true;
+                    switch (res.getResolution()) {
+                        case KEEP:
+                            //k, we'll keep it as is
+                            break;
+                        case DISCARD:
+                            listChanged = true;
+                            differenceChanged = true;
+                            break;
+                        case UNDECIDED:
+                            // when we're not collecting the undecided reports, this is the same as KEEP
+                            if (collectUndecided) {
+                                undecidedReports.add(report);
+                                undecided = true;
+                            }
+                            break;
+                        case REPLACE:
+                            if (res.getDifferences() != null) {
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("Difference transform {} transforms {} to {}", t.getClass(), d,
+                                            res.getDifferences());
+                                }
+                                transformed.addAll(res.getDifferences());
+                            }
+                            listChanged = true;
+                            differenceChanged = true;
+                            break;
                     }
                 }
 
-                if (differenceChanged) {
+                // we don't touch the differences if even just one of the transforms was undecided. We will just revisit
+                // the report when the whole API traversal is over.
+                if (!undecided && differenceChanged) {
                     //we need to remove the element in either case
                     it.remove();
                     if (!transformed.isEmpty()) {
@@ -548,21 +599,13 @@ public final class Revapi {
         } while (listChanged);
 
         Stats.of("transforms").end(report);
-
-        if (!report.getDifferences().isEmpty()) {
-            Stats.of("reports").start();
-            for (Reporter reporter : extensions.getReporters().keySet()) {
-                reporter.report(report);
-            }
-            Stats.of("reports").end(report);
-        }
     }
 
-    private List<DifferenceTransform<?>> getTransformsForDifference(Difference diff, AnalysisResult.Extensions extensions) {
+    private List<DifferenceTransform<?>> getTransformsForDifference(Difference diff, Collection<DifferenceTransform<?>> transforms) {
         List<DifferenceTransform<?>> ret = matchingTransformsCache.get(diff.code);
         if (ret == null) {
             ret = new ArrayList<>();
-            for (DifferenceTransform<?> t : extensions.getTransforms().keySet()) {
+            for (DifferenceTransform<?> t : transforms) {
                 for (Pattern p : t.getDifferenceCodePatterns()) {
                     if (p.matcher(diff.code).matches()) {
                         ret.add(t);
@@ -642,15 +685,7 @@ public final class Revapi {
 
         @Nonnull
         public Builder withTransformsFromThreadContextClassLoader() {
-            //don't you love Java generics? ;)
-            @SuppressWarnings("rawtypes")
-            Iterable trs = ServiceTypeLoader.load(DifferenceTransform.class);
-
-            @SuppressWarnings("unchecked")
-            Iterable<Class<? extends DifferenceTransform<?>>> rtrs
-                    = (Iterable<Class<? extends DifferenceTransform<?>>>) trs;
-
-            return withTransforms(rtrs);
+            return withTransformsFrom(Thread.currentThread().getContextClassLoader());
         }
 
         @Nonnull
@@ -780,5 +815,10 @@ public final class Revapi {
 
             return new Revapi(analyzers, reporters, transforms, filters, matchers);
         }
+    }
+
+    private static final class ElementPairTransformationState {
+        Report correspondingReport;
+        Collection<DifferenceTransform<?>> activeTransforms;
     }
 }

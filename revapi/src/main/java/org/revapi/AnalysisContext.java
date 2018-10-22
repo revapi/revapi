@@ -177,6 +177,7 @@ public final class AnalysisContext {
         addExtensionIds(revapi.getDifferenceTransformTypes(), knownExtensionIds);
         addExtensionIds(revapi.getElementFilterTypes(), knownExtensionIds);
         addExtensionIds(revapi.getReporterTypes(), knownExtensionIds);
+        addExtensionIds(revapi.getElementMatcherTypes(), knownExtensionIds);
 
         return new Builder(knownExtensionIds);
     }

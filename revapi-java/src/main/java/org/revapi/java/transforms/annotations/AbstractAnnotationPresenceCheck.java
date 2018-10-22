@@ -30,6 +30,7 @@ import javax.lang.model.element.VariableElement;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
+import org.revapi.TransformationResult;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.ElementPairVisitor;
 import org.revapi.java.spi.JavaModelElement;
@@ -75,22 +76,21 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
         this.analysisContext = analysisContext;
     }
 
-    @Nullable
     @Override
-    public Difference transform(@Nullable final JavaModelElement oldElement,
+    public TransformationResult tryTransform(@Nullable final JavaModelElement oldElement,
         @Nullable final JavaModelElement newElement, @Nonnull final Difference difference) {
         //we're checking for change of presence of an annotation on an element. Thus both the old and new version
         //of the element must be non-null.
         if (oldElement == null || newElement == null) {
-            return null;
+            return TransformationResult.keep();
         }
 
         String affectedAnnotation = difference.attachments.get("annotationType");
         if (!annotationQualifiedName.equals(affectedAnnotation)) {
-            return difference;
+            return TransformationResult.keep();
         }
 
-        return oldElement.getDeclaringElement().accept(new ElementPairVisitor<Difference>() {
+        Difference transformed = oldElement.getDeclaringElement().accept(new ElementPairVisitor<Difference>() {
             @Override
             protected Difference unmatchedAction(@Nonnull javax.lang.model.element.Element element,
                                                  @Nullable javax.lang.model.element.Element otherElement) {
@@ -126,6 +126,8 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
                         new LinkedHashMap<>(difference.attachments));
             }
         }, newElement.getDeclaringElement());
+
+        return TransformationResult.replaceWith(transformed);
     }
 
     @Override

@@ -31,6 +31,10 @@ import org.revapi.configuration.Configurable;
  * <p>The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
  * resource acquisition in initialize, not during the construction of the object.
  *
+ * <p><b>NOTE</b>: for more complex transformations that require contextual knowledge about the traversal (like when
+ * you need to employ an element matcher during the transformation), you may want to re-implement the default methods
+ * for the element-pair tree traversal of the elements. The traversal happens prior to any transformations.
+ *
  * @param <T> the type of the element expected in the {@code transform} method. Note that you need to be careful about
  *            this type because the types of the elements passed to {@code transform} depend on the differences that the
  *            transform is interested in. Thus you may end up with {@code ClassCastException}s if you're not careful.
@@ -60,19 +64,101 @@ public interface DifferenceTransform<T extends Element> extends AutoCloseable, C
      *
      * @return the transformed difference or the passed in difference if no transformation necessary or null if the
      * difference should be discarded
+     *
+     * @deprecated use {@link #tryTransform(Element, Element, Difference)} which offers richer possibilities
      */
+    @Deprecated
     @Nullable
-    Difference transform(@Nullable T oldElement, @Nullable T newElement, @Nonnull Difference difference);
+    default Difference transform(@Nullable T oldElement, @Nullable T newElement, @Nonnull Difference difference) {
+        return difference;
+    }
 
     /**
-     * Some difference transforms may need to initialize themselves first through a walk of the element forests before
-     * they can start transforming. If they need to do so, this method needs to return a visitor that will be walked
-     * through the forest before the transformations will start.
+     * Tries to transform the difference into some other one(s) given the old and new elements.
      *
-     * @return null if no need to initialize or a visitor instance used for the transform initialization
+     * <p>This method is only called on differences matching the {@link #getDifferenceCodePatterns()}. The elements are
+     * cast into the required type, but that can result in the class cast exception if the implementation is not careful
+     * enough and wants to react on a difference code that matches elements which are incompatible with the required
+     * type.
+     *
+     * <p>Note that this method can be called repeatedly for the same element pair if there are multiple transformations
+     * operating on the two elements. Also note that this method is called only after
+     * the {@link #startElements(Element, Element)} and the {@link #endElements(Element, Element)} have been called on
+     * all element pairs and the {@link #endTraversal(ApiAnalyzer)} ended the API forests traversal of the api analyzer.
+     * Only after this method has been called on all element pairs from the traversal,
+     * the {@link #startTraversal(ApiAnalyzer, ArchiveAnalyzer, ArchiveAnalyzer) started} is called for the next API
+     * analyzer.
+     *
+     * @param oldElement the old element, if any, being compared to the new element
+     * @param newElement the new element, if any, being compared to the old element
+     * @param difference the difference to transform
+     * @return the transformation result.
      */
-    @Nullable
-    default ElementForest.Visitor getStructuralInitializer() {
-        return null;
+    default TransformationResult tryTransform(@Nullable T oldElement, @Nullable T newElement,
+            Difference difference) {
+
+        Difference diff = transform(oldElement, newElement, difference);
+
+        if (diff == null) {
+            return TransformationResult.discard();
+        } else if (diff == difference) {
+            return TransformationResult.keep();
+        } else {
+            return TransformationResult.replaceWith(diff);
+        }
+    }
+
+    /**
+     * Called when Revapi is about to start traversing the elements provided by the given archive analyzers.
+     *
+     * <p>This method can invalidate the transform early if it finds out that it cannot possibly work with the api
+     * analyzer and the archive analyzers. Simple transforms that only work with generic elements will likely work with
+     * any API analyzer, but there may be more specialized transforms that can know upfront whether or not they will be
+     * able to work with elements from the supplied analyzers and can opt out straight away reducing the required
+     * processing during the API analysis.
+     *
+     * @param apiAnalyzer the api analyzer currently analyzing the APIs
+     * @param oldArchiveAnalyzer the archive analyzer used for obtaining the element forest of the old API
+     * @param newArchiveAnalyzer the archive analyzer used for obtaining the element forest of the new API
+     * @return true if the transform can work with the provided api analyzer and archive analyzers, false otherwise
+     */
+    default boolean startTraversal(ApiAnalyzer apiAnalyzer, ArchiveAnalyzer oldArchiveAnalyzer,
+            ArchiveAnalyzer newArchiveAnalyzer) {
+        return true;
+    }
+
+    /**
+     * Called when the analyzer starts to traverse the two elements. The traversal is performed in
+     * the depth-first manner, so all child elements of the two elements are processed before
+     * the {@link #endElements(Element, Element)} method is called with the same pair of elements
+     *
+     * @param oldElement the old element, if any, being compared to the new element
+     * @param newElement the new element, if any, being compared to the old element
+     *
+     * @return true if the difference requires descending into the children even if one of the elements is not present
+     * (null), false otherwise
+     */
+    default boolean startElements(@Nullable Element oldElement, @Nullable Element newElement) {
+        return false;
+    }
+
+    /**
+     * Called when the analyzer finished the traversal of the two elements, that is after
+     * the {@link #startElements(Element, Element)} and this method has been called on all the children of the two
+     * elements.
+     *
+     * @param oldElement the old element, if any, being compared to the new element
+     * @param newElement the new element, if any, being compared to the old element
+     */
+    default void endElements(@Nullable Element oldElement, @Nullable Element newElement) {
+    }
+
+    /**
+     * Called when the analysis finished traversing all the elements from the given api analyzer.
+     *
+     * @param apiAnalyzer the api analyzer that was analyzing the APIs
+     * @
+     */
+    default void endTraversal(ApiAnalyzer apiAnalyzer) {
     }
 }

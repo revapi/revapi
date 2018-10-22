@@ -29,12 +29,14 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementForest;
 import org.revapi.FilterProvider;
+import org.revapi.TreeFilter;
 import org.revapi.java.compilation.CompilationFuture;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.Compiler;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
+import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 
 /**
@@ -61,7 +63,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
 
     @Nonnull
     @Override
-    public JavaElementForest analyze(FilterProvider filter) {
+    public JavaElementForest analyze(TreeFilter filter) {
         if (Timing.LOG.isDebugEnabled()) {
             Timing.LOG.debug("Starting analysis of " + api);
         }
@@ -139,7 +141,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
                 t.getUsedTypes().entrySet().removeIf(e -> {
                     UseSite.Type useType = e.getKey();
                     e.getValue().entrySet().removeIf(e2 -> {
-                        TypeElement usedType = e2.getKey();
+                        JavaTypeElement usedType = e2.getKey();
                         usedType.getUseSites().removeIf(us -> {
                             //noinspection SuspiciousMethodCalls
                             return us.getUseType() == useType && e2.getValue().contains(us.getSite());

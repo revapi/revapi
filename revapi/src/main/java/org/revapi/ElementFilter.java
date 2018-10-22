@@ -39,7 +39,7 @@ import org.revapi.simple.RepeatingTreeFilter;
  * @author Lukas Krejci
  * @since 0.1
  *
- * @deprecated use {@link ElementGateway} instead
+ * @deprecated use {@link FilterProvider} instead
  */
 @Deprecated
 public interface ElementFilter extends FilterProvider, Filter<Element>, AutoCloseable, Configurable {

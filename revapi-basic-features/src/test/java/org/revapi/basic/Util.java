@@ -21,11 +21,15 @@ import static java.util.Collections.singleton;
 
 import java.util.Set;
 
+import org.junit.Assert;
 import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
+import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
-import org.revapi.ElementGateway;
+import org.revapi.TransformationResult;
+import org.revapi.Element;
 import org.revapi.ElementMatcher;
+import org.revapi.FilterProvider;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 
@@ -49,9 +53,31 @@ final class Util {
         return dummyRevapi(extensionType).prepareAnalysis(fullCtx).getFirstConfigurationOrNull(extensionType);
     }
 
+    static <T extends Element> Difference transformAndAssumeOne(DifferenceTransform<T> transform, T oldEl, T newEl,
+            Difference orig) {
+        transform.startElements(oldEl, newEl);
+        TransformationResult res = transform.tryTransform(oldEl, newEl, orig);
+        Assert.assertTrue(transform.endElements(oldEl, newEl).isEmpty());
+
+        switch (res.getResolution()) {
+            case KEEP:
+                return orig;
+            case DISCARD:
+                return null;
+            case REPLACE:
+                Assert.assertNotNull(res.getDifferences());
+                Assert.assertEquals(1, res.getDifferences().size());
+                return res.getDifferences().iterator().next();
+            case UNDECIDED:
+                Assert.fail("Unexpected undecided transform.");
+            default:
+                throw new AssertionError("Unhandled resolution type: " + res.getResolution());
+        }
+
+    }
     private static Revapi dummyRevapi(Class<?> extensionType) {
         Set<Class<? extends ApiAnalyzer>> analyzers = setOrEmpty(ApiAnalyzer.class, extensionType);
-        Set<Class<? extends ElementGateway>> filters = setOrEmpty(ElementGateway.class, extensionType);
+        Set<Class<? extends FilterProvider>> filters = setOrEmpty(FilterProvider.class, extensionType);
         @SuppressWarnings("unchecked") Set<Class<? extends DifferenceTransform<?>>> transforms
                 = setOrEmpty((Class) DifferenceTransform.class, extensionType);
         Set<Class<? extends Reporter>> reporters = setOrEmpty(Reporter.class, extensionType);
