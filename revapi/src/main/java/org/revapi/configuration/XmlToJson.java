@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,8 +59,7 @@ public final class XmlToJson<Xml> {
         this(getKnownExtensionSchemas(revapi), getName, getValue, getAttributeValue, getChildren);
     }
 
-    //for testing only
-    XmlToJson(Map<String, ModelNode> knownExtensionSchemas, Function<Xml, String> getName,
+    public XmlToJson(Map<String, ModelNode> knownExtensionSchemas, Function<Xml, String> getName,
               Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
               Function<Xml, List<Xml>> getChildren) {
         this.getName = getName;
@@ -394,10 +393,10 @@ public final class XmlToJson<Xml> {
 
     private static Map<String, ModelNode> getKnownExtensionSchemas(Revapi revapi) {
         Map<String, ModelNode> knownSchemas = new HashMap<>();
-        extractKnownSchemas(knownSchemas, revapi.getApiAnalyzerTypes());
-        extractKnownSchemas(knownSchemas, revapi.getDifferenceTransformTypes());
-        extractKnownSchemas(knownSchemas, revapi.getElementFilterTypes());
-        extractKnownSchemas(knownSchemas, revapi.getReporterTypes());
+        extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getApiAnalyzerTypes());
+        extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getTransformTypes());
+        extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getFilterTypes());
+        extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getReporterTypes());
 
         return knownSchemas;
     }
