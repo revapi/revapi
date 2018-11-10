@@ -230,21 +230,23 @@ final class ClasspathScanner {
         //ok, so scanning the archives doesn't give us any new resolved classes that we need in the API...
         //let's scan the system classpath. What will be left after this will be the truly missing classes.
 
-        //making a copy because the required types might be modified during scanning
-        Map<TypeElement, Boolean> rts = new HashMap<>(scanner.requiredTypes);
+        lastUnknowns = Collections.emptySet();
+        while (!scanner.requiredTypes.isEmpty() && !lastUnknowns.equals(scanner.requiredTypes.keySet())) {
+            lastUnknowns = new HashSet<>(scanner.requiredTypes.keySet());
 
-        ArchiveLocation systemClassPath = new ArchiveLocation(new Archive() {
-            @Nonnull @Override public String getName() {
-                return SYSTEM_CLASSPATH_NAME;
+            ArchiveLocation systemClassPath = new ArchiveLocation(new Archive() {
+                @Nonnull @Override public String getName() {
+                    return SYSTEM_CLASSPATH_NAME;
+                }
+
+                @Nonnull @Override public InputStream openStream() throws IOException {
+                    throw new UnsupportedOperationException();
+                }
+            });
+
+            for (TypeElement t : lastUnknowns) {
+                scanner.scanClass(systemClassPath, t, false);
             }
-
-            @Nonnull @Override public InputStream openStream() throws IOException {
-                throw new UnsupportedOperationException();
-            }
-        });
-
-        for (Map.Entry<TypeElement, Boolean> e : rts.entrySet()) {
-            scanner.scanClass(systemClassPath, e.getKey(), false);
         }
 
         scanner.initEnvironment();
