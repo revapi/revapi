@@ -38,9 +38,10 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,6 +52,7 @@ import org.jboss.dmr.ModelNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
+import org.revapi.Archive;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.CoIterator;
 import org.revapi.CorrespondenceComparatorDeducer;
@@ -107,14 +109,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         }
     }
 
-    private final ExecutorService compilationExecutor = Executors.newFixedThreadPool(2, new ThreadFactory() {
-        private volatile int cnt;
-
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r, "Java API Compilation Thread #" + (++cnt));
-        }
-    });
+    private final List<ExecutorService> compilationExecutors = new ArrayList<>(2);
 
     private AnalysisContext analysisContext;
     private AnalysisConfiguration configuration;
@@ -130,7 +125,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     }
 
     @Override
-    public @Nonnull CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
+    @Nonnull
+    public CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
         return (l1, l2) -> {
             //so, we have to come up with some correspondence order... This is pretty easy for all java elements
             //but methods.
@@ -176,8 +172,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     }
 
     private static void determineOrder(List<Element> l1, List<Element> l2,
-                                       IdentityHashMap<MethodElement, Integer> l1MethodOrder,
-                                       IdentityHashMap<MethodElement, Integer> l2MethodOrder) {
+            IdentityHashMap<MethodElement, Integer> l1MethodOrder,
+            IdentityHashMap<MethodElement, Integer> l2MethodOrder) {
 
         TreeMap<String, List<MethodElement>> l1MethodsByName = new TreeMap<>();
         TreeMap<String, List<MethodElement>> l2MethodsByName = new TreeMap<>();
@@ -347,7 +343,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     }
 
     private static float computeMatchScore(String blueprintReturnType, List<String> blueprintParamSignature,
-                                           String erasedReturnType, List<String> erasedParamSignature, MethodElement method) {
+            String erasedReturnType, List<String> erasedParamSignature, MethodElement method) {
 
         String mRt = Util.toUniqueString(method.getModelRepresentation().getReturnType());
         String emRt = Util.toUniqueString(method.getTypeEnvironment().getTypeUtils()
@@ -507,14 +503,14 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
         InclusionFilter inclusionFilter = composeInclusionFilter(configuration);
 
-        return new JavaArchiveAnalyzer(api, compilationExecutor, configuration.getMissingClassReporting(),
+        return new JavaArchiveAnalyzer(api, getExecutor(api), configuration.getMissingClassReporting(),
                 ignoreMissingAnnotations, inclusionFilter);
     }
 
     @Nonnull
     @Override
     public DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
-                                                    @Nonnull ArchiveAnalyzer newArchive) {
+            @Nonnull ArchiveAnalyzer newArchive) {
         JavaArchiveAnalyzer oldA = (JavaArchiveAnalyzer) oldArchive;
         JavaArchiveAnalyzer newA = (JavaArchiveAnalyzer) newArchive;
 
@@ -532,7 +528,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
 
     @Override
     public void close() {
-        compilationExecutor.shutdown();
+        compilationExecutors.forEach(ExecutorService::shutdown);
 
         activeCompilations.forEach(CompilationValve::removeCompiledResults);
 
@@ -633,5 +629,17 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                         "This will probably leak memory", e);
             }
         }
+    }
+
+    private ExecutorService getExecutor(API api) {
+        ExecutorService ret = Executors.newSingleThreadExecutor(r -> {
+            String as = StreamSupport.stream(api.getArchives().spliterator(), false)
+                    .map(Archive::getName).collect(Collectors.joining(", "));
+            return new Thread(r, "Java API Compilation Thread for API of " + as);
+        });
+
+        compilationExecutors.add(ret);
+        return ret;
+
     }
 }
