@@ -40,7 +40,7 @@ for changes and it is even possible to ignore the intentional API changes.
 The main drawback of Clirr is that it is essentially dead with last release in 2005. Also, it is tightly coupled to Java
 and has no abstraction over language or "structure" it can check.
 
-==== http://mojo.codehaus.org/animal-sniffer/[Animal Sniffer]
+==== https://www.mojohaus.org/animal-sniffer/[Animal Sniffer]
 
 While Animal Sniffer in essence does API checks, it's intended for different purpose than API change tracking. Animal
 Sniffer is meant to check that a codebase doesn't call API methods not present in a library it uses. While this may
