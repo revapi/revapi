@@ -16,15 +16,14 @@
  */
 package org.revapi.java;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.Difference;
 import org.revapi.Report;
 import org.revapi.java.spi.Code;
-import org.revapi.java.spi.Util;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Lukas Krejci
