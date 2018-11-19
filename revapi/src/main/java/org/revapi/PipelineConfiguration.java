@@ -93,9 +93,11 @@ public final class PipelineConfiguration {
     }
 
     /**
-     * Parses the configuration node and provides a pipeline configuration with all extensions available in the current
-     * thread context classloader. The configuration node is supposed to conform to the pipeline configuration JSON
-     * schema.
+     * Parses the configuration node and provides a pipeline configuration without any extensions marked for loading.
+     * The configuration node is supposed to conform to the pipeline configuration JSON schema.
+     *
+     * <p>The caller is supposed to use the methods from the builder to add/find extension classes that will be used in
+     * the analysis.
      *
      * <p>Note that the returned pipeline configuration might not contain all the extensions available in
      * the classloader depending on the include/exclude filters in the configuration.
@@ -104,18 +106,31 @@ public final class PipelineConfiguration {
      * @return a pipeline configuration parsed from the configuration
      * @see Builder#build()
      */
-    public static PipelineConfiguration parse(ModelNode json) {
-        Set<Class<? extends ApiAnalyzer>> analyzers = findAllTypes(ApiAnalyzer.class);
-        Set<Class<? extends ElementFilter>> filters = findAllTypes(ElementFilter.class);
-        Set<Class<? extends DifferenceTransform<?>>> transforms = findAllTypes(retype(DifferenceTransform.class));
-        Set<Class<? extends Reporter>> reporters = findAllTypes(Reporter.class);
+    public static PipelineConfiguration.Builder parse(ModelNode json) {
+        ModelNode analyzerIncludeNode = json.get("analyzers").get("include");
+        ModelNode analyzerExcludeNode = json.get("analyzers").get("exclude");
+        ModelNode filterIncludeNode = json.get("filters").get("include");
+        ModelNode filterExcludeNode = json.get("filters").get("exclude");
+        ModelNode transformIncludeNode = json.get("transforms").get("include");
+        ModelNode transformExcludeNode = json.get("transforms").get("exclude");
+        ModelNode reporterIncludeNode = json.get("reporters").get("include");
+        ModelNode reporterExcludeNode = json.get("reporters").get("exclude");
 
-        return parse(json, analyzers, filters, transforms, reporters);
+        return builder()
+                .withTransformationBlocks(json.get("transformBlocks"))
+                .withAnalyzerExtensionIdsInclude(asStringList(analyzerIncludeNode))
+                .withAnalyzerExtensionIdsExclude(asStringList(analyzerExcludeNode))
+                .withFilterExtensionIdsInclude(asStringList(filterIncludeNode))
+                .withFilterExtensionIdsExclude(asStringList(filterExcludeNode))
+                .withTransformExtensionIdsInclude(asStringList(transformIncludeNode))
+                .withTransformExtensionIdsExclude(asStringList(transformExcludeNode))
+                .withReporterExtensionIdsInclude(asStringList(reporterIncludeNode))
+                .withReporterExtensionIdsExclude(asStringList(reporterExcludeNode));
     }
 
     /**
-     * Similar to {@link #parse(ModelNode)} but instead of looking for the extensions in the classloader, uses only
-     * the ones provided. Note that
+     * Similar to {@link #parse(ModelNode)} but the extensions to use are provided by the caller straight away instead
+     * of letting the caller use the builder to finish up the configuration.
      *
      * <p>Note that the returned pipeline configuration might not contain all the extensions available in
      * the classloader depending on the include/exclude filters in the configuration.
@@ -132,35 +147,12 @@ public final class PipelineConfiguration {
             Collection<Class<? extends ElementFilter>> filters,
             Collection<Class<? extends DifferenceTransform<?>>> transforms,
             Collection<Class<? extends Reporter>> reporters) {
-        ModelNode analyzerIncludeNode = json.get("analyzers").get("include");
-        ModelNode analyzerExcludeNode = json.get("analyzers").get("exclude");
-        ModelNode filterIncludeNode = json.get("filters").get("include");
-        ModelNode filterExcludeNode = json.get("filters").get("exclude");
-        ModelNode transformIncludeNode = json.get("transforms").get("include");
-        ModelNode transformExcludeNode = json.get("transforms").get("exclude");
-        ModelNode reporterIncludeNode = json.get("reporters").get("include");
-        ModelNode reporterExcludeNode = json.get("reporters").get("exclude");
 
-        // make copies, so that we can modify them without surprising the caller...
-        analyzers = new ArrayList<>(analyzers);
-        filters = new ArrayList<>(filters);
-        transforms = new ArrayList<>(transforms);
-        reporters = new ArrayList<>(reporters);
-
-        return builder()
-                .withTransformationBlocks(json.get("transformBlocks"))
+        return parse(json)
                 .withAnalyzers(analyzers)
                 .withFilters(filters)
                 .withTransforms(transforms)
                 .withReporters(reporters)
-                .withAnalyzerExtensionIdsInclude(asStringList(analyzerIncludeNode))
-                .withAnalyzerExtensionIdsExclude(asStringList(analyzerExcludeNode))
-                .withFilterExtensionIdsInclude(asStringList(filterIncludeNode))
-                .withFilterExtensionIdsExclude(asStringList(filterExcludeNode))
-                .withTransformExtensionIdsInclude(asStringList(transformIncludeNode))
-                .withTransformExtensionIdsExclude(asStringList(transformExcludeNode))
-                .withReporterExtensionIdsInclude(asStringList(reporterIncludeNode))
-                .withReporterExtensionIdsExclude(asStringList(reporterExcludeNode))
                 .build();
     }
 
@@ -170,15 +162,6 @@ public final class PipelineConfiguration {
         } else {
             return listNode.asList().stream().map(ModelNode::asString).collect(toList());
         }
-    }
-
-    private static <T> Set<Class<? extends T>> findAllTypes(Class<T> type) {
-        return StreamSupport.stream(ServiceTypeLoader.load(type).spliterator(), false).collect(toSet());
-    }
-
-    @SuppressWarnings({"unchecked", "SameParameterValue"})
-    private static <T> Class<T> retype(Class<?> type) {
-        return (Class<T>) type;
     }
 
     public PipelineConfiguration(Set<Class<? extends ApiAnalyzer>> apiAnalyzerTypes,
