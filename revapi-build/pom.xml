@@ -206,7 +206,7 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <forkCount>5</forkCount>
+                    <forkCount>2</forkCount>
                     <reuseForks>true</reuseForks>
                 </configuration>
             </plugin>
