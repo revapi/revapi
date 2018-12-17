@@ -39,6 +39,16 @@ import org.revapi.Reporter;
  */
 abstract class AbstractRevapiMojo extends AbstractMojo {
     /**
+     * The JSON or XML configuration of the extensions pipeline. This enables the users easily specify which extensions
+     * should be included/excluded in the Revapi analysis pipeline and also to define transformation blocks - a way
+     * of grouping transforms together to enable more fine grained control over how differences are transformed.
+     *
+     * @since 0.11.0
+     */
+    @Parameter(property = Props.pipelineConfiguration.NAME, defaultValue = Props.pipelineConfiguration.DEFAULT_VALUE)
+    protected PlexusConfiguration pipelineConfiguration;
+
+    /**
      * The JSON or XML configuration of various analysis options. The available options depend on what
      * analyzers are present on the plugin classpath through the {@code &lt;dependencies&gt;}.
      * Consult <a href="examples/configuration.html">configuration documentation</a> for more details.
@@ -272,7 +282,10 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * <p>
      * You can modify this set if you use another extensions that change the found differences in a way that the
      * determined new version would not correspond to what it should be.
+     *
+     * @deprecated since 0.11.0, use the {@link #pipelineConfiguration} instead
      */
+    @Deprecated
     @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
     protected String disallowedExtensions;
 
@@ -325,6 +338,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
             Map<String, Object> contextData, Map<String, Object> propertyOverrides) {
         return AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
                 .withAlwaysCheckForReleasedVersion(overrideOrDefault("alwaysCheckForReleaseVersion", this.alwaysCheckForReleaseVersion, propertyOverrides))
+                .withPipelineConfiguration(overrideOrDefault("pipelineConfiguration", this.pipelineConfiguration, propertyOverrides))
                 .withAnalysisConfiguration(overrideOrDefault("analysisConfiguration", this.analysisConfiguration, propertyOverrides))
                 .withAnalysisConfigurationFiles(overrideOrDefault("analysisConfigurationFiles", this.analysisConfigurationFiles, propertyOverrides))
                 .withCheckDependencies(overrideOrDefault("checkDependencies", this.checkDependencies, propertyOverrides))

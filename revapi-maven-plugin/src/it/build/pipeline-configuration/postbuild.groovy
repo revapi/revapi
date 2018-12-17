@@ -14,31 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.revapi.simple;
 
-import java.io.Reader;
+String base = "target/it/build/pipeline-configuration/"
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import org.revapi.AnalysisContext;
-import org.revapi.configuration.Configurable;
-
-/**
- * @author Lukas Krejci
- * @since 0.4.0
- */
-public abstract class SimpleConfigurable implements AutoCloseable, Configurable {
-    @Override
-    public void close() throws Exception {
-    }
-
-    @Override
-    public @Nullable Reader getJSONSchema() {
-        return null;
-    }
-
-    @Override
-    public void initialize(@Nonnull AnalysisContext analysisContext) {
-    }
-}
+assert new File(base + "Analyzer").exists()
+assert new File(base + "Reporter").exists()
+assert new File(base + "Filter").exists()
+assert !new File(base + "Transform").exists()

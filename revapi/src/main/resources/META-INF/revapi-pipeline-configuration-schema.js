@@ -41,17 +41,10 @@
   },
   "definitions": {
     "idList": {
-        "oneOf": [
-            {
-                "type": "array",
-                "items": {
-                    "type": "string"
-                }
-            },
-            {
-                "type": "string"
-            }
-        ]
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "extensionType": {
         "type": "object",

@@ -14,31 +14,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.revapi.simple;
+import static java.util.Arrays.asList;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
-import org.revapi.configuration.Configurable;
+import org.revapi.Report;
 
-/**
- * @author Lukas Krejci
- * @since 0.4.0
- */
-public abstract class SimpleConfigurable implements AutoCloseable, Configurable {
+public class Reporter implements org.revapi.Reporter {
+
     @Override
-    public void close() throws Exception {
+    public void report(@Nonnull Report report) {
+
     }
 
     @Override
-    public @Nullable Reader getJSONSchema() {
+    public void close() throws Exception {
+
+    }
+
+    @Override
+    public String getExtensionId() {
+        return "reporter";
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema() {
         return null;
     }
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
-    }
+         try {
+            Files.write(new File("Reporter").toPath(), asList(""));
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+   }
 }

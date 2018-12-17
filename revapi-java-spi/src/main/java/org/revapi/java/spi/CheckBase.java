@@ -196,7 +196,7 @@ public abstract class CheckBase implements Check {
     @Nullable
     @Override
     public String getExtensionId() {
-        return null;
+        return "<<<non-configurable-java-check>>>";
     }
 
     @Nullable

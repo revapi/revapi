@@ -14,31 +14,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.revapi.simple;
+import static java.util.Arrays.asList;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
-import org.revapi.configuration.Configurable;
+import org.revapi.Element;
+import org.revapi.ElementFilter;
 
-/**
- * @author Lukas Krejci
- * @since 0.4.0
- */
-public abstract class SimpleConfigurable implements AutoCloseable, Configurable {
+public class Filter implements ElementFilter {
+
     @Override
     public void close() throws Exception {
+
     }
 
     @Override
-    public @Nullable Reader getJSONSchema() {
+    public String getExtensionId() {
+        return "filter";
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema() {
         return null;
     }
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
+        try {
+            Files.write(new File("Filter").toPath(), asList(""));
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    public boolean applies(@Nullable Element element) {
+        return false;
+    }
+
+    @Override
+    public boolean shouldDescendInto(@Nullable Object element) {
+        return false;
     }
 }

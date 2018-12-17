@@ -133,7 +133,7 @@ public final class BuildTimeReporter implements Reporter {
     }
 
     @Nullable @Override public String getExtensionId() {
-        return null;
+        return "revapi.maven.internal.buildTimeReporter";
     }
 
     @Nullable @Override public Reader getJSONSchema() {

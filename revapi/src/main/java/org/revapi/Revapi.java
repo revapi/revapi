@@ -87,14 +87,11 @@ public final class Revapi {
     public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
         ValidationResult validation = ValidationResult.success();
 
-        Iterator<? extends Configurable> it = concat(
-                pipelineConfiguration.getApiAnalyzerTypes().stream(),
-                pipelineConfiguration.getFilterTypes().stream(),
-                pipelineConfiguration.getReporterTypes().stream(),
-                pipelineConfiguration.getTransformTypes().stream())
-                .map(this::instantiate).iterator();
-
-        validation = validate(analysisContext, validation, it);
+        // even though we're not using the extensions much during validation and we actually don't run any analysis
+        // at all, let's just use the same method for instantiating the extensions as during the analysis even though we
+        // actually don't need the extensions classified by their type.
+        AnalysisResult.Extensions exts = prepareAnalysis(analysisContext);
+        validation = validate(analysisContext, validation, exts);
 
         return validation;
     }
@@ -181,8 +178,7 @@ public final class Revapi {
             String extensionId = c.getExtensionId();
 
             if (extensionId == null) {
-                throw new IllegalArgumentException("Extension " + cc.getCanonicalName() + " has null extension id." +
-                        " This is illegal.");
+                extensionId = "$$%%(@#_)I#@)(*)(#$)(@#$__IMPROBABLE, right??!?!?!";
             }
 
             // apply the filtering
@@ -225,9 +221,13 @@ public final class Revapi {
     }
 
     private ValidationResult validate(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
-            Iterator<? extends Configurable> configurables) {
-        while (configurables.hasNext()) {
-            Configurable c = configurables.next();
+            AnalysisResult.Extensions configurables) {
+        for (Map.Entry<ExtensionInstance<?>, AnalysisContext> e : configurables) {
+            if (!(e.getKey().getInstance() instanceof Configurable)) {
+                continue;
+            }
+
+            Configurable c = (Configurable) e.getKey().getInstance();
             ValidationResult partial = configurationValidator.validate(analysisContext.getConfiguration(), c);
             validationResult = validationResult.merge(partial);
         }

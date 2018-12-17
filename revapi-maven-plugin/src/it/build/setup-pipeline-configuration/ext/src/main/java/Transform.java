@@ -14,31 +14,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.revapi.simple;
 
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
-import org.revapi.configuration.Configurable;
+import org.revapi.Difference;
+import org.revapi.DifferenceTransform;
+import org.revapi.Element;
 
-/**
- * @author Lukas Krejci
- * @since 0.4.0
- */
-public abstract class SimpleConfigurable implements AutoCloseable, Configurable {
+public class Transform implements DifferenceTransform<Element> {
+    @Nonnull
     @Override
-    public void close() throws Exception {
+    public Pattern[] getDifferenceCodePatterns() {
+        return new Pattern[0];
+    }
+
+    @Nullable
+    @Override
+    public Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
+            @Nonnull Difference difference) {
+        return null;
     }
 
     @Override
-    public @Nullable Reader getJSONSchema() {
+    public void close() throws Exception {
+
+    }
+
+    @Override
+    public String getExtensionId() {
+        return "transform";
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema() {
         return null;
     }
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
+        try {
+            Files.write(new File("Transform").toPath(), asList(""));
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

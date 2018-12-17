@@ -105,7 +105,9 @@ public final class AnalysisResult implements AutoCloseable {
         TIMING_LOG.debug(Stats.asString());
         TIMING_LOG.debug("Closing all extensions");
 
-        Consumer<Object> close = ext -> {
+        Consumer<ExtensionInstance> close = inst -> {
+            Object ext = inst.instance;
+
             if (!(ext instanceof AutoCloseable)) {
                 return;
             }
@@ -163,7 +165,7 @@ public final class AnalysisResult implements AutoCloseable {
 
         public <T> Map<ExtensionInstance<T>, AnalysisContext> getExtensionContexts(Class<T> extensionType) {
             IdentityHashMap<ExtensionInstance<T>, AnalysisContext> ret = new IdentityHashMap<>();
-            stream().filter(e -> extensionType.isAssignableFrom(e.getKey().getClass()))
+            stream().filter(e -> extensionType.isAssignableFrom(e.getKey().getInstance().getClass()))
                     .forEach(e -> ret.put(e.getKey().as(extensionType), e.getValue()));
             return ret;
         }

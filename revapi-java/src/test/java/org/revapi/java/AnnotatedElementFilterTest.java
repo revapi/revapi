@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,6 @@
  */
 package org.revapi.java;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 
 import java.lang.annotation.Annotation;
@@ -38,6 +36,7 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Report;
 import org.revapi.Revapi;
 import org.revapi.java.compilation.InclusionFilter;
@@ -213,7 +212,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
             JavaElementForest forest = analyzer.analyze();
 
             AnnotatedElementFilter filter = new AnnotatedElementFilter();
-            Revapi r = new Revapi(emptySet(), emptySet(), emptySet(), singleton(AnnotatedElementFilter.class));
+            Revapi r = new Revapi(PipelineConfiguration.builder().withFilters(AnnotatedElementFilter.class).build());
 
             AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(configJSON).build();
             AnalysisContext filterCtx =

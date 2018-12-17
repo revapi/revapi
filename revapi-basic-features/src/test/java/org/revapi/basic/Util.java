@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
 import org.revapi.ElementFilter;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 
@@ -55,7 +56,8 @@ final class Util {
                 = setOrEmpty((Class) DifferenceTransform.class, extensionType);
         Set<Class<? extends Reporter>> reporters = setOrEmpty(Reporter.class, extensionType);
 
-        return new Revapi(analyzers, reporters, transforms, filters);
+        return new Revapi(PipelineConfiguration.builder().withAnalyzers(analyzers).withReporters(reporters)
+                .withTransforms(transforms).withFilters(filters).build());
     }
 
     @SuppressWarnings("unchecked")

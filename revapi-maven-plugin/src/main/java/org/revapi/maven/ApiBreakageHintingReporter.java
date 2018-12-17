@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +66,7 @@ public final class ApiBreakageHintingReporter implements Reporter {
 
     @Override
     public @Nullable String getExtensionId() {
-        return null;
+        return "revapi.maven.internal.apiBreakageHintingReporter";
     }
 
     @Override

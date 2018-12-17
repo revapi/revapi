@@ -14,31 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.revapi.simple;
+public class Main {
 
-import java.io.Reader;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import org.revapi.AnalysisContext;
-import org.revapi.configuration.Configurable;
-
-/**
- * @author Lukas Krejci
- * @since 0.4.0
- */
-public abstract class SimpleConfigurable implements AutoCloseable, Configurable {
-    @Override
-    public void close() throws Exception {
-    }
-
-    @Override
-    public @Nullable Reader getJSONSchema() {
-        return null;
-    }
-
-    @Override
-    public void initialize(@Nonnull AnalysisContext analysisContext) {
-    }
 }
