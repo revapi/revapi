@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-String base = "target/it/build/pipeline-configuration/"
-
-assert new File(base + "Analyzer").exists()
-assert new File(base + "Reporter").exists()
-assert new File(base + "Filter").exists()
-assert !new File(base + "Transform").exists()
+assert new File(basedir, "Analyzer").exists()
+assert new File(basedir, "Reporter").exists()
+assert new File(basedir, "Filter").exists()
+assert !new File(basedir, "Transform").exists()
