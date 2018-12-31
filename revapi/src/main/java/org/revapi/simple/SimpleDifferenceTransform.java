@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * @author Lukas Krejci
  * @since 0.4.0
  */
-public class SimpleDifferenceTransform<T extends Element> extends SimpleConfigurable implements DifferenceTransform<T> {
+public abstract class SimpleDifferenceTransform<T extends Element> extends SimpleConfigurable implements DifferenceTransform<T> {
     @Override
     public @Nonnull Pattern[] getDifferenceCodePatterns() {
         return new Pattern[0];

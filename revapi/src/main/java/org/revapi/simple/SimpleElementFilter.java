@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * @author Lukas Krejci
  * @since 0.4.0
  */
-public class SimpleElementFilter extends SimpleConfigurable implements ElementFilter {
+public abstract class SimpleElementFilter extends SimpleConfigurable implements ElementFilter {
     @Override
     public boolean applies(@Nullable Element element) {
         return false;

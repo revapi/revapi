@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        Analyzer analyzer = prepareAnalyzer(project, SimpleReporter.class, Collections.emptyMap());
+        Analyzer analyzer = prepareAnalyzer(project, ValidateReporter.class, Collections.emptyMap());
 
         try {
             if (analyzer != null) {
@@ -58,6 +58,13 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
             throw e;
         } catch (Exception e) {
             throw new MojoExecutionException("Failed to validate configuration.", e);
+        }
+    }
+
+    public static final class ValidateReporter extends SimpleReporter {
+        @Override
+        public String getExtensionId() {
+            return "revapi.maven.validate-configuration-mojo-reporter";
         }
     }
 }

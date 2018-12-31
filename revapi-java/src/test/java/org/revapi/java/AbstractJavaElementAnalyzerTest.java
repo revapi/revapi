@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -118,7 +118,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         @Nullable
         @Override
         public String getExtensionId() {
-            return null;
+            return "problemOccurrenceReporter";
         }
 
         @Nullable
@@ -315,7 +315,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
         @Nullable
         @Override
         public String getExtensionId() {
-            return null;
+            return "collectingReporter";
         }
 
         @Nullable

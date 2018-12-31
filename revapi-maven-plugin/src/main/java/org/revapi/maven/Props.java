@@ -22,6 +22,11 @@ package org.revapi.maven;
 final class Props {
     private static final String PREFIX = "revapi.";
 
+    static final class pipelineConfiguration {
+        static final String NAME = "";
+        static final String DEFAULT_VALUE = "";
+    }
+
     static final class analysisConfiguration {
         static final String NAME = "";
         static final String DEFAULT_VALUE = "";

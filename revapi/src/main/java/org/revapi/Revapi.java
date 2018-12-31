@@ -17,12 +17,11 @@
 package org.revapi;
 
 import static java.util.Collections.emptySortedSet;
+import static java.util.Collections.singletonList;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,12 +32,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
 
 import org.jboss.dmr.ModelNode;
+import org.revapi.AnalysisResult.ExtensionInstance;
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.ValidationResult;
@@ -55,31 +56,20 @@ import org.slf4j.LoggerFactory;
 public final class Revapi {
     private static final Logger LOG = LoggerFactory.getLogger(Revapi.class);
     static final Logger TIMING_LOG = LoggerFactory.getLogger("revapi.analysis.timing");
-    private final Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers;
-    private final Set<Class<? extends Reporter>> availableReporters;
-    private final Set<Class<? extends DifferenceTransform<?>>> availableTransforms;
-    private final Set<Class<? extends ElementFilter>> availableFilters;
+    private static final long MAX_TRANSFORMATION_ITERATIONS = 1_000_000;
+
+    private final PipelineConfiguration pipelineConfiguration;
     private final ConfigurationValidator configurationValidator;
-    private final Map<String, List<DifferenceTransform<?>>> matchingTransformsCache = new HashMap<>();
+    private final Map<String, Set<List<DifferenceTransform<?>>>> matchingTransformsCache = new HashMap<>();
 
     /**
      * Use the {@link #builder()} instead.
      *
-     * @param availableApiAnalyzers the set of analyzers to use
-     * @param availableReporters    the set of reporters to use
-     * @param availableTransforms   the set of transforms to use
-     * @param elementFilters        the set of element filters to use
+     * @param pipelineConfiguration the configuration of the analysis pipeline
      * @throws java.lang.IllegalArgumentException if any of the parameters is null
      */
-    public Revapi(@Nonnull Set<Class<? extends ApiAnalyzer>> availableApiAnalyzers,
-                  @Nonnull Set<Class<? extends Reporter>> availableReporters,
-                  @Nonnull Set<Class<? extends DifferenceTransform<?>>> availableTransforms,
-                  @Nonnull Set<Class<? extends ElementFilter>> elementFilters) {
-
-        this.availableApiAnalyzers = availableApiAnalyzers;
-        this.availableReporters = availableReporters;
-        this.availableTransforms = availableTransforms;
-        this.availableFilters = elementFilters;
+    public Revapi(PipelineConfiguration pipelineConfiguration) {
+        this.pipelineConfiguration = pipelineConfiguration;
         this.configurationValidator = new ConfigurationValidator();
     }
 
@@ -97,44 +87,17 @@ public final class Revapi {
     public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
         ValidationResult validation = ValidationResult.success();
 
-        Iterator<? extends Configurable> it = concat(
-                availableApiAnalyzers.stream(),
-                availableFilters.stream(),
-                availableReporters.stream(),
-                availableTransforms.stream())
-                .map(this::instantiate).iterator();
-
-        validation = validate(analysisContext, validation, it);
+        // even though we're not using the extensions much during validation and we actually don't run any analysis
+        // at all, let's just use the same method for instantiating the extensions as during the analysis even though we
+        // actually don't need the extensions classified by their type.
+        AnalysisResult.Extensions exts = prepareAnalysis(analysisContext);
+        validation = validate(analysisContext, validation, exts);
 
         return validation;
     }
 
-    /**
-     * @return the set of api analyzers available to this Revapi instance
-     */
-    public Set<Class<? extends ApiAnalyzer>> getApiAnalyzerTypes() {
-        return Collections.unmodifiableSet(availableApiAnalyzers);
-    }
-
-    /**
-     * @return the set of reporters available to this Revapi instance
-     */
-    public Set<Class<? extends Reporter>> getReporterTypes() {
-        return Collections.unmodifiableSet(availableReporters);
-    }
-
-    /**
-     * @return the set of difference transforms available to this Revapi instance
-     */
-    public Set<Class<? extends DifferenceTransform<?>>> getDifferenceTransformTypes() {
-        return Collections.unmodifiableSet(availableTransforms);
-    }
-
-    /**
-     * @return the set of element filters available to this Revapi instance
-     */
-    public Set<Class<? extends ElementFilter>> getElementFilterTypes() {
-        return Collections.unmodifiableSet(availableFilters);
+    public PipelineConfiguration getPipelineConfiguration() {
+        return pipelineConfiguration;
     }
 
     /**
@@ -147,10 +110,18 @@ public final class Revapi {
      * @return the instantiated extensions and their individual configurations
      */
     public AnalysisResult.Extensions prepareAnalysis(@Nonnull AnalysisContext analysisContext) {
-        Map<ElementFilter, AnalysisContext> filters = splitByConfiguration(analysisContext, availableFilters);
-        Map<Reporter, AnalysisContext> reporters = splitByConfiguration(analysisContext, availableReporters);
-        Map<ApiAnalyzer, AnalysisContext> analyzers = splitByConfiguration(analysisContext, availableApiAnalyzers);
-        Map<DifferenceTransform<?>, AnalysisContext> transforms = splitByConfiguration(analysisContext, availableTransforms);
+        Map<ExtensionInstance<ElementFilter>, AnalysisContext> filters = splitByConfiguration(analysisContext,
+                pipelineConfiguration.getFilterTypes(), pipelineConfiguration.getIncludedFilterExtensionIds(),
+                pipelineConfiguration.getExcludedFilterExtensionIds());
+        Map<ExtensionInstance<Reporter>, AnalysisContext> reporters = splitByConfiguration(analysisContext,
+                pipelineConfiguration.getReporterTypes(), pipelineConfiguration.getIncludedReporterExtensionIds(),
+                pipelineConfiguration.getExcludedReporterExtensionIds());
+        Map<ExtensionInstance<ApiAnalyzer>, AnalysisContext> analyzers = splitByConfiguration(analysisContext,
+                pipelineConfiguration.getApiAnalyzerTypes(), pipelineConfiguration.getIncludedAnalyzerExtensionIds(),
+                pipelineConfiguration.getExcludedAnalyzerExtensionIds());
+        Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> transforms = splitByConfiguration(analysisContext,
+                pipelineConfiguration.getTransformTypes(), pipelineConfiguration.getIncludedTransformExtensionIds(),
+                pipelineConfiguration.getExcludedTransformExtensionIds());
 
         return new AnalysisResult.Extensions(analyzers, filters, reporters, transforms);
     }
@@ -170,9 +141,16 @@ public final class Revapi {
 
         AnalysisResult.Extensions extensions = prepareAnalysis(analysisContext);
 
+        if (extensions.getAnalyzers().isEmpty()) {
+            throw new IllegalArgumentException("At least one analyzer needs to be present. Make sure there is at" +
+                    " least one on the classpath and that the extension filters do not exclude all of them.");
+        }
+
         StreamSupport.stream(extensions.spliterator(), false)
-                .map(e -> (Map.Entry<Configurable, AnalysisContext>) e)
-                .forEach(e -> e.getKey().initialize(e.getValue()));
+                .map(e -> (Map.Entry<ExtensionInstance<? extends Configurable>, AnalysisContext>) (Map.Entry) e)
+                .forEach(e -> e.getKey().getInstance().initialize(e.getValue()));
+
+        AnalysisProgress progress = new AnalysisProgress(extensions, pipelineConfiguration);
 
         TIMING_LOG.debug("Initialization complete.");
 
@@ -180,8 +158,8 @@ public final class Revapi {
 
         Exception error = null;
         try {
-            for (ApiAnalyzer a : extensions.getAnalyzers().keySet()) {
-                analyzeWith(a, analysisContext.getOldApi(), analysisContext.getNewApi(), extensions);
+            for (ExtensionInstance<ApiAnalyzer> ia : extensions.getAnalyzers().keySet()) {
+                analyzeWith(ia.getInstance(), analysisContext.getOldApi(), analysisContext.getNewApi(), progress);
             }
         } catch (Exception t) {
             error = t;
@@ -190,36 +168,52 @@ public final class Revapi {
         return new AnalysisResult(error, extensions);
     }
 
-    private <T extends Configurable> Map<T, AnalysisContext>
-    splitByConfiguration(AnalysisContext fullConfig, Set<Class<? extends T>> configurables) {
-        Map<T, AnalysisContext> map = new HashMap<>();
+    private <T extends Configurable> Map<ExtensionInstance<T>, AnalysisContext>
+    splitByConfiguration(AnalysisContext fullConfig, Set<Class<? extends T>> configurables,
+            List<String> extensionIdIncludes, List<String> extensionIdExcludes) {
+
+        Map<ExtensionInstance<T>, AnalysisContext> map = new HashMap<>();
         for (Class<? extends T> cc : configurables) {
             T c = instantiate(cc);
             String extensionId = c.getExtensionId();
+
             if (extensionId == null) {
-                map.put(c, fullConfig.copyWithConfiguration(new ModelNode()));
-            } else {
-                T inst = null;
-                boolean configured = false;
-                for (ModelNode config : fullConfig.getConfiguration().asList()) {
-                    String configExtension = config.get("extension").asString();
-                    if (!extensionId.equals(configExtension)) {
-                        continue;
-                    }
-                    if (inst == null) {
-                        inst = c;
-                    } else {
-                        inst = instantiate(cc);
-                    }
+                extensionId = "$$%%(@#_)I#@)(*)(#$)(@#$__IMPROBABLE, right??!?!?!";
+            }
 
-                    map.put(inst, fullConfig.copyWithConfiguration(config.get("configuration").clone()));
+            // apply the filtering
+            if (!extensionIdIncludes.isEmpty() && !extensionIdIncludes.contains(extensionId)) {
+                continue;
+            }
 
-                    configured = true;
+            if (extensionIdExcludes.contains(extensionId)) {
+                continue;
+            }
+
+            T inst = null;
+            boolean configured = false;
+            for (ModelNode config : fullConfig.getConfiguration().asList()) {
+                String configExtension = config.get("extension").asString();
+                if (!extensionId.equals(configExtension)) {
+                    continue;
+                }
+                if (inst == null) {
+                    inst = c;
+                } else {
+                    inst = instantiate(cc);
                 }
 
-                if (!configured) {
-                    map.put(c, fullConfig.copyWithConfiguration(new ModelNode()));
-                }
+                String instanceId = config.get("id").asString();
+
+                ExtensionInstance<T> key = new ExtensionInstance<>(inst, instanceId);
+
+                map.put(key, fullConfig.copyWithConfiguration(config.get("configuration").clone()));
+
+                configured = true;
+            }
+
+            if (!configured) {
+                map.put(new ExtensionInstance<>(c, null), fullConfig.copyWithConfiguration(new ModelNode()));
             }
         }
 
@@ -227,9 +221,13 @@ public final class Revapi {
     }
 
     private ValidationResult validate(@Nonnull AnalysisContext analysisContext, ValidationResult validationResult,
-                                      Iterator<? extends Configurable> configurables) {
-        while (configurables.hasNext()) {
-            Configurable c = configurables.next();
+            AnalysisResult.Extensions configurables) {
+        for (Map.Entry<ExtensionInstance<?>, AnalysisContext> e : configurables) {
+            if (!(e.getKey().getInstance() instanceof Configurable)) {
+                continue;
+            }
+
+            Configurable c = (Configurable) e.getKey().getInstance();
             ValidationResult partial = configurationValidator.validate(analysisContext.getConfiguration(), c);
             validationResult = validationResult.merge(partial);
         }
@@ -237,7 +235,7 @@ public final class Revapi {
         return validationResult;
     }
 
-    private void analyzeWith(ApiAnalyzer apiAnalyzer, API oldApi, API newApi, AnalysisResult.Extensions extensions)
+    private void analyzeWith(ApiAnalyzer apiAnalyzer, API oldApi, API newApi, AnalysisProgress progress)
             throws Exception {
 
         if (TIMING_LOG.isDebugEnabled()) {
@@ -266,15 +264,15 @@ public final class Revapi {
 
             TIMING_LOG.debug("Opening difference analyzer");
             elementDifferenceAnalyzer.open();
-            analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs, extensions);
+            analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs, progress);
             TIMING_LOG.debug("Closing difference analyzer");
         }
         TIMING_LOG.debug("Difference analyzer closed");
     }
 
     private void analyze(CorrespondenceComparatorDeducer deducer, DifferenceAnalyzer elementDifferenceAnalyzer,
-                         SortedSet<? extends Element> as, SortedSet<? extends Element> bs,
-                         AnalysisResult.Extensions extensions) {
+            SortedSet<? extends Element> as, SortedSet<? extends Element> bs,
+            AnalysisProgress progress) {
 
         List<Element> sortedAs = new ArrayList<>(as);
         List<Element> sortedBs = new ArrayList<>(bs);
@@ -294,7 +292,9 @@ public final class Revapi {
             LOG.trace("Inspecting {} and {}", a, b);
 
             Stats.of("filters").start();
-            Set<ElementFilter> filters = extensions.getFilters().keySet();
+            Set<ElementFilter> filters = progress.extensions.getFilters().keySet().stream()
+                    .map(ExtensionInstance::getInstance)
+                    .collect(Collectors.toSet());
             boolean analyzeThis =
                     (a == null || filtersApply(a, filters)) && (b == null || filtersApply(b, filters));
             Stats.of("filters").end(a, b);
@@ -325,7 +325,7 @@ public final class Revapi {
             if (shouldDescend) {
                 LOG.trace("Descending into {}, {} pair.", a, b);
                 analyze(deducer, elementDifferenceAnalyzer, a == null ? emptySortedSet() : a.getChildren(),
-                        b == null ? emptySortedSet() : b.getChildren(), extensions);
+                        b == null ? emptySortedSet() : b.getChildren(), progress);
             } else {
                 LOG.trace("Filters disallowed descending into {} and {}.", a, b);
             }
@@ -337,7 +337,7 @@ public final class Revapi {
                 Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
                 Stats.of("analysisEnds").end(a, b);
                 Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
-                transformAndReport(r, extensions);
+                transformAndReport(r, progress);
             } else {
                 LOG.trace("Finished the skipped analysis of {} and {}.", a, b);
             }
@@ -361,7 +361,6 @@ public final class Revapi {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static <T> Stream<T> concat(Stream<? extends T> head, Stream<? extends T>[] all, int from) {
         if (from == all.length - 1) {
             return Stream.concat(head, all[from]);
@@ -370,7 +369,7 @@ public final class Revapi {
         }
     }
 
-    private void transformAndReport(Report report, AnalysisResult.Extensions extensions) {
+    private void transformAndReport(Report report, AnalysisProgress progress) {
         if (report == null) {
             return;
         }
@@ -388,39 +387,46 @@ public final class Revapi {
                 Difference d = it.next();
                 transformed.clear();
                 boolean differenceChanged = false;
-                for (DifferenceTransform<?> t : getTransformsForDifference(d, extensions)) {
+
+                LOG.debug("Transformation iteration {}", iteration);
+
+                for (List<DifferenceTransform<?>> tb : getTransformsForDifference(d, progress)) {
                     // it is the responsibility of the transform to declare the proper type.
                     // it will get a ClassCastException if it fails to declare a type that is common to all differences
                     // it can handle
                     @SuppressWarnings("unchecked")
-                    DifferenceTransform<Element> tt = (DifferenceTransform<Element>) t;
+                    List<DifferenceTransform<Element>> tBlock = (List<DifferenceTransform<Element>>) (List) tb;
 
                     Difference td = d;
-                    try {
-                        td = tt.transform(report.getOldElement(), report.getNewElement(), d);
-                    } catch (Exception e) {
-                        LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an exception" +
-                                " while processing difference " + d + " on old element " + report.getOldElement() +
-                                " and" +
-                                " new element " + report.getNewElement(), e);
+                    for (DifferenceTransform<Element> t : tBlock) {
+                        if (td == null) {
+                            break;
+                        }
+
+                        try {
+                            td = t.transform(report.getOldElement(), report.getNewElement(), td);
+                        } catch (Exception e) {
+                            LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an" +
+                                    " exception while processing difference " + d + " on old element " +
+                                    report.getOldElement() + " and new element " + report.getNewElement(), e);
+                        }
                     }
 
                     // ignore if transformation returned null, meaning that it "swallowed" the difference..
                     if (td == null) {
-                        listChanged = true;
                         differenceChanged = true;
                     } else if (!d.equals(td)) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Difference transform {} transforms {} to {}", t.getClass(), d, td);
+                            LOG.debug("Difference transform(s) {} transform {} to {}", tBlock, d, td);
                         }
 
                         transformed.add(td);
-                        listChanged = true;
                         differenceChanged = true;
                     }
                 }
 
                 if (differenceChanged) {
+                    listChanged = true;
                     //we need to remove the element in either case
                     it.remove();
                     if (!transformed.isEmpty()) {
@@ -434,19 +440,19 @@ public final class Revapi {
                         }
                     }
                 }
-            }
 
-            iteration++;
+                iteration++;
 
-            if (iteration % 100 == 0) {
-                LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration +
-                        " times. Maybe we're in an infinite loop with differences transforming back and forth?");
-            }
+                if (iteration % 1000 == 0) {
+                    LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration +
+                            " times. Maybe we're in an infinite loop with differences transforming back and forth?");
+                }
 
-            if (iteration == Integer.MAX_VALUE) {
-                throw new IllegalStateException("Transformation failed to settle in " + Integer.MAX_VALUE +
-                        " iterations. This is most probably an error in difference transform configuration that" +
-                        " cycles between two or more changes back and forth.");
+                if (iteration == MAX_TRANSFORMATION_ITERATIONS) {
+                    throw new IllegalStateException("Transformation failed to settle in " + MAX_TRANSFORMATION_ITERATIONS +
+                            " iterations. This is most probably an error in difference transform configuration that" +
+                            " cycles between two or more changes back and forth.");
+                }
             }
         } while (listChanged);
 
@@ -454,24 +460,29 @@ public final class Revapi {
 
         if (!report.getDifferences().isEmpty()) {
             Stats.of("reports").start();
-            for (Reporter reporter : extensions.getReporters().keySet()) {
-                reporter.report(report);
+            for (ExtensionInstance<Reporter> ir : progress.extensions.getReporters().keySet()) {
+                ir.getInstance().report(report);
             }
             Stats.of("reports").end(report);
         }
     }
 
-    private List<DifferenceTransform<?>> getTransformsForDifference(Difference diff, AnalysisResult.Extensions extensions) {
-        List<DifferenceTransform<?>> ret = matchingTransformsCache.get(diff.code);
+    private Set<List<DifferenceTransform<?>>> getTransformsForDifference(Difference diff, AnalysisProgress progress) {
+        Set<List<DifferenceTransform<?>>> ret = matchingTransformsCache.get(diff.code);
         if (ret == null) {
-            ret = new ArrayList<>();
-            for (DifferenceTransform<?> t : extensions.getTransforms().keySet()) {
-                for (Pattern p : t.getDifferenceCodePatterns()) {
-                    if (p.matcher(diff.code).matches()) {
-                        ret.add(t);
-                        break;
+            ret = new HashSet<>();
+            for (List<DifferenceTransform<?>> ts : progress.transformBlocks) {
+                List<DifferenceTransform<?>> actualTs = new ArrayList<>(ts.size());
+                for (DifferenceTransform<?> t : ts) {
+                    for (Pattern p : t.getDifferenceCodePatterns()) {
+                        if (p.matcher(diff.code).matches()) {
+                            actualTs.add(t);
+
+                            break;
+                        }
                     }
                 }
+                ret.add(actualTs);
             }
             matchingTransformsCache.put(diff.code, ret);
         }
@@ -479,175 +490,142 @@ public final class Revapi {
         return ret;
     }
 
-    @SuppressWarnings({"unused", "WeakerAccess"})
+    /**
+     * This builder is merely a proxy to the {@link PipelineConfiguration} and its builder. It is provided just for
+     * convenience (and also to keep backwards compatibility ;) ).
+     */
     public static final class Builder {
-        private Set<Class<? extends ApiAnalyzer>> analyzers = null;
-        private Set<Class<? extends Reporter>> reporters = null;
-        private Set<Class<? extends DifferenceTransform<?>>> transforms = null;
-        private Set<Class<? extends ElementFilter>> filters = null;
+        private final PipelineConfiguration.Builder pb = PipelineConfiguration.builder();
 
         @Nonnull
         public Builder withAnalyzersFromThreadContextClassLoader() {
-            return withAnalyzers(ServiceTypeLoader.load(ApiAnalyzer.class));
+            pb.withAnalyzersFromThreadContextClassLoader();
+            return this;
         }
 
         @Nonnull
         public Builder withAnalyzersFrom(@Nonnull ClassLoader cl) {
-            return withAnalyzers(ServiceTypeLoader.load(ApiAnalyzer.class, cl));
+            pb.withAnalyzersFrom(cl);
+            return this;
         }
 
         @SafeVarargs
         @Nonnull
         public final Builder withAnalyzers(Class<? extends ApiAnalyzer>... analyzers) {
-            return withAnalyzers(Arrays.asList(analyzers));
+            pb.withAnalyzers(analyzers);
+            return this;
         }
 
         @Nonnull
         public Builder withAnalyzers(@Nonnull Iterable<Class<? extends ApiAnalyzer>> analyzers) {
-            if (this.analyzers == null) {
-                this.analyzers = new HashSet<>();
-            }
-            for (Class<? extends ApiAnalyzer> a : analyzers) {
-                this.analyzers.add(a);
-            }
-
+            pb.withAnalyzers(analyzers);
             return this;
         }
 
         @Nonnull
         public Builder withReportersFromThreadContextClassLoader() {
-            return withReporters(ServiceTypeLoader.load(Reporter.class));
+            pb.withReportersFromThreadContextClassLoader();
+            return this;
         }
 
         @Nonnull
         public Builder withReportersFrom(@Nonnull ClassLoader cl) {
-            return withReporters(ServiceTypeLoader.load(Reporter.class, cl));
+            pb.withReportersFrom(cl);
+            return this;
         }
 
         @SafeVarargs
         @Nonnull
         public final Builder withReporters(Class<? extends Reporter>... reporters) {
-            return withReporters(Arrays.asList(reporters));
+            pb.withReporters(reporters);
+            return this;
         }
 
         @Nonnull
         public Builder withReporters(@Nonnull Iterable<Class<? extends Reporter>> reporters) {
-            if (this.reporters == null) {
-                this.reporters = new HashSet<>();
-            }
-            for (Class<? extends Reporter> r : reporters) {
-                this.reporters.add(r);
-            }
-
+            pb.withReporters(reporters);
             return this;
         }
 
         @Nonnull
         public Builder withTransformsFromThreadContextClassLoader() {
-            //don't you love Java generics? ;)
-            @SuppressWarnings("rawtypes")
-            Iterable trs = ServiceTypeLoader.load(DifferenceTransform.class);
-
-            @SuppressWarnings("unchecked")
-            Iterable<Class<? extends DifferenceTransform<?>>> rtrs
-                    = (Iterable<Class<? extends DifferenceTransform<?>>>) trs;
-
-            return withTransforms(rtrs);
+            pb.withTransformsFromThreadContextClassLoader();
+            return this;
         }
 
         @Nonnull
         public Builder withTransformsFrom(@Nonnull ClassLoader cl) {
-            //don't you love Java generics? ;)
-            @SuppressWarnings("rawtypes")
-            Iterable trs = ServiceTypeLoader.load(DifferenceTransform.class, cl);
-
-            @SuppressWarnings("unchecked")
-            Iterable<Class<? extends DifferenceTransform<?>>> rtrs
-                    = (Iterable<Class<? extends DifferenceTransform<?>>>) trs;
-
-            return withTransforms(rtrs);
+            pb.withTransformsFrom(cl);
+            return this;
         }
 
         @SafeVarargs
         @Nonnull
         public final Builder withTransforms(Class<? extends DifferenceTransform<?>>... transforms) {
-            return withTransforms(Arrays.asList(transforms));
+            pb.withTransforms(transforms);
+            return this;
         }
 
         @Nonnull
         public Builder withTransforms(@Nonnull Iterable<Class<? extends DifferenceTransform<?>>> transforms) {
-            if (this.transforms == null) {
-                this.transforms = new HashSet<>();
-            }
-            for (Class<? extends DifferenceTransform<?>> t : transforms) {
-                this.transforms.add(t);
-            }
-
+            pb.withTransforms(transforms);
             return this;
         }
 
         @Nonnull
         public Builder withFiltersFromThreadContextClassLoader() {
-            return withFilters(ServiceTypeLoader.load(ElementFilter.class));
+            pb.withFiltersFromThreadContextClassLoader();
+            return this;
         }
 
         @Nonnull
         public Builder withFiltersFrom(@Nonnull ClassLoader cl) {
-            return withFilters(ServiceTypeLoader.load(ElementFilter.class, cl));
+            pb.withFiltersFrom(cl);
+            return this;
         }
 
         @SafeVarargs
         @Nonnull
         public final Builder withFilters(Class<? extends ElementFilter>... filters) {
-            return withFilters(Arrays.asList(filters));
+            pb.withFilters(filters);
+            return this;
         }
 
         @Nonnull
         public Builder withFilters(@Nonnull Iterable<Class<? extends ElementFilter>> filters) {
-            if (this.filters == null) {
-                this.filters = new HashSet<>();
-            }
-            for (Class<? extends ElementFilter> f : filters) {
-                this.filters.add(f);
-            }
-
+            pb.withFilters(filters);
             return this;
         }
 
         @Nonnull
         public Builder withAllExtensionsFromThreadContextClassLoader() {
-            return withAllExtensionsFrom(Thread.currentThread().getContextClassLoader());
+            pb.withAllExtensionsFromThreadContextClassLoader();
+            return this;
         }
 
         @Nonnull
         public Builder withAllExtensionsFrom(@Nonnull ClassLoader cl) {
-            return withAnalyzersFrom(cl).withFiltersFrom(cl).withReportersFrom(cl)
-                    .withTransformsFrom(cl);
+            pb.withAllExtensionsFrom(cl);
+            return this;
+        }
+
+        public Builder withTransformationBlocks(Set<List<String>> blocks) {
+            pb.withTransformationBlocks(blocks);
+            return this;
+        }
+
+        public Builder addTransformationBlock(List<String> block) {
+            pb.addTransformationBlock(block);
+            return this;
         }
 
         /**
-         * @throws IllegalStateException if there are no api analyzers or no reporters added.
          * @return a new Revapi instance
+         * @throws IllegalStateException if there are no api analyzers or no reporters added.
          */
         @Nonnull
         public Revapi build() throws IllegalStateException {
-            analyzers = analyzers == null ? Collections.emptySet() : analyzers;
-            reporters = reporters == null ? Collections.emptySet() : reporters;
-            transforms = transforms == null ? Collections.emptySet() : transforms;
-            filters = filters == null ? Collections.emptySet() : filters;
-
-            if (analyzers.isEmpty()) {
-                throw new IllegalStateException(
-                        "No API analyzers defined. The analysis cannot run without an analyzer.");
-            }
-
-            if (reporters.isEmpty()) {
-                throw new IllegalStateException(
-                        "No reporters defined. There is no way how to obtain the results of the analysis without" +
-                                " a reporter.");
-            }
-
-            return new Revapi(analyzers, reporters, transforms, filters);
+            return new Revapi(pb.build());
         }
     }
 
@@ -682,4 +660,59 @@ public final class Revapi {
         return hasNoFilters;
     }
 
+    private static final class AnalysisProgress {
+        final AnalysisResult.Extensions extensions;
+        final Set<List<DifferenceTransform<?>>> transformBlocks;
+
+        AnalysisProgress(AnalysisResult.Extensions extensions, PipelineConfiguration configuration) {
+            this.extensions = extensions;
+            this.transformBlocks = groupTransformsToBlocks(extensions, configuration);
+        }
+
+        private static Set<List<DifferenceTransform<?>>>
+        groupTransformsToBlocks(AnalysisResult.Extensions extensions, PipelineConfiguration configuration) {
+            Set<List<DifferenceTransform<?>>> ret = new HashSet<>();
+
+            Map<String, List<DifferenceTransform<?>>> transformsById = new HashMap<>();
+            for (ExtensionInstance<DifferenceTransform<?>> t : extensions.getTransforms().keySet()) {
+                String configurationId = t.getId();
+                String extensionId = t.getInstance().getExtensionId();
+
+                if (configurationId != null) {
+                    transformsById.computeIfAbsent(configurationId, __ -> new ArrayList<>()).add(t.getInstance());
+                }
+                transformsById.computeIfAbsent(extensionId, __ -> new ArrayList<>()).add(t.getInstance());
+            }
+
+            for (List<String> ids : configuration.getTransformationBlocks()) {
+                List<DifferenceTransform<?>> ts = new ArrayList<>(ids.size());
+
+                for (String id : ids) {
+                    List<DifferenceTransform<?>> candidates = transformsById.remove(id);
+                    if (candidates == null) {
+                        throw new IllegalArgumentException(
+                                "Unrecognized id in the transformation block configuration: " + id);
+                    } else if (candidates.isEmpty()) {
+                        throw new IllegalArgumentException("There is no transform with extension id or explicit id '"
+                                + id + "'. Please fix the pipeline configuration.");
+                    } else if (candidates.size() > 1) {
+                        throw new IllegalArgumentException("There is more than 1 transform with extension id or" +
+                                " explicit id '" + id + "'. Please fix the pipeline configuration and use unique ids" +
+                                " for extension configurations.");
+                    } else {
+                        ts.add(candidates.get(0));
+                    }
+                }
+
+                ret.add(ts);
+            }
+
+            // now we're left with the transformations that are not grouped into any explicit blocks. Let's make them
+            // single-element blocks
+
+            transformsById.values().stream().flatMap(List::stream).forEach(t -> ret.add(singletonList(t)));
+
+            return ret;
+        }
+    }
 }

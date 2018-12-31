@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ public class AnalysisContextTest {
         String oldCfg = "{\"ext\": 1}";
         ModelNode newCfg = ModelNode.fromJSONString("[{\"extension\": \"ext\", \"configuration\": 1}]");
 
-        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(SimpleReporter.class).build();
+        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
         AnalysisContext ctx = AnalysisContext.builder(revapi).withConfigurationFromJSON(oldCfg).build();
 
@@ -53,7 +53,7 @@ public class AnalysisContextTest {
         Dummy.extensionId = "ext";
         ModelNode newCfg = ModelNode.fromJSONString("[{\"extension\": \"ext\", \"configuration\": 1}]");
 
-        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(SimpleReporter.class).build();
+        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
         AnalysisContext ctx = AnalysisContext.builder(revapi).withConfiguration(newCfg).build();
 
@@ -70,7 +70,7 @@ public class AnalysisContextTest {
         ModelNode newCfg = ModelNode.fromJSONString(
                 "[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}]");
 
-        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(SimpleReporter.class).build();
+        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
         AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withConfiguration(cfg1)
@@ -89,7 +89,7 @@ public class AnalysisContextTest {
         ModelNode cfg2 = ModelNode.fromJSONString("[{\"extension\": \"ext\", \"configuration\": {\"b\": [\"y\"]}}," +
                 "{\"extension\": \"ext\", \"configuration\": {\"b\": [\"z\"]}}]");
 
-        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(SimpleReporter.class).build();
+        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
         AnalysisContext.builder(revapi)
                 .withConfiguration(cfg1)
@@ -109,7 +109,7 @@ public class AnalysisContextTest {
                 "[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}," +
                         "{\"extension\": \"ext\", \"id\": \"b\", \"configuration\": {\"b\": [\"y\"]}}]");
 
-        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(SimpleReporter.class).build();
+        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
         AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withConfiguration(cfg1)
@@ -129,7 +129,7 @@ public class AnalysisContextTest {
         ModelNode newCfg = ModelNode.fromJSONString(
                 "[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}]");
 
-        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(SimpleReporter.class).build();
+        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
         AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withConfiguration(cfg1)
@@ -149,7 +149,7 @@ public class AnalysisContextTest {
         ModelNode newCfg = ModelNode.fromJSONString(
                 "[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}]");
 
-        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(SimpleReporter.class).build();
+        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
         AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withConfiguration(cfg1)
@@ -168,7 +168,7 @@ public class AnalysisContextTest {
                 "{\"extension\": \"ext\", \"id\": \"b\", \"configuration\": {\"b\": [\"y\"]}}]");
         ModelNode cfg2 = ModelNode.fromJSONString("{\"ext\": {\"b\": [\"y\"]}}");
 
-        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(SimpleReporter.class).build();
+        Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
         AnalysisContext ctx = AnalysisContext.builder(revapi)
                 .withConfiguration(cfg1)
@@ -176,6 +176,13 @@ public class AnalysisContextTest {
                 .build();
 
         Assert.assertEquals(new ModelNode(), ctx.getConfiguration());
+    }
+
+    public static final class TestReporter extends SimpleReporter {
+        @Override
+        public String getExtensionId() {
+            return "reporter";
+        }
     }
 
     public static final class Dummy implements ApiAnalyzer {

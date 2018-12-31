@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,10 +36,9 @@ public interface Configurable {
      * human readable, so a package name or something similar would be a good candidate. Core revapi extensions have
      * the extension ids always starting with "revapi.".
      *
-     * @return the unique identifier of this configurable extension or null if this extension doesn't require any
-     * configuration
+     * @return the unique identifier of this configurable extension
      */
-    @Nullable String getExtensionId();
+    String getExtensionId();
 
     /**
      * This method must not return null if {@link #getExtensionId()} returns a non-null value.

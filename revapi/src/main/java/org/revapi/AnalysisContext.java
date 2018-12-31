@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,11 +51,11 @@ import org.revapi.configuration.JSONUtil;
  *
  * <p>The configuration accepted by the builder is actually of 2 forms.
  * <ol>
- *     <li>The "old style" configuration where each extension could be configured at most once
- *     <li>The "new style" configuration that enables multiple configurations for each extension and is more easily
- *     translatable to XML.
+ * <li>The "old style" configuration where each extension could be configured at most once
+ * <li>The "new style" configuration that enables multiple configurations for each extension and is more easily
+ * translatable to XML.
  * </ol>
- *
+ * <p>
  * In the old format, the configuration of an extension was nested inside objects corresponding to its exploded
  * extension id. E.g. if the extension had an id of "my.extension", the configuration would look like:
  * <pre><code>
@@ -132,6 +132,7 @@ public final class AnalysisContext {
 
     /**
      * Constructor
+     *
      * @param locale        the locale the analysis reporters should use
      * @param configuration configuration represented as DMR node
      * @param oldApi        the old API
@@ -139,7 +140,7 @@ public final class AnalysisContext {
      * @param data          the data that should be attached to the analysis context
      */
     private AnalysisContext(@Nonnull Locale locale, @Nullable ModelNode configuration, @Nonnull API oldApi,
-                           @Nonnull API newApi, @Nonnull Map<String, Object> data) {
+            @Nonnull API newApi, @Nonnull Map<String, Object> data) {
         this.locale = locale;
         if (configuration == null) {
             this.configuration = new ModelNode();
@@ -160,16 +161,15 @@ public final class AnalysisContext {
      *
      * @param revapi the revapi instance to read the available extensions from
      * @return a new analysis context builder
-     *
      */
     @Nonnull
     public static Builder builder(Revapi revapi) {
         List<String> knownExtensionIds = new ArrayList<>();
 
-        addExtensionIds(revapi.getApiAnalyzerTypes(), knownExtensionIds);
-        addExtensionIds(revapi.getDifferenceTransformTypes(), knownExtensionIds);
-        addExtensionIds(revapi.getElementFilterTypes(), knownExtensionIds);
-        addExtensionIds(revapi.getReporterTypes(), knownExtensionIds);
+        addExtensionIds(revapi.getPipelineConfiguration().getApiAnalyzerTypes(), knownExtensionIds);
+        addExtensionIds(revapi.getPipelineConfiguration().getTransformTypes(), knownExtensionIds);
+        addExtensionIds(revapi.getPipelineConfiguration().getFilterTypes(), knownExtensionIds);
+        addExtensionIds(revapi.getPipelineConfiguration().getReporterTypes(), knownExtensionIds);
 
         return new Builder(knownExtensionIds);
     }
@@ -363,7 +363,8 @@ public final class AnalysisContext {
             ModelNode newStyleConfig = new ModelNode();
             newStyleConfig.setEmptyList();
 
-            extensionScan: for (String extensionId : knownExtensionIds) {
+            extensionScan:
+            for (String extensionId : knownExtensionIds) {
                 String[] explodedId = extensionId.split("\\.");
 
                 ModelNode extConfig = configuration;
@@ -386,8 +387,8 @@ public final class AnalysisContext {
         }
 
         private static void splitByExtensionAndId(List<ModelNode> configs,
-                                                  Map<String, Map<String, ModelNode>> byExtensionAndId,
-                                                  Map<String, List<ModelNode>> idlessByExtension) {
+                Map<String, Map<String, ModelNode>> byExtensionAndId,
+                Map<String, List<ModelNode>> idlessByExtension) {
             for (ModelNode c : configs) {
                 String extensionId = c.get("extension").asString();
                 if (!c.hasDefined("id")) {

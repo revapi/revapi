@@ -26,9 +26,11 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
+import org.jboss.dmr.ModelNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Revapi;
 
 /**
@@ -45,6 +47,7 @@ public final class RevapiTask extends Task {
 
     private Path revapiClasspath;
     private String configuration;
+    private String pipelineConfiguration;
 
     private String breakingSeverity = FailSeverity.potentiallyBreaking.name();
 
@@ -74,6 +77,10 @@ public final class RevapiTask extends Task {
 
     public void setConfiguration(String configuration) {
         this.configuration = configuration;
+    }
+
+    public void setPipelineConfiguration(String configuration) {
+        this.pipelineConfiguration = configuration;
     }
 
     public void setBreakingSeverity(String breakingSeverity) {
@@ -106,7 +113,12 @@ public final class RevapiTask extends Task {
     }
 
     private Revapi initRevapi() throws BuildException {
-        Revapi.Builder revapiBuilder = Revapi.builder();
+        PipelineConfiguration.Builder revapiBuilder;
+        if (pipelineConfiguration == null) {
+            revapiBuilder = PipelineConfiguration.builder();
+        } else {
+            revapiBuilder = PipelineConfiguration.parse(ModelNode.fromJSONString(pipelineConfiguration));
+        }
 
         if (revapiClasspath != null) {
             String[] elements = revapiClasspath.list();
@@ -128,7 +140,7 @@ public final class RevapiTask extends Task {
         //always add the Ant reporter, so that we get stuff in the Ant log
         revapiBuilder.withReporters(AntReporter.class);
 
-        return revapiBuilder.build();
+        return new Revapi(revapiBuilder.build());
     }
 
     private AnalysisContext initAnalysisContext(Revapi revapi) {

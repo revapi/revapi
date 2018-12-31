@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.maven.plugin.logging.Log;
@@ -36,6 +36,7 @@ import org.eclipse.aether.util.artifact.ArtifactIdUtils;
 import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
 import org.revapi.ElementFilter;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.ServiceTypeLoader;
@@ -60,6 +61,7 @@ class AnalyzerBuilder {
     private String newVersion;
     private String disallowedExtensions;
     private Class<? extends Reporter> reporterType;
+    private PlexusConfiguration pipelineConfiguration;
     private PlexusConfiguration analysisConfiguration;
     private Object[] analysisConfigurationFiles;
     private RepositorySystem repositorySystem;
@@ -122,6 +124,11 @@ class AnalyzerBuilder {
 
     AnalyzerBuilder withLocale(Locale locale) {
         this.locale = locale;
+        return this;
+    }
+
+    AnalyzerBuilder withPipelineConfiguration(PlexusConfiguration pipelineConfiguration) {
+        this.pipelineConfiguration = pipelineConfiguration;
         return this;
     }
 
@@ -227,13 +234,15 @@ class AnalyzerBuilder {
                 ? Collections.emptyList()
                 : Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
 
-        Supplier<Revapi.Builder> ctor = getDisallowedExtensionsAwareRevapiConstructor(disallowedExtensions);
+        Consumer<PipelineConfiguration.Builder> pipelineModifier =
+                applyDisallowedExtensionsToPipeline(disallowedExtensions);
 
-        return new Analyzer(analysisConfiguration, analysisConfigurationFiles, oldArtifacts, newArtifacts, oldGavs,
-                newGavs, project, repositorySystem, repositorySystemSession, reporterType, contextData, locale, log,
-                failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
-                alwaysCheckForReleaseVersion, checkDependencies, resolveProvidedDependencies,
-                resolveTransitiveProvidedDependencies, versionFormat, ctor, revapi);
+        return new Analyzer(pipelineConfiguration, analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
+                newArtifacts, oldGavs, newGavs, project, repositorySystem, repositorySystemSession, reporterType,
+                contextData, locale, log, failOnMissingConfigurationFiles, failOnUnresolvedArtifacts,
+                failOnUnresolvedDependencies, alwaysCheckForReleaseVersion, checkDependencies,
+                resolveProvidedDependencies, resolveTransitiveProvidedDependencies, versionFormat, pipelineModifier,
+                revapi);
     }
 
     /**
@@ -297,11 +306,9 @@ class AnalyzerBuilder {
         return true;
     }
 
-    private static Supplier<Revapi.Builder>
-    getDisallowedExtensionsAwareRevapiConstructor(List<String> disallowedExtensions) {
-        return () -> {
-            Revapi.Builder bld = Revapi.builder();
-
+    private static Consumer<PipelineConfiguration.Builder>
+    applyDisallowedExtensionsToPipeline(List<String> disallowedExtensions) {
+        return (bld) -> {
             List<Class<? extends ApiAnalyzer>> analyzers = new ArrayList<>();
             List<Class<? extends ElementFilter>> filters = new ArrayList<>();
             List<Class<? extends DifferenceTransform>> transforms = new ArrayList<>();
@@ -317,8 +324,6 @@ class AnalyzerBuilder {
                     (List<Class<? extends DifferenceTransform<?>>>) (List) transforms;
 
             bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(castTransforms).withReporters(reporters);
-
-            return bld;
         };
     }
 

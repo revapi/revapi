@@ -448,8 +448,10 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     public Reader getJSONSchema() {
         Map<String, Reader> checkSchemas = new HashMap<>(4);
         for (Check c : checks) {
-            if (c.getExtensionId() != null) {
-                checkSchemas.put(c.getExtensionId(), c.getJSONSchema());
+            String eid = c.getExtensionId();
+            Reader schema = c.getJSONSchema();
+            if (eid != null && schema != null) {
+                checkSchemas.put(eid, schema);
             }
         }
 

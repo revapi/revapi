@@ -94,7 +94,7 @@ public final class AntReporter implements Reporter {
     }
 
     @Nullable @Override public String getExtensionId() {
-        return null;
+        return "revapi.ant.internal.reporter";
     }
 
     @Nullable
