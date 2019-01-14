@@ -53,6 +53,7 @@
 
     <menu name="Basic Info" inherit="top">
       <item name="Architecture" href="${web.url}/architecture.html"/>
+      <item name="Configuration" href="${web.url}/configuration.html"/>
       <item name="Building" href="${web.url}/building.html"/>
       <item name="Extensions" href="${web.url}/extensions.html"/>
     </menu>

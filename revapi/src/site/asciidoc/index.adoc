@@ -36,10 +36,16 @@ the revapi archive's name - quite a useful thing when reporting on what problems
 
 Configuration is supplied using https://github.com/jbossas/jboss-dmr[JBoss DMR] which should in theory support
 loading the configuration from various formats if enough effort is done on the user's side. Revapi as such has so far
-been extensively tested only with JSON data (support for XML has been added only in Revapi 0.8.0 supported by maven
-plugin 0.9.0). Even if data was translated into DMR from another format than JSON, the validation
-of that data will always be done against a JSON schema that is provided by the extensions.
+been extensively tested only with JSON and XML data. Even if data was translated into DMR from another format than JSON,
+the validation of that data will always be done against a JSON schema that is provided by the extensions.
 
 For details, see the link:apidocs/org/revapi/AnalysisContext.html[AnalysisContext] class (and the way it is supplied
 with configuration by the caller) and link:apidocs/org/revapi/configuration/Configurable.html[Configurable] interface
 for what is required of the extensions.
+
+==== Pipeline Configuration
+
+Since Revapi 0.11.0 (supported by Maven plugin 0.11.0, Ant Task 0.9.0 and CLI 0.9.0), Revapi can be configured to
+include or exclude extensions even if they are available on the classpath. More importantly, the pipeline configuration
+enables the users to group difference transforms into blocks using which one can overcome the transforms influencing
+each other. For more details, see the link:../../configuration.html[configuration] page.
