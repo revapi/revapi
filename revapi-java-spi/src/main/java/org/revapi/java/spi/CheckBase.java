@@ -122,8 +122,7 @@ public abstract class CheckBase implements Check {
     }
 
     private boolean isAccessibleByModifier(Element e) {
-        return !isMissing(e) && (e.getModifiers().contains(Modifier.PUBLIC) ||
-                e.getModifiers().contains(Modifier.PROTECTED));
+        return e.getModifiers().contains(Modifier.PUBLIC) || e.getModifiers().contains(Modifier.PROTECTED);
     }
 
     /**
@@ -197,7 +196,7 @@ public abstract class CheckBase implements Check {
     @Nullable
     @Override
     public String getExtensionId() {
-        return null;
+        return "<<<non-configurable-java-check>>>";
     }
 
     @Nullable

@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -63,6 +64,7 @@ import org.jboss.dmr.ModelNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.configuration.JSONUtil;
@@ -79,6 +81,8 @@ import org.revapi.maven.utils.ScopeDependencyTraverser;
 public final class Analyzer {
     private static final Pattern ANY_NON_SNAPSHOT = Pattern.compile("^.*(?<!-SNAPSHOT)$");
     private static final Pattern ANY = Pattern.compile(".*");
+
+    private final PlexusConfiguration pipelineConfiguration;
 
     private final PlexusConfiguration analysisConfiguration;
 
@@ -112,7 +116,7 @@ public final class Analyzer {
 
     private final boolean failOnMissingSupportArchives;
 
-    private final Supplier<Revapi.Builder> revapiConstructor;
+    private final Consumer<PipelineConfiguration.Builder> pipelineModifier;
 
     private final boolean resolveDependencies;
 
@@ -123,15 +127,17 @@ public final class Analyzer {
 
     private Revapi revapi;
 
-    Analyzer(PlexusConfiguration analysisConfiguration, Object[] analysisConfigurationFiles, Artifact[] oldArtifacts,
-             Artifact[] newArtifacts, String[] oldGavs, String[] newGavs, MavenProject project,
-             RepositorySystem repositorySystem, RepositorySystemSession repositorySystemSession,
-             Class<? extends Reporter> reporterType, Map<String, Object> contextData,
-             Locale locale, Log log, boolean failOnMissingConfigurationFiles, boolean failOnMissingArchives,
-             boolean failOnMissingSupportArchives, boolean alwaysUpdate, boolean resolveDependencies,
-             boolean resolveProvidedDependencies, boolean resolveTransitiveProvidedDependencies,
-             String versionRegex, Supplier<Revapi.Builder> revapiConstructor, Revapi sharedRevapi) {
+    Analyzer(PlexusConfiguration pipelineConfiguration, PlexusConfiguration analysisConfiguration,
+            Object[] analysisConfigurationFiles, Artifact[] oldArtifacts, Artifact[] newArtifacts, String[] oldGavs,
+            String[] newGavs, MavenProject project, RepositorySystem repositorySystem,
+            RepositorySystemSession repositorySystemSession, Class<? extends Reporter> reporterType,
+            Map<String, Object> contextData, Locale locale, Log log, boolean failOnMissingConfigurationFiles,
+            boolean failOnMissingArchives, boolean failOnMissingSupportArchives, boolean alwaysUpdate,
+            boolean resolveDependencies, boolean resolveProvidedDependencies,
+            boolean resolveTransitiveProvidedDependencies, String versionRegex,
+            Consumer<PipelineConfiguration.Builder> pipelineModifier, Revapi sharedRevapi) {
 
+        this.pipelineConfiguration = pipelineConfiguration;
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
         this.oldGavs = oldGavs;
@@ -147,8 +153,8 @@ public final class Analyzer {
 
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
         String[] topLevelScopes = resolveProvidedDependencies
-                ? new String[] {"compile", "provided"}
-                : new String[] {"compile"};
+                ? new String[]{"compile", "provided"}
+                : new String[]{"compile"};
         String[] transitiveScopes = resolveTransitiveProvidedDependencies
                 ? new String[]{"compile", "provided"}
                 : new String[]{"compile"};
@@ -170,7 +176,7 @@ public final class Analyzer {
         this.failOnMissingArchives = failOnMissingArchives;
         this.failOnMissingSupportArchives = failOnMissingSupportArchives;
         this.revapi = sharedRevapi;
-        this.revapiConstructor = revapiConstructor;
+        this.pipelineModifier = pipelineModifier;
     }
 
     public static String getProjectArtifactCoordinates(MavenProject project, String versionOverride) {
@@ -209,16 +215,16 @@ public final class Analyzer {
      * <p>If the gav exactly matches the current project, the file of the artifact is found on the filesystem in
      * target directory and the resolver is ignored.
      *
-     * @param project the project to restrict by, if applicable
-     * @param gav the gav to resolve
+     * @param project      the project to restrict by, if applicable
+     * @param gav          the gav to resolve
      * @param versionRegex the optional regex the version must match to be considered.
-     * @param resolver the version resolver to use
+     * @param resolver     the version resolver to use
      * @return the resolved artifact matching the criteria.
-     *
      * @throws VersionRangeResolutionException on error
-     * @throws ArtifactResolutionException on error
+     * @throws ArtifactResolutionException     on error
      */
-    static Artifact resolveConstrained(MavenProject project, String gav, Pattern versionRegex, ArtifactResolver resolver)
+    static Artifact resolveConstrained(MavenProject project, String gav, Pattern versionRegex,
+            ArtifactResolver resolver)
             throws VersionRangeResolutionException, ArtifactResolutionException {
         boolean latest = gav.endsWith(":LATEST");
         if (latest || gav.endsWith(":RELEASE")) {
@@ -402,7 +408,7 @@ public final class Analyzer {
                 (Spliterator<MavenArchive>) resolvedOldApi.getArchives().spliterator(), false)
                 .map(MavenArchive::getName).collect(toList());
 
-        List<?> newArchives =  StreamSupport.stream(
+        List<?> newArchives = StreamSupport.stream(
                 (Spliterator<MavenArchive>) resolvedNewApi.getArchives().spliterator(), false)
                 .map(MavenArchive::getName).collect(toList());
 
@@ -435,6 +441,74 @@ public final class Analyzer {
     public Revapi getRevapi() {
         buildRevapi();
         return revapi;
+    }
+
+    private PipelineConfiguration.Builder gatherPipelineConfiguration() {
+        String jsonConfig = pipelineConfiguration == null ? null : pipelineConfiguration.getValue();
+
+        PipelineConfiguration.Builder ret;
+
+        if (jsonConfig == null) {
+            // we're seeing XML. PipelineConfiguration is a set "format", not something dynamic as the extension
+            // configurations. We can therefore try to parse it straight away.
+            ret = parsePipelineConfigurationXML();
+        } else {
+            ModelNode json = ModelNode.fromJSONString(jsonConfig);
+            ret = PipelineConfiguration.parse(json);
+        }
+
+        // important to NOT add any extensions here yet. That's the job of the pipelineModifier that is responsible
+        // to construct
+        return ret;
+    }
+
+    private PipelineConfiguration.Builder parsePipelineConfigurationXML() {
+        PipelineConfiguration.Builder bld = PipelineConfiguration.builder();
+
+        if (pipelineConfiguration == null) {
+            return bld;
+        }
+
+        for (PlexusConfiguration c : pipelineConfiguration.getChildren()) {
+            switch (c.getName()) {
+            case "analyzers":
+                parseIncludeExclude(c, bld::addAnalyzerExtensionIdInclude, bld::addAnalyzerExtensionIdExclude);
+                break;
+            case "reporters":
+                parseIncludeExclude(c, bld::addReporterExtensionIdInclude, bld::addReporterExtensionIdExclude);
+                break;
+            case "filters":
+                parseIncludeExclude(c, bld::addFilterExtensionIdInclude, bld::addFilterExtensionIdExclude);
+                break;
+            case "transforms":
+                parseIncludeExclude(c, bld::addTransformExtensionIdInclude, bld::addTransformExtensionIdExclude);
+                break;
+            case "transformBlocks":
+                for (PlexusConfiguration b : c.getChildren()) {
+                    List<String> blockIds = Stream.of(b.getChildren())
+                            .map(PlexusConfiguration::getValue).collect(toList());
+                    bld.addTransformationBlock(blockIds);
+                }
+                break;
+            }
+        }
+
+        return bld;
+    }
+
+    private void parseIncludeExclude(PlexusConfiguration parent, Consumer<String> handleInclude,
+            Consumer<String> handleExclude) {
+
+        PlexusConfiguration include = parent.getChild("include");
+        PlexusConfiguration exclude = parent.getChild("exclude");
+
+        if (include != null) {
+            Stream.of(include.getChildren()).forEach(c -> handleInclude.accept(c.getValue()));
+        }
+
+        if (exclude != null) {
+            Stream.of(exclude.getChildren()).forEach(c -> handleExclude.accept(c.getValue()));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -501,7 +575,7 @@ public final class Analyzer {
                                                 try {
                                                     return url.openStream();
                                                 } catch (IOException e) {
-                                                    throw new MarkerException (
+                                                    throw new MarkerException(
                                                             "Failed to read the classpath resource '" + url + "'.");
                                                 }
                                             }).iterator();
@@ -573,7 +647,8 @@ public final class Analyzer {
         if (roots == null) {
             ctxBld.mergeConfiguration(conv.convert(xml));
         } else {
-            roots: for (String r : roots) {
+            roots:
+            for (String r : roots) {
                 PlexusConfiguration root = xml;
                 boolean first = true;
                 String[] rootPath = r.split("/");
@@ -617,12 +692,13 @@ public final class Analyzer {
 
     private void buildRevapi() {
         if (revapi == null) {
-            Revapi.Builder builder = revapiConstructor.get();
+            PipelineConfiguration.Builder builder = gatherPipelineConfiguration();
+            pipelineModifier.accept(builder);
             if (reporterType != null) {
                 builder.withReporters(reporterType);
             }
 
-            revapi = builder.build();
+            revapi = new Revapi(builder.build());
         }
     }
 

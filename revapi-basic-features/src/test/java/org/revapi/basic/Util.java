@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@ import org.revapi.TransformationResult;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterProvider;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 
@@ -57,7 +58,7 @@ final class Util {
             Difference orig) {
         transform.startElements(oldEl, newEl);
         TransformationResult res = transform.tryTransform(oldEl, newEl, orig);
-        Assert.assertTrue(transform.endElements(oldEl, newEl).isEmpty());
+        transform.endElements(oldEl, newEl);
 
         switch (res.getResolution()) {
             case KEEP:
@@ -83,7 +84,8 @@ final class Util {
         Set<Class<? extends Reporter>> reporters = setOrEmpty(Reporter.class, extensionType);
         Set<Class<? extends ElementMatcher>> matchers = setOrEmpty(ElementMatcher.class, extensionType);
 
-        return new Revapi(analyzers, reporters, transforms, filters, matchers);
+        return new Revapi(PipelineConfiguration.builder().withAnalyzers(analyzers).withReporters(reporters)
+                .withTransforms(transforms).withFilters(filters).withMatchers(matchers).build());
     }
 
     @SuppressWarnings("unchecked")

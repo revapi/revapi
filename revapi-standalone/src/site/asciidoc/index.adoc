@@ -38,7 +38,7 @@ extensions are identified by their Maven GAVs.
 supplying any "supplementary archives", i.e. the dependencies of the Guava library and so it may happen that some
 classes that contribute to the API are not present in the "main" archives.
 
-NOTE: The `report` behavior will be the default as of `revapi-java` extension version `0.5.3`.
+NOTE: The `report` behavior is the default as of `revapi-java` extension version `0.5.3`.
 
 Now, let's try the same but using the maven coordinates for the guava libraries:
 

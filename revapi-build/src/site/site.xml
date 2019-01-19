@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
 
-    Copyright 2014-2018 Lukas Krejci
+    Copyright 2014-2019 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,6 +53,7 @@
 
     <menu name="Basic Info" inherit="top">
       <item name="Architecture" href="${web.url}/architecture.html"/>
+      <item name="Configuration" href="${web.url}/configuration.html"/>
       <item name="Building" href="${web.url}/building.html"/>
       <item name="Extensions" href="${web.url}/extensions.html"/>
     </menu>

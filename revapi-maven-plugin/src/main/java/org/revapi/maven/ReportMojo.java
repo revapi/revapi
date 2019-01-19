@@ -51,6 +51,15 @@ import org.revapi.Element;
 @Mojo(name = "report", defaultPhase = LifecyclePhase.SITE,
         requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class ReportMojo extends AbstractMavenReport {
+    /**
+     * The JSON or XML configuration of the extensions pipeline. This enables the users easily specify which extensions
+     * should be included/excluded in the Revapi analysis pipeline and also to define transformation blocks - a way
+     * of grouping transforms together to enable more fine grained control over how differences are transformed.
+     *
+     * @since 0.11.0
+     */
+    @Parameter(property = Props.pipelineConfiguration.NAME, defaultValue = Props.pipelineConfiguration.DEFAULT_VALUE)
+    protected PlexusConfiguration pipelineConfiguration;
 
     /**
      * The JSON or XML configuration of various analysis options. The available options depend on what
@@ -402,6 +411,7 @@ public class ReportMojo extends AbstractMavenReport {
 
         AnalyzerBuilder.Result res = AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
                 .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
+                .withPipelineConfiguration(this.pipelineConfiguration)
                 .withAnalysisConfiguration(this.analysisConfiguration)
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
                 .withCheckDependencies(this.checkDependencies)

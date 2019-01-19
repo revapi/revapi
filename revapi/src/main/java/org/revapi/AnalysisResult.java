@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -103,7 +104,9 @@ public final class AnalysisResult implements AutoCloseable {
         TIMING_LOG.debug(Stats.asString());
         TIMING_LOG.debug("Closing all extensions");
 
-        Consumer<Object> close = ext -> {
+        Consumer<ExtensionInstance> close = inst -> {
+            Object ext = inst.instance;
+
             if (!(ext instanceof AutoCloseable)) {
                 return;
             }
@@ -128,17 +131,18 @@ public final class AnalysisResult implements AutoCloseable {
         TIMING_LOG.debug("Extensions closed. Analysis complete.");
     }
 
-    public static final class Extensions implements Iterable<Map.Entry<?, AnalysisContext>> {
-        private final Map<ApiAnalyzer, AnalysisContext> analyzers;
-        private final Map<FilterProvider, AnalysisContext> filters;
-        private final Map<Reporter, AnalysisContext> reporters;
-        private final Map<DifferenceTransform<?>, AnalysisContext> transforms;
-        private final Map<ElementMatcher, AnalysisContext> matchers;
+    public static final class Extensions implements Iterable<Map.Entry<ExtensionInstance<?>, AnalysisContext>> {
+        private final Map<ExtensionInstance<ApiAnalyzer>, AnalysisContext> analyzers;
+        private final Map<ExtensionInstance<FilterProvider>, AnalysisContext> filters;
+        private final Map<ExtensionInstance<Reporter>, AnalysisContext> reporters;
+        private final Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> transforms;
+        private final Map<ExtensionInstance<ElementMatcher>, AnalysisContext> matchers;
 
-        Extensions(Map<ApiAnalyzer, AnalysisContext> analyzers, Map<FilterProvider, AnalysisContext> filters,
-                   Map<Reporter, AnalysisContext> reporters,
-                   Map<DifferenceTransform<?>, AnalysisContext> transforms,
-                   Map<ElementMatcher, AnalysisContext> matchers) {
+        Extensions(Map<ExtensionInstance<ApiAnalyzer>, AnalysisContext> analyzers,
+                Map<ExtensionInstance<FilterProvider>, AnalysisContext> filters,
+                Map<ExtensionInstance<Reporter>, AnalysisContext> reporters,
+                Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> transforms,
+                Map<ExtensionInstance<ElementMatcher>, AnalysisContext> matchers) {
             this.analyzers = Collections.unmodifiableMap(analyzers);
             this.filters = Collections.unmodifiableMap(filters);
             this.reporters = Collections.unmodifiableMap(reporters);
@@ -146,40 +150,40 @@ public final class AnalysisResult implements AutoCloseable {
             this.matchers = matchers;
         }
 
-        public Map<ApiAnalyzer, AnalysisContext> getAnalyzers() {
+        public Map<ExtensionInstance<ApiAnalyzer>, AnalysisContext> getAnalyzers() {
             return analyzers;
         }
 
-        public Map<FilterProvider, AnalysisContext> getFilters() {
+        public Map<ExtensionInstance<FilterProvider>, AnalysisContext> getFilters() {
             return filters;
         }
 
-        public Map<Reporter, AnalysisContext> getReporters() {
+        public Map<ExtensionInstance<Reporter>, AnalysisContext> getReporters() {
             return reporters;
         }
 
-        public Map<DifferenceTransform<?>, AnalysisContext> getTransforms() {
+        public Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> getTransforms() {
             return transforms;
         }
 
-        public Map<ElementMatcher, AnalysisContext> getMatchers() {
+        public Map<ExtensionInstance<ElementMatcher>, AnalysisContext> getMatchers() {
             return matchers;
         }
 
-        public <T> Map<T, AnalysisContext> getExtensionContexts(Class<T> extensionType) {
-            IdentityHashMap<T, AnalysisContext> ret = new IdentityHashMap<>();
-            stream().filter(e -> extensionType.isAssignableFrom(e.getKey().getClass()))
-                    .forEach(e -> ret.put(extensionType.cast(e.getKey()), e.getValue()));
+        public <T> Map<ExtensionInstance<T>, AnalysisContext> getExtensionContexts(Class<T> extensionType) {
+            IdentityHashMap<ExtensionInstance<T>, AnalysisContext> ret = new IdentityHashMap<>();
+            stream().filter(e -> extensionType.isAssignableFrom(e.getKey().getInstance().getClass()))
+                    .forEach(e -> ret.put(e.getKey().as(extensionType), e.getValue()));
             return ret;
         }
 
-        public <T> Set<T> getExtensionInstances(Class<T> extensionType) {
+        public <T> Set<ExtensionInstance<T>> getExtensionInstances(Class<T> extensionType) {
             return getExtensionContexts(extensionType).keySet();
         }
 
         public <T> T getFirstExtension(Class<T> extensionType, T defaultValue) {
-            Set<T> instances = getExtensionInstances(extensionType);
-            return instances.isEmpty() ? defaultValue : instances.iterator().next();
+            Set<ExtensionInstance<T>> instances = getExtensionInstances(extensionType);
+            return instances.isEmpty() ? defaultValue : instances.iterator().next().getInstance();
         }
 
         public AnalysisContext getFirstConfigurationOrNull(Class<?> extensionType) {
@@ -187,15 +191,72 @@ public final class AnalysisResult implements AutoCloseable {
             return ctxs.isEmpty() ? null : ctxs.iterator().next();
         }
 
-        @Override public Iterator<Map.Entry<?, AnalysisContext>> iterator() {
+        @Override public Iterator<Map.Entry<ExtensionInstance<?>, AnalysisContext>> iterator() {
             return stream().iterator();
         }
 
-        public Stream<Map.Entry<?, AnalysisContext>> stream() {
-            return Stream.concat(analyzers.entrySet().stream(),
-                    Stream.concat(filters.entrySet().stream(),
-                            Stream.concat(reporters.entrySet().stream(),
-                                    Stream.concat(transforms.entrySet().stream(), matchers.entrySet().stream()))));
+        public Stream<Map.Entry<ExtensionInstance<?>, AnalysisContext>> stream() {
+            return Stream.concat(retype(analyzers.entrySet()).stream(),
+                    Stream.concat(retype(filters.entrySet()).stream(),
+                            Stream.concat(retype(reporters.entrySet()).stream(),
+                                    Stream.concat(retype(transforms.entrySet()).stream(),
+                                            retype(matchers.entrySet()).stream()))));
+        }
+
+        @SuppressWarnings("unchecked")
+        private static Set<Map.Entry<ExtensionInstance<?>, AnalysisContext>> retype(Set<?> set) {
+            return (Set) set;
+        }
+    }
+
+    public static final class ExtensionInstance<I> {
+        private final I instance;
+        private final @Nullable String id;
+
+        ExtensionInstance(I instance, @Nullable String id) {
+            this.instance = instance;
+            this.id = id;
+        }
+
+        public I getInstance() {
+            return instance;
+        }
+
+        @Nullable
+        public String getId() {
+            return id;
+        }
+
+        public <U> ExtensionInstance<U> as(Class<U> instanceType) {
+            if (!instanceType.isAssignableFrom(instance.getClass())) {
+                throw new ClassCastException();
+            }
+
+            @SuppressWarnings("unchecked")
+            ExtensionInstance<U> ret = (ExtensionInstance<U>) this;
+
+            return ret;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (!(o instanceof ExtensionInstance)) {
+                return false;
+            }
+
+            ExtensionInstance<?> that = (ExtensionInstance<?>) o;
+
+            return Objects.equals(instance, that.instance) &&
+                    Objects.equals(id, that.id);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(instance, id);
         }
     }
 }

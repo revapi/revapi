@@ -88,7 +88,7 @@ public class AnalysisTest {
 
         @Override
         public @Nullable String getExtensionId() {
-            return null;
+            return "fake-semver";
         }
 
         @Override
@@ -120,7 +120,7 @@ public class AnalysisTest {
 
         @Override
         public @Nullable String getExtensionId() {
-            return null;
+            return "breaking-transform";
         }
 
         @Override
@@ -152,7 +152,7 @@ public class AnalysisTest {
 
         @Override
         public @Nullable String getExtensionId() {
-            return null;
+            return "cloning-transform";
         }
 
         @Override
@@ -231,7 +231,7 @@ public class AnalysisTest {
 
         @Override
         public @Nullable String getExtensionId() {
-            return null;
+            return "dummy-analyzer";
         }
 
         @Override
@@ -322,7 +322,7 @@ public class AnalysisTest {
         @Nullable
         @Override
         public String getExtensionId() {
-            return null;
+            return "dummy-reporter";
         }
 
         @Nullable
@@ -350,7 +350,7 @@ public class AnalysisTest {
         @Nullable
         @Override
         public String getExtensionId() {
-            return null;
+            return "failing-reporter";
         }
 
         @Nullable

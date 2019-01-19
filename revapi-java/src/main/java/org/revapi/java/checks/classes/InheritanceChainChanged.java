@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -46,6 +47,7 @@ import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVisitor;
+import javax.lang.model.util.SimpleElementVisitor8;
 import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 
@@ -73,6 +75,22 @@ public final class InheritanceChainChanged extends CheckBase {
                 @Override
                 public Boolean visitDeclared(DeclaredType t, Void aVoid) {
                     return t.asElement().asType().getKind() == TypeKind.ERROR;
+                }
+            };
+
+    private static final ElementVisitor<Boolean, Void> IS_THROWABLE_ELEMENT =
+            new SimpleElementVisitor8<Boolean, Void>(false) {
+                @Override
+                public Boolean visitType(TypeElement e, Void aVoid) {
+                    return e.getQualifiedName().contentEquals("java.lang.Throwable");
+                }
+            };
+
+    private static final TypeVisitor<Boolean, Void> IS_THROWABLE =
+            new SimpleTypeVisitor8<Boolean, Void>(false) {
+                @Override
+                public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+                    return t.asElement().accept(IS_THROWABLE_ELEMENT, null);
                 }
             };
 
@@ -157,9 +175,15 @@ public final class InheritanceChainChanged extends CheckBase {
                         : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
 
                 ret.add(createDifference(code, Code.attachmentsFor(types.oldElement, types.newElement, "superClass", str)));
+            }
 
-                //additionally add a difference about checked exceptions
-                if (changedToCheckedException(getNewTypeEnvironment().getTypeUtils(), t, oldSuperClasses)) {
+            if (containsThrowable(oldSuperClasses) && containsThrowable(newSuperClasses)) {
+                // let's check for important exception type changes.
+
+                boolean oldUnchecked = isUncheckedThrowable(oldSuperClasses);
+                boolean newUnchecked = isUncheckedThrowable(newSuperClasses);
+
+                if (oldUnchecked && !newUnchecked) {
                     ret.add(createDifference(Code.CLASS_NOW_CHECKED_EXCEPTION,
                             Code.attachmentsFor(types.oldElement, types.newElement)));
                 }
@@ -205,25 +229,22 @@ public final class InheritanceChainChanged extends CheckBase {
         }
     }
 
-    private boolean changedToCheckedException(@Nonnull Types newTypeEnv, @Nonnull TypeMirror newType,
-            @Nonnull List<TypeMirror> oldTypes) {
-
-        if ("java.lang.Exception".equals(Util.toHumanReadableString(newType))) {
-            return isTypeThrowable(oldTypes);
-        } else {
-            for (TypeMirror sc : Util.getAllSuperClasses(newTypeEnv, newType)) {
-                if ("java.lang.Exception".equals(Util.toHumanReadableString(sc))) {
-                    return isTypeThrowable(oldTypes);
-                }
+    private boolean containsThrowable(List<TypeMirror> types) {
+        for (TypeMirror t : types) {
+            if (IS_THROWABLE.visit(t)) {
+                return true;
             }
         }
 
         return false;
     }
 
-    private boolean isTypeThrowable(@Nonnull List<TypeMirror> superClassesOfType) {
+    private boolean isUncheckedThrowable(@Nonnull List<TypeMirror> superClassesOfType) {
         for (TypeMirror sc : superClassesOfType) {
-            if (Util.toHumanReadableString(sc).equals("java.lang.Throwable")) {
+            String typeName = Util.toHumanReadableString(sc);
+
+            if ("java.lang.RuntimeException".equals(typeName)
+                || "java.lang.Error".equals(typeName)) {
                 return true;
             }
         }

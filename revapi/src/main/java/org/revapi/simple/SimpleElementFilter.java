@@ -18,7 +18,6 @@ package org.revapi.simple;
 
 import org.revapi.Element;
 import org.revapi.ElementFilter;
-import org.revapi.TreeFilter;
 
 import javax.annotation.Nullable;
 
@@ -26,10 +25,10 @@ import javax.annotation.Nullable;
  * @author Lukas Krejci
  * @since 0.4.0
  *
- * @deprecated use {@link RepeatingTreeFilter} or some other {@link TreeFilter} instead
+ * @deprecated use {@link RepeatingTreeFilter} or some other {@link org.revapi.TreeFilter} instead
  */
 @Deprecated
-public class SimpleElementFilter extends SimpleConfigurable implements ElementFilter {
+public abstract class SimpleElementFilter extends SimpleConfigurable implements ElementFilter {
     @Override
     public boolean applies(@Nullable Element element) {
         return false;

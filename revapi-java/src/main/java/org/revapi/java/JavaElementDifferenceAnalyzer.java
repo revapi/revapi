@@ -89,7 +89,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private final ProbingEnvironment oldEnvironment;
     private final ProbingEnvironment newEnvironment;
     private final Map<Check.Type, List<Check>> checksByInterest;
-    private final Deque<CheckType> checkTypeStack = new ArrayDeque<>();
     private final Deque<Collection<Check>> checksStack = new ArrayDeque<>();
 
     // NOTE: this doesn't have to be a stack of lists only because of the fact that annotations
@@ -155,13 +154,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 : checksByInterest.get(elementsType);
 
         if (conforms(oldElement, newElement, TypeElement.class)) {
-            checkTypeStack.push(CheckType.CLASS);
             checksStack.push(possibleChecks);
             lastAnnotationResults = null;
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
                 c.visitClass(oldElement == null ? null : (TypeElement) oldElement,
-                    newElement == null ? null : (TypeElement) newElement);
+                        newElement == null ? null : (TypeElement) newElement);
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else if (conforms(oldElement, newElement, AnnotationElement.class)) {
@@ -183,12 +181,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else if (conforms(oldElement, newElement, FieldElement.class)) {
-            doRestrictedCheck((FieldElement) oldElement, (FieldElement) newElement, CheckType.FIELD, possibleChecks);
+            doRestrictedCheck((FieldElement) oldElement, (FieldElement) newElement, Check.Type.FIELD, possibleChecks);
         } else if (conforms(oldElement, newElement, MethodElement.class)) {
-            doRestrictedCheck((MethodElement) oldElement, (MethodElement) newElement, CheckType.METHOD, possibleChecks);
+            doRestrictedCheck((MethodElement) oldElement, (MethodElement) newElement, Check.Type.METHOD, possibleChecks);
         } else if (conforms(oldElement, newElement, MethodParameterElement.class)) {
             doRestrictedCheck((MethodParameterElement) oldElement, (MethodParameterElement) newElement,
-                    CheckType.METHOD_PARAMETER, possibleChecks);
+                    Check.Type.METHOD_PARAMETER, possibleChecks);
         }
 
         if (!nonExistenceMode && (oldElement == null || newElement == null)) {
@@ -215,12 +213,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         return descendingChecksByTypes.keySet().stream().anyMatch(possibleChildren::contains);
     }
 
-    private <T extends JavaModelElement> void doRestrictedCheck(T oldElement, T newElement, CheckType interest, Collection<Check> possibleChecks) {
+    private <T extends JavaModelElement> void doRestrictedCheck(T oldElement, T newElement, Check.Type interest,
+            Collection<Check> possibleChecks) {
         lastAnnotationResults = null;
 
         if (!(isCheckedElsewhere(oldElement, oldEnvironment)
                 && isCheckedElsewhere(newElement, newEnvironment))) {
-            checkTypeStack.push(interest);
             checksStack.push(possibleChecks);
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
@@ -239,7 +237,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             }
         } else {
             //"ignore what's on the stack because no checks actually happened".
-            checkTypeStack.push(CheckType.NONE);
             checksStack.push(emptyList());
         }
     }
@@ -258,14 +255,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         List<Difference> differences = new ArrayList<>();
-        CheckType lastInterest = checkTypeStack.pop();
+        Collection<Check> lastChecks = checksStack.pop();
 
-        if (lastInterest.isConcrete()) {
-            for (Check c : checksStack.pop()) {
-                List<Difference> p = c.visitEnd();
-                if (p != null) {
-                    differences.addAll(p);
-                }
+        for (Check c : lastChecks) {
+            List<Difference> p = c.visitEnd();
+            if (p != null) {
+                differences.addAll(p);
             }
         }
 
@@ -623,25 +618,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         public TypeAndUseSite(DeclaredType type, UseSite useSite) {
             this.type = type;
             this.useSite = useSite;
-        }
-    }
-
-    private enum CheckType {
-        CLASS(Check.Type.CLASS), FIELD(Check.Type.FIELD), METHOD(Check.Type.METHOD),
-        METHOD_PARAMETER(Check.Type.METHOD_PARAMETER), ANNOTATION(Check.Type.ANNOTATION), NONE(null);
-
-        private final Check.Type checkType;
-
-        CheckType(Check.Type checkType) {
-            this.checkType = checkType;
-        }
-
-        public Check.Type getCheckType() {
-            return checkType;
-        }
-
-        public boolean isConcrete() {
-            return checkType != null;
         }
     }
 }

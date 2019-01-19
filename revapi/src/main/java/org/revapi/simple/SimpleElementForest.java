@@ -18,6 +18,7 @@ package org.revapi.simple;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -27,6 +28,9 @@ import javax.annotation.Nullable;
 import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.ElementForest;
+import org.revapi.FilterMatch;
+import org.revapi.FilterResult;
+import org.revapi.TreeFilter;
 import org.revapi.query.Filter;
 
 /**
@@ -84,6 +88,56 @@ public class SimpleElementForest implements ElementForest {
 
             if (recurse && (filter == null || filter.shouldDescendInto(e))) {
                 search(results, resultType, e.getChildren(), true, filter);
+            }
+        }
+    }
+
+    public <T extends Element> List<T> search(Class<T> resultType, boolean recurse, TreeFilter filter, Element root) {
+        List<T> results = new ArrayList<>();
+        search(results, resultType, root == null ? getRoots() : root.getChildren(), recurse, filter);
+        return results;
+    }
+
+    public <T extends Element> void search(List<T> results, Class<T> resultType,
+            SortedSet<? extends Element> currentLevel, boolean recurse, TreeFilter filter) {
+        search(results, resultType, currentLevel, recurse, filter, true);
+    }
+
+    @SuppressWarnings({"SuspiciousMethodCalls"})
+    private <T extends Element> void search(List<T> results, Class<T> resultType,
+            SortedSet<? extends Element> currentLevel, boolean recurse, TreeFilter filter, boolean topLevel) {
+        for (Element e : currentLevel) {
+            FilterResult res;
+            if (filter == null) {
+                res = FilterResult.matchAndDescend();
+            } else {
+                res = filter.start(e);
+            }
+
+            boolean added = res.getMatch().toBoolean(false);
+
+            if (added) {
+                results.add(resultType.cast(e));
+            }
+
+            if (recurse && res.isDescend()) {
+                search(results, resultType, e.getChildren(), true, filter, false);
+            }
+
+            if (filter != null) {
+                FilterMatch finalMatch = filter.finish(e);
+                if (!added && finalMatch.toBoolean(false)) {
+                    results.add(resultType.cast(e));
+                }
+            }
+        }
+
+        if (topLevel && filter != null) {
+            Map<Element, FilterMatch> matches = filter.finish();
+            for (Map.Entry<Element, FilterMatch> e : matches.entrySet()) {
+                if (e.getValue().toBoolean(false) && !results.contains(e.getKey())) {
+                    results.add(resultType.cast(e.getKey()));
+                }
             }
         }
     }

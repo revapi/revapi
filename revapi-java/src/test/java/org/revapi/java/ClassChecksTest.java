@@ -16,8 +16,13 @@
  */
 package org.revapi.java;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.revapi.Difference;
+import org.revapi.Report;
 import org.revapi.java.spi.Code;
 
 /**
@@ -223,5 +228,68 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_DEFAULT_SERIALIZATION_CHANGED.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_SERIAL_VERSION_UID_CHANGED.code()));
+    }
+
+    @Test
+    public void testExceptionKindChanges() throws Exception {
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/classes/Exceptions.java", "v2/classes/Exceptions.java");
+
+        List<Report> reports = reporter.getReports();
+
+        Assert.assertEquals(4, reports.size());
+
+        Report report = findChangesInClass("Exceptions.ExtendedThrowable", reports);
+        Assert.assertNotNull(report);
+        Assert.assertEquals(1, report.getDifferences().size());
+        assertContainsDifference("java.class.finalClassInheritsFromNewClass", report);
+
+        report = findChangesInClass("Exceptions.ExtendedError", reports);
+        Assert.assertNotNull(report);
+        Assert.assertEquals(3, report.getDifferences().size());
+        assertContainsDifference("java.class.noLongerInheritsFromClass", report);
+        assertContainsDifference("java.class.finalClassInheritsFromNewClass", report);
+        assertContainsDifference("java.class.nowCheckedException", report);
+
+        report = findChangesInClass("Exceptions.ExtendedUncheckedException", reports);
+        Assert.assertNotNull(report);
+        Assert.assertEquals(2, report.getDifferences().size());
+        assertContainsDifference("java.class.noLongerInheritsFromClass", report);
+        assertContainsDifference("java.class.nowCheckedException", report);
+
+        report = findChangesInClass("Exceptions.ExtendedError", reports);
+        Assert.assertNotNull(report);
+        Assert.assertEquals(3, report.getDifferences().size());
+        assertContainsDifference("java.class.noLongerInheritsFromClass", report);
+        assertContainsDifference("java.class.finalClassInheritsFromNewClass", report);
+        assertContainsDifference("java.class.nowCheckedException", report);
+    }
+
+    private static Report findChangesInClass(String clsName, Iterable<Report> reports) {
+        String el = "class " + clsName;
+        return findReportFor(el, el, reports);
+    }
+
+    private static Report findReportFor(String oldElement, String newElement, Iterable<Report> reports) {
+        for (Report r : reports) {
+            String oldEl = r.getOldElement() == null ? null : r.getOldElement().getFullHumanReadableString();
+            String newEl = r.getNewElement() == null ? null : r.getNewElement().getFullHumanReadableString();
+
+            if (Objects.equals(oldEl, oldElement) && Objects.equals(newEl, newElement)) {
+                return r;
+            }
+        }
+
+        return null;
+    }
+
+    private static void assertContainsDifference(String differenceCode, Report report) {
+        for (Difference d : report.getDifferences()) {
+            if (differenceCode.equals(d.code)) {
+                return;
+            }
+        }
+
+        Assert.fail("Expected difference with code " + differenceCode + " in report " + report);
     }
 }

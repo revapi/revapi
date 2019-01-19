@@ -102,6 +102,7 @@ public final class JavaElementForest extends SimpleElementForest {
         }
     }
 
+
     @Override
     public String toString() {
         boolean unsafe = UNSAFE_MODE.get();

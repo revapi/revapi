@@ -16,8 +16,6 @@
  */
 package org.revapi.java;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 
 import java.lang.annotation.Annotation;
@@ -39,13 +37,17 @@ import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.FilterResult;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Report;
 import org.revapi.Revapi;
+import org.revapi.TreeFilter;
 import org.revapi.basic.ConfigurableElementFilter;
+import org.revapi.java.filters.AnnotatedElementFilter;
 import org.revapi.java.matcher.JavaElementMatcher;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
+import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
@@ -212,10 +214,12 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                     Executors.newSingleThreadExecutor(), null, false
             );
 
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
+            JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
 
-            Revapi r = new Revapi(emptySet(), emptySet(), emptySet(), singleton(ConfigurableElementFilter.class),
-                    singleton(JavaElementMatcher.class));
+            Revapi r = new Revapi(PipelineConfiguration.builder()
+                    .withFilters(ConfigurableElementFilter.class)
+                    .withMatchers(JavaElementMatcher.class)
+                    .build());
 
             AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(configJSON).build();
             AnalysisContext filterCtx =
@@ -224,7 +228,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
             ConfigurableElementFilter filter = new ConfigurableElementFilter();
             filter.initialize(filterCtx);
 
-            List<Element> results = forest.search(Element.class, true, filter.asFilter(), null);
+            List<Element> results = forest.search(Element.class, true, filter.filterFor(analyzer), null);
 
             analyzer.getCompilationValve().removeCompiledResults();
 

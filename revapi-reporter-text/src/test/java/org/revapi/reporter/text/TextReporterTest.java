@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 package org.revapi.reporter.text;
-
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -39,6 +36,7 @@ import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Report;
 import org.revapi.Revapi;
 import org.revapi.simple.FileArchive;
@@ -54,7 +52,7 @@ public class TextReporterTest {
     public void testDefaultTemplate() throws Exception {
         TextReporter reporter = new TextReporter();
 
-        Revapi r = new Revapi(emptySet(), singleton(TextReporter.class), emptySet(), emptySet(), emptySet());
+        Revapi r = new Revapi(PipelineConfiguration.builder().withReporters(TextReporter.class).build());
 
         AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
@@ -101,7 +99,7 @@ public class TextReporterTest {
 
             TextReporter reporter = new TextReporter();
 
-            Revapi r = new Revapi(emptySet(), singleton(TextReporter.class), emptySet(), emptySet(), emptySet());
+            Revapi r = new Revapi(PipelineConfiguration.builder().withReporters(TextReporter.class).build());
 
             AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(
                     "{\"revapi\": {\"reporter\": {\"text\": {\"template\": \"" + tempFile.toString() + "\"}}}}")

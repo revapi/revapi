@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2018 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,7 +98,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
             return;
         }
 
-        AnalyzerBuilder.Result res = buildAnalyzer(project, SimpleReporter.class, Collections.emptyMap());
+        AnalyzerBuilder.Result res = buildAnalyzer(project, SilentReporter.class, Collections.emptyMap());
         if (res.skip) {
             return;
         }
@@ -292,7 +292,8 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
 
     private static Map<String, ModelNode> getKnownExtensionSchemas(AnalysisResult.Extensions extensions)
             throws IOException {
-        List<Configurable> exts = extensions.stream().map(e -> (Configurable) e.getKey()).collect(Collectors.toList());
+        List<Configurable> exts = extensions.stream().map(e -> (Configurable) e.getKey().getInstance())
+                .collect(Collectors.toList());
 
         Map<String, ModelNode> extensionSchemas = new HashMap<>();
         for (Configurable ext : exts) {
@@ -333,5 +334,13 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
     @FunctionalInterface
     private interface ThrowingConsumer<T> {
         void accept(T value) throws Exception;
+    }
+
+    public static final class SilentReporter extends SimpleReporter {
+
+        @Override
+        public String getExtensionId() {
+            return "revapi.maven.internal.silentReporter";
+        }
     }
 }

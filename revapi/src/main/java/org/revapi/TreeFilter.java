@@ -1,6 +1,9 @@
 package org.revapi;
 
+import java.util.Collections;
 import java.util.Map;
+
+import org.revapi.query.Filter;
 
 /**
  * A tree filter is something that is called repeatedly by the caller as the caller walks a tree of elements in a depth
@@ -11,6 +14,44 @@ import java.util.Map;
  */
 public interface TreeFilter {
 
+    static TreeFilter from(Filter<Element> filter) {
+        return new TreeFilter() {
+            @Override
+            public FilterResult start(Element element) {
+                return FilterResult.from(FilterMatch.fromBoolean(filter.applies(element)),
+                        filter.shouldDescendInto(element));
+            }
+
+            @Override
+            public FilterMatch finish(Element element) {
+                return FilterMatch.fromBoolean(filter.applies(element));
+            }
+
+            @Override
+            public Map<Element, FilterMatch> finish() {
+                return Collections.emptyMap();
+            }
+        };
+    }
+
+    static TreeFilter matchAndDescend() {
+        return new TreeFilter() {
+            @Override
+            public FilterResult start(Element element) {
+                return FilterResult.matchAndDescend();
+            }
+
+            @Override
+            public FilterMatch finish(Element element) {
+                return FilterMatch.MATCHES;
+            }
+
+            @Override
+            public Map<Element, FilterMatch> finish() {
+                return Collections.emptyMap();
+            }
+        };
+    }
     /**
      * This method is called when an element is about to be filtered. After this call all the children will be
      * processed (if the result instructs the caller to do so). Only after that, the {@link #finish(Element)} will
