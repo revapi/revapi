@@ -1,4 +1,6 @@
 = Revapi
+
+image:https://api.codacy.com/project/badge/Grade/f6c32aa875ff45d1b2936d41efd8d31e[link="https://app.codacy.com/app/metlos/revapi?utm_source=github.com&utm_medium=referral&utm_content=revapi/revapi&utm_campaign=Badge_Grade_Dashboard"]
 :toc:
 
 image:https://travis-ci.org/revapi/revapi.svg?branch=master[Build Status,link=https://travis-ci.org/revapi/revapi]
