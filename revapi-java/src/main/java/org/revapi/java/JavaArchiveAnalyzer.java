@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,6 @@ import org.revapi.API;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementForest;
-import org.revapi.FilterProvider;
 import org.revapi.TreeFilter;
 import org.revapi.java.compilation.CompilationFuture;
 import org.revapi.java.compilation.CompilationValve;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,21 +16,20 @@
  */
 package org.revapi.basic;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Reader;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.revapi.AnalysisContext;
-import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
-import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
+import org.revapi.FilterFinishResult;
 import org.revapi.FilterMatch;
-import org.revapi.FilterResult;
-import org.revapi.TreeFilter;
+import org.revapi.FilterStartResult;
 import org.revapi.simple.RepeatingTreeFilter;
 
 /**
@@ -72,13 +71,13 @@ public final class ExactElementMatcher implements ElementMatcher {
         }
 
         @Override
-        protected FilterResult doStart(Element element) {
+        protected FilterStartResult doStart(Element element) {
             boolean m = match.equals(element.getFullHumanReadableString());
-            return FilterResult.from(FilterMatch.fromBoolean(m), m);
+            return FilterStartResult.direct(FilterMatch.fromBoolean(m), m);
         }
 
         @Override
-        public Map<Element, FilterMatch> finish() {
+        public Map<Element, FilterFinishResult> finish() {
             return Collections.emptyMap();
         }
     }

@@ -1,9 +1,23 @@
+/*
+ * Copyright 2014-2019 Lukas Krejci
+ * and other contributors as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.revapi;
 
 import java.util.Collections;
 import java.util.Map;
-
-import org.revapi.query.Filter;
 
 /**
  * A tree filter is something that is called repeatedly by the caller as the caller walks a tree of elements in a depth
@@ -14,40 +28,20 @@ import org.revapi.query.Filter;
  */
 public interface TreeFilter {
 
-    static TreeFilter from(Filter<Element> filter) {
-        return new TreeFilter() {
-            @Override
-            public FilterResult start(Element element) {
-                return FilterResult.from(FilterMatch.fromBoolean(filter.applies(element)),
-                        filter.shouldDescendInto(element));
-            }
-
-            @Override
-            public FilterMatch finish(Element element) {
-                return FilterMatch.fromBoolean(filter.applies(element));
-            }
-
-            @Override
-            public Map<Element, FilterMatch> finish() {
-                return Collections.emptyMap();
-            }
-        };
-    }
-
     static TreeFilter matchAndDescend() {
         return new TreeFilter() {
             @Override
-            public FilterResult start(Element element) {
-                return FilterResult.matchAndDescend();
+            public FilterStartResult start(Element element) {
+                return FilterStartResult.matchAndDescend();
             }
 
             @Override
-            public FilterMatch finish(Element element) {
-                return FilterMatch.MATCHES;
+            public FilterFinishResult finish(Element element) {
+                return FilterFinishResult.matches();
             }
 
             @Override
-            public Map<Element, FilterMatch> finish() {
+            public Map<Element, FilterFinishResult> finish() {
                 return Collections.emptyMap();
             }
         };
@@ -61,7 +55,7 @@ public interface TreeFilter {
      * @return a filter result informing the caller what was the result of filtering and whether to descend to children
      * or not
      */
-    FilterResult start(Element element);
+    FilterStartResult start(Element element);
 
     /**
      * This method is called after the filtering has {@link #start(Element) started} and all children have
@@ -73,7 +67,7 @@ public interface TreeFilter {
      * @param element the element for which the filtering has finished
      * @return the result of filtering
      */
-    FilterMatch finish(Element element);
+    FilterFinishResult finish(Element element);
 
     /**
      * Called after all elements have been processed to see if any of them have changed in their filtering
@@ -84,5 +78,5 @@ public interface TreeFilter {
      *
      * @return the final results for elements that were previously undecided if their filtering status changed
      */
-    Map<Element, FilterMatch> finish();
+    Map<Element, FilterFinishResult> finish();
 }

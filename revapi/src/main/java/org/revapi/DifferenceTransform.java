@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,9 +94,7 @@ public interface DifferenceTransform<T extends Element> extends AutoCloseable, C
      * @param difference the difference to transform
      * @return the transformation result.
      */
-    default TransformationResult tryTransform(@Nullable T oldElement, @Nullable T newElement,
-            Difference difference) {
-
+    default TransformationResult tryTransform(@Nullable T oldElement, @Nullable T newElement, Difference difference) {
         Difference diff = transform(oldElement, newElement, difference);
 
         if (diff == null) {
@@ -160,5 +158,16 @@ public interface DifferenceTransform<T extends Element> extends AutoCloseable, C
      * @
      */
     default void endTraversal(ApiAnalyzer apiAnalyzer) {
+    }
+
+    /**
+     * Called after everything traversed using the provided analyzer has been transformed. This can be used to clean
+     * up resources used during the analysis using the provided analyzer. After this method was called a new "round"
+     * of analysis may start using a difference API analyzer. This is advertized to the transforms by calling
+     * {@link #startTraversal(ApiAnalyzer, ArchiveAnalyzer, ArchiveAnalyzer)} again.
+     *
+     * @param apiAnalyzer the API analyzer used for the currently ending analysis
+     */
+    default void endAnalysis(ApiAnalyzer apiAnalyzer) {
     }
 }

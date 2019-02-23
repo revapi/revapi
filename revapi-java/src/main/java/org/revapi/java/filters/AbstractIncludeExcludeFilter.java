@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Lukas Krejci
  * @since 0.7.0
+ * @deprecated use the generic revapi filter + matcher.java matchers to achieve the same as is done here
  */
 @Deprecated
 abstract class AbstractIncludeExcludeFilter implements ElementFilter {
@@ -94,6 +95,8 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
         ModelNode root = analysisContext.getConfiguration();
         if (!root.isDefined()) {
             doNothing = true;
+            LOG.warn("Filtering using the revapi.java.filter.annotated has been deprecated in favor of revapi.filter" +
+                    " together with the java specific matchers (matcher.java).");
             return;
         }
 

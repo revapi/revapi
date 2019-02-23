@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ import org.revapi.DifferenceTransform;
 import org.revapi.TransformationResult;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
-import org.revapi.FilterProvider;
+import org.revapi.TreeFilterProvider;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
@@ -56,9 +56,12 @@ final class Util {
 
     static <T extends Element> Difference transformAndAssumeOne(DifferenceTransform<T> transform, T oldEl, T newEl,
             Difference orig) {
+        transform.startTraversal(null, null, null);
         transform.startElements(oldEl, newEl);
         TransformationResult res = transform.tryTransform(oldEl, newEl, orig);
         transform.endElements(oldEl, newEl);
+        transform.endTraversal(null);
+        transform.endAnalysis(null);
 
         switch (res.getResolution()) {
             case KEEP:
@@ -78,7 +81,7 @@ final class Util {
     }
     private static Revapi dummyRevapi(Class<?> extensionType) {
         Set<Class<? extends ApiAnalyzer>> analyzers = setOrEmpty(ApiAnalyzer.class, extensionType);
-        Set<Class<? extends FilterProvider>> filters = setOrEmpty(FilterProvider.class, extensionType);
+        Set<Class<? extends TreeFilterProvider>> filters = setOrEmpty(TreeFilterProvider.class, extensionType);
         @SuppressWarnings("unchecked") Set<Class<? extends DifferenceTransform<?>>> transforms
                 = setOrEmpty((Class) DifferenceTransform.class, extensionType);
         Set<Class<? extends Reporter>> reporters = setOrEmpty(Reporter.class, extensionType);

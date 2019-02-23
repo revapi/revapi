@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,26 +39,26 @@ import org.revapi.simple.RepeatingTreeFilter;
  * @author Lukas Krejci
  * @since 0.1
  *
- * @deprecated use {@link FilterProvider} instead
+ * @deprecated use {@link TreeFilterProvider} instead
  */
 @Deprecated
-public interface ElementFilter extends FilterProvider, Filter<Element>, AutoCloseable, Configurable {
+public interface ElementFilter extends TreeFilterProvider, Filter<Element>, AutoCloseable, Configurable {
     @Nullable
     @Override
     default TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer) {
         return new RepeatingTreeFilter() {
             @Override
-            public FilterResult doStart(Element element) {
+            public FilterStartResult doStart(Element element) {
                 boolean applies = applies(element);
                 boolean descends = shouldDescendInto(element);
 
                 FilterMatch res = FilterMatch.fromBoolean(applies);
 
-                return FilterResult.from(res, descends);
+                return FilterStartResult.direct(res, descends);
             }
 
             @Override
-            public Map<Element, FilterMatch> finish() {
+            public Map<Element, FilterFinishResult> finish() {
                 return Collections.emptyMap();
             }
         };

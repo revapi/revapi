@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package org.revapi;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 import static org.junit.Assert.assertEquals;
@@ -113,7 +114,7 @@ public class PipelineConfigurationTest {
     public void testEmptyConfigIncludesAllExtensions() {
         PipelineConfiguration cfg = PipelineConfiguration.parse(ModelNode.fromJSONString("{}"), singleton(analyzerType),
                 asList(filter1Type, filter2Type, filter3Type),
-                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType));
+                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType), emptySet());
 
         Revapi revapi = new Revapi(cfg);
 
@@ -132,7 +133,7 @@ public class PipelineConfigurationTest {
                 ModelNode.fromJSONString("{\"filters\": {\"include\": [\"f1\"]}}"),
                 singleton(analyzerType),
                 asList(filter1Type, filter2Type, filter3Type),
-                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType));
+                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType), emptySet());
 
         Revapi revapi = new Revapi(cfg);
 
@@ -151,7 +152,7 @@ public class PipelineConfigurationTest {
                 ModelNode.fromJSONString("{\"filters\": {\"exclude\": [\"f1\"]}}"),
                 singleton(analyzerType),
                 asList(filter1Type, filter2Type, filter3Type),
-                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType));
+                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType), emptySet());
 
         Revapi revapi = new Revapi(cfg);
 
@@ -170,7 +171,7 @@ public class PipelineConfigurationTest {
                 ModelNode.fromJSONString("{\"transforms\": {\"include\": [\"t1\", \"t2\"], \"exclude\": [\"t1\"]}}"),
                 singleton(analyzerType),
                 asList(filter1Type, filter2Type, filter3Type),
-                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType));
+                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType), emptySet());
 
         Revapi revapi = new Revapi(cfg);
 

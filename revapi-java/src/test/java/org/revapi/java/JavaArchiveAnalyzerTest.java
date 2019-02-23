@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,9 +28,8 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
-import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
-import org.revapi.FilterResult;
+import org.revapi.TreeFilter;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JavaElement;
@@ -54,7 +53,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         );
 
         try {
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
+            JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
 
             Assert.assertEquals(6, forest.getRoots().size());
         } finally {
@@ -84,7 +83,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 false);
 
         try {
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
+            JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
 
             Assert.assertEquals(3, forest.getRoots().size());
 
@@ -116,7 +115,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         );
 
         try {
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
+            JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
 
             forest.getRoots();
 
@@ -166,7 +165,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 false);
 
         try {
-            JavaElementForest forest = analyzer.analyze(e -> FilterResult.matchAndDescend());
+            JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
 
             Set<TypeElement> roots = forest.getRoots();
 
@@ -194,7 +193,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 null), Executors.newSingleThreadExecutor(), null, false);
 
         try {
-            JavaElementForest forest = analyzer.analyze(element -> FilterResult.matchAndDescend());
+            JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
 
             forest.getRoots();
 

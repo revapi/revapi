@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,8 +28,8 @@ import javax.annotation.Nullable;
 import org.revapi.API;
 import org.revapi.Element;
 import org.revapi.ElementForest;
-import org.revapi.FilterMatch;
-import org.revapi.FilterResult;
+import org.revapi.FilterFinishResult;
+import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
 import org.revapi.query.Filter;
 
@@ -107,9 +107,9 @@ public class SimpleElementForest implements ElementForest {
     private <T extends Element> void search(List<T> results, Class<T> resultType,
             SortedSet<? extends Element> currentLevel, boolean recurse, TreeFilter filter, boolean topLevel) {
         for (Element e : currentLevel) {
-            FilterResult res;
+            FilterStartResult res;
             if (filter == null) {
-                res = FilterResult.matchAndDescend();
+                res = FilterStartResult.matchAndDescend();
             } else {
                 res = filter.start(e);
             }
@@ -125,17 +125,17 @@ public class SimpleElementForest implements ElementForest {
             }
 
             if (filter != null) {
-                FilterMatch finalMatch = filter.finish(e);
-                if (!added && finalMatch.toBoolean(false)) {
+                FilterFinishResult finalMatch = filter.finish(e);
+                if (!added && finalMatch.getMatch().toBoolean(false)) {
                     results.add(resultType.cast(e));
                 }
             }
         }
 
         if (topLevel && filter != null) {
-            Map<Element, FilterMatch> matches = filter.finish();
-            for (Map.Entry<Element, FilterMatch> e : matches.entrySet()) {
-                if (e.getValue().toBoolean(false) && !results.contains(e.getKey())) {
+            Map<Element, FilterFinishResult> matches = filter.finish();
+            for (Map.Entry<Element, FilterFinishResult> e : matches.entrySet()) {
+                if (e.getValue().getMatch().toBoolean(false) && !results.contains(e.getKey())) {
                     results.add(resultType.cast(e.getKey()));
                 }
             }

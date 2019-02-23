@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,8 +39,9 @@ import javax.lang.model.util.Types;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
+import org.revapi.FilterFinishResult;
 import org.revapi.FilterMatch;
-import org.revapi.FilterResult;
+import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
 import org.revapi.classif.Classif;
 import org.revapi.classif.MatchingProgress;
@@ -78,19 +79,25 @@ public final class JavaElementMatcher implements ElementMatcher {
 
                 return new TreeFilter() {
                     @Override
-                    public FilterResult start(Element element) {
+                    public FilterStartResult start(Element element) {
+                        if (!(element instanceof JavaModelElement)) {
+                            return FilterStartResult.doesntMatch();
+                        }
                         return convert(progress.start(element));
                     }
 
                     @Override
-                    public FilterMatch finish(Element element) {
-                        return convert(progress.finish(element));
+                    public FilterFinishResult finish(Element element) {
+                        if (!(element instanceof JavaModelElement)) {
+                            return FilterFinishResult.doesntMatch();
+                        }
+                        return FilterFinishResult.direct(convert(progress.finish(element)));
                     }
 
                     @Override
-                    public Map<Element, FilterMatch> finish() {
+                    public Map<Element, FilterFinishResult> finish() {
                         return progress.finish().entrySet().stream()
-                                .collect(Collectors.toMap(Map.Entry::getKey, e -> convert(e.getValue())));
+                                .collect(Collectors.toMap(Map.Entry::getKey, e -> FilterFinishResult.direct(convert(e.getValue()))));
                     }
                 };
             });
@@ -118,8 +125,8 @@ public final class JavaElementMatcher implements ElementMatcher {
     public void initialize(@Nonnull AnalysisContext analysisContext) {
     }
 
-    private static FilterResult convert(WalkInstruction instruction) {
-        return FilterResult.from(convert(instruction.getTestResult()), instruction.isDescend());
+    private static FilterStartResult convert(WalkInstruction instruction) {
+        return FilterStartResult.direct(convert(instruction.getTestResult()), instruction.isDescend());
     }
 
     private static FilterMatch convert(TestResult result) {
@@ -144,21 +151,18 @@ public final class JavaElementMatcher implements ElementMatcher {
     }
 
     private static final class ElementInspector implements ModelInspector<Element> {
-        final Elements elements;
-        final Types types;
-        final TypeElement javaLangObject;
+        private Elements elements;
+        private Types types;
+        private TypeElement javaLangObject;
         final ProbingEnvironment env;
 
         ElementInspector(JavaArchiveAnalyzer analyzer) {
             env = analyzer.getProbingEnvironment();
-            elements = env.getElementUtils();
-            types = env.getTypeUtils();
-            javaLangObject = elements.getTypeElement("java.lang.Object");
         }
 
         @Override
         public TypeElement getJavaLangObjectElement() {
-            return javaLangObject;
+            return getJavaLangObject();
         }
 
         @Override
@@ -255,12 +259,33 @@ public final class JavaElementMatcher implements ElementMatcher {
 
         @Override
         public List<? extends TypeMirror> directSupertypes(TypeMirror typeMirror) {
-            return types.directSupertypes(typeMirror);
+            return getTypes().directSupertypes(typeMirror);
         }
 
         @Override
         public boolean overrides(ExecutableElement overrider, ExecutableElement overriden, TypeElement type) {
-            return elements.overrides(overrider, overriden, type);
+            return getElements().overrides(overrider, overriden, type);
+        }
+
+        public Elements getElements() {
+            if (elements == null) {
+                elements = env.getElementUtils();
+            }
+            return elements;
+        }
+
+        public Types getTypes() {
+            if (types == null) {
+                types = env.getTypeUtils();
+            }
+            return types;
+        }
+
+        public TypeElement getJavaLangObject() {
+            if (javaLangObject == null) {
+                javaLangObject = getElements().getTypeElement("java.lang.Object");
+            }
+            return javaLangObject;
         }
     }
 }

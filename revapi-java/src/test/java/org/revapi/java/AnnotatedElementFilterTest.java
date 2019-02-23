@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,18 +36,15 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
-import org.revapi.FilterResult;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Report;
 import org.revapi.Revapi;
 import org.revapi.TreeFilter;
 import org.revapi.basic.ConfigurableElementFilter;
-import org.revapi.java.filters.AnnotatedElementFilter;
 import org.revapi.java.matcher.JavaElementMatcher;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
-import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
@@ -66,7 +63,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testExcludeByAnnotationPresence() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"exclude\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"has annotation /@annotationfilter.NonPublic.*/\"}]}}}}",
+                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(**) *;\"}]}}}}",
                 results -> {
 
                     int expectedCount = NUMBER_OF_ELEMENTS_ON_ANNOTATION + 4 //@NonPublic + since() + @Retention, @Target
@@ -92,7 +89,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
    public void testExcludeByAnnotationWithAttributeValues() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"exclude\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"has annotation that has representation '@annotationfilter.NonPublic(since = \\\"2.0\\\")'\"}]}}}}", results -> {
+                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(since = '2.0') *;\"}]}}}}", results -> {
 
             int expectedCount = NUMBER_OF_ELEMENTS_ON_ANNOTATION + 3 //@NonPublic, @Target, @Retention
                     + 1 //@NonPublic.since()
@@ -119,7 +116,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testIncludeByAnnotationPresence() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"include\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"has annotation '@annotationfilter.Public'\"}]}}}}", results -> {
+                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.Public *;\"}]}}}}", results -> {
 
             int expectedCount = 2 //NonPublicClass.m(), @Public
                     + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass, PublicClass(), @Public
@@ -143,7 +140,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testIncludeByAnnotationWithAttributeValues() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"include\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"has annotation (has name '@annotationfilter.NonPublic' and has attribute 'since' that is equal to '2.0')\"}]}}}}", results -> {
+                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(since = /2\\.0/) *;\"}]}}}}", results -> {
 
             Assert.assertEquals(2, results.size());
             Assert.assertEquals("method void annotationfilter.PublicClass::implDetail()",
@@ -154,8 +151,8 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testIncludeAndExclude() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"exclude\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"has annotation /@annotationfilter.NonPublic.*/\"}]," +
-                "\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"has annotation /@annotationfilter.Public/\"}]}}}}", results
+                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(**) *;\"}]," +
+                "\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.Public(**) *;\"}]}}}}", results
                 -> {
 
             int expectedCount = 2 //NonPublicClass.m(), @Public
@@ -183,7 +180,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     public void testChangesReportedOnAnnotationElements() throws Exception {
         CollectingReporter reporter = runAnalysis(CollectingReporter.class,
                 "{\"revapi\": {\"filter\": {\"elements\": {\"include\":[" +
-                        "{\"matcher\": \"matcher.java\", \"match\": \"has annotation /@Attributes.Anno.*/\"}]}}}}",
+                        "{\"matcher\": \"matcher.java\", \"match\": \"@Attributes.Anno(**) ^*;\"}]}}}}",
                 "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
 
         List<Report> reports = reporter.getReports();

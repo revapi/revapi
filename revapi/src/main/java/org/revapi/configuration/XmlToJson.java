@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -395,7 +395,7 @@ public final class XmlToJson<Xml> {
         Map<String, ModelNode> knownSchemas = new HashMap<>();
         extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getApiAnalyzerTypes());
         extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getTransformTypes());
-        extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getFilterTypes());
+        extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getTreeFilterTypes());
         extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getReporterTypes());
 
         return knownSchemas;

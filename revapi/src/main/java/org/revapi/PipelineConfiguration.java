@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,7 +74,7 @@ public final class PipelineConfiguration {
     private final Set<Class<? extends ApiAnalyzer>> apiAnalyzerTypes;
     private final Set<Class<? extends Reporter>> reporterTypes;
     private final Set<Class<? extends DifferenceTransform<?>>> transformTypes;
-    private final Set<Class<? extends FilterProvider>> filterTypes;
+    private final Set<Class<? extends TreeFilterProvider>> treeFilterTypes;
     private final Set<Class<? extends ElementMatcher>> matcherTypes;
 
     private final Set<List<String>> transformationBlocks;
@@ -152,7 +152,7 @@ public final class PipelineConfiguration {
      * @see Builder#build()
      */
     public static PipelineConfiguration parse(ModelNode json, Collection<Class<? extends ApiAnalyzer>> analyzers,
-            Collection<Class<? extends FilterProvider>> filters,
+            Collection<Class<? extends TreeFilterProvider>> filters,
             Collection<Class<? extends DifferenceTransform<?>>> transforms,
             Collection<Class<? extends Reporter>> reporters,
             Collection<Class<? extends ElementMatcher>> matchers) {
@@ -176,7 +176,7 @@ public final class PipelineConfiguration {
 
     public PipelineConfiguration(Set<Class<? extends ApiAnalyzer>> apiAnalyzerTypes,
             Set<Class<? extends Reporter>> reporterTypes, Set<Class<? extends DifferenceTransform<?>>> transformTypes,
-            Set<Class<? extends FilterProvider>> filterTypes, Set<Class<? extends ElementMatcher>> matcherTypes,
+            Set<Class<? extends TreeFilterProvider>> treeFilterTypes, Set<Class<? extends ElementMatcher>> matcherTypes,
             Set<List<String>> transformationBlocks,
             List<String> includedAnalyzerExtensionIds, List<String> excludedAnalyzerExtensionIds,
             List<String> includedReporterExtensionIds, List<String> excludedReporterExtensionIds,
@@ -186,7 +186,7 @@ public final class PipelineConfiguration {
         this.apiAnalyzerTypes = apiAnalyzerTypes;
         this.reporterTypes = reporterTypes;
         this.transformTypes = transformTypes;
-        this.filterTypes = filterTypes;
+        this.treeFilterTypes = treeFilterTypes;
         this.matcherTypes = matcherTypes;
         this.transformationBlocks = transformationBlocks;
         this.includedAnalyzerExtensionIds = includedAnalyzerExtensionIds;
@@ -213,8 +213,8 @@ public final class PipelineConfiguration {
         return transformTypes;
     }
 
-    public Set<Class<? extends FilterProvider>> getFilterTypes() {
-        return filterTypes;
+    public Set<Class<? extends TreeFilterProvider>> getTreeFilterTypes() {
+        return treeFilterTypes;
     }
 
     public Set<Class<? extends ElementMatcher>> getMatcherTypes() {
@@ -269,7 +269,7 @@ public final class PipelineConfiguration {
         private Set<Class<? extends ApiAnalyzer>> analyzers = null;
         private Set<Class<? extends Reporter>> reporters = null;
         private Set<Class<? extends DifferenceTransform<?>>> transforms = null;
-        private Set<Class<? extends FilterProvider>> filters = null;
+        private Set<Class<? extends TreeFilterProvider>> filters = null;
         private Set<Class<? extends ElementMatcher>> matchers = null;
         private Set<List<String>> transformationBlocks = null;
         private List<String> includedAnalyzerExtensionIds = null;
@@ -373,26 +373,26 @@ public final class PipelineConfiguration {
 
         @SuppressWarnings("unchecked")
         public Builder withFiltersFromThreadContextClassLoader() {
-            withFilters(ServiceTypeLoader.load(FilterProvider.class));
-            return withFilters((Iterable<Class<? extends FilterProvider>>) ServiceTypeLoader.load(ElementFilter.class));
+            withFilters(ServiceTypeLoader.load(TreeFilterProvider.class));
+            return withFilters((Iterable) ServiceTypeLoader.load(ElementFilter.class));
         }
 
         @SuppressWarnings("unchecked")
         public Builder withFiltersFrom(ClassLoader cl) {
-            withFilters(ServiceTypeLoader.load(FilterProvider.class, cl));
-            return withFilters((Iterable<Class<? extends FilterProvider>>) ServiceTypeLoader.load(ElementFilter.class, cl));
+            withFilters(ServiceTypeLoader.load(TreeFilterProvider.class, cl));
+            return withFilters((Iterable) ServiceTypeLoader.load(ElementFilter.class, cl));
         }
 
         @SafeVarargs
-        public final Builder withFilters(Class<? extends FilterProvider>... filters) {
+        public final Builder withFilters(Class<? extends TreeFilterProvider>... filters) {
             return withFilters(Arrays.asList(filters));
         }
 
-        public Builder withFilters(Iterable<Class<? extends FilterProvider>> filters) {
+        public Builder withFilters(Iterable<Class<? extends TreeFilterProvider>> filters) {
             if (this.filters == null) {
                 this.filters = new HashSet<>();
             }
-            for (Class<? extends FilterProvider> f : filters) {
+            for (Class<? extends TreeFilterProvider> f : filters) {
                 this.filters.add(f);
             }
 
@@ -616,6 +616,7 @@ public final class PipelineConfiguration {
             reporters = reporters == null ? emptySet() : reporters;
             transforms = transforms == null ? emptySet() : transforms;
             filters = filters == null ? emptySet() : filters;
+            matchers = matchers == null ? emptySet() : matchers;
             transformationBlocks = transformationBlocks == null ? emptySet() : transformationBlocks;
             includedAnalyzerExtensionIds = includedAnalyzerExtensionIds == null ? emptyList() : includedAnalyzerExtensionIds;
             excludedAnalyzerExtensionIds = excludedAnalyzerExtensionIds == null ? emptyList() : excludedAnalyzerExtensionIds;
@@ -625,6 +626,8 @@ public final class PipelineConfiguration {
             excludedTransformExtensionIds = excludedTransformExtensionIds == null ? emptyList() : excludedTransformExtensionIds;
             includedFilterExtensionIds = includedFilterExtensionIds == null ? emptyList() : includedFilterExtensionIds;
             excludedFilterExtensionIds = excludedFilterExtensionIds == null ? emptyList() : excludedFilterExtensionIds;
+            includedMatcherExtensionIds = includedMatcherExtensionIds == null ? emptyList() : includedMatcherExtensionIds;
+            excludedMatcherExtensionIds = excludedMatcherExtensionIds == null ? emptyList() : excludedMatcherExtensionIds;
 
             return new PipelineConfiguration(analyzers, reporters, transforms, filters, matchers, transformationBlocks,
                     includedAnalyzerExtensionIds, excludedAnalyzerExtensionIds, includedReporterExtensionIds,

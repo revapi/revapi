@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,10 +81,8 @@ public interface ElementForest {
      * @param filter     the optional filter
      * @param searchRoot optional element from which to conduct the search
      * @return a list of elements of given type (or any subtype) from the forest, filtered by the filter if provided
-     * @deprecated
      */
     @Nonnull
-    @Deprecated
     default <T extends Element> List<T> search(@Nonnull Class<T> resultType, boolean recurse,
             @Nullable Filter<? super T> filter, @Nullable Element searchRoot) {
 
@@ -98,7 +96,6 @@ public interface ElementForest {
     }
 
     @Nonnull
-    @Deprecated
     default <T extends Element> Iterator<T> iterateOverElements(@Nonnull Class<T> resultType, boolean recurse,
             @Nullable Filter<? super T> filter, @Nullable Element searchRoot) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,12 +34,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -59,7 +57,6 @@ import org.revapi.CorrespondenceComparatorDeducer;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
 import org.revapi.java.compilation.CompilationValve;
-import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.MethodElement;

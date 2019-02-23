@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,10 +32,7 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
-import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
-import org.revapi.ElementForest;
-import org.revapi.FilterResult;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Revapi;
 import org.revapi.TreeFilter;
@@ -51,8 +48,8 @@ import org.revapi.simple.SimpleElementFilter;
  */
 public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     @Test
-    public void testSimpleFilterByName_exclude() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"'class classfilter.A'\"}]}}}}",
+    public void testFilterByName_exclude() throws Exception {
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A;\"}]}}}}",
                 Stream.of(
                         "class classfilter.B",
                         "field classfilter.B.field",
@@ -65,8 +62,8 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     }
 
     @Test
-    public void testSimpleFilterByName_include() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"'class classfilter.A'\"}]}}}}",
+    public void testFilterByName_include() throws Exception {
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A;\"}]}}}}",
                 Stream.of(
                         "class classfilter.A",
                         "method void classfilter.A::m()",
@@ -81,8 +78,8 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testInnerClassExclusionOverride() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"'class classfilter.A'\"}]," +
-                " \"include\": [{\"matcher\": \"matcher.java\", \"match\": \"'class classfilter.A.AA.AAA' or 'class classfilter.B'\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A;\"}]," +
+                " \"include\": [{\"matcher\": \"matcher.java\", \"match\": \"match %a|%b; class %a=classfilter.A.AA.AAA; class %b=classfilter.B;\"}]}}}}",
                 Stream.of(
                         "class classfilter.A.AA.AAA",
                         "method void classfilter.A.AA.AAA::<init>()",
@@ -95,19 +92,6 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
                         "class classfilter.B.BB",
                         "method void classfilter.B.BB::<init>()").collect(toSet()));
     }
-
-    @Test
-    public void testRegexFilter() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"/class classfilter\\.(A|B\\.BB)/\"}]}}}}",
-                Stream.of(
-                        "class classfilter.B",
-                        "field classfilter.B.field",
-                        "method void classfilter.B::m()",
-                        "method void classfilter.B::<init>()",
-                        "class classfilter.B.BA",
-                        "method void classfilter.B.BA::<init>()").collect(toSet()));
-    }
-
 
     private void testWith(String configJSON, Set<String> expectedResults) throws Exception {
         ArchiveAndCompilationPath archive = createCompiledJar("test.jar", "classfilter/A.java", "classfilter/B.java");

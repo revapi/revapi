@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,8 +29,8 @@ import org.junit.Test;
  */
 public class PackageFilterTest extends AbstractJavaElementAnalyzerTest {
     @Test
-    public void testSimpleExclude() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"is in package 'packagefilter.a.a.a'\"}]}}}}",
+    public void testExclude() throws Exception {
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"type packagefilter.a.a.a.*;\"}]}}}}",
                 Stream.of(
                             "class packagefilter.b.a.A",
                             "method void packagefilter.b.a.A::<init>()",
@@ -40,7 +40,7 @@ public class PackageFilterTest extends AbstractJavaElementAnalyzerTest {
                             "method void packagefilter.a.b.B::<init>()"
                     ).collect(toSet()));
 
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"is in package 'packagefilter.a.a.a'\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"type packagefilter.a.a.a.*;\"}]}}}}",
                 Stream.of(
                             "class packagefilter.a.a.a.A",
                             "method void packagefilter.a.a.a.A::<init>()"
@@ -48,8 +48,8 @@ public class PackageFilterTest extends AbstractJavaElementAnalyzerTest {
     }
 
     @Test
-    public void testSimpleInclude() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"is in package 'packagefilter.a.a.a' or is in package 'packagefilter.b.a'\"}]}}}}",
+    public void testInclude() throws Exception {
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"type packagefilter./a|b/.**.a.*;\"}]}}}}",
                 Stream.of(
                             "class packagefilter.a.a.a.A",
                             "method void packagefilter.a.a.a.A::<init>()",
@@ -58,25 +58,6 @@ public class PackageFilterTest extends AbstractJavaElementAnalyzerTest {
                     ).collect(toSet()));
 
     }
-
-    @Test
-    public void testRegexFilter() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"is in package /packagefilter\\.a\\..*/\"}]}}}}",
-                Stream.of(
-                            "class packagefilter.b.a.A",
-                            "method void packagefilter.b.a.A::<init>()",
-                            "class packagefilter.b.b.B",
-                            "method void packagefilter.b.b.B::<init>()"
-                    ).collect(toSet()));
-
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"is in package /packagefilter\\.a\\..*/\"}], " +
-                        "\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"is in package /packagefilter\\.a\\.a\\.a/\"}]}}}}",
-                Stream.of(
-                            "class packagefilter.a.b.B",
-                            "method void packagefilter.a.b.B::<init>()"
-                    ).collect(toSet()));
-    }
-
 
     private void testWith(String configJSON, Set<String> expectedResults) throws Exception {
         AbstractJavaElementAnalyzerTest.ArchiveAndCompilationPath archive = createCompiledJar("test.jar",

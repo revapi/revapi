@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +42,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -60,7 +61,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
-import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
@@ -80,9 +80,9 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 
 import org.revapi.Archive;
+import org.revapi.FilterFinishResult;
 import org.revapi.FilterMatch;
-import org.revapi.FilterResult;
-import org.revapi.FilterProvider;
+import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.model.AbstractJavaElement;
@@ -364,7 +364,7 @@ final class ClasspathScanner {
                 tr.inclusionState = filter.start(t);
                 tr.modelElement = t;
                 //this will be revisited... in here we're just establishing the types that are in the API for sure...
-                tr.inApi = (tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH || tr.inclusionState.isDescend())
+                tr.inApi = (tr.inclusionState.getMatch().toBoolean(true))
                         && (primaryApi && !shouldBeIgnored(type) && !(type.getEnclosingElement() instanceof TypeElement));
                 tr.primaryApi = primaryApi;
 
@@ -431,16 +431,16 @@ final class ClasspathScanner {
 
                 type.getAnnotationMirrors().forEach(a -> scanAnnotation(tr, type, a, -1));
 
-                tr.inclusionState = FilterResult.from(filter.finish(t), tr.inclusionState.isDescend());
+                finishFiltering(tr, t);
             } catch (Exception e) {
                 LOG.error("Failed to scan class " + type.getQualifiedName().toString()
                         + ". Analysis results may be skewed.", e);
                 TypeRecord tr = getTypeRecord(type);
                 tr.errored = true;
                 if (tr.modelElement != null && tr.inclusionState != null) {
-                    tr.inclusionState = FilterResult.from(filter.finish(tr.modelElement), tr.inclusionState.isDescend());
+                    finishFiltering(tr, tr.modelElement);
                 } else {
-                    tr.inclusionState = FilterResult.doesntMatch();
+                    tr.inclusionState = FilterStartResult.doesntMatch();
                 }
             }
         }
@@ -642,8 +642,8 @@ final class ClasspathScanner {
             }
 
             moveInnerClassesOfPrimariesToApi();
-            determineApiStatus();
             initChildren();
+            determineApiStatus();
 
             if (missingClassReporting == REPORT && !requiredTypes.isEmpty()) {
                 handleMissingClasses(types);
@@ -778,6 +778,11 @@ final class ClasspathScanner {
             while (!undetermined.isEmpty()) {
                 undetermined = undetermined.stream()
                         .filter(tr -> tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH || tr.inclusionState.isDescend())
+                        .peek(tr -> {
+                            if (tr.inclusionState.getMatch().toBoolean(false) && !tr.inclusionState.isInherited()) {
+                                tr.inApi = true;
+                            }
+                        })
                         .filter(tr -> tr.inApi)
                         .flatMap(tr -> tr.usedTypes.entrySet().stream()
                                 .map(e -> new AbstractMap.SimpleImmutableEntry<>(tr, e)))
@@ -786,8 +791,11 @@ final class ClasspathScanner {
                         .filter(usedTr -> !usedTr.inApi)
                         .filter(usedTr -> usedTr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH || usedTr.inclusionState.isDescend())
                         .peek(usedTr -> {
-                            usedTr.inApi = true;
-                            usedTr.inApiThroughUse = true;
+                            // only move to the API if the type wasn't explicitly excluded
+                            if (!(usedTr.inclusionState.getMatch() == FilterMatch.DOESNT_MATCH && usedTr.inclusionState.isInherited())) {
+                                usedTr.inApi = true;
+                                usedTr.inApiThroughUse = true;
+                            }
                         })
                         .collect(toSet());
             }
@@ -851,11 +859,11 @@ final class ClasspathScanner {
             };
 
             Consumer<JavaElementBase<?, ?>> initChildren = e -> {
-                FilterResult fr = filter.start(e);
+                FilterStartResult fr = filter.start(e);
                 if (fr.isDescend()) {
-                    initNonClassElementChildrenAndMoveToApi(tr, e, false);
+                    initNonClassElementChildren(tr, e, false);
                 }
-                tr.inclusionState = FilterResult.from(filter.finish(e), tr.inclusionState.isDescend());
+                finishFiltering(tr, e);
             };
 
             //add declared stuff
@@ -885,7 +893,6 @@ final class ClasspathScanner {
             }
         }
 
-        @SuppressWarnings("EqualsWithItself")
         private void addInherited(TypeRecord target, TypeRecord superType, Set<String> methodOverrideMap) {
             Types types = environment.getTypeUtils();
 
@@ -911,14 +918,16 @@ final class ClasspathScanner {
                             .elementFor(e.getDeclaringElement(), elementType, environment,
                                     target.modelElement.getArchive());
 
-                    target.modelElement.getChildren().add(ret);
-
-                    FilterResult fr = filter.start(ret);
-                    if (fr.isDescend()) {
-                        initNonClassElementChildrenAndMoveToApi(target, ret, true);
+                    if (!target.modelElement.getChildren().add(ret)) {
+                        continue;
                     }
 
-                    finishFiltering(ret);
+                    FilterStartResult fr = filter.start(ret);
+                    if (fr.isDescend()) {
+                        initNonClassElementChildren(target, ret, true);
+                    }
+
+                    finishFiltering(target, ret);
                 } else {
                     //this element is not generic, so we can merely copy it...
                     if (target.inApi) {
@@ -929,18 +938,24 @@ final class ClasspathScanner {
                         InitializationOptimizations.initializeComparator(e);
                     }
 
-                    ret = e.clone();
+                    @SuppressWarnings("unchecked")
+                    Optional<JavaElementBase<?, ?>> copy = ((JavaElementBase) e).cloneUnder(target.modelElement);
+                    if (!copy.isPresent()) {
+                        continue;
+                    }
+
+                    ret = copy.get();
                     //the cloned element needs to look like it originated in the archive of the target.
                     ret.setArchive(target.modelElement.getArchive());
 
                     target.modelElement.getChildren().add(ret);
 
-                    FilterResult fr = filter.start(ret);
+                    FilterStartResult fr = filter.start(ret);
                     if (fr.isDescend()) {
-                        copyInheritedNonClassElementChildrenAndMoveToApi(target, ret, e.getChildren(), target.inApi);
+                        copyInheritedNonClassElementChildren(target, ret, e.getChildren(), target.inApi);
                     }
 
-                    finishFiltering(ret);
+                    finishFiltering(target, ret);
                 }
 
                 if (e instanceof MethodElement) {
@@ -971,16 +986,27 @@ final class ClasspathScanner {
             }
         }
 
-        private void finishFiltering(JavaElementBase<?, ?> el) {
-            FilterMatch finish = filter.finish(el);
+        private void finishFiltering(TypeRecord elementOwner, JavaElementBase<?, ?> el) {
+            FilterFinishResult finish = filter.finish(el);
+
+            if (finish.getMatch() == FilterMatch.DOESNT_MATCH && el.getParent() != null) {
+                el.getParent().getChildren().remove(el);
+            }
 
             if (el instanceof org.revapi.java.model.TypeElement) {
                 TypeRecord tr = getTypeRecord((TypeElement) el.getDeclaringElement());
-                tr.inclusionState = FilterResult.from(finish, tr.inclusionState.isDescend());
+                tr.inclusionState = tr.inclusionState.withMatch(finish.getMatch());
+                if (tr == elementOwner) {
+                    return;
+                }
             }
 
-            if (finish == FilterMatch.DOESNT_MATCH && el.getParent() != null) {
-                el.getParent().getChildren().remove(el);
+            if (!finish.isInherited() && finish.getMatch().toBoolean(false)) {
+                while (elementOwner != null) {
+                    elementOwner.inclusionState = elementOwner.inclusionState.or(
+                            FilterStartResult.from(finish, elementOwner.inclusionState.isDescend()));
+                    elementOwner = elementOwner.parent;
+                }
             }
         }
 
@@ -999,46 +1025,9 @@ final class ClasspathScanner {
             }
         }
 
-        private void moveUsedToApi(Types types, TypeRecord owningType, Element user) {
-            if (owningType.inApi && !shouldBeIgnored(user)) {
-                TypeMirror representation = types.asMemberOf(owningType.modelElement.getModelRepresentation(),
-                        user);
-
-                representation.accept(new SimpleTypeVisitor8<Void, Void>() {
-                    @Override
-                    protected Void defaultAction(TypeMirror e, Void aVoid) {
-                        if (e.getKind().isPrimitive() || e.getKind() == TypeKind.VOID) {
-                            return null;
-                        }
-
-                        TypeElement childType = getTypeElement.visit(e);
-                        if (childType != null) {
-                            TypeRecord tr = Scanner.this.types.get(childType);
-                            if (tr != null && tr.modelElement != null) {
-                                if (!tr.inApi) {
-                                    tr.inApiThroughUse = true;
-                                }
-                                tr.inApi = true;
-                            }
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitExecutable(ExecutableType t, Void aVoid) {
-                        t.getReturnType().accept(this, null);
-                        t.getParameterTypes().forEach(p -> p.accept(this, null));
-                        return null;
-                    }
-                }, null);
-            }
-        }
-
-        private void initNonClassElementChildrenAndMoveToApi(TypeRecord parentOwner, JavaElementBase<?, ?> parent,
+        private void initNonClassElementChildren(TypeRecord parentOwner, JavaElementBase<?, ?> parent,
                 boolean inherited) {
             Types types = environment.getTypeUtils();
-
-            moveUsedToApi(types, parentOwner, parent.getDeclaringElement());
 
             List<? extends Element> children =
                     parent.getDeclaringElement().accept(new SimpleElementVisitor8<List<? extends Element>, Void>() {
@@ -1078,12 +1067,12 @@ final class ClasspathScanner {
 
                 parent.getChildren().add(childEl);
 
-                FilterResult fr = filter.start(childEl);
+                FilterStartResult fr = filter.start(childEl);
                 if (fr.isDescend()) {
-                    initNonClassElementChildrenAndMoveToApi(parentOwner, childEl, inherited);
+                    initNonClassElementChildren(parentOwner, childEl, inherited);
                 }
 
-                finishFiltering(childEl);
+                finishFiltering(parentOwner, childEl);
             }
 
             for (AnnotationMirror m : parent.getDeclaringElement().getAnnotationMirrors()) {
@@ -1092,13 +1081,9 @@ final class ClasspathScanner {
         }
 
         @SuppressWarnings("EqualsWithItself")
-        private void copyInheritedNonClassElementChildrenAndMoveToApi(TypeRecord parentOwner,
+        private void copyInheritedNonClassElementChildren(TypeRecord parentOwner,
                 JavaElementBase<?, ?> parent, Iterable<? extends JavaElement> sourceChildren,
                 boolean forceComparatorInitialization) {
-
-            Types types = environment.getTypeUtils();
-
-            moveUsedToApi(types, parentOwner, parent.getDeclaringElement());
 
             for (JavaElement c : sourceChildren) {
                 if (c instanceof TypeElement) {
@@ -1119,7 +1104,7 @@ final class ClasspathScanner {
                     if (cc instanceof JavaElementBase) {
                         JavaElementBase<?, ?> mcc = (JavaElementBase<?, ?>) cc;
                         mcc.setInherited(true);
-                        copyInheritedNonClassElementChildrenAndMoveToApi(parentOwner, mcc, c.getChildren(),
+                        copyInheritedNonClassElementChildren(parentOwner, mcc, c.getChildren(),
                                 forceComparatorInitialization);
                     }
                 }
@@ -1225,7 +1210,7 @@ final class ClasspathScanner {
         Set<JavaElementBase<?, ?>> inheritableElements;
         //important for this to be a linked hashset so that superclasses are processed prior to implemented interfaces
         Set<TypeRecord> superTypes = new LinkedHashSet<>(2);
-        FilterResult inclusionState = FilterResult.undecidedAndDescend();
+        FilterStartResult inclusionState = FilterStartResult.undecidedAndDescend();
         TypeRecord parent;
         boolean inApi;
         boolean inApiThroughUse;

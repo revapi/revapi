@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,11 +19,14 @@ package org.revapi.basic;
 import static java.util.Collections.emptySet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -38,9 +41,10 @@ import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
 import org.revapi.Element;
-import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
+import org.revapi.FilterStartResult;
+import org.revapi.TreeFilter;
 import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.ValidationResult;
 import org.revapi.simple.SimpleElement;
@@ -91,88 +95,71 @@ public class ConfigurableElementFilterTest {
     }
 
     @Test
-    public void testInclusionByArchive() throws Exception {
+    public void testInclusionByArchive() {
         testWithConfig("{\"archives\": {" +
                 "\"include\": [\"archive\"]" +
-                "}}", filter -> {
-            assertEquals(FilterMatch.MATCHES, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el1)
-                    .getMatch());
-            assertEquals(FilterMatch.DOESNT_MATCH, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el2)
-                    .getMatch());
+                "}}", results -> {
+            assertEquals(FilterMatch.MATCHES, results.get(el1));
+            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el2));
         });
     }
 
     @Test
-    public void testExclusionByArchive() throws Exception {
+    public void testExclusionByArchive() {
         testWithConfig("{\"archives\": {" +
                 "\"exclude\": [\"archive\"]" +
-                "}}", filter -> {
-
-            assertEquals(FilterMatch.DOESNT_MATCH, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el1)
-                    .getMatch());
-            assertEquals(FilterMatch.MATCHES, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el2)
-                    .getMatch());
+                "}}", results -> {
+            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el1));
+            assertEquals(FilterMatch.MATCHES, results.get(el2));
         });
     }
 
     @Test
-    public void testInclusionByElementRegex() throws Exception {
+    public void testInclusionByElementRegex() {
         testWithConfig("{\"elements\": {" +
                 "\"include\": [\"el1\"]" +
-                "}}", filter -> {
-
-            assertEquals(FilterMatch.MATCHES, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el1)
-                    .getMatch());
-            assertEquals(FilterMatch.DOESNT_MATCH, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el2)
-                    .getMatch());
+                "}}", results -> {
+            assertEquals(FilterMatch.MATCHES, results.get(el1));
+            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el2));
         });
     }
 
     @Test
-    public void testExclusionByElementRegex() throws Exception {
+    public void testExclusionByElementRegex() {
         testWithConfig("{\"elements\": {" +
                 "\"exclude\": [\"el1\"]" +
-                "}}", filter -> {
-
-            assertEquals(FilterMatch.DOESNT_MATCH, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el1)
-                    .getMatch());
-            assertEquals(FilterMatch.MATCHES, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el2)
-                    .getMatch());
+                "}}", results -> {
+            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el1));
+            assertEquals(FilterMatch.MATCHES, results.get(el2));
         });
     }
 
     @Test
-    public void testInclusionByMatch() throws Exception {
+    public void testInclusionByMatch() {
         testWithConfig("{\"elements\": {" +
                 "\"include\": [{\"matcher\": \"matcher.exact\", \"match\": \"el1\"}]" +
-                "}}", setOf(new ExactElementMatcher()), filter -> {
-
-            assertEquals(FilterMatch.MATCHES, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el1)
-                    .getMatch());
-            assertEquals(FilterMatch.DOESNT_MATCH, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el2)
-                    .getMatch());
+                "}}", setOf(new ExactElementMatcher()), results -> {
+            assertEquals(FilterMatch.MATCHES, results.get(el1));
+            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el2));
         });
     }
 
     @Test
-    public void testExclusionByMatch() throws Exception {
+    public void testExclusionByMatch() {
         testWithConfig("{\"elements\": {" +
                 "\"exclude\": [{\"matcher\": \"matcher.regex\", \"match\": \"e.1\"}]" +
-                "}}", setOf(new RegexElementMatcher()), filter -> {
-
-            assertEquals(FilterMatch.DOESNT_MATCH, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el1)
-                    .getMatch());
-            assertEquals(FilterMatch.MATCHES, filter.filter(ElementGateway.AnalysisStage.FOREST_INCOMPLETE, el2)
-                    .getMatch());
+                "}}", setOf(new RegexElementMatcher()), results -> {
+            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el1));
+            assertEquals(FilterMatch.MATCHES, results.get(el2));
         });
     }
 
-    private void testWithConfig(String configJSON, Consumer<ConfigurableElementFilter> test) {
+    private void testWithConfig(String configJSON, Consumer<Map<Element, FilterMatch>> test) {
         testWithConfig(configJSON, emptySet(), test);
     }
 
     private void testWithConfig(String configJSON, Set<ElementMatcher> matchers,
-            Consumer<ConfigurableElementFilter> test) {
+            Consumer<Map<Element, FilterMatch>> test) {
         ConfigurableElementFilter filter = new ConfigurableElementFilter();
 
         AnalysisContext ctx = AnalysisContext.builder().build()
@@ -181,7 +168,24 @@ public class ConfigurableElementFilterTest {
 
         filter.initialize(ctx);
 
-        test.accept(filter);
+        TreeFilter f = filter.filterFor(null);
+        assertNotNull(f);
+
+        Map<Element, FilterMatch> ret = new HashMap<>();
+        addElementResults(f, el1, ret);
+        addElementResults(f, el2, ret);
+
+        f.finish().forEach((e, r) -> ret.put(e, r.getMatch()));
+
+        test.accept(ret);
+    }
+
+    private static void addElementResults(TreeFilter f, Element el, Map<Element, FilterMatch> results) {
+        FilterStartResult sr = f.start(el);
+        results.put(el, sr.getMatch());
+
+        FilterMatch fr = f.finish(el).getMatch();
+        results.put(el, fr);
     }
 
     private <T> Set<T> setOf(T... values) {

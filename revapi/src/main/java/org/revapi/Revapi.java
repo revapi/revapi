@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -115,8 +115,8 @@ public final class Revapi {
      * @return the instantiated extensions and their individual configurations
      */
     public AnalysisResult.Extensions prepareAnalysis(@Nonnull AnalysisContext analysisContext) {
-        Map<ExtensionInstance<FilterProvider>, AnalysisContext> filters = splitByConfiguration(analysisContext,
-                pipelineConfiguration.getFilterTypes(), pipelineConfiguration.getIncludedFilterExtensionIds(),
+        Map<ExtensionInstance<TreeFilterProvider>, AnalysisContext> filters = splitByConfiguration(analysisContext,
+                pipelineConfiguration.getTreeFilterTypes(), pipelineConfiguration.getIncludedFilterExtensionIds(),
                 pipelineConfiguration.getExcludedFilterExtensionIds());
         Map<ExtensionInstance<Reporter>, AnalysisContext> reporters = splitByConfiguration(analysisContext,
                 pipelineConfiguration.getReporterTypes(), pipelineConfiguration.getIncludedReporterExtensionIds(),
@@ -160,7 +160,7 @@ public final class Revapi {
         AnalysisResult.Extensions extensions = prepareAnalysis(analysisContext);
 
         extensions.stream()
-                .map(e -> (Map.Entry<ExtensionInstance<? extends Configurable>, AnalysisContext>) e)
+                .map(e -> (Map.Entry<ExtensionInstance<? extends Configurable>, AnalysisContext>) (Map.Entry) e)
                 .forEach(e -> e.getKey().getInstance().initialize(e.getValue()));
 
         AnalysisConfiguration config = new AnalysisConfiguration(extensions, pipelineConfiguration);
@@ -173,6 +173,7 @@ public final class Revapi {
         try {
             for (ExtensionInstance<ApiAnalyzer> ia : extensions.getAnalyzers().keySet()) {
                 analyzeWith(ia.getInstance(), analysisContext.getOldApi(), analysisContext.getNewApi(), config);
+                config.reports.clear();
             }
         } catch (Exception t) {
             error = t;
@@ -259,12 +260,12 @@ public final class Revapi {
         ArchiveAnalyzer oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
         ArchiveAnalyzer newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
 
-        FilterProvider filter = unionFilter(config.extensions);
+        TreeFilterProvider filter = unionFilter(config.extensions);
 
         TIMING_LOG.debug("Obtaining API trees.");
 
-        ElementForest oldTree = analyzeAndPrune(oldAnalyzer, filter);
-        ElementForest newTree = analyzeAndPrune(newAnalyzer, filter);
+        ElementForest oldTree = analyzeAndPrune(oldAnalyzer, filter, config.extensions);
+        ElementForest newTree = analyzeAndPrune(newAnalyzer, filter, config.extensions);
 
         TIMING_LOG.debug("API trees obtained");
 
@@ -307,13 +308,15 @@ public final class Revapi {
                 }
             });
 
+            config.extensions.getTransforms().keySet().forEach(i -> i.getInstance().endAnalysis(apiAnalyzer));
+
             TIMING_LOG.debug("Closing difference analyzer");
         }
 
         TIMING_LOG.debug("Difference analyzer closed");
     }
 
-    private ElementForest analyzeAndPrune(ArchiveAnalyzer analyzer, FilterProvider filter) {
+    private ElementForest analyzeAndPrune(ArchiveAnalyzer analyzer, TreeFilterProvider filter, AnalysisResult.Extensions extensions) {
         ElementForest forest = analyzer.analyze(filter.filterFor(analyzer));
         analyzer.prune(forest);
 
@@ -393,8 +396,8 @@ public final class Revapi {
         }
     }
 
-    private FilterProvider unionFilter(AnalysisResult.Extensions extensions) {
-        return new FilterProvider() {
+    private TreeFilterProvider unionFilter(AnalysisResult.Extensions extensions) {
+        return new TreeFilterProvider() {
             @Nullable
             @Override
             public TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer) {
@@ -405,19 +408,19 @@ public final class Revapi {
 
                 return new TreeFilter() {
                     @Override
-                    public FilterResult start(Element element) {
-                        return applicables.stream().map(f -> f.start(element)).reduce(FilterResult::or)
-                                .orElse(FilterResult.matchAndDescend());
+                    public FilterStartResult start(Element element) {
+                        return applicables.stream().map(f -> f.start(element)).reduce(FilterStartResult::and)
+                                .orElse(FilterStartResult.matchAndDescend());
                     }
 
                     @Override
-                    public FilterMatch finish(Element element) {
-                        return applicables.stream().map(f -> f.finish(element)).reduce(FilterMatch::or)
-                                .orElse(FilterMatch.DOESNT_MATCH);
+                    public FilterFinishResult finish(Element element) {
+                        return applicables.stream().map(f -> f.finish(element)).reduce(FilterFinishResult::and)
+                                .orElse(FilterFinishResult.doesntMatch());
                     }
 
                     @Override
-                    public Map<Element, FilterMatch> finish() {
+                    public Map<Element, FilterFinishResult> finish() {
                         return applicables.stream().map(TreeFilter::finish)
                                 .reduce(new HashMap<>(), (ret, res) -> {
                                     ret.putAll(res);
@@ -514,22 +517,20 @@ public final class Revapi {
                     @SuppressWarnings("unchecked")
                     List<DifferenceTransform<Element>> tBlock = (List<DifferenceTransform<Element>>) (List) tb;
 
-                    List<Difference> blockTransformed = new ArrayList<>(singletonList(d));
-                    ListIterator<Difference> blockTransformedIt = blockTransformed.listIterator();
-                    while (blockTransformedIt.hasNext()) {
-                        Difference currentDiff = blockTransformedIt.next();
-                        List<Difference> changesInBlock = new ArrayList<>(singletonList(currentDiff));
-                        ListIterator<Difference> changesInBlockIt = changesInBlock.listIterator();
-                        block:
-                        for (DifferenceTransform<Element> t : tBlock) {
-                            Difference diff = changesInBlockIt.next();
+                    List<Difference> blockResults = new ArrayList<>(singletonList(d));
+
+                    for (DifferenceTransform<Element> t : tBlock) {
+                        ListIterator<Difference> blockResultsIt = blockResults.listIterator();
+
+                        while (blockResultsIt.hasNext()) {
+                            Difference currentDiff = blockResultsIt.next();
                             TransformationResult res;
                             try {
-                                res = t.tryTransform(report.getOldElement(), report.getNewElement(), diff);
+                                res = t.tryTransform(report.getOldElement(), report.getNewElement(), currentDiff);
                             } catch (Exception e) {
                                 res = TransformationResult.keep();
                                 LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an" +
-                                        " exception while processing difference " + diff + " on old element " +
+                                        " exception while processing difference " + currentDiff + " on old element " +
                                         report.getOldElement() + " and new element " + report.getNewElement(), e);
                             }
 
@@ -538,42 +539,38 @@ public final class Revapi {
                                 // good, let's continue with the next transform in the block
                                 break;
                             case REPLACE:
-                                changesInBlockIt.remove();
+                                blockResultsIt.remove();
                                 if (res.getDifferences() != null) {
                                     if (LOG.isDebugEnabled()) {
-                                        LOG.debug("Difference transform {} transforms {} to {}", t.getClass(), diff,
-                                                res.getDifferences());
+                                        LOG.debug("Difference transform {} transforms {} to {}", t.getClass(),
+                                                currentDiff, res.getDifferences());
                                     }
-                                    res.getDifferences().forEach(changesInBlockIt::add);
+                                    res.getDifferences().forEach(blockResultsIt::add);
                                 }
                                 break;
                             case DISCARD:
-                                listChanged = true;
-                                differenceChanged = true;
-                                changesInBlock.clear();
-                                break block;
+                                blockResultsIt.remove();
+                                break;
                             case UNDECIDED:
                                 // when we're not collecting the undecided reports, this is the same as KEEP
                                 if (collectUndecided) {
                                     undecidedReports.add(report);
                                     undecided = true;
                                 }
-                                break block;
+                                break;
                             }
                         }
-                        
-                        blockTransformedIt.remove();
-                        changesInBlock.forEach(blockTransformedIt::add);
                     }
+
                     // ignore if the transforms in the block swallowed all the differences
-                    if (blockTransformed.isEmpty()) {
+                    if (blockResults.isEmpty()) {
                         differenceChanged = true;
-                    } else if (blockTransformed.size() > 1 || !d.equals(blockTransformed.get(0))) {
+                    } else if (blockResults.size() > 1 || !d.equals(blockResults.get(0))) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Difference transform(s) {} transform {} to {}", tBlock, d, blockTransformed);
+                            LOG.debug("Difference transform(s) {} transform {} to {}", tBlock, d, blockResults);
                         }
 
-                        transformed.addAll(blockTransformed);
+                        transformed.addAll(blockResults);
                         differenceChanged = true;
                     }
                 }
@@ -733,13 +730,13 @@ public final class Revapi {
 
         @SafeVarargs
         @Nonnull
-        public final Builder withFilters(Class<? extends FilterProvider>... filters) {
+        public final Builder withFilters(Class<? extends TreeFilterProvider>... filters) {
             pb.withFilters(filters);
             return this;
         }
 
         @Nonnull
-        public Builder withFilters(@Nonnull Iterable<Class<? extends FilterProvider>> filters) {
+        public Builder withFilters(@Nonnull Iterable<Class<? extends TreeFilterProvider>> filters) {
             pb.withFilters(filters);
             return this;
         }

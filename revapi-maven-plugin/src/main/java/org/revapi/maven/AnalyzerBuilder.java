@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.util.artifact.ArtifactIdUtils;
 import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
-import org.revapi.FilterProvider;
+import org.revapi.TreeFilterProvider;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
@@ -310,12 +310,12 @@ class AnalyzerBuilder {
     applyDisallowedExtensionsToPipeline(List<String> disallowedExtensions) {
         return (bld) -> {
             List<Class<? extends ApiAnalyzer>> analyzers = new ArrayList<>();
-            List<Class<? extends FilterProvider>> filters = new ArrayList<>();
+            List<Class<? extends TreeFilterProvider>> filters = new ArrayList<>();
             List<Class<? extends DifferenceTransform>> transforms = new ArrayList<>();
             List<Class<? extends Reporter>> reporters = new ArrayList<>();
 
             addAllAllowed(analyzers, ServiceTypeLoader.load(ApiAnalyzer.class), disallowedExtensions);
-            addAllAllowed(filters, ServiceTypeLoader.load(FilterProvider.class), disallowedExtensions);
+            addAllAllowed(filters, ServiceTypeLoader.load(TreeFilterProvider.class), disallowedExtensions);
             addAllAllowed(transforms, ServiceTypeLoader.load(DifferenceTransform.class), disallowedExtensions);
             addAllAllowed(reporters, ServiceTypeLoader.load(Reporter.class), disallowedExtensions);
 

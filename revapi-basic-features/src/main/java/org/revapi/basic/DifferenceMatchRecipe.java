@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,15 +25,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Difference;
 import org.revapi.Element;
-import org.revapi.ElementGateway;
 import org.revapi.ElementMatcher;
+import org.revapi.ElementPair;
+import org.revapi.FilterFinishResult;
 import org.revapi.FilterMatch;
-import org.revapi.FilterResult;
+import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
 
 /**
@@ -46,17 +49,17 @@ import org.revapi.TreeFilter;
 public abstract class DifferenceMatchRecipe {
     private static final TreeFilter NON_MATCHING_FILTER = new TreeFilter() {
         @Override
-        public FilterResult start(Element element) {
-            return FilterResult.doesntMatchAndDescend();
+        public FilterStartResult start(Element element) {
+            return FilterStartResult.doesntMatchAndDescend();
         }
 
         @Override
-        public FilterMatch finish(Element element) {
-            return FilterMatch.DOESNT_MATCH;
+        public FilterFinishResult finish(Element element) {
+            return FilterFinishResult.doesntMatch();
         }
 
         @Override
-        public Map<Element, FilterMatch> finish() {
+        public Map<Element, FilterFinishResult> finish() {
             return Collections.emptyMap();
         }
     };
@@ -71,6 +74,9 @@ public abstract class DifferenceMatchRecipe {
     TreeFilter newFilter;
     final Map<String, String> attachments;
     final Map<String, Pattern> attachmentRegexes;
+
+    Set<ElementPair> decidedlyMatchingElementPairs;
+    Set<ElementPair> undecidedElementPairs;
 
     protected DifferenceMatchRecipe(Map<String, ElementMatcher> matchers, ModelNode config,
             String... additionalReservedProperties) {
@@ -102,9 +108,87 @@ public abstract class DifferenceMatchRecipe {
         this.config = config;
     }
 
-    public void setAnalyzers(ArchiveAnalyzer oldAnalyzer, ArchiveAnalyzer newAnalyzer) {
-        oldFilter = oldRecipe.filterFor(oldAnalyzer);
-        newFilter = newRecipe.filterFor(newAnalyzer);
+    public boolean startWithAnalyzers(ArchiveAnalyzer oldAnalyzer, ArchiveAnalyzer newAnalyzer) {
+        oldFilter = oldRecipe == null ? null : oldRecipe.filterFor(oldAnalyzer);
+        newFilter = newRecipe == null ? null : newRecipe.filterFor(newAnalyzer);
+        decidedlyMatchingElementPairs = new HashSet<>();
+        undecidedElementPairs = new HashSet<>();
+        return true;
+    }
+
+
+    public boolean startElements(@Nullable Element oldElement, @Nullable Element newElement) {
+        FilterStartResult oldRes = oldElement == null
+                ? (oldFilter == null ? FilterStartResult.matchAndDescend() : FilterStartResult.doesntMatch())
+                : (oldFilter == null ? FilterStartResult.matchAndDescend() : oldFilter.start(oldElement));
+
+        FilterStartResult newRes = newElement == null
+                ? (newFilter == null ? FilterStartResult.matchAndDescend() : FilterStartResult.doesntMatch())
+                : (newFilter == null ? FilterStartResult.matchAndDescend() : newFilter.start(newElement));
+
+        if (oldRes.getMatch().toBoolean(false) && newRes.getMatch().toBoolean(false)) {
+            decidedlyMatchingElementPairs.add(new ElementPair(oldElement, newElement));
+        } else if (oldRes.getMatch() == FilterMatch.UNDECIDED || newRes.getMatch() == FilterMatch.UNDECIDED) {
+            undecidedElementPairs.add(new ElementPair(oldElement, newElement));
+        }
+
+        return true;
+    }
+
+    public void endElements(@Nullable Element oldElement, @Nullable Element newElement) {
+        FilterMatch oldMatch = oldElement == null
+                ? (oldFilter == null ? FilterMatch.MATCHES : FilterMatch.DOESNT_MATCH)
+                : (oldFilter == null ? FilterMatch.MATCHES : oldFilter.finish(oldElement).getMatch());
+
+        FilterMatch newMatch = newElement == null
+                ? (newFilter == null ? FilterMatch.MATCHES : FilterMatch.DOESNT_MATCH)
+                : (newFilter == null ? FilterMatch.MATCHES : newFilter.finish(newElement).getMatch());
+
+        if (oldMatch.toBoolean(false) && newMatch.toBoolean(false)) {
+            ElementPair pair = new ElementPair(oldElement, newElement);
+            decidedlyMatchingElementPairs.add(pair);
+            undecidedElementPairs.remove(pair);
+        }
+    }
+
+    public void finishMatching() {
+        Set<ElementPair> decided = new HashSet<>();
+        if (oldFilter != null) {
+            for (Map.Entry<Element, FilterFinishResult> e : oldFilter.finish().entrySet()) {
+                if (!e.getValue().getMatch().toBoolean(false)) {
+                    continue;
+                }
+
+                for (ElementPair p : undecidedElementPairs) {
+                    if (p.getOldElement() == null || p.getOldElement().equals(e.getKey())) {
+                        decided.add(p);
+                    }
+                }
+            }
+        }
+
+        if (newFilter != null) {
+            for (Map.Entry<Element, FilterFinishResult> e : newFilter.finish().entrySet()) {
+                if (!e.getValue().getMatch().toBoolean(false)) {
+                    continue;
+                }
+
+                for (ElementPair p : decided) {
+                    if (p.getNewElement() == null || p.getNewElement().equals(e.getKey())) {
+                        decided.add(p);
+                    }
+                }
+            }
+        }
+
+        decidedlyMatchingElementPairs.addAll(decided);
+    }
+
+    public void cleanup() {
+        oldFilter = null;
+        newFilter = null;
+        decidedlyMatchingElementPairs = null;
+        undecidedElementPairs = null;
     }
 
     public boolean matches(Difference difference, Element oldElement, Element newElement) {
@@ -119,14 +203,7 @@ public abstract class DifferenceMatchRecipe {
             return false;
         }
 
-        FilterMatch oldMatch = this.oldRecipe == null
-                ? FilterMatch.MATCHES
-                : this.oldRecipe.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, oldElement);
-        FilterMatch newMatch = this.newRecipe == null
-                ? FilterMatch.MATCHES
-                : this.newRecipe.test(ElementGateway.AnalysisStage.FOREST_COMPLETE, newElement);
-
-        boolean elementsMatch = oldMatch.and(newMatch).toBoolean(false);
+        boolean elementsMatch = decidedlyMatchingElementPairs.contains(new ElementPair(oldElement, newElement));
 
         if (!elementsMatch) {
             return false;

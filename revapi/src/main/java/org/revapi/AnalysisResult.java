@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -133,13 +133,13 @@ public final class AnalysisResult implements AutoCloseable {
 
     public static final class Extensions implements Iterable<Map.Entry<ExtensionInstance<?>, AnalysisContext>> {
         private final Map<ExtensionInstance<ApiAnalyzer>, AnalysisContext> analyzers;
-        private final Map<ExtensionInstance<FilterProvider>, AnalysisContext> filters;
+        private final Map<ExtensionInstance<TreeFilterProvider>, AnalysisContext> filters;
         private final Map<ExtensionInstance<Reporter>, AnalysisContext> reporters;
         private final Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> transforms;
         private final Map<ExtensionInstance<ElementMatcher>, AnalysisContext> matchers;
 
         Extensions(Map<ExtensionInstance<ApiAnalyzer>, AnalysisContext> analyzers,
-                Map<ExtensionInstance<FilterProvider>, AnalysisContext> filters,
+                Map<ExtensionInstance<TreeFilterProvider>, AnalysisContext> filters,
                 Map<ExtensionInstance<Reporter>, AnalysisContext> reporters,
                 Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> transforms,
                 Map<ExtensionInstance<ElementMatcher>, AnalysisContext> matchers) {
@@ -154,7 +154,7 @@ public final class AnalysisResult implements AutoCloseable {
             return analyzers;
         }
 
-        public Map<ExtensionInstance<FilterProvider>, AnalysisContext> getFilters() {
+        public Map<ExtensionInstance<TreeFilterProvider>, AnalysisContext> getFilters() {
             return filters;
         }
 

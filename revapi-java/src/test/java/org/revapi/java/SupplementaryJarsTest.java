@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -117,7 +117,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
             allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
         }
 
-        //Assert.assertEquals(8 + 11, allReports.size()); //11 removed methods when kind of class changes to interface
+        Assert.assertEquals(8 + 11, allReports.size()); //11 removed methods when kind of class changes to interface
         Assert.assertTrue(
                 containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
         Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
@@ -168,7 +168,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
                 .withConfigurationFromJSON("{\"revapi\": {\"filter\": {" +
-                        "\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"'class C'\"}]}}}}").build();
+                        "\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class C;\"}]}}}}").build();
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             res.throwIfFailed();
@@ -201,7 +201,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
                 .withConfigurationFromJSON("{\"revapi\": {" +
-                        "\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"'class C' or 'class B.T$2'\"}]}}}}").build();
+                        "\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"match %c | %b; class %c=C; class %b=B.T$2;\"}]}}}}").build();
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             res.throwIfFailed();

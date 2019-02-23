@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -120,7 +120,7 @@ public class DifferencePingPongTest {
             return new ArchiveAnalyzer() {
                 @Nonnull
                 @Override
-                public ElementForest analyze() {
+                public ElementForest analyze(TreeFilter filter) {
                     ElementForest ret = new SimpleElementForest(api) {
                     };
                     @SuppressWarnings("unchecked") Set<Element> roots = (Set) ret.getRoots();
@@ -144,6 +144,11 @@ public class DifferencePingPongTest {
                     });
 
                     return ret;
+                }
+
+                @Override
+                public void prune(ElementForest forest) {
+
                 }
             };
         }

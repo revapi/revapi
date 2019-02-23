@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.revapi.java.model;
 
+import java.util.Optional;
 import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
@@ -142,7 +143,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
 
     @Override
     public int hashCode() {
-        return getFullHumanReadableString().hashCode();
+        return getDeclaringElement().hashCode() * getModelRepresentation().hashCode();
     }
 
     @Override
@@ -151,7 +152,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
             return true;
         }
 
-        return obj != null && obj instanceof JavaElementBase &&
+        return obj instanceof JavaElementBase &&
                 getFullHumanReadableString().equals(((JavaElementBase<?, ?>) obj).getFullHumanReadableString());
     }
 
@@ -164,6 +165,22 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     @SuppressWarnings("unchecked")
     public JavaElementBase<E, T> clone() {
         return (JavaElementBase<E, T>) super.clone();
+    }
+
+    /**
+     * Clones this element and tries to add it under the new parent. If the parent already contains an element
+     * equivalent to this one, the returned optional is empty, otherwise it contains the clone.
+     *
+     * @param newParent the parent to add the clone to
+     * @return optional with the clone or an empty optional if the new parent already contains an equivalent element
+     */
+    public Optional<JavaElementBase<E, T>> cloneUnder(JavaElementBase<?, ?> newParent) {
+        JavaElementBase<E, T> copy = clone();
+        if (newParent.getChildren().add(copy)) {
+            return Optional.of(copy);
+        } else {
+            return Optional.empty();
+        }
     }
 
     protected String getComparableSignature() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaMethodParameterElement;
+import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
@@ -104,8 +105,10 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
 
     @Override
     protected String createComparableSignature() {
-        //not used
-        return null;
+        String myType = Util.toUniqueString(getDeclaringElement().getEnclosingElement().getEnclosingElement().asType());
+        String myMethod = getDeclaringElement().getEnclosingElement().getSimpleName().toString();
+
+        return myType + "::" + myMethod;
     }
 
     @Override

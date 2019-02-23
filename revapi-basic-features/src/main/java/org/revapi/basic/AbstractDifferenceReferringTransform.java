@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,9 +28,12 @@ import javax.annotation.Nullable;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.revapi.AnalysisContext;
+import org.revapi.ApiAnalyzer;
+import org.revapi.ArchiveAnalyzer;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
+import org.revapi.TransformationResult;
 
 /**
  * @author Lukas Krejci
@@ -40,6 +44,7 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
 
     private final String extensionId;
     private Collection<Recipe> configuredRecipes;
+    private Collection<Recipe> activeRecipes;
     private Pattern[] codes;
 
     protected AbstractDifferenceReferringTransform(@Nonnull String extensionId) {
@@ -83,21 +88,56 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
         this.codes = codes.toArray(new Pattern[codes.size()]);
     }
 
-    @Nullable
     @Override
-    public final Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
-        @Nonnull Difference difference) {
+    public TransformationResult tryTransform(@Nullable Element oldElement, @Nullable Element newElement,
+            Difference difference) {
 
-        if (configuredRecipes == null) {
-            return difference;
+        if (activeRecipes == null) {
+            return TransformationResult.keep();
         }
 
-        for (Recipe r : configuredRecipes) {
+        for (Recipe r : activeRecipes) {
             if (r.matches(difference, oldElement, newElement)) {
-                return r.transformMatching(difference, oldElement, newElement);
+                return TransformationResult.replaceWith(r.transformMatching(difference, oldElement, newElement));
             }
         }
 
-        return difference;
+        return TransformationResult.keep();
+    }
+
+    @Override
+    public boolean startTraversal(ApiAnalyzer apiAnalyzer, ArchiveAnalyzer oldArchiveAnalyzer,
+            ArchiveAnalyzer newArchiveAnalyzer) {
+        if (configuredRecipes == null) {
+            return false;
+        }
+
+        activeRecipes = configuredRecipes.stream()
+                .filter(r -> r.startWithAnalyzers(oldArchiveAnalyzer, newArchiveAnalyzer))
+                .collect(Collectors.toList());
+
+        return !activeRecipes.isEmpty();
+    }
+
+    @Override
+    public boolean startElements(@Nullable Element oldElement, @Nullable Element newElement) {
+        activeRecipes.forEach(r -> r.startElements(oldElement, newElement));
+        return true;
+    }
+
+    @Override
+    public void endElements(@Nullable Element oldElement, @Nullable Element newElement) {
+        activeRecipes.forEach(r -> r.endElements(oldElement, newElement));
+    }
+
+    @Override
+    public void endTraversal(ApiAnalyzer apiAnalyzer) {
+        activeRecipes.forEach(DifferenceMatchRecipe::finishMatching);
+    }
+
+    @Override
+    public void endAnalysis(ApiAnalyzer apiAnalyzer) {
+        activeRecipes.forEach(DifferenceMatchRecipe::cleanup);
+        activeRecipes = null;
     }
 }

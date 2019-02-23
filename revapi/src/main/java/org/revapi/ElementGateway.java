@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,14 +30,14 @@ import org.revapi.query.Filter;
  *
  * @author Lukas Krejci
  *
- * @deprecated use {@link FilterProvider} instead
+ * @deprecated use {@link TreeFilterProvider} instead
  */
 @Deprecated
 public interface ElementGateway extends Configurable, AutoCloseable {
 
     default Filter<Element> asFilter() {
         return new Filter<Element>() {
-            private final WeakHashMap<Element, FilterResult> results = new WeakHashMap<>();
+            private final WeakHashMap<Element, FilterStartResult> results = new WeakHashMap<>();
 
             @Override
             public boolean applies(@Nullable Element element) {
@@ -79,11 +79,11 @@ public interface ElementGateway extends Configurable, AutoCloseable {
      * @deprecated - we're gonna mimic what Classif does
      */
     @Deprecated
-    FilterResult filter(AnalysisStage stage, Element element);
+    FilterStartResult filter(AnalysisStage stage, Element element);
 
-    default FilterResult start(Element element) {
+    default FilterStartResult start(Element element) {
         // TODO implement
-        return FilterResult.doesntMatchAndDescend();
+        return FilterStartResult.doesntMatchAndDescend();
     }
 
     default FilterMatch finish(Element element) {
