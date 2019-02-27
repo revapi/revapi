@@ -98,7 +98,14 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
 
         for (Recipe r : activeRecipes) {
             if (r.matches(difference, oldElement, newElement)) {
-                return TransformationResult.replaceWith(r.transformMatching(difference, oldElement, newElement));
+                Difference d = r.transformMatching(difference, oldElement, newElement);
+                if (d == null) {
+                    return TransformationResult.discard();
+                } else if (d == difference) {
+                    return TransformationResult.keep();
+                } else {
+                    return TransformationResult.replaceWith(d);
+                }
             }
         }
 
