@@ -35,6 +35,8 @@ import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.util.artifact.ArtifactIdUtils;
 import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
+import org.revapi.ElementFilter;
+import org.revapi.ElementMatcher;
 import org.revapi.TreeFilterProvider;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
@@ -313,17 +315,24 @@ class AnalyzerBuilder {
             List<Class<? extends TreeFilterProvider>> filters = new ArrayList<>();
             List<Class<? extends DifferenceTransform>> transforms = new ArrayList<>();
             List<Class<? extends Reporter>> reporters = new ArrayList<>();
+            List<Class<? extends ElementFilter>> legacyFilters = new ArrayList<>();
+            List<Class<? extends ElementMatcher>> matchers = new ArrayList<>();
 
             addAllAllowed(analyzers, ServiceTypeLoader.load(ApiAnalyzer.class), disallowedExtensions);
             addAllAllowed(filters, ServiceTypeLoader.load(TreeFilterProvider.class), disallowedExtensions);
             addAllAllowed(transforms, ServiceTypeLoader.load(DifferenceTransform.class), disallowedExtensions);
             addAllAllowed(reporters, ServiceTypeLoader.load(Reporter.class), disallowedExtensions);
+            addAllAllowed(legacyFilters, ServiceTypeLoader.load(ElementFilter.class), disallowedExtensions);
+            addAllAllowed(matchers, ServiceTypeLoader.load(ElementMatcher.class), disallowedExtensions);
+
+            filters.addAll(legacyFilters);
 
             @SuppressWarnings("unchecked")
             List<Class<? extends DifferenceTransform<?>>> castTransforms =
                     (List<Class<? extends DifferenceTransform<?>>>) (List) transforms;
 
-            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(castTransforms).withReporters(reporters);
+            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(castTransforms).withReporters(reporters)
+                .withMatchers(matchers);
         };
     }
 

@@ -54,11 +54,31 @@ public final class XmlToJson<Xml> {
     private final Function<Xml, List<Xml>> getChildren;
     private final Map<String, ModelNode> knownExtensionSchemas;
 
+    /**
+     * Constructs a new instance using the schemas obtained from the provided Revapi instance.
+     *
+     * @param revapi the Revapi instance to extract the extension schemas from
+     * @param getName a function to extract the name of a node
+     * @param getValue a function to extract the text value of a node
+     * @param getAttributeValue a function to extract the value of an attribute with given name from a node
+     * @param getChildren a function to extract children. The list must ONLY include child nodes, not the "virtual" text
+     *                    and attribute nodes.
+     */
     public XmlToJson(Revapi revapi, Function<Xml, String> getName, Function<Xml, String> getValue,
                      BiFunction<Xml, String, String> getAttributeValue, Function<Xml, List<Xml>> getChildren) {
         this(getKnownExtensionSchemas(revapi), getName, getValue, getAttributeValue, getChildren);
     }
 
+    /**
+     * Constructs a new instance using the provided schemas.
+     *
+     * @param knownExtensionSchemas the schemas to use when trying to convert XML to JSON
+     * @param getName a function to extract the name of a node
+     * @param getValue a function to extract the text value of a node
+     * @param getAttributeValue a function to extract the value of an attribute with given name from a node
+     * @param getChildren a function to extract children. The list must ONLY include child nodes, not the "virtual" text
+     *                    and attribute nodes.
+     */
     public XmlToJson(Map<String, ModelNode> knownExtensionSchemas, Function<Xml, String> getName,
               Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
               Function<Xml, List<Xml>> getChildren) {
@@ -122,7 +142,9 @@ public final class XmlToJson<Xml> {
             }
 
             if (ret == null) {
-                throw new IllegalArgumentException("Could not convert the configuration.");
+                throw new IllegalArgumentException("Could not convert the configuration. Schema:\n"
+                        + jsonSchema.toJSONString(false)
+                + "\n\nData:\n" + configuration);
             }
 
             return ret;
@@ -131,7 +153,8 @@ public final class XmlToJson<Xml> {
         if (typeNode.getType() != ModelType.STRING) {
             throw new IllegalArgumentException(
                     "JSON schema allows for multiple possible types. " +
-                            "This is not supported by the XML-to-JSON conversion yet.");
+                            "This is not supported by the XML-to-JSON conversion yet. Schema:\n"
+                            + jsonSchema.toJSONString(false));
         }
 
         String type = typeNode.asString();
@@ -192,6 +215,12 @@ public final class XmlToJson<Xml> {
     }
 
     private ModelNode convertObject(Xml configuration, ModelNode jsonSchema, ModelNode rootSchema) {
+        if (getValue.apply(configuration) != null) {
+            // object cannot contain text nodes.. or rather we don't support that
+            throw new IllegalArgumentException("Converting an XML node with text (and possibly children) to JSON" +
+                    " object is not supported.");
+        }
+
         ModelNode object = new ModelNode();
         object.setEmptyObject();
         ModelNode propertySchemas = jsonSchema.get("properties");

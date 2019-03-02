@@ -317,7 +317,11 @@ public final class Revapi {
     }
 
     private ElementForest analyzeAndPrune(ArchiveAnalyzer analyzer, TreeFilterProvider filter, AnalysisResult.Extensions extensions) {
-        ElementForest forest = analyzer.analyze(filter.filterFor(analyzer));
+        TreeFilter tf = filter.filterFor(analyzer);
+        if (tf == null) {
+            tf = TreeFilter.matchAndDescend();
+        }
+        ElementForest forest = analyzer.analyze(tf);
         analyzer.prune(forest);
 
         return forest;

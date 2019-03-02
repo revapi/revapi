@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import static java.util.Arrays.asList;
 
 import java.io.File;
@@ -34,6 +33,7 @@ import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementForest;
 import org.revapi.Report;
+import org.revapi.TreeFilter;
 import org.revapi.simple.SimpleElementForest;
 
 public class Analyzer implements ApiAnalyzer {
@@ -44,8 +44,13 @@ public class Analyzer implements ApiAnalyzer {
         return new ArchiveAnalyzer() {
             @Override
             @Nonnull
-            public ElementForest analyze() {
+            public ElementForest analyze(TreeFilter tf) {
                 return new SimpleElementForest(api) {};
+            }
+
+            @Override
+            public void prune(ElementForest f) {
+
             }
         };
     }

@@ -247,7 +247,7 @@ public abstract class DifferenceMatchRecipe {
         }
     }
 
-    public abstract Difference transformMatching(Difference difference, Element oldElement,
+    public abstract @Nullable Difference transformMatching(Difference difference, Element oldElement,
         Element newElement);
 
     private static ElementMatcher.CompiledRecipe getElement(boolean regex, ModelNode elementRoot, Map<String, ElementMatcher> matchers) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 assert new File(basedir, "Analyzer").exists()
 assert new File(basedir, "Reporter").exists()
 assert new File(basedir, "Filter").exists()
+assert new File(basedir, "Filter").exists()
+assert new File(basedir, "ElementMatcher").exists()
+assert new File(basedir, "TreeFilterProvider").exists()
 assert !new File(basedir, "Transform").exists()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 package org.revapi.configuration;
+
+import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -251,6 +253,40 @@ public class XmlToJsonTest {
     }
 
     @Test
+    public void testOneOf_primitiveAndObject() throws Exception {
+        XmlToJson<Node> converter = converter("ext", "{\n" +
+                "\"oneOf\" : [\n" +
+                "    {\"type\" : \"string\"},\n" +
+                "    {\n" +
+                "          \"type\" : \"object\",\n" +
+                "          \"properties\" : {\n" +
+                "              \"matcher\" : {\"type\" : \"string\"},\n" +
+                "              \"match\" : {\"type\" : \"string\"}\n" +
+                "          },\n" +
+                "          \"additionalProperties\" : null\n" +
+                "      }\n" +
+                "  ],\n" +
+                "  \"type\" : null,\n" +
+                "  \"enum\" : null,\n" +
+                "  \"$ref\" : null\n" +
+                "}");
+        Node xml1 = xml("<config><ext>class test.Dep</ext></config>");
+        Node xml2 = xml("<config><ext><matcher>kachna</matcher><match>kachny</match></ext></config>");
+
+        ModelNode c1 = converter.convert(xml1).get(0).get("configuration");
+        ModelNode c2 = converter.convert(xml2).get(0).get("configuration");
+
+        Assert.assertNotNull(c1);
+        Assert.assertEquals(ModelType.STRING, c1.getType());
+        Assert.assertEquals("class test.Dep", c1.asString());
+
+        Assert.assertNotNull(c2);
+        Assert.assertEquals(ModelType.OBJECT, c2.getType());
+        Assert.assertEquals("kachna", c2.get("matcher").asString());
+        Assert.assertEquals("kachny", c2.get("match").asString());
+    }
+
+    @Test
     public void testAnyOf() throws Exception {
         XmlToJson<Node> converter = converter("ext", "{\"anyOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
         Node xml1 = xml("<config><ext>1</ext></config>");
@@ -329,7 +365,8 @@ public class XmlToJsonTest {
 
                     return attr.getNodeValue();
                 },
-                n -> new NodeListList(n.getChildNodes()));
+                n -> new NodeListList(n.getChildNodes()).stream()
+                        .filter(e -> e.getNodeType() == Node.ELEMENT_NODE).collect(toList()));
     }
 
     private static final class NodeListList extends AbstractList<Node> {
