@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -112,7 +112,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     static void testWith(ArchiveAndCompilationPath archive, String configJSON, Set<String> expectedResults)
             throws Exception {
         try {
-            JavaApiAnalyzer apiAnalyzer = new JavaApiAnalyzer(Collections.emptyList());
+            JavaApiAnalyzer apiAnalyzer = new JavaApiAnalyzer(Collections.emptyList(), Collections.emptyList());
             Revapi r = new Revapi(PipelineConfiguration.builder().withAnalyzers(JavaApiAnalyzer.class).build());
             AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(configJSON).build();
             AnalysisContext analyzerCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JavaApiAnalyzer.class);

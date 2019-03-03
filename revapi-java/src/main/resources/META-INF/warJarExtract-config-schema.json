@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "disabled": {
+      "type": "boolean",
+      "description": "If true then the extraction of classes from WAR files is disabled altogether.",
+      "default": false
+    },
+    "include": {
+      "type": "array",
+      "description": "The list of regexes on names of archives to consider for war file classes extraction",
+      "items" : {
+        "type" : "string"
+      }
+    },
+    "exclude": {
+      "type": "array",
+      "description": "The list of regexes on names of archives to NOT consider for war file classes extraction",
+      "items" : {
+        "type" : "string"
+      }
+    }
+  }
+}
