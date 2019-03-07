@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import org.revapi.java.compilation.Compiler;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementForest;
+import org.revapi.java.spi.JarExtractor;
 
 /**
  * @author Lukas Krejci
@@ -40,14 +41,17 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final ProbingEnvironment probingEnvironment;
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
     private final boolean ignoreMissingAnnotations;
+    private final Iterable<JarExtractor> jarExtractors;
     private CompilationValve compilationValve;
     private InclusionFilter inclusionFilter;
 
-    public JavaArchiveAnalyzer(API api, ExecutorService compilationExecutor,
-                               AnalysisConfiguration.MissingClassReporting missingClassReporting,
-                               boolean ignoreMissingAnnotations,
-                               InclusionFilter inclusionFilter) {
+    public JavaArchiveAnalyzer(API api, Iterable<JarExtractor> jarExtractors,
+            ExecutorService compilationExecutor,
+            AnalysisConfiguration.MissingClassReporting missingClassReporting,
+            boolean ignoreMissingAnnotations,
+            InclusionFilter inclusionFilter) {
         this.api = api;
+        this.jarExtractors = jarExtractors;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
@@ -63,7 +67,8 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         }
 
         StringWriter output = new StringWriter();
-        Compiler compiler = new Compiler(executor, output, api.getArchives(), api.getSupplementaryArchives());
+        Compiler compiler = new Compiler(executor, output, jarExtractors, api.getArchives(),
+                api.getSupplementaryArchives());
         try {
             compilationValve = compiler
                 .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations, inclusionFilter);

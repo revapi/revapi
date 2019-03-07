@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -627,7 +627,7 @@ public final class Analyzer {
 
         if (analysisConfiguration != null) {
             String text = analysisConfiguration.getValue();
-            if (text == null) {
+            if (text == null || text.isEmpty()) {
                 convertNewStyleConfigFromXml(ctxBld, getRevapi());
             } else {
                 ctxBld.mergeConfigurationFromJSON(text);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -32,7 +31,6 @@ import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.util.artifact.ArtifactIdUtils;
 import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
 import org.revapi.ElementFilter;
@@ -212,7 +210,7 @@ class AnalyzerBuilder {
     public Result build() {
         Result res = new Result();
 
-        res.isOnClasspath = initializeComparisonArtifacts();
+        initializeComparisonArtifacts();
 
         res.newArtifacts = newGavs;
         res.oldArtifacts = oldGavs;
@@ -245,27 +243,13 @@ class AnalyzerBuilder {
                 revapi);
     }
 
-    /**
-     * @return true if artifacts are initialized, false if not and the analysis should not proceed
-     */
-    private boolean initializeComparisonArtifacts() {
+    private void initializeComparisonArtifacts() {
         if (oldArtifacts == null) {
-            return initializeComparisonGavs();
-        } else {
-            String coords = Analyzer.getProjectArtifactCoordinates(project, null);
-
-            boolean projectInOlds = Stream.of(oldArtifacts).anyMatch(a -> ArtifactIdUtils.toId(a).equals(coords));
-            boolean projectInNews = Stream.of(newArtifacts).anyMatch(a -> ArtifactIdUtils.toId(a).equals(coords));
-
-            if ((projectInOlds || projectInNews) && !project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
-                return false;
-            }
-
-            return true;
+            initializeComparisonGavs();
         }
     }
 
-    private boolean initializeComparisonGavs() {
+    private void initializeComparisonGavs() {
         if (newGavs != null && newGavs.length == 1 && "BUILD".equals(newGavs[0])) {
             log.warn("\"BUILD\" coordinates are deprecated. Just leave \"newArtifacts\" undefined and specify" +
                     " \"${project.version}\" as the value for \"newVersion\" (which is the default, so you don't" +
@@ -279,32 +263,13 @@ class AnalyzerBuilder {
             //see AbstractVersionModifyingMojo
             oldGavs = new String[]{
                     Analyzer.getProjectArtifactCoordinates(project, oldVersion)};
-
-            //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
-            //analyze there
-            //only do it here, because oldArtifacts might point to another artifact.
-            //if we end up here in this branch, we know we'll be comparing the current artifact with something.
-            if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
-                return false;
-            }
         }
 
         if (newGavs == null || newGavs.length == 0) {
             newGavs = new String[]{
                     Analyzer.getProjectArtifactCoordinates(project, newVersion)};
-
-            //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
-            //analyze there
-            //again, do this check only here, because oldArtifact might point elsewhere. But if we end up here, it
-            //means that oldArtifacts would be compared against the current artifact (in some version). Comparing
-            //against a POM artifact is always no-op.
-            if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
-                return false;
-            }
         }
-
-        return true;
-    }
+   }
 
     private static Consumer<PipelineConfiguration.Builder>
     applyDisallowedExtensionsToPipeline(List<String> disallowedExtensions) {
@@ -339,7 +304,6 @@ class AnalyzerBuilder {
 
     static class Result {
         boolean skip;
-        boolean isOnClasspath;
         String[] oldArtifacts;
         String[] newArtifacts;
         Analyzer analyzer;

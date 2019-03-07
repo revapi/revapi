@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2017 Lukas Krejci
+    Copyright 2014-2019 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,12 @@
                                 <revapi.ignore>
                                     <item>
                                         <code>java.class.kindChanged</code>
-                                        <old>class pkg1.pkg2.WarClass</old>
+                                        <new>class pkg1.pkg2.WarClass</new>
+                                        <justification>This incompat is here just check that the files in the war file actually got copied.</justification>
+                                    </item>
+                                    <item>
+                                        <code>java.method.finalMethodAddedToNonFinalClass</code>
+                                        <classQualifiedName>pkg1.pkg2.WarClass</classQualifiedName>
                                         <justification>This incompat is here just check that the files in the war file actually got copied.</justification>
                                     </item>
                                 </revapi.ignore>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +53,7 @@ public class CheckSpecificConfigurationTest {
         }
 
         FakeCheck check = new FakeCheck();
-        JavaApiAnalyzer analyzer = new JavaApiAnalyzer(Collections.singleton(check));
+        JavaApiAnalyzer analyzer = new JavaApiAnalyzer(Collections.singleton(check), Collections.emptyList());
 
         analyzer.initialize(AnalysisContext.builder().build().copyWithConfiguration(ModelNode.fromJSONString("{}")));
 
@@ -81,7 +81,7 @@ public class CheckSpecificConfigurationTest {
             }
         }
 
-        JavaApiAnalyzer analyzer = new JavaApiAnalyzer(Collections.singleton(new FakeCheck()));
+        JavaApiAnalyzer analyzer = new JavaApiAnalyzer(Collections.singleton(new FakeCheck()), Collections.emptyList());
 
         try (Reader rdr = analyzer.getJSONSchema()) {
             ModelNode schema = ModelNode.fromJSONString(slurp(rdr));
@@ -117,7 +117,7 @@ public class CheckSpecificConfigurationTest {
         }
 
         FakeCheck check = new FakeCheck();
-        JavaApiAnalyzer analyzer = new JavaApiAnalyzer(Collections.singleton(check));
+        JavaApiAnalyzer analyzer = new JavaApiAnalyzer(Collections.singleton(check), Collections.emptyList());
         String config = "{\"checks\": {\"testCheck\": true}}";
 
         analyzer.initialize(AnalysisContext.builder().build().copyWithConfiguration(ModelNode.fromJSONString(config)));

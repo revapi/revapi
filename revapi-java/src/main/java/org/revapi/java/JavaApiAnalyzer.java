@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,12 +58,14 @@ import org.revapi.CoIterator;
 import org.revapi.CorrespondenceComparatorDeducer;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
+import org.revapi.configuration.Configurable;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.TypeElement;
+import org.revapi.java.spi.JarExtractor;
 import org.revapi.java.spi.Check;
 import org.revapi.java.spi.Util;
 import org.slf4j.Logger;
@@ -114,14 +116,21 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     private AnalysisContext analysisContext;
     private AnalysisConfiguration configuration;
     private final Iterable<Check> checks;
+    private final Iterable<JarExtractor> jarExtractors;
     private final List<CompilationValve> activeCompilations = new ArrayList<>(2);
 
     public JavaApiAnalyzer() {
-        this(ServiceLoader.load(Check.class, JavaApiAnalyzer.class.getClassLoader()));
+        this(serviceLoad(Check.class), serviceLoad(JarExtractor.class));
     }
 
-    public JavaApiAnalyzer(Iterable<Check> checks) {
+    private static <T> Iterable<T> serviceLoad(Class<T> type) {
+        return ServiceLoader.load(type, JavaApiAnalyzer.class.getClassLoader());
+    }
+
+    public JavaApiAnalyzer(Iterable<Check> checks,
+            Iterable<JarExtractor> archiveTransformers) {
         this.checks = checks;
+        this.jarExtractors = archiveTransformers;
     }
 
     @Override
@@ -488,9 +497,14 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         this.analysisContext = analysisContext;
         this.configuration = AnalysisConfiguration.fromModel(analysisContext.getConfiguration());
 
-        for (Check c : checks) {
+        configureExtensions("checks", checks);
+        configureExtensions("extract", jarExtractors);
+    }
+
+    private void configureExtensions(String rootNode, Iterable<? extends Configurable> exts) {
+        for (Configurable c : exts) {
             if (c.getExtensionId() != null) {
-                ModelNode checkConfig = analysisContext.getConfiguration().get("checks", c.getExtensionId());
+                ModelNode checkConfig = analysisContext.getConfiguration().get(rootNode, c.getExtensionId());
                 AnalysisContext checkCtx = analysisContext.copyWithConfiguration(checkConfig);
                 c.initialize(checkCtx);
             } else {
@@ -505,7 +519,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
         InclusionFilter inclusionFilter = composeInclusionFilter(configuration);
 
-        return new JavaArchiveAnalyzer(api, getExecutor(api), configuration.getMissingClassReporting(),
+        return new JavaArchiveAnalyzer(api, jarExtractors, getExecutor(api), configuration.getMissingClassReporting(),
                 ignoreMissingAnnotations, inclusionFilter);
     }
 

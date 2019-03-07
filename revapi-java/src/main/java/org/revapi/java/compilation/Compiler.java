@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -44,6 +45,7 @@ import javax.tools.ToolProvider;
 import org.revapi.Archive;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.Timing;
+import org.revapi.java.spi.JarExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,9 +61,13 @@ public final class Compiler {
     private final Iterable<? extends Archive> classPath;
     private final Iterable<? extends Archive> additionalClassPath;
     private final ExecutorService executor;
+    private final Iterable<JarExtractor> jarExtractors;
 
-    public Compiler(ExecutorService executor, Writer reportingOutput, Iterable<? extends Archive> classPath,
-        Iterable<? extends Archive> additionalClassPath) {
+    public Compiler(ExecutorService executor, Writer reportingOutput,
+            Iterable<JarExtractor> jarExtractors,
+            Iterable<? extends Archive> classPath,
+            Iterable<? extends Archive> additionalClassPath) {
+        this.jarExtractors = jarExtractors;
 
         compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
@@ -191,7 +197,7 @@ public final class Compiler {
 
             Path target = new File(parentDir, name).toPath();
 
-            try (InputStream data = a.openStream()) {
+            try (InputStream data = extracted(a)) {
                 Files.copy(data, target);
             } catch (IOException e) {
                 throw new IllegalStateException(
@@ -200,6 +206,17 @@ public final class Compiler {
         }
 
         return ret;
+    }
+
+    private InputStream extracted(Archive archive) throws IOException {
+        for (JarExtractor t : jarExtractors) {
+            Optional<InputStream> extracted = t.extract(archive);
+            if (extracted.isPresent()) {
+                return extracted.get();
+            }
+        }
+
+        return archive.openStream();
     }
 
     private int size(Iterable<?> collection) {
