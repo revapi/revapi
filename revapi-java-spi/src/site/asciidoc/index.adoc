@@ -3,3 +3,155 @@
 The SPI of the Revapi's Java extension exists so that other extensions can take advantage of the capabilities of the
 java extension - namely to analyze the java classes. The most interesting part of this section is therefore the
 link:apidocs/index.html[javadoc] of the SPI.
+
+The below two examples show the two major extension points of Revapi's Java checker:
+* the ability to define new checks
+* the ability to extract class files from custom archives
+
+== Enhancing Java API checks
+In this example it will be shown how to extend the Revapi's java API checking capabilities. We will use the
+link:apidocs/org/revapi/java/spi/Check.html[hook interface] into the java checking process that
+represents the Revapi's API elements as Java's own
+http://docs.oracle.com/javase/7/docs/api/javax/lang/model/package-summary.html[model elements].
+
+The checking framework then can use the Java plaform's own rich functionality for examining the classes in the checked
+libraries (note, that this API is NOT the reflection API, because it actually doesn't load the library classes into Java
+runtime).
+
+To make it actually useful, this example will show how to automatically ignore addition of any new methods on the EJB
+interfaces. While a new method on an interface is generally an API breakage, because the implementations that were
+developed against the old version of the interface would no longer be valid, this change is actually OK on EJB
+interfaces, because these are not supposed to be implemented by "callers" - the implementations are in control of
+the library that defines the EJBs.
+
+=== Project setup
+First we need to set up our maven project. We will be extending Revapi's Java extension that offers an SPI for doing so.
+In the `pom.xml`, we will specify that we want to use that SPI:
+
+```xml
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>my.group</groupId>
+    <artifactId>my.extension</artifactId>
+    <version>1.0.0</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-java-spi</artifactId>
+            <version>{version}</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+=== Code
+To ignore a found difference, we need to implement a
+link:../revapi/apidocs/org/revapi/DifferenceTransform.html[difference transform].
+
+```java
+package my.extension;
+
+import java.io.Reader;
+import java.util.regex.Pattern;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.ExecutableElement;
+
+import org.revapi.AnalysisContext;
+import org.revapi.Difference;
+import org.revapi.DifferenceTransform;
+import org.revapi.java.spi.JavaMethodElement;
+import org.revapi.java.spi.Util;
+
+public class IgnoreNewMethodsOnEJBInterfaces implements DifferenceTransform<JavaMethodElement> {
+    @Override
+    public Pattern[] getDifferenceCodePatterns() {
+        return new Pattern[] { Pattern.compile("java\\.method\\.addedToInterface") };
+    }
+
+    @Override
+    public Difference transform(JavaMethodElement oldElement, JavaMethodElement newElement,
+        Difference difference) {
+
+        // we know the element will be a JavaMethodElement. This is because we limit the
+        // differences passed into this method.
+        ExecutableElement method = newElement.getDeclaringElement();
+
+        // ok, so we got a reference to the method that caused the difference. Now we need to
+        // check whether the method was added to an EJB interface - we will just check whether
+        // the interface was annotated with the @Local or @Remote annotations.
+        for (AnnotationMirror annotation : method.getEnclosingElement().getAnnotationMirrors()) {
+            // the Util class in the Java SPI provides a number of useful methods to ease the work
+            // with the javax.lang.model objects.
+            String annotationTypeName = Util.toHumanReadableString(annotation.getAnnotationType());
+            if ("javax.ejb.Local".equals(annotationTypeName) ||
+                "javax.ejb.Remote".equals(annotationTypeName)) {
+
+                // ok, so we've found out that the type that declared the new method is indeed
+                // an EJB interface. By returning null, we tell Revapi to remove this difference.
+                return null;
+            }
+        }
+
+        // ok, this is not an EJB interface, so we leave the difference alone
+        return difference;
+    }
+
+    @Override
+    public void close() throws Exception {
+        // no resources to close...
+    }
+
+    @Override
+    public String[] getConfigurationRootPaths() {
+        // no configuration possible
+        return null;
+    }
+
+    @Override
+    public Reader getJSONSchema(String configurationRootPath) {
+        // no configuration possible
+        return null;
+    }
+
+    @Override
+    public void initialize(AnalysisContext analysisContext) {
+        // nothing needed here
+    }
+}
+```
+
+In addition to the code itself, the class needs to be registered as an Revapi extension. For that it needs to be made
+a java service. Create a file called `src/main/resources/META-INF/services/org.revapi.DifferenceTransform` and
+add a line to it with the fully qualified name of the above class, i.e `my.extension.IgnoreNewMethodsOnEJBInterfaces`.
+
+=== Usage
+
+Once installed into a maven repository (local or some public), our extension becomes useable by Revapi. Both the
+Revapi standalone and maven plugin support including new extensions by specifying their maven coordinates, see
+link:../../getting-started.html[Getting Started] for more details on that.
+
+== Handling new packaging of code
+Java code is not always packaged as JAR files. WAR files, Spring Boot fat JARs, etc, all re-package the code in
+custom ways which do not conform to or alter the default layout of a JAR file. Revapi doesn't know where to find
+significant classes of those artifacts (i.e. the classes that are unique to that artifact and not brought it from
+dependencies) and therefore fails to properly analyze them for the API changes.
+
+Fortunately, since `revapi-java-spi-0.18.0` and `revapi-java-0.19.0`, there is a new possibility to define custom ways
+of extracting files from the archives, the link:apidocs/org/revapi/java/spi/JarExtractor.html[JarExtractor].
+
+Implementations of this interface can be used to make Revapi "understand" new types of archives. Provided with an
+abstraction of an archive (with a name and a way to open an input stream with the data of the archive), the jar
+extractors are given a chance to transform the input stream of the archive in such a way that it looks like a JAR file
+with the classes unique to that archive.
+
+For example in the case of WAR files, such jar extractor should serve the classes from `WEB-INF/classes` but not
+the contents of the libraries from `WEB-INF/lib`, which is meant to contain the dependencies of the main classes. Revapi
+assumes that the dependencies of the main archive are supplied separately and thus it assumes that it already has access
+to the equivalents of the jars from `WEB-INF/lib`. What it does not know is how to extract "significant" classes from
+the WAR file itself that are not contained anywhere else.
+
+Well, actually, the above is a bit of a lie. `revapi-java` contains a default `JarExtractor` for handling WAR files
+already :)

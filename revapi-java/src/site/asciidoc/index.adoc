@@ -2883,131 +2883,57 @@ And the following elements will not be included in the analysis:
 This is the most "intuitive" result and probably the one the author of the library anticipated when they annotated
 the methods and classes with the annotations.
 
+== Handling Other Types of Archives
 
-== Enhancing Java API checks
-In this example it will be shown how to extend the Revapi's java API checking capabilities. To make it actually useful,
-this example will show how to automatically ignore addition of any new methods on the EJB interfaces. While a new method
-on an interface is generally an API breakage, because the implementations that were developed against the old version
-of the interface would no longer be valid, this change is actually OK on EJB interfaces, because these are not supposed
-to be implemented by "callers" - the implementations are in control of the library that defines the EJBs.
+Revapi understands JAR files. But java-based applications are not deployed just as JAR files. There are other types of
+artifacts like WAR files, EAR files, Spring Boot fat jars, etc. While these usually don't have any Java API as such that
+would be reusable in other Java code (i.e. such non-jar archives usually cannot function as libraries) and thus
+performing API checks might not be that crucial on them, it still might be useful to perform the API check on such
+archives (for whatever reason, you, my dear user, know best).
 
-=== Project setup
-First we need to set up our maven project. We will be extending Revapi's Java extension that offers an SPI for doing so.
-In the `pom.xml`, we will specify that we want to use that SPI:
+Since `revapi-java-spi-0.18.0` (used in `revapi-java-0.19.0`) the API check can be extended by `JarExtractor`
+implementations that can transform certain archives into "plain" JAR structure that Revapi will understand. See the
+link:../revapi-java-spi/index.html[SPI] documentation for more details.
+
+=== Handling WAR Archives
+
+`revapi-java` by default contains an implementation of `JarExtractor` that makes it
+understand the structure of WAR files and automatically assume classes from `WEB-INF/classes` as the classes of the
+archive (i.e. If any archive contains a directory called `/WEB-INF/classes/` it is automatically assumed that it is a
+WAR archive and only the contents of `/WEB-INF/classes/` is considered for API checks.
+
+The behavior of the WAR extractor is configurable. The below is the default configuration:
 
 ```xml
-<project>
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>my.group</groupId>
-    <artifactId>my.extension</artifactId>
-    <version>1.0.0</version>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-java-spi</artifactId>
-            <version>{version}</version>
-        </dependency>
-    </dependencies>
-</project>
+<revapi.java>
+  <extract>
+    <war>
+      <disabled>false</disabled> <.>
+      <scan>
+        <item> <.>
+          <archive>.*</archive> <.>
+          <prefixes>
+            <item>/WEB-INF/classes/</item> <.>
+          </prefixes>
+        </item>
+      </scan>
+    </war>
+  </extract>
+</revapi.java>
 ```
 
-=== Code
-To ignore a found difference, we need to implement a
-link:../revapi/apidocs/org/revapi/DifferenceTransform.html[difference transform].
+<1> The WAR file detection and extraction can be disabled (it is enabled by default)
+<2> There can be many ways to extract classes from different WAR archives
+<3> To limit how and what is extracted from different archives, you can specify a regex on the archive name
+<4> And specify a list of path prefixes that are supposed to contain the "significant" classes for the archive
 
-```java
-package my.extension;
-
-import java.io.Reader;
-import java.util.regex.Pattern;
-
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ExecutableElement;
-
-import org.revapi.AnalysisContext;
-import org.revapi.Difference;
-import org.revapi.DifferenceTransform;
-import org.revapi.java.spi.JavaMethodElement;
-import org.revapi.java.spi.Util;
-
-public class IgnoreNewMethodsOnEJBInterfaces implements DifferenceTransform<JavaMethodElement> {
-    @Override
-    public Pattern[] getDifferenceCodePatterns() {
-        return new Pattern[] { Pattern.compile("java\\.method\\.addedToInterface") };
-    }
-
-    @Override
-    public Difference transform(JavaMethodElement oldElement, JavaMethodElement newElement,
-        Difference difference) {
-
-        // we know the element will be a JavaMethodElement. This is because we limit the
-        // differences passed into this method.
-        ExecutableElement method = newElement.getDeclaringElement();
-
-        // ok, so we got a reference to the method that caused the difference. Now we need to
-        // check whether the method was added to an EJB interface - we will just check whether
-        // the interface was annotated with the @Local or @Remote annotations.
-        for (AnnotationMirror annotation : method.getEnclosingElement().getAnnotationMirrors()) {
-            // the Util class in the Java SPI provides a number of useful methods to ease the work
-            // with the javax.lang.model objects.
-            String annotationTypeName = Util.toHumanReadableString(annotation.getAnnotationType());
-            if ("javax.ejb.Local".equals(annotationTypeName) ||
-                "javax.ejb.Remote".equals(annotationTypeName)) {
-
-                // ok, so we've found out that the type that declared the new method is indeed
-                // an EJB interface. By returning null, we tell Revapi to remove this difference.
-                return null;
-            }
-        }
-
-        // ok, this is not an EJB interface, so we leave the difference alone
-        return difference;
-    }
-
-    @Override
-    public void close() throws Exception {
-        // no resources to close...
-    }
-
-    @Override
-    public String[] getConfigurationRootPaths() {
-        // no configuration possible
-        return null;
-    }
-
-    @Override
-    public Reader getJSONSchema(String configurationRootPath) {
-        // no configuration possible
-        return null;
-    }
-
-    @Override
-    public void initialize(AnalysisContext analysisContext) {
-        // nothing needed here
-    }
-}
-```
-
-In addition to the code itself, the class needs to be registered as an Revapi extension. For that it needs to be made
-a java service. Create a file called `src/main/resources/META-INF/services/org.revapi.DifferenceTransform` and
-add a line to it with the fully qualified name of the above class, i.e `my.extension.IgnoreNewMethodsOnEJBInterfaces`.
-
-=== Usage
-
-Once installed into a maven repository (local or some public), our extension becomes useable by Revapi. Both the
-Revapi standalone and maven plugin support including new extensions by specifying their maven coordinates, see
-link:../../getting-started.html[Getting Started] for more details on that.
-
+Given the above default configuration, you can see that the WAR extractor looks at all archives and if it finds any
+files under `/WEB-INF/classes/` the classes from there are the only ones considered during the API analysis.
 
 == SPI
 
-The Java extension can be augmented through its small
-link:../revapi-java-spi/index.html[SPI] that declares a
-link:../revapi-java-spi/apidocs/org/revapi/java/spi/Check.html[hook interface] into the java checking process that
-represents the Revapi's API elements as Java's own
-http://docs.oracle.com/javase/7/docs/api/javax/lang/model/package-summary.html[model elements]. The checking framework
-then can use the Java plaform's own rich functionality for examining the classes in the checked libraries (note, that
-this API is NOT the reflection API, because it actually doesn't load the library classes into Java runtime).
+The Java extension can be augmented through its small link:../revapi-java-spi/index.html[SPI]. Check it out for some
+examples on how to extend the functionality of the java checker by providing new checks or making it understand new
+kinds of archives.
+
 

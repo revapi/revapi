@@ -7,19 +7,25 @@
       "description": "If true then the extraction of classes from WAR files is disabled altogether.",
       "default": false
     },
-    "include": {
+    "scan": {
       "type": "array",
-      "description": "The list of regexes on names of archives to consider for war file classes extraction",
-      "items" : {
-        "type" : "string"
-      }
-    },
-    "exclude": {
-      "type": "array",
-      "description": "The list of regexes on names of archives to NOT consider for war file classes extraction",
-      "items" : {
-        "type" : "string"
-      }
+      "items": {
+        "type": "object",
+        "properties": {
+          "archive": {
+            "type": "string",
+            "description": "The regex of the name of the archive to match."
+          },
+          "prefixes": {
+            "type": "array",
+            "description": "The list of path prefixes to compose the \"JAR view\" from.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "default": [{"archive": ".*", "prefixes": ["/WEB-INF/classes/"]}]
     }
   }
 }

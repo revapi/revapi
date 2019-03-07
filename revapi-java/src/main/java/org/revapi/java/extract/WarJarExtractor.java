@@ -16,8 +16,9 @@
  */
 package org.revapi.java.extract;
 
-import static java.util.regex.Pattern.compile;
-import static java.util.stream.Collectors.toList;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toSet;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -28,9 +29,11 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
@@ -61,12 +64,16 @@ public class WarJarExtractor implements JarExtractor {
     private static final Logger LOG = LoggerFactory.getLogger(WarJarExtractor.class);
 
     private boolean doNothing;
-    private List<Pattern> includes;
-    private List<Pattern> excludes;
+    private Map<Pattern, Set<String>> scan;
 
     @Override
     public Optional<InputStream> extract(Archive archive) {
-        if (doNothing || !tryExtract(archive.getName())) {
+        if (doNothing) {
+            return Optional.empty();
+        }
+
+        Set<String> pathPatterns = getPrefixesToExtract(archive.getName());
+        if (pathPatterns.isEmpty()) {
             return Optional.empty();
         }
 
@@ -82,9 +89,9 @@ public class WarJarExtractor implements JarExtractor {
                 byte[] buf = new byte[32768];
 
                 ZipEntry inEntry = orig.getNextEntry();
-                int prefixLen = "WEB-INF/classes/".length();
                 while (inEntry != null) {
-                    if (inEntry.getName().startsWith("WEB-INF/classes/") && inEntry.getName().length() > prefixLen) {
+                    int prefixLen = getMatchedPathPrefixLength(inEntry.getName(), pathPatterns);
+                    if (prefixLen >= 0) {
                         isWarFile = true;
                         ZipEntry outEntry = new ZipEntry(inEntry.getName().substring(prefixLen));
 
@@ -123,6 +130,16 @@ public class WarJarExtractor implements JarExtractor {
         }
     }
 
+    private int getMatchedPathPrefixLength(String entryName, Set<String> prefixes) {
+        for (String prefix : prefixes) {
+            if (entryName.startsWith(prefix)) {
+                return prefix.length();
+            }
+        }
+
+        return  -1;
+    }
+
     private void cleanPath(Path path) {
         if (path != null) {
             try {
@@ -147,38 +164,56 @@ public class WarJarExtractor implements JarExtractor {
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
-        ModelNode include = analysisContext.getConfiguration().get("include");
-        ModelNode exclude = analysisContext.getConfiguration().get("exclude");
+        ModelNode scan = analysisContext.getConfiguration().get("scan");
         ModelNode disabled = analysisContext.getConfiguration().get("disabled");
 
         doNothing = disabled.isDefined() && disabled.asBoolean();
 
-        if (include.isDefined() && include.getType() == ModelType.LIST) {
-            List<ModelNode> includes = include.asList();
-            this.includes = includes.stream().map(n -> compile(n.asString())).collect(toList());
-        } else {
-            this.includes = Collections.emptyList();
+        if (doNothing) {
+            return;
         }
 
-        if (exclude.isDefined() && exclude.getType() == ModelType.LIST) {
-            List<ModelNode> excludes = exclude.asList();
-            this.excludes = excludes.stream().map(n -> compile(n.asString())).collect(toList());
+        if (scan.isDefined() && scan.getType() == ModelType.LIST) {
+            this.scan = new HashMap<>(scan.keys().size(), 1f);
+            for(ModelNode record : scan.asList()) {
+                ModelNode archiveNode = record.get("archive");
+                ModelNode prefixesNode = record.get("prefixes");
+
+                if (!archiveNode.isDefined() || !prefixesNode.isDefined()) {
+                    continue;
+                }
+
+                if (archiveNode.getType() != ModelType.STRING || prefixesNode.getType() != ModelType.LIST) {
+                    continue;
+                }
+
+                Pattern archive = Pattern.compile(archiveNode.asString());
+                Set<String> prefixes = prefixesNode.asList().stream()
+                        .map(ModelNode::asString)
+                        .map(v -> v.endsWith("/") ? v : (v + "/"))
+                        .collect(toSet());
+
+                this.scan.put(archive, prefixes);
+            }
         } else {
-            this.excludes = Collections.emptyList();
+            // set the default scan
+            this.scan = new HashMap<>(1, 1f);
+            this.scan.put(Pattern.compile(".*"), new HashSet<>(singletonList("/WEB-INF/classes/")));
         }
     }
 
-    private boolean tryExtract(String archiveName) {
-        boolean excluded = excludes.stream().anyMatch(p -> p.matcher(archiveName).matches());
-
-        if (excluded) {
-            return false;
+    private Set<String> getPrefixesToExtract(String archiveName) {
+        Set<String> ret = null;
+        for (Map.Entry<Pattern, Set<String>> e : scan.entrySet()) {
+            if (e.getKey().matcher(archiveName).matches()) {
+                if (ret == null) {
+                    ret = new HashSet<>(e.getValue());
+                } else {
+                    ret.addAll(e.getValue());
+                }
+            }
         }
 
-        if (includes.isEmpty()) {
-            return true;
-        } else {
-            return includes.stream().anyMatch(p -> p.matcher(archiveName).matches());
-        }
+        return ret == null ? emptySet() : ret;
     }
 }
