@@ -1,0 +1,22 @@
+== New Releases
+:docname: 20190308-releases
+
+The new releases of all components take advantage from the new features added to the core Revapi API.
+
+It is now possible to group transformations into blocks that act as a single transformation. This makes
+some interesting "transformation flows" possible while it also can avoid some "transformation ping-pong"
+where two transformations would transform a single difference back-and-forth resulting in analysis failure.
+For more details, see the https://revapi.org/architecture.html#difference_transform[docs].
+
+The `revapi-java` extension now uses a new extension point using which one can teach it to locate significant
+classes in non-standard packaging of archives. Check out the
+https://revapi.org/modules/revapi-java-spi/index.html#handling_new_packaging_of_code[docs].
+
+All the Revapi components were upgraded to be able to take advantage of these new features. Check out the
+https://revapi.org/downloads.html[downloads section] for the latest released versions.
+
+Thanks go out to https://github.com/jmax01[Jeff Maxwell] for reporting the problem with transformations that
+eventually led to the introduction of the transformation blocks and to 
+https://github.com/uhafner[Ullrich Hafner] for sparking up the idea that lead to `JarExtractor`.
+
+include::../util/disqus.adoc[]

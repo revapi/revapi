@@ -225,4 +225,18 @@
         The time has come to issue another set of releases.
     </content>
   </entry>
+  <entry>
+    <id>https://revapi.org/news/20190308-releases.html</id>
+    <title>New Releases</title>
+    <updated>2019-03-08T00:00:00+00:00</updated>
+    <published>2019-03-08T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20190308-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        Two new minor features to help in less common scenarios.
+    </summary>
+    <content type="html">
+        Two new minor features to help in less common scenarios.
+    </content>
+  </entry>
 </feed>
