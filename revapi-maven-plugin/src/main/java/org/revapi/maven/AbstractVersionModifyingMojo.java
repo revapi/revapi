@@ -350,7 +350,7 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         try {
             analyzer.resolveArtifacts();
 
-            if (analyzer.getResolvedOldApi() == null) {
+            if (analyzer.getResolvedOldApi() == null || analyzer.getResolvedOldApi().getArchives().isEmpty()) {
                 return null;
             } else {
                 try (AnalysisResult res = analyzer.analyze()) {
