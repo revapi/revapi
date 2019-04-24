@@ -15,4 +15,15 @@
 @REM limitations under the License.
 @REM
 
-java -cp lib/*;conf org.revapi.standalone.Main revapi.bat . %*
+@echo off
+
+if "%JAVA_HOME%" == "" (
+    set "JAVA_EXE=java"
+) else (
+    set "JAVA_EXE=%JAVA_HOME%\bin\java.exe"
+)
+
+set "mydir=%~dp0"
+
+"%JAVA_EXE%" -cp "%mydir%\lib\*;%mydir%\conf" org.revapi.standalone.Main revapi.bat . %*
+
