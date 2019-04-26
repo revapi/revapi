@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -198,7 +198,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "v1/methods/Overloads.java", "v2/methods/Overloads.java");
         List<Report> reports = reporter.getReports();
 
-        Assert.assertEquals(7, reports.size());
+        Assert.assertEquals(9, reports.size());
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
                 "method int Overloads::a(int)",
@@ -211,13 +211,18 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 Code.METHOD_RETURN_TYPE_CHANGED)));
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
-                "method void Overloads::a(int, long)",
-                "method void Overloads::a(int, long, float)",
-                Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED)));
+                "parameter void Overloads::a(===int===, long)",
+                "parameter void Overloads::a(===long===, int)",
+                Code.METHOD_PARAMETER_TYPE_CHANGED)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "parameter void Overloads::a(int, ===long===)",
+                "parameter void Overloads::a(long, ===int===)",
+                Code.METHOD_PARAMETER_TYPE_CHANGED)));
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
                 "method void Overloads::a(int, long, double, float)",
-                "method void Overloads::a(long, int)",
+                "method void Overloads::a(int, long, float)",
                 Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED)));
 
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
@@ -234,6 +239,11 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<java.lang.Long>===, int)",
                 "parameter void Overloads::c(java.lang.Class<? extends java.lang.Integer>, ===java.lang.Class<?>===, int)",
                 Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED)));
+
+        Assert.assertTrue(reports.stream().anyMatch(reportCheck(
+                "method void Overloads::d(int)",
+                "method java.lang.String Overloads::d(int)",
+                Code.METHOD_RETURN_TYPE_CHANGED)));
     }
 
     @Test

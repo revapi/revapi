@@ -31,6 +31,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -38,7 +39,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -65,8 +65,8 @@ import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.TypeElement;
-import org.revapi.java.spi.JarExtractor;
 import org.revapi.java.spi.Check;
+import org.revapi.java.spi.JarExtractor;
 import org.revapi.java.spi.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,7 +200,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         //iterate over the maps, sorted by name and assign the comparison index to the methods.
         //we iterate over the maps sorted by method name
         CoIterator<Map.Entry<String, List<MethodElement>>> coit = new CoIterator<>(l1MethodsIterator, l2MethodsIterator,
-                (e1, e2) -> e1.getKey().compareTo(e2.getKey()));
+                Comparator.comparing(Map.Entry::getKey));
 
         List<Element> l2MethodsInOrder = new ArrayList<>(l1MethodsSize);
         List<Element> l1MethodsInOrder = new ArrayList<>(l2MethodsSize);
@@ -257,17 +257,72 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                         bo = l1MethodOrder;
                     }
 
-                    for (MethodElement aMethod : as) {
-                        ao.put(aMethod, index);
-                        aio.add(aMethod);
+                    // we will sort the method pairs by the levenshtein distance of their signatures
+                    TreeMap<Integer, Map<MethodElement, List<MethodElement>>> methodsByDistance = new TreeMap<>();
 
-                        MethodElement bMethod = removeBestMatch(aMethod, bs);
-                        bo.put(bMethod, index++);
-                        bio.add(bMethod);
+                    int maxOverrides = bs.size();
+
+                    for (MethodElement ma : as) {
+                        String aRet = Util.toUniqueString(ma.getModelRepresentation().getReturnType());
+                        String aErasedRet = Util.toUniqueString(ma.getTypeEnvironment().getTypeUtils()
+                                .erasure(ma.getModelRepresentation().getReturnType()));
+
+                        List<String> aParams = methodParamsSignature(ma, false);
+                        List<String> aErasedParams = methodParamsSignature(ma, true);
+
+                        for (MethodElement mb : bs) {
+                            int distance = levenshteinDistance(aRet, aErasedRet, aParams, aErasedParams, mb);
+
+                            methodsByDistance
+                                    // we need to preserve the order so that the output is stable
+                                    .computeIfAbsent(distance, __ -> new LinkedHashMap<>())
+                                    .computeIfAbsent(ma, __ -> new ArrayList<>(maxOverrides))
+                                    .add(mb);
+                        }
+                    }
+
+                    // these are really used as identity hash sets, which the JDK lacks
+                    IdentityHashMap<MethodElement, Void> unmatchedAs = new IdentityHashMap<>();
+                    as.forEach(a -> unmatchedAs.put(a, null));
+                    IdentityHashMap<MethodElement, Void> unmatchedBs = new IdentityHashMap<>();
+                    bs.forEach(b -> unmatchedBs.put(b, null));
+
+                    // now, going in the direction of increasing distance between methods, look up the first matching
+                    // method pair that hasn't been processed yet.
+                    for (Map<MethodElement, List<MethodElement>> matchingMethods : methodsByDistance.values()) {
+                        for (Map.Entry<MethodElement, List<MethodElement>> e : matchingMethods.entrySet()) {
+                            MethodElement ma = e.getKey();
+                            List<MethodElement> mbs = e.getValue();
+
+                            if (!unmatchedAs.containsKey(ma)) {
+                                // we've already matched this method with something, so let's continue
+                                continue;
+                            }
+
+                            for (MethodElement mb : mbs) {
+                                if (!unmatchedBs.containsKey(mb)) {
+                                    // this method has been matched already with some other method - this means we've
+                                    // had a more precise match before.
+                                    continue;
+                                }
+
+                                unmatchedAs.remove(ma);
+                                unmatchedBs.remove(mb);
+
+                                ao.put(ma, index);
+                                aio.add(ma);
+                                bo.put(mb, index++);
+                                bio.add(mb);
+
+                                // we're only matching method pairs and we've just matched one. we need to find a less
+                                // precise match for the rest of the methods in mbs
+                                break;
+                            }
+                        }
                     }
 
                     //add the rest
-                    for (MethodElement m : bs) {
+                    for (MethodElement m : unmatchedBs.keySet()) {
                         bo.put(m, index++);
                         bio.add(m);
                     }
@@ -309,37 +364,6 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         elements.addAll(index, sortedMethods);
     }
 
-    private static MethodElement removeBestMatch(MethodElement blueprint, List<MethodElement> candidates) {
-        MethodElement best = null;
-        float maxScore = 0;
-        int bestIdx = -1;
-
-        List<String> fullBlueprintSignature = methodParamsSignature(blueprint, false);
-        List<String> erasedBlueprintSignature = methodParamsSignature(blueprint, true);
-
-        String fullBlueprintReturnType = Util.toUniqueString(blueprint.getModelRepresentation().getReturnType());
-        String erasedBlueprintReturnType = Util.toUniqueString(blueprint.getTypeEnvironment().getTypeUtils()
-                .erasure(blueprint.getModelRepresentation().getReturnType()));
-
-        int idx = 0;
-        for (MethodElement candidate : candidates) {
-            float score = computeMatchScore(fullBlueprintReturnType, fullBlueprintSignature,
-                    erasedBlueprintReturnType, erasedBlueprintSignature, candidate);
-            if (maxScore <= score) {
-                best = candidate;
-                maxScore = score;
-                bestIdx = idx;
-            }
-            idx++;
-        }
-
-        if (bestIdx != -1) {
-            candidates.remove(bestIdx);
-        }
-
-        return best;
-    }
-
     private static List<String> methodParamsSignature(MethodElement method, boolean erased) {
         if (erased) {
             Types types = method.getTypeEnvironment().getTypeUtils();
@@ -351,74 +375,67 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         }
     }
 
-    private static float computeMatchScore(String blueprintReturnType, List<String> blueprintParamSignature,
-            String erasedReturnType, List<String> erasedParamSignature, MethodElement method) {
+    private static int levenshteinDistance(String aRet, String aErasedRet, List<String> aParams,
+            List<String> aErasedParams, MethodElement mb) {
+        String bRet = Util.toUniqueString(mb.getModelRepresentation().getReturnType());
+        String bErasedRet = Util.toUniqueString(mb.getTypeEnvironment().getTypeUtils()
+                .erasure(mb.getModelRepresentation().getReturnType()));
 
-        String mRt = Util.toUniqueString(method.getModelRepresentation().getReturnType());
-        String emRt = Util.toUniqueString(method.getTypeEnvironment().getTypeUtils()
-                .erasure(method.getModelRepresentation().getReturnType()));
+        List<String> bParams = methodParamsSignature(mb, false);
+        List<String> bErasedParams = methodParamsSignature(mb, true);
 
-        List<String> mPs = methodParamsSignature(method, false);
-        List<String> emPs = methodParamsSignature(method, true);
+        int[][] d = new int[aParams.size() + 1][bParams.size() + 1];
 
+        //noinspection StatementWithEmptyBody
+        for (int i = 0; i < d.length; d[i][0] = i++) ;
+        //noinspection StatementWithEmptyBody
+        for (int i = 0; i < d[0].length; d[0][i] = i++) ;
 
-        //consider the return type as if it was another parameter
-        int maxParams = Math.max(blueprintParamSignature.size(), mPs.size()) + 1;
+        for (int i = 1; i < d.length; ++i) {
+            for (int j = 1; j < d[0].length; ++j) {
+                String a = aErasedParams.get(i - 1);
+                String b = bErasedParams.get(j - 1);
 
-        int commonParams = longestCommonSubsequenceLength(blueprintParamSignature, mPs,
-                (blueprintIndex, methodIndex) -> {
-
-                    String fullBlueprintSig = blueprintParamSignature.get(blueprintIndex);
-                    String erasedBlueprintSig = erasedParamSignature.get(blueprintIndex);
-
-                    String fullMethodSig = mPs.get(methodIndex);
-                    String erasedMethodSig = emPs.get(methodIndex);
-
-                    if (fullBlueprintSig.equals(fullMethodSig)) {
-                        return 2;
-                    } else if (erasedBlueprintSig.equals(erasedMethodSig)) {
-                        return 1;
+                int cost = a.equals(b) ? 0 : 1;
+                if (cost == 0) {
+                    if (i == 1) {
+                        a = aRet;
                     } else {
-                        return 0;
+                        a = aParams.get(i - 2);
                     }
-                });
 
-        //consider the return type as if it was another matching parameter
-        if (blueprintReturnType.equals(mRt)) {
-            commonParams += 2;
-        } else if (erasedReturnType.equals(emRt)) {
-            commonParams += 1;
-        }
+                    if (j == 1) {
+                        b = bRet;
+                    } else {
+                        b = bParams.get(j - 2);
+                    }
 
-        if (maxParams == 1) {
-            //both methods have no parameters
-            //we consider that fact a "complete match"
-            return commonParams + 2;
-        } else {
-            //just consider the return type as one of parameters
-            return ((float) commonParams) / maxParams;
-        }
-    }
-
-    private static int longestCommonSubsequenceLength(List<?> as, List<?> bs, BiFunction<Integer, Integer, Integer>
-            matchScoreFunction) {
-        int[][] lengths = new int[as.size() + 1][bs.size() + 1];
-        int maxLen = 0;
-        // row 0 and column 0 are initialized to 0 already
-        for (int i = 0; i < as.size(); i++) {
-            for (int j = 0; j < bs.size(); j++) {
-                int matchScore = matchScoreFunction.apply(i, j);
-
-                if (matchScore > 0) {
-                    maxLen = lengths[i + 1][j + 1] = lengths[i][j] + matchScore;
-                } else {
-                    lengths[i + 1][j + 1] =
-                            Math.max(lengths[i + 1][j], lengths[i][j + 1]);
+                    cost = a.equals(b) ? 0 : 1;
                 }
+
+                int min1 = d[i - 1][j] + 1;
+                int min2 = d[i][j - 1] + 1;
+                int min3 = d[i - 1][j - 1] + cost;
+                d[i][j] = Math.min(Math.min(min1, min2), min3);
             }
         }
 
-        return maxLen;
+        // we need to make sure that a change in just the return type is classified as "closer" than any change in
+        // the parameters. Let's just bump up the parameters distance by its maximum theoretical value (each param
+        // different). This will make sure that a single parameter change is always considered worse than just a
+        // return type change.
+        int paramsDistance = d[d.length - 1][d[0].length - 1];
+        if (paramsDistance > 0) {
+            paramsDistance += bParams.size() * aParams.size();
+        }
+
+        //now compute the difference of the return types
+        int retCost = aErasedRet.equals(bErasedRet) ? 0 : 1;
+        if (retCost == 0) {
+            retCost = aRet.equals(bRet) ? 0 : 1;
+        }
+
+        return retCost + paramsDistance;
     }
 
     private static int addAllMethods(Collection<? extends Element> els, TreeMap<String,
@@ -437,11 +454,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
 
     private static void add(MethodElement method, TreeMap<String, List<MethodElement>> methods) {
         String name = method.getDeclaringElement().getSimpleName().toString();
-        List<MethodElement> overloads = methods.get(name);
-        if (overloads == null) {
-            overloads = new ArrayList<>();
-            methods.put(name, overloads);
-        }
+        List<MethodElement> overloads = methods.computeIfAbsent(name, __ -> new ArrayList<>());
 
         overloads.add(method);
     }
