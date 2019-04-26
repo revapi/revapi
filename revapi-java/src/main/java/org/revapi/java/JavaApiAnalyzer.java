@@ -386,10 +386,13 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
 
         int[][] d = new int[aParams.size() + 1][bParams.size() + 1];
 
-        //noinspection StatementWithEmptyBody
-        for (int i = 0; i < d.length; d[i][0] = i++) ;
-        //noinspection StatementWithEmptyBody
-        for (int i = 0; i < d[0].length; d[0][i] = i++) ;
+        for (int i = 0; i < d.length; ++i) {
+            d[i][0] = i;
+        }
+
+        for (int i = 0; i < d[0].length; ++i) {
+            d[0][i] = i;
+        }
 
         for (int i = 1; i < d.length; ++i) {
             for (int j = 1; j < d[0].length; ++j) {
