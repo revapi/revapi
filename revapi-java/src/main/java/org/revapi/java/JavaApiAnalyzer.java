@@ -667,7 +667,9 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         ExecutorService ret = Executors.newSingleThreadExecutor(r -> {
             String as = StreamSupport.stream(api.getArchives().spliterator(), false)
                     .map(Archive::getName).collect(Collectors.joining(", "));
-            return new Thread(r, "Java API Compilation Thread for API of " + as);
+            Thread t = new Thread(r, "Java API Compilation Thread for API of " + as);
+            t.setDaemon(true);
+            return t;
         });
 
         compilationExecutors.add(ret);
