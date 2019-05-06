@@ -1,8 +1,8 @@
 language: java
 jdk:        
   - openjdk8  
-  - oraclejdk9
-
+  - openjdk11
+  
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
