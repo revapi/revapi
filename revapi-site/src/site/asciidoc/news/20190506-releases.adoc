@@ -1,0 +1,26 @@
+== New Releases
+:docname: 20190506-releases
+
+There comes another set of releases containing important bug fixes and new features.
+
+The new feature introduced in the last Revapi API 0.11.0 -
+https://revapi.org/architecture.html#difference_transform[transformation blocks] contained a bug that caused  problems
+to be reported several times. This now fixed through https://github.com/revapi/revapi/issues/152[#152].
+
+A long standing issue with overloaded methods resolution where the report picked a correct yet unintuitive pairs of
+old and new methods for problem reporting has been improved and should resolve the methods in a more natural way
+(https://github.com/revapi/revapi/issues/123[#123]).
+
+Finally, the version-modifying goals of the `revapi-maven-plugin` (e.g. `update-versions`) would fail if there was no
+prior version of the artifact. Now the goal should just leave the version be and do nothing as expected
+(https://github.com/revapi/revapi/146[#146]).
+
+There is an outstanding issue where the maven plugin seems to ignore the `skip` parameter and performs the analysis
+even if it is configured to not do so (https://github.com/revapi/revapi/issues/146[#146]). While I was not able to
+reproduce it myself yet, I would encourage anyone who has to contribute their findings to the bug.
+
+Thanks go out to https://github.com/Singleton06[Dustin Singleton] for finding the issue with transformation blocks,
+https://github.com/stevegutz[Steve Gutz] for identifying the problems with method overloads and
+https://github.com/brandstaetter[Hannes Brandstätter-Müller] for finding the issue with `update-versions`.
+
+include::../util/disqus.adoc[]

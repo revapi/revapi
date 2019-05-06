@@ -20,23 +20,21 @@
 <feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom">
   <id>https://revapi.org</id>
   <title>Revapi - Full-featured API checker for Java and beyond.</title>
-  <updated>2018-01-08T00:00:00+01:00</updated>
+  <updated>2018-05-06T00:00:00+01:00</updated>
   <link href="https://revapi.org/news.atom" rel="self" type="application/atom+xml" />
   <link href="https://revapi.org/" rel="alternate" type="text/html" />
   <entry>
-    <id>https://revapi.org/news/20170424-intro.html</id>
-    <title>Introducing Online API Difference Checking</title>
-    <updated>2017-04-25T00:00:00+00:00</updated>
-    <published>2017-04-25T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20170424-intro.html" rel="alternate" type="text/html" />
+    <id>https://revapi.org/news/20190506-releases.html</id>
+    <title>New Releases</title>
+    <updated>2019-05-06T00:00:00+00:00</updated>
+    <published>2019-05-06T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20190506-releases.html" rel="alternate" type="text/html" />
     <author>Lukas Krejci</author>
     <summary>
-      Starting today there is an online tool for checking the difference between different versions of libraries on
-      https://diff.revapi.org.
+        Bugfixes and improvements
     </summary>
     <content type="html">
-      Starting today there is an online tool for checking the difference between different versions of libraries on
-      <a href="https://diff.revapi.org">https://diff.revapi.org</a>.
+        Bugfixes and improvements
     </content>
   </entry>
   <entry>
