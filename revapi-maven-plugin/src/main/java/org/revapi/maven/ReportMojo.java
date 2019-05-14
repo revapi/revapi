@@ -372,6 +372,8 @@ public class ReportMojo extends AbstractMavenReport {
                 messages, "report.revapi.changes.potentiallyBreaking");
         reportDifferences(reporterWithResults.reportsBySeverity.get(DifferenceSeverity.NON_BREAKING), sink, messages,
                 "report.revapi.changes.nonBreaking");
+        reportDifferences(reporterWithResults.reportsBySeverity.get(DifferenceSeverity.EQUIVALENT), sink, messages,
+                "report.revapi.changes.equivalent");
     }
 
     @Override
