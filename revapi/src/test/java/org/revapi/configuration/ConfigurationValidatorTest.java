@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -170,7 +170,7 @@ public class ConfigurationValidatorTest {
     public void testRevapiValidation_mergeWithoutIds() throws Exception {
         //partial config of the extension
         String config1 = "[" +
-                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3,}}" +
+                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3}}" +
                 "]";
 
         //complete the config of the extension and add another config for another extension
