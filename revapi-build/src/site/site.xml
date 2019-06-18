@@ -31,16 +31,6 @@
 
   <body>
     <head><![CDATA[
-      <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-        ga('create', 'UA-57095904-1', 'auto');
-        ga('send', 'pageview');
-
-      </script>
       <link rel="alternate" type="application/rss+xml" title="Revapi News" href="${web.url}/news.atom" />
     ]]></head>
 
@@ -92,6 +82,21 @@
       </brand>
       <endContent>
         <script id="dsq-count-scr" src="//revapi-org.disqus.com/count.js" async="true"></script>
+        <!-- Fathom - simple website analytics - https://github.com/usefathom/fathom -->
+        <script>
+          (function(f, a, t, h, o, m){
+          a[h]=a[h]||function(){
+          (a[h].q=a[h].q||[]).push(arguments)
+          };
+          o=f.createElement('script'),
+          m=f.getElementsByTagName('script')[0];
+          o.async=1; o.src=t; o.id='fathom-script';
+          m.parentNode.insertBefore(o,m)
+          })(document, window, '//stats.revapi.org/tracker.js', 'fathom');
+          fathom('set', 'siteId', 'MDATT');
+          fathom('trackPageview');
+        </script>
+        <!-- / Fathom -->
       </endContent>
     </msb3Skin>
   </custom>
