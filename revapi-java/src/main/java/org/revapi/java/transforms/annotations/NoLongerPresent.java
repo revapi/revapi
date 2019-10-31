@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,45 +17,36 @@
 package org.revapi.java.transforms.annotations;
 
 import java.io.Reader;
-import java.util.Locale;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.ElementKind;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
-import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaTypeElement;
 
 /**
+ * @deprecated This transform is no longer used: removed annotations are treated
+ *             as removed classes.
+ *
  * @author Lukas Krejci
  * @since 0.3.0
  */
+@Deprecated
 public class NoLongerPresent implements DifferenceTransform<JavaTypeElement> {
-    private Locale locale;
 
     @Nonnull
     @Override
     public Pattern[] getDifferenceCodePatterns() {
-        return new Pattern[]{Pattern.compile("java\\.class\\.removed")};
+        return new Pattern[0];
     }
 
     @Override
     public @Nullable Difference transform(@Nullable JavaTypeElement oldElement, @Nullable JavaTypeElement newElement,
                                           @Nonnull Difference difference) {
-        if (oldElement == null || newElement != null) {
-            return difference;
-        }
-
-        if (oldElement.getDeclaringElement().getKind() == ElementKind.ANNOTATION_TYPE) {
-            return Code.ANNOTATION_NO_LONGER_PRESENT.createDifference(locale,
-                    Code.attachmentsFor(oldElement, newElement));
-        } else {
-            return difference;
-        }
+        return difference;
     }
 
     @Override
@@ -74,6 +65,5 @@ public class NoLongerPresent implements DifferenceTransform<JavaTypeElement> {
 
     @Override
     public void initialize(AnalysisContext analysisContext) {
-        this.locale = analysisContext.getLocale();
     }
 }
