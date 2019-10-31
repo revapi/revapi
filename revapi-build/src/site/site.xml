@@ -38,6 +38,7 @@
       <item name="Online Check" href="https://diff.revapi.org"/>
       <item name="News" href="${web.url}/news.html"/>
       <item name="Getting Started" href="${web.url}/getting-started.html"/>
+      <item name="FAQ" href="${web.url}/faq.html"/>
       <item name="Downloads" href="${web.url}/downloads.html"/>
     </links>
 
