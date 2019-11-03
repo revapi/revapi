@@ -84,7 +84,7 @@
             <dependency>
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-site-shared</artifactId>
-                <version>${version.org.revapi.revapi-site-shared}</version>
+                <version>4-SNAPSHOT</version>
                 <type>zip</type>
                 <classifier>resources</classifier>
             </dependency>
