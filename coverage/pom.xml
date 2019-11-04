@@ -114,7 +114,7 @@
                                 <id>update-to-snapshots</id>
                                 <configuration>
                                     <includes combine.self="override">
-                                        <item>--none--</item>
+                                        <item>org.revapi:revapi-build</item>
                                     </includes>
                                 </configuration>
                             </execution>
