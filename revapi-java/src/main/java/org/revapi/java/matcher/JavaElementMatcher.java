@@ -43,12 +43,12 @@ import org.revapi.FilterFinishResult;
 import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
-import org.revapi.classif.Classif;
-import org.revapi.classif.MatchingProgress;
 import org.revapi.classif.ModelInspector;
 import org.revapi.classif.StructuralMatcher;
 import org.revapi.classif.TestResult;
-import org.revapi.classif.WalkInstruction;
+import org.revapi.classif.dsl.ClassifDSL;
+import org.revapi.classif.progress.MatchingProgress;
+import org.revapi.classif.progress.WalkInstruction;
 import org.revapi.java.JavaArchiveAnalyzer;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
@@ -67,7 +67,7 @@ public final class JavaElementMatcher implements ElementMatcher {
     @Override
     public Optional<CompiledRecipe> compile(String recipe) {
         try {
-            StructuralMatcher matcher = Classif.compile(recipe);
+            StructuralMatcher matcher = ClassifDSL.compile(recipe);
 
             return Optional.of(archiveAnalyzer -> {
                 if (!(archiveAnalyzer instanceof JavaArchiveAnalyzer)) {

@@ -168,7 +168,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
                 .withConfigurationFromJSON("{\"revapi\": {\"filter\": {" +
-                        "\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class C;\"}]}}}}").build();
+                        "\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class C {}\"}]}}}}").build();
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             res.throwIfFailed();
@@ -201,7 +201,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
                 .withConfigurationFromJSON("{\"revapi\": {" +
-                        "\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"match %c | %b; class %c=C; class %b=B.T$2;\"}]}}}}").build();
+                        "\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"match %c | %b; class %c=C {} class %b=B.T$2 {}\"}]}}}}").build();
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
             res.throwIfFailed();

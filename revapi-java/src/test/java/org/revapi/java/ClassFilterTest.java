@@ -49,7 +49,7 @@ import org.revapi.simple.SimpleElementFilter;
 public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testFilterByName_exclude() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A;\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A {}\"}]}}}}",
                 Stream.of(
                         "class classfilter.B",
                         "field classfilter.B.field",
@@ -63,7 +63,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testFilterByName_include() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A;\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A {}\"}]}}}}",
                 Stream.of(
                         "class classfilter.A",
                         "method void classfilter.A::m()",
@@ -78,8 +78,8 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testInnerClassExclusionOverride() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A;\"}]," +
-                " \"include\": [{\"matcher\": \"matcher.java\", \"match\": \"match %a|%b; class %a=classfilter.A.AA.AAA; class %b=classfilter.B;\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A {}\"}]," +
+                " \"include\": [{\"matcher\": \"matcher.java\", \"match\": \"match %a|%b; class %a=classfilter.A.AA.AAA {} class %b=classfilter.B {}\"}]}}}}",
                 Stream.of(
                         "class classfilter.A.AA.AAA",
                         "method void classfilter.A.AA.AAA::<init>()",
