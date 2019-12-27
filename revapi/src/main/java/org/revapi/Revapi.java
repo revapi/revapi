@@ -17,6 +17,7 @@
 package org.revapi;
 
 import static java.util.Collections.emptySortedSet;
+import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -29,6 +30,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -217,7 +219,9 @@ public final class Revapi {
                     inst = instantiate(cc);
                 }
 
-                String instanceId = config.get("id").asString();
+                ModelNode idNode = config.get("id");
+
+                String instanceId = idNode.isDefined() ? idNode.asString() : null;
 
                 ExtensionInstance<T> key = new ExtensionInstance<>(inst, instanceId);
 
@@ -818,6 +822,7 @@ public final class Revapi {
             Set<List<DifferenceTransform<?>>> ret = new HashSet<>();
 
             Map<String, List<DifferenceTransform<?>>> transformsById = new HashMap<>();
+            Set<DifferenceTransform<?>> allTransforms = newSetFromMap(new IdentityHashMap<>());
             for (ExtensionInstance<DifferenceTransform<?>> t : extensions.getTransforms().keySet()) {
                 String configurationId = t.getId();
                 String extensionId = t.getInstance().getExtensionId();
@@ -826,6 +831,7 @@ public final class Revapi {
                     transformsById.computeIfAbsent(configurationId, __ -> new ArrayList<>()).add(t.getInstance());
                 }
                 transformsById.computeIfAbsent(extensionId, __ -> new ArrayList<>()).add(t.getInstance());
+                allTransforms.add(t.getInstance());
             }
 
             for (List<String> ids : configuration.getTransformationBlocks()) {
@@ -844,7 +850,9 @@ public final class Revapi {
                                 " explicit id '" + id + "'. Please fix the pipeline configuration and use unique ids" +
                                 " for extension configurations.");
                     } else {
-                        ts.add(candidates.get(0));
+                        DifferenceTransform<?> t = candidates.get(0);
+                        ts.add(t);
+                        allTransforms.remove(t);
                     }
                 }
 
@@ -854,7 +862,7 @@ public final class Revapi {
             // now we're left with the transformations that are not grouped into any explicit blocks. Let's make them
             // single-element blocks
 
-            transformsById.values().stream().flatMap(List::stream).forEach(t -> ret.add(singletonList(t)));
+            allTransforms.forEach(t -> ret.add(singletonList(t)));
 
             return ret;
         }

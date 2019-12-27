@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +49,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.revapi.AnalysisResult;
+import org.revapi.Archive;
 
 /**
  * @author Lukas Krejci
@@ -352,20 +353,25 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
 
             if (analyzer.getResolvedOldApi() == null) {
                 return null;
-            } else {
-                try (AnalysisResult res = analyzer.analyze()) {
-                    res.throwIfFailed();
+            }
 
-                    ApiBreakageHintingReporter reporter =
-                            res.getExtensions().getFirstExtension(ApiBreakageHintingReporter.class, null);
+            Iterator<? extends Archive> it = analyzer.getResolvedOldApi().getArchives().iterator();
+            if (!it.hasNext()) {
+                return null;
+            }
 
-                    ApiChangeLevel level = reporter.getChangeLevel();
-                    String baseVersion = ((MavenArchive) analyzer.getResolvedOldApi().getArchives().iterator().next())
-                            .getVersion();
+            MavenArchive old = (MavenArchive) it.next();
 
-                    return new AnalysisResults(level, baseVersion);
-                }
+            try (AnalysisResult res = analyzer.analyze()) {
+                res.throwIfFailed();
 
+                ApiBreakageHintingReporter reporter =
+                        res.getExtensions().getFirstExtension(ApiBreakageHintingReporter.class, null);
+
+                ApiChangeLevel level = reporter.getChangeLevel();
+                String baseVersion = old.getVersion();
+
+                return new AnalysisResults(level, baseVersion);
             }
         } catch (Exception e) {
             throw new MojoExecutionException("Analysis failure", e);

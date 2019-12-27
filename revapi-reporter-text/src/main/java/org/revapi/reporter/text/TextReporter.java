@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -193,7 +193,7 @@ public class TextReporter implements Reporter {
         template = null;
         try {
             template = templatePath == null
-                    ? freeMarker.getTemplate("default-template-with-improbable-name@@#(*&$)(.ftl")
+                    ? freeMarker.getTemplate("default-template-with-improbable-name.ftl")
                     : freeMarker.getTemplate(templatePath);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to initialize the freemarker template.", e);

@@ -41,6 +41,13 @@ release can be thoroughly checked before its made public.
 
 . Go to http://oss.sonatype.org, log in and check that the artifacts are ready to be published.
 
+. From the root of the checkout, run this command to use the latest snapshots of the revapi modules:
+
+  mvn validate -Pversion-snapshots
+[]
+and commit the changes if any have been made (depends on what the next development versions have been set during 
+the release).
+
 . On the command line push the changes to the github repo (assuming `origin` is the remote of the main revapi's
 repository):
 

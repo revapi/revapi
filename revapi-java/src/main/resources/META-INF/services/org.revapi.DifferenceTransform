@@ -16,7 +16,6 @@
 
 org.revapi.java.transforms.annotations.NoLongerDeprecated
 org.revapi.java.transforms.annotations.NoLongerInherited
-org.revapi.java.transforms.annotations.NoLongerPresent
 org.revapi.java.transforms.annotations.NowDeprecated
 org.revapi.java.transforms.annotations.NowInherited
 org.revapi.java.transforms.methods.AnnotationTypeAttributeAdded

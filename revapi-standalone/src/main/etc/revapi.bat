@@ -1,5 +1,5 @@
 @REM
-@REM Copyright 2014-2017 Lukas Krejci
+@REM Copyright 2014-2019 Lukas Krejci
 @REM and other contributors as indicated by the @author tags.
 @REM
 @REM Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,4 +15,15 @@
 @REM limitations under the License.
 @REM
 
-echo "DON'T USE WINDOWS. It's bad for your health.."
+@echo off
+
+if "%JAVA_HOME%" == "" (
+    set "JAVA_EXE=java"
+) else (
+    set "JAVA_EXE=%JAVA_HOME%\bin\java.exe"
+)
+
+set "mydir=%~dp0"
+
+"%JAVA_EXE%" -cp "%mydir%\lib\*;%mydir%\conf" org.revapi.standalone.Main revapi.bat . %*
+

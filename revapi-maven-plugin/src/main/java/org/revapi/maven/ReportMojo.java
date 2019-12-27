@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -372,6 +372,8 @@ public class ReportMojo extends AbstractMavenReport {
                 messages, "report.revapi.changes.potentiallyBreaking");
         reportDifferences(reporterWithResults.reportsBySeverity.get(DifferenceSeverity.NON_BREAKING), sink, messages,
                 "report.revapi.changes.nonBreaking");
+        reportDifferences(reporterWithResults.reportsBySeverity.get(DifferenceSeverity.EQUIVALENT), sink, messages,
+                "report.revapi.changes.equivalent");
     }
 
     @Override
@@ -434,14 +436,14 @@ public class ReportMojo extends AbstractMavenReport {
                 .withContextData(contextData)
                 .build();
 
-        if (res.skip || !res.isOnClasspath) {
+        if (res.skip) {
             this.skip = true;
         }
 
         this.oldArtifacts = res.oldArtifacts;
         this.newArtifacts = res.newArtifacts;
 
-        return res.isOnClasspath ? res.analyzer : null;
+        return res.analyzer;
     }
 
     private void ensureAnalyzed(Locale locale) {

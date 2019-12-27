@@ -16,6 +16,8 @@
  */
 package org.revapi.java;
 
+import static java.util.Collections.emptyList;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
@@ -49,7 +51,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null, false
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false
         );
 
         try {
@@ -79,7 +81,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             .addAsResource(compRes.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class");
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
-                Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
+                Arrays.asList(new ShrinkwrapArchive(sup))), emptyList(), Executors.newSingleThreadExecutor(), null,
                 false);
 
         try {
@@ -111,7 +113,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null, false
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false
         );
 
         try {
@@ -161,7 +163,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 .addAsResource(compRes.compilationPath.resolve("GenericsParams$Unused.class").toFile(), "GenericsParams$Unused.class");
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(Arrays.asList(new ShrinkwrapArchive(api)),
-                Arrays.asList(new ShrinkwrapArchive(sup))), Executors.newSingleThreadExecutor(), null,
+                Arrays.asList(new ShrinkwrapArchive(sup))), emptyList(), Executors.newSingleThreadExecutor(), null,
                 false);
 
         try {
@@ -190,7 +192,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), Executors.newSingleThreadExecutor(), null, false);
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());

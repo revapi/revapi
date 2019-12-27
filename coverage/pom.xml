@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2018 Lukas Krejci
+    Copyright 2014-2019 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>38-SNAPSHOT</version>
+        <version>40-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
 
@@ -98,5 +98,31 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>version-snapshots</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <!-- we don't need the dependency version reset by the update-to-snapshots execution here -->
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>versions-maven-plugin</artifactId>
+                        <version>2.7</version>
+                        <executions>
+                            <execution>
+                                <id>update-to-snapshots</id>
+                                <configuration>
+                                    <includes combine.self="override">
+                                        <item>org.revapi:revapi-build</item>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
 

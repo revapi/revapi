@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
 
-    Copyright 2014-2018 Lukas Krejci
+    Copyright 2014-2019 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,89 +20,137 @@
 <feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom">
   <id>https://revapi.org</id>
   <title>Revapi - Full-featured API checker for Java and beyond.</title>
-  <updated>2018-01-08T00:00:00+01:00</updated>
+  <updated>2018-05-06T00:00:00+01:00</updated>
   <link href="https://revapi.org/news.atom" rel="self" type="application/atom+xml" />
   <link href="https://revapi.org/" rel="alternate" type="text/html" />
   <entry>
-    <id>https://revapi.org/news/20170424-intro.html</id>
-    <title>Introducing Online API Difference Checking</title>
-    <updated>2017-04-25T00:00:00+00:00</updated>
-    <published>2017-04-25T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20170424-intro.html" rel="alternate" type="text/html" />
-    <author>Lukas Krejci</author>
-    <summary>
-      Starting today there is an online tool for checking the difference between different versions of libraries on
-      https://diff.revapi.org.
-    </summary>
-    <content type="html">
-      Starting today there is an online tool for checking the difference between different versions of libraries on
-      <a href="https://diff.revapi.org">https://diff.revapi.org</a>.
-    </content>
-  </entry>
-  <entry>
-    <id>https://revapi.org/news/20170712-releases.html</id>
-    <title>New Releases and Updates to The Site</title>
-    <updated>2017-07-12T00:00:00+00:00</updated>
-    <published>2017-07-12T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20170712-releases.html" rel="alternate" type="text/html" />
-    <author>Lukas Krejci</author>
-    <summary>
-      After a couple of silent weeks I've finally managed to release new versions of the Revapi components. There are exactly
-      2 fixes, one new feature and many improvements to the site.
-    </summary>
-    <content type="html">
-      After a couple of silent weeks I've finally managed to release new versions of the Revapi components. There are exactly
-      2 fixes, one new feature and many improvements to the site.
-    </content>
-  </entry>
-  <entry>
-    <id>https://revapi.org/news/20171015-releases.html</id>
+    <id>https://revapi.org/news/20190506-releases.html</id>
     <title>New Releases</title>
-    <updated>2017-10-15T00:00:00+00:00</updated>
-    <published>2017-10-15T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20171015-releases.html" rel="alternate" type="text/html" />
+    <updated>2019-05-06T00:00:00+00:00</updated>
+    <published>2019-05-06T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20190506-releases.html" rel="alternate" type="text/html" />
     <author>Lukas Krejci</author>
     <summary>
-        There hasn't been much public progress on Revapi lately but it nevertheless slowly crawls forward in its quest to become the best programming API checking tool in the multiverse :)
+        Bugfixes and improvements
     </summary>
     <content type="html">
-      There hasn't been much public progress on Revapi lately but it nevertheless slowly crawls forward in its quest to become the best programming API checking tool in the multiverse :)
+        Bugfixes and improvements
     </content>
   </entry>
   <entry>
-    <id>https://revapi.org/news/20171029-compatibility-release.html</id>
-    <title>New Releases Restoring Compatibility</title>
-    <updated>2017-10-29T00:00:00+00:00</updated>
-    <published>2017-10-29T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20171029-compatibility-release.html" rel="alternate" type="text/html" />
+    <id>https://revapi.org/news/20190308-releases.html</id>
+    <title>New Releases</title>
+    <updated>2019-03-08T00:00:00+00:00</updated>
+    <published>2019-03-08T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20190308-releases.html" rel="alternate" type="text/html" />
     <author>Lukas Krejci</author>
     <summary>
-        Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
-        plugin. This has proven to be problematic and the last releases could not be used with
-        Java 8. This should be now fixed and compatibility with Java 8 restored.
+        Two new minor features to help in less common scenarios.
     </summary>
     <content type="html">
-      Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
-      plugin. This has proven to be problematic and the last releases could not be used with
-      Java 8. This should be now fixed and compatibility with Java 8 restored.
+        Two new minor features to help in less common scenarios.
     </content>
   </entry>
   <entry>
-    <id>https://revapi.org/news/20171031-revapi-java-release.html</id>
-    <title>New Revapi Java Extension Release</title>
-    <updated>2017-10-31T00:00:00+00:00</updated>
-    <published>2017-10-31T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20171031-revapi-java-release.html" rel="alternate" type="text/html" />
+    <id>https://revapi.org/news/20180626-releases.html</id>
+    <title>New Releases</title>
+    <updated>2018-06-26T00:00:00+00:00</updated>
+    <published>2018-06-26T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180626-releases.html" rel="alternate" type="text/html" />
     <author>Lukas Krejci</author>
     <summary>
-        It was discovered that the analysis may fail if it encounters classes that are missing from the dependency graph
-        in certain situations. This should now be fixed and all users are encouraged to upgrade to using
-        revapi-java-0.14.4 if possible.
+        The time has come to issue another set of releases.
     </summary>
     <content type="html">
-        It was discovered that the analysis may fail if it encounters classes that are missing from the dependency graph
-        in certain situations. This should now be fixed and all users are encouraged to upgrade to using
-        revapi-java-0.14.4 if possible.
+        The time has come to issue another set of releases.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20180523-fixes.html</id>
+    <title>Regression fixes</title>
+    <updated>2018-05-23T00:00:00+00:00</updated>
+    <published>2018-05-23T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180523-fixes.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        After the last week's new releases a regression has been discovered which warranted a quick new release.
+    </summary>
+    <content type="html">
+        After the last week's new releases a regression has been discovered which warranted a quick new release.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20180516-releases.html</id>
+    <title>Speedup and fixes</title>
+    <updated>2018-05-16T00:00:00+00:00</updated>
+    <published>2018-05-16T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180516-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        After the great feedback from the community, new versions of the various Revapi components were released.
+    </summary>
+    <content type="html">
+        After the great feedback from the community, new versions of the various Revapi components were released.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20180406-new-check-and-2-fixes.html</id>
+    <title>New Check and 2 Fixes</title>
+    <updated>2018-04-06T00:00:00+00:00</updated>
+    <published>2018-04-06T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180406-new-check-and-2-fixes.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        New releases of components to incorporate a new Java check and fixes for 2 issues.
+    </summary>
+    <content type="html">
+        New releases of components to incorporate a new Java check and fixes for 2 issues.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20180125-revapi-java-release.html</id>
+    <title>Revapi Java Extension 0.15.1 Released</title>
+    <updated>2018-01-25T00:00:00+00:00</updated>
+    <published>2018-01-25T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180125-revapi-java-release.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        Shortly after releasing version 0.15.0, there is a new `revapi-java` extension release that fixes a regression which
+        caused inherited methods to seemingly break API in classes that were present in excluded archives (wow, a mouthful).
+    </summary>
+    <content type="html">
+        Shortly after releasing version 0.15.0, there is a new `revapi-java` extension release that fixes a regression which
+        caused inherited methods to seemingly break API in classes that were present in excluded archives (wow, a mouthful).
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20180119-releases.html</id>
+    <title>New Releases and Updates to the Site</title>
+    <updated>2018-01-19T00:00:00+00:00</updated>
+    <published>2018-01-19T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180119-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+	oday, I've released new versions of all revapi components (required by an API change in the core revapi API). Also,
+    the Revapi site underwent a couple of changes worth mentioning.
+    </summary>
+    <content type="html">
+        oday, I've released new versions of all revapi components (required by an API change in the core revapi API). Also,
+        the Revapi site underwent a couple of changes worth mentioning.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20180108-diff.revapi.org-back-up.html</id>
+    <title>diff.revapi.org Back Up</title>
+    <updated>2018-01-08T00:00:00+00:00</updated>
+    <published>2018-01-08T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20180108-diff.revapi.org-back-up.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+	The diff.revapi.org site should be back up now.
+    </summary>
+    <content type="html">
+        The diff.revapi.org site should be back up now.
     </content>
   </entry>
   <entry>
@@ -124,105 +172,85 @@
     </content>
   </entry>
   <entry>
-    <id>https://revapi.org/news/20180108-diff.revapi.org-back-up.html</id>
-    <title>diff.revapi.org Back Up</title>
-    <updated>2018-01-08T00:00:00+00:00</updated>
-    <published>2018-01-08T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20180108-diff.revapi.org-back-up.html" rel="alternate" type="text/html" />
+    <id>https://revapi.org/news/20171031-revapi-java-release.html</id>
+    <title>New Revapi Java Extension Release</title>
+    <updated>2017-10-31T00:00:00+00:00</updated>
+    <published>2017-10-31T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20171031-revapi-java-release.html" rel="alternate" type="text/html" />
     <author>Lukas Krejci</author>
     <summary>
-	The diff.revapi.org site should be back up now.
+        It was discovered that the analysis may fail if it encounters classes that are missing from the dependency graph
+        in certain situations. This should now be fixed and all users are encouraged to upgrade to using
+        revapi-java-0.14.4 if possible.
     </summary>
     <content type="html">
-        The diff.revapi.org site should be back up now.
+        It was discovered that the analysis may fail if it encounters classes that are missing from the dependency graph
+        in certain situations. This should now be fixed and all users are encouraged to upgrade to using
+        revapi-java-0.14.4 if possible.
     </content>
   </entry>
   <entry>
-    <id>https://revapi.org/news/20180119-releases.html</id>
-    <title>New Releases and Updates to the Site</title>
-    <updated>2018-01-19T00:00:00+00:00</updated>
-    <published>2018-01-19T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20180119-releases.html" rel="alternate" type="text/html" />
+    <id>https://revapi.org/news/20171029-compatibility-release.html</id>
+    <title>New Releases Restoring Compatibility</title>
+    <updated>2017-10-29T00:00:00+00:00</updated>
+    <published>2017-10-29T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20171029-compatibility-release.html" rel="alternate" type="text/html" />
     <author>Lukas Krejci</author>
     <summary>
-	oday, I've released new versions of all revapi components (required by an API change in the core revapi API). Also,
-    the Revapi site underwent a couple of changes worth mentioning.
+        Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
+        plugin. This has proven to be problematic and the last releases could not be used with
+        Java 8. This should be now fixed and compatibility with Java 8 restored.
     </summary>
     <content type="html">
-        oday, I've released new versions of all revapi components (required by an API change in the core revapi API). Also,
-        the Revapi site underwent a couple of changes worth mentioning.
+      Revapi has started to use Java 9 for building while maintaining compatibility with Java 8 using the Animal Sniffer Maven
+      plugin. This has proven to be problematic and the last releases could not be used with
+      Java 8. This should be now fixed and compatibility with Java 8 restored.
     </content>
   </entry>
   <entry>
-    <id>https://revapi.org/news/20180125-revapi-java-release.html</id>
-    <title>Revapi Java Extension 0.15.1 Released</title>
-    <updated>2018-01-25T00:00:00+00:00</updated>
-    <published>2018-01-25T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20180125-revapi-java-release.html" rel="alternate" type="text/html" />
-    <author>Lukas Krejci</author>
-    <summary>
-        Shortly after releasing version 0.15.0, there is a new `revapi-java` extension release that fixes a regression which
-        caused inherited methods to seemingly break API in classes that were present in excluded archives (wow, a mouthful).
-    </summary>
-    <content type="html">
-        Shortly after releasing version 0.15.0, there is a new `revapi-java` extension release that fixes a regression which
-        caused inherited methods to seemingly break API in classes that were present in excluded archives (wow, a mouthful).
-    </content>
-  </entry>
-  <entry>
-    <id>https://revapi.org/news/20180406-new-check-and-2-fixes.html</id>
-    <title>New Check and 2 Fixes</title>
-    <updated>2018-04-06T00:00:00+00:00</updated>
-    <published>2018-04-06T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20180406-new-check-and-2-fixes.html" rel="alternate" type="text/html" />
-    <author>Lukas Krejci</author>
-    <summary>
-        New releases of components to incorporate a new Java check and fixes for 2 issues.
-    </summary>
-    <content type="html">
-        New releases of components to incorporate a new Java check and fixes for 2 issues.
-    </content>
-  </entry>
-  <entry>
-    <id>https://revapi.org/news/20180516-releases.html</id>
-    <title>Speedup and fixes</title>
-    <updated>2018-05-16T00:00:00+00:00</updated>
-    <published>2018-05-16T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20180516-releases.html" rel="alternate" type="text/html" />
-    <author>Lukas Krejci</author>
-    <summary>
-        After the great feedback from the community, new versions of the various Revapi components were released.
-    </summary>
-    <content type="html">
-        After the great feedback from the community, new versions of the various Revapi components were released.
-    </content>
-  </entry>
-  <entry>
-    <id>https://revapi.org/news/20180523-fixes.html</id>
-    <title>Regression fixes</title>
-    <updated>2018-05-23T00:00:00+00:00</updated>
-    <published>2018-05-23T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20180523-fixes.html" rel="alternate" type="text/html" />
-    <author>Lukas Krejci</author>
-    <summary>
-        After the last week's new releases a regression has been discovered which warranted a quick new release.
-    </summary>
-    <content type="html">
-        After the last week's new releases a regression has been discovered which warranted a quick new release.
-    </content>
-  </entry>
-  <entry>
-    <id>https://revapi.org/news/20180626-releases.html</id>
+    <id>https://revapi.org/news/20171015-releases.html</id>
     <title>New Releases</title>
-    <updated>2018-06-26T00:00:00+00:00</updated>
-    <published>2018-06-26T00:00:00+00:00</published>
-    <link href="https://revapi.org/news/20180626-releases.html" rel="alternate" type="text/html" />
+    <updated>2017-10-15T00:00:00+00:00</updated>
+    <published>2017-10-15T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20171015-releases.html" rel="alternate" type="text/html" />
     <author>Lukas Krejci</author>
     <summary>
-        The time has come to issue another set of releases.
+        There hasn't been much public progress on Revapi lately but it nevertheless slowly crawls forward in its quest to become the best programming API checking tool in the multiverse :)
     </summary>
     <content type="html">
-        The time has come to issue another set of releases.
+      There hasn't been much public progress on Revapi lately but it nevertheless slowly crawls forward in its quest to become the best programming API checking tool in the multiverse :)
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20170712-releases.html</id>
+    <title>New Releases and Updates to The Site</title>
+    <updated>2017-07-12T00:00:00+00:00</updated>
+    <published>2017-07-12T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20170712-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+      After a couple of silent weeks I've finally managed to release new versions of the Revapi components. There are exactly
+      2 fixes, one new feature and many improvements to the site.
+    </summary>
+    <content type="html">
+      After a couple of silent weeks I've finally managed to release new versions of the Revapi components. There are exactly
+      2 fixes, one new feature and many improvements to the site.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20170424-intro.html</id>
+    <title>Introducing Online API Difference Checking</title>
+    <updated>2017-04-25T00:00:00+00:00</updated>
+    <published>2017-04-25T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20170424-intro.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+      Starting today there is an online tool for checking the difference between different versions of libraries on
+      https://diff.revapi.org.
+    </summary>
+    <content type="html">
+      Starting today there is an online tool for checking the difference between different versions of libraries on
+      <a href="https://diff.revapi.org">https://diff.revapi.org</a>.
     </content>
   </entry>
 </feed>

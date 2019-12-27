@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -312,7 +312,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         this.oldArtifacts = res.oldArtifacts;
         this.newArtifacts = res.newArtifacts;
 
-        return res.isOnClasspath ? res.analyzer : null;
+        return res.analyzer;
     }
 
     protected Analyzer prepareAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
@@ -326,7 +326,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         this.oldArtifacts = res.oldArtifacts;
         this.newArtifacts = res.newArtifacts;
 
-        return res.isOnClasspath ? res.analyzer : null;
+        return res.analyzer;
     }
 
     AnalyzerBuilder.Result buildAnalyzer(MavenProject project, Class<? extends Reporter> reporter,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,4 +33,8 @@ public interface Overloads {
     void c(Class<? extends Integer> x, Class<Long> y, int z);
 
     void c(Class<Long> x, Class<? extends Integer> y, float z);
+
+    void d(String s, int i);
+
+    void d(int i);
 }

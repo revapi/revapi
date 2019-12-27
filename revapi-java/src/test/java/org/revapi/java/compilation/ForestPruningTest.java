@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2019 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -175,7 +175,7 @@ public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
 
         environment.setTypeMap(typeMap);
 
-        analyzer = new JavaArchiveAnalyzer(fakeApi, null, null, true);
+        analyzer = new JavaArchiveAnalyzer(fakeApi, null, null, null, true);
     }
 
     @Test

@@ -23,6 +23,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -208,7 +209,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         try {
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(
                     new API(Arrays.asList(new ShrinkwrapArchive(archive.archive)), null),
-                    Executors.newSingleThreadExecutor(), null, false
+                    Collections.emptyList(), Executors.newSingleThreadExecutor(), null, false
             );
 
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());

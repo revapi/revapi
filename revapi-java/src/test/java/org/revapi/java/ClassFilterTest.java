@@ -101,7 +101,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     static void testWith(ArchiveAndCompilationPath archive, String configJSON, Set<String> expectedResults)
             throws Exception {
         try {
-            JavaApiAnalyzer apiAnalyzer = new JavaApiAnalyzer(Collections.emptyList());
+            JavaApiAnalyzer apiAnalyzer = new JavaApiAnalyzer(Collections.emptyList(), Collections.emptyList());
             Revapi r = new Revapi(PipelineConfiguration.builder().withAnalyzers(JavaApiAnalyzer.class)
                     .withFilters(ConfigurableElementFilter.class).withMatchers(JavaElementMatcher.class).build());
             AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(configJSON).build();
