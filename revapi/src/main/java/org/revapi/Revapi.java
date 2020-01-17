@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -637,6 +637,8 @@ public final class Revapi {
             }
             matchingTransformsCache.put(diff.code, ret);
         }
+
+        ret.forEach(l -> l.retainAll(transforms));
 
         return ret;
     }
