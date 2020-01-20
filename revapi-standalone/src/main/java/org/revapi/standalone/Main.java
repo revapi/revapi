@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,9 @@ package org.revapi.standalone;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
+
+import static org.revapi.maven.utils.ArtifactResolver.getRevapiDependencySelector;
+import static org.revapi.maven.utils.ArtifactResolver.getRevapiDependencyTraverser;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,8 +53,6 @@ import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
 import org.revapi.Revapi;
 import org.revapi.maven.utils.ArtifactResolver;
-import org.revapi.maven.utils.ScopeDependencySelector;
-import org.revapi.maven.utils.ScopeDependencyTraverser;
 import org.revapi.simple.FileArchive;
 import org.slf4j.LoggerFactory;
 import pw.krejci.modules.maven.MavenBootstrap;
@@ -415,11 +416,8 @@ public final class Main {
         RepositorySystem repositorySystem = MavenBootstrap.newRepositorySystem();
         DefaultRepositorySystemSession session = MavenBootstrap.newRepositorySystemSession(repositorySystem, localRepo);
 
-        String[] topLevelScopes = new String[]{"compile", "provided"};
-        String[] transitiveScopes = new String[]{"compile"};
-
-        session.setDependencySelector(new ScopeDependencySelector(topLevelScopes, transitiveScopes));
-        session.setDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes));
+        session.setDependencySelector(getRevapiDependencySelector(true, false));
+        session.setDependencyTraverser(getRevapiDependencyTraverser(true, false));
 
         ArtifactResolver resolver = new ArtifactResolver(repositorySystem, session, remoteRepositories);
 

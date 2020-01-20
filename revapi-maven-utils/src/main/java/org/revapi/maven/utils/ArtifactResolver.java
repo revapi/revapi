@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,8 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.collection.DependencySelector;
+import org.eclipse.aether.collection.DependencyTraverser;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.graph.DependencyVisitor;
@@ -56,6 +58,11 @@ import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.resolution.VersionRangeRequest;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResult;
+import org.eclipse.aether.util.graph.selector.AndDependencySelector;
+import org.eclipse.aether.util.graph.selector.ExclusionDependencySelector;
+import org.eclipse.aether.util.graph.selector.OptionalDependencySelector;
+import org.eclipse.aether.util.graph.traverser.AndDependencyTraverser;
+import org.eclipse.aether.util.graph.traverser.FatArtifactTraverser;
 import org.eclipse.aether.util.graph.visitor.TreeDependencyVisitor;
 import org.eclipse.aether.version.Version;
 import org.slf4j.Logger;
@@ -72,8 +79,53 @@ public class ArtifactResolver {
     private final RepositorySystemSession session;
     private final List<RemoteRepository> repositories;
 
+    /**
+     * Constructs a dependency selector to be used on a repository session that will cause the maven resolution to
+     * return artifacts using the rules fit for Revapi API checking.
+     *
+     * @param resolveProvidedDependencies if true, the provided dependencies of the top-level artifacts are considered
+     *                                    when resolving the API (this should generally be true)
+     * @param resolveTransitiveProvidedDependencies if true, the transitive provided dependencies are considered
+     *                                              when resolving the API (this should generally be false)
+     * @return a dependency selector for Maven's repository session
+     */
+    public static DependencySelector getRevapiDependencySelector(boolean resolveProvidedDependencies, boolean resolveTransitiveProvidedDependencies) {
+        String[] topLevelScopes = resolveProvidedDependencies
+                ? new String[]{"compile", "provided"}
+                : new String[]{"compile"};
+        String[] transitiveScopes = resolveTransitiveProvidedDependencies
+                ? new String[]{"compile", "provided"}
+                : new String[]{"compile"};
+
+        // this is how the dependency selector is initiated in the DefaultRepositorySystemSession of Maven - the only
+        // thing we're changing is that we're supplying a different implementation of the scope dependency selector
+        // to handle our scope dependency requirements.
+        return new AndDependencySelector(new ScopeDependencySelector(topLevelScopes, transitiveScopes),
+                    new OptionalDependencySelector(), new ExclusionDependencySelector());
+    }
+
+    /**
+     * Constructs a dependency traverser to be used on a repository session that will cause the maven resolution to
+     * return artifacts using the rules fit for Revapi API checking.
+     *
+     * @param resolveProvidedDependencies if true, the provided dependencies of the top-level artifacts are considered
+     *                                    when resolving the API (this should generally be true)
+     * @param resolveTransitiveProvidedDependencies if true, the transitive provided dependencies are considered
+     *                                              when resolving the API (this should generally be false)
+     * @return a dependency selector for Maven's repository session
+     */
+    public static DependencyTraverser getRevapiDependencyTraverser(boolean resolveProvidedDependencies, boolean resolveTransitiveProvidedDependencies) {
+        String[] topLevelScopes = resolveProvidedDependencies
+                ? new String[]{"compile", "provided"}
+                : new String[]{"compile"};
+        String[] transitiveScopes = resolveTransitiveProvidedDependencies
+                ? new String[]{"compile", "provided"}
+                : new String[]{"compile"};
+        return new AndDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes), new FatArtifactTraverser());
+    }
+
     public ArtifactResolver(RepositorySystem repositorySystem, RepositorySystemSession session,
-        List<RemoteRepository> repositories) {
+            List<RemoteRepository> repositories) {
         this.repositorySystem = repositorySystem;
         this.session = session;
         this.repositories = repositories;
@@ -94,7 +146,6 @@ public class ArtifactResolver {
      * @param remoteOnly true if only remotely available artifacts should be considered
      * @param upToInclusive whether the {@code upToVersion} should be considered inclusive or exclusive
      * @return the resolved artifact
-     * @throws VersionRangeResolutionException
      */
     public Artifact resolveNewestMatching(String gav, @Nullable String upToVersion, Pattern versionMatcher,
                                           boolean remoteOnly, boolean upToInclusive)
@@ -157,6 +208,11 @@ public class ArtifactResolver {
             result = dre.getResult();
         }
 
+        if (result.getRoot() == null) {
+            failures.addAll(result.getCollectExceptions());
+            return;
+        }
+
         result.getRoot().accept(new TreeDependencyVisitor(new DependencyVisitor() {
             int depth = 0;
 
@@ -216,6 +272,17 @@ public class ArtifactResolver {
                 .setRepositories(repositories);
 
         ArtifactResult result = repositorySystem.resolveArtifact(session, request);
+
+        if (result.getExceptions() != null && !result.getExceptions().isEmpty()) {
+            throw new ArtifactResolutionException(Collections.singletonList(result), "Artifact resolution failed for '"
+                    + artifact.toString() + "'.");
+        }
+
+        if (!result.isResolved() || result.isMissing()) {
+            throw new ArtifactResolutionException(Collections.singletonList(result), "The artifact was not" +
+                    " resolved or is missing: '" + artifact.toString() + "'.");
+        }
+
         return result.getArtifact();
     }
 

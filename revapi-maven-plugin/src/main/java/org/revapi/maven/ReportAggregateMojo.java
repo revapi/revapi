@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,8 @@ package org.revapi.maven;
 
 import static org.apache.maven.plugins.annotations.LifecyclePhase.PACKAGE;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.SITE;
+import static org.revapi.maven.utils.ArtifactResolver.getRevapiDependencySelector;
+import static org.revapi.maven.utils.ArtifactResolver.getRevapiDependencyTraverser;
 
 import java.io.File;
 import java.text.MessageFormat;
@@ -50,8 +52,6 @@ import org.revapi.API;
 import org.revapi.AnalysisResult;
 import org.revapi.Revapi;
 import org.revapi.maven.utils.ArtifactResolver;
-import org.revapi.maven.utils.ScopeDependencySelector;
-import org.revapi.maven.utils.ScopeDependencyTraverser;
 
 /**
  * Uses the configuration supplied at the top level aggregator project to run analysis on all sub-projects.
@@ -217,16 +217,9 @@ public class ReportAggregateMojo extends ReportMojo {
         String versionRegexString = getValueOfChild(pluginConfig, "versionFormat");
         Pattern versionRegex = versionRegexString == null ? null : Pattern.compile(versionRegexString);
 
-        String[] topLevelScopes = resolveProvidedDependencies
-                ? new String[] {"compile", "provided"}
-                : new String[] {"compile"};
-        String[] transitiveScopes = resolveTransitiveProvidedDependencies
-            ? new String[]{"compile", "provided"}
-            : new String[]{"compile"};
-
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
-        session.setDependencySelector(new ScopeDependencySelector(topLevelScopes, transitiveScopes));
-        session.setDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes));
+        session.setDependencySelector(getRevapiDependencySelector(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
+        session.setDependencyTraverser(getRevapiDependencyTraverser(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
 
         if (alwaysCheckForReleaseVersion) {
             session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
