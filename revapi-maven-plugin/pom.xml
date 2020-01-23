@@ -188,7 +188,7 @@
                             <cloneProjectsTo>${project.build.directory}/it/build</cloneProjectsTo>
                             <localRepositoryPath>${project.build.directory}/it/repo</localRepositoryPath>
                             <settingsFile>src/it/settings.xml</settingsFile>
-                            <streamLogs>false</streamLogs>
+                            <streamLogs>true</streamLogs>
                             <projectsDirectory>${basedir}/src/it/build</projectsDirectory>
                             <goals>
                                 <goal>clean</goal>
@@ -211,7 +211,7 @@
                             <cloneProjectsTo>${project.build.directory}/it/build</cloneProjectsTo>
                             <localRepositoryPath>${project.build.directory}/it/repo</localRepositoryPath>
                             <settingsFile>src/it/settings.xml</settingsFile>
-                            <streamLogs>false</streamLogs>
+                            <streamLogs>true</streamLogs>
                             <projectsDirectory>${basedir}/src/it/site</projectsDirectory>
                             <goals>
                                 <goal>clean</goal>
