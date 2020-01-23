@@ -125,8 +125,8 @@
                                 <goal>install</goal>
                             </goals>
                             <projectsDirectory>${basedir}/src/test/resources/projects</projectsDirectory>
-                            <streamLogs>false</streamLogs>
-                            <settingsFile>src/test/resources/projects/settings.xml</settingsFile>
+                            <streamLogs>true</streamLogs>
+			    <settingsFile>${basedir}/src/test/resources/projects/settings.xml</settingsFile>
                         </configuration>
                     </execution>
                 </executions>
