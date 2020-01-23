@@ -126,7 +126,7 @@
                             </goals>
                             <projectsDirectory>${basedir}/src/test/resources/projects</projectsDirectory>
                             <streamLogs>true</streamLogs>
-			    <settingsFile>${basedir}/src/test/resources/projects/settings.xml</settingsFile>
+                            <settingsFile>${basedir}/src/test/resources/projects/settings.xml</settingsFile>
                         </configuration>
                     </execution>
                 </executions>
