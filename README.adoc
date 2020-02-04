@@ -97,6 +97,9 @@ Read the usage info and go.
 </build>    
 ----
 
+=== Gradle
+
+There is an external Gradle plugin available for Revapi, https://github.com/palantir/gradle-revapi.
 
 === Embedding
 
