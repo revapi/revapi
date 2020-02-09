@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -161,6 +161,11 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     protected String createComparableSignature() {
         //this isn't used, because compareTo is implemented differently
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + " (archive = " + archive + ", in api = " + inApi + ", through use = " + inApiThroughUse + ")";
     }
 
     @Override

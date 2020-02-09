@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,9 +28,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -49,7 +49,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -142,9 +141,11 @@ final class ClasspathScanner {
 
         Scanner scanner = new Scanner();
 
+        LOG.trace("Scanning primary API.");
         for (ArchiveLocation loc : classPathLocations) {
             scanner.scan(loc, classPath.get(loc.getArchive()), true);
         }
+        LOG.trace("Done scanning primary API.");
 
         SyntheticLocation allLoc = new SyntheticLocation();
         fileManager.setLocation(allLoc, classPath.values());
@@ -235,11 +236,11 @@ final class ClasspathScanner {
             lastUnknowns = new HashSet<>(scanner.requiredTypes.keySet());
 
             ArchiveLocation systemClassPath = new ArchiveLocation(new Archive() {
-                @Nonnull @Override public String getName() {
+                @Override public String getName() {
                     return SYSTEM_CLASSPATH_NAME;
                 }
 
-                @Nonnull @Override public InputStream openStream() throws IOException {
+                @Override public InputStream openStream() throws IOException {
                     throw new UnsupportedOperationException();
                 }
             });
@@ -310,6 +311,7 @@ final class ClasspathScanner {
         };
 
         void scan(ArchiveLocation location, File path, boolean primaryApi) throws IOException {
+            LOG.trace("Scanning archive {} as primary api: {}", path, primaryApi);
             fileManager.setLocation(location, Collections.singleton(path));
 
             Iterable<? extends JavaFileObject> jfos = fileManager.list(location, "",
@@ -322,15 +324,22 @@ final class ClasspathScanner {
                 //type can be null if it represents an anonymous or member class...
                 if (type != null) {
                     scanClass(location, type, primaryApi);
+                } else {
+                    LOG.trace("Could not find a type in env for java file object: {}", jfo.getName());
                 }
             }
+
+            LOG.trace("Finished scanning archive {}", path);
         }
 
         void scanClass(ArchiveLocation loc, TypeElement type, boolean primaryApi) {
             try {
                 if (processed.contains(type)) {
+                    LOG.trace("Type {} already processed. Scanning skipped.", type);
                     return;
                 }
+
+                LOG.trace("Scanning type {} in primary api: {}", type, primaryApi);
 
                 processed.add(type);
                 Boolean wasAnno = requiredTypes.remove(type);
@@ -339,6 +348,7 @@ final class ClasspathScanner {
                 String cn = type.getQualifiedName().toString();
                 boolean includes = inclusionFilter.accepts(bn, cn);
                 boolean excludes = inclusionFilter.rejects(bn, cn);
+                LOG.trace("{}: initial include: {}, initial exclude: {}", includes, excludes);
 
                 //technically, we could find this out later on in the method, but doing this here ensures that the
                 //javac tries to fully load the class (and therefore throw any completion failures.
@@ -351,6 +361,7 @@ final class ClasspathScanner {
                     //just re-add the missing type and return. It will be dealt with accordingly
                     //in initEnvironment
                     requiredTypes.put(type, wasAnno == null ? false : wasAnno);
+                    LOG.trace("Type {} was found to be an error type. Will deal with it later.", type);
                     return;
                 }
 
@@ -363,6 +374,7 @@ final class ClasspathScanner {
                 //this will be revisited... in here we're just establishing the types that are in the API for sure...
                 tr.inApi = !excludes &&
                         (primaryApi && !shouldBeIgnored(type) && !(type.getEnclosingElement() instanceof TypeElement));
+                LOG.trace("{}: initial inApi value determined to be: {}", type, tr.inApi);
                 tr.primaryApi = primaryApi;
                 tr.explicitlyExcluded = excludes;
                 tr.explicitlyIncluded = includes;
@@ -383,6 +395,7 @@ final class ClasspathScanner {
                 }
 
                 if (tr.explicitlyExcluded) {
+                    LOG.trace("{}: type explicitly excluded. No futher scanning required.", type);
                     return;
                 }
 
@@ -405,6 +418,7 @@ final class ClasspathScanner {
 
                 addTypeParamUses(tr, type, type.asType());
 
+                LOG.trace("{}: scanning enclosed elements.", type);
                 for (Element e : IgnoreCompletionFailures.in(type::getEnclosedElements)) {
                     switch (e.getKind()) {
                         case ANNOTATION_TYPE:
@@ -425,12 +439,16 @@ final class ClasspathScanner {
                             break;
                     }
                 }
-
+                LOG.trace("{}: done scanning enclosed elements.", type);
+                LOG.trace("{}: scanning annotations.", type);
                 type.getAnnotationMirrors().forEach(a -> scanAnnotation(tr, type, a));
+                LOG.trace("{}: done scanning annotations.", type);
             } catch (Exception e) {
                 LOG.error("Failed to scan class " + type.getQualifiedName().toString()
                         + ". Analysis results may be skewed.", e);
                 getTypeRecord(type).errored = true;
+            } finally {
+                LOG.trace("{}: scanning finished", type);
             }
         }
 
@@ -592,6 +610,9 @@ final class ClasspathScanner {
         }
 
         void addUse(TypeRecord userType, Element user, TypeElement used, UseSite.Type useType, int indexInParent) {
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Adding use {} of type {} by element {} in type {} on index {}", useType, used, user, userType, indexInParent);
+            }
             TypeRecord usedTr = getTypeRecord(used);
             Set<ClassPathUseSite> sites = usedTr.useSites;
             sites.add(new ClassPathUseSite(useType, user, indexInParent));
@@ -629,7 +650,6 @@ final class ClasspathScanner {
             }
 
             moveInnerClassesOfPrimariesToApi();
-            determineApiStatus();
             initChildren();
 
             if (missingClassReporting == REPORT && !requiredTypes.isEmpty()) {
@@ -765,27 +785,37 @@ final class ClasspathScanner {
             return types;
         }
 
-        private void determineApiStatus() {
-            Set<TypeRecord> undetermined = new HashSet<>(this.types.values());
+        private void determineApiStatuses(Collection<TypeRecord> types, Set<TypeRecord> newApiAdditions) {
+            LOG.trace("Determining API status");
+            Set<TypeRecord> undetermined = new HashSet<>(types);
             while (!undetermined.isEmpty()) {
+                LOG.trace("Starting API determination iteration");
                 undetermined = undetermined.stream()
                         .filter(tr -> !tr.explicitlyExcluded)
                         .filter(tr -> tr.inApi)
-                        .flatMap(tr -> tr.usedTypes.entrySet().stream()
-                                .map(e -> new AbstractMap.SimpleImmutableEntry<>(tr, e)))
-                        .filter(e -> movesToApi(e.getValue().getKey()))
-                        .flatMap(e -> e.getValue().getValue().stream())
+                        .peek(tr -> LOG.trace("Checking used types of {}", tr))
+                        .flatMap(tr -> tr.usedTypes.entrySet().stream())
+                        .filter(e -> movesToApi(e.getKey()))
+                        .flatMap(e -> e.getValue().stream())
                         .filter(usedTr -> !usedTr.inApi)
                         .filter(usedTr -> !usedTr.explicitlyExcluded)
                         .peek(usedTr -> {
+                            LOG.trace("Moving {} to the API through use.", usedTr);
+                            if (newApiAdditions != null) {
+                                newApiAdditions.add(usedTr);
+                            }
                             usedTr.inApi = true;
                             usedTr.inApiThroughUse = true;
                         })
                         .collect(toSet());
+                LOG.trace("Finished API determination iteration");
             }
+            LOG.trace("Finished determining API status");
         }
 
         private void moveInnerClassesOfPrimariesToApi() {
+            LOG.trace("Moving inner classes of classes in the primary API to the API as well");
+
             Set<TypeRecord> primaries = this.types.values().stream()
                     .filter(tr -> tr.primaryApi)
                     .filter(tr -> tr.inApi)
@@ -798,6 +828,9 @@ final class ClasspathScanner {
                         .filter(containedTr -> containedTr.modelElement != null)
                         .filter(containedTr -> !shouldBeIgnored(containedTr.modelElement.getDeclaringElement()))
                         .map(containedTr -> {
+                            if (!containedTr.inApi) {
+                                LOG.trace("Moving {} to API", containedTr);
+                            }
                             containedTr.inApi = true;
                             return containedTr;
                         })
@@ -818,10 +851,16 @@ final class ClasspathScanner {
         }
 
         private void initChildren() {
-            this.types.values().forEach(this::initChildren);
+            Set<TypeRecord> newApiAdditions = new HashSet<>(this.types.values());
+            while (!newApiAdditions.isEmpty()) {
+                determineApiStatuses(newApiAdditions, newApiAdditions);
+                Set<TypeRecord> nextApiAdditions = new HashSet<>();
+                newApiAdditions.forEach(t -> initChildren(t, nextApiAdditions));
+                newApiAdditions = nextApiAdditions;
+            }
         }
 
-        private void initChildren(TypeRecord tr) {
+        private void initChildren(TypeRecord tr, Set<TypeRecord> apiAdditions) {
             if (tr.modelElement == null) {
                 tr.inheritableElements = Collections.emptySet();
                 return;
@@ -845,7 +884,7 @@ final class ClasspathScanner {
             };
 
             Consumer<JavaElementBase<?, ?>> initChildren = e ->
-                    initNonClassElementChildrenAndMoveToApi(tr, e, false);
+                    initNonClassElementChildrenAndMoveToApi(tr, e, false, apiAdditions);
 
             //add declared stuff
             tr.accessibleDeclaredNonClassMembers.stream()
@@ -866,7 +905,7 @@ final class ClasspathScanner {
                     .forEach(c -> tr.modelElement.getChildren().add(c));
 
             //now add inherited stuff
-            tr.superTypes.forEach(str -> addInherited(tr, str, methods));
+            tr.superTypes.forEach(str -> addInherited(tr, str, methods, apiAdditions));
 
             //and finally the annotations
             for (AnnotationMirror m : tr.javacElement.getAnnotationMirrors()) {
@@ -875,11 +914,11 @@ final class ClasspathScanner {
         }
 
         @SuppressWarnings("EqualsWithItself")
-        private void addInherited(TypeRecord target, TypeRecord superType, Set<String> methodOverrideMap) {
+        private void addInherited(TypeRecord target, TypeRecord superType, Set<String> methodOverrideMap, Set<TypeRecord> apiAdditions) {
             Types types = environment.getTypeUtils();
 
             if (superType.inheritableElements == null) {
-                initChildren(superType);
+                initChildren(superType, apiAdditions);
             }
 
             superType.inheritableElements.stream()
@@ -901,7 +940,7 @@ final class ClasspathScanner {
                                     .elementFor(e.getDeclaringElement(), elementType, environment,
                                             target.modelElement.getArchive());
 
-                            initNonClassElementChildrenAndMoveToApi(target, ret, true);
+                            initNonClassElementChildrenAndMoveToApi(target, ret, true, apiAdditions);
                         } else {
                             //this element is not generic, so we can merely copy it...
                             if (target.inApi) {
@@ -916,7 +955,7 @@ final class ClasspathScanner {
                             //the cloned element needs to look like it originated in the archive of the target.
                             ret.setArchive(target.modelElement.getArchive());
 
-                            copyInheritedNonClassElementChildrenAndMoveToApi(target, ret, e.getChildren(), target.inApi);
+                            copyInheritedNonClassElementChildrenAndMoveToApi(target, ret, e.getChildren(), target.inApi, apiAdditions);
                         }
 
                         ret.setInherited(true);
@@ -927,7 +966,7 @@ final class ClasspathScanner {
                     .forEach(c -> target.modelElement.getChildren().add(c));
 
             for (TypeRecord st : superType.superTypes) {
-                addInherited(target, st, methodOverrideMap);
+                addInherited(target, st, methodOverrideMap, apiAdditions);
             }
         }
 
@@ -946,7 +985,7 @@ final class ClasspathScanner {
             }
         }
 
-        private void moveUsedToApi(Types types, TypeRecord owningType, Element user) {
+        private void moveUsedToApi(Types types, TypeRecord owningType, Element user, Set<TypeRecord> apiAdditions) {
             if (owningType.inApi && !shouldBeIgnored(user)) {
                 TypeMirror representation = types.asMemberOf(owningType.modelElement.getModelRepresentation(),
                         user);
@@ -962,7 +1001,9 @@ final class ClasspathScanner {
                             TypeRecord tr = Scanner.this.types.get(childType);
                             if (tr != null && tr.modelElement != null) {
                                 if (!tr.inApi) {
+                                    LOG.trace("Moving {} to the API through the use by {} in type {}", tr, user, owningType);
                                     tr.inApiThroughUse = true;
+                                    apiAdditions.add(tr);
                                 }
                                 tr.inApi = true;
                             }
@@ -980,10 +1021,10 @@ final class ClasspathScanner {
         }
 
         private void initNonClassElementChildrenAndMoveToApi(TypeRecord parentOwner, JavaElementBase<?, ?> parent,
-                                                             boolean inherited) {
+                                                             boolean inherited, Set<TypeRecord> apiAdditions) {
             Types types = environment.getTypeUtils();
 
-            moveUsedToApi(types, parentOwner, parent.getDeclaringElement());
+            moveUsedToApi(types, parentOwner, parent.getDeclaringElement(), apiAdditions);
 
             List<? extends Element> children =
                     parent.getDeclaringElement().accept(new SimpleElementVisitor8<List<? extends Element>, Void>() {
@@ -1020,7 +1061,7 @@ final class ClasspathScanner {
 
                 parent.getChildren().add(childEl);
 
-                initNonClassElementChildrenAndMoveToApi(parentOwner, childEl, inherited);
+                initNonClassElementChildrenAndMoveToApi(parentOwner, childEl, inherited, apiAdditions);
             }
 
             for (AnnotationMirror m : parent.getDeclaringElement().getAnnotationMirrors()) {
@@ -1031,11 +1072,11 @@ final class ClasspathScanner {
         @SuppressWarnings("EqualsWithItself")
         private void copyInheritedNonClassElementChildrenAndMoveToApi(TypeRecord parentOwner,
                 JavaElementBase<?, ?> parent, Iterable<? extends JavaElement> sourceChildren,
-                boolean forceComparatorInitialization) {
+                boolean forceComparatorInitialization, Set<TypeRecord> apiAdditions) {
 
             Types types = environment.getTypeUtils();
 
-            moveUsedToApi(types, parentOwner, parent.getDeclaringElement());
+            moveUsedToApi(types, parentOwner, parent.getDeclaringElement(), apiAdditions);
 
             for (JavaElement c : sourceChildren) {
                 if (c instanceof TypeElement) {
@@ -1057,7 +1098,7 @@ final class ClasspathScanner {
                         JavaElementBase<?, ?> mcc = (JavaElementBase<?, ?>) cc;
                         mcc.setInherited(true);
                         copyInheritedNonClassElementChildrenAndMoveToApi(parentOwner, mcc, c.getChildren(),
-                                forceComparatorInitialization);
+                                forceComparatorInitialization, apiAdditions);
                     }
                 }
             }
