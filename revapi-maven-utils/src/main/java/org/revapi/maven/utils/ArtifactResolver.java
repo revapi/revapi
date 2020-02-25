@@ -273,11 +273,6 @@ public class ArtifactResolver {
 
         ArtifactResult result = repositorySystem.resolveArtifact(session, request);
 
-        if (result.getExceptions() != null && !result.getExceptions().isEmpty()) {
-            throw new ArtifactResolutionException(Collections.singletonList(result), "Artifact resolution failed for '"
-                    + artifact.toString() + "'.");
-        }
-
         if (!result.isResolved() || result.isMissing()) {
             throw new ArtifactResolutionException(Collections.singletonList(result), "The artifact was not" +
                     " resolved or is missing: '" + artifact.toString() + "'.");
