@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -159,5 +159,10 @@ final class Props {
     static final class outputNonIdentifyingDifferenceInfo {
         static final String NAME = PREFIX + "outputNonIdentifyingDifferenceInfo";
         static final String DEFAULT_VALUE = "true";
+    }
+
+    static final class forceVersionUpdate {
+        static final String NAME = PREFIX + "forceVersionUpdate";
+        static final String DEFAULT_VALUE = "false";
     }
 }

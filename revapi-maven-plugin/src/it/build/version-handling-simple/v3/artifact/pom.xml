@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2017 Lukas Krejci
+    Copyright 2014-2020 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +48,11 @@
             <id>update-versions</id>
             <goals><goal>update-versions</goal></goals>
             <phase>verify</phase>
+            <configuration>
+              <!-- no explicit version in the pom.xml but we need it different from the parent. This changes the
+                   version inheritance, so we need to force this change -->
+              <forceVersionUpdate>true</forceVersionUpdate>
+            </configuration>
           </execution>
         </executions>
       </plugin>
