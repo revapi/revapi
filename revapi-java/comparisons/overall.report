@@ -178,7 +178,7 @@ CLIRR
 ERROR: 4001: comparison.classes.ImplementedInterfaces$B: Removed java.lang.Cloneable from the set of implemented interfaces
 
 SIGTEST
-missing superclasses or superinterfacees
+missing superclasses or superinterfaces
 comparison.classes.ImplementedInterfaces$B:                 interface @ java.lang.Cloneable
 missing methods
 comparison.classes.ImplementedInterfaces$B:                 method protected java.lang.Object java.lang.Object.clone()
@@ -418,7 +418,7 @@ ERROR: 5001: comparison.classes.NewSuperTypes$EE: Removed java.lang.Error from t
 WARNING: 5000: comparison.classes.NewSuperTypes$EE: Added java.lang.Exception to the list of superclasses
 
 SIGTEST
-missing superclasses or superinerfaces
+missing superclasses or superinterfaces
 comparison.classes.NewSuperTypes$EE:    superclass java.lang.Error
 missing methods
 comparison.classes.NewSuperTypes$EE:    method protected java.lang.Object java.lang.Object.clone()
