@@ -96,7 +96,7 @@ public final class API {
 
     /**
      * @param archives the archives
-     * @param supplementaryArchives the supplemenatry archives
+     * @param supplementaryArchives the supplementary archives
      *
      * @see #getArchives()
      * @see #getSupplementaryArchives()
