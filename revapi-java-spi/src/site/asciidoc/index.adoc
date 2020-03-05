@@ -14,7 +14,7 @@ link:apidocs/org/revapi/java/spi/Check.html[hook interface] into the java checki
 represents the Revapi's API elements as Java's own
 http://docs.oracle.com/javase/7/docs/api/javax/lang/model/package-summary.html[model elements].
 
-The checking framework then can use the Java plaform's own rich functionality for examining the classes in the checked
+The checking framework then can use the Java platform's own rich functionality for examining the classes in the checked
 libraries (note, that this API is NOT the reflection API, because it actually doesn't load the library classes into Java
 runtime).
 
