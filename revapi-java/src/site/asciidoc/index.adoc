@@ -997,7 +997,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 | Semantic severity | NA
 |=============
 
-No API breakage, provided for completeness sake. Note that this si reported only for publicly accessible fields.
+No API breakage, provided for completeness sake. Note that this is reported only for publicly accessible fields.
 
 [options=header]
 |====
@@ -1020,7 +1020,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 | Semantic severity | NA
 |=============
 
-No API breakage, provided for completeness sake. Note that this si reported only for publicly accessible fields.
+No API breakage, provided for completeness sake. Note that this is reported only for publicly accessible fields.
 
 [options=header]
 |====
@@ -1044,7 +1044,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 |=============
 
 The field was removed from the class. This is an API breakage because the field can no longer be accessed.
-Note that this si reported only for publicly accessible fields.
+Note that this is reported only for publicly accessible fields.
 
 [options=header]
 |====
@@ -1070,7 +1070,7 @@ Note that this si reported only for publicly accessible fields.
 
 The field with a constant value was removed from the class. This is source incompatible because the field can no longer
 be accessed. It is binary compatible though because the field is actually never used because all its uses are inlined.
-Note that this si reported only for publicly accessible fields.
+Note that this is reported only for publicly accessible fields.
 
 [options=header]
 |====
