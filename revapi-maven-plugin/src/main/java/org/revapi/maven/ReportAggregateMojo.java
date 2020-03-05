@@ -89,7 +89,7 @@ public class ReportAggregateMojo extends ReportMojo {
 
     @Override
     public void setReportOutputDirectory(File reportOutputDirectory) {
-        //this is called by the site plugin to set the output directory. We grandiously ignore what it wants and output
+        //this is called by the site plugin to set the output directory. We grandiosely ignore what it wants and output
         //in the top level project's site dir.
         super.setReportOutputDirectory(getReportOutputDirectory());
     }
