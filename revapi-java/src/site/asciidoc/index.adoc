@@ -2437,7 +2437,7 @@ The method is now a default method. This is completely transparent.
 | Semantic severity | NA
 |=============
 
-The method is no longer default. This means that any implementations of the inteface with the method
+The method is no longer default. This means that any implementations of the interface with the method
 will now have to supply an implementation for it.
 
 [options=header]
