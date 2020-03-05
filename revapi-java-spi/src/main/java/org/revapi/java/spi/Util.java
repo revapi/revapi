@@ -797,7 +797,7 @@ public final class Util {
      * @param types the Types instance of the compilation environment from which the type comes from
      * @param type  the type
      *
-     * @return the list of super tpyes
+     * @return the list of super types
      */
     @Nonnull
     public static List<TypeMirror> getAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type) {
