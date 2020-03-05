@@ -1,6 +1,6 @@
 = Revapi Standalone
 
-image:https://travis-ci.org/revapi/revapi-standlone.svg[Build Status,link=https://travis-ci.org/revapi/revapi-standalone]
+image:https://travis-ci.org/revapi/revapi-standalone.svg[Build Status,link=https://travis-ci.org/revapi/revapi-standalone]
 
 Commandline executable API checks.
 
