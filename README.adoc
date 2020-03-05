@@ -24,7 +24,7 @@ and also its dependencies (ability to report type "leakage" from deps)
 * support for Java8 constructs (default methods in particular)
 * powerful filtering stuff to check and reclassification of found problems
 * ability to filter by annotation presence
-* Maven plugin automatically includes depenendcies in the check
+* Maven plugin automatically includes dependencies in the check
 
 Other features:
 
