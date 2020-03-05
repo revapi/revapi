@@ -54,7 +54,7 @@
         <automatic.module.name>define this in child modules</automatic.module.name>
 
 	<!--
-            Work around Intellij's lack for maven.compiler.release attribute
+            Work around IntelliJ's lack for maven.compiler.release attribute
             See https://youtrack.jetbrains.com/issue/IDEA-173143
 	-->
         <maven.compiler.source>1.8</maven.compiler.source>
