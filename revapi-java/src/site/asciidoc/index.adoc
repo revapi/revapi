@@ -2846,7 +2846,7 @@ a member of the the `MyAPI` class, which is annotated with `@Public` and there i
 
 Similarly, `JustAClass` and its members are not included, because they are not annotated by `@Public`.
 
-The situation with `Implementation.method()` and `JustAClass.definititelyAPIMethod()` is actually quite similar. In
+The situation with `Implementation.method()` and `JustAClass.definitelyAPIMethod()` is actually quite similar. In
 both, the presence of the `@Public` annotation overrides the decision about the parent element's exclusion (this
 decision is based on the lack of the `@Public` annotation on the parents).
 
