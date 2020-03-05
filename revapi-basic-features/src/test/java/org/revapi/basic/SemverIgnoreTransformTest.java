@@ -40,7 +40,7 @@ import org.revapi.Element;
 public class SemverIgnoreTransformTest {
 
     private static final Difference NON_BREAKING =
-            new Difference("nonBreaking", "nonBrekaing", "blah", CompatibilityType.OTHER,
+            new Difference("nonBreaking", "nonBreaking", "blah", CompatibilityType.OTHER,
                     DifferenceSeverity.NON_BREAKING,
                     Collections.emptyMap());
 
