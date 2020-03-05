@@ -71,7 +71,7 @@ add the extension as a dependency of the maven plugin like so:
 The minimum severity of problems that will be included in the output. If not specified, defaults to
 `POTENTIALLY_BREAKING`. Possible values are `NON_BREAKING`, `POTENTIALLY_BREAKING` and `BREAKING`.
 `output`::
-The path to the output file. Two special values are recongized: `out` (which is the default value of this property) and
+The path to the output file. Two special values are recognized: `out` (which is the default value of this property) and
 `err` which represent standard output or standard error output respectively.
 `template`::
 A relative path to a FreeMarker template to format the output with. If not specified a built-in simple template is used.
