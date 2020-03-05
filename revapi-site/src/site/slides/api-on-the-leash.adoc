@@ -1257,7 +1257,7 @@ Modules save the day!
 
 [.step]
 * Modules don't declare versions
-** undeterministic runtime "evironment"
+** undeterministic runtime "environment"
 * Consider exported `@Unstable` classes
 
 === Java 9+
