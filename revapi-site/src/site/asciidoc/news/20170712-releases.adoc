@@ -13,7 +13,7 @@ After a couple of silent weeks I've finally managed to release new versions of t
 It is now possible for the Java checks to be configured (none of the present java checks requires a configuration but
 that may change in the future).
 
-Many thanks go out to Martin Montperrus and Christian Dietrich for updates to the site and to twogee github user for the
+Many thanks go out to Martin Monperrus and Christian Dietrich for updates to the site and to twogee github user for the
 fix of the ant task.
 
 == Future
