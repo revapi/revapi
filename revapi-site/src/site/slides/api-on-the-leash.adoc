@@ -1219,7 +1219,7 @@ We're at an interesting point in Java history
 
 Packages used to separate code
 
-Inheritance can "trascend" package boundaries
+Inheritance can "transcend" package boundaries
 
 Anything to be reached outside of a package must be public
 (or protected to be visible in subclasses).
