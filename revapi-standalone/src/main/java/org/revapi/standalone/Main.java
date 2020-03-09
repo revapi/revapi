@@ -43,7 +43,9 @@ import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
 import org.jboss.dmr.ModelNode;
 import org.jboss.modules.DependencySpec;
 import org.jboss.modules.Module;
@@ -286,7 +288,7 @@ public final class Main {
 
         ProjectModule.Builder bld = ProjectModule.build();
         bld.localRepository(cacheDir);
-        remoteRepositories.forEach(r -> bld.addRemoteRepository(r.getId(), r.getUrl()));
+        remoteRepositories.forEach(bld::addRemoteRepository);
 
         if (extensionGAVs != null) {
             for (String gav : extensionGAVs) {
@@ -414,7 +416,8 @@ public final class Main {
     private static ArchivesAndSupplementaryArchives convertGavs(String[] gavs, String errorMessagePrefix,
             File localRepo, List<RemoteRepository> remoteRepositories) {
         RepositorySystem repositorySystem = MavenBootstrap.newRepositorySystem();
-        DefaultRepositorySystemSession session = MavenBootstrap.newRepositorySystemSession(repositorySystem, localRepo);
+        DefaultRepositorySystemSession session = MavenBootstrap.newRepositorySystemSession(repositorySystem,
+                new LocalRepository(localRepo));
 
         session.setDependencySelector(getRevapiDependencySelector(true, false));
         session.setDependencyTraverser(getRevapiDependencyTraverser(true, false));
@@ -446,16 +449,22 @@ public final class Main {
         List<RemoteRepository> remoteRepositories = new ArrayList<>();
 
         for (int i = 0; i < customRepositoryUrls.length; i++) {
-            String repositoryId = "@@custom-remote-repository-" + i + "@@";
+            String repositoryId = "custom-remote-repository-" + i;
             remoteRepositories.add(new RemoteRepository.Builder(repositoryId, "default", customRepositoryUrls[i]).build());
         }
 
         if (remoteRepositories.isEmpty()) {
-            remoteRepositories.add(new RemoteRepository.Builder("@@forced-maven-central@@", "default", "http://repo.maven.apache.org/maven2/").build());
+            remoteRepositories.add(new RemoteRepository.Builder("maven-central", "default", "https://repo.maven.apache.org/maven2/").build());
         }
 
         File localMaven = new File(new File(System.getProperties().getProperty("user.home"), ".m2"), "repository");
-        remoteRepositories.add(new RemoteRepository.Builder("@@~/.m2/repository@@", "local", localMaven.toURI().toString()).build());
+
+        RemoteRepository mavenCache = new RemoteRepository.Builder("~/.m2/repository", "default",
+                localMaven.toURI().toString())
+                .setPolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_NEVER,
+                        RepositoryPolicy.CHECKSUM_POLICY_IGNORE)).build();
+
+        remoteRepositories.add(mavenCache);
 
         return remoteRepositories;
     }
