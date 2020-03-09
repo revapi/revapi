@@ -164,11 +164,6 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     }
 
     @Override
-    public String toString() {
-        return super.toString() + " (archive = " + archive + ", in api = " + inApi + ", through use = " + inApiThroughUse + ")";
-    }
-
-    @Override
     public TypeElement clone() {
         return (TypeElement) super.clone();
     }

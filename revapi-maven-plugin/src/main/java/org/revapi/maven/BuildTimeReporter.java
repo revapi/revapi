@@ -94,10 +94,10 @@ public final class BuildTimeReporter implements Reporter {
                 ignores.append("{\n");
                 ignores.append("  \"code\": \"").append(escape(d.code)).append("\",\n");
                 if (r.getOldElement() != null) {
-                    ignores.append("  \"old\": \"").append(escape(r.getOldElement())).append("\",\n");
+                    ignores.append("  \"old\": \"").append(escape(r.getOldElement().getFullHumanReadableString())).append("\",\n");
                 }
                 if (r.getNewElement() != null) {
-                    ignores.append("  \"new\": \"").append(escape(r.getNewElement())).append("\",\n");
+                    ignores.append("  \"new\": \"").append(escape(r.getNewElement().getFullHumanReadableString())).append("\",\n");
                 }
 
                 boolean hasOptionalAttachments = false;
