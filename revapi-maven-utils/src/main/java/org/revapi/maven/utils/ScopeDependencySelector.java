@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,29 +21,23 @@ import java.util.Arrays;
 import org.eclipse.aether.collection.DependencyCollectionContext;
 import org.eclipse.aether.collection.DependencySelector;
 import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.graph.Exclusion;
 
 /**
  * @author Lukas Krejci
  * @since 0.1
  */
-public class ScopeDependencySelector implements DependencySelector {
+final class ScopeDependencySelector implements DependencySelector {
     private final String[] topLevelScopes;
     private final String[] transitiveScopes;
     private final int depth;
-    private final Dependency parent;
-    private final ScopeDependencySelector parentSelector;
 
     public ScopeDependencySelector(String[] topLevelScopes, String[] transitiveScopes) {
-        this(topLevelScopes, transitiveScopes, null, null, 0);
+        this(topLevelScopes, transitiveScopes, 0);
     }
 
-    private ScopeDependencySelector(String[] topLevelScopes, String[] transitiveScopes, Dependency parent,
-            ScopeDependencySelector parentSelector, int depth) {
+    private ScopeDependencySelector(String[] topLevelScopes, String[] transitiveScopes, int depth) {
         this.topLevelScopes = topLevelScopes;
         this.transitiveScopes = transitiveScopes;
-        this.parent = parent;
-        this.parentSelector = parentSelector;
         this.depth = depth;
     }
 
@@ -64,47 +58,15 @@ public class ScopeDependencySelector implements DependencySelector {
 
     @Override
     public boolean selectDependency(Dependency dependency) {
-        if (!isExcluded(dependency)) {
-            boolean optional = dependency.isOptional();
-
-            return !optional && hasRequiredScope(dependency);
-        }
-        return false;
-    }
-
-    private boolean isExcluded(Dependency dependency) {
-        boolean result = isExcludedFromParent(dependency);
-        if (!result && parentSelector != null) {
-            result = parentSelector.isExcluded(dependency);
-        }
-        return result;
-    }
-
-    private boolean isExcludedFromParent(Dependency dependency) {
-        boolean result = false;
-        if (parent != null && parent.getExclusions().size() > 0) {
-            for (Exclusion exclusion : parent.getExclusions()) {
-                if (exclusion != null) {
-                    if (exclusion.getArtifactId() != null
-                        && exclusion.getArtifactId().equals(dependency.getArtifact().getArtifactId())) {
-                        if (exclusion.getGroupId() != null
-                            && exclusion.getGroupId().equals(dependency.getArtifact().getGroupId())) {
-                            result = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return result;
+        return hasRequiredScope(dependency);
     }
 
     @Override
-    public org.eclipse.aether.collection.DependencySelector deriveChildSelector(DependencyCollectionContext context) {
+    public DependencySelector deriveChildSelector(DependencyCollectionContext context) {
         if (depth > 1) {
             return this;
         } else {
-            return new ScopeDependencySelector(topLevelScopes, transitiveScopes, context.getDependency(), this, depth + 1);
+            return new ScopeDependencySelector(topLevelScopes, transitiveScopes, depth + 1);
         }
     }
 

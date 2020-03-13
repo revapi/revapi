@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,9 @@
 package org.revapi.maven;
 
 import static java.util.stream.Collectors.toList;
+
+import static org.revapi.maven.utils.ArtifactResolver.getRevapiDependencySelector;
+import static org.revapi.maven.utils.ArtifactResolver.getRevapiDependencyTraverser;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -71,8 +74,6 @@ import org.revapi.configuration.JSONUtil;
 import org.revapi.configuration.ValidationResult;
 import org.revapi.configuration.XmlToJson;
 import org.revapi.maven.utils.ArtifactResolver;
-import org.revapi.maven.utils.ScopeDependencySelector;
-import org.revapi.maven.utils.ScopeDependencyTraverser;
 
 /**
  * @author Lukas Krejci
@@ -152,15 +153,9 @@ public final class Analyzer {
         this.versionRegex = versionRegex == null ? null : Pattern.compile(versionRegex);
 
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
-        String[] topLevelScopes = resolveProvidedDependencies
-                ? new String[]{"compile", "provided"}
-                : new String[]{"compile"};
-        String[] transitiveScopes = resolveTransitiveProvidedDependencies
-                ? new String[]{"compile", "provided"}
-                : new String[]{"compile"};
 
-        session.setDependencySelector(new ScopeDependencySelector(topLevelScopes, transitiveScopes));
-        session.setDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes));
+        session.setDependencySelector(getRevapiDependencySelector(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
+        session.setDependencyTraverser(getRevapiDependencyTraverser(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
 
         if (alwaysUpdate) {
             session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);

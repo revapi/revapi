@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,9 @@ package org.revapi.standalone;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
+
+import static org.revapi.maven.utils.ArtifactResolver.getRevapiDependencySelector;
+import static org.revapi.maven.utils.ArtifactResolver.getRevapiDependencyTraverser;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,7 +43,9 @@ import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
 import org.jboss.dmr.ModelNode;
 import org.jboss.modules.DependencySpec;
 import org.jboss.modules.Module;
@@ -50,8 +55,6 @@ import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
 import org.revapi.Revapi;
 import org.revapi.maven.utils.ArtifactResolver;
-import org.revapi.maven.utils.ScopeDependencySelector;
-import org.revapi.maven.utils.ScopeDependencyTraverser;
 import org.revapi.simple.FileArchive;
 import org.slf4j.LoggerFactory;
 import pw.krejci.modules.maven.MavenBootstrap;
@@ -285,7 +288,7 @@ public final class Main {
 
         ProjectModule.Builder bld = ProjectModule.build();
         bld.localRepository(cacheDir);
-        remoteRepositories.forEach(r -> bld.addRemoteRepository(r.getId(), r.getUrl()));
+        remoteRepositories.forEach(bld::addRemoteRepository);
 
         if (extensionGAVs != null) {
             for (String gav : extensionGAVs) {
@@ -413,13 +416,11 @@ public final class Main {
     private static ArchivesAndSupplementaryArchives convertGavs(String[] gavs, String errorMessagePrefix,
             File localRepo, List<RemoteRepository> remoteRepositories) {
         RepositorySystem repositorySystem = MavenBootstrap.newRepositorySystem();
-        DefaultRepositorySystemSession session = MavenBootstrap.newRepositorySystemSession(repositorySystem, localRepo);
+        DefaultRepositorySystemSession session = MavenBootstrap.newRepositorySystemSession(repositorySystem,
+                new LocalRepository(localRepo));
 
-        String[] topLevelScopes = new String[]{"compile", "provided"};
-        String[] transitiveScopes = new String[]{"compile"};
-
-        session.setDependencySelector(new ScopeDependencySelector(topLevelScopes, transitiveScopes));
-        session.setDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes));
+        session.setDependencySelector(getRevapiDependencySelector(true, false));
+        session.setDependencyTraverser(getRevapiDependencyTraverser(true, false));
 
         ArtifactResolver resolver = new ArtifactResolver(repositorySystem, session, remoteRepositories);
 
@@ -448,16 +449,22 @@ public final class Main {
         List<RemoteRepository> remoteRepositories = new ArrayList<>();
 
         for (int i = 0; i < customRepositoryUrls.length; i++) {
-            String repositoryId = "@@custom-remote-repository-" + i + "@@";
+            String repositoryId = "custom-remote-repository-" + i;
             remoteRepositories.add(new RemoteRepository.Builder(repositoryId, "default", customRepositoryUrls[i]).build());
         }
 
         if (remoteRepositories.isEmpty()) {
-            remoteRepositories.add(new RemoteRepository.Builder("@@forced-maven-central@@", "default", "http://repo.maven.apache.org/maven2/").build());
+            remoteRepositories.add(new RemoteRepository.Builder("maven-central", "default", "https://repo.maven.apache.org/maven2/").build());
         }
 
         File localMaven = new File(new File(System.getProperties().getProperty("user.home"), ".m2"), "repository");
-        remoteRepositories.add(new RemoteRepository.Builder("@@~/.m2/repository@@", "local", localMaven.toURI().toString()).build());
+
+        RemoteRepository mavenCache = new RemoteRepository.Builder("~/.m2/repository", "default",
+                localMaven.toURI().toString())
+                .setPolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_NEVER,
+                        RepositoryPolicy.CHECKSUM_POLICY_IGNORE)).build();
+
+        remoteRepositories.add(mavenCache);
 
         return remoteRepositories;
     }

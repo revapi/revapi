@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,10 +94,10 @@ public final class BuildTimeReporter implements Reporter {
                 ignores.append("{\n");
                 ignores.append("  \"code\": \"").append(escape(d.code)).append("\",\n");
                 if (r.getOldElement() != null) {
-                    ignores.append("  \"old\": \"").append(escape(r.getOldElement())).append("\",\n");
+                    ignores.append("  \"old\": \"").append(escape(r.getOldElement().getFullHumanReadableString())).append("\",\n");
                 }
                 if (r.getNewElement() != null) {
-                    ignores.append("  \"new\": \"").append(escape(r.getNewElement())).append("\",\n");
+                    ignores.append("  \"new\": \"").append(escape(r.getNewElement().getFullHumanReadableString())).append("\",\n");
                 }
 
                 boolean hasOptionalAttachments = false;

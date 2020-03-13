@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2019 Lukas Krejci
+    Copyright 2014-2020 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.9.3-SNAPSHOT</version>
+            <version>0.10.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>pw.krejci</groupId>
             <artifactId>maven-repo-jboss-modules</artifactId>
-            <version>0.1.0</version>
+            <version>0.2.0</version>
         </dependency>
 
         <dependency>

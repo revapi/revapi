@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,7 +113,7 @@ public class SerializationChecker extends CheckBase {
                 && isBothAccessible(oldType, newType);
 
         if (serializable) {
-            pushActive(oldType, newType, new Object[2]);
+            pushActive(oldType, newType, new Object[3]);
         }
     }
 
@@ -137,16 +137,32 @@ public class SerializationChecker extends CheckBase {
 
         ensurePrimitiveTypesLoaded();
 
+        // If the constant value of the serialVersionUid field is null, it means that it is actually computed.
+        // This is an extreme measure taken by certain classes (like javax.xml.namespace.QName) to ensure
+        // back-compat in some situations where they need to mimic an old erratic serialization behavior.
+        // Let's just ignore these cases because we actually don't know the value the field would assume, because
+        // we're not loading the classes and don't know the target environment the classes will be used in which
+        // might influence the actual value of the field.
+        boolean computedSerialVersionUid = false;
+
         if (isSerialVersionUid(oldField, getOldTypeEnvironment(), oldLongType)) {
             lastActive.context[0] = oldField.getDeclaringElement().getConstantValue();
+            computedSerialVersionUid = lastActive.context[0] == null;
         }
 
         if (isSerialVersionUid(newField, getNewTypeEnvironment(), newLongType)) {
             lastActive.context[1] = newField.getDeclaringElement().getConstantValue();
             // we're going to report on the field in this case, so let's push the field as the active element to
             // be able to retrieve it in #doEnd()
-            pushActive(oldField, newField, lastActive.context);
+
+            if (lastActive.context[1] != null) {
+                pushActive(oldField, newField, lastActive.context);
+            } else {
+                computedSerialVersionUid = true;
+            }
         }
+
+        lastActive.context[2] = computedSerialVersionUid;
     }
 
     @Nullable
@@ -161,6 +177,16 @@ public class SerializationChecker extends CheckBase {
 
         Long oldSerialVersionUid = (Long) els.context[0];
         Long newSerialVersionUid = (Long) els.context[1];
+        Boolean computedSerialVersionUid = (Boolean) els.context[2];
+
+        if (computedSerialVersionUid != null && computedSerialVersionUid) {
+            // old or new serialVersionUid or both of them were declared without a constant value, meaning that their
+            // value is computed in a static initializer of the class. This basically means that we cannot do any
+            // analysis because we don't run the static initializers and more importantly we cannot assume
+            // the environment in which they would be run (e.g. if the value depends on some system property, we
+            // cannot anticipate its value).
+            return null;
+        }
 
         if (els.newElement instanceof JavaFieldElement) {
             // we're reporting on the new serialVersionUID field. The old version may or may not be there.

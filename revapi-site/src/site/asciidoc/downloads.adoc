@@ -9,6 +9,7 @@ NOTE: Please allow a day or so for the links to start working after a release. T
 release and the time the artifacts are replicated into Maven Central. If you'd like to download an older version of the
 artifacts, use the link to "All Versions" and pick the one you like.
 
+[cols="<3,3,1,1,1,1"]
 |===
 |Name|Artifact|Version|Release Date|Link|All Versions
 

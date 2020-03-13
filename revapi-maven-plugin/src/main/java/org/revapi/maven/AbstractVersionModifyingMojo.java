@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +55,7 @@ import org.revapi.Archive;
  * @author Lukas Krejci
  * @since 0.4.0
  */
-class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
+abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
 
     @Component
     protected MavenSession mavenSession;
@@ -82,6 +82,14 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
      */
     @Parameter(property = Props.disallowedExtensionsInVersioning.NAME, defaultValue = Props.disallowedExtensionsInVersioning.DEFAULT_VALUE)
     protected String disallowedExtensions;
+
+    /**
+     * When the {@code pom.xml} of the updated project contains no version and the computed version is different
+     * from the inherited version, the goal fails by default so that it doesn't change the version inheritance used
+     * by the projects. If you want to set an explicit version to such projects, set this property to {@code true}.
+     */
+    @Parameter(property = Props.forceVersionUpdate.NAME, defaultValue = Props.forceVersionUpdate.DEFAULT_VALUE)
+    private boolean forceVersionUpdate;
 
     private boolean preserveSuffix;
     private String replacementSuffix;
@@ -251,6 +259,14 @@ class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
                 int textPos = nav.getText();
                 mod.updateToken(textPos, version.toString());
             } else {
+                if (!forceVersionUpdate && !project.getParent().getVersion().equals(version.toString())) {
+                    throw new MojoExecutionException("Project " + project.getArtifactId() + " inherits the version" +
+                            " from the parent project (" + project.getParent().getVersion() + ") but should have a" +
+                            " different version according to the configured rules (" + version.toString() + "). If" +
+                            " you wish to insert an explicit version instead of inheriting it, set the " +
+                            Props.forceVersionUpdate.NAME + " property to true.");
+                }
+
                 //place the version after the artifactId
                 ap.selectXPath("/project/artifactId");
                 if (ap.evalXPath() == -1) {

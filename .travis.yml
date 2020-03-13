@@ -12,7 +12,9 @@ env:
 notifications:
   email: false
 
-sudo: false
+# Trying to workaround Travis issues...
+# See https://github.com/travis-ci/travis-ci/issues/6593
+sudo: true
 
 git:
   depth: false
