@@ -161,9 +161,11 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                                     Map.Entry::getKey,
                                     entry -> entry.getValue().stream().map(path -> {
                                         int index = -1;
-                                        if (path instanceof VariableElement && path.useSite instanceof ExecutableElement) {
+                                        if (path.useSite instanceof VariableElement
+                                                && path.useSite.getEnclosingElement() instanceof ExecutableElement) {
                                             //find the index of the method parameter
-                                            index = path.useSite.getEnclosingElement().getEnclosedElements()
+                                            index = ((ExecutableElement) path.useSite.getEnclosingElement())
+                                                    .getParameters()
                                                     .indexOf(path.useSite);
                                         }
 
