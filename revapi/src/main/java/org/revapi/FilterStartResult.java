@@ -246,7 +246,7 @@ public final class FilterStartResult {
     @Override
     public String toString() {
         return "FilterStartResult{" +
-                "state=" + getMatch() +
+                "match=" + getMatch() +
                 ", descend=" + isDescend() +
                 ", inherited=" + isInherited() +
                 '}';

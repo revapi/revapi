@@ -18,6 +18,9 @@ package org.revapi;
 
 import java.util.function.Supplier;
 
+/**
+ * A result of a filter.
+ */
 public enum FilterMatch {
     /**
      * The element matches the filter. I.e. it should proceed from the filter further.

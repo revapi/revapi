@@ -16,6 +16,9 @@
  */
 package org.revapi;
 
+/**
+ * A result of a finished filtering (see {@link TreeFilter#finish(Element)}.
+ */
 public class FilterFinishResult {
     private static final FilterFinishResult MATCH_NOT_INHERITED = new FilterFinishResult(FilterMatch.MATCHES, false);
     private static final FilterFinishResult DOESNT_MATCH_NOT_INHERITED = new FilterFinishResult(FilterMatch.DOESNT_MATCH, false);
@@ -27,22 +30,46 @@ public class FilterFinishResult {
     private final FilterMatch match;
     private final boolean inherited;
 
+    /**
+     * @return produces a result signifying that the filter didn't match.
+     */
     public static FilterFinishResult doesntMatch() {
         return from(FilterMatch.DOESNT_MATCH, false);
     }
 
+    /**
+     * @return produces a result signifying that the filter matched.
+     */
     public static FilterFinishResult matches() {
         return from(FilterMatch.MATCHES, false);
     }
 
+    /**
+     * The return filter finish result will have the result of the match and will not be inherited, meaning that it
+     * was intended directly for the elements the filter was processed upon.
+     * @param match the result of the filter
+     * @return the filter finish result
+     */
     public static FilterFinishResult direct(FilterMatch match) {
         return from(match, false);
     }
 
+    /**
+     * Produces a filter finish result that indicates it was inherited from the provided result.
+     *
+     * @param parent the result to inherit from
+     * @return an inherited filter finish result
+     */
     public static FilterFinishResult inherit(FilterFinishResult parent) {
         return from(parent.match, true);
     }
 
+    /**
+     * A factory method for filter finish results.
+     * @param match the result of the filtering
+     * @param inherited whether the finish result is inherited or explicit
+     * @return the filter finish result
+     */
     public static FilterFinishResult from(FilterMatch match, boolean inherited) {
         switch (match) {
         case DOESNT_MATCH:
@@ -56,6 +83,11 @@ public class FilterFinishResult {
         }
     }
 
+    /**
+     * Converts the provided start result into a finish result.
+     * @param startResult the start result to convert
+     * @return the converted finish result
+     */
     public static FilterFinishResult from(FilterStartResult startResult) {
         return from(startResult.getMatch(), startResult.isInherited());
     }
@@ -200,7 +232,7 @@ public class FilterFinishResult {
     @Override
     public String toString() {
         return "FilterEndResult{" +
-                "state=" + getMatch() +
+                "match=" + getMatch() +
                 ", inherited=" + isInherited() +
                 '}';
     }
