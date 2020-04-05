@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,10 @@ import static java.util.stream.Collectors.toSet;
 import static org.revapi.java.AnalysisConfiguration.MissingClassReporting.ERROR;
 import static org.revapi.java.AnalysisConfiguration.MissingClassReporting.REPORT;
 import static org.revapi.java.model.JavaElementFactory.elementFor;
+import static org.revapi.java.spi.UseSite.Type.IS_THROWN;
+import static org.revapi.java.spi.UseSite.Type.PARAMETER_TYPE;
+import static org.revapi.java.spi.UseSite.Type.RETURN_TYPE;
+import static org.revapi.java.spi.UseSite.Type.TYPE_PARAMETER_OR_BOUND;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +34,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,6 +66,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.PrimitiveType;
@@ -87,6 +93,7 @@ import org.revapi.TreeFilter;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.model.AbstractJavaElement;
 import org.revapi.java.model.AnnotationElement;
+import org.revapi.java.model.FieldElement;
 import org.revapi.java.model.InitializationOptimizations;
 import org.revapi.java.model.JavaElementBase;
 import org.revapi.java.model.JavaElementFactory;
@@ -556,6 +563,10 @@ final class ClasspathScanner {
         }
 
         void addTypeParamUses(TypeRecord userType, Element user, TypeMirror usedType) {
+            addTypeParamUses(userType, user, usedType, t -> addUse(userType, user, t, TYPE_PARAMETER_OR_BOUND));
+        }
+
+        void addTypeParamUses(TypeRecord userType, Element user, TypeMirror usedType, Consumer<TypeElement> addUseFn) {
             HashSet<String> visited = new HashSet<>(4);
             usedType.accept(new SimpleTypeVisitor8<Void, Void>() {
                 @Override
@@ -577,7 +588,7 @@ final class ClasspathScanner {
                         if (t != usedType) {
                             TypeElement typeEl = (TypeElement) t.asElement();
                             addType(typeEl, false);
-                            addUse(userType, user, typeEl, UseSite.Type.TYPE_PARAMETER_OR_BOUND);
+                            addUseFn.accept(typeEl);
                         }
                         t.getTypeArguments().forEach(a -> a.accept(this, null));
                     }
@@ -609,9 +620,13 @@ final class ClasspathScanner {
         }
 
         void addUse(TypeRecord userType, Element user, TypeElement used, UseSite.Type useType, int indexInParent) {
+            addUse(userType, user, used, useType, indexInParent, ClassPathUseSite::new);
+        }
+
+        void addUse(TypeRecord userType, Element user, TypeElement used, UseSite.Type useType, int indexInParent, UseSiteConstructor ctor) {
             TypeRecord usedTr = getTypeRecord(used);
             Set<ClassPathUseSite> sites = usedTr.useSites;
-            sites.add(new ClassPathUseSite(useType, user, indexInParent));
+            sites.add(ctor.create(useType, user, indexInParent));
 
             Map<TypeRecord, Set<UseSitePath>> usedTypes = userType.usedTypes.computeIfAbsent(useType, k -> new HashMap<>(4));
 
@@ -832,7 +847,11 @@ final class ClasspathScanner {
         }
 
         private void initChildren() {
-            this.types.values().forEach(this::initChildren);
+            List<TypeRecord> copy;
+            do {
+                copy = new ArrayList<>(this.types.values());
+                copy.forEach(this::initChildren);
+            } while (this.types.size() != copy.size());
         }
 
         private void initChildren(TypeRecord tr) {
@@ -938,7 +957,7 @@ final class ClasspathScanner {
                         InitializationOptimizations.initializeComparator(e);
                     }
 
-                    @SuppressWarnings("unchecked")
+                    @SuppressWarnings({"unchecked", "rawtypes"})
                     Optional<JavaElementBase<?, ?>> copy = ((JavaElementBase) e).cloneUnder(target.modelElement);
                     if (!copy.isPresent()) {
                         continue;
@@ -948,8 +967,6 @@ final class ClasspathScanner {
                     //the cloned element needs to look like it originated in the archive of the target.
                     ret.setArchive(target.modelElement.getArchive());
 
-                    target.modelElement.getChildren().add(ret);
-
                     FilterStartResult fr = filter.start(ret);
                     if (fr.isDescend()) {
                         copyInheritedNonClassElementChildren(target, ret, e.getChildren(), target.inApi);
@@ -958,24 +975,7 @@ final class ClasspathScanner {
                     finishFiltering(target, ret);
                 }
 
-                if (e instanceof MethodElement) {
-                    // we need to add the use sites to the inherited method, too
-                    superType.usedTypes.forEach((useType, sites) -> sites.forEach((usedType, useSites) -> {
-                        useSites.forEach(site -> {
-                            if (site.useSite != e.getDeclaringElement()) {
-                                return;
-                            }
-
-                            int index = useType == UseSite.Type.PARAMETER_TYPE
-                                    ? site.useSite.getEnclosingElement().getEnclosedElements().indexOf(site.useSite)
-                                    : -1;
-
-                            usedType.useSites.add(new InheritedUseSite(useType, site.useSite, target.modelElement, index));
-                            target.usedTypes.computeIfAbsent(useType, __ -> new HashMap<>())
-                                    .computeIfAbsent(usedType, __ -> new HashSet<>()).add(new UseSitePath(target.javacElement, site.useSite));
-                        });
-                    }));
-                }
+                addUseSites(target, ret);
 
                 ret.setInherited(true);
             }
@@ -983,6 +983,62 @@ final class ClasspathScanner {
 
             for (TypeRecord st : superType.superTypes) {
                 addInherited(target, st, methodOverrideMap);
+            }
+        }
+
+        private void addUseSites(TypeRecord target, JavaElementBase<?, ?> targetEl) {
+            if (targetEl instanceof FieldElement) {
+                addFieldUseSites(target, (FieldElement) targetEl);
+            } else if (targetEl instanceof MethodElement) {
+                addMethodUseSites(target, (MethodElement) targetEl);
+            }
+        }
+
+        private void addFieldUseSites(TypeRecord target, FieldElement targetF) {
+            TypeMirror usedType = targetF.getModelRepresentation();
+            TypeElement usedEl = getTypeElement.visit(usedType);
+            if (usedEl == null) {
+                return;
+            }
+
+            VariableElement f = targetF.getDeclaringElement();
+
+            UseSiteConstructor ctor = (useType, site, indexInParent) -> new InheritedUseSite(useType, site,
+                    target.modelElement, indexInParent);
+
+            addUse(target, f, usedEl, UseSite.Type.HAS_TYPE, -1, ctor);
+            addTypeParamUses(target, f, usedType, t -> addUse(target, f, t, TYPE_PARAMETER_OR_BOUND, -1, ctor));
+        }
+
+        private void addMethodUseSites(TypeRecord target, MethodElement targetM) {
+            UseSiteConstructor ctor = (useType, site, indexInParent) -> new InheritedUseSite(useType, site,
+                    target.modelElement, indexInParent);
+
+            ExecutableType methodType = targetM.getModelRepresentation();
+            ExecutableElement method = targetM.getDeclaringElement();
+
+            TypeMirror retType = methodType.getReturnType();
+            TypeElement retEl = getTypeElement.visit(retType);
+            if (retEl != null) {
+                addUse(target, method, retEl, RETURN_TYPE, -1, ctor);
+                addTypeParamUses(target, method, retType, v -> addUse(target, method, v, TYPE_PARAMETER_OR_BOUND, -1,
+                        ctor));
+            }
+
+            int i = 0;
+            for (TypeMirror p : methodType.getParameterTypes()) {
+                TypeElement pEl = getTypeElement.visit(p);
+                if (pEl != null) {
+                    addUse(target, targetM.getDeclaringElement(), pEl, PARAMETER_TYPE, i++, ctor);
+                    addTypeParamUses(target, method, p, v -> addUse(target, method, v, TYPE_PARAMETER_OR_BOUND, -1,
+                            ctor));
+                }
+            }
+
+            for (TypeMirror t : methodType.getThrownTypes()) {
+                addUse(target, targetM.getDeclaringElement(), getTypeElement.visit(t), IS_THROWN, i++, ctor);
+                addTypeParamUses(target, method, t, v -> addUse(target, method, v, TYPE_PARAMETER_OR_BOUND, -1,
+                        ctor));
             }
         }
 
@@ -1235,5 +1291,10 @@ final class ClasspathScanner {
 
     static boolean shouldBeIgnored(Element element) {
         return Collections.disjoint(element.getModifiers(), ACCESSIBLE_MODIFIERS);
+    }
+
+    @FunctionalInterface
+    private interface UseSiteConstructor {
+        ClassPathUseSite create(UseSite.Type useType, Element site, int indexInParent);
     }
 }
