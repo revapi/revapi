@@ -69,12 +69,19 @@ artifacts, use the link to "All Versions" and pick the one you like.
 |+++<a id="link-org.revapi-revapi-reporter-text">here</a>+++
 |+++<a id="all-link-org.revapi-revapi-reporter-text">here</a>+++
 
-|Revapi Java Test Support
-|`org.revapi:revapi-java-test-support`
-|+++<div id="version-org.revapi-revapi-java-test-support"></div>+++
-|+++<div id="release-date-org.revapi-revapi-java-test-support"></div>+++
-|+++<a id="link-org.revapi-revapi-java-test-support">here</a>+++
-|+++<a id="all-link-org.revapi-revapi-java-test-support">here</a>+++
+|Revapi File-based Reporter Base
+|`org.revapi:revapi-reporter-file-base`
+|+++<div id="version-org.revapi-revapi-reporter-file-base"></div>+++
+|+++<div id="release-date-org.revapi-revapi-reporter-file-base"></div>+++
+|+++<a id="link-org.revapi-revapi-reporter-file-base">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-reporter-file-base">here</a>+++
+
+|Revapi JSON Reporter Extension
+|`org.revapi:revapi-reporter-json`
+|+++<div id="version-org.revapi-revapi-reporter-json"></div>+++
+|+++<div id="release-date-org.revapi-revapi-reporter-json"></div>+++
+|+++<a id="link-org.revapi-revapi-reporter-json">here</a>+++
+|+++<a id="all-link-org.revapi-revapi-reporter-json">here</a>+++
 
 |===
 
@@ -123,7 +130,8 @@ window.addEventListener("load", function() {
     fillIn("org.revapi", "revapi-maven-plugin", ".jar")
     fillIn("org.revapi", "revapi-reporter-text", ".jar")
     fillIn("org.revapi", "revapi-standalone", "-standalone.zip")
-    fillIn("org.revapi", "revapi-java-test-support", ".jar")
+    fillIn("org.revapi", "revapi-reporter-file-base", ".jar")
+    fillIn("org.revapi", "revapi-reporter-json", ".jar")
 })
 </script>
 ++++
