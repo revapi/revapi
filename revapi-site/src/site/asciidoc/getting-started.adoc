@@ -50,6 +50,12 @@ check your java code, you need to add the Revapi's java extension as a dependenc
 
 For more detailed info, check the maven plugin's link:modules/revapi-maven-plugin/index.html[site].
 
+=== Gradle
+
+There is an externally developed Gradle plugin contributed by https://palantir.com[Palantir],
+the https://github.com/palantir/gradle-revapi[gradle-revapi] plugin. Please consult
+the https://github.com/palantir/gradle-revapi[home page] of the project for usage guidelines and documentation.
+
 === Standalone Usage
 
 NOTE: More information about the Revapi's CLI tool, can be obtained from its

@@ -46,12 +46,14 @@
         <module>revapi-java-spi</module>
         <module>revapi-java</module>
         <module>revapi-reporter-text</module>
+        <module>revapi-reporter-json</module>
         <module>revapi-maven-utils</module>
         <module>revapi-maven-plugin</module>
         <module>revapi-standalone</module>
         <module>revapi-site</module>
         <module>revapi-site-shared</module>
         <module>coverage</module>
+        <module>revapi-reporter-file-base</module>
     </modules>
 
     <build>
