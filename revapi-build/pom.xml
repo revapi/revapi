@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2019 Lukas Krejci
+    Copyright 2014-2020 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -469,6 +469,29 @@
                                         <item>java.class.nonPublicPartOfAPI</item>
                                     </passThroughDifferences>
                                 </revapi.semver.ignore>
+                                <revapi.ignore>
+                                    <item>
+                                        <regex>true</regex>
+                                        <code>java.class.externalClassExposedInAPI</code>
+                                        <newArchive>org\.revapi:revapi:.*</newArchive>
+                                        <justification>
+                                            Revapi sub-modules implement the Revapi API which makes them expose
+                                            Revapi-specific classes usually. In our case this is generally OK because
+                                            the modules are just Revapi extensions which are supposed to do that.
+                                        </justification>
+                                    </item>
+                                    <item>
+                                        <regex>true</regex>
+                                        <code>java.class.externalClassExposedInAPI</code>
+                                        <newArchive>org\.jboss:jboss-dmr:.*</newArchive>
+                                        <justification>
+                                            Revapi sub-modules implement the Revapi API which makes them expose
+                                            Jboss DMR (which is part of our API). In our case this is generally OK
+                                            because the modules are just Revapi extensions which are supposed to do
+                                            that.
+                                        </justification>
+                                    </item>
+                                </revapi.ignore>
                             </analysisConfiguration>
                             <analysisConfigurationFiles>
                                 <configurationFile>

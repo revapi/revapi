@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
 
-    Copyright 2014-2019 Lukas Krejci
+    Copyright 2014-2020 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,14 +50,16 @@
     </menu>
 
     <menu name="Sub Projects" inherit="top">
-      <item name="Revapi API" href="${web.url}/modules/revapi/index.html"/>
+      <item name="Maven Plugin" href="${web.url}/modules/revapi-maven-plugin/index.html"/>
+      <item name="Gradle Plugin (external)" href="https://github.com/palantir/gradle-revapi" />
       <item name="Ant Task" href="${web.url}/modules/revapi-ant-task/index.html"/>
+      <item name="Revapi API" href="${web.url}/modules/revapi/index.html"/>
       <item name="Basic Features" href="${web.url}/modules/revapi-basic-features/index.html"/>
       <item name="Java Extension" href="${web.url}/modules/revapi-java/index.html"/>
       <item name="Java Extension SPI" href="${web.url}/modules/revapi-java-spi/index.html"/>
-      <item name="Java Test Support" href="https://github.com/revapi/testjars"/>
+      <item name="File-based Reporters" href="${web.url}/modules/revapi-reporter-file-base/index.html"/>
       <item name="Text Report Extension" href="${web.url}/modules/revapi-reporter-text/index.html"/>
-      <item name="Maven Plugin" href="${web.url}/modules/revapi-maven-plugin/index.html"/>
+      <item name="JSON Report Extension" href="${web.url}/modules/revapi-reporter-json/index.html"/>
     </menu>
 
     <menu name="Maven Documentation" ref="reports" inherit="bottom"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -203,7 +203,7 @@ public final class Difference {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Problem[");
+        final StringBuilder sb = new StringBuilder("Difference[");
         sb.append("code='").append(code).append('\'');
         sb.append(", name='").append(name).append('\'');
         sb.append(", classification=").append(classification);
