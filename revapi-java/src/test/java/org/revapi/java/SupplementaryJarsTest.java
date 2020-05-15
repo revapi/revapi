@@ -30,7 +30,6 @@ import org.revapi.AnalysisResult;
 import org.revapi.Report;
 import org.revapi.Revapi;
 import org.revapi.java.spi.Code;
-import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
