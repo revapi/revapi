@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package org.revapi.maven;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -45,6 +46,17 @@ final class SchemaDrivenJSONToXmlConverter {
 
     }
 
+    /**
+     * Converts the given {@code jsonConfig} into XML given the JSON schemas for the extensions.
+     * <p>
+     * Beware that {@link PlexusConfiguration} does NOT do any escaping of the values. Use
+     * {@link XmlUtil#toIndentedString(PlexusConfiguration, int, int, Writer)} to correctly serialize the configuration.
+     * 
+     * @param extensionSchemas the known extension schemas
+     * @param jsonConfig the json configuration to convert
+     * @return the {@link PlexusConfiguration} instance
+     * @throws IOException on error
+     */
     static PlexusConfiguration convertToXml(Map<String, ModelNode> extensionSchemas, ModelNode jsonConfig)
             throws IOException {
         if (jsonConfig.getType() == ModelType.LIST) {
