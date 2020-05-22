@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +16,19 @@
  */
 package org.revapi.java;
 
+import static java.util.stream.Collectors.toMap;
+
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.revapi.Difference;
 import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.java.spi.Code;
@@ -56,6 +62,117 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(6, (int) reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
     }
 
+    @Test
+    public void testObjectMethodsNotReportedDueToClassKindChange() throws Exception {
+        List<Report> reports = runAnalysis(CollectingReporter.class,
+                "v1/classes/KindChanged.java", "v2/classes/KindChanged.java").getReports();
+
+        Function<String, Map<String, List<Difference>>> getDiffs = className -> reports.stream()
+                .map(r -> {
+                    String str = r.getOldElement() != null
+                            ? r.getOldElement().getFullHumanReadableString()
+                            : r.getNewElement().getFullHumanReadableString();
+
+                    if (str.startsWith("method") && (str.contains(className + "::") || str.endsWith("@ " + className))) {
+                        return new SimpleImmutableEntry<String, List<Difference>>(str, r.getDifferences());
+                    } else {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // class -> interface
+        Map<String, List<Difference>> diffsPerMethod = getDiffs.apply("KindChanged.Class");
+        Assert.assertEquals(1, diffsPerMethod.size());
+        List<Difference> diffs = diffsPerMethod.get("method void KindChanged.Class::<init>()");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
+
+        // interface -> enum
+        diffsPerMethod = getDiffs.apply("KindChanged.Interface");
+        Assert.assertEquals(7, diffsPerMethod.size());
+        diffs = diffsPerMethod.get("method <T extends java.lang.Enum<T>> T java.lang.Enum<E extends java.lang.Enum<E>>::valueOf(java.lang.Class<T>, java.lang.String) @ KindChanged.Interface");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_ADDED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method KindChanged.Interface[] KindChanged.Interface::values()");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_ADDED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method int java.lang.Enum<E extends java.lang.Enum<E>>::ordinal() @ KindChanged.Interface");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_ADDED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method KindChanged.Interface KindChanged.Interface::valueOf(java.lang.String)");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_ADDED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method java.lang.String java.lang.Enum<E extends java.lang.Enum<E>>::name() @ KindChanged.Interface");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_ADDED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method java.lang.Class<E> java.lang.Enum<E extends java.lang.Enum<E>>::getDeclaringClass() @ KindChanged.Interface");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_ADDED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method int java.lang.Enum<E extends java.lang.Enum<E>>::compareTo(E) @ KindChanged.Interface");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_ADDED.code(), diffs.get(0).code);
+
+        // enum -> annotation
+        diffsPerMethod = getDiffs.apply("KindChanged.Enum");
+        Assert.assertEquals(8, diffsPerMethod.size());
+        diffs = diffsPerMethod.get("method <T extends java.lang.Enum<T>> T java.lang.Enum<E extends java.lang.Enum<E>>::valueOf(java.lang.Class<T>, java.lang.String) @ KindChanged.Enum");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method KindChanged.Enum[] KindChanged.Enum::values()");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method int java.lang.Enum<E extends java.lang.Enum<E>>::ordinal() @ KindChanged.Enum");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method KindChanged.Enum KindChanged.Enum::valueOf(java.lang.String)");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method java.lang.String java.lang.Enum<E extends java.lang.Enum<E>>::name() @ KindChanged.Enum");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method java.lang.Class<E> java.lang.Enum<E extends java.lang.Enum<E>>::getDeclaringClass() @ KindChanged.Enum");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method int java.lang.Enum<E extends java.lang.Enum<E>>::compareTo(E) @ KindChanged.Enum");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method java.lang.Class<? extends java.lang.annotation.Annotation> java.lang.annotation.Annotation::annotationType() @ KindChanged.Enum");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_ABSTRACT_METHOD_ADDED.code(), diffs.get(0).code);
+
+        // annotation -> class
+        diffsPerMethod = getDiffs.apply("KindChanged.Annotation");
+        Assert.assertEquals(2, diffsPerMethod.size());
+        diffs = diffsPerMethod.get("method void KindChanged.Annotation::<init>()");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_ADDED.code(), diffs.get(0).code);
+        diffs = diffsPerMethod.get("method java.lang.Class<? extends java.lang.annotation.Annotation> java.lang.annotation.Annotation::annotationType() @ KindChanged.Annotation");
+        Assert.assertNotNull(diffs);
+        Assert.assertEquals(1, diffs.size());
+        Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
+
+        Assert.assertEquals(34L, reports.stream().mapToLong(r -> r.getDifferences().size()).sum());
+    }
+        
     @Test
     public void testDefaultValueChangedCheck() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
