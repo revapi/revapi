@@ -156,6 +156,11 @@ final class Props {
         static final String DEFAULT_VALUE = "true";
     }
 
+    static final class ignoreSuggestionsFormat {
+        static final String NAME = PREFIX + "ignoreSuggestionsFormat";
+        static final String DEFAULT_VALUE = "json";
+    }
+
     static final class outputNonIdentifyingDifferenceInfo {
         static final String NAME = PREFIX + "outputNonIdentifyingDifferenceInfo";
         static final String DEFAULT_VALUE = "true";
