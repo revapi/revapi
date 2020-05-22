@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -223,8 +223,8 @@ public final class XmlToJson<Xml> {
             throw new IllegalArgumentException(
                     "No schema found for items of a list. Cannot continue with XML-to-JSON conversion.");
         }
-        if (getValue.apply( configuration ) != null) {
-            throw new IllegalArgumentException("Array is not allowed to have a text node");
+        if (getValue.apply(configuration) != null) {
+            throw new IllegalArgumentException("Array is not allowed to have a text node: <" + getName.apply(configuration) + ">");
         }
         ModelNode list = new ModelNode();
         list.setEmptyList();

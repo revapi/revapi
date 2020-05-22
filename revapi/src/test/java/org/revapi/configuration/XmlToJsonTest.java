@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -136,12 +136,18 @@ public class XmlToJsonTest {
         Assert.assertEquals(2L, config.asList().get(1).asLong());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testArrayConversion_invalid() throws Exception {
-        XmlToJson<Node> converter = converter("list", "{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
-        Node xml = xml("<config><list>text</list></config>");
+        try {
+            XmlToJson<Node> converter = converter("list", "{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
+            Node xml = xml("<config><list>text</list></config>");
 
-        converter.convert(xml).get(0).get("configuration");
+            converter.convert(xml).get(0).get("configuration");
+
+            Assert.fail("Invalid array conversion should have succeeded.");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("<list>"));
+        }
     }
 
     @Test
