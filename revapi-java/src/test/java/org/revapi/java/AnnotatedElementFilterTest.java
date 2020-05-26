@@ -254,7 +254,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         cnt += Stream.of(clazz.getDeclaredClasses()).filter(c -> accessibleElements.apply(c.getModifiers()))
                 .mapToInt(cl -> getNumberOfChildElements(cl) + 1).sum();
 
-        Set<String> methodNames = new HashSet<>();
+        Set<String> javaLangObjectMethods = new HashSet<>();
 
         ToIntFunction<Method> countMethod = m -> {
             int mcnt = getNumberOfAnnotationsOn(m);
@@ -265,16 +265,16 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
             return mcnt + 1; //+1 for the method itself
         };
 
-        cnt += Stream.of(clazz.getDeclaredMethods()).filter(c -> accessibleElements.apply(c.getModifiers()))
-                .peek(m -> methodNames.add(m.getName()))
-                .mapToInt(countMethod).sum();
-
         if (!clazz.equals(Object.class)) {
             // add the methods from object to the number
             cnt += Stream.of(Object.class.getDeclaredMethods()).filter(c -> accessibleElements.apply(c.getModifiers()))
-                    .filter(m -> !methodNames.contains(m.getName()))
+                    .peek(m -> javaLangObjectMethods.add(m.getName()))
                     .mapToInt(countMethod).sum();
         }
+
+        cnt += Stream.of(clazz.getDeclaredMethods()).filter(c -> accessibleElements.apply(c.getModifiers()))
+                .filter(m -> !javaLangObjectMethods.contains(m.getName()))
+                .mapToInt(countMethod).sum();
 
         cnt += Stream.of(clazz.getDeclaredFields()).filter(c -> accessibleElements.apply(c.getModifiers()))
                 .mapToInt(f -> getNumberOfAnnotationsOn(f) + 1).sum();
