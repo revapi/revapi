@@ -50,4 +50,17 @@
         </dependency>
     </dependencies>
 
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>${web.repo}</url>
+        </site>
+    </distributionManagement>
+
+    <scm>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <url>https://github.com/revapi/revapi</url>
+        <tag>HEAD</tag>
+    </scm>
 </project>
