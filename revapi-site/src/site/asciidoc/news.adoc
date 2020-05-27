@@ -4,6 +4,7 @@ You can subscribe to the link:news.atom[RSS feed] to be automatically informed a
 
 ---
 
+* link:news/20200527-releases.html[2020-05-27 New Releases]
 * link:news/20190506-releases.html[2019-05-06 New Releases]
 * link:news/20190308-releases.html[2019-03-08 New Releases]
 * link:news/20180626-releases.html[2018-06-26 New releases]
