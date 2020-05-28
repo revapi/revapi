@@ -34,4 +34,6 @@ Last but not least, you can now sponsor the further maintenance and development 
 https://opencollective.com/revapi[Open Collective] page or by clicking the sponsor button on the
 https://github.com/revapi/revapi[github repo].
 
+Go to the link:../downloads.html[downloads page] to check out the latest versions of the various Revapi components.
+
 include::../util/disqus.adoc[]
