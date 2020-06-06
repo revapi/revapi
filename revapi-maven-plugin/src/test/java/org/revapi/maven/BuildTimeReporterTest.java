@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +50,7 @@ public class BuildTimeReporterTest {
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi)
                 .withData(BuildTimeReporter.BREAKING_SEVERITY_KEY, DifferenceSeverity.EQUIVALENT)
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
                 .build();
 
         reporter.initialize(ctx);
@@ -111,7 +112,7 @@ public class BuildTimeReporterTest {
         int end = resultMessage.lastIndexOf('}');
 
         String json = resultMessage.substring(start, end + 1);
-        json = json.replace("<<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE >>>>>", "\"\"");
+        json = json.replace("<<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE >>>>>", "");
 
         ModelNode parsed = ModelNode.fromJSONString(json);
 
@@ -130,6 +131,7 @@ public class BuildTimeReporterTest {
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi)
                 .withData(BuildTimeReporter.BREAKING_SEVERITY_KEY, DifferenceSeverity.EQUIVALENT)
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
                 .build();
 
         reporter.initialize(ctx);
@@ -206,6 +208,7 @@ public class BuildTimeReporterTest {
                 .withNewAPI(newApi)
                 .withData(BuildTimeReporter.BREAKING_SEVERITY_KEY, DifferenceSeverity.EQUIVALENT)
                 .withData(BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, false)
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
                 .build();
 
         reporter.initialize(ctx);

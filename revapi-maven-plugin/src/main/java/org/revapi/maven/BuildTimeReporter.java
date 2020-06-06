@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,17 +33,30 @@ import org.revapi.Report;
 import org.revapi.Reporter;
 
 /**
+ * Build-time reporter is a {@link Reporter} extension for Revapi that is used by the {@link CheckMojo} to output the
+ * found problems and also to provide the suggestions to the user how to ignore the problems if deemed ok.
+ * <p>
+ * Even though this is a normal Revapi extension, it doesn't use the normal configuration mechanisms provided by Revapi
+ * (i.e. it doesn't define a configuration schema and doesn't accept any configuration from the configuration in the
+ * analysis context during the {@link #initialize(AnalysisContext)} method). Instead, it is configured through the
+ * {@link AnalysisContext#getData(String)}. This is to make it easier to pass complex objects to the reporter and also
+ * to amplify the fact that this is no "normal" extension but is tightly bound to the {@link CheckMojo} and the Maven
+ * build.
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
 public final class BuildTimeReporter implements Reporter {
-    static final String BREAKING_SEVERITY_KEY = "org.revapi.maven.buildTimeBreakingSeverity";
-    static final String OUTPUT_NON_IDENTIFYING_ATTACHMENTS = "org.revapi.maven.outputNonIdentifyingAttachments";
+    public static final String BREAKING_SEVERITY_KEY = "org.revapi.maven.buildTimeBreakingSeverity";
+    public static final String OUTPUT_NON_IDENTIFYING_ATTACHMENTS = "org.revapi.maven.outputNonIdentifyingAttachments";
+    public static final String SUGGESTIONS_BUILDER_KEY = "org.revapi.maven.buildTimeSuggestionsBuilder";
+
     private DifferenceSeverity breakingSeverity;
     private List<Report> allProblems;
     private List<Archive> oldApi;
     private List<Archive> newApi;
     private boolean outputNonIdentifyingAttachments;
+    private SuggestionsBuilder suggestionsBuilder;
 
     public boolean hasBreakingProblems() {
         return allProblems != null && !allProblems.isEmpty();
@@ -83,53 +95,7 @@ public final class BuildTimeReporter implements Reporter {
             return null;
         }
 
-        StringBuilder ignores = new StringBuilder();
-
-        for (Report r : allProblems) {
-            for (Difference d : r.getDifferences()) {
-                if (!isReportable(d)) {
-                    continue;
-                }
-
-                ignores.append("{\n");
-                ignores.append("  \"code\": \"").append(escape(d.code)).append("\",\n");
-                if (r.getOldElement() != null) {
-                    ignores.append("  \"old\": \"").append(escape(r.getOldElement().getFullHumanReadableString())).append("\",\n");
-                }
-                if (r.getNewElement() != null) {
-                    ignores.append("  \"new\": \"").append(escape(r.getNewElement().getFullHumanReadableString())).append("\",\n");
-                }
-
-                boolean hasOptionalAttachments = false;
-                for (Map.Entry<String, String> e : d.attachments.entrySet()) {
-                    if (d.isIdentifyingAttachment(e.getKey())) {
-                        ignores.append("  \"").append(escape(e.getKey())).append("\": \"").append(escape(e.getValue()))
-                                .append("\",\n");
-                    } else {
-                        hasOptionalAttachments = true;
-                    }
-                }
-
-                ignores.append("  \"justification\": <<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE" +
-                        " >>>>>\n");
-
-                if (outputNonIdentifyingAttachments && hasOptionalAttachments) {
-                    ignores.append("  /*\n  Additionally, the following attachments can be used to further identify the difference:\n\n");
-                    for (Map.Entry<String, String> e : d.attachments.entrySet()) {
-                        if (!d.isIdentifyingAttachment(e.getKey())) {
-                            ignores.append("  \"").append(escape(e.getKey())).append("\": \"").append(escape(e.getValue()))
-                                    .append("\",\n");
-                        }
-                    }
-                    ignores.append("  */\n");
-                }
-
-                ignores.append("},\n");
-
-            }
-        }
-
-        return ignores.toString();
+        return suggestionsBuilder.build(allProblems, new SuggestionBuilderContext());
     }
 
     @Nullable @Override public String getExtensionId() {
@@ -152,10 +118,21 @@ public final class BuildTimeReporter implements Reporter {
             newApi.add(a);
         }
         this.breakingSeverity = (DifferenceSeverity) context.getData(BREAKING_SEVERITY_KEY);
+        if (breakingSeverity == null) {
+            throw new IllegalStateException("Breaking severity must be provided in the context data of the" +
+                    " BuildTimeReporter. If you see this, you've come across a bug, please report it.");
+        }
+
         Boolean outputNonIdentifyingAttachments = (Boolean) context.getData(OUTPUT_NON_IDENTIFYING_ATTACHMENTS);
         this.outputNonIdentifyingAttachments = outputNonIdentifyingAttachments == null
                 ? true
                 : outputNonIdentifyingAttachments;
+        this.suggestionsBuilder = (SuggestionsBuilder) context.getData(SUGGESTIONS_BUILDER_KEY);
+
+        if (suggestionsBuilder == null) {
+            throw new IllegalStateException("SuggestionBuilder instance must be provided in the context data of the" +
+                    " BuildTimeReporter. If you see this, you've come across a bug, please report it.");
+        }
     }
 
     @Override
@@ -197,55 +174,25 @@ public final class BuildTimeReporter implements Reporter {
     public void close() throws IOException {
     }
 
-    private static String escape(Object obj) {
-        if (obj == null) {
-            return "null";
+    /**
+     * A suggestion builder is an object that the {@link BuildTimeReporter} uses to render suggestions for ignoring
+     * the found problems.
+     */
+    public interface SuggestionsBuilder {
+        String build(List<Report> reports, SuggestionBuilderContext context);
+    }
+
+    /**
+     * The context that can be used by the {@link SuggestionsBuilder} to get information about the differences
+     * and the configured output options.
+     */
+    public final class SuggestionBuilderContext {
+        boolean isReportable(Difference difference) {
+            return BuildTimeReporter.this.isReportable(difference);
         }
 
-        String string = obj.toString();
-
-        char c;
-        int i;
-        int len = string.length();
-        StringBuilder sb = new StringBuilder(len);
-        String t;
-
-        for (i = 0; i < len; i += 1) {
-            c = string.charAt(i);
-            switch (c) {
-                case '\\':
-                case '"':
-                    sb.append('\\');
-                    sb.append(c);
-                    break;
-                case '/':
-                    sb.append('\\');
-                    sb.append(c);
-                    break;
-                case '\b':
-                    sb.append("\\b");
-                    break;
-                case '\t':
-                    sb.append("\\t");
-                    break;
-                case '\n':
-                    sb.append("\\n");
-                    break;
-                case '\f':
-                    sb.append("\\f");
-                    break;
-                case '\r':
-                    sb.append("\\r");
-                    break;
-                default:
-                    if (c < ' ') {
-                        t = "000" + Integer.toHexString(c);
-                        sb.append("\\u").append(t.substring(t.length() - 4));
-                    } else {
-                        sb.append(c);
-                    }
-            }
+        boolean isAttachmentsReported() {
+            return outputNonIdentifyingAttachments;
         }
-        return sb.toString();
     }
 }

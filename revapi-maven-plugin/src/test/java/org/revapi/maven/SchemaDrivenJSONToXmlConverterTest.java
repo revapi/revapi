@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -116,6 +117,21 @@ public class SchemaDrivenJSONToXmlConverterTest {
         assertEquals("tag", config.getName());
         assertEquals(0, config.getChildCount());
         assertEquals("str", config.getValue());
+    }
+
+    @Test
+    public void testStringConversion_escapes() throws Exception {
+        ModelNode schema = json("{\"type\": \"string\"}");
+        ModelNode json = json("\"&<>\"");
+
+        PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
+        assertNotNull(config);
+        assertEquals("tag", config.getName());
+        assertEquals(0, config.getChildCount());
+        assertEquals("&<>", config.getValue());
+        StringWriter wrt = new StringWriter();
+        XmlUtil.toIndentedString(config, 0, 0, wrt);
+        assertEquals("<tag>&amp;&lt;&gt;</tag>", wrt.toString());
     }
 
     @Test

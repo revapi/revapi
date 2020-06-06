@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,13 +157,13 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                     c -> "interface MemberInheritsOwner.Member2".equals(c.getFullHumanReadableString());
 
             Element root = forest.getRoots().first();
-            Assert.assertEquals(3, root.getChildren().size());
+            Assert.assertEquals(3 + 11, root.getChildren().size()); //11 is the number of methods on java.lang.Object
             Assert.assertTrue(root.getChildren().stream().anyMatch(findMethod));
             Assert.assertTrue(root.getChildren().stream().anyMatch(findMember1));
             Assert.assertTrue(root.getChildren().stream().anyMatch(findMember2));
 
-            Assert.assertEquals(1, root.getChildren().stream().filter(findMember1).findFirst().get().getChildren().size());
-            Assert.assertEquals(1, root.getChildren().stream().filter(findMember2).findFirst().get().getChildren().size());
+            Assert.assertEquals(1 + 11, root.getChildren().stream().filter(findMember1).findFirst().get().getChildren().size());
+            Assert.assertEquals(1 + 11, root.getChildren().stream().filter(findMember2).findFirst().get().getChildren().size());
 
         } finally {
             deleteDir(archive.compilationPath);
@@ -198,7 +198,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             Set<TypeElement> roots = forest.getRoots();
 
             Assert.assertEquals(7, roots.size());
-            Assert.assertTrue(roots.stream().anyMatch(hasName("class Generics<T extends GenericsParams.TypeVar, GenericsParams.TypeVarIface, U extends Generics<GenericsParams.TypeVarImpl, ?>>")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class Generics<T extends GenericsParams.TypeVar & GenericsParams.TypeVarIface, U extends Generics<GenericsParams.TypeVarImpl, ?>>")));
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.ExtendsBound")));
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.SuperBound")));
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeParam")));

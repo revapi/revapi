@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,15 +20,18 @@ import static java.util.stream.Collectors.toList;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -104,7 +107,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                     + NUMBER_OF_ELEMENTS_ON_OBJECT + 2 //UndecisiveClass, UndecisiveClass()
                     + 1 //UndecisiveClass.f
                     + 1 //UndecisiveClass.m()
-                ;
+                    ;
 
             Assert.assertEquals(expectedCount, results.size());
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
@@ -245,28 +248,36 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     }
 
     private static int getNumberOfChildElements(Class<?> clazz) {
-        Function<Integer, Boolean> accessibleElements = mods -> {
-            return Modifier.isPublic(mods) || Modifier.isProtected(mods);
-        };
+        Function<Integer, Boolean> accessibleElements = mods -> Modifier.isPublic(mods) || Modifier.isProtected(mods);
 
         int cnt = getNumberOfAnnotationsOn(clazz);
         cnt += Stream.of(clazz.getDeclaredClasses()).filter(c -> accessibleElements.apply(c.getModifiers()))
-                .collect(Collectors.summingInt(cl -> getNumberOfChildElements(cl) + 1));
+                .mapToInt(cl -> getNumberOfChildElements(cl) + 1).sum();
+
+        Set<String> javaLangObjectMethods = new HashSet<>();
+
+        ToIntFunction<Method> countMethod = m -> {
+            int mcnt = getNumberOfAnnotationsOn(m);
+            mcnt += m.getParameterCount();
+
+            mcnt += Stream.of(m.getParameterAnnotations()).mapToInt(as -> as.length).sum();
+
+            return mcnt + 1; //+1 for the method itself
+        };
+
+        if (!clazz.equals(Object.class)) {
+            // add the methods from object to the number
+            cnt += Stream.of(Object.class.getDeclaredMethods()).filter(c -> accessibleElements.apply(c.getModifiers()))
+                    .peek(m -> javaLangObjectMethods.add(m.getName()))
+                    .mapToInt(countMethod).sum();
+        }
 
         cnt += Stream.of(clazz.getDeclaredMethods()).filter(c -> accessibleElements.apply(c.getModifiers()))
-                .collect(Collectors.summingInt(m -> {
-                    int mcnt = getNumberOfAnnotationsOn(m);
-                    mcnt += m.getParameterCount();
-
-                    mcnt += Stream.of(m.getParameterAnnotations()).collect(Collectors.summingInt(as -> as.length));
-
-                    return mcnt + 1; //+1 for the method itself
-                }));
+                .filter(m -> !javaLangObjectMethods.contains(m.getName()))
+                .mapToInt(countMethod).sum();
 
         cnt += Stream.of(clazz.getDeclaredFields()).filter(c -> accessibleElements.apply(c.getModifiers()))
-                .collect(Collectors.summingInt(f -> {
-                    return getNumberOfAnnotationsOn(f) + 1;
-                }));
+                .mapToInt(f -> getNumberOfAnnotationsOn(f) + 1).sum();
 
         return cnt;
     }

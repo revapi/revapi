@@ -130,7 +130,7 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         }
 
         if (analysisResults == null) {
-            return;
+            analysisResults = new AnalysisResults(ApiChangeLevel.NO_CHANGE, newVersion);
         }
 
         ApiChangeLevel changeLevel = analysisResults.apiChangeLevel;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.AnnotatedConstruct;
@@ -31,6 +33,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
@@ -41,11 +44,13 @@ import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
+import javax.lang.model.type.NullType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.TypeVisitor;
+import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
@@ -66,16 +71,219 @@ import org.slf4j.LoggerFactory;
  */
 public final class Util {
 
-
     private static class StringBuilderAndState<T> {
         final StringBuilder bld = new StringBuilder();
-        final Set<T> visitedObjects = new HashSet<>();
+        final Set<T> visitedObjects = new HashSet<>(4);
+        final Set<Name> forwardTypeVarDecls = new HashSet<>(2);
+        Function<StringBuilderAndState<T>, Runnable> methodInitAndNameOutput;
         boolean visitingMethod;
+        int depth;
+        int anticipatedTypeVarDeclDepth;
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
 
-    private static SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>> toUniqueStringVisitor = new SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
+    private static SimpleTypeVisitor8<Name, Void> getTypeVariableName = new SimpleTypeVisitor8<Name, Void>() {
+        @Override
+        protected Name defaultAction(TypeMirror e, Void ignore) {
+            return null;
+        }
+
+        @Override
+        public Name visitTypeVariable(TypeVariable t, Void ignored) {
+            return t.asElement().getSimpleName();
+        }
+    };
+
+    private static SimpleTypeVisitor8<Boolean, Void> isJavaLangObject = new SimpleTypeVisitor8<Boolean, Void>() {
+        @Override
+        protected Boolean defaultAction(TypeMirror e, Void aVoid) {
+            return false;
+        }
+
+        @Override
+        public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+            Element el = t.asElement();
+            if (el instanceof TypeElement) {
+                return ((TypeElement) el).getQualifiedName().contentEquals("java.lang.Object");
+            }
+
+            return false;
+        }
+
+    };
+
+    private static class DepthTrackingVisitor<T, S> extends SimpleTypeVisitor8<T, StringBuilderAndState<S>> {
+        @Override
+        public final T visitIntersection(IntersectionType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitIntersection(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitIntersection(IntersectionType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitUnion(UnionType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitUnion(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitUnion(UnionType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitPrimitive(PrimitiveType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitPrimitive(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitPrimitive(PrimitiveType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitNull(NullType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitNull(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitNull(NullType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+        
+        @Override
+        public final T visitArray(ArrayType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitArray(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitArray(ArrayType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitDeclared(DeclaredType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitDeclared(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitDeclared(DeclaredType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitError(ErrorType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitError(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitError(ErrorType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitTypeVariable(TypeVariable t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitTypeVariable(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitTypeVariable(TypeVariable t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitWildcard(WildcardType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitWildcard(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitWildcard(WildcardType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitExecutable(ExecutableType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitExecutable(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitExecutable(ExecutableType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitNoType(NoType t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitNoType(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitNoType(NoType t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+
+        @Override
+        public final T visitUnknown(TypeMirror t, StringBuilderAndState<S> st) {
+            try {
+                st.depth++;
+                return doVisitUnknown(t, st);
+            } finally {
+                st.depth--;
+            }
+        }
+
+        protected T doVisitUnknown(TypeMirror t, StringBuilderAndState<S> st) {
+            return defaultAction(t, st);
+        }
+    }
+
+    private static SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>> toUniqueStringVisitor = new SimpleTypeVisitor8<Void, StringBuilderAndState<TypeMirror>>() {
 
         @Override
         public Void visitPrimitive(PrimitiveType t, StringBuilderAndState<TypeMirror> state) {
@@ -266,10 +474,10 @@ public final class Util {
         }
     };
 
-    private static SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>> toHumanReadableStringVisitor = new SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>>() {
+    private static SimpleTypeVisitor7<Void, StringBuilderAndState<TypeMirror>> toHumanReadableStringVisitor = new DepthTrackingVisitor<Void, TypeMirror>() {
 
         @Override
-        public Void visitPrimitive(PrimitiveType t, StringBuilderAndState<TypeMirror> state) {
+        protected Void doVisitPrimitive(PrimitiveType t, StringBuilderAndState<TypeMirror> state) {
             switch (t.getKind()) {
             case BOOLEAN:
                 state.bld.append("boolean");
@@ -303,40 +511,41 @@ public final class Util {
         }
 
         @Override
-        public Void visitArray(ArrayType t, StringBuilderAndState<TypeMirror> state) {
+        protected Void doVisitArray(ArrayType t, StringBuilderAndState<TypeMirror> state) {
             IgnoreCompletionFailures.in(t::getComponentType).accept(this, state);
             state.bld.append("[]");
             return null;
         }
 
         @Override
-        public Void visitTypeVariable(TypeVariable t, StringBuilderAndState<TypeMirror> state) {
-            if (state.visitedObjects.contains(t)) {
-                state.bld.append(t.asElement().getSimpleName());
+        protected Void doVisitTypeVariable(TypeVariable t, StringBuilderAndState<TypeMirror> state) {
+            Name tName = t.asElement().getSimpleName();
+            if (state.depth > state.anticipatedTypeVarDeclDepth && state.forwardTypeVarDecls.contains(tName)) {
+                state.bld.append(tName);
                 return null;
             }
 
-            state.visitedObjects.add(t);
-
             state.bld.append(t.asElement().getSimpleName());
 
-            if (!state.visitingMethod) {
-                TypeMirror lowerBound = IgnoreCompletionFailures.in(t::getLowerBound);
+            TypeMirror lowerBound = IgnoreCompletionFailures.in(t::getLowerBound);
 
-                if (lowerBound != null && lowerBound.getKind() != TypeKind.NULL) {
-                    state.bld.append(" super ");
-                    lowerBound.accept(this, state);
-                }
+            if (lowerBound != null && lowerBound.getKind() != TypeKind.NULL) {
+                state.bld.append(" super ");
+                lowerBound.accept(this, state);
+            }
 
+            TypeMirror upperBound = IgnoreCompletionFailures.in(t::getUpperBound);
+
+            if (!isJavaLangObject.visit(upperBound)) {
                 state.bld.append(" extends ");
-                IgnoreCompletionFailures.in(t::getUpperBound).accept(this, state);
+                upperBound.accept(this, state);
             }
 
             return null;
         }
 
         @Override
-        public Void visitWildcard(WildcardType t, StringBuilderAndState<TypeMirror> state) {
+        protected Void doVisitWildcard(WildcardType t, StringBuilderAndState<TypeMirror> state) {
             state.bld.append("?");
 
             TypeMirror superBound = IgnoreCompletionFailures.in(t::getSuperBound);
@@ -355,12 +564,38 @@ public final class Util {
         }
 
         @Override
-        public Void visitExecutable(ExecutableType t, StringBuilderAndState<TypeMirror> state) {
-            visitTypeVars(IgnoreCompletionFailures.in(t::getTypeVariables), state);
+        protected Void doVisitExecutable(ExecutableType t, StringBuilderAndState<TypeMirror> state) {
+            Runnable methodNameRenderer = null;
+            if (state.methodInitAndNameOutput != null) {
+                methodNameRenderer = state.methodInitAndNameOutput.apply(state);
+            }
+
+            int currentTypeDeclDepth = state.anticipatedTypeVarDeclDepth;
+            state.anticipatedTypeVarDeclDepth = state.depth + 1;
+            List<? extends TypeVariable> typeVars = IgnoreCompletionFailures.in(t::getTypeVariables);
+            visitTypeVars(typeVars, state);
+            List<Name> typeVarNames = typeVars.stream()
+                    .map(v -> v.asElement().getSimpleName()).collect(Collectors.toList());
+            state.forwardTypeVarDecls.addAll(typeVarNames);
+            state.anticipatedTypeVarDeclDepth = currentTypeDeclDepth;
 
             state.visitingMethod = true;
 
+            if (!typeVars.isEmpty()) {
+                state.bld.append(" ");
+            }
+
+            currentTypeDeclDepth = state.anticipatedTypeVarDeclDepth;
+            state.anticipatedTypeVarDeclDepth = state.depth;
+
             IgnoreCompletionFailures.in(t::getReturnType).accept(this, state);
+
+            state.bld.append(" ");
+
+            if (methodNameRenderer != null) {
+                methodNameRenderer.run();
+            }
+
             state.bld.append("(");
 
             Iterator<? extends TypeMirror> it = IgnoreCompletionFailures.in(t::getParameterTypes).iterator();
@@ -386,11 +621,13 @@ public final class Util {
             }
 
             state.visitingMethod = false;
+            state.forwardTypeVarDecls.removeAll(typeVarNames);
+            state.anticipatedTypeVarDeclDepth = currentTypeDeclDepth;
             return null;
         }
 
         @Override
-        public Void visitNoType(NoType t, StringBuilderAndState<TypeMirror> state) {
+        protected Void doVisitNoType(NoType t, StringBuilderAndState<TypeMirror> state) {
             switch (t.getKind()) {
             case VOID:
                 state.bld.append("void");
@@ -406,20 +643,40 @@ public final class Util {
         }
 
         @Override
-        public Void visitDeclared(DeclaredType t, StringBuilderAndState<TypeMirror> state) {
-            CharSequence name = ((TypeElement) t.asElement()).getQualifiedName();
+        protected Void doVisitDeclared(DeclaredType t, StringBuilderAndState<TypeMirror> state) {
+            int anticipatedTypeVarDeclDepth = state.anticipatedTypeVarDeclDepth;
+            int depth = state.depth;
+
+            CharSequence name;
+            if (t.getEnclosingType().getKind() != TypeKind.NONE) {
+                state.depth--; // we need to visit the parent with the same depth as this type
+                visit(t.getEnclosingType(), state);
+                state.depth = depth;
+                state.anticipatedTypeVarDeclDepth = anticipatedTypeVarDeclDepth;
+                ((DeclaredType) t.getEnclosingType()).getTypeArguments()
+                        .forEach(a -> state.forwardTypeVarDecls.add(getTypeVariableName.visit(a)));
+
+                name = "." + t.asElement().getSimpleName();
+            } else {
+                name = ((TypeElement) t.asElement()).getQualifiedName();
+            }
+
             state.bld.append(name);
             try {
+                if (state.depth == 1) {
+                    state.anticipatedTypeVarDeclDepth = 2;
+                }
                 visitTypeVars(IgnoreCompletionFailures.in(t::getTypeArguments), state);
+                state.anticipatedTypeVarDeclDepth = anticipatedTypeVarDeclDepth;
             } catch (RuntimeException e) {
-                LOG.debug("Failed to enumerate type arguments of '" + name + "'. Class is missing?", e);
+                LOG.error("Failed to enumerate type arguments of '" + name + "'. Class is missing?", e);
             }
 
             return null;
         }
 
         @Override
-        public Void visitIntersection(IntersectionType t, StringBuilderAndState<TypeMirror> state) {
+        protected Void doVisitIntersection(IntersectionType t, StringBuilderAndState<TypeMirror> state) {
             Iterator<? extends TypeMirror> it = IgnoreCompletionFailures.in(t::getBounds).iterator();
             if (it.hasNext()) {
                 it.next().accept(this, state);
@@ -428,7 +685,7 @@ public final class Util {
             TypeVisitor<Void, StringBuilderAndState<TypeMirror>> me = this;
 
             it.forEachRemaining(b -> {
-                state.bld.append(", ");
+                state.bld.append(" & ");
                 b.accept(me, state);
             });
 
@@ -436,24 +693,34 @@ public final class Util {
         }
 
         @Override
-        public Void visitError(ErrorType t, StringBuilderAndState<TypeMirror> state) {
+        protected Void doVisitError(ErrorType t, StringBuilderAndState<TypeMirror> state) {
             state.bld.append(((TypeElement) t.asElement()).getQualifiedName());
             return null;
         }
 
-        private void visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState<TypeMirror> state) {
+        private boolean visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState<TypeMirror> state) {
             if (!vars.isEmpty()) {
-                state.bld.append("<");
-                Iterator<? extends TypeMirror> it = vars.iterator();
-                it.next().accept(this, state);
-
-                while (it.hasNext()) {
-                    state.bld.append(", ");
+                Set<Name> names = vars.stream().map(v -> getTypeVariableName.visit(v)).collect(Collectors.toSet());
+                state.forwardTypeVarDecls.addAll(names);
+                try {
+                    state.bld.append("<");
+                    Iterator<? extends TypeMirror> it = vars.iterator();
                     it.next().accept(this, state);
+
+                    while (it.hasNext()) {
+                        state.bld.append(", ");
+                        it.next().accept(this, state);
+                    }
+
+                    state.bld.append(">");
+                } finally {
+                    state.forwardTypeVarDecls.removeAll(names);
                 }
 
-                state.bld.append(">");
+                return true;
             }
+
+            return false;
         }
 
     };
@@ -466,68 +733,59 @@ public final class Util {
                 enclosing.accept(this, state);
                 state.bld.append(".").append(e.getSimpleName());
             } else if (enclosing instanceof ExecutableElement) {
-                if (state.visitingMethod) {
-                    //we're visiting a method, so we need to output the in a simple way
-                    e.asType().accept(toHumanReadableStringVisitor, state);
-                    //NOTE the names of method params seem not to be available
-                    //stringBuilder.append(" ").append(e.getSimpleName());
-                } else {
-                    //this means someone asked to directly output a string representation of a method parameter
-                    //in this case, we need to identify the parameter inside the full method signature so that
-                    //the full location is available.
-                    int paramIdx = ((ExecutableElement) enclosing).getParameters().indexOf(e);
-                    enclosing.accept(this, state);
-                    int openPar = state.bld.indexOf("(");
-                    int closePar = state.bld.indexOf(")", openPar);
+                //this means someone asked to directly output a string representation of a method parameter
+                //in this case, we need to identify the parameter inside the full method signature so that
+                //the full location is available.
+                int paramIdx = ((ExecutableElement) enclosing).getParameters().indexOf(e);
+                enclosing.accept(this, state);
+                int openPar = state.bld.indexOf("(");
+                int closePar = state.bld.indexOf(")", openPar);
 
-                    int paramStart = openPar + 1;
-                    int curParIdx = -1;
-                    int parsingState = 0; //0 = normal, 1 = inside type param
-                    int typeParamDepth = 0;
-                    for (int i = openPar + 1; i < closePar; ++i) {
-                        char c = state.bld.charAt(i);
-                        switch (parsingState) {
-                            case 0: //normal type
-                                switch (c) {
-                                    case ',':
-                                        curParIdx++;
-                                        if (curParIdx == paramIdx) {
-                                            String par = state.bld.substring(paramStart, i);
-                                            state.bld.replace(paramStart, i, "===" + par + "===");
-                                        } else {
-                                            //accommodate for the space after commas for the second and further parameters
-                                            paramStart = i + (paramIdx == 0 ? 1 : 2);
-                                        }
-                                        break;
-                                    case '<':
-                                        parsingState = 1;
-                                        typeParamDepth = 1;
-                                        break;
-                                }
-                                break;
-                            case 1: //inside type param
-                                switch (c) {
-                                    case '<':
-                                        typeParamDepth++;
-                                        break;
-                                    case '>':
-                                        typeParamDepth--;
-                                        if (typeParamDepth == 0) {
-                                            parsingState = 0;
-                                        }
-                                        break;
-                                }
-                                break;
-                        }
-                    }
-
-                    if (++curParIdx == paramIdx) {
-                        String par = state.bld.substring(paramStart, closePar);
-                        state.bld.replace(paramStart, closePar, "===" + par + "===");
+                int paramStart = openPar + 1;
+                int curParIdx = -1;
+                int parsingState = 0; //0 = normal, 1 = inside type param
+                int typeParamDepth = 0;
+                for (int i = openPar + 1; i < closePar; ++i) {
+                    char c = state.bld.charAt(i);
+                    switch (parsingState) {
+                        case 0: //normal type
+                            switch (c) {
+                                case ',':
+                                    curParIdx++;
+                                    if (curParIdx == paramIdx) {
+                                        String par = state.bld.substring(paramStart, i);
+                                        state.bld.replace(paramStart, i, "===" + par + "===");
+                                    } else {
+                                        //accommodate for the space after commas for the second and further parameters
+                                        paramStart = i + (paramIdx == 0 ? 1 : 2);
+                                    }
+                                    break;
+                                case '<':
+                                    parsingState = 1;
+                                    typeParamDepth = 1;
+                                    break;
+                            }
+                            break;
+                        case 1: //inside type param
+                            switch (c) {
+                                case '<':
+                                    typeParamDepth++;
+                                    break;
+                                case '>':
+                                    typeParamDepth--;
+                                    if (typeParamDepth == 0) {
+                                        parsingState = 0;
+                                    }
+                                    break;
+                            }
+                            break;
                     }
                 }
-            } else {
-                state.bld.append(e.getSimpleName());
+
+                if (++curParIdx == paramIdx) {
+                    String par = state.bld.substring(paramStart, closePar);
+                    state.bld.replace(paramStart, closePar, "===" + par + "===");
+                }
             }
 
             return null;
@@ -541,99 +799,57 @@ public final class Util {
 
         @Override
         public Void visitType(TypeElement e, StringBuilderAndState<TypeMirror> state) {
-            state.bld.append(e.getQualifiedName());
-
-            List<? extends TypeParameterElement> typePars = IgnoreCompletionFailures.in(e::getTypeParameters);
-            if (typePars.size() > 0) {
-                state.bld.append("<");
-
-                typePars.get(0).accept(this, state);
-                for (int i = 1; i < typePars.size(); ++i) {
-                    state.bld.append(", ");
-                    typePars.get(i).accept(this, state);
-                }
-                state.bld.append(">");
-            }
-
-            return null;
+            return e.asType().accept(toHumanReadableStringVisitor, state);
         }
 
         @Override
         public Void visitExecutable(ExecutableElement e, StringBuilderAndState<TypeMirror> state) {
-            state.visitingMethod = true;
+            state.methodInitAndNameOutput = st -> {
+                // we need to initialize the forward decls of the type here so that they are remembered for the rest
+                // of the method rendering
+                Element parent = e.getEnclosingElement();
+                List<Name> names = new ArrayList<>(4);
+                while (parent instanceof TypeElement) {
+                    TypeElement type = (TypeElement) parent;
+                    type.getTypeParameters().stream()
+                            .map(p -> getTypeVariableName.visit(p.asType()))
+                            .forEach(names::add);
 
-            try {
-                List<? extends TypeParameterElement> typePars = IgnoreCompletionFailures.in(e::getTypeParameters);
-                if (typePars.size() > 0) {
-                    state.bld.append("<");
-
-                    typePars.get(0).accept(this, state);
-                    for (int i = 1; i < typePars.size(); ++i) {
-                        state.bld.append(", ");
-                        typePars.get(i).accept(this, state);
-                    }
-                    state.bld.append("> ");
+                    parent = parent.getEnclosingElement();
                 }
+                st.forwardTypeVarDecls.addAll(names);
 
-                IgnoreCompletionFailures.in(e::getReturnType).accept(toHumanReadableStringVisitor, state);
-                state.bld.append(" ");
-                e.getEnclosingElement().accept(this, state);
-                state.bld.append("::").append(e.getSimpleName()).append("(");
+                return () -> {
+                    int depth = st.depth;
+                    try {
+                        // we're outputting the declaring type and that type might be declared with type params
+                        // we need to reset the depth for this, so that the logic correctly expands type var decls
+                        st.depth = 0;
+                        e.getEnclosingElement().accept(this, st);
 
-                List<? extends VariableElement> pars = IgnoreCompletionFailures.in(e::getParameters);
-                if (pars.size() > 0) {
-                    pars.get(0).accept(this, state);
-                    for (int i = 1; i < pars.size(); ++i) {
-                        state.bld.append(", ");
-                        pars.get(i).accept(this, state);
+                        // we need to add the type param forward decls again, because they've been reset in the above
+                        // rendering.
+                        st.forwardTypeVarDecls.addAll(names);
+
+                        st.bld.append("::").append(e.getSimpleName());
+                    } finally {
+                        st.depth = depth;
                     }
-                }
+                };
+            };
 
-                state.bld.append(")");
+            e.asType().accept(toHumanReadableStringVisitor, state);
 
-                List<? extends TypeMirror> thrownTypes = IgnoreCompletionFailures.in(e::getThrownTypes);
-
-                if (thrownTypes.size() > 0) {
-                    state.bld.append(" throws ");
-                    thrownTypes.get(0).accept(toHumanReadableStringVisitor, state);
-                    for (int i = 1; i < thrownTypes.size(); ++i) {
-                        state.bld.append(", ");
-                        thrownTypes.get(i).accept(toHumanReadableStringVisitor, state);
-                    }
-                }
-
-                return null;
-            } finally {
-                state.visitingMethod = false;
-            }
+            return null;
         }
 
         @Override
         public Void visitTypeParameter(TypeParameterElement e, StringBuilderAndState<TypeMirror> state) {
-            state.bld.append(e.getSimpleName());
-            List<? extends TypeMirror> bounds = IgnoreCompletionFailures.in(e::getBounds);
-            if (bounds.size() > 0) {
-                if (bounds.size() == 1) {
-                    TypeMirror firstBound = bounds.get(0);
-                    String bs = toHumanReadableString(firstBound);
-                    if (!"java.lang.Object".equals(bs)) {
-                        state.bld.append(" extends ").append(bs);
-                    }
-                } else {
-                    state.bld.append(" extends ");
-                    bounds.get(0).accept(toHumanReadableStringVisitor, state);
-                    for (int i = 1; i < bounds.size(); ++i) {
-                        state.bld.append(", ");
-                        bounds.get(i).accept(toHumanReadableStringVisitor, state);
-                    }
-                }
-            }
-
-            return null;
+            return e.asType().accept(toHumanReadableStringVisitor, state);
         }
     };
 
-    private static SimpleAnnotationValueVisitor7<String, Void> annotationValueVisitor =
+    private static final SimpleAnnotationValueVisitor7<String, Void> annotationValueVisitor =
             new SimpleAnnotationValueVisitor7<String, Void>() {
 
         @Override
@@ -722,6 +938,14 @@ public final class Util {
         return t1Name.equals(t2Name);
     }
 
+    /**
+     * Constructs a human readable representation of the supplied element or type mirror. Note that in some cases
+     * the representation might be "surprising". Especially for {@link ExecutableType} for which there is no way
+     * of getting reliably at the method name or the type declaring the method.
+     *
+     * @param construct the element or type mirror to render
+     * @return a human readable representation of the construct
+     */
     @Nonnull
     public static String toHumanReadableString(@Nonnull AnnotatedConstruct construct) {
         StringBuilderAndState<TypeMirror> state = new StringBuilderAndState<>();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
@@ -80,13 +82,12 @@ public abstract class DifferenceMatchRecipe {
         this.config = config;
     }
 
-    public boolean matches(Difference difference, Element oldElement, Element newElement) {
+    public boolean matches(Difference difference, @Nullable Element oldElement, @Nullable Element newElement) {
         if (regex) {
-            boolean baseMatch = codeRegex.matcher(difference.code).matches() &&
-                (oldElementRegex == null ||
-                    oldElementRegex.matcher(oldElement.getFullHumanReadableString()).matches()) &&
-                (newElementRegex == null ||
-                    newElementRegex.matcher(newElement.getFullHumanReadableString()).matches());
+            boolean baseMatch = codeRegex.matcher(difference.code).matches()
+                    && regexMatches(oldElementRegex, oldElement)
+                    && regexMatches(newElementRegex, newElement);
+
             if (!baseMatch) {
                 return false;
             } else {
@@ -111,9 +112,9 @@ public abstract class DifferenceMatchRecipe {
                 return allMatched;
             }
         } else {
-            boolean baseMatch = code.equals(difference.code) &&
-                (this.oldElement == null || this.oldElement.equals(oldElement.getFullHumanReadableString())) &&
-                (this.newElement == null || this.newElement.equals(newElement.getFullHumanReadableString()));
+            boolean baseMatch = code.equals(difference.code)
+                    && equalMatches(this.oldElement, oldElement)
+                    && equalMatches(this.newElement, newElement);
 
             if (!baseMatch) {
                 return false;
@@ -165,5 +166,13 @@ public abstract class DifferenceMatchRecipe {
 
             return ret;
         }
+    }
+
+    private boolean regexMatches(@Nullable Pattern regex, @Nullable Element element) {
+        return regex == null || (element != null && regex.matcher(element.getFullHumanReadableString()).matches());
+    }
+
+    private boolean equalMatches(@Nullable String blueprint, @Nullable Element element) {
+        return blueprint == null || (element != null && blueprint.equals(element.getFullHumanReadableString()));
     }
 }

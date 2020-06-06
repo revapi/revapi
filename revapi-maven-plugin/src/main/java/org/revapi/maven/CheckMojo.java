@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,9 @@ import java.util.stream.Stream;
 public class CheckMojo extends AbstractRevapiMojo {
 
     /**
-     * Whether or not to output the JSON-formatted suggestions for ignoring the found API problems.
+     * Whether or not to output the suggestions for ignoring the found API problems. Before 0.11.5 the suggestions
+     * were always JSON formatted. Since 0.11.5 one can choose between JSON and XML using the
+     * {@link #ignoreSuggestionsFormat} property.
      *
      * @since 0.10.4
      */
@@ -57,6 +59,15 @@ public class CheckMojo extends AbstractRevapiMojo {
     @Parameter(property = Props.outputNonIdentifyingDifferenceInfo.NAME, defaultValue = Props.outputNonIdentifyingDifferenceInfo.DEFAULT_VALUE)
     private boolean outputNonIdentifyingDifferenceInfo;
 
+    /**
+     * The format used to output the ignore suggestions. The default value is "json". The other possible value is
+     * "xml" for XML formatted ignore suggestions.
+     *
+     * @since 0.11.5
+     */
+    @Parameter(property = Props.ignoreSuggestionsFormat.NAME, defaultValue = Props.ignoreSuggestionsFormat.DEFAULT_VALUE)
+    private String ignoreSuggestionsFormat;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
@@ -70,7 +81,8 @@ public class CheckMojo extends AbstractRevapiMojo {
 
         try (AnalysisResult res = analyze(BuildTimeReporter.class,
                 BuildTimeReporter.BREAKING_SEVERITY_KEY, failSeverity.asDifferenceSeverity(), "maven-log", getLog(),
-                "writer", wrt, BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, outputNonIdentifyingDifferenceInfo)) {
+                "writer", wrt, BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, outputNonIdentifyingDifferenceInfo,
+                BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, getSuggestionsBuilder())) {
 
             res.throwIfFailed();
 
@@ -91,7 +103,7 @@ public class CheckMojo extends AbstractRevapiMojo {
                         getLog().info("If you're using the semver-ignore extension, update your module's" +
                                 " version to one compatible with the current changes (e.g. mvn package" +
                                 " revapi:update-versions). If you want to explicitly ignore this change and provide a" +
-                                " justification for it, add the following JSON snippet to your Revapi configuration" +
+                                " justification for it, add the following " + ignoreSuggestionsFormat + " snippet to your Revapi configuration" +
                                 " under \"revapi.ignore\" path:\n\n" + reporter.getIgnoreSuggestion());
 
                         report += "\nConsult the plugin output above for suggestions on how to ignore the found" +
@@ -111,6 +123,16 @@ public class CheckMojo extends AbstractRevapiMojo {
 
         if (report != null) {
             throw new MojoFailureException(report);
+        }
+    }
+
+    private BuildTimeReporter.SuggestionsBuilder getSuggestionsBuilder() {
+        switch (ignoreSuggestionsFormat) {
+        case "json": return new JsonSuggestionsBuilder();
+        case "xml": return new XmlSuggestionsBuilder();
+        default:
+            throw new IllegalArgumentException("`ignoreSuggestionsFormat` only accepts \"json\" or \"xml\" but \""
+                    + ignoreSuggestionsFormat + "\" was provided.");
         }
     }
 }

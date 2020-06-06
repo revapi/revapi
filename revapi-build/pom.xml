@@ -33,7 +33,7 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>40-SNAPSHOT</version>
+    <version>41-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>${web.url}</url>
 

@@ -46,6 +46,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -117,6 +118,7 @@ final class ClasspathScanner {
     private final InclusionFilter inclusionFilter;
     private final boolean defaultInclusionCase;
     private final TypeElement objectType;
+    private final Set<String> objectMethodSignatures;
 
     ClasspathScanner(StandardJavaFileManager fileManager, ProbingEnvironment environment,
                      Map<Archive, File> classPath, Map<Archive, File> additionalClassPath,
@@ -133,6 +135,11 @@ final class ClasspathScanner {
         this.inclusionFilter = inclusionFilter;
         this.defaultInclusionCase = inclusionFilter.defaultCase();
         this.objectType = environment.getElementUtils().getTypeElement("java.lang.Object");
+
+        objectMethodSignatures = ElementFilter.methodsIn(objectType.getEnclosedElements()).stream()
+                .filter(m -> !shouldBeIgnored(m))
+                .map(m -> MethodElement.createComparableSignature(m, m.asType()))
+                .collect(Collectors.toSet());
     }
 
     void initTree() throws IOException {
@@ -386,8 +393,8 @@ final class ClasspathScanner {
                 // make sure we always have java.lang.Object in the set of super types. If the current class' super type
                 // is missing, we might not be able to climb the full hierarchy up to java.lang.Object. But that would
                 // be highly misleading to the users.
-                if (type.getKind() != ElementKind.INTERFACE && type.getKind() != ElementKind.ANNOTATION_TYPE
-                        && !type.equals(objectType)) {
+                // Consider Object a superType of interfaces, too, so that we have the Object methods on them.
+                if (!type.equals(objectType)) {
                     tr.superTypes.add(getTypeRecord(objectType));
                     if (!processed.contains(objectType)) {
                         requiredTypes.put(objectType, false);
@@ -883,11 +890,27 @@ final class ClasspathScanner {
                 }
             };
 
+            boolean isInterface = tr.javacElement.getKind().isInterface();
+
+            Predicate<Element> shouldAdd = e -> {
+                if (!isInterface || !(e instanceof ExecutableElement)) {
+                    return true;
+                }
+
+                // If an interface re-declares a method from java.lang.Object, we actually not adding it to the model.
+                // The reason is that such method would be seen as abstract but it never actually is - any concrete
+                // implementation of that interface will inherit the impl from java.lang.Object.
+                ExecutableElement m = (ExecutableElement) e;
+                String sig = MethodElement.createComparableSignature(m, m.asType());
+                return !objectMethodSignatures.contains(sig);
+            };
+
             Consumer<JavaElementBase<?, ?>> initChildren = e ->
                     initNonClassElementChildrenAndMoveToApi(tr, e, false, apiAdditions);
 
             //add declared stuff
             tr.accessibleDeclaredNonClassMembers.stream()
+                    .filter(shouldAdd)
                     .map(e ->
                             elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
                     .peek(addOverride)
