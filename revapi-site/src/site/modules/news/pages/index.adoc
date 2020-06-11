@@ -1,0 +1,6 @@
+= News
+:page-role: news
+
+You can also get the news as the news:feed[RSS feed]
+
+news::generate[refs=news/*]

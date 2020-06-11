@@ -1,0 +1,53 @@
+= Revapi API
+
+This module contains the API of Revapi as well as the link:{attachmentsdir}/apidocs/org/revapi/Revapi.html[main class] that is used to
+instantiate, configure and run the API analysis. It also contains a couple of simplistic implementations of the Revapi
+interfaces to get you started with.
+
+Probably more interesting than this short description is the xref:revapi-site::architecture.adoc[architecture] of
+Revapi which explains the role of individual interfaces found in this module. Additionally you might wanna checkout the
+link:{attachmentsdir}/project-reports.html[project reports] or link:{attachmentsdir}/apidocs[javadoc].
+
+== Invocation
+
+Revapi can be used in a couple of convenient ways - a xref:revapi-maven-plugin::index.adoc[maven plugin], a
+xref:revapi-standalone::index.adoc[cli tool] or even an xref:revapi-ant-task::index.adoc[Ant task]. Please consult
+the links for more details about those.
+
+In here we're only going to deal with the invocation of the API analysis using the Java API when Revapi is used as a
+library.
+
+First of all, we need to determine what archives we are going to compare. For that Revapi uses the
+link:{attachmentsdir}/apidocs/org/revapi/API.html[API] class:
+
+```java
+API oldApi = API.of(myArchiveV1).supportedBy(v1Dependencies).build();
+API oldApi = API.of(myArchiveV2).supportedBy(v2Dependencies).build();
+```
+
+NOTE: The `myArchiveV1` and others in the example above are implementations of the
+link:{attachmentsdir}/apidocs/org/revapi/Archive.html[archive interface]. Revapi API provides a single simple
+implementation - link:{attachmentsdir}/apidocs/org/revapi/simple/FileArchive.html[FileArchive] which represents a file
+as a Revapi archive - quite a useful and fitting thing. There are other implementations, too, though - for example
+the maven plugin has an implementation of this, too, which wraps a maven archive in a revapi archive and provides
+the maven archive's GAV as the revapi archive's name - quite a useful thing when reporting on what problems were found
+in which archive.
+
+== Configuration
+
+Configuration is supplied using https://github.com/jbossas/jboss-dmr[JBoss DMR] which should in theory support
+loading the configuration from various formats if enough effort is done on the user's side. Revapi as such has so far
+been extensively tested only with JSON and XML data. Even if data was translated into DMR from another format than JSON,
+the validation of that data will always be done against a JSON schema that is provided by the extensions.
+
+For details, see the link:{attachmentsdir}/apidocs/org/revapi/AnalysisContext.html[AnalysisContext] class (and the way
+it is supplied with configuration by the caller) and
+link:{attachmentsdir}/apidocs/org/revapi/configuration/Configurable.html[Configurable] interface for what is required of
+the extensions.
+
+=== Pipeline Configuration
+
+Since Revapi 0.11.0 (supported by Maven plugin 0.11.0, Ant Task 0.9.0 and CLI 0.9.0), Revapi can be configured to
+include or exclude extensions even if they are available on the classpath. More importantly, the pipeline configuration
+enables the users to group difference transforms into blocks using which one can overcome the transforms influencing
+each other. For more details, see the xref:revapi-site::configuration.adoc[configuration] page.

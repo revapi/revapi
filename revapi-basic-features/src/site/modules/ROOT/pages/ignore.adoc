@@ -1,0 +1,145 @@
+= Ignore Transformation
+
+*Extension*: `revapi.ignore`
+
+Using this extension one can ignore certain API problems found during the analysis so that they don't appear in the
+reported output.
+
+== Sample Configuration
+
+```javascript
+[
+  {
+    "extension": "revapi.ignore",
+    "configuration": [
+      {
+        "regex" : false,
+        "code" : "PROBLEM_CODE",
+        "old" : "FULL_REPRESENTATION_OF_THE_OLD_ELEMENT",
+        "new" : "FULL_REPRESENTATION_OF_THE_NEW_ELEMENT",
+        "justification": "free form text to justify why this change was necessary",
+        ... any other properties that correspond to the match parameters of the differences ...
+      },
+      ...
+     ]
+  }
+]
+```
+
+```xml
+<analysisConfiguration>
+  <revapi.ignore>
+    <item>
+      <regex>false</regex>
+      <code>PROBLEM_CODE</code>
+      <old>FULL_REPRESENTATION_OF_THE_OLD_ELEMENT</old>
+      <new>FULL_REPRESENTATION_OF_THE_NEW_ELEMENT</new>
+      <justification>free form text to justify why this change was necessary</justification>
+      ... any other properties that correspond to the match parameters of the differences ...
+    </item>
+  </revapi.ignore>
+</analysisConfiguration>
+```
+
+== Properties
+
+`regex`::
+If `true` (the default is `false`), the `code`, `old`, `new` and any values of the additional properties are understood
+to be java regular expressions.
+`code`::
+Specifies the API problem code to ignore. This is property mandatory.
+`old`::
+Specifies the old element of the problem to ignore. This property is optional.
+`new`::
+Specifies the new element of the problem to ignore. This property is optional.
+`justification`::
+This can used to describe why this change was necessary and hence why it should be ignored by the API checker.
+additional properties::
+The analyzers can define additional "match parameters" on the differences that can be used to further focus the ignore
+rule. For java, see the link:../../revapi-java/differences.html[list] of the detected differences. Such additional
+properties always have a string value.
+
+== Examples
+
+By specifying the following configuration:
+
+```javascript
+[
+  {
+    "extension": "revapi.ignore",
+    "configuration": [
+      {
+        "code" : "java.method.addedToInterface",
+        "class": "my.great.app.Context",
+        "justification" : "I thought this would be a good idea."
+      }
+    ]
+  }
+]
+```
+
+or equivalently in XML
+
+```xml
+<analysisConfiguration>
+  <revapi.ignore>
+    <item>
+      <code>java.method.addedToInterface</code>
+      <class>my.great.app.Context</class>
+      <justification>I thought this would be a good idea.</justification>
+    </item>
+  </revapi.ignore>
+</analysisConfiguration>
+```
+
+NOTE: The `class` attribute is specified to contain the signature of the class that contains the method in question,
+see link:../../revapi-java/differences.html#a_method_added_to_interface[the documentation].
+
+In the example, any new method in the `my.great.app.Context` java interface will not be reported as an API breakage.
+While adding a new method to an interface is generally a breaking change, because any implementation of such interface
+that would not have such new method would become invalid, this can be OK if you control all the implementations of the
+interface and don't allow or support user implementations of it.
+A nice link:../../revapi-java/enhance-java-checks.html[example] are Java's EJB interfaces - these are used by the users
+to invoke methods on your EJBs but the users aren't supposed to implement those interfaces, merely use them.
+
+```javascript
+[
+  {
+    "extension": "revapi.ignore",
+    "configuration": [
+      {
+        "code" : "java.class.noLongerImplementsInterface",
+        "new": "my.great.app.AcmeClass",
+        "interface": "my.great.app.Superfluous",
+        "justification": "The interface was just superfluous without any reason for existence."
+      }
+    ]
+  }
+]
+```
+
+or equivalently in XML
+
+```xml
+<analysisConfiguration>
+  <revapi.ignore>
+    <item>
+      <code>java.class.noLongerImplementsInterface</code>
+      <new>my.great.app.AcmeClass</new>
+      <interface>my.great.app.Superfluous</interface>
+      <justification>
+        The interface was just superfluous without any reason for existence.
+      </justification>
+    </item>
+  </revapi.ignore>
+</analysisConfiguration>
+```
+
+NOTE: Again, the `interface` attribute is defined by the
+link:../../revapi-java/differences.html#a_class_no_longer_implements_interface[the documentation] for the difference
+code.
+
+In this example, the fact that the `my.great.app.AcmeClass` no longer implements the `my.great.app.Superfluous`
+interface will not be reported. Any other change on the class (including other interfaces that are no longer implemented
+will be reported, though). If any other class implemented the interface, too, then that change will be reported, because
+the above definition only applied to the `my.great.app.AcmeClass`.

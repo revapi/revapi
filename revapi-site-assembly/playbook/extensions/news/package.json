@@ -1,0 +1,13 @@
+{
+  "name": "antora-news",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "files": [
+    "lib/"
+  ],
+  "dependencies": {
+    "rss": "1.2.2"
+  },
+  "devDependencies": {
+  }
+}

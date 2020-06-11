@@ -1,0 +1,22 @@
+= New Check and 2 Fixes
+:docname: 20180406-new-check-and-2-fixes
+:page-publish_date: 2018-04-06
+:page-layout: news-article
+
+I fixed 3 issues for which there are releases of the following components:
+
+* `revapi-basic-features-0.7.1` that contains a fix for https://github.com/revapi/revapi/issues/119[#119] which means
+that the semver transform should no longer crash when there is no prior version of artifacts
+* `revapi-java-spi-0.15.1` that includes the definition of the new `serialVersionUIDChanged`
+https://revapi.org/modules/revapi-java/index.html#field_code_serialversionuid_code_changed[check] (prompted by
+https://github.com/revapi/revapi/issues/120[#120])
+* `revapi-java-0.16.0` that contains the implementation of `serialVersionUIDChanged` and additionally contains
+an important fix that could cause problems be reported on wrong elements in some cases.
+* `revapi-maven-plugin-0.10.1` that bundles the latest revapi-basic-features version
+
+You are urged to upgrade especially to `revapi-java-0.16.0` to avoid some head scratching when examining the Revapi
+reports.
+
+Thanks go out to Ricardo Ferreira for reporting https://github.com/revapi/revapi/issues/120[#120] and Matthew Kavanagh
+for his analysis of https://github.com/revapi/revapi/issues/119[#119].
+

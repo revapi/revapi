@@ -1,0 +1,67 @@
+site:
+  title: Revapi
+  url: https://revapi.org
+  start_page: revapi-site::index.adoc
+  robots: allow
+content:
+  sources:
+    - url: ../../
+      branches: HEAD
+      start_path: revapi-site/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi_v*
+      start_path: revapi/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi-basic-features_v*
+      start_path: revapi-basic-features/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi-maven-plugin_v*
+      start_path: revapi-maven-plugin/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi-ant-task_v*
+      start_path: revapi-ant-task/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi-java_v*
+      start_path: revapi-java/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi-java-spi_v*
+      start_path: revapi-java-spi/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi-reporter-file-base_v*
+      start_path: revapi-reporter-file-base/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi-reporter-json_v*
+      start_path: revapi-reporter-json/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi-reporter-text_v*
+      start_path: revapi-reporter-text/target/antora
+    - url: ../../
+      branches: HEAD
+      tags: revapi-standalone_v*
+      start_path: revapi-standalone/target/antora
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true
+  supplemental_files: ./supplemental-ui
+runtime:
+  fetch: true
+asciidoc:
+  attributes:
+    plantuml-server-url: http://www.plantuml.com/plantuml
+  extensions:
+    - asciidoctor-plantuml
+    - ./extensions/news
+    - ./extensions/component
+    - ./extensions/fref
+
+

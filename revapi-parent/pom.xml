@@ -15,7 +15,8 @@
   ~ limitations under the License
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <name>Revapi parent</name>
@@ -136,7 +137,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
+                    <tagNameFormat>@{project.artifactId}_v@{project.version}</tagNameFormat>
                     <releaseProfiles>release,release-profile</releaseProfiles>
                     <pushChanges>false</pushChanges>
                     <preparationGoals>license:format clean verify</preparationGoals>
@@ -148,7 +149,9 @@
                 <executions>
                     <execution>
                         <id>ban-mad-gadget</id>
-                        <goals><goal>enforce</goal></goals>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
                         <configuration>
                             <rules>
                                 <bannedDependencies>
@@ -171,7 +174,7 @@
                 <artifactId>maven-project-info-reports-plugin</artifactId>
                 <reportSets>
                     <reportSet>
-                        <reports />
+                        <reports/>
                     </reportSet>
                 </reportSets>
             </plugin>
@@ -226,8 +229,8 @@
         <connection>scm:git:git://github.com/revapi/revapi.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
         <url>https://github.com/revapi/revapi</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <distributionManagement>
         <site>
@@ -308,9 +311,73 @@
             </build>
         </profile>
         <profile>
+            <id>antora-site</id>
+            <activation>
+                <file>
+                    <exists>${basedir}/src/site/antora.yml</exists>
+                </file>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>process-antora-files</id>
+                                <goals>
+                                    <goal>resources</goal>
+                                </goals>
+                                <phase>site</phase>
+                                <configuration>
+                                    <resources>
+                                        <resource>
+                                            <directory>${basedir}/src/site</directory>
+                                            <filtering>true</filtering>
+                                            <targetPath>${basedir}/target/antora</targetPath>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-site-plugin</artifactId>
+                        <configuration>
+                            <inputDirectory>${project.reporting.outputDirectory}</inputDirectory>
+                            <outputDirectory>${basedir}/target/antora/modules/ROOT/attachments</outputDirectory>
+                            <relativizeDecorationLinks>false</relativizeDecorationLinks>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.asciidoctor</groupId>
+                                <artifactId>asciidoctor-maven-plugin</artifactId>
+                                <version>1.5.6</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>pl.matsuo.maven.skins</groupId>
+                                <artifactId>msb3-velocity-tools</artifactId>
+                                <version>0.1.1</version>
+                            </dependency>
+                            <!-- MSB3 skin requires Velocity >= 1.7  -->
+                            <dependency>
+                                <groupId>org.apache.velocity</groupId>
+                                <artifactId>velocity</artifactId>
+                                <version>1.7</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>site-publishing</id>
             <activation>
-                <file><exists>${basedir}/src/site/site.xml</exists></file>
+                <file>
+                    <exists>${basedir}/src/site/site.xml-NOWAY</exists>
+                </file>
             </activation>
 
             <build>
@@ -320,7 +387,8 @@
                         <artifactId>maven-site-plugin</artifactId>
                         <configuration>
                             <inputDirectory>${project.reporting.outputDirectory}</inputDirectory>
-                            <outputDirectory>${project.reporting.outputDirectory}/modules/${project.artifactId}</outputDirectory>
+                            <outputDirectory>${project.reporting.outputDirectory}/modules/${project.artifactId}
+                            </outputDirectory>
                             <relativizeDecorationLinks>false</relativizeDecorationLinks>
                         </configuration>
                         <executions>
@@ -356,7 +424,8 @@
                         <artifactId>maven-scm-publish-plugin</artifactId>
                         <configuration>
                             <scmBranch>${web.repo.branch}</scmBranch>
-                            <checkinComment>Committing ${project.name} docs for version ${project.version}.</checkinComment>
+                            <checkinComment>Committing ${project.name} docs for version ${project.version}.
+                            </checkinComment>
                             <ignorePathsToDelete>
                                 <ignore>*</ignore>
                             </ignorePathsToDelete>

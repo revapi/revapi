@@ -1,0 +1,13 @@
+{
+    "name": "antora-fref",
+    "version": "0.0.1",
+    "main": "lib/index.js",
+    "files": [
+      "lib/"
+    ],
+    "dependencies": {
+    },
+    "devDependencies": {
+    }
+  }
+  

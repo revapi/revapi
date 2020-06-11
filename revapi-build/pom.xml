@@ -319,6 +319,45 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>set-metadata-in-antora</id>
+                        <phase>pre-site</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <replaceregexp byline="true">
+                                    <regexp pattern="^version: .*"/>
+                                    <substitution expression="version: ${project.version}"/>
+                                    <fileset dir="${basedir}">
+                                        <include name="src/site/antora.yml"/>
+                                    </fileset>
+                                </replaceregexp>
+                                <replaceregexp byline="true">
+                                    <regexp pattern="^title: .*"/>
+                                    <substitution expression="title: ${project.name}"/>
+                                    <fileset dir="${basedir}">
+                                        <include name="src/site/antora.yml"/>
+                                    </fileset>
+                                </replaceregexp>
+                                <replaceregexp byline="true">
+                                    <regexp pattern="^name: .*"/>
+                                    <substitution expression="name: ${project.artifactId}"/>
+                                    <fileset dir="${basedir}">
+                                        <include name="src/site/antora.yml"/>
+                                    </fileset>
+                                </replaceregexp>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

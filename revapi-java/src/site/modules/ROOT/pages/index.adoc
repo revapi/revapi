@@ -1,0 +1,68 @@
+= Revapi for Java
+:page-toclevels: 3
+
+The Java extension somewhat obviously provides API checking capability for Java libraries. It contains a large number
+of checks that check different aspects of changes in the API, but it, too, is extensible. That is useful in cases where
+Java methods are annotated using annotations like JPA or JAXB. One can imagine new checks on methods and fields
+annotated by those annotations to perform additional analysis for DB schema changes or XML serialization changes.
+
+== Overview
+
+The Revapi java extension performs a thorough class and method signature analysis and detects quite a large number of
+(potential) problems and changes of the code in the two versions of the API.
+
+NOTE: There are over *80* kinds of detected changes (of which some don't represent an actual problem with the API but
+merely a compatible change (a change nevertheless)).
+
+You can find below all the detected differences, but as a sneak peak consider the following
+detected changes:
+
+* _checked exception added/removed to/from method signature_ - both of these are source incompatible but binary
+compatible changes,
+* _formal type parameter added to class/method signature_ - this is again source incompatible but binary compatible,
+* _non-final method replaced by a final method in superclass_ - huh, binary compatible, source potentially incompatible,
+potentially producing `VerifyError` at linkage time. What is this actually? V1 of the library contained a class
+`C` with method `m()`. Class `C` inherited from class `B`. V2 changed this such that `C` still inherits from `B` but
+method `m()` is now final and declared in `B`. This change is OK *unless* client code inherits from `C` and overrides
+the method in question.
+* _serialVersionUid unchanged_ - reported when there's been a change in the class that would change the automatically
+generated serialization version, but the manually assigned `serialVersionUid` field remained with the same value in
+the new version of the library.
+* _non-public part of API_ - a class that is non-public was detected to be reachable from the public API. I.e. there
+exists a non-public type that is used in a public capacity - as a return type or a parameter of an accessible method -
+this is checked recursively. E.g. in the example below, the `Internal` class is flagged:
+[]
+```java
+//------------------------ API.jar
+
+public class API {
+  public Model getModel() {
+    return null;
+  }
+}
+
+//------------------------ Dependency.jar
+
+public class Model {
+  protected Internal getState() {
+    return null;
+  }
+}
+
+/*package private*/ class Internal {
+}
+
+```
+[]
+This is because the api class `API` returns the `Model` class from its public method and therefore makes the `Model`
+class formally part of the API even though it comes from a dependency. The `Model` class then is non-final and
+returns an `Internal` instance from its method. Thus, it is conceivable that a user of the API.jar might want to
+extend and use the `Model` class at which point he'd be unable to use the correct type of the `getState()` result.
+
+== SPI
+
+The Java extension can be augmented through its small xref:revapi-java-spi::index.adoc[SPI]. Check it out for some
+examples on how to extend the functionality of the java checker by providing new checks or making it understand new
+kinds of archives.
+
+

@@ -1,0 +1,121 @@
+= Text Reporter
+
+*Extension*: `revapi.reporter.text`
+
+This extension is used as a basic means of outputting the results of analysis as text to some file or standard output.
+
+The format of the text can be configured using a http://freemarker.org[FreeMarker] template.
+
+== Usage
+
+Revapi needs to be configured to use this extension, it is not present by default. In case of maven plugin, you need to
+add the extension as a dependency of the maven plugin like so:
+
+```xml
+<build>
+  ...
+  <plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    <dependencies>
+      <dependency>
+        <groupId>org.revapi</groupId>
+        <artifactId>revapi-reporter-text</artifactId>
+        <version>...</version>
+      </dependency>
+      ...
+    </dependencies>
+    <configuration>
+      <analysisConfiguration>
+        <revapi.reporter.text>
+          ... configure the extension here ...
+        </revapi.reporter.text>
+      </analysisConfiguration>
+    </configuration>
+  </plugin>
+  ...
+</build>
+```
+
+== Sample Configuration
+
+```javascript
+[
+  {
+    "extension": "revapi.reporter.text",
+    "configuration": {
+      "minSeverity": "POTENTIALLY_BREAKING",
+      "output" : "out",
+      "template": "my-template.ftl",
+      "append": false
+    }
+  }
+]
+```
+
+```xml
+<analysisConfiguration>
+  <revapi.reporter.text>
+    <minSeverity>POTENTIALLY_BREAKING</minSeverity>
+    <output>out</output>
+    <template>my-template.ftl</template>
+    <append>false</append>
+  </revapi.reporter.text>
+</analysisConfiguration>
+```
+
+== Properties
+
+`minSeverity`::
+The minimum severity of problems that will be included in the output. If not specified, defaults to
+`POTENTIALLY_BREAKING`. Possible values are `NON_BREAKING`, `POTENTIALLY_BREAKING` and `BREAKING`.
+`output`::
+The path to the output file. Two special values are recongized: `out` (which is the default value of this property) and
+`err` which represent standard output or standard error output respectively.
+`template`::
+A relative path to a FreeMarker template to format the output with. If not specified a built-in simple template is used.
+`append`::
+Whether to append to the chosen output or whether to overwrite it (doesn't make sense for standard (error) output).
+The default value is `false` meaning the output file will be overwritten if it already exists.
+
+== Example Template
+
+This is actually the default template used by the extension if you don't configure your own template.
+
+```ftl
+Old API: <#list analysis.oldApi.archives as archive>${archive.name}<#sep>, </#list> <1>
+New API: <#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>
+<#list reports as report> <2>
+old: ${report.oldElement!"<none>"}
+new: ${report.newElement!"<none>"}
+<#list report.differences as diff>
+${diff.code}<#if diff.description??>: ${diff.description}</#if>
+<#list diff.classification?keys as compat>${compat}: ${diff.classification?api.get(compat)}<#sep>, </#list> <3>
+</#list>
+<#sep>
+
+</#sep>
+</#list>
+```
+<1> The analysis configuration is made available in the `analysis` variable which is an object with type
+link:../revapi/apidocs/org/revapi/AnalysisContext.html[`AnalysisContext`].
+<2> The results of the analysis are made available to the template in the `reports` variable which is a list of
+link:../revapi/apidocs/org/revapi/Report.html[`Report`] objects.
+<3> The `classification` map of a difference uses an enum as a key. To be able to access the values by keys, one has to
+use the `?api` construct and use the native method to access the value. Using `classification[compat]` is not possible
+in the example above. This is a limitation of FreeMarker.
+
+== FreeMarker Configuration
+
+If you're going to use your custom template, you will need to how the FreeMarker configuration used for rendering the
+template.
+
+* The compatibility level is set to version `2.3.23`.
+* The default object wrapper is used and is configured to expose public fields in addition to bean properties.
+* The API built-ins are enabled (i.e. you can use ?api to access the methods of the underlying object).
+* There are 2 template loaders:
+** for templates from `/META-INF` using the classloader of the extension,
+** for templates anywhere on the filesystem (either relative to the current path or using an absolute path) (note that
+this is not the default FreeMarker's `FileTemplateLoader` which enforces some security restrictions useful in web
+application environment but which are not desirable in our usecase).

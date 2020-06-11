@@ -1,0 +1,62 @@
+= Downloads
+
+Revapi doesn't maintain its own downloadable archives because all the artifacts are stored in the Maven Central
+repository.
+
+Here are the links to the latest versions of the individual artifacts.
+
+[cols="<2,3,2,1"]
+|===
+|Name|Artifact|Latest Version|All Versions
+
+|Revapi API
+|`org.revapi:revapi`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi/component:revapi[version]/revapi-component:revapi[version].jar[component:revapi[version]]
+|https://search.maven.org/artifact/org.revapi/revapi[here]
+
+|Revapi Maven Plugin
+|`org.revapi:revapi-maven-plugin`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-maven-plugin/component:revapi-maven-plugin[version]/revapi-maven-plugin-component:revapi-maven-plugin[version].jar[component:revapi-maven-plugin[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-maven-plugin[here]
+
+|Revapi Ant Task
+|`org.revapi:revapi-ant-task`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-ant-task/component:revapi-ant-task[version]/revapi-ant-task-component:revapi-ant-task[version].jar[component:revapi-ant-task[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-ant-task[here]
+
+|Revapi Standalone CLI
+|`org.revapi:revapi-standalone`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-standalone/component:revapi-standalone[version]/revapi-standalone-component:revapi-standalone[version].jar[component:revapi-standalone[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-standalone[here]
+
+|Revapi Basic Features Extension
+|`org.revapi:revapi-basic-features`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-basic-features/component:revapi-basic-features[version]/revapi-basic-features-component:revapi-basic-features[version].jar[component:revapi-basic-features[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-basic-features[here]
+
+|Revapi Java Extension
+|`org.revapi:revapi-java`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-java/component:revapi-java[version]/revapi-java-component:revapi-java[version].jar[component:revapi-java[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-java[here]
+
+|Revapi Java Extension SPI
+|`org.revapi:revapi-java-spi`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-java-spi/component:revapi-java-spi[version]/revapi-java-spi-component:revapi-java-spi[version].jar[component:revapi-java-spi[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-java-spi[here]
+
+|Revapi Text Reporter Extension
+|`org.revapi:revapi-reporter-text`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-reporter-text/component:revapi-reporter-text[version]/revapi-reporter-text-component:revapi-reporter-text[version].jar[component:revapi-reporter-text[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-reporter-text[here]
+
+|Revapi File-based Reporter Base
+|`org.revapi:revapi-reporter-file-base`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-reporter-file-base/component:revapi-reporter-file-base[version]/revapi-reporter-file-base-component:revapi-reporter-file-base[version].jar[component:revapi-reporter-file-base[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-reporter-file-base[here]
+
+|Revapi JSON Reporter Extension
+|`org.revapi:revapi-reporter-json`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-reporter-json/component:revapi-reporter-json[version]/revapi-reporter-json-component:revapi-reporter-json[version].jar[component:revapi-reporter-json[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-reporter-json[here]
+
+|===

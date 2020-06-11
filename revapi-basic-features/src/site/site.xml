@@ -17,25 +17,9 @@
     limitations under the License.
 
 -->
-<project name="Revapi Basic Features">
+<project name="Revapi Ant Task">
   <bannerLeft>
     <name>${project.name}</name>
     <href>${project.url}</href>
   </bannerLeft>
-
-  <body>
-    <menu name="Project Details">
-      <item name="Filter Extension" href="extensions/filter.html"/>
-      <item name="Ignore Extension" href="extensions/ignore.html"/>
-      <item name="Reclassify Extension" href="extensions/reclassify.html"/>
-      <item name="Version-based Ignore Extension" href="extensions/semver-ignore.html"/>
-    </menu>
-  </body>
-
-  <custom>
-    <msb3Skin>
-      <slogan>${project.description}</slogan>
-      <bottomDescription>${project.name}</bottomDescription>
-    </msb3Skin>
-  </custom>
 </project>

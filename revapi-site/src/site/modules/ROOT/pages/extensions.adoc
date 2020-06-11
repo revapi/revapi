@@ -1,0 +1,10 @@
+= Extensions
+
+Revapi has been written with extensibility in mind. Everything from API scanning, filtering to report generation is
+extensible. Revapi comes with a couple of extensions that make it useful without a need to write any code yourself
+(even though writing an extension is super simple and fun ;) ).
+
+Use the menu to find the various extensions provided by Revapi itself. There are also some 3rd party
+extensions, for example https://github.com/jenkinsci/lib-revapi-hpi-extractor that the Jenkins CI uses to make Revapi
+understand the HPI packaging of the Jenkins plugins or https://github.com/mulesoft/mule-revapi-extension used for
+analyzing Mule modules.

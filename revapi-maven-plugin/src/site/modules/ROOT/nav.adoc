@@ -1,0 +1,3 @@
+* xref:index.adoc[Home]
+* link:{attachmentsdir}/index.html[Maven Site]
+* link:{attachmentsdir}/apidocs/index.html[Javadoc]
