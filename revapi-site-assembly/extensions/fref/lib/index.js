@@ -35,14 +35,8 @@ function isDir(str) {
 
 // with the above, we can implement "fref" - an alternative to xref that is able to compute
 // links to resources in other families than just "page"
-
-// we need to use this style of processor instead of the simplied function because
-// asciidoctor.js can't provide value-less attributes to us
-// e.g. in fref:xref[link text], the presence of "link text" attribute needs
-// to be checked using Opal and is not present in the simple callaback function
-const processor = new Opal.Asciidoctor.Extensions.InlineMacroProcessor()
-processor.$initialize()
-processor.$process = function (parent, target, attributes) {
+// This function needs "context" added to its "this".
+function process(parent, target, attributes) {
     let hash
     let link
     let resolved
@@ -60,7 +54,7 @@ processor.$process = function (parent, target, attributes) {
     }
 
     if (!(resolved = this.context.contentCatalog.resolveResource(link, this.context, "page"))) {
-        return '<a href="' + ("#" + target) + '">' + text + '</a>'
+        return '<a href="' + ("#" + target) + '">' + (text || url) + '</a>'
     } else {
         let url = computeRelativeUrlPath(this.context.file.pub.url, resolved.pub.url, hash)
         return '<a href="' + url + '">' + (text || url) + '</a>'
@@ -68,6 +62,14 @@ processor.$process = function (parent, target, attributes) {
 }
 
 module.exports.register = function (registry, context) {
+    // we need to use this style of processor instead of the simplified function because
+    // asciidoctor.js can't provide value-less attributes to us
+    // e.g. in fref:xref[link text], the presence of "link text" attribute needs
+    // to be checked using Opal and is not present in the simple callback function
+    const processor = new Opal.Asciidoctor.Extensions.InlineMacroProcessor()
+    processor.$initialize()
     processor.context = context
+    processor.$process = process;
+
     registry.inlineMacro("fref", processor)
 }

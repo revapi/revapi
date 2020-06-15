@@ -1,10 +1,4 @@
-// we need to use this style of processor instead of the simplied function because
-// asciidoctor.js can't provide value-less attributes to us
-// e.g. in component:some-component[version], the presence of "version" attribute needs
-// to be checked using Opal and is not present in the simple callaback function
-const processor = new Opal.Asciidoctor.Extensions.InlineMacroProcessor()
-processor.$initialize()
-processor.$process = function(parent, target, attributes) {
+function process(parent, target, attributes) {
     if (attributes.$keys().length == 1) {
         let what = Opal.hash_get(attributes, 1)
 
@@ -39,6 +33,13 @@ processor.$process = function(parent, target, attributes) {
 }
 
 module.exports.register = function (registry, context) {
+    // we need to use this style of processor instead of the simplied function because
+    // asciidoctor.js can't provide value-less attributes to us
+    // e.g. in component:some-component[version], the presence of "version" attribute needs
+    // to be checked using Opal and is not present in the simple callaback function
+    const processor = new Opal.Asciidoctor.Extensions.InlineMacroProcessor()
+    processor.$process = process;
+    processor.$initialize()
     processor.context = context
     registry.inlineMacro("component", processor)
 }
