@@ -23,12 +23,6 @@
     <href>${project.url}</href>
   </bannerLeft>
 
-  <skin>
-    <groupId>pl.matsuo.maven.skins</groupId>
-    <artifactId>msb3-maven-skin</artifactId>
-    <version>0.1.1</version>
-  </skin>
-
   <body>
     <menu name="Maven Documentation" ref="reports" inherit="bottom"/>
   </body>
