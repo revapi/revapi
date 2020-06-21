@@ -5,46 +5,46 @@ site:
   robots: allow
 content:
   sources:
-    - url: ../../
+    - url: ../
       branches: HEAD
       start_path: revapi-site/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi_v*
       start_path: revapi/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-basic-features_v*
       start_path: revapi-basic-features/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-maven-plugin_v*
       start_path: revapi-maven-plugin/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-ant-task_v*
       start_path: revapi-ant-task/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-java_v*
       start_path: revapi-java/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-java-spi_v*
       start_path: revapi-java-spi/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-reporter-file-base_v*
       start_path: revapi-reporter-file-base/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-reporter-json_v*
       start_path: revapi-reporter-json/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-reporter-text_v*
       start_path: revapi-reporter-text/target/antora
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-standalone_v*
       start_path: revapi-standalone/target/antora
