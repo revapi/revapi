@@ -16,7 +16,7 @@
 #
 
 name: revapi-reporter-file-base
-title: Revapi File-based Reporter Base
+title: File Reporter Base
 version: 0.1.1-SNAPSHOT
 nav:
   - modules/ROOT/nav.adoc

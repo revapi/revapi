@@ -16,7 +16,7 @@
 #
 
 name: revapi-java
-title: Revapi Java Extension
+title: Java Extension
 version: 0.21.1-SNAPSHOT
 nav:
   - modules/ROOT/nav.adoc

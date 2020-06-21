@@ -26,7 +26,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Revapi Ant Task</name>
+    <name>Ant Task</name>
     <description>
         Ant integration for Revapi.
     </description>

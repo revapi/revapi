@@ -1,0 +1,54 @@
+= Reporting With Revapi
+
+== Report Per Module
+
+NOTE: Goal details page: link:{attachmentsdir}/report-mojo.html[here]
+
+The Revapi Maven plugin offers the possibility to create simple reports of the API changes found in the analysis. The
+link:{attachmentsdir}/report-mojo.html[report goal] offers the same configuration properties as the analysis itself. Just include
+the following snippet in `reporting/plugins` of your POM:
+
+[subs=+attributes]
+```xml
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>{page-component-version}</version>
+    <reportSets>
+        <reportSet>
+            <reports>
+                <report>report</report>
+            </reports>
+        </reportSet>
+    </reportSets>
+    ...
+</plugin>
+```
+
+The report can be configured in a very much the same way as the build-time API check and provides virtually the same
+configuration properties.
+
+== Aggregate Report
+
+NOTE: Goal details page: link:{attachmentsdir}/report-aggregate-mojo.html[here]
+
+For POM-packaged modules, one can create an aggregate report consisting of the individual reports of the modules that
+are (indirectly) referenced by the POM module. Again this can be configured the same way the rest of the Revapi goals.
+Please consult the details page of the goal for the individual configuration properties.
+
+[subs=+attributes]
+```xml
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>{page-component-version}</version>
+    <reportSets>
+        <reportSet>
+            <reports>
+                <report>report-aggregate</report>
+            </reports>
+        </reportSet>
+    </reportSets>
+    ...
+</plugin>
+```

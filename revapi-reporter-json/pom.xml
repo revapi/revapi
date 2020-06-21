@@ -26,7 +26,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Revapi JSON Reporter</name>
+    <name>JSON Reporter</name>
     <description>
         Super simple Revapi reporter outputting a JSON representation of
         the differences to a file or on standard output.

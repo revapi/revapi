@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>maven-plugin</packaging>
 
-    <name>Revapi Maven Plugin</name>
+    <name>Maven Plugin</name>
     <description>
         Maven integration for Revapi.
     </description>

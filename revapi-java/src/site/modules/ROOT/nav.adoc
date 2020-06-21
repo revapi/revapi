@@ -1,4 +1,3 @@
-* xref:index.adoc[Overview]
 * xref:differences.adoc[Detected Differences]
 * xref:element-filters.adoc[Class & Package Filtering]
 * xref:annotation-based-filter.adoc[Annotation-based Filtering]

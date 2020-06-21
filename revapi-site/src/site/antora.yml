@@ -20,4 +20,3 @@ title: Revapi Site
 version: 0
 nav:
   - modules/ROOT/nav.adoc
-  - modules/news/nav.adoc

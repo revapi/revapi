@@ -26,7 +26,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Revapi File-based Reporter Base</name>
+    <name>File Reporter Base</name>
     <description>
         Base class for file-based reporters defining some common behavior so that it doesn't have to be reimplemented
         all the time.

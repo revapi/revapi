@@ -1,0 +1,13 @@
+.version-selector {
+    font-size: 75%;
+    border: none;
+    outline: none;
+ }
+
+ .version-selector img {
+    height: 1em;
+ }
+
+ nav {
+    width: 20%;
+ }

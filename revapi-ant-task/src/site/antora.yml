@@ -16,7 +16,5 @@
 #
 
 name: revapi-ant-task
-title: Revapi Ant Task
+title: Ant Task
 version: 0.9.4-SNAPSHOT
-nav:
-  - modules/ROOT/nav.adoc

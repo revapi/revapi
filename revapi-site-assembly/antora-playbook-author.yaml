@@ -5,46 +5,46 @@ site:
   robots: allow
 content:
   sources:
-    - url: ../../
+    - url: ../
       branches: HEAD
       start_path: revapi-site/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi_v*
       start_path: revapi/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-basic-features_v*
       start_path: revapi-basic-features/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-maven-plugin_v*
       start_path: revapi-maven-plugin/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-ant-task_v*
       start_path: revapi-ant-task/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-java_v*
       start_path: revapi-java/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-java-spi_v*
       start_path: revapi-java-spi/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-reporter-file-base_v*
       start_path: revapi-reporter-file-base/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-reporter-json_v*
       start_path: revapi-reporter-json/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-reporter-text_v*
       start_path: revapi-reporter-text/src/site
-    - url: ../../
+    - url: ../
       branches: HEAD
       tags: revapi-standalone_v*
       start_path: revapi-standalone/src/site

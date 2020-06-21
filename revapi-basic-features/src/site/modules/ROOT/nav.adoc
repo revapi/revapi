@@ -1,4 +1,3 @@
-* xref:index.adoc[Home]
 * xref:reclassify.adoc[Classification Transform]
 * xref:filter.adoc[Element Filter]
 * xref:ignore.adoc[Ignore Differences]

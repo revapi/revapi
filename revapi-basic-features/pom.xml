@@ -26,7 +26,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Revapi Basic Features</name>
+    <name>Basic Features</name>
     <description>
         The basic extensions loaded by default both in the standalone
         distribution and by the maven plugin.
