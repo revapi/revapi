@@ -326,7 +326,7 @@
                 <executions>
                     <execution>
                         <id>set-metadata-in-antora</id>
-                        <phase>pre-site</phase>
+                        <phase>process-sources</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
