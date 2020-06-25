@@ -35,7 +35,7 @@
     <artifactId>revapi-build</artifactId>
     <version>41-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <url>${web.url}</url>
+    <url>https://revapi.org</url>
 
     <properties>
         <self-api-check.maven-version>0.11.2</self-api-check.maven-version>
@@ -82,14 +82,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.revapi</groupId>
-                <artifactId>revapi-site-shared</artifactId>
-                <version>4-SNAPSHOT</version>
-                <type>zip</type>
-                <classifier>resources</classifier>
-            </dependency>
-
-            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${version.org.slf4j}</version>
@@ -98,14 +90,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-site-shared</artifactId>
-            <classifier>resources</classifier>
-            <type>zip</type>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>annotations</artifactId>
@@ -162,42 +146,6 @@
                                     <version>9</version>
                                 </requireJavaVersion>
                             </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-site-plugin</artifactId>
-                <configuration>
-                    <relativizeDecorationLinks>false</relativizeDecorationLinks>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-sitexml</id>
-                        <phase>package</phase>
-                        <goals><goal>attach-descriptor</goal></goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-site-shared</id>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <phase>site</phase>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/site/modules/${project.artifactId}</outputDirectory>
-                            <includeArtifactIds>revapi-site-shared</includeArtifactIds>
-                            <includeGroupIds>org.revapi</includeGroupIds>
-                            <includeClassifiers>resources</includeClassifiers>
-                            <includeTypes>zip</includeTypes>
-                            <excludeTransitive>true</excludeTransitive>
                         </configuration>
                     </execution>
                 </executions>
@@ -557,7 +505,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.repo}</url>
+            <url>https://revapi.org</url>
         </site>
     </distributionManagement>
 
