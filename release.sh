@@ -181,7 +181,8 @@ function publish_site() {
 
   ensure_clean_workdir
 
-  for m in $@; do
+  to_release=$(determine_releases $@)
+  for m in $to_release; do
     m="$(to_module "$m")"
     cd "../$m"
     releases=$(git tag | grep ${m}_v)
@@ -196,8 +197,6 @@ function publish_site() {
       cp -R target/site/* $dir
     done
   done
-  # TODO we need to fetch the javadocs for all the versions in the site
-  # and place them into correspoding attachments
 
   # TODO actually publish the site
 
@@ -205,6 +204,5 @@ function publish_site() {
   cd ..
 }
 
-#modules=$(do_releases $@)
-modules=$(determine_releases $@)
-publish_site $modules
+do_releases $@
+publish_site $@
