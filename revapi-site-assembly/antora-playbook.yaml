@@ -7,47 +7,47 @@ content:
   sources:
     - url: ../
       branches: HEAD
-      start_path: revapi-site/target/antora
+      start_path: revapi-site/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi_v*
-      start_path: revapi/target/antora
+      start_path: revapi/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi-basic-features_v*
-      start_path: revapi-basic-features/target/antora
+      start_path: revapi-basic-features/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi-maven-plugin_v*
-      start_path: revapi-maven-plugin/target/antora
+      start_path: revapi-maven-plugin/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi-ant-task_v*
-      start_path: revapi-ant-task/target/antora
+      start_path: revapi-ant-task/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi-java_v*
-      start_path: revapi-java/target/antora
+      start_path: revapi-java/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi-java-spi_v*
-      start_path: revapi-java-spi/target/antora
+      start_path: revapi-java-spi/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi-reporter-file-base_v*
-      start_path: revapi-reporter-file-base/target/antora
+      start_path: revapi-reporter-file-base/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi-reporter-json_v*
-      start_path: revapi-reporter-json/target/antora
+      start_path: revapi-reporter-json/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi-reporter-text_v*
-      start_path: revapi-reporter-text/target/antora
+      start_path: revapi-reporter-text/src/site
     - url: ../
-      branches: HEAD
+      branches: ~
       tags: revapi-standalone_v*
-      start_path: revapi-standalone/target/antora
+      start_path: revapi-standalone/src/site
 ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable

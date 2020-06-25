@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ALL_DEPS=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi"
+ALL_MODULES=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi"
 
 DEPS_revapi_parent=()
 DEPS_revapi_site=()
@@ -85,7 +85,7 @@ function contains() {
 function downstream_deps() {
   dep=$(to_dep "$1")
   downs=""
-  for d in $ALL_DEPS; do
+  for d in $ALL_MODULES; do
     ups=$(upstream_deps "$d" | tr "\n" " ")
     if [ "$(contains "$dep" "$ups")" -eq 0 ]; then
       downs="$downs $d"
@@ -165,19 +165,43 @@ function do_releases() {
     release_module "$m"
     cd "$CWD"
   done
+
+  echo $to_release
 }
 
 function publish_site() {
+  ensure_clean_workdir
+
+  current_branch=$(git rev-parse --abbrev-ref HEAD)
+
   cd revapi-site-assembly
   ./build.sh antora-playbook.yaml
 
+  ensure_clean_workdir
+
+  for m in $@; do
+    m="$(to_module "$m")"
+    cd "../$m"
+    releases=$(git tag | grep ${m}_v)
+    for r in $releases; do
+      git checkout "${r}"
+      mvn site
+      ver=$(echo $r | sed 's/^.*_v//')
+
+      dir=../revapi-site-assembly/build/site/$m/$ver/_attachments
+      mkdir -p $dir
+      cp -R target/site/* $dir
+    done
+  done
   # TODO we need to fetch the javadocs for all the versions in the site
   # and place them into correspoding attachments
 
   # TODO actually publish the site
 
+  git checkout "$current_branch"
   cd ..
 }
 
-do_releases $@
-publish_site
+#modules=$(do_releases $@)
+modules=$(determine_releases $@)
+publish_site $modules
