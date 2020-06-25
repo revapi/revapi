@@ -140,6 +140,8 @@ function release_module() {
   mvn process-sources # to set the version in antora.yml
   git add -A
   git commit -m "Setting $module to version $version"
+  #now we need to install so that the subsequent builds pick up our new version
+  mvn install -DskipTests
 }
 
 function determine_releases() {
@@ -185,7 +187,8 @@ function publish_site() {
     releases=$(git tag | grep ${m}_v)
     for r in $releases; do
       git checkout "${r}"
-      mvn site
+      # package so that the revapi report can be produced
+      mvn package site -DskipTests
       ver=$(echo $r | sed 's/^.*_v//')
 
       dir=../revapi-site-assembly/build/site/$m/$ver/_attachments
