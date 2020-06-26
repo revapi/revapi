@@ -138,10 +138,9 @@ All the differences detected by the extension are defined in the
 link:../revapi-java-spi/apidocs/org/revapi/java/spi/Code.html[Code] enumeration. Below, you can find a short discussion
 of each type of the difference.
 
-=== Missing API Class
+=== Missing API Class - `java.missing.oldClass`, `java.missing.newClass`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.missing.oldClass+ or +java.missing.newClass+
 | Binary severity   | potentially breaking
 | Source severity   | potentially breaking
 | Semantic severity | NA
@@ -178,10 +177,9 @@ possible values of `ignore`, `report` and `error`, e.g.:
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Element No Longer Deprecated
+=== Element No Longer Deprecated - `java.element.noLongerDeprecated`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.element.noLongerDeprecated+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -200,10 +198,9 @@ users to know about such cases.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Element Now Deprecated
+=== Element Now Deprecated - `java.element.nowDeprecated`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.element.nowDeprecated+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -222,10 +219,9 @@ users to know about such cases.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class Visibility Increased
+=== Class Visibility Increased - `java.class.visibilityIncreased`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.visibilityIncreased+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -248,10 +244,9 @@ and is reported for completeness sake. The visibility is ordered as follows: +pr
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class Visibility Reduced
+=== Class Visibility Reduced - `java.class.visibilityReduced`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.visibilityReduced+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -274,10 +269,9 @@ runtime when trying to use the new version of the library.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class Kind Changed
+=== Class Kind Changed - `java.class.kindChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.kindChanged+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -300,10 +294,9 @@ compile time and at runtime.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class No Longer Final
+=== Class No Longer Final - `java.class.noLongerFinal`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.noLongerFinal+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -329,10 +322,9 @@ link:http://cr.openjdk.java.net/~alundblad/styleguide/index-v6.html#toc-modifier
 following order: `public protected private abstract static final transient volatile default synchronized native
 strictfp`.
 
-=== Class Now Final
+=== Class Now Final - `java.class.nowFinal`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.nowFinal+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -354,12 +346,11 @@ the class will no longer be compatible with the new version of the library, in w
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-NOTE: See <<Class No Longer Final>> for the ordering of the modifiers.
+NOTE: See <<Class No Longer Final - `java.class.noLongerFinal`>> for the ordering of the modifiers.
 
-=== Class No Longer Abstract
+=== Class No Longer Abstract - `java.class.noLongerAbstract`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.noLongerAbstract+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -380,12 +371,11 @@ A class that used to be abstract is now not. This is no API breakage and is repo
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-NOTE: See <<Class No Longer Final>> for the ordering of the modifiers.
+NOTE: See <<Class No Longer Final - `java.class.noLongerFinal`>> for the ordering of the modifiers.
 
-=== Class Now Abstract
+=== Class Now Abstract - `java.class.nowAbstract`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.nowAbstract+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -407,12 +397,11 @@ possible to create instances of such class.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-NOTE: See <<Class No Longer Final>> for the ordering of the modifiers.
+NOTE: See <<Class No Longer Final - `java.class.noLongerFinal`>> for the ordering of the modifiers.
 
-=== Class Added
+=== Class Added - `java.class.added`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.added+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -431,10 +420,9 @@ A new class appeared in the new version of the API. This is a non-breaking chang
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class Removed
+=== Class Removed - `java.class.removed`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.removed+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -454,10 +442,9 @@ the users of the API will no longer be able to use that class in any capacity.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== External Class Exposed In API
+=== External Class Exposed In API - `java.class.externalClassExposedInAPI`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.externalClassExposedInAPI+
 | Binary severity   | non-breaking
 | Source severity   | non-breaking
 | Semantic severity | potentially breaking
@@ -478,16 +465,15 @@ but you don't want the changed API to leak to your users).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== External Class No Longer Exposed In API
+=== External Class No Longer Exposed In API - `java.class.externalClassNoLongerExposedInAPI`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.externalClassNoLongerExposedInAPI+
 | Binary severity   | non-breaking
 | Source severity   | non-breaking
 | Semantic severity | NA
 |=============
 
-An opposite of <<External Class Exposed In API>>. This is non-breaking, because the class is still accessible on the
+An opposite of <<External Class Exposed In API - `java.class.externalClassExposedInAPI`>>. This is non-breaking, because the class is still accessible on the
 classpath so users that used to rely on it can still access it. The class is just no longer exposed in the API (which
 will usually cause other differences to be reported, too).
 
@@ -502,10 +488,9 @@ will usually cause other differences to be reported, too).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class No Longer Implements Interface
+=== Class No Longer Implements Interface - `java.class.noLongerImplementsInterface`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.noLongerImplementsInterface+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -525,10 +510,9 @@ This is a breaking change because it is no longer possible to cast the class to 
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class Now Implements Interface
+=== Class Now Implements Interface - `java.class.nowImplementsInterface`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.nowImplementsInterface+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -548,10 +532,9 @@ No API breakage reported for the completeness sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Final Class Inherits From New Class
+=== Final Class Inherits From New Class - `java.class.finalClassInheritsFromNewClass`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.finalClassInheritsFromNewClass+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -573,10 +556,9 @@ reported separately).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Non-final Class Inherits From New Class
+=== Non-final Class Inherits From New Class - `java.class.nonFinalClassInheritsFromNewClass`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.nonFinalClassInheritsFromNewClass+
 | Binary severity   | potentially breaking
 | Source severity   | potentially breaking
 | Semantic severity | NA
@@ -598,10 +580,9 @@ checked one, they will get compilation or linkage errors.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class Now Checked Exception
+=== Class Now Checked Exception - `java.class.nowCheckedException`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.nowCheckedException+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -621,10 +602,9 @@ declared in the +throws+ declarations of the methods.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class No Longer Inherits From Class
+=== Class No Longer Inherits From Class - `java.class.noLongerInheritsFromClass`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.noLongerInheritsFromClass+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -645,10 +625,9 @@ that super class nor can the methods declared in the super class be called using
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Default Serialization of Class Changed
+=== Default Serialization of Class Changed - `java.class.defaultSerializationChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.defaultSerializationChanged+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | breaking
@@ -676,10 +655,9 @@ fields changes its serialization format. This imperfection is shared with java s
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Class Is Non-Public Part of API
+=== Class Is Non-Public Part of API - `java.class.nonPublicPartOfAPI`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.nonPublicPartOfAPI+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | breaking
@@ -738,10 +716,9 @@ NOTE: This is NOT reported on a non-accessible class that is used solely as a su
 is only implemented by other API classes. An implementation of a private interface or inheriting from a non-public
 super class is a valid design decision.
 
-=== Type Parameters of The Super Type Changed
+=== Type Parameters of The Super Type Changed - `java.class.superTypeTypeParametersChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.class.superTypeTypeParametersChanged+
 | Binary severity   | potentially breaking
 | Source severity   | potentially breaking
 | Semantic severity | NA
@@ -767,10 +744,9 @@ inherited from the super class (which would be the cause of the binary and sourc
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Annotation Added
+=== Annotation Added - `java.annotation.added`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.annotation.added+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | potentially breaking
@@ -789,10 +765,9 @@ processing, reflection, etc.).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Annotation Removed
+=== Annotation Removed - `java.annotation.removed`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.annotation.removed+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | potentially breaking
@@ -811,10 +786,9 @@ processing, reflection, etc.).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Annotation Attribute Value Changed
+=== Annotation Attribute Value Changed - `java.annotation.attributeValueChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.annotation.attributeValueChanged+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | potentially breaking
@@ -836,10 +810,9 @@ generation, processing, reflection, etc.).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Annotation Attribute Added
+=== Annotation Attribute Added - `java.annotation.attributeAdded`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.annotation.attributeAdded+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | potentially breaking
@@ -860,10 +833,9 @@ used (code generation, processing, reflection, etc.).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Annotation Attribute Removed
+=== Annotation Attribute Removed - `java.annotation.attributeRemoved`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.annotation.attributeRemoved+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | potentially breaking
@@ -884,10 +856,9 @@ annotations can be used (code generation, processing, reflection, etc.).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Annotation No Longer Inherited
+=== Annotation No Longer Inherited - `java.annotation.noLongerInherited`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.annotation.noLongerInherited+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | potentially breaking
@@ -906,10 +877,9 @@ annotations can be used (code generation, processing, reflection, etc.).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Annotation Now Inherited
+=== Annotation Now Inherited - `java.annotation.nowInherited`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.annotation.nowInherited+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | potentially breaking
@@ -928,10 +898,9 @@ annotations can be used (code generation, processing, reflection, etc.).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Static Field Added
+=== Static Field Added - `java.field.addedStaticField`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.addedStaticField+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -951,10 +920,9 @@ No API breakage, provided for completeness sake. Note that this si reported only
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field Added
+=== Field Added - `java.field.added`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.added+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -974,10 +942,9 @@ No API breakage, provided for completeness sake. Note that this si reported only
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field Removed
+=== Field Removed - `java.field.removed`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.removed+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -1024,10 +991,9 @@ Note that this si reported only for publicly accessible fields.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field Moved To Superclass
+=== Field Moved To Superclass - `java.field.movedToSuperclass`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.movedToSuperclass+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -1049,10 +1015,9 @@ The field was moved to a super class. From the point of view of the field user t
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Inherited Field Now Declared On Class
+=== Inherited Field Now Declared On Class - `java.field.inheritedNowDeclared`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.inheritedNowDeclared+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -1075,10 +1040,9 @@ represents no noticeable change. If the field was also removed from the super cl
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Constant Field Removed
+=== Constant Field Removed - `java.field.removed`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.removed+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | potentially breaking
@@ -1102,10 +1066,9 @@ semantics.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Constant Field Changed Value
+=== Constant Field Changed Value - `java.field.constantValueChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.constantValueChanged+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | breaking
@@ -1129,10 +1092,9 @@ because the constant values are inlined. This is therefore reported as breaking 
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field Now Constant
+=== Field Now Constant - `java.field.nowConstant`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.nowConstant+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | potentially breaking
@@ -1154,10 +1116,9 @@ code, which is something that didn't happen before. You may want to re-evaluate 
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field No Longer Constant
+=== Field No Longer Constant - `java.field.noLongerConstant`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.noLongerConstant+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | breaking
@@ -1182,10 +1143,9 @@ NOT what the API author had in mind when making the change.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field Now Final
+=== Field Now Final - `java.field.nowFinal`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.nowFinal+
 | Binary severity   | potentially breaking
 | Source severity   | potentially breaking
 | Semantic severity | NA
@@ -1206,10 +1166,9 @@ binary incompatibility.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field No Longer Final
+=== Field No Longer Final - `java.field.noLongerFinal`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.noLongerFinal+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -1229,10 +1188,9 @@ This is no API breakage and is reported for completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field No Longer Static
+=== Field No Longer Static - `java.field.noLongerStatic`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.noLongerStatic+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -1253,10 +1211,9 @@ this is both source and binary incompatibility.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field Now Static
+=== Field Now Static - `java.field.nowStatic`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.nowStatic+
 | Binary severity   | breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -1278,10 +1235,9 @@ When recompiling the user code against the new version, everything works fine.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field Type Changed
+=== Field Type Changed - `java.field.typeChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.typeChanged+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -1303,10 +1259,9 @@ The field has a different type than it used to in the old version of the API. Th
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field `serialVersionUID` Unchanged
+=== Field `serialVersionUID` Unchanged - `java.field.serialVersionUIDUnchanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.serialVersionUIDUnchanged+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | potentially breaking
@@ -1366,10 +1321,9 @@ or
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field `serialVersionUID` Changed
+=== Field `serialVersionUID` Changed - `java.field.serialVersionUIDChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.serialVersionUIDChanged+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | breaking
@@ -1395,10 +1349,9 @@ This check can be configured the same way as <<Field serialVersionUID Unchanged>
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field Visibility Increased
+=== Field Visibility Increased - `java.field.visibilityIncreased`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.visibilityIncreased+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -1420,10 +1373,9 @@ No API breakage, reported for completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Field Visibility Reduced
+=== Field Visibility Reduced - `java.field.visibilityReduced`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.visibilityReduced+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -1445,10 +1397,9 @@ Field's visibility was reduced, which means that code that used to be able to ac
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Enum Constant Order Changed
+=== Enum Constant Order Changed - `java.field.enumConstantOrderChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.field.enumConstantOrderChanged+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | potentially breaking
@@ -1471,10 +1422,9 @@ method to determine the order of an enum constant and relies on a specific value
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Default Value Added To Method
+=== Default Value Added To Method - `java.method.defaultValueAdded`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.defaultValueAdded+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -1496,10 +1446,9 @@ Declaring a default value to an annotation attribute is not an API breakage and 
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method's Default Value Changed
+=== Method's Default Value Changed - `java.method.defaultValueChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.defaultValueChanged+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | potentially breaking
@@ -1525,10 +1474,9 @@ the API. This might or might not be a problem.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Default Value Removed From Method
+=== Default Value Removed From Method - `java.method.defaultValueRemoved`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.defaultValueRemoved+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | breaking
@@ -1553,10 +1501,9 @@ attribute).
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Added To Interface
+=== Method Added To Interface - `java.method.addedToInterface`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.addedToInterface+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | potentially breaking
@@ -1588,10 +1535,9 @@ old SPI implementation.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Default Method Added To Interface
+=== Default Method Added To Interface - `java.method.defaultMethodAddedToInterface`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.defaultMethodAddedToInterface+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -1611,10 +1557,9 @@ This represents no API breakage and is included for completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Static Method Added To Interface
+=== Static Method Added To Interface - `java.method.staticMethodAddedToInterface`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.staticMethodAddedToInterface+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -1634,10 +1579,9 @@ This represents no API breakage and is included for completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method With No Default Value Added To Annotation Type
+=== Method With No Default Value Added To Annotation Type - `java.method.attributeWithNoDefaultAddedToAnnotationType`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.attributeWithNoDefaultAddedToAnnotationType+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | breaking
@@ -1664,10 +1608,9 @@ assumes an explicit value for the annotation attribute.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method With Default Value Added To Annotation Type
+=== Method With Default Value Added To Annotation Type - `java.method.attributeWithDefaultAddedToAnnotationType`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.attributeWithDefaultAddedToAnnotationType+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -1687,10 +1630,9 @@ This does not break compatibility and is reported for completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Abstract Method Added
+=== Abstract Method Added - `java.method.abstractMethodAdded`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.abstractMethodAdded+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -1711,10 +1653,9 @@ implementation of it and will therefore break.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Added
+=== Method Added - `java.method.added`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.added+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -1734,10 +1675,9 @@ A new concrete method added to a concrete class. This is always safe.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Final Method Added To Non-final Class
+=== Final Method Added To Non-final Class - `java.method.finalMethodAddedToNonFinalClass`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.finalMethodAddedToNonFinalClass+
 | Binary severity   | potentially breaking
 | Source severity   | potentially breaking
 | Semantic severity | NA
@@ -1758,10 +1698,9 @@ as the newly introduced final method.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Inherited Method Moved To Class
+=== Inherited Method Moved To Class - `java.method.inheritedMovedToClass`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.inheritedMovedToClass+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -1784,10 +1723,9 @@ Note that if the super class is part of the API, the removal of the method from 
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Removed
+=== Method Removed - `java.method.removed`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.removed+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -1807,10 +1745,9 @@ Removing a method from a class is an incompatible change.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Moved To Superclass
+=== Method Moved To Superclass - `java.method.movedToSuperClass`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.movedToSuperClass+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -1835,10 +1772,9 @@ Otherwise this is a compatible change and is reported for completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Attribute Removed From Annotation Type
+=== Attribute Removed From Annotation Type - `java.method.attributeRemovedFromAnnotationType`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.attributeRemovedFromAnnotationType+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -1858,10 +1794,9 @@ This is identical to <<a_method_removed, Method Removed>> but specialized for an
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method No Longer Final
+=== Method No Longer Final - `java.method.noLongerFinal`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.noLongerFinal+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -1883,10 +1818,9 @@ No API breakage, reported for completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Now Final
+=== Method Now Final - `java.method.nowFinal`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.nowFinal+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -1908,10 +1842,9 @@ Any subclasses that overrode the method will break both at compile time and at r
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Now Final In Final Class
+=== Method Now Final In Final Class - `java.method.nowFinalInFinalClass`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.nowFinalInFinalClass+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -1933,10 +1866,9 @@ The class is final and cannot be subclassed. Therefore making its method final m
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method No Longer Static
+=== Method No Longer Static - `java.method.noLongerStatic`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.noLongerStatic+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -1959,10 +1891,9 @@ and source compatibility.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Now Static
+=== Method Now Static - `java.method.nowStatic`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.nowStatic+
 | Binary severity   | breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -1985,10 +1916,9 @@ It is not binary compatible though because static methods are called using a dif
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Now Abstract
+=== Method Now Abstract - `java.method.nowAbstract`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.nowAbstract+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -2011,10 +1941,9 @@ to before.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method No Longer Abstract
+=== Method No Longer Abstract - `java.method.noLongerAbstract`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.noLongerAbstract+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -2036,10 +1965,9 @@ This is a compatible change reported for the completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Visibility Increased
+=== Method Visibility Increased - `java.method.visibilityIncreased`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.visibilityIncreased+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -2061,10 +1989,9 @@ No API breakage, reported for completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Visibility Reduced
+=== Method Visibility Reduced - `java.method.visibilityIncreased`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.visibilityIncreased+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -2086,10 +2013,9 @@ A method might no longer be visible to code that used to call it. This is a brea
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Return Type Changed
+=== Method Return Type Changed - `java.method.returnTypeChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.returnTypeChanged+
 | Binary severity   | breaking
 | Source severity   | potentially breaking
 | Semantic severity | NA
@@ -2112,10 +2038,9 @@ recompiling the user code), it might be OK at compile time due to implicit conve
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Return Type Changed Covariantly
+=== Method Return Type Changed Covariantly - `java.method.returnTypeChangedCovariantly`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.returnTypeChangedCovariantly+
 | Binary severity   | breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -2140,10 +2065,9 @@ incompatibility though because the method signature changes and users of the old
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Type Parameters of The Return Type Changed
+=== Type Parameters of The Return Type Changed - `java.method.returnTypeTypeParametersChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.returnTypeTypeParametersChanged+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -2166,10 +2090,9 @@ it is a source incompatible change. It is binary compatible because of type eras
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Number of Method Parameters Changed
+=== Number of Method Parameters Changed - `java.method.numberOfParametersChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.numberOfParametersChanged+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -2189,10 +2112,9 @@ Obviously, this is a breaking change - you can no longer call the method with th
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Parameter Type Changed
+=== Method Parameter Type Changed - `java.method.parameterTypeChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.parameterTypeChanged+
 | Binary severity   | breaking
 | Source severity   | potentially breaking
 | Semantic severity | NA
@@ -2216,10 +2138,9 @@ is strictly bigger than the old one and the old one is implicitly convertible to
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Parameter Type Parameter Changed
+=== Method Parameter Type Parameter Changed - `java.method.parameterTypeParameterChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.parameterTypeParameterChanged+
 | Binary severity   | non breaking
 | Source severity   | potentially breaking
 | Semantic severity | NA
@@ -2243,10 +2164,9 @@ type changed. This is binary compatible because of the type erasure but it can b
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Now Throws a Checked Exception
+=== Method Now Throws a Checked Exception - `java.method.exception.checkedAdded`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.exception.checkedAdded+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -2268,10 +2188,9 @@ new version of the method will have to be modified to handle the checked excepti
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Now Throws a Runtime Exception
+=== Method Now Throws a Runtime Exception - `java.method.exception.runtimeAdded`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.exception.runtimeAdded+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | potentially breaking
@@ -2293,10 +2212,9 @@ that might want to catch the newly thrown exception.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method No Longer Throws a Checked Exception
+=== Method No Longer Throws a Checked Exception - `java.method.exception.checkedRemoved`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.exception.checkedRemoved+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -2319,10 +2237,9 @@ therefore the catch clauses for it will be invalid.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method No Longer Throws a Runtime Exception
+=== Method No Longer Throws a Runtime Exception - `java.method.exception.checkedRemoved`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.exception.checkedRemoved+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | NA
@@ -2343,10 +2260,9 @@ This is a compatible change added for completeness' sake.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method Now Default
+=== Method Now Default - `java.method.nowDefault`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.nowDefault+
 | Binary severity   | equivalent
 | Source severity   | equivalent
 | Semantic severity | NA
@@ -2368,10 +2284,9 @@ The method is now a default method. This is completely transparent.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Method No Longer Default
+=== Method No Longer Default - `java.method.noLongerDefault`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.method.noLongerDefault+
 | Binary severity   | breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -2394,10 +2309,9 @@ will now have to supply an implementation for it.
 | `newArchive` | The archive the new element is coming from if any
 |====
 
-=== Element Now Parameterized
+=== Element Now Parameterized - `java.generics.elementNowParameterized`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.generics.elementNowParameterized+
 | Binary severity   | non breaking
 | Source severity   | non breaking
 | Semantic severity | potentially breaking
@@ -2422,10 +2336,9 @@ might start assuming uniform types in the list).
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
 
-=== Formal Type Parameter Added
+=== Formal Type Parameter Added - `java.generics.formalTypeParameterAdded`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.generics.formalTypeParameterAdded+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -2448,10 +2361,9 @@ definition of the formal type parameter.
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
 
-=== Formal Type Parameter Removed
+=== Formal Type Parameter Removed - `java.generics.formalTypeParameterRemoved`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.generics.formalTypeParameterRemoved+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | NA
@@ -2474,10 +2386,9 @@ parameter that is no longer required.
 | `methodName` | the name of the method if it is the newly parameterized element
 |====
 
-=== Formal Type Parameter Changed
+=== Formal Type Parameter Changed - `java.generics.formalTypeParameterChanged`
 [cols="35s,<65d"]
 |=============
-| Code              | +java.generics.formalTypeParameterChanged+
 | Binary severity   | non breaking
 | Source severity   | breaking
 | Semantic severity | NA
