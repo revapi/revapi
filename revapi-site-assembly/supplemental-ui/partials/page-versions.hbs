@@ -2,7 +2,7 @@
   {{#if page.versions}}
     <button class="version-menu-toggle" title="Versions of the component">{{@root.page.componentVersion.displayVersion}}</button>
   {{else}}
-    {{#if (not (eq @root.page.component "revapi-site"))}}
+    {{#if (not (eq @root.page.component.name "revapi-site"))}}
       <div class="sole-version" title="Version of the component">{{@root.page.componentVersion.displayVersion}}</div>
     {{/if}}
   {{/if}}
