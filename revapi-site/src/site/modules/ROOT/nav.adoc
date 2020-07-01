@@ -1,6 +1,6 @@
 * xref:getting-started.adoc[Getting Started]
 * xref:faq.adoc[FAQ]
-* xref:architecture.adoc[Architecture]
-* xref:configuration.adoc[Configuration]
+* xref:revapi::architecture.adoc[Architecture]
+* xref:revapi::configuration.adoc[Configuration]
 * xref:extensions.adoc[Extensions]
 * xref:building.adoc[Building]

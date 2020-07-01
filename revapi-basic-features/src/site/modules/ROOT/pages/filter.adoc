@@ -2,7 +2,7 @@
 
 *Extension*: `revapi.filter`
 
-This extension provides a highly configurable element filter (see xref:master@revapi-site::architecture.adoc[architecture]) that
+This extension provides a highly configurable element filter (see xref:revapi::architecture.adoc[architecture]) that
 can be used to either filter out certain elements in the APIs from the analysis or to actually restrict the analysis
 only to configured elements.
 

@@ -4,7 +4,7 @@ This module contains the API of Revapi as well as the link:{attachmentsdir}/apid
 instantiate, configure and run the API analysis. It also contains a couple of simplistic implementations of the Revapi
 interfaces to get you started with.
 
-Probably more interesting than this short description is the xref:revapi-site::architecture.adoc[architecture] of
+Probably more interesting than this short description is the xref:architecture.adoc[architecture] of
 Revapi which explains the role of individual interfaces found in this module. Additionally you might wanna checkout the
 link:{attachmentsdir}/project-reports.html[project reports] or link:{attachmentsdir}/apidocs[javadoc].
 
@@ -50,4 +50,4 @@ the extensions.
 Since Revapi 0.11.0 (supported by Maven plugin 0.11.0, Ant Task 0.9.0 and CLI 0.9.0), Revapi can be configured to
 include or exclude extensions even if they are available on the classpath. More importantly, the pipeline configuration
 enables the users to group difference transforms into blocks using which one can overcome the transforms influencing
-each other. For more details, see the xref:revapi-site::configuration.adoc[configuration] page.
+each other. For more details, see the xref:configuration.adoc[configuration] page.

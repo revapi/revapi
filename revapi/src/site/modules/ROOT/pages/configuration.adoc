@@ -244,7 +244,7 @@ defines a set of of extensions to use but the child pom wants to constrain it).
 
 New in Revapi API 0.11.0 (supported by Maven plugin 0.11.0 and CLI 0.9.0 onwards) is the ability to group
 transformations into blocks which can help in situations where one needs to "prepare" the differences using one
-transform before being passed to the other (the xref:architecture.adoc[architecture] has more details on this).
+transform before being passed to the other (the xref:revapi::architecture.adoc[architecture] has more details on this).
 
 The transformation blocks are configured, as the allowed extensions, in the pipeline configuration.
 
@@ -273,5 +273,5 @@ The transformation blocks are configured, as the allowed extensions, in the pipe
 </build>
 ```
 
-as explained in the xref:architecture.adoc[architecture], the transform blocks enable multiple transform to
+as explained in the xref:revapi::architecture.adoc[architecture], the transform blocks enable multiple transform to
 "act as one".
