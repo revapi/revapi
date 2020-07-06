@@ -102,14 +102,23 @@ public abstract class AbstractFileReporter implements Reporter {
             break;
         default:
             File f = new File(output);
-            if (f.exists() && !f.canWrite()) {
-                LOG.warn(
-                        "The configured file, '" + f.getAbsolutePath() + "' is not a writable." +
-                                " Defaulting the output to standard output.");
-                out = System.out;
+            if (f.exists()) {
+                if (!f.isFile()) {
+                    LOG.warn(
+                            "The configured file, '" + f.getAbsolutePath() + "' is not a file." +
+                                    " Defaulting the output to standard output.");
+                    out = System.out;
+                    break;
+                } else if (!f.canWrite()) {
+                    LOG.warn(
+                            "The configured file, '" + f.getAbsolutePath() + "' is not a writable." +
+                                    " Defaulting the output to standard output.");
+                    out = System.out;
+                    break;
+                }
             } else {
                 File parent = f.getParentFile();
-                if (!parent.exists()) {
+                if (parent != null && !parent.exists()) {
                     if (!parent.mkdirs()) {
                         LOG.warn("Failed to create directory structure to write to the configured output file '" +
                                 f.getAbsolutePath() + "'. Defaulting the output to standard output.");
@@ -117,20 +126,34 @@ public abstract class AbstractFileReporter implements Reporter {
                         break;
                     }
                 }
+            }
 
-                try {
-                    out = new FileOutputStream(output, append);
-                } catch (FileNotFoundException e) {
-                    LOG.warn("Failed to create the configured output file '" + f.getAbsolutePath() + "'." +
-                            " Defaulting the output to standard output.", e);
-                    out = System.out;
-                }
+            try {
+                out = new FileOutputStream(output, append);
+            } catch (FileNotFoundException e) {
+                LOG.warn("Failed to create the configured output file '" + f.getAbsolutePath() + "'." +
+                        " Defaulting the output to standard output.", e);
+                out = System.out;
             }
         }
 
         shouldClose = out != System.out && out != System.err;
 
-        this.output = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+        this.output = createOutputWriter(out, analysis);
+    }
+
+    /**
+     * Creates a print writer to be used as an output from the supplied output stream.
+     *
+     * This method is called during the default {@link #initialize(AnalysisContext)} and the default implementation
+     * creates a print writer writing in UTF-8.
+     *
+     * @param stream the stream to convert to a print writer
+     * @param ctx the analysis context which is being used in {@link #initialize(AnalysisContext)}
+     * @return a print writer to be used as output
+     */
+    protected PrintWriter createOutputWriter(OutputStream stream, AnalysisContext ctx) {
+        return new PrintWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8));
     }
 
     /**
