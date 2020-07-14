@@ -17,6 +17,12 @@
 package org.revapi.java;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +31,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
@@ -39,9 +46,12 @@ import org.revapi.Archive;
 import org.revapi.Element;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.model.JavaElementForest;
+import org.revapi.java.model.MethodElement;
+import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
+import org.revapi.java.spi.UseSite;
 
 
 /**
@@ -232,6 +242,99 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
             Assert.assertTrue(C.getChildren().stream().allMatch(e -> Objects.equals(((JavaElement) e).getArchive(),
                     C.getArchive())));
+        } finally {
+            deleteDir(archive.compilationPath);
+            analyzer.getCompilationValve().removeCompiledResults();
+        }
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    @Test
+    public void testInterfaceOverloadingObjectMethodUsesItsDeclaration() throws Exception {
+        ArchiveAndCompilationPath archive = createCompiledJar("i.jar", "misc/InterfaceOverloadingObjectMethods.java");
+
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
+                singletonList(new ShrinkwrapArchive(archive.archive)),
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false,
+                InclusionFilter.acceptAll());
+
+        try {
+            JavaElementForest forest = analyzer.analyze();
+
+            forest.getRoots();
+
+            Assert.assertEquals(1, forest.getRoots().size());
+
+            JavaTypeElement I = forest.getRoots().first();
+
+            Function<String, MethodElement> byName = name -> I.getChildren().stream()
+                    .map(e -> (MethodElement) e)
+                    .filter(m -> m.getDeclaringElement().getSimpleName().contentEquals(name))
+                    .findFirst().get();
+
+            MethodElement hashCode = byName.apply("hashCode");
+            MethodElement toString = byName.apply("toString");
+            MethodElement clone = byName.apply("clone");
+
+            assertTrue(hashCode.isInherited());
+            assertFalse(toString.isInherited());
+            assertFalse(clone.isInherited());
+
+            Set<UseSite> useSites = I.getUseSites();
+            assertEquals(1, useSites.size());
+
+            UseSite use = useSites.iterator().next();
+
+            assertEquals(use.getUseType(), UseSite.Type.RETURN_TYPE);
+            assertSame(clone, use.getSite());
+        } finally {
+            deleteDir(archive.compilationPath);
+            analyzer.getCompilationValve().removeCompiledResults();
+        }
+    }
+
+    @Test
+    public void testAnnotatedMethodParametersCorrectlyReportedAsUseSites() throws Exception {
+        ArchiveAndCompilationPath archive = createCompiledJar("i.jar", "misc/AnnotatedMethodParameter.java");
+
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
+                singletonList(new ShrinkwrapArchive(archive.archive)),
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false,
+                InclusionFilter.acceptAll());
+        try {
+            JavaElementForest forest = analyzer.analyze();
+
+            forest.getRoots();
+
+            Assert.assertEquals(1, forest.getRoots().size());
+
+            JavaTypeElement clazz = forest.getRoots().first();
+            MethodElement method = clazz.searchChildren(MethodElement.class, false,
+                    FlatFilter.by(m -> m.getDeclaringElement().getSimpleName().contentEquals("method")))
+                    .get(0);
+            MethodParameterElement param = (MethodParameterElement) method.getChildren().first();
+
+            JavaTypeElement anno = clazz.searchChildren(JavaTypeElement.class, false,
+                    FlatFilter.by(t -> t.getDeclaringElement().getSimpleName().contentEquals("Anno")))
+                    .get(0);
+
+            Set<UseSite> useSites = anno.getUseSites();
+
+            assertEquals(2, useSites.size());
+            assertTrue(useSites.stream().anyMatch(site -> {
+                if (UseSite.Type.ANNOTATES == site.getUseType()) {
+                    assertSame(param, site.getSite());
+                    return true;
+                }
+                return false;
+            }));
+            assertTrue(useSites.stream().anyMatch(site -> {
+                if (UseSite.Type.CONTAINS == site.getUseType()) {
+                    assertSame(clazz, site.getSite());
+                    return true;
+                }
+                return false;
+            }));
         } finally {
             deleteDir(archive.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();

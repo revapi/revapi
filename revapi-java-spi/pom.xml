@@ -34,7 +34,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-java-spi</artifactId>
-    <version>0.20.1-SNAPSHOT</version>
+    <version>0.20.2-SNAPSHOT</version>
     <packaging>multi-release-jar</packaging>
 
     <properties>

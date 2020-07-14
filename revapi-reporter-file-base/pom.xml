@@ -34,7 +34,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-reporter-file-base</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.2-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.reporter.file</automatic.module.name>

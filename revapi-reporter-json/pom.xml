@@ -34,7 +34,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-reporter-json</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.2-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.reporter.json</automatic.module.name>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-reporter-file-base</artifactId>
-            <version>0.1.1-SNAPSHOT</version>
+            <version>0.1.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>

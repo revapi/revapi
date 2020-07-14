@@ -46,7 +46,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -118,7 +117,6 @@ final class ClasspathScanner {
     private final InclusionFilter inclusionFilter;
     private final boolean defaultInclusionCase;
     private final TypeElement objectType;
-    private final Set<String> objectMethodSignatures;
 
     ClasspathScanner(StandardJavaFileManager fileManager, ProbingEnvironment environment,
                      Map<Archive, File> classPath, Map<Archive, File> additionalClassPath,
@@ -135,11 +133,6 @@ final class ClasspathScanner {
         this.inclusionFilter = inclusionFilter;
         this.defaultInclusionCase = inclusionFilter.defaultCase();
         this.objectType = environment.getElementUtils().getTypeElement("java.lang.Object");
-
-        objectMethodSignatures = ElementFilter.methodsIn(objectType.getEnclosedElements()).stream()
-                .filter(m -> !shouldBeIgnored(m))
-                .map(m -> MethodElement.createComparableSignature(m, m.asType()))
-                .collect(Collectors.toSet());
     }
 
     void initTree() throws IOException {
@@ -355,7 +348,7 @@ final class ClasspathScanner {
                 String cn = type.getQualifiedName().toString();
                 boolean includes = inclusionFilter.accepts(bn, cn);
                 boolean excludes = inclusionFilter.rejects(bn, cn);
-                LOG.trace("{}: initial include: {}, initial exclude: {}", includes, excludes);
+                LOG.trace("{}: initial include: {}, initial exclude: {}", type, includes, excludes);
 
                 //technically, we could find this out later on in the method, but doing this here ensures that the
                 //javac tries to fully load the class (and therefore throw any completion failures.
@@ -534,7 +527,9 @@ final class ClasspathScanner {
                     addTypeParamUses(owningType, method, p.asType());
                 }
 
-                p.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, p, a));
+                for (AnnotationMirror a : p.getAnnotationMirrors()) {
+                    scanAnnotation(owningType, p, idx, a);
+                }
             }
 
             method.getThrownTypes().forEach(t -> {
@@ -552,9 +547,13 @@ final class ClasspathScanner {
         }
 
         void scanAnnotation(TypeRecord owningType, Element annotated, AnnotationMirror annotation) {
+            scanAnnotation(owningType, annotated, -1, annotation);
+        }
+
+        void scanAnnotation(TypeRecord owningType, Element annotated, int indexInParent, AnnotationMirror annotation) {
             TypeElement type = annotation.getAnnotationType().accept(getTypeElement, null);
             if (type != null) {
-                addUse(owningType, annotated, type, UseSite.Type.ANNOTATES);
+                addUse(owningType, annotated, type, UseSite.Type.ANNOTATES, indexInParent);
                 addType(type, true);
             }
         }
@@ -890,27 +889,11 @@ final class ClasspathScanner {
                 }
             };
 
-            boolean isInterface = tr.javacElement.getKind().isInterface();
-
-            Predicate<Element> shouldAdd = e -> {
-                if (!isInterface || !(e instanceof ExecutableElement)) {
-                    return true;
-                }
-
-                // If an interface re-declares a method from java.lang.Object, we actually not adding it to the model.
-                // The reason is that such method would be seen as abstract but it never actually is - any concrete
-                // implementation of that interface will inherit the impl from java.lang.Object.
-                ExecutableElement m = (ExecutableElement) e;
-                String sig = MethodElement.createComparableSignature(m, m.asType());
-                return !objectMethodSignatures.contains(sig);
-            };
-
             Consumer<JavaElementBase<?, ?>> initChildren = e ->
                     initNonClassElementChildrenAndMoveToApi(tr, e, false, apiAdditions);
 
             //add declared stuff
             tr.accessibleDeclaredNonClassMembers.stream()
-                    .filter(shouldAdd)
                     .map(e ->
                             elementFor(e, e.asType(), environment, tr.modelElement.getArchive()))
                     .peek(addOverride)

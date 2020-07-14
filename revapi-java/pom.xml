@@ -33,7 +33,7 @@
     <url>${web.url}/modules/${project.artifactId}</url>
 
     <artifactId>revapi-java</artifactId>
-    <version>0.21.1-SNAPSHOT</version>
+    <version>0.21.3-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.java</automatic.module.name>
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-java-spi</artifactId>
-            <version>0.20.1-SNAPSHOT</version>
+            <version>0.20.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
