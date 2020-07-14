@@ -21,9 +21,10 @@ match the same package, the classes are not included).
 == Sample Configuration
 
 ```javascript
-{
-  "revapi": {
-    "java": {
+[
+  {
+    "extension": "revapi.java",
+    "configuration": {
       "missing-classes": {
         "behavior": "report",
         "ignoreMissingAnnotations": false
@@ -43,7 +44,7 @@ match the same package, the classes are not included).
       }
     }
   }
-}
+]
 ```
 
 == Properties
