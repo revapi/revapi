@@ -527,7 +527,9 @@ final class ClasspathScanner {
                     addTypeParamUses(owningType, method, p.asType());
                 }
 
-                p.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, p, a));
+                for (AnnotationMirror a : p.getAnnotationMirrors()) {
+                    scanAnnotation(owningType, p, idx, a);
+                }
             }
 
             method.getThrownTypes().forEach(t -> {
@@ -545,9 +547,13 @@ final class ClasspathScanner {
         }
 
         void scanAnnotation(TypeRecord owningType, Element annotated, AnnotationMirror annotation) {
+            scanAnnotation(owningType, annotated, -1, annotation);
+        }
+
+        void scanAnnotation(TypeRecord owningType, Element annotated, int indexInParent, AnnotationMirror annotation) {
             TypeElement type = annotation.getAnnotationType().accept(getTypeElement, null);
             if (type != null) {
-                addUse(owningType, annotated, type, UseSite.Type.ANNOTATES);
+                addUse(owningType, annotated, type, UseSite.Type.ANNOTATES, indexInParent);
                 addType(type, true);
             }
         }

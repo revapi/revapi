@@ -47,6 +47,7 @@ import org.revapi.Element;
 import org.revapi.java.compilation.InclusionFilter;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
+import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
@@ -286,6 +287,54 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
             assertEquals(use.getUseType(), UseSite.Type.RETURN_TYPE);
             assertSame(clone, use.getSite());
+        } finally {
+            deleteDir(archive.compilationPath);
+            analyzer.getCompilationValve().removeCompiledResults();
+        }
+    }
+
+    @Test
+    public void testAnnotatedMethodParametersCorrectlyReportedAsUseSites() throws Exception {
+        ArchiveAndCompilationPath archive = createCompiledJar("i.jar", "misc/AnnotatedMethodParameter.java");
+
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new API(
+                singletonList(new ShrinkwrapArchive(archive.archive)),
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false,
+                InclusionFilter.acceptAll());
+        try {
+            JavaElementForest forest = analyzer.analyze();
+
+            forest.getRoots();
+
+            Assert.assertEquals(1, forest.getRoots().size());
+
+            JavaTypeElement clazz = forest.getRoots().first();
+            MethodElement method = clazz.searchChildren(MethodElement.class, false,
+                    FlatFilter.by(m -> m.getDeclaringElement().getSimpleName().contentEquals("method")))
+                    .get(0);
+            MethodParameterElement param = (MethodParameterElement) method.getChildren().first();
+
+            JavaTypeElement anno = clazz.searchChildren(JavaTypeElement.class, false,
+                    FlatFilter.by(t -> t.getDeclaringElement().getSimpleName().contentEquals("Anno")))
+                    .get(0);
+
+            Set<UseSite> useSites = anno.getUseSites();
+
+            assertEquals(2, useSites.size());
+            assertTrue(useSites.stream().anyMatch(site -> {
+                if (UseSite.Type.ANNOTATES == site.getUseType()) {
+                    assertSame(param, site.getSite());
+                    return true;
+                }
+                return false;
+            }));
+            assertTrue(useSites.stream().anyMatch(site -> {
+                if (UseSite.Type.CONTAINS == site.getUseType()) {
+                    assertSame(clazz, site.getSite());
+                    return true;
+                }
+                return false;
+            }));
         } finally {
             deleteDir(archive.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();
