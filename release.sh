@@ -176,7 +176,15 @@ function publish_site() {
 
   current_branch=$(git rev-parse --abbrev-ref HEAD)
 
-  cd revapi-site-assembly
+  cwd=$(pwd)
+
+  cd revapi-site/site/modules/news/pages/news
+  vim -c ":read \!echo You\'re in news. Write release notes and save the file using an appropriate name."
+  git add -A
+  git commit -m "Adding release notes"
+
+  cd "${cwd}/revapi-site-assembly"
+
   ./build.sh antora-playbook.yaml
 
   ensure_clean_workdir
