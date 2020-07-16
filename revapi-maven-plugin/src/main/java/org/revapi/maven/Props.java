@@ -175,4 +175,9 @@ final class Props {
         static final String NAME = PREFIX + "expandProperties";
         static final String DEFAULT_VALUE = "false";
     }
+
+    static final class ignoreSuggestionsFile {
+        static final String NAME = PREFIX + "ignoreSuggestionsFile";
+        static final String DEFAULT_VALUE = "";
+    }
 }

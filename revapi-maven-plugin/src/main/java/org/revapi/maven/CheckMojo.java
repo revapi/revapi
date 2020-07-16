@@ -16,6 +16,13 @@
  */
 package org.revapi.maven;
 
+import java.io.File;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.stream.Stream;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -23,9 +30,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.revapi.AnalysisResult;
-
-import java.io.StringWriter;
-import java.util.stream.Stream;
 
 /**
  * Runs the API check of old and new artifacts using the specified configuration of extensions declared as dependencies
@@ -45,7 +49,7 @@ public class CheckMojo extends AbstractRevapiMojo {
      *
      * Since 0.11.6 the suggestions are printed even if {@link #failBuildOnProblemsFound} is false. In that case all
      * the problems that have the severity larger or equal to the {@link #failSeverity} are printed.
-     * 
+     *
      * @since 0.10.4
      */
     @Parameter(property = Props.outputIgnoreSuggestions.NAME, defaultValue = Props.outputIgnoreSuggestions.DEFAULT_VALUE)
@@ -70,6 +74,15 @@ public class CheckMojo extends AbstractRevapiMojo {
      */
     @Parameter(property = Props.ignoreSuggestionsFormat.NAME, defaultValue = Props.ignoreSuggestionsFormat.DEFAULT_VALUE)
     private String ignoreSuggestionsFormat;
+
+    /**
+     * If set and if {@link #outputIgnoreSuggestions} is {@code true}, the suggestions are not printed to Maven log but
+     * to the specified file.
+     *
+     * @since 0.11.6
+     */
+    @Parameter(property = Props.ignoreSuggestionsFile.NAME, defaultValue = Props.ignoreSuggestionsFile.DEFAULT_VALUE)
+    private File ignoreSuggestionsFile;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -97,13 +110,20 @@ public class CheckMojo extends AbstractRevapiMojo {
                 }
 
                 if (outputIgnoreSuggestions) {
-                    getLog().info("API problems found.");
-                    getLog().info("If you're using the semver-ignore extension, update your module's" +
-                            " version to one compatible with the current changes (e.g. mvn package" +
-                            " revapi:update-versions). If you want to explicitly ignore these changes and provide" +
-                            " justifications for them, add the following " + ignoreSuggestionsFormat +
-                            " snippets to your Revapi configuration" +
-                            " for the \"revapi.ignore\" extension:\n\n" + reporter.getIgnoreSuggestion());
+                    String suggestions = reporter.getIgnoreSuggestion();
+                    if (ignoreSuggestionsFile == null) {
+                        getLog().info("API problems found.");
+                        getLog().info("If you're using the semver-ignore extension, update your module's" +
+                                " version to one compatible with the current changes (e.g. mvn package" +
+                                " revapi:update-versions). If you want to explicitly ignore these changes and provide" +
+                                " justifications for them, add the following " + ignoreSuggestionsFormat +
+                                " snippets to your Revapi configuration" +
+                                " for the \"revapi.ignore\" extension:\n\n" + suggestions);
+                    } else if (suggestions != null) {
+                        Files.write(ignoreSuggestionsFile.toPath(),
+                                suggestions.getBytes(StandardCharsets.UTF_8),
+                                StandardOpenOption.CREATE);
+                    }
 
                     // this will be part of the error message
                     if (failBuildOnProblemsFound) {

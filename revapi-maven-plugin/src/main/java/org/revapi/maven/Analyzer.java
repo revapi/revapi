@@ -401,6 +401,9 @@ public final class Analyzer {
 
             ctxBuilder.withData(contextData);
 
+            AnalysisContext ctx = ctxBuilder.build();
+            log.debug("Effective analysis configuration:\n" + ctx.getConfiguration().toJSONString(false));
+
             return revapi.analyze(ctxBuilder.build());
         } catch (Exception e) {
             throw new MojoExecutionException("Failed to analyze archives", e);
