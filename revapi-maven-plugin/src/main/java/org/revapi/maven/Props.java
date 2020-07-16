@@ -170,4 +170,9 @@ final class Props {
         static final String NAME = PREFIX + "forceVersionUpdate";
         static final String DEFAULT_VALUE = "false";
     }
+
+    static final class expandProperties {
+        static final String NAME = PREFIX + "expandProperties";
+        static final String DEFAULT_VALUE = "false";
+    }
 }

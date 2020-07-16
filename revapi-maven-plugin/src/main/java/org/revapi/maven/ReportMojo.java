@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -295,6 +295,16 @@ public class ReportMojo extends AbstractMavenReport {
     @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
     protected String disallowedExtensions;
 
+    /**
+     * If set to true, the Maven properties will be expanded in the configuration before it is supplied to Revapi.
+     * I.e. any {@code ${var}} appearing in the configuration <b>values</b> will be replaced with the value of the
+     * {@code var} property as known to Maven. If the property is not defined, the expansion doesn't take place.
+     *
+     * @since 0.11.6
+     */
+    @Parameter(property = Props.expandProperties.NAME, defaultValue = Props.expandProperties.DEFAULT_VALUE)
+    protected boolean expandProperties;
+
     private API oldAPI;
     private API newAPI;
     private AnalysisResult analysisResult;
@@ -434,6 +444,7 @@ public class ReportMojo extends AbstractMavenReport {
                 .withSkip(this.skip)
                 .withVersionFormat(this.versionFormat)
                 .withContextData(contextData)
+                .withExpandProperties(expandProperties)
                 .build();
 
         if (res.skip) {

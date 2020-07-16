@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -289,6 +289,16 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
     protected String disallowedExtensions;
 
+    /**
+     * If set to true, the Maven properties will be expanded in the configuration before it is supplied to Revapi.
+     * I.e. any {@code ${var}} appearing in the configuration <b>values</b> will be replaced with the value of the
+     * {@code var} property as known to Maven. If the property is not defined, the expansion doesn't take place.
+     *
+     * @since 0.11.6
+     */
+    @Parameter(property = Props.expandProperties.NAME, defaultValue = Props.expandProperties.DEFAULT_VALUE)
+    protected boolean expandProperties;
+
     protected AnalysisResult analyze(Class<? extends Reporter> reporter, Object... contextDataKeyValues)
             throws MojoExecutionException, MojoFailureException {
 
@@ -359,6 +369,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
                 .withSkip(overrideOrDefault("skip", this.skip, propertyOverrides))
                 .withVersionFormat(overrideOrDefault("versionFormat", this.versionFormat, propertyOverrides))
                 .withContextData(contextData)
+                .withExpandProperties(overrideOrDefault("expandProperties", expandProperties, propertyOverrides))
                 .build();
     }
 

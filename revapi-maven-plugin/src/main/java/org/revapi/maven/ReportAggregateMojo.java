@@ -280,6 +280,7 @@ public class ReportAggregateMojo extends ReportMojo {
                 .withRepositorySystem(repositorySystem)
                 .withRepositorySystemSession(repositorySystemSession)
                 .withSkip(skip)
+                .withExpandProperties(expandProperties)
                 .withVersionFormat(versionRegex);
 
         if (revapi == null) {
