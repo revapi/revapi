@@ -43,6 +43,9 @@ public class CheckMojo extends AbstractRevapiMojo {
      * were always JSON formatted. Since 0.11.5 one can choose between JSON and XML using the
      * {@link #ignoreSuggestionsFormat} property.
      *
+     * Since 0.11.6 the suggestions are printed even if {@link #failBuildOnProblemsFound} is false. In that case all
+     * the problems that have the severity larger or equal to the {@link #failSeverity} are printed.
+     * 
      * @since 0.10.4
      */
     @Parameter(property = Props.outputIgnoreSuggestions.NAME, defaultValue = Props.outputIgnoreSuggestions.DEFAULT_VALUE)
@@ -77,8 +80,6 @@ public class CheckMojo extends AbstractRevapiMojo {
         StringWriter wrt = new StringWriter();
         BuildTimeReporter reporter;
 
-        String report = null;
-
         try (AnalysisResult res = analyze(BuildTimeReporter.class,
                 BuildTimeReporter.BREAKING_SEVERITY_KEY, failSeverity.asDifferenceSeverity(), "maven-log", getLog(),
                 "writer", wrt, BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, outputNonIdentifyingDifferenceInfo,
@@ -89,28 +90,33 @@ public class CheckMojo extends AbstractRevapiMojo {
             reporter = res.getExtensions().getFirstExtension(BuildTimeReporter.class, null);
 
             if (reporter != null && reporter.hasBreakingProblems()) {
-                if (failBuildOnProblemsFound) {
-                    report = reporter.getAllProblemsMessage();
-                    String additionalOutput = wrt.toString();
-                    if (!additionalOutput.isEmpty()) {
-                        report += "\n\nAdditionally, the configured reporters reported:\n\n" + additionalOutput;
-                    }
+                String report = reporter.getAllProblemsMessage();
+                String additionalOutput = wrt.toString();
+                if (!additionalOutput.isEmpty()) {
+                    report += "\n\nAdditionally, the configured reporters reported:\n\n" + additionalOutput;
+                }
 
-                    Stream.of(report.split("\n")).forEach(l -> getLog().info(l));
+                if (outputIgnoreSuggestions) {
+                    getLog().info("API problems found.");
+                    getLog().info("If you're using the semver-ignore extension, update your module's" +
+                            " version to one compatible with the current changes (e.g. mvn package" +
+                            " revapi:update-versions). If you want to explicitly ignore these changes and provide" +
+                            " justifications for them, add the following " + ignoreSuggestionsFormat +
+                            " snippets to your Revapi configuration" +
+                            " for the \"revapi.ignore\" extension:\n\n" + reporter.getIgnoreSuggestion());
 
-                    if (outputIgnoreSuggestions) {
-                        getLog().info("");
-                        getLog().info("If you're using the semver-ignore extension, update your module's" +
-                                " version to one compatible with the current changes (e.g. mvn package" +
-                                " revapi:update-versions). If you want to explicitly ignore this change and provide a" +
-                                " justification for it, add the following " + ignoreSuggestionsFormat + " snippet to your Revapi configuration" +
-                                " under \"revapi.ignore\" path:\n\n" + reporter.getIgnoreSuggestion());
-
+                    // this will be part of the error message
+                    if (failBuildOnProblemsFound) {
                         report += "\nConsult the plugin output above for suggestions on how to ignore the found" +
                                 " problems.";
                     }
-                } else {
+                }
+
+                if (failBuildOnProblemsFound) {
+                    throw new MojoFailureException(report);
+                } else if (!outputIgnoreSuggestions) {
                     getLog().info("API problems found but letting the build pass as configured.");
+                    Stream.of(report.split("\n")).forEach(l -> getLog().info(l));
                 }
             } else {
                 getLog().info("API checks completed without failures.");
@@ -119,10 +125,6 @@ public class CheckMojo extends AbstractRevapiMojo {
             throw e;
         } catch (Exception e) {
             throw new MojoExecutionException("Failed to execute the API analysis.", e);
-        }
-
-        if (report != null) {
-            throw new MojoFailureException(report);
         }
     }
 

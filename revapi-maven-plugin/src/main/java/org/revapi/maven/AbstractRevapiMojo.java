@@ -178,7 +178,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean skip;
 
     /**
-     * The severity of found problems at which to break the build. Defaults to API breaking changes.
+     * The severity of found problems at which to break the build. Defaults to potentiallyBreaking.
      * Possible values: equivalent, nonBreaking, potentiallyBreaking, breaking.
      */
     @Parameter(property = Props.failSeverity.NAME, defaultValue = Props.failSeverity.DEFAULT_VALUE)
@@ -201,7 +201,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean alwaysCheckForReleaseVersion;
 
     /**
-     * If true (the default), the maven plugin will fail the build when it finds API problems.
+     * If true (the default), the maven plugin will fail the build when it finds API problems (e.g. problems with
+     * at least the {@link #failSeverity}.
      */
     @Parameter(property = Props.failBuildOnProblemsFound.NAME, defaultValue = Props.failBuildOnProblemsFound.DEFAULT_VALUE)
     protected boolean failBuildOnProblemsFound;
