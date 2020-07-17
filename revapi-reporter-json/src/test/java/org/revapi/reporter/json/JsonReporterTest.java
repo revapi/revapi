@@ -18,11 +18,14 @@ package org.revapi.reporter.json;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertSame;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +36,7 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
+import org.jboss.dmr.ModelNode;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -42,11 +46,32 @@ import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Report;
+import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.simple.FileArchive;
 import org.revapi.simple.SimpleElement;
 
 public class JsonReporterTest {
+
+    @Test
+    public void testCreateWhenNoError() throws Exception {
+        Path file = Files.createTempFile(null, null);
+        try (Reporter reporter = new JsonReporter()) {
+            StringBuffer buf = new StringBuffer();
+            buf.append("{");
+            buf.append("\"output\": \"").append(file.toString()).append("\"");
+            buf.append(",");
+            buf.append("\"createWhenNoError\": \"").append("false").append("\"");
+            buf.append("}");
+
+            reporter.initialize(AnalysisContext.builder()
+                    .build().copyWithConfiguration(ModelNode.fromJSONString(buf.toString())));
+            reporter.report(Report.builder().build());
+
+        } finally {
+            assertSame(file.toFile().exists(), false);
+        }
+    }
 
     @Test
     public void testReportsWritten() throws Exception {

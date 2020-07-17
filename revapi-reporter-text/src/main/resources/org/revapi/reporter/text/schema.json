@@ -18,6 +18,11 @@
             "description": "Whether to append to the output or whether to overwrite it.",
             "type": "boolean",
             "default": false
+        },
+        "createWhenNoError": {
+            "description": "Whether to create a file when no error or just have at least empty file.",
+            "type": "boolean",
+            "default": "true"
         }
     }
 }

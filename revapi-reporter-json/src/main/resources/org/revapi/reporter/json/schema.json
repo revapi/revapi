@@ -20,6 +20,11 @@
       "description": "Whether to produced indented output for easier human readability.",
       "type": "boolean",
       "default": false
+    },
+    "createWhenNoError": {
+      "description": "Whether to create a file when no error or just have at least empty file.",
+      "type": "boolean",
+      "default": "true"
     }
   }
 }

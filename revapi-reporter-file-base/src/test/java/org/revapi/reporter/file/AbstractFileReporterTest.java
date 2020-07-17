@@ -76,6 +76,26 @@ public class AbstractFileReporterTest {
     }
 
     @Test
+    public void testCreateWhenNoError() throws Exception {
+        Path file = Files.createTempFile(null, null);
+        try (Reporter reporter = new Reporter()) {
+            StringBuffer buf = new StringBuffer();
+            buf.append("{");
+            buf.append("\"output\": \"").append(file.toString()).append("\"");
+            buf.append(",");
+            buf.append("\"createWhenNoError\": \"").append("false").append("\"");
+            buf.append("}");
+
+            reporter.initialize(AnalysisContext.builder()
+                    .build().copyWithConfiguration(ModelNode.fromJSONString(buf.toString())));
+            reporter.report(Report.builder().build());
+
+        } finally {
+            assertSame(file.toFile().exists(), false);
+        }
+    }
+
+    @Test
     public void testNonExistingFileAsOutput() throws Exception {
         Path file = Files.createTempDirectory(null);
         file = file.resolve("output.file");
