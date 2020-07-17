@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,5 +44,12 @@ public interface Archive {
      */
     interface Versioned extends Archive {
         @Nonnull String getVersion();
+    }
+
+    /**
+     * The role of the archive in the API. See {@link API#getArchiveRole(Archive)}
+     */
+    enum Role {
+        PRIMARY, SUPPLEMENTARY, UNKNOWN
     }
 }

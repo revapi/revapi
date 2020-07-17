@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -152,7 +152,8 @@ public final class Revapi {
                 .map(e -> (Map.Entry<ExtensionInstance<? extends Configurable>, AnalysisContext>) (Map.Entry) e)
                 .forEach(e -> e.getKey().getInstance().initialize(e.getValue()));
 
-        AnalysisProgress progress = new AnalysisProgress(extensions, pipelineConfiguration);
+        AnalysisProgress progress = new AnalysisProgress(extensions, pipelineConfiguration, analysisContext.getOldApi(),
+                analysisContext.getNewApi());
 
         TIMING_LOG.debug("Initialization complete.");
 
@@ -341,11 +342,36 @@ public final class Revapi {
                 Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
                 Stats.of("analysisEnds").end(a, b);
                 Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
+                addDefaultAttachments(r, progress);
                 transformAndReport(r, progress);
             } else {
                 LOG.trace("Finished the skipped analysis of {} and {}.", a, b);
             }
         }
+    }
+
+    private void addDefaultAttachments(Report r, AnalysisProgress progress) {
+        Element oldElement = r.getOldElement();
+        Element newElement = r.getNewElement();
+        API oldApi = progress.oldApi;
+        API newApi = progress.newApi;
+
+        ListIterator<Difference> it = r.getDifferences().listIterator();
+        while (it.hasNext()) {
+            Difference.Builder d = Difference.copy(it.next());
+            if (oldElement != null && oldElement.getArchive() != null) {
+                d.addAttachment("oldArchive", oldElement.getArchive().getName());
+                d.addAttachment("oldArchiveRole", oldApi.getArchiveRole(oldElement.getArchive()).name().toLowerCase());
+            }
+
+            if (newElement != null && newElement.getArchive() != null) {
+                d.addAttachment("newArchive", newElement.getArchive().getName());
+                d.addAttachment("newArchiveRole", newApi.getArchiveRole(newElement.getArchive()).name().toLowerCase());
+            }
+
+            it.set(d.build());
+        }
+
     }
 
     private <T> T instantiate(Class<? extends T> type) {
@@ -667,9 +693,14 @@ public final class Revapi {
     private static final class AnalysisProgress {
         final AnalysisResult.Extensions extensions;
         final Set<List<DifferenceTransform<?>>> transformBlocks;
+        final API oldApi;
+        final API newApi;
 
-        AnalysisProgress(AnalysisResult.Extensions extensions, PipelineConfiguration configuration) {
+        AnalysisProgress(AnalysisResult.Extensions extensions, PipelineConfiguration configuration,
+                API oldApi, API newApi) {
             this.extensions = extensions;
+            this.oldApi = oldApi;
+            this.newApi = newApi;
             this.transformBlocks = groupTransformsToBlocks(extensions, configuration);
         }
 

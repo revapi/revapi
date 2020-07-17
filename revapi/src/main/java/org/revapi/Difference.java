@@ -127,6 +127,16 @@ public final class Difference {
         return new Builder();
     }
 
+    public static Builder copy(Difference other) {
+        return builder()
+                .withCode(other.code)
+                .withDescription(other.description)
+                .withName(other.name)
+                .withIdentifyingAttachments(other.identifyingAttachments)
+                .addAttachments(other.attachments)
+                .addClassifications(other.classification);
+    }
+
     /**
      * API analyzer dependent unique identification of the reported problem
      */
