@@ -109,22 +109,25 @@ public class CheckMojo extends AbstractRevapiMojo {
                     report += "\n\nAdditionally, the configured reporters reported:\n\n" + additionalOutput;
                 }
 
-                if (outputIgnoreSuggestions) {
+                if (outputIgnoreSuggestions || ignoreSuggestionsFile!=null) {
+                    getLog().info("API problems found.");
+                    getLog().info("If you're using the semver-ignore extension, update your module's" +
+                            " version to one compatible with the current changes (e.g. mvn package" +
+                            " revapi:update-versions). If you want to explicitly ignore these changes and provide" +
+                            " justifications for them, add the following " + ignoreSuggestionsFormat +
+                            " snippets to your Revapi configuration" +
+                            " for the \"revapi.ignore\" extension.");
                     String suggestions = reporter.getIgnoreSuggestion();
-                    if (ignoreSuggestionsFile == null) {
-                        getLog().info("API problems found.");
-                        getLog().info("If you're using the semver-ignore extension, update your module's" +
-                                " version to one compatible with the current changes (e.g. mvn package" +
-                                " revapi:update-versions). If you want to explicitly ignore these changes and provide" +
-                                " justifications for them, add the following " + ignoreSuggestionsFormat +
-                                " snippets to your Revapi configuration" +
-                                " for the \"revapi.ignore\" extension:\n\n" + suggestions);
-                    } else if (suggestions != null) {
+
+                    if (ignoreSuggestionsFile != null && suggestions != null) {
                         Files.write(ignoreSuggestionsFile.toPath(),
                                 suggestions.getBytes(StandardCharsets.UTF_8),
                                 StandardOpenOption.CREATE);
+                        getLog().info("Snippets written to " + ignoreSuggestionsFile);
                     }
-
+                    if (outputIgnoreSuggestions) {
+                        getLog().info(suggestions);
+                    }
                     // this will be part of the error message
                     if (failBuildOnProblemsFound) {
                         report += "\nConsult the plugin output above for suggestions on how to ignore the found" +
