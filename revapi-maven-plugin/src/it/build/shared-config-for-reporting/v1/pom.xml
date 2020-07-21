@@ -20,15 +20,8 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>simple.group</groupId>
-    <artifactId>simple.artifact</artifactId>
+    <groupId>shared-config.group</groupId>
+    <artifactId>shared-config.artifact</artifactId>
     <version>1.0.0</version>
 
-    <dependencies>
-        <dependency>
-            <groupId>simple.group</groupId>
-            <artifactId>simple.artifact.dep</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-    </dependencies>
 </project>

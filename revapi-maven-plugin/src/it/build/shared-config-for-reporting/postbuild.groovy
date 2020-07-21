@@ -14,10 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package test;
 
-public class Class implements Cloneable, java.io.Serializable {
-    private static final long serialVersionUID = 1L;
+f = new File(basedir, "v2/target/site/revapi-report.html")
+assert f.exists()
 
-    public final test.Dep field = null;
+hasJustificant1 = false
+hasJustificant2 = false
+f.eachLine { line ->
+    if (line.contains("Justification1")) {
+        hasJustificant1 = true
+    }
+
+    if (line.contains("Justification2")) {
+        hasJustificant2 = true
+    }
 }
+
+assert hasJustificant1
+assert hasJustificant2

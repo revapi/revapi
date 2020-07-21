@@ -46,6 +46,7 @@
         <version.junit>4.11</version.junit>
         <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
         <version.org.slf4j>1.7.5</version.org.slf4j>
+        <version.org.mockito>3.2.4</version.org.mockito>
 
         <version.revapi-build-support>5</version.revapi-build-support>
 
@@ -79,6 +80,12 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${version.junit}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${version.org.mockito}</version>
             </dependency>
 
             <dependency>

@@ -1,0 +1,21 @@
+[
+  {
+    "extension": "revapi.differences",
+    "id": "intentional-changes",
+    "configuration": {
+      "differences": [
+        {
+          "code": "java.field.serialVersionUIDUnchanged",
+          "old": "field test.Class.serialVersionUID",
+          "justification": "Justification1"
+        },
+        {
+          "code": "java.class.noLongerImplementsInterface",
+          "old": "class test.Class",
+          "interface": "java.lang.Cloneable",
+          "justification": "Justification2"
+        }
+      ]
+    }
+  }
+]

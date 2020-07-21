@@ -552,6 +552,10 @@ public class ReportMojo extends AbstractMavenReport {
         sink.text(bundle.getString("report.revapi.difference.description"));
         sink.tableHeaderCell_();
 
+        sink.tableHeaderCell();
+        sink.text(bundle.getString("report.revapi.difference.justification"));
+        sink.tableHeaderCell_();
+
         sink.tableRow_();
 
         diffs.sort((d1, d2) -> {
@@ -595,6 +599,10 @@ public class ReportMojo extends AbstractMavenReport {
 
             sink.tableCell();
             sink.text(d.difference.description);
+            sink.tableCell_();
+
+            sink.tableCell();
+            sink.text(d.difference.justification);
             sink.tableCell_();
 
             sink.tableRow_();

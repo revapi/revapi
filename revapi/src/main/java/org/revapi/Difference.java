@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,13 +34,14 @@ import javax.annotation.Nullable;
  * @since 0.1
  */
 public final class Difference {
-    private static abstract class BuilderBase<This extends BuilderBase> {
-        protected String code;
-        protected String name;
-        protected String description;
-        protected Map<CompatibilityType, DifferenceSeverity> classification = new HashMap<>();
-        protected Map<String, String> attachments = new LinkedHashMap<>(2);
-        protected List<String> identifyingAttachments = new ArrayList<>(2);
+    private static abstract class BuilderBase<This extends BuilderBase<?>> {
+        String code;
+        String name;
+        String description;
+        Map<CompatibilityType, DifferenceSeverity> classification = new HashMap<>();
+        Map<String, String> attachments = new LinkedHashMap<>(2);
+        List<String> identifyingAttachments = new ArrayList<>(2);
+        String justification;
 
         @Nonnull
         public This withCode(@Nonnull String code) {
@@ -71,6 +73,11 @@ public final class Difference {
             return castThis();
         }
 
+        public This clearClassifications() {
+            classification.clear();
+            return castThis();
+        }
+
         @Nonnull
         public This addAttachment(@Nonnull String key, @Nonnull String value) {
             attachments.put(key, value);
@@ -83,9 +90,19 @@ public final class Difference {
             return castThis();
         }
 
+        public This clearAttachments() {
+            this.attachments.clear();
+            return castThis();
+        }
+
         @Nonnull
         public This withIdentifyingAttachments(@Nonnull List<String> attachments) {
             this.identifyingAttachments = attachments;
+            return castThis();
+        }
+
+        public This withJustification(String justification) {
+            this.justification = justification;
             return castThis();
         }
 
@@ -103,7 +120,8 @@ public final class Difference {
 
         @Nonnull
         public Difference build() {
-            return new Difference(code, name, description, classification, attachments, identifyingAttachments);
+            return new Difference(code, name, description, justification, classification, attachments,
+                    identifyingAttachments);
         }
     }
 
@@ -116,7 +134,8 @@ public final class Difference {
 
         @Nonnull
         public Report.Builder done() {
-            Difference p = new Difference(code, name, description, classification, attachments, identifyingAttachments);
+            Difference p = new Difference(code, name, description, justification, classification, attachments,
+                    identifyingAttachments);
             reportBuilder.differences.add(p);
             return reportBuilder;
         }
@@ -132,6 +151,7 @@ public final class Difference {
                 .withCode(other.code)
                 .withDescription(other.description)
                 .withName(other.name)
+                .withJustification(other.justification)
                 .withIdentifyingAttachments(other.identifyingAttachments)
                 .addAttachments(other.attachments)
                 .addClassifications(other.classification);
@@ -161,6 +181,12 @@ public final class Difference {
 
     private final List<String> identifyingAttachments;
 
+    /**
+     * The justification for this difference. This is meant to be read from the user-supplied configuration, set by
+     * some difference transform and read by the reporters.
+     */
+    public final String justification;
+
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
         @Nonnull CompatibilityType compatibility,
         @Nonnull DifferenceSeverity severity, @Nonnull Map<String, String> attachments) {
@@ -176,9 +202,16 @@ public final class Difference {
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
             @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
             @Nonnull Map<String, String> attachments, @Nonnull List<String> identifyingAttachments) {
+        this(code, name, description, null, classification, attachments, identifyingAttachments);
+    }
+
+    public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
+            @Nullable String justification, @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
+            @Nonnull Map<String, String> attachments, @Nonnull List<String> identifyingAttachments) {
         this.code = code;
         this.name = name;
         this.description = description;
+        this.justification = justification;
         HashMap<CompatibilityType, DifferenceSeverity> tmp = new HashMap<>(classification);
         this.classification = Collections.unmodifiableMap(tmp);
         this.attachments = Collections.unmodifiableMap(new LinkedHashMap<>(attachments));
@@ -197,18 +230,18 @@ public final class Difference {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
-        Difference difference = (Difference) o;
-
-        return code.equals(difference.code) && classification.equals(difference.classification)
-                && attachments.equals(difference.attachments);
+        Difference that = (Difference) o;
+        return code.equals(that.code) &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(description, that.description) &&
+                classification.equals(that.classification) &&
+                attachments.equals(that.attachments) &&
+                Objects.equals(justification, that.justification);
     }
 
     @Override
     public int hashCode() {
-        int result = code.hashCode();
-        result = 31 * result + classification.hashCode();
-        return result;
+        return Objects.hash(code, name, description, classification, attachments, justification);
     }
 
     @Override
@@ -218,6 +251,7 @@ public final class Difference {
         sb.append(", name='").append(name).append('\'');
         sb.append(", classification=").append(classification);
         sb.append(", description='").append(description).append('\'');
+        sb.append(", justification='").append(justification).append('\'');
         sb.append(']');
         return sb.toString();
     }
