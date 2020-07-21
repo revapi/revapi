@@ -17,6 +17,7 @@
 package org.revapi.reporter.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertSame;
 
@@ -54,14 +55,14 @@ import org.revapi.simple.SimpleElement;
 public class JsonReporterTest {
 
     @Test
-    public void testCreateWhenNoError() throws Exception {
+    public void testKeepEmptyFile() throws Exception {
         Path file = Files.createTempFile(null, null);
         try (Reporter reporter = new JsonReporter()) {
             StringBuffer buf = new StringBuffer();
             buf.append("{");
             buf.append("\"output\": \"").append(file.toString()).append("\"");
             buf.append(",");
-            buf.append("\"createWhenNoError\": \"").append("false").append("\"");
+            buf.append("\"keepEmptyFile\": \"").append("false").append("\"");
             buf.append("}");
 
             reporter.initialize(AnalysisContext.builder()
@@ -69,7 +70,7 @@ public class JsonReporterTest {
             reporter.report(Report.builder().build());
 
         } finally {
-            assertSame(file.toFile().exists(), false);
+            assertFalse(file.toFile().exists());
         }
     }
 

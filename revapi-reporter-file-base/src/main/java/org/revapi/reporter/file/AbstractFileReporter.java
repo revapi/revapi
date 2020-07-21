@@ -53,10 +53,10 @@ public abstract class AbstractFileReporter implements Reporter {
     protected File file;
 
     protected boolean shouldClose;
-    protected boolean createWhenNoErrors;
+    protected boolean keepEmptyFile;
 
     protected AnalysisContext analysis;
-    private boolean noErrors = false;
+    private boolean reportsInOutput = false;
 
 
     /**
@@ -92,7 +92,7 @@ public abstract class AbstractFileReporter implements Reporter {
         output = "undefined".equals(output) ? "out" : output;
 
         boolean append = analysis.getConfiguration().get("append").asBoolean(false);
-        createWhenNoErrors = !append && analysis.getConfiguration().get("createWhenNoErrors").asBoolean(false);
+        keepEmptyFile = append || analysis.getConfiguration().get("keepEmptyFile").asBoolean(true);
 
         this.minLevel = "undefined".equals(minLevel) ? DifferenceSeverity.POTENTIALLY_BREAKING :
                 DifferenceSeverity.valueOf(minLevel);
@@ -172,7 +172,6 @@ public abstract class AbstractFileReporter implements Reporter {
         LOG.trace("Received report {}", report);
 
         if (report.getDifferences().isEmpty()) {
-            noErrors=true;
             return;
         }
 
@@ -189,6 +188,7 @@ public abstract class AbstractFileReporter implements Reporter {
             return;
         }
 
+        reportsInOutput = true;
         doReport(report);
     }
 
@@ -206,8 +206,10 @@ public abstract class AbstractFileReporter implements Reporter {
             output.close();
         }
 
-        if (!createWhenNoErrors && noErrors && file !=null) {
-            file.delete();
+        if (!keepEmptyFile && !reportsInOutput && file != null) {
+            if (!file.delete()) {
+                LOG.warn("Failed to delete an empty output file: " + file.getAbsolutePath());
+            }
         }
     }
 

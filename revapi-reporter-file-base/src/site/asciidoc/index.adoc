@@ -31,7 +31,8 @@ implementation. There is no way of reusing that currently so you need to copy it
     "configuration": {
       "minSeverity": "POTENTIALLY_BREAKING",
       "output" : "out",
-      "append": false
+      "append": false,
+      "keepEmptyFile": true
     }
   }
 ]
@@ -43,6 +44,7 @@ implementation. There is no way of reusing that currently so you need to copy it
     <minSeverity>POTENTIALLY_BREAKING</minSeverity>
     <output>out</output>
     <append>false</append>
+    <keepEmptyFile>true</keepEmptyFile>
   </YOUR_EXTENSION>
 </analysisConfiguration>
 ```
@@ -60,4 +62,6 @@ The path to the output file. Two special values are recongized: `out` (which is 
 `append`::
 Whether to append to the chosen output or whether to overwrite it (doesn't make sense for standard (error) output).
 The default value is `false` meaning the output file will be overwritten if it already exists.
-
+`keepEmptyFile`::
+Defaults to `true`. If `true` the output file is kept even if no reports were written to it and thus it is empty. Has
+no effect if `append` is set to `true`.
