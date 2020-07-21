@@ -46,7 +46,7 @@ public class CheckMojo extends AbstractRevapiMojo {
      * Whether or not to output the suggestions for ignoring the found API problems. Before 0.11.5 the suggestions
      * were always JSON formatted. Since 0.11.5 one can choose between JSON and XML using the
      * {@link #ignoreSuggestionsFormat} property.
-     *
+     * <p>
      * Since 0.11.6 the suggestions are printed even if {@link #failBuildOnProblemsFound} is false. In that case all
      * the problems that have the severity larger or equal to the {@link #failSeverity} are printed.
      *
@@ -109,22 +109,28 @@ public class CheckMojo extends AbstractRevapiMojo {
                     report += "\n\nAdditionally, the configured reporters reported:\n\n" + additionalOutput;
                 }
 
-                if (outputIgnoreSuggestions) {
+                if (outputIgnoreSuggestions || ignoreSuggestionsFile != null) {
+                    getLog().info("API problems found.");
+                    String message = "If you're using the semver-ignore extension, update your module's" +
+                            " version to one compatible with the current changes (e.g. mvn package" +
+                            " revapi:update-versions). If you want to explicitly ignore these changes or provide" +
+                            " justifications for them, add the " + ignoreSuggestionsFormat + " snippets to your" +
+                            " Revapi configuration for the \"revapi.differences\" extension.";
                     String suggestions = reporter.getIgnoreSuggestion();
-                    if (ignoreSuggestionsFile == null) {
-                        getLog().info("API problems found.");
-                        getLog().info("If you're using the semver-ignore extension, update your module's" +
-                                " version to one compatible with the current changes (e.g. mvn package" +
-                                " revapi:update-versions). If you want to explicitly ignore these changes and provide" +
-                                " justifications for them, add the following " + ignoreSuggestionsFormat +
-                                " snippets to your Revapi configuration" +
-                                " for the \"revapi.ignore\" extension:\n\n" + suggestions);
-                    } else if (suggestions != null) {
+
+                    if (outputIgnoreSuggestions) {
+                        getLog().info(message + "\n\n" + suggestions);
+                    }
+
+                    if (ignoreSuggestionsFile != null && suggestions != null) {
                         Files.write(ignoreSuggestionsFile.toPath(),
                                 suggestions.getBytes(StandardCharsets.UTF_8),
                                 StandardOpenOption.CREATE);
+                        if (!outputIgnoreSuggestions) {
+                            getLog().info(message);
+                        }
+                        getLog().info("Snippets written to " + ignoreSuggestionsFile);
                     }
-
                     // this will be part of the error message
                     if (failBuildOnProblemsFound) {
                         report += "\nConsult the plugin output above for suggestions on how to ignore the found" +
