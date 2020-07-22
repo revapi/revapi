@@ -19,8 +19,8 @@
       "type": "boolean",
       "default": false
     },
-    "createWhenNoError": {
-      "description": "Whether to create a file when no error or just have at least empty file.",
+    "keepEmptyFile": {
+      "description": "Whether to keep the report file when it contains no data.",
       "type": "boolean",
       "default": "true"
     }
