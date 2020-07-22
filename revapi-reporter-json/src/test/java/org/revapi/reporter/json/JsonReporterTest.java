@@ -19,7 +19,6 @@ package org.revapi.reporter.json;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertSame;
 
 import java.io.File;
 import java.io.PrintWriter;
