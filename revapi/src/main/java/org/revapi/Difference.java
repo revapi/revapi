@@ -42,6 +42,7 @@ public final class Difference {
         Map<String, String> attachments = new LinkedHashMap<>(2);
         List<String> identifyingAttachments = new ArrayList<>(2);
         String justification;
+        Criticality criticality;
 
         @Nonnull
         public This withCode(@Nonnull String code) {
@@ -106,6 +107,11 @@ public final class Difference {
             return castThis();
         }
 
+        public This withCriticality(Criticality criticality) {
+            this.criticality = criticality;
+            return castThis();
+        }
+
         @SuppressWarnings("unchecked")
         private This castThis() {
             return (This) this;
@@ -120,7 +126,7 @@ public final class Difference {
 
         @Nonnull
         public Difference build() {
-            return new Difference(code, name, description, justification, classification, attachments,
+            return new Difference(code, name, description, justification, criticality, classification, attachments,
                     identifyingAttachments);
         }
     }
@@ -134,8 +140,8 @@ public final class Difference {
 
         @Nonnull
         public Report.Builder done() {
-            Difference p = new Difference(code, name, description, justification, classification, attachments,
-                    identifyingAttachments);
+            Difference p = new Difference(code, name, description, justification, criticality, classification,
+                    attachments, identifyingAttachments);
             reportBuilder.differences.add(p);
             return reportBuilder;
         }
@@ -152,6 +158,7 @@ public final class Difference {
                 .withDescription(other.description)
                 .withName(other.name)
                 .withJustification(other.justification)
+                .withCriticality(other.criticality)
                 .withIdentifyingAttachments(other.identifyingAttachments)
                 .addAttachments(other.attachments)
                 .addClassifications(other.classification);
@@ -187,31 +194,51 @@ public final class Difference {
      */
     public final String justification;
 
+    /**
+     * The criticality of the difference.
+     */
+    public final @Nullable Criticality criticality;
+
+    /**
+     * @deprecated use the full constructor. This will be removed in some future release.
+     */
+    @Deprecated
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
         @Nonnull CompatibilityType compatibility,
         @Nonnull DifferenceSeverity severity, @Nonnull Map<String, String> attachments) {
         this(code, name, description, Collections.singletonMap(compatibility, severity), attachments);
     }
 
+    /**
+     * @deprecated use the full constructor. This will be removed in some future release.
+     */
+    @Deprecated
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
         @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
                       @Nonnull Map<String, String> attachments) {
         this(code, name, description, classification, attachments, Collections.emptyList());
     }
 
+    /**
+     * @deprecated use the full constructor. This will be removed in some future release.
+     */
+    @Deprecated
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
             @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
             @Nonnull Map<String, String> attachments, @Nonnull List<String> identifyingAttachments) {
-        this(code, name, description, null, classification, attachments, identifyingAttachments);
+        this(code, name, description, null, null, classification, attachments, identifyingAttachments);
     }
 
+
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
-            @Nullable String justification, @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
+            @Nullable String justification, @Nullable Criticality criticality,
+            @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
             @Nonnull Map<String, String> attachments, @Nonnull List<String> identifyingAttachments) {
         this.code = code;
         this.name = name;
         this.description = description;
         this.justification = justification;
+        this.criticality = criticality;
         HashMap<CompatibilityType, DifferenceSeverity> tmp = new HashMap<>(classification);
         this.classification = Collections.unmodifiableMap(tmp);
         this.attachments = Collections.unmodifiableMap(new LinkedHashMap<>(attachments));
@@ -252,6 +279,7 @@ public final class Difference {
         sb.append(", classification=").append(classification);
         sb.append(", description='").append(description).append('\'');
         sb.append(", justification='").append(justification).append('\'');
+        sb.append(", criticality='").append(criticality).append('\'');
         sb.append(']');
         return sb.toString();
     }

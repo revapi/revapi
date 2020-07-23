@@ -19,6 +19,7 @@ package org.revapi;
 import static java.util.Collections.emptySortedSet;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.singletonList;
+import static java.util.Comparator.comparingInt;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
@@ -489,6 +490,29 @@ public final class Revapi {
         Stats.of("transforms").end(report);
 
         if (!report.getDifferences().isEmpty()) {
+            // make sure all the differences have a non-null criticality before being sent to the reporters
+            ListIterator<Difference> it = report.getDifferences().listIterator();
+            while (it.hasNext()) {
+                Difference orig = it.next();
+                if (orig.criticality == null) {
+                    DifferenceSeverity maxSeverity = orig.classification.values().stream()
+                            .max(comparingInt(Enum::ordinal))
+                            .orElse(DifferenceSeverity.EQUIVALENT);
+
+                    // all extensions share the criticality mapping and we're guaranteed to have at least 1 api analyzer
+                    AnalysisContext ctx = progress.extensions.getFirstConfigurationOrNull(ApiAnalyzer.class);
+                    if (ctx == null) {
+                        throw new IllegalStateException("There should be at least 1 API analyzer during the analysis" +
+                                "progress.");
+                    }
+
+                    Difference.Builder d = Difference.copy(orig)
+                            .withCriticality(ctx.getDefaultCriticality(maxSeverity));
+
+                    it.set(d.build());
+                }
+            }
+
             Stats.of("reports").start();
             for (ExtensionInstance<Reporter> ir : progress.extensions.getReporters().keySet()) {
                 ir.getInstance().report(report);
@@ -523,7 +547,10 @@ public final class Revapi {
     /**
      * This builder is merely a proxy to the {@link PipelineConfiguration} and its builder. It is provided just for
      * convenience (and also to keep backwards compatibility ;) ).
+     *
+     * @deprecated favor the {@link PipelineConfiguration.Builder}
      */
+    @Deprecated
     public static final class Builder {
         private final PipelineConfiguration.Builder pb = PipelineConfiguration.builder();
 
