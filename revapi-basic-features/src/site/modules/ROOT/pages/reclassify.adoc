@@ -2,6 +2,8 @@
 
 *Extension*: `revapi.reclassify`
 
+WARNING: This extension is deprecated in favor of link:differences.adoc[`revapi.differences`].
+
 Using this extension one can reclassify certain API problems found during the analysis to become something else or
 for example reduce their severity.
 

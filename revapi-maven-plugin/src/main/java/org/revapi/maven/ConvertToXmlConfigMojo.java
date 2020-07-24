@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,7 +98,8 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
             return;
         }
 
-        AnalyzerBuilder.Result res = buildAnalyzer(project, SilentReporter.class, Collections.emptyMap());
+        AnalyzerBuilder.Result res = buildAnalyzer(project, PipelineConfigurationParser.parse(pipelineConfiguration),
+                SilentReporter.class, Collections.emptyMap());
         if (res.skip) {
             return;
         }

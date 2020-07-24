@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,5 +45,31 @@ public enum DifferenceSeverity {
     /**
      * The difference definitely breaks the compatibility of given type.
      */
-    BREAKING
+    BREAKING;
+
+    /**
+     * Returns the difference severity represented by the provided string in camel case. I.e. "nonBreaking" parses
+     * to {@link #NON_BREAKING}, etc.
+     *
+     * @param camelCaseValue the value in camel case
+     * @return the corresponding difference severity instance
+     */
+    public static DifferenceSeverity fromCamelCase(String camelCaseValue) {
+        if (camelCaseValue == null) {
+            return null;
+        }
+
+        switch (camelCaseValue) {
+        case "equivalent":
+            return EQUIVALENT;
+        case "nonBreaking":
+            return NON_BREAKING;
+        case "potentiallyBreaking":
+            return POTENTIALLY_BREAKING;
+        case "breaking":
+            return BREAKING;
+        default:
+            return null;
+        }
+    }
 }

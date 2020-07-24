@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ package org.revapi;
 import static java.util.Collections.emptySortedSet;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.singletonList;
+import static java.util.Comparator.comparingInt;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
@@ -152,7 +153,8 @@ public final class Revapi {
                 .map(e -> (Map.Entry<ExtensionInstance<? extends Configurable>, AnalysisContext>) (Map.Entry) e)
                 .forEach(e -> e.getKey().getInstance().initialize(e.getValue()));
 
-        AnalysisProgress progress = new AnalysisProgress(extensions, pipelineConfiguration);
+        AnalysisProgress progress = new AnalysisProgress(extensions, pipelineConfiguration, analysisContext.getOldApi(),
+                analysisContext.getNewApi());
 
         TIMING_LOG.debug("Initialization complete.");
 
@@ -341,11 +343,36 @@ public final class Revapi {
                 Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
                 Stats.of("analysisEnds").end(a, b);
                 Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
+                addDefaultAttachments(r, progress);
                 transformAndReport(r, progress);
             } else {
                 LOG.trace("Finished the skipped analysis of {} and {}.", a, b);
             }
         }
+    }
+
+    private void addDefaultAttachments(Report r, AnalysisProgress progress) {
+        Element oldElement = r.getOldElement();
+        Element newElement = r.getNewElement();
+        API oldApi = progress.oldApi;
+        API newApi = progress.newApi;
+
+        ListIterator<Difference> it = r.getDifferences().listIterator();
+        while (it.hasNext()) {
+            Difference.Builder d = Difference.copy(it.next());
+            if (oldElement != null && oldElement.getArchive() != null) {
+                d.addAttachment("oldArchive", oldElement.getArchive().getName());
+                d.addAttachment("oldArchiveRole", oldApi.getArchiveRole(oldElement.getArchive()).name().toLowerCase());
+            }
+
+            if (newElement != null && newElement.getArchive() != null) {
+                d.addAttachment("newArchive", newElement.getArchive().getName());
+                d.addAttachment("newArchiveRole", newApi.getArchiveRole(newElement.getArchive()).name().toLowerCase());
+            }
+
+            it.set(d.build());
+        }
+
     }
 
     private <T> T instantiate(Class<? extends T> type) {
@@ -463,6 +490,29 @@ public final class Revapi {
         Stats.of("transforms").end(report);
 
         if (!report.getDifferences().isEmpty()) {
+            // make sure all the differences have a non-null criticality before being sent to the reporters
+            ListIterator<Difference> it = report.getDifferences().listIterator();
+            while (it.hasNext()) {
+                Difference orig = it.next();
+                if (orig.criticality == null) {
+                    DifferenceSeverity maxSeverity = orig.classification.values().stream()
+                            .max(comparingInt(Enum::ordinal))
+                            .orElse(DifferenceSeverity.EQUIVALENT);
+
+                    // all extensions share the criticality mapping and we're guaranteed to have at least 1 api analyzer
+                    AnalysisContext ctx = progress.extensions.getFirstConfigurationOrNull(ApiAnalyzer.class);
+                    if (ctx == null) {
+                        throw new IllegalStateException("There should be at least 1 API analyzer during the analysis" +
+                                "progress.");
+                    }
+
+                    Difference.Builder d = Difference.copy(orig)
+                            .withCriticality(ctx.getDefaultCriticality(maxSeverity));
+
+                    it.set(d.build());
+                }
+            }
+
             Stats.of("reports").start();
             for (ExtensionInstance<Reporter> ir : progress.extensions.getReporters().keySet()) {
                 ir.getInstance().report(report);
@@ -497,7 +547,10 @@ public final class Revapi {
     /**
      * This builder is merely a proxy to the {@link PipelineConfiguration} and its builder. It is provided just for
      * convenience (and also to keep backwards compatibility ;) ).
+     *
+     * @deprecated favor the {@link PipelineConfiguration.Builder}
      */
+    @Deprecated
     public static final class Builder {
         private final PipelineConfiguration.Builder pb = PipelineConfiguration.builder();
 
@@ -667,9 +720,14 @@ public final class Revapi {
     private static final class AnalysisProgress {
         final AnalysisResult.Extensions extensions;
         final Set<List<DifferenceTransform<?>>> transformBlocks;
+        final API oldApi;
+        final API newApi;
 
-        AnalysisProgress(AnalysisResult.Extensions extensions, PipelineConfiguration configuration) {
+        AnalysisProgress(AnalysisResult.Extensions extensions, PipelineConfiguration configuration,
+                API oldApi, API newApi) {
             this.extensions = extensions;
+            this.oldApi = oldApi;
+            this.newApi = newApi;
             this.transformBlocks = groupTransformsToBlocks(extensions, configuration);
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,19 +18,14 @@ package org.revapi.basic;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.Charset;
-import java.util.EnumMap;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.revapi.CompatibilityType;
-import org.revapi.Difference;
-import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
-
 import org.jboss.dmr.ModelNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A generic difference transform that can change the classification of a difference. This can be used in situations
@@ -68,38 +63,12 @@ import org.jboss.dmr.ModelNode;
  *
  * @author Lukas Krejci
  * @since 0.1
+ * @deprecated This is superseded by {@link DifferencesTransform}
  */
-public class ClassificationTransform
-    extends AbstractDifferenceReferringTransform<ClassificationTransform.ClassificationRecipe, Void> {
+@Deprecated
+public class ClassificationTransform extends DifferencesTransform {
 
-    public static class ClassificationRecipe extends DifferenceMatchRecipe {
-        protected final Map<CompatibilityType, DifferenceSeverity> classification = new EnumMap<>(
-            CompatibilityType.class);
-
-        public ClassificationRecipe(ModelNode node) {
-            super(node, "classify");
-            ModelNode classfications = node.get("classify");
-            for (CompatibilityType ct : CompatibilityType.values()) {
-                if (classfications.has(ct.name())) {
-                    String val = classfications.get(ct.name()).asString();
-                    DifferenceSeverity sev = DifferenceSeverity.valueOf(val);
-                    classification.put(ct, sev);
-                }
-            }
-        }
-
-        @Override
-        public Difference transformMatching(Difference difference, Element oldElement,
-            Element newElement) {
-            if (classification.isEmpty()) {
-                return difference;
-            } else {
-                return Difference.builder().withCode(difference.code).withName(difference.name)
-                    .withDescription(difference.description).addAttachments(difference.attachments)
-                    .addClassifications(difference.classification).addClassifications(classification).build();
-            }
-        }
-    }
+    private static final Logger LOG = LoggerFactory.getLogger(ClassificationTransform.class);
 
     public ClassificationTransform() {
         super("revapi.reclassify");
@@ -109,19 +78,23 @@ public class ClassificationTransform
     @Override
     public Reader getJSONSchema() {
         return new InputStreamReader(getClass().getResourceAsStream("/META-INF/classification-schema.json"),
-                Charset.forName("UTF-8"));
+                StandardCharsets.UTF_8);
     }
 
-    @Nullable
     @Override
-    protected Void initConfiguration() {
-        return null;
+    protected ModelNode getRecipesConfigurationAndInitialize() {
+        ModelNode ret = analysisContext.getConfiguration();
+        if (ret.isDefined()) {
+            LOG.warn("The `revapi.reclassify` extension is deprecated. Consider using the `revapi.differences` instead.");
+        }
+
+        return ret;
     }
 
     @Nonnull
     @Override
-    protected ClassificationRecipe newRecipe(Void context, ModelNode config) {
-        return new ClassificationRecipe(config);
+    protected DifferenceMatchRecipe newRecipe(ModelNode config) {
+        return new DifferenceRecipe(config, analysisContext);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.revapi;
 
 import java.io.Reader;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -134,7 +135,8 @@ public class DifferencePingPongTest {
                         @Nullable
                         @Override
                         public Archive getArchive() {
-                            return api.getArchives().iterator().next();
+                            Iterator<? extends Archive> it = api.getArchives().iterator();
+                            return it.hasNext() ? it.next() : null;
                         }
 
                         @Override

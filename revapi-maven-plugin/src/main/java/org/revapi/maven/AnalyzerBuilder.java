@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +59,7 @@ class AnalyzerBuilder {
     private String newVersion;
     private String disallowedExtensions;
     private Class<? extends Reporter> reporterType;
-    private PlexusConfiguration pipelineConfiguration;
+    private PipelineConfiguration.Builder pipelineConfiguration;
     private PlexusConfiguration analysisConfiguration;
     private Object[] analysisConfigurationFiles;
     private RepositorySystem repositorySystem;
@@ -71,6 +71,7 @@ class AnalyzerBuilder {
     private boolean checkDependencies;
     private boolean resolveProvidedDependencies;
     private boolean resolveTransitiveProvidedDependencies;
+    private boolean expandProperties;
     private String versionFormat;
     private Revapi revapi;
     private Map<String, Object> contextData = new HashMap<>(2);
@@ -125,7 +126,7 @@ class AnalyzerBuilder {
         return this;
     }
 
-    AnalyzerBuilder withPipelineConfiguration(PlexusConfiguration pipelineConfiguration) {
+    AnalyzerBuilder withPipelineConfiguration(PipelineConfiguration.Builder pipelineConfiguration) {
         this.pipelineConfiguration = pipelineConfiguration;
         return this;
     }
@@ -185,6 +186,11 @@ class AnalyzerBuilder {
         return this;
     }
 
+    AnalyzerBuilder withExpandProperties(boolean expandProperties) {
+        this.expandProperties = expandProperties;
+        return this;
+    }
+
     AnalyzerBuilder withVersionFormat(String versionFormat) {
         this.versionFormat = versionFormat;
         return this;
@@ -239,8 +245,8 @@ class AnalyzerBuilder {
                 newArtifacts, oldGavs, newGavs, project, repositorySystem, repositorySystemSession, reporterType,
                 contextData, locale, log, failOnMissingConfigurationFiles, failOnUnresolvedArtifacts,
                 failOnUnresolvedDependencies, alwaysCheckForReleaseVersion, checkDependencies,
-                resolveProvidedDependencies, resolveTransitiveProvidedDependencies, versionFormat, pipelineModifier,
-                revapi);
+                resolveProvidedDependencies, resolveTransitiveProvidedDependencies, expandProperties, versionFormat,
+                pipelineModifier, revapi);
     }
 
     private void initializeComparisonArtifacts() {

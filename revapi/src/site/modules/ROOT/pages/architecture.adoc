@@ -82,11 +82,14 @@ A report summarizes the differences found between 2 elements - one from the old 
 In addition to the two elements in comparison, the report also contains the list of the differences the analyzer found
 between the two.
 
+==== Differences
+
 Each difference is identified by its `code`. The `code` is a textual ID of the difference that should be unique. In
 addition to that, the difference can also define a human readable name and description. The difference has
 a classification - a mapping between a compatibility type and the severity - basically saying how severe the difference
 is for given type of compatibility. In addition to that, a difference contains `attachments` which is a varying list
-of additional information about the difference.
+of additional information about the difference and criticality - how critical the difference is for the analysis
+results.
 
 Revapi recognizes 4 types of compatibility:
 
@@ -105,6 +108,41 @@ circumstances
 * `NON_BREAKING` - the difference doesn't break the API
 * `EQUIVALENT` - "there is no change" - this is provided so that transforms and other tools can declare that certain
 changes are not even non-breaking - they are effectively non-existent.
+
+Apart from this classification, a difference also defines its criticality. This expresses how severe the change is
+regardless of the severity under different compatibility types. This is meant to be supplied mostly through
+the configuration by the library author and should give the user the information about how severe the change is
+perceived by the library author or how critical it is for the results of the current analysis (this may be configured
+differently for build-time analysis or for report generation).
+
+A criticality is identified by its name and has a level associated with it. The higher the level, the more critical
+the criticality is. There are 4 predefined criticalities:
+
+* `allowed` - for API changes that are allowed to happen and might not even be tracked in some kind of generated report.
+The level of this is set to `1000`.
+* `documented` - for API changes that are justified and documented in some generated report. The level of this is set
+to `2000`.
+* `highlight` - essentially the same as `documented` but more "severe". Such API changes should be somehow highlighted
+in the generated reports because they are very important to take note of by the users. The level of this is set to
+`3000`.
+* `error` - These changes should not be allowed in a release. The level of this is set to the maximum integer value.
+There can be no more severe criticality than this.
+
+The criticality is not generally assigned directly by the difference analyzer. It is meant to be assigned by
+the user that configures the analysis through configuring difference transform extensions to assign the criticality
+based on some criteria.
+
+The recognized criticalities can be configured in the pipeline configuration where one can define a completely new set
+of criticalities known to the analysis or just augment the levels of the default ones.
+
+Additionally, there is a default mapping for converting a difference severity to criticality. This is used in situations
+where no transform assigns a criticality to the difference. This mapping can again be configured. The default mapping
+is rather conservative:
+
+* `EQUIVALENT` is assumed to have `allowed` criticality
+* `NON_BREAKING` is assumed to have `documented` criticality
+* `POTENTIALLY_BREAKING` is assumed to have `error` criticality
+* `BREAKING` is assumed to have `error` criticality
 
 === Difference Transform
 Once the differences are found they are supplied to the

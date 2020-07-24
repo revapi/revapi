@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,15 +18,14 @@ package org.revapi.basic;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.revapi.Difference;
-import org.revapi.Element;
-
 import org.jboss.dmr.ModelNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A generic difference transform that can ignore differences based on the difference code ({@link
@@ -56,45 +55,40 @@ import org.jboss.dmr.ModelNode;
  *
  * @author Lukas Krejci
  * @since 0.1
+ * @deprecated This is superseded by {@link DifferencesTransform}
  */
-public class IgnoreDifferenceTransform
-    extends AbstractDifferenceReferringTransform<IgnoreDifferenceTransform.IgnoreRecipe, Void> {
+@Deprecated
+public class IgnoreDifferenceTransform extends DifferencesTransform {
 
-    public static class IgnoreRecipe extends DifferenceMatchRecipe {
-        public IgnoreRecipe(ModelNode node) {
-            super(node, "justification");
-        }
-
-        @Override
-        public Difference transformMatching(Difference difference, Element oldElement,
-            Element newElement) {
-
-            //we ignore the matching elements, so null is the correct return value.
-            return null;
-        }
-    }
+    private static final Logger LOG = LoggerFactory.getLogger(IgnoreDifferenceTransform.class);
 
     public IgnoreDifferenceTransform() {
         super("revapi.ignore");
+    }
+
+    @Override
+    protected ModelNode getRecipesConfigurationAndInitialize() {
+        ModelNode ret = analysisContext.getConfiguration();
+        if (ret.isDefined()) {
+            LOG.warn("The `revapi.ignore` extension is deprecated. Consider using the `revapi.differences` instead.");
+        }
+
+        return ret;
     }
 
     @Nullable
     @Override
     public Reader getJSONSchema() {
         return new InputStreamReader(getClass().getResourceAsStream("/META-INF/ignore-schema.json"),
-                Charset.forName("UTF-8"));
-    }
-
-    @Nullable
-    @Override
-    protected Void initConfiguration() {
-        return null;
+                StandardCharsets.UTF_8);
     }
 
     @Nonnull
     @Override
-    protected IgnoreRecipe newRecipe(Void context, ModelNode config) {
-        return new IgnoreRecipe(config);
+    protected DifferenceRecipe newRecipe(ModelNode config) {
+        config = config.clone();
+        config.get("ignore").set(true);
+        return new DifferenceRecipe(config, analysisContext);
     }
 
     @Override

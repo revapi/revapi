@@ -1,0 +1,243 @@
+= Differences Transformation
+
+*Extension:* `revapi.differences`
+
+This is a swiss-army knife extension for manipulating the differences. It can be used to reclassify or ignore
+the differences, and it also can be used to provide justifications to the found differences and add custom match
+parameters (aka attachments) to them.
+
+It supersedes the link:ignore.adoc[`revapi.ignore`] and link:reclassify.adoc[`revapi.reclassify`] extensions and
+provides new functionality that enables sharing the configuration for build-time and report-time.
+
+== Sample Configuration
+
+```json
+[
+    {
+        "extension": "revapi.differences",
+        "configuration": {
+            "justification": "This change is necessary to fix bug #1234",
+            "criticality": "highlight",
+            "differences": [
+                {
+                    "code": "java.method.addToInterface",
+                    "fullQualifiedClassName": "com.acme.ToolInterface",
+                    "new": "method void com.acme.ToolInterface::setup()"
+                },
+                {
+                    "code": "java.method.removed",
+                    "fullQualifiedClassName": "com.acme.ToolInterface",
+                    "old": "method void com.acme.ToolInterface::initialize()",
+                    "justification": "As part of fix for #1234, we thought renaming this method is just fine."
+                },
+            ]
+        }
+    }
+]
+```
+
+```xml
+<revapi.differences>
+    <justification>This change is necessary to fix bug #1234</justification>
+    <criticality>hightlight</criticality>
+    <differences>
+        <item>
+            <code>java.method.addToInterface</code>
+            <fullQualifiedClassName>com.acme.ToolInterface</fullyQualifiedClassName>
+            <new>method void com.acme.ToolInterface::setup()</new>
+        </item>
+        <item>
+            <code>java.method.removed</code>
+            <fullQualifiedClassName>com.acme.ToolInterface</fullyQualifiedClassName>
+            <old>method void com.acme.ToolInterface::initialize()</old>
+            <justification>As part of fix for #1234, we thought renaming this method is just fine.</justification>
+        </item>
+    </differences>
+</revapi.differences>
+```
+
+== Properties
+`justification`::
+The justification that will be added to all the matching differences, if the concrete difference match recipe doesn't
+provide its own justification.
+`criticality`::
+The criticality that will be assigned to all of the matching differences, if the concrete difference match recipe
+doesn't provide its own criticality.
+`ignore`::
+If `true`, all the matching differences will be ignored. This can be locally redefined in each difference match recipe.
+`classify`::
+The classification for all the matching differences. This can be locally redefined in each difference match recipe.
+`attachments`::
+The new attachments (match parameters) to add to all the matching differences. This is merged with any new attachments
+locally defined at each difference match recipe with the local definitions taking precedence.
+`differences`::
+The list of difference match recipes. Each of the recipes can match and modify zero or more differences reported by the
+analysis.
++
+The match recipe consists of the following properties:
++
+`regex`:::
+If `true` (the default is `false`), the `code`, `old`, `new` and any values of the additional properties are understood
+to be java regular expressions.
+`code`:::
+Specifies the API problem code to ignore. This is property mandatory.
+`old`:::
+Specifies the old element of the problem to ignore. This property is optional.
+`new`:::
+Specifies the new element of the problem to ignore. This property is optional.
+`justification`:::
+This can used to describe why this change was necessary. This can be used in the reports to give additional detail for
+why a change was necessary.
+`criticality`:::
+This is used to assign the criticality of the difference for the overall analysis result. This must be one of the
+configured criticality names.
+`attachments`:::
+This can be used to add additional attachments (match parameters) to the difference that can be used by the difference
+transformations down the line. It is an ordinary key-value map with string keys and values.
+additional properties:::
+The analyzers can define additional match parameters on the differences that can be used to further focus the ignore
+rule. For java, see the link:../../revapi-java/differences.html[list] of the detected differences. Such additional
+properties always have a string value. These are the attachments (match parameters) defined by the analyzer or by
+previously run difference transforms.
+
+== Examples
+
+=== Use a single configuration for build and reports
+
+Many times (if not always) library authors want to report on what API changes have been made in the API. Ideally, such
+report should also include the reasons for making those API changes. At the same time, during the builds, one wants to
+ignore the intentional, justified changes, but fail the build on the new ones (until they are deemed necessary or
+rolled back).
+
+Let's see how we can configure Revapi maven plugin to use a single configuration during the build to fail on new API
+changes and for reporting all the intentional API changes.
+
+Let's put all our intentional API changes into a separate JSON file and call it `api-changes.json`. This file contains
+multiple Revapi configurations, one for each released version:
+
+```json
+{
+  "0.2.0": [
+    {
+      "extension": "revapi.differences",
+      "id": "intentional-api-changes", <1>
+      "configuration": {
+        "differences": [
+          {
+            "code": "java.method.addedToInterface",
+            "new": "method com.acme.Tooling::setup()",
+            "justification": "The original `initialize()` method was never meant to be public."
+          },
+          {
+            "code": "java.method.removed",
+            "old": "method com.acme.Tooling::initialize()",
+            "justification": "This method was made public by accident."
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+<1> The explicit extension instance ID gives us the possibility to merge it with snippets coming from other places
+like `pom.xml`.
+
+Equipped with this file, we can configure the Maven plugin to read it for both build and reporting.
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-maven-plugin</artifactId>
+            <configuration>
+                <analysisConfiguration>
+                    <revapi.differences id="intentional-api-changes"> <1>
+                        <ignore>true</ignore>
+                    </revapi.differences>
+                </analysisConfiguration>
+                <configurationFiles>
+                    <configurationFile>
+                        <path>${basedir}/api-changes.json</path>
+                        <roots>
+                            <root>${project-version-without-snapshot}</root>
+                        </roots>
+                    </configurationFile>
+                </configurationFiles>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+
+<reporting>
+    <plugins>
+        <plugin>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-maven-plugin</artifactId>
+            <configuration>
+                <configurationFiles> <2>
+                    <configurationFile>
+                        <path>${basedir}/api-changes.json</path>
+                        <roots>
+                            <root>${project-version-without-snapshot}</root>
+                        </roots>
+                    </configurationFile>
+                </configurationFiles>
+                <reportSeverity>nonBreaking</reportSeverity>
+            </configuration>
+        </plugin>
+    </plugins>
+</reporting>
+```
+
+<1> We're specifying that we're updating the configuration of the same instance as in the json file. This means that
+the pom.xml adds the `ignore = true` to the configuration of `revapi.differences`. Having `ignore` set to true
+"globally" in the whole configuration of the `revapi.differences` extension instance with the specific ID, means that
+all differences specified will be ignored during the API checks.
+<2> For reporting, we're referencing the same configuration file as for building, but this time we're not adding any
+modifications to the configuration. As such we let the `revapi.differences` update the justifications on all matching
+differences but leave it in the report. Thus the resulting maven report contains the justifications specified in our
+configuration file.
+
+=== Add custom attachments for reporting purposes
+
+It can be useful to be able to for example link API changes to the bug tracker issues for which they were introduced.
+One way of doing it is to add custom attachments to the intentional changes and have a custom reporter (or just a text
+reporter template) to render the attachment appropriately.
+
+Let's just use the configuration file from the previous example and enhance it with some additional attachments.
+
+```json
+{
+  "0.2.0": [
+    {
+      "extension": "revapi.differences",
+      "id": "intentional-api-changes", <1>
+      "configuration": {
+        "differences": [
+          {
+            "code": "java.method.addedToInterface",
+            "new": "method com.acme.Tooling::setup()",
+            "justification": "The original `initialize()` method was never meant to be public.",
+            "attachments": {
+                "jira-id": "ACME-42"
+            }
+          },
+          {
+            "code": "java.method.removed",
+            "old": "method com.acme.Tooling::initialize()",
+            "justification": "This method was made public by accident."
+            "attachments": {
+                "jira-id": "ACME-42"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+This way the reporter has a way of identifying the API changes that went in as part of the fix of a JIRA issue
+`ACME-42` and can use that information as it sees fit.

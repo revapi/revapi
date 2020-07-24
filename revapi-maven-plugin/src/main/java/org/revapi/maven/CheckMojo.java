@@ -16,6 +16,13 @@
  */
 package org.revapi.maven;
 
+import java.io.File;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.stream.Stream;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -23,9 +30,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.revapi.AnalysisResult;
-
-import java.io.StringWriter;
-import java.util.stream.Stream;
+import org.revapi.Criticality;
+import org.revapi.PipelineConfiguration;
 
 /**
  * Runs the API check of old and new artifacts using the specified configuration of extensions declared as dependencies
@@ -42,6 +48,9 @@ public class CheckMojo extends AbstractRevapiMojo {
      * Whether or not to output the suggestions for ignoring the found API problems. Before 0.11.5 the suggestions
      * were always JSON formatted. Since 0.11.5 one can choose between JSON and XML using the
      * {@link #ignoreSuggestionsFormat} property.
+     * <p>
+     * Since 0.11.6 the suggestions are printed even if {@link #failBuildOnProblemsFound} is false. In that case all
+     * the problems that have the criticality larger or equal to the {@link #failCriticality} are printed.
      *
      * @since 0.10.4
      */
@@ -68,6 +77,15 @@ public class CheckMojo extends AbstractRevapiMojo {
     @Parameter(property = Props.ignoreSuggestionsFormat.NAME, defaultValue = Props.ignoreSuggestionsFormat.DEFAULT_VALUE)
     private String ignoreSuggestionsFormat;
 
+    /**
+     * If set and if {@link #outputIgnoreSuggestions} is {@code true}, the suggestions are not printed to Maven log but
+     * to the specified file.
+     *
+     * @since 0.11.6
+     */
+    @Parameter(property = Props.ignoreSuggestionsFile.NAME, defaultValue = Props.ignoreSuggestionsFile.DEFAULT_VALUE)
+    private File ignoreSuggestionsFile;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
@@ -77,10 +95,11 @@ public class CheckMojo extends AbstractRevapiMojo {
         StringWriter wrt = new StringWriter();
         BuildTimeReporter reporter;
 
-        String report = null;
+        PipelineConfiguration.Builder pipelineCfg = PipelineConfigurationParser.parse(pipelineConfiguration);
+        Criticality maxCriticality = determineMaximumCriticality(pipelineCfg.build());
 
-        try (AnalysisResult res = analyze(BuildTimeReporter.class,
-                BuildTimeReporter.BREAKING_SEVERITY_KEY, failSeverity.asDifferenceSeverity(), "maven-log", getLog(),
+        try (AnalysisResult res = analyze(BuildTimeReporter.class, pipelineCfg,
+                BuildTimeReporter.BREAKING_CRITICALITY_KEY, maxCriticality, "maven-log", getLog(),
                 "writer", wrt, BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, outputNonIdentifyingDifferenceInfo,
                 BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, getSuggestionsBuilder())) {
 
@@ -89,28 +108,46 @@ public class CheckMojo extends AbstractRevapiMojo {
             reporter = res.getExtensions().getFirstExtension(BuildTimeReporter.class, null);
 
             if (reporter != null && reporter.hasBreakingProblems()) {
-                if (failBuildOnProblemsFound) {
-                    report = reporter.getAllProblemsMessage();
-                    String additionalOutput = wrt.toString();
-                    if (!additionalOutput.isEmpty()) {
-                        report += "\n\nAdditionally, the configured reporters reported:\n\n" + additionalOutput;
-                    }
+                String report = reporter.getAllProblemsMessage();
+                String additionalOutput = wrt.toString();
+                if (!additionalOutput.isEmpty()) {
+                    report += "\n\nAdditionally, the configured reporters reported:\n\n" + additionalOutput;
+                }
 
-                    Stream.of(report.split("\n")).forEach(l -> getLog().info(l));
+                if (outputIgnoreSuggestions || ignoreSuggestionsFile != null) {
+                    getLog().info("API problems found.");
+                    String message = "If you're using the semver-ignore extension, update your module's" +
+                            " version to one compatible with the current changes (e.g. mvn package" +
+                            " revapi:update-versions). If you want to explicitly ignore these changes or provide" +
+                            " justifications for them, add the " + ignoreSuggestionsFormat + " snippets to your" +
+                            " Revapi configuration for the \"revapi.differences\" extension.";
+                    String suggestions = reporter.getIgnoreSuggestion();
 
                     if (outputIgnoreSuggestions) {
-                        getLog().info("");
-                        getLog().info("If you're using the semver-ignore extension, update your module's" +
-                                " version to one compatible with the current changes (e.g. mvn package" +
-                                " revapi:update-versions). If you want to explicitly ignore this change and provide a" +
-                                " justification for it, add the following " + ignoreSuggestionsFormat + " snippet to your Revapi configuration" +
-                                " under \"revapi.ignore\" path:\n\n" + reporter.getIgnoreSuggestion());
+                        getLog().info(message + "\n\n" + suggestions);
+                    }
 
+                    if (ignoreSuggestionsFile != null && suggestions != null) {
+                        Files.write(ignoreSuggestionsFile.toPath(),
+                                suggestions.getBytes(StandardCharsets.UTF_8),
+                                StandardOpenOption.CREATE);
+                        if (!outputIgnoreSuggestions) {
+                            getLog().info(message);
+                        }
+                        getLog().info("Snippets written to " + ignoreSuggestionsFile);
+                    }
+                    // this will be part of the error message
+                    if (failBuildOnProblemsFound) {
                         report += "\nConsult the plugin output above for suggestions on how to ignore the found" +
                                 " problems.";
                     }
-                } else {
+                }
+
+                if (failBuildOnProblemsFound) {
+                    throw new MojoFailureException(report);
+                } else if (!outputIgnoreSuggestions) {
                     getLog().info("API problems found but letting the build pass as configured.");
+                    Stream.of(report.split("\n")).forEach(l -> getLog().info(l));
                 }
             } else {
                 getLog().info("API checks completed without failures.");
@@ -119,10 +156,6 @@ public class CheckMojo extends AbstractRevapiMojo {
             throw e;
         } catch (Exception e) {
             throw new MojoExecutionException("Failed to execute the API analysis.", e);
-        }
-
-        if (report != null) {
-            throw new MojoFailureException(report);
         }
     }
 

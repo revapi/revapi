@@ -17,6 +17,7 @@
 package org.revapi.reporter.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 
 import java.io.File;
@@ -69,9 +70,30 @@ public class AbstractFileReporterTest {
         Path file = Files.createTempFile(null, null);
         try (Reporter reporter = new Reporter()) {
             reporter.initialize(ctxWithOutput(file.toString()));
-        } finally {
+            reporter.close();
             assertReporterWroteToPath(file);
+        } finally {
             Files.delete(file);
+        }
+    }
+
+    @Test
+    public void testKeepEmptyFiles() throws Exception {
+        Path file = Files.createTempFile(null, null);
+        try (Reporter reporter = new Reporter()) {
+            StringBuffer buf = new StringBuffer();
+            buf.append("{");
+            buf.append("\"output\": \"").append(file.toString()).append("\"");
+            buf.append(",");
+            buf.append("\"keepEmptyFile\": \"").append("false").append("\"");
+            buf.append("}");
+
+            reporter.initialize(AnalysisContext.builder()
+                    .build().copyWithConfiguration(ModelNode.fromJSONString(buf.toString())));
+            reporter.report(Report.builder().build());
+
+        } finally {
+            assertFalse(file.toFile().exists());
         }
     }
 
@@ -81,8 +103,9 @@ public class AbstractFileReporterTest {
         file = file.resolve("output.file");
         try (Reporter reporter = new Reporter()) {
             reporter.initialize(ctxWithOutput(file.toString()));
-        } finally {
+            reporter.close();
             assertReporterWroteToPath(file);
+        } finally {
             Files.delete(file);
             Files.delete(file.getParent());
         }
@@ -93,8 +116,9 @@ public class AbstractFileReporterTest {
         Path file = Paths.get("fqefacs" + new Random().nextInt());
         try (Reporter reporter = new Reporter()) {
             reporter.initialize(ctxWithOutput(file.toString()));
-        } finally {
+            reporter.close();
             assertReporterWroteToPath(file);
+        } finally {
             Files.delete(file);
         }
     }
@@ -105,8 +129,9 @@ public class AbstractFileReporterTest {
         file = file.resolve("subdir" + File.separatorChar + "output.file");
         try (Reporter reporter = new Reporter()) {
             reporter.initialize(ctxWithOutput(file.toString()));
-        } finally {
+            reporter.close();
             assertReporterWroteToPath(file);
+        } finally {
             Files.delete(file);
             Files.delete(file.getParent());
             Files.delete(file.getParent().getParent());
@@ -117,14 +142,15 @@ public class AbstractFileReporterTest {
         Path file = Paths.get("subdir" + new Random().nextInt() + File.separatorChar + "output.file");
         try (Reporter reporter = new Reporter()) {
             reporter.initialize(ctxWithOutput(file.toString()));
-        } finally {
+            reporter.close();
             assertReporterWroteToPath(file);
+        } finally {
             Files.delete(file);
             Files.delete(file.getParent());
         }
     }
 
-    private void assertReporterWroteToPath(Path path) throws IOException {
+    private static void assertReporterWroteToPath(Path path) throws IOException {
         String line = Files.lines(path).toArray(String[]::new)[0];
         assertEquals("Test was here!", line);
     }

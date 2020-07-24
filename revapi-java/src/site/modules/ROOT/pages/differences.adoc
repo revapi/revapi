@@ -114,6 +114,18 @@ be used when matching the difference for example in the `revapi.ignore` extensio
 The above will instruct Revapi to not report the removal of `my.Interface` from the list of implemented interfaces on
 any class in the `my` package (or any other subpackage).
 
+All types of differences report the archives that the element come from using these match parametes:
+[cols="35s,<65d"]
+|=============
+|`oldArchive` | The name of the archive where the old element comes from, if any
+|`newArchive` | The name of the archive where the new element comes from, if any
+|`oldArchiveRole` | The role of the old archive. Can be either `primary` or `supplementary`. The `supplementary` is
+                    Revapi parlance for "dependency". I.e. the element comes from a dependency of the primary API but
+                    Revapi determined it needs to be reported (most usually because the primary API is using it
+                    (indirectly)).
+|`newArchiveRole` | The same as `oldArchiveRole` only for the archive of the new element.
+|=============
+
 All types of differences report the `elementKind` parameter that can have 1 of the following values:
 [cols="35s,<65d"]
 |=============
@@ -158,10 +170,9 @@ possible values of `ignore`, `report` and `error`, e.g.:
 [source,javascript]
 ----
 {
-    "revapi" : {
-        "java" : {
-            "missing-classes" : "ignore"
-        }
+    "extension": "revapi.java",
+    "configuration": {
+        "missing-classes" : "ignore"
     }
 }
 ----
@@ -172,9 +183,7 @@ possible values of `ignore`, `report` and `error`, e.g.:
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Element No Longer Deprecated - `java.element.noLongerDeprecated`
@@ -193,9 +202,7 @@ users to know about such cases.
 |====
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.Deprecated`.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Element Now Deprecated - `java.element.nowDeprecated`
@@ -214,9 +221,7 @@ users to know about such cases.
 |====
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.Deprecated`.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class Visibility Increased - `java.class.visibilityIncreased`
@@ -239,9 +244,7 @@ and is reported for completeness sake. The visibility is ordered as follows: +pr
 | `classSimpleName` | the simple name of the class
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class Visibility Reduced - `java.class.visibilityReduced`
@@ -264,9 +267,7 @@ runtime when trying to use the new version of the library.
 | `classSimpleName` | the simple name of the class
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class Kind Changed - `java.class.kindChanged`
@@ -289,9 +290,7 @@ compile time and at runtime.
 | `classSimpleName` | the simple name of the class
 | `oldKind` | The kind of the type as it was in the old version.
 | `newKind` | The kind of the type in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class No Longer Final - `java.class.noLongerFinal`
@@ -312,9 +311,7 @@ A class that used to be final is now not. This is no API breakage and is reporte
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 NOTE: Modifiers are sorted according to the
@@ -341,9 +338,7 @@ the class will no longer be compatible with the new version of the library, in w
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 NOTE: See <<Class No Longer Final - `java.class.noLongerFinal`>> for the ordering of the modifiers.
@@ -366,9 +361,7 @@ A class that used to be abstract is now not. This is no API breakage and is repo
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 NOTE: See <<Class No Longer Final - `java.class.noLongerFinal`>> for the ordering of the modifiers.
@@ -392,9 +385,7 @@ possible to create instances of such class.
 | `classSimpleName` | the simple name of the class
 | `oldModifiers` | The sorted modifiers on the class in the old version.
 | `newModifiers` | The sorted modifiers on the class in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 NOTE: See <<Class No Longer Final - `java.class.noLongerFinal`>> for the ordering of the modifiers.
@@ -415,9 +406,7 @@ A new class appeared in the new version of the API. This is a non-breaking chang
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class Removed - `java.class.removed`
@@ -437,9 +426,7 @@ the users of the API will no longer be able to use that class in any capacity.
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === External Class Exposed In API - `java.class.externalClassExposedInAPI`
@@ -460,9 +447,7 @@ but you don't want the changed API to leak to your users).
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === External Class No Longer Exposed In API - `java.class.externalClassNoLongerExposedInAPI`
@@ -483,9 +468,7 @@ will usually cause other differences to be reported, too).
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class No Longer Implements Interface - `java.class.noLongerImplementsInterface`
@@ -505,9 +488,7 @@ This is a breaking change because it is no longer possible to cast the class to 
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `interface` | The fully qualified name of the interface that is no longer implemented.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class Now Implements Interface - `java.class.nowImplementsInterface`
@@ -527,9 +508,7 @@ No API breakage reported for the completeness sake.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `interface` | The fully qualified name of the interface that is now implemented.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Final Class Inherits From New Class - `java.class.finalClassInheritsFromNewClass`
@@ -551,9 +530,7 @@ reported separately).
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the new super class.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Non-final Class Inherits From New Class - `java.class.nonFinalClassInheritsFromNewClass`
@@ -575,9 +552,7 @@ checked one, they will get compilation or linkage errors.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the new super class.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class Now Checked Exception - `java.class.nowCheckedException`
@@ -597,9 +572,7 @@ declared in the +throws+ declarations of the methods.
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class No Longer Inherits From Class - `java.class.noLongerInheritsFromClass`
@@ -620,9 +593,7 @@ that super class nor can the methods declared in the super class be called using
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `superClass` | The fully qualified name of the superclass that is no longer inherited.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Default Serialization of Class Changed - `java.class.defaultSerializationChanged`
@@ -650,9 +621,7 @@ fields changes its serialization format. This imperfection is shared with java s
 | `fieldName` | the name of the field
 | `oldSerialVersionUID` | the value of the computed serial version UID in the old version (as decimal number)
 | `newSerialVersionUID` | the value of the computed serial version UID in the new version (as decimal number)
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Class Is Non-Public Part of API - `java.class.nonPublicPartOfAPI`
@@ -707,9 +676,7 @@ or
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 NOTE: This is NOT reported on a non-accessible class that is used solely as a super class of another API classes or that
@@ -739,9 +706,7 @@ inherited from the super class (which would be the cause of the binary and sourc
 | `classSimpleName` | the simple name of the class
 | `oldSuperType` | The old signature of the super type.
 | `newSuperType` | The new signature of the super type.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Annotation Added - `java.annotation.added`
@@ -760,9 +725,7 @@ processing, reflection, etc.).
 |====
 2+| Match parameters
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Annotation Removed - `java.annotation.removed`
@@ -781,9 +744,7 @@ processing, reflection, etc.).
 |====
 2+| Match parameters
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Annotation Attribute Value Changed - `java.annotation.attributeValueChanged`
@@ -805,9 +766,7 @@ generation, processing, reflection, etc.).
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
 | `oldValue`   | The old value of the attribute.
 | `newValue`   | The new value of the attribute.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Annotation Attribute Added - `java.annotation.attributeAdded`
@@ -828,9 +787,7 @@ used (code generation, processing, reflection, etc.).
 | `attribute`  | The name of the attribute that was added
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
 | `value`      | The value of the attribute.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Annotation Attribute Removed - `java.annotation.attributeRemoved`
@@ -851,9 +808,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 | `attribute`  | The name of the attribute that was removed,
 | `value`      | The value of the attribute that was removed,
 | `annotationType` | The fully qualified name of the annotation type, preceded by `@` (e.g. `@java.lang.annotation.Target`).
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Annotation No Longer Inherited - `java.annotation.noLongerInherited`
@@ -872,9 +827,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 |====
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.annotation.Inherited`.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Annotation Now Inherited - `java.annotation.nowInherited`
@@ -893,9 +846,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 |====
 2+| Match parameters
 | `annotationType` | exactly `@java.lang.annotation.Inherited`.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Static Field Added - `java.field.addedStaticField`
@@ -915,9 +866,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field Added - `java.field.added`
@@ -937,9 +886,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field Removed - `java.field.removed`
@@ -960,9 +907,7 @@ Note that this si reported only for publicly accessible fields.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Constant Field Removed
@@ -986,9 +931,7 @@ Note that this si reported only for publicly accessible fields.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field Moved To Superclass - `java.field.movedToSuperclass`
@@ -1010,9 +953,7 @@ The field was moved to a super class. From the point of view of the field user t
 | `fieldName` | the name of the field
 | `oldClass` | The class the field used to be declared in.
 | `newClass` | The class the field is now declared in.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Inherited Field Now Declared On Class - `java.field.inheritedNowDeclared`
@@ -1035,9 +976,7 @@ represents no noticeable change. If the field was also removed from the super cl
 | `fieldName` | the name of the field
 | `oldClass` | The class the field used to be declared in.
 | `newClass` | The class the field is now declared in.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Constant Field Removed - `java.field.removed`
@@ -1061,9 +1000,7 @@ semantics.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Constant Field Changed Value - `java.field.constantValueChanged`
@@ -1087,9 +1024,7 @@ because the constant values are inlined. This is therefore reported as breaking 
 | `fieldName` | the name of the field
 | `oldValue` | The old value of the constant field.
 | `newValue` |  The new value of the constant field.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field Now Constant - `java.field.nowConstant`
@@ -1111,9 +1046,7 @@ code, which is something that didn't happen before. You may want to re-evaluate 
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `value` | The constant value of the field.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field No Longer Constant - `java.field.noLongerConstant`
@@ -1138,9 +1071,7 @@ NOT what the API author had in mind when making the change.
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `value` | The constant value the field used to have.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field Now Final - `java.field.nowFinal`
@@ -1161,9 +1092,7 @@ binary incompatibility.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field No Longer Final - `java.field.noLongerFinal`
@@ -1183,9 +1112,7 @@ This is no API breakage and is reported for completeness' sake.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field No Longer Static - `java.field.noLongerStatic`
@@ -1206,9 +1133,7 @@ this is both source and binary incompatibility.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field Now Static - `java.field.nowStatic`
@@ -1230,9 +1155,7 @@ When recompiling the user code against the new version, everything works fine.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field Type Changed - `java.field.typeChanged`
@@ -1254,9 +1177,7 @@ The field has a different type than it used to in the old version of the API. Th
 | `fieldName` | the name of the field
 | `oldType` | The fully qualified name of the old field type.
 | `newType` | The fully qualified name of the new field type.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field `serialVersionUID` Unchanged - `java.field.serialVersionUIDUnchanged`
@@ -1316,9 +1237,7 @@ or
 | `classSimpleName` | the simple name of the class
 | `fieldName` | the name of the field
 | `serialVersionUID` | the value of the serial version UID field (as decimal number)
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field `serialVersionUID` Changed - `java.field.serialVersionUIDChanged`
@@ -1344,9 +1263,7 @@ This check can be configured the same way as <<Field serialVersionUID Unchanged>
 | `fieldName` | the name of the field
 | `oldSerialVersionUID` | the value of the serial version UID field in the old version (as decimal number)
 | `newSerialVersionUID` | the value of the serial version UID field in the new version (as decimal number)
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field Visibility Increased - `java.field.visibilityIncreased`
@@ -1368,9 +1285,7 @@ No API breakage, reported for completeness' sake.
 | `fieldName` | the name of the field
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Field Visibility Reduced - `java.field.visibilityReduced`
@@ -1392,9 +1307,7 @@ Field's visibility was reduced, which means that code that used to be able to ac
 | `fieldName` | the name of the field
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Enum Constant Order Changed - `java.field.enumConstantOrderChanged`
@@ -1417,9 +1330,7 @@ method to determine the order of an enum constant and relies on a specific value
 | `fieldName` | the name of the field
 | `oldOrdinal` | The old ordinal number of the enum value.
 | `newOrdinal` | The new ordinal number of the enum value.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Default Value Added To Method - `java.method.defaultValueAdded`
@@ -1441,9 +1352,7 @@ Declaring a default value to an annotation attribute is not an API breakage and 
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `value` | the default value of the annotation attribute represented by the method
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method's Default Value Changed - `java.method.defaultValueChanged`
@@ -1469,9 +1378,7 @@ the API. This might or might not be a problem.
 | `methodName` | the name of the method added
 | `oldValue` | the old default value of the annotation attribute represented by the method
 | `newValue` | the new default value of the annotation attribute represented by the method
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Default Value Removed From Method - `java.method.defaultValueRemoved`
@@ -1496,9 +1403,7 @@ attribute).
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `value` | the removed default value of the annotation attribute represented by the method
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Added To Interface - `java.method.addedToInterface`
@@ -1530,9 +1435,7 @@ old SPI implementation.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Default Method Added To Interface - `java.method.defaultMethodAddedToInterface`
@@ -1552,9 +1455,7 @@ This represents no API breakage and is included for completeness' sake.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Static Method Added To Interface - `java.method.staticMethodAddedToInterface`
@@ -1574,9 +1475,7 @@ This represents no API breakage and is included for completeness' sake.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method With No Default Value Added To Annotation Type - `java.method.attributeWithNoDefaultAddedToAnnotationType`
@@ -1603,9 +1502,7 @@ assumes an explicit value for the annotation attribute.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method With Default Value Added To Annotation Type - `java.method.attributeWithDefaultAddedToAnnotationType`
@@ -1625,9 +1522,7 @@ This does not break compatibility and is reported for completeness' sake.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Abstract Method Added - `java.method.abstractMethodAdded`
@@ -1648,9 +1543,7 @@ implementation of it and will therefore break.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Added - `java.method.added`
@@ -1670,9 +1563,7 @@ A new concrete method added to a concrete class. This is always safe.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Final Method Added To Non-final Class - `java.method.finalMethodAddedToNonFinalClass`
@@ -1693,9 +1584,7 @@ as the newly introduced final method.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Inherited Method Moved To Class - `java.method.inheritedMovedToClass`
@@ -1718,9 +1607,7 @@ Note that if the super class is part of the API, the removal of the method from 
 | `methodName` | the name of the method added
 | `oldClass` | the class that the method was originally declared in
 | `newClass` | the class that now declares the method
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Removed - `java.method.removed`
@@ -1740,9 +1627,7 @@ Removing a method from a class is an incompatible change.
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Moved To Superclass - `java.method.movedToSuperClass`
@@ -1767,9 +1652,7 @@ Otherwise this is a compatible change and is reported for completeness' sake.
 | `methodName` | the name of the method added
 | `oldClass` | the class that the method was originally declared in
 | `newClass` | the class that now declares the method
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Attribute Removed From Annotation Type - `java.method.attributeRemovedFromAnnotationType`
@@ -1789,9 +1672,7 @@ This is identical to <<a_method_removed, Method Removed>> but specialized for an
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method No Longer Final - `java.method.noLongerFinal`
@@ -1813,9 +1694,7 @@ No API breakage, reported for completeness' sake.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Now Final - `java.method.nowFinal`
@@ -1837,9 +1716,7 @@ Any subclasses that overrode the method will break both at compile time and at r
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Now Final In Final Class - `java.method.nowFinalInFinalClass`
@@ -1861,9 +1738,7 @@ The class is final and cannot be subclassed. Therefore making its method final m
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method No Longer Static - `java.method.noLongerStatic`
@@ -1886,9 +1761,7 @@ and source compatibility.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Now Static - `java.method.nowStatic`
@@ -1911,9 +1784,7 @@ It is not binary compatible though because static methods are called using a dif
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Now Abstract - `java.method.nowAbstract`
@@ -1936,9 +1807,7 @@ to before.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method No Longer Abstract - `java.method.noLongerAbstract`
@@ -1960,9 +1829,7 @@ This is a compatible change reported for the completeness' sake.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Visibility Increased - `java.method.visibilityIncreased`
@@ -1984,9 +1851,7 @@ No API breakage, reported for completeness' sake.
 | `methodName` | the name of the method added
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Visibility Reduced - `java.method.visibilityIncreased`
@@ -2008,9 +1873,7 @@ A method might no longer be visible to code that used to call it. This is a brea
 | `methodName` | the name of the method added
 | `oldVisibility` | The visibility of the type as it was in the old version.
 | `newVisibility` | The visibility of the type in the new version.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Return Type Changed - `java.method.returnTypeChanged`
@@ -2033,9 +1896,7 @@ recompiling the user code), it might be OK at compile time due to implicit conve
 | `methodName` | the name of the method added
 | `oldType` | the old return type
 | `newType` | the new return type
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Return Type Changed Covariantly - `java.method.returnTypeChangedCovariantly`
@@ -2060,9 +1921,7 @@ incompatibility though because the method signature changes and users of the old
 | `methodName` | the name of the method added
 | `oldType` | the old return type
 | `newType` | the new return type
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Type Parameters of The Return Type Changed - `java.method.returnTypeTypeParametersChanged`
@@ -2085,9 +1944,7 @@ it is a source incompatible change. It is binary compatible because of type eras
 | `methodName` | the name of the method added
 | `oldType` | the old return type
 | `newType` | the new return type
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Number of Method Parameters Changed - `java.method.numberOfParametersChanged`
@@ -2107,9 +1964,7 @@ Obviously, this is a breaking change - you can no longer call the method with th
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Parameter Type Changed - `java.method.parameterTypeChanged`
@@ -2133,9 +1988,7 @@ is strictly bigger than the old one and the old one is implicitly convertible to
 | `parameterIndex` | the index of the method parameter
 | `oldType` | the old type of the parameter
 | `newType` | the new type of the parameter
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Parameter Type Parameter Changed - `java.method.parameterTypeParameterChanged`
@@ -2159,9 +2012,7 @@ type changed. This is binary compatible because of the type erasure but it can b
 | `parameterIndex` | the index of the method parameter
 | `oldType` | the old type of the parameter
 | `newType` | the new type of the parameter
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Now Throws a Checked Exception - `java.method.exception.checkedAdded`
@@ -2183,9 +2034,7 @@ new version of the method will have to be modified to handle the checked excepti
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the added exception type
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Now Throws a Runtime Exception - `java.method.exception.runtimeAdded`
@@ -2207,9 +2056,7 @@ that might want to catch the newly thrown exception.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the added exception type
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method No Longer Throws a Checked Exception - `java.method.exception.checkedRemoved`
@@ -2232,9 +2079,7 @@ therefore the catch clauses for it will be invalid.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the removed exception type
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method No Longer Throws a Runtime Exception - `java.method.exception.checkedRemoved`
@@ -2255,9 +2100,7 @@ This is a compatible change added for completeness' sake.
 | `classSimpleName` | the simple name of the class
 | `methodName` | the name of the method added
 | `exception` | the fully qualified name of the removed exception type
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method Now Default - `java.method.nowDefault`
@@ -2279,9 +2122,7 @@ The method is now a default method. This is completely transparent.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Method No Longer Default - `java.method.noLongerDefault`
@@ -2304,9 +2145,7 @@ will now have to supply an implementation for it.
 | `methodName` | the name of the method added
 | `oldModifiers` | the modifiers on the method in the old version
 | `newModifiers` | the modifiers on the method in the new version
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Element Now Parameterized - `java.generics.elementNowParameterized`
@@ -2329,11 +2168,9 @@ might start assuming uniform types in the list).
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Formal Type Parameter Added - `java.generics.formalTypeParameterAdded`
@@ -2354,11 +2191,9 @@ definition of the formal type parameter.
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Formal Type Parameter Removed - `java.generics.formalTypeParameterRemoved`
@@ -2379,11 +2214,9 @@ parameter that is no longer required.
 | `package` | the package of the class
 | `classQualifiedName` | the fully-qualified name of the class
 | `classSimpleName` | the simple name of the class
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
+2+| See <<Match Parameters>> for the common match parameters
 |====
 
 === Formal Type Parameter Changed - `java.generics.formalTypeParameterChanged`
@@ -2405,9 +2238,7 @@ declared against the old version of the API will use wrong constraints.
 | `classSimpleName` | the simple name of the class
 | `oldTypeParameter` | The old type parameter that changed.
 | `newTypeParameter` | The new type parameter.
-| `elementKind` | See <<Match Parameters>> for possible values
-| `oldArchive` | The archive the old element is coming from if any
-| `newArchive` | The archive the new element is coming from if any
 2+| _Optionally_
 | `methodName` | the name of the method if it is the newly parameterized element
+2+| See <<Match Parameters>> for the common match parameters
 |====

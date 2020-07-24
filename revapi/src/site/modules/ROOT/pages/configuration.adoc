@@ -275,3 +275,87 @@ The transformation blocks are configured, as the allowed extensions, in the pipe
 
 as explained in the xref:revapi::architecture.adoc[architecture], the transform blocks enable multiple transform to
 "act as one".
+
+==== Criticality
+
+Revapi comes with a default set of criticalities that roughly describe common situations when dealing with API changes.
+The criticality describes how severe the API change is and its effect on the state of the code. There is a default set
+of criticalities that Revapi comes with.
+
+* `allowed` - API changes with this criticality are allowed and might not even be reported.
+* `documented` - API changes with this criticality are documented so that users of the API are informed about them.
+* `highlight` - API changes with this criticality are documented and highlighted as very important.
+* `error` - API changes with this criticality are not allowed and should result in a build or an error.
+
+The above is just a default configuration and one is free to completely reconfigure both what criticalities are available
+as well as the default mapping of difference severities to criticalities that is used when no explicit criticality is
+assigned to a difference during the analysis.
+
+The criticalities available in the analyses are defined in the plugin configuration:
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.revapi</groupId>
+      <artifactId>revapi-maven-plugin</artifactId>
+      <version>...</version>
+      <configuration>
+        <pipelineConfiguration>
+          <criticalities>
+            <criticality>
+              <name>OK</name>
+              <level>0</level>
+            </criticality>
+            <criticality>
+              <name>KO</name>
+              <level>1</level>
+            </criticality>
+          </criticalities>
+          ...
+        </pipelineConfiguration>
+      </configuration>
+    </plugin>
+  </plugins>
+</build>
+```
+
+Here, we define that the only 2 criticalities are available in our analysis: `OK` and `KO`. The higher the level,
+the more severe the criticality is.
+
+The default mapping of severities to criticalities can be defined in the maven configuration as well. Note that if you
+define custom criticalities, the mapping is required:
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.revapi</groupId>
+      <artifactId>revapi-maven-plugin</artifactId>
+      <version>...</version>
+      <configuration>
+        <pipelineConfiguration>
+          <criticalities>
+            <criticality>
+              <name>OK</name>
+              <level>0</level>
+            </criticality>
+            <criticality>
+              <name>KO</name>
+              <level>1</level>
+            </criticality>
+          </criticalities>
+          <severityMapping>
+            <equivalent>OK</equivalent>
+            <nonBreaking>OK<nonBreaking>
+            <potentiallyBreaking>KO</potentiallyBreaking>
+            <breaking>KO</breaking>
+          </severityMapping>
+          ...
+        </pipelineConfiguration>
+      </configuration>
+    </plugin>
+  </plugins>
+</build>
+```
+

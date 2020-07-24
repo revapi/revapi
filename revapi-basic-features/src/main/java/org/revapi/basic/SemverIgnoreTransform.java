@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,11 +77,11 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
     }
 
     private Difference asBreaking(Difference d) {
-        return Difference.builder().withCode(d.code)
+        return Difference.copy(d)
                 .withDescription(d.description + " (breaks semantic versioning)")
                 .withName("Incompatible with the current version: " + d.name)
-                .addAttachments(d.attachments).addClassifications(d.classification)
-                .addClassification(CompatibilityType.OTHER, DifferenceSeverity.BREAKING).build();
+                .addClassification(CompatibilityType.OTHER, DifferenceSeverity.BREAKING)
+                .build();
     }
 
     private DifferenceSeverity getMaxSeverity(Difference diff) {

@@ -20,6 +20,11 @@
       "description": "Whether to produced indented output for easier human readability.",
       "type": "boolean",
       "default": false
+    },
+    "keepEmptyFile": {
+      "description": "Whether to keep the report file when it contains no data.",
+      "type": "boolean",
+      "default": "true"
     }
   }
 }

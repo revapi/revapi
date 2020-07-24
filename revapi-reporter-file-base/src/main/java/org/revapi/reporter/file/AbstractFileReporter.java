@@ -50,9 +50,14 @@ public abstract class AbstractFileReporter implements Reporter {
 
     protected DifferenceSeverity minLevel;
     protected PrintWriter output;
+    protected File file;
+
     protected boolean shouldClose;
+    protected boolean keepEmptyFile;
 
     protected AnalysisContext analysis;
+    private boolean reportsInOutput = false;
+
 
     /**
      * For testing.
@@ -87,6 +92,7 @@ public abstract class AbstractFileReporter implements Reporter {
         output = "undefined".equals(output) ? "out" : output;
 
         boolean append = analysis.getConfiguration().get("append").asBoolean(false);
+        keepEmptyFile = append || analysis.getConfiguration().get("keepEmptyFile").asBoolean(true);
 
         this.minLevel = "undefined".equals(minLevel) ? DifferenceSeverity.POTENTIALLY_BREAKING :
                 DifferenceSeverity.valueOf(minLevel);
@@ -101,27 +107,27 @@ public abstract class AbstractFileReporter implements Reporter {
             out = System.err;
             break;
         default:
-            File f = new File(output);
-            if (f.exists()) {
-                if (!f.isFile()) {
+            file = new File(output);
+            if (file.exists()) {
+                if (!file.isFile()) {
                     LOG.warn(
-                            "The configured file, '" + f.getAbsolutePath() + "' is not a file." +
+                            "The configured file, '" + file.getAbsolutePath() + "' is not a file." +
                                     " Defaulting the output to standard output.");
                     out = System.out;
                     break;
-                } else if (!f.canWrite()) {
+                } else if (!file.canWrite()) {
                     LOG.warn(
-                            "The configured file, '" + f.getAbsolutePath() + "' is not a writable." +
+                            "The configured file, '" + file.getAbsolutePath() + "' is not a writable." +
                                     " Defaulting the output to standard output.");
                     out = System.out;
                     break;
                 }
             } else {
-                File parent = f.getParentFile();
+                File parent = file.getParentFile();
                 if (parent != null && !parent.exists()) {
                     if (!parent.mkdirs()) {
                         LOG.warn("Failed to create directory structure to write to the configured output file '" +
-                                f.getAbsolutePath() + "'. Defaulting the output to standard output.");
+                                file.getAbsolutePath() + "'. Defaulting the output to standard output.");
                         out = System.out;
                         break;
                     }
@@ -131,7 +137,7 @@ public abstract class AbstractFileReporter implements Reporter {
             try {
                 out = new FileOutputStream(output, append);
             } catch (FileNotFoundException e) {
-                LOG.warn("Failed to create the configured output file '" + f.getAbsolutePath() + "'." +
+                LOG.warn("Failed to create the configured output file '" + file.getAbsolutePath() + "'." +
                         " Defaulting the output to standard output.", e);
                 out = System.out;
             }
@@ -182,6 +188,7 @@ public abstract class AbstractFileReporter implements Reporter {
             return;
         }
 
+        reportsInOutput = true;
         doReport(report);
     }
 
@@ -197,6 +204,12 @@ public abstract class AbstractFileReporter implements Reporter {
 
         if (shouldClose) {
             output.close();
+        }
+
+        if (!keepEmptyFile && !reportsInOutput && file != null) {
+            if (!file.delete()) {
+                LOG.warn("Failed to delete an empty output file: " + file.getAbsolutePath());
+            }
         }
     }
 

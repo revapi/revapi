@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -180,9 +180,25 @@ public class ReportMojo extends AbstractMavenReport {
     /**
      * Problems with this or higher severity will be included in the report.
      * Possible values: equivalent, nonBreaking, potentiallyBreaking, breaking.
+     *
+     * @deprecated use {@link #reportCriticality} instead
      */
+    @Deprecated
     @Parameter(property = Props.reportSeverity.NAME, defaultValue = Props.reportSeverity.DEFAULT_VALUE)
     protected FailSeverity reportSeverity;
+
+    /**
+     * The minimum criticality of the differences that should be included in the report. This has to be one of
+     * the criticalities configured in the pipeline configuration (if the pipeline configuration doesn't define any,
+     * the following are  the default ones: {@code allowed}, {@code documented}, {@code highlight}, {@code error}).
+     *
+     * If not defined, the value is derived from {@link #reportSeverity} using the severity-to-criticality mapping
+     * (which is again configured in the pipeline configuration. If not defined in the pipeline configuration
+     * explicitly, the default mapping is the following: {@code EQUIVALENT} = {@code allowed}, {@code NON_BREAKING} =
+     * {@code documented}, {@code POTENTIALLY_BREAKING} = {@code error}, {@code BREAKING} = error.
+     */
+    @Parameter(property = Props.reportCriticality.NAME)
+    protected String reportCriticality;
 
     /**
      * Whether to skip the mojo execution.
@@ -294,6 +310,16 @@ public class ReportMojo extends AbstractMavenReport {
      */
     @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
     protected String disallowedExtensions;
+
+    /**
+     * If set to true, the Maven properties will be expanded in the configuration before it is supplied to Revapi.
+     * I.e. any {@code ${var}} appearing in the configuration <b>values</b> will be replaced with the value of the
+     * {@code var} property as known to Maven. If the property is not defined, the expansion doesn't take place.
+     *
+     * @since 0.11.6
+     */
+    @Parameter(property = Props.expandProperties.NAME, defaultValue = Props.expandProperties.DEFAULT_VALUE)
+    protected boolean expandProperties;
 
     private API oldAPI;
     private API newAPI;
@@ -413,7 +439,7 @@ public class ReportMojo extends AbstractMavenReport {
 
         AnalyzerBuilder.Result res = AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
                 .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
-                .withPipelineConfiguration(this.pipelineConfiguration)
+                .withPipelineConfiguration(PipelineConfigurationParser.parse(this.pipelineConfiguration))
                 .withAnalysisConfiguration(this.analysisConfiguration)
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
                 .withCheckDependencies(this.checkDependencies)
@@ -434,6 +460,7 @@ public class ReportMojo extends AbstractMavenReport {
                 .withSkip(this.skip)
                 .withVersionFormat(this.versionFormat)
                 .withContextData(contextData)
+                .withExpandProperties(expandProperties)
                 .build();
 
         if (res.skip) {
@@ -541,6 +568,10 @@ public class ReportMojo extends AbstractMavenReport {
         sink.text(bundle.getString("report.revapi.difference.description"));
         sink.tableHeaderCell_();
 
+        sink.tableHeaderCell();
+        sink.text(bundle.getString("report.revapi.difference.justification"));
+        sink.tableHeaderCell_();
+
         sink.tableRow_();
 
         diffs.sort((d1, d2) -> {
@@ -584,6 +615,10 @@ public class ReportMojo extends AbstractMavenReport {
 
             sink.tableCell();
             sink.text(d.difference.description);
+            sink.tableCell_();
+
+            sink.tableCell();
+            sink.text(d.difference.justification);
             sink.tableCell_();
 
             sink.tableRow_();

@@ -26,8 +26,8 @@ import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
+import org.revapi.Criticality;
 import org.revapi.Difference;
-import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Reporter;
@@ -47,11 +47,11 @@ import org.revapi.Reporter;
  * @since 0.1
  */
 public final class BuildTimeReporter implements Reporter {
-    public static final String BREAKING_SEVERITY_KEY = "org.revapi.maven.buildTimeBreakingSeverity";
+    public static final String BREAKING_CRITICALITY_KEY = "org.revapi.maven.buildTimeBreakingCriticality";
     public static final String OUTPUT_NON_IDENTIFYING_ATTACHMENTS = "org.revapi.maven.outputNonIdentifyingAttachments";
     public static final String SUGGESTIONS_BUILDER_KEY = "org.revapi.maven.buildTimeSuggestionsBuilder";
 
-    private DifferenceSeverity breakingSeverity;
+    private Criticality breakingCriticality;
     private List<Report> allProblems;
     private List<Archive> oldApi;
     private List<Archive> newApi;
@@ -117,9 +117,9 @@ public final class BuildTimeReporter implements Reporter {
         for (Archive a : context.getNewApi().getArchives()) {
             newApi.add(a);
         }
-        this.breakingSeverity = (DifferenceSeverity) context.getData(BREAKING_SEVERITY_KEY);
-        if (breakingSeverity == null) {
-            throw new IllegalStateException("Breaking severity must be provided in the context data of the" +
+        this.breakingCriticality = (Criticality) context.getData(BREAKING_CRITICALITY_KEY);
+        if (breakingCriticality == null) {
+            throw new IllegalStateException("Max criticality must be provided in the context data of the" +
                     " BuildTimeReporter. If you see this, you've come across a bug, please report it.");
         }
 
@@ -156,14 +156,8 @@ public final class BuildTimeReporter implements Reporter {
     }
 
     private boolean isReportable(Difference d) {
-        DifferenceSeverity maxSeverity = DifferenceSeverity.NON_BREAKING;
-        for (DifferenceSeverity s : d.classification.values()) {
-            if (maxSeverity.compareTo(s) < 0) {
-                maxSeverity = s;
-            }
-        }
-
-        return maxSeverity.compareTo(breakingSeverity) >= 0;
+        Criticality c = d.criticality;
+        return breakingCriticality.compareTo(c) <= 0;
     }
 
     private boolean shouldOutputArchive(List<Archive> primaryApi, Archive archive) {

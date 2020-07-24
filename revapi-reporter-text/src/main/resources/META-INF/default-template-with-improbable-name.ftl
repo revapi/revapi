@@ -28,6 +28,9 @@ old: ${report.oldElement!"<none>"}
 new: ${report.newElement!"<none>"}
 <#list report.differences as diff>
 ${diff.code}<#if diff.description??>: ${diff.description}</#if>
+<#if diff.justification??>
+${diff.justification}
+</#if>
 <#list diff.classification?keys as compat>${compat}: ${diff.classification?api.get(compat)}<#sep>, </#list>
 </#list>
 <#sep>

@@ -40,16 +40,16 @@ import org.revapi.Element;
  * @since 0.1
  */
 public abstract class DifferenceMatchRecipe {
-    final ModelNode config;
-    final boolean regex;
-    final String code;
-    final Pattern codeRegex;
-    final String oldElement;
-    final Pattern oldElementRegex;
-    final String newElement;
-    final Pattern newElementRegex;
-    final Map<String, String> attachments;
-    final Map<String, Pattern> attachmentRegexes;
+    protected final ModelNode config;
+    protected final boolean regex;
+    protected final String code;
+    protected final Pattern codeRegex;
+    protected final String oldElement;
+    protected final Pattern oldElementRegex;
+    protected final String newElement;
+    protected final Pattern newElementRegex;
+    protected final Map<String, String> attachments;
+    protected final Map<String, Pattern> attachmentRegexes;
 
     protected DifferenceMatchRecipe(ModelNode config, String... additionalReservedProperties) {
         if (!config.has("code")) {

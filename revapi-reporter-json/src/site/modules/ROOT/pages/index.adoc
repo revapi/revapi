@@ -46,7 +46,8 @@ add the extension as a dependency of the maven plugin like so:
       "minSeverity": "POTENTIALLY_BREAKING",
       "output" : "out",
       "indent": false,
-      "append": false
+      "append": false,
+      "keepEmptyFile": true
     }
   }
 ]
@@ -59,6 +60,7 @@ add the extension as a dependency of the maven plugin like so:
     <output>out</output>
     <indent>false</indent>
     <append>false</append>
+    <keepEmptyFile>true</keepEmptyFile>
   </revapi.reporter.json>
 </analysisConfiguration>
 ```
@@ -74,6 +76,9 @@ The path to the output file. Two special values are recongized: `out` (which is 
 `append`::
 Whether to append to the chosen output or whether to overwrite it (doesn't make sense for standard (error) output).
 The default value is `false` meaning the output file will be overwritten if it already exists.
+`keepEmptyFile`::
+Defaults to `true`. If `true` the output file is kept even if no reports were written to it and thus it is empty. Has
+no effect if `append` is set to `true`.
 `indent`::
 Whether to indent the JSON or leave it in the minimal form. `false` by default to produce minimal
 output.
