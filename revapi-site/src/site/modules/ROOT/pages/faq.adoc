@@ -58,7 +58,8 @@ must also be specified to ensure that these extensions are run together and in a
                     </configuration>
                 </plugin>
 ```
-=== How to deal with External Class Exposed In API ?
+
+== How to deal with External Class Exposed In API ?
 This is mainly a warning to ensure that you are exposing class from external dependency on purpose.
 Generally, exposing a class from an external dependency could be considered a bad design because this could make it harder to upgrade to a more recent version of the dependency. One reason amongst others which makes encapsulation a good practice.
 
