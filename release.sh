@@ -178,10 +178,17 @@ function publish_site() {
 
   cwd=$(pwd)
 
-  cd revapi-site/site/modules/news/pages/news
-  vim -c ":read \!echo You\'re in news. Write release notes and save the file using an appropriate name."
+  to_release=$(determine_releases $@)
+  cd revapi-site/src/site/modules/news/pages/news
+  echo "= Release Notes
+:page-publish_date: $(date --rfc-3339=date)
+:page-layout: news-article
+
+You're in news. Write release notes and save the file using an appropriate name.
+" \
+  | vim -
   git add -A
-  git commit -m "Adding release notes"
+  git commit -m "Adding release notes for release of $to_release"
 
   cd "${cwd}/revapi-site-assembly"
 
@@ -189,7 +196,6 @@ function publish_site() {
 
   ensure_clean_workdir
 
-  to_release=$(determine_releases $@)
   for m in $to_release; do
     m="$(to_module "$m")"
     cd "../$m"
@@ -206,9 +212,19 @@ function publish_site() {
     done
   done
 
-  # TODO actually publish the site
-
   git checkout "$current_branch"
+
+  git clone https://github.com/revapi/revapi.github.io.git --depth 1 -b staging checkout
+  rm -Rf checkout/* checkout/.nojekyll
+  cp -r build/site/. checkout
+  cd checkout
+  git add -A
+  git commit -m "Site changes for release of $to_release"
+  git remote set-url --push origin git@github.com:revapi/revapi.github.io.git
+  git push -f origin HEAD:staging
+  cd ..
+  rm -Rf checkout
+
   cd ..
 }
 
