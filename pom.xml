@@ -51,7 +51,6 @@
         <module>revapi-maven-plugin</module>
         <module>revapi-standalone</module>
         <module>revapi-site</module>
-        <module>revapi-site-shared</module>
         <module>coverage</module>
         <module>revapi-reporter-file-base</module>
     </modules>
