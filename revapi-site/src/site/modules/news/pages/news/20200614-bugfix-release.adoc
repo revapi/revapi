@@ -1,4 +1,4 @@
-== Bugfix Release
+= Bugfix Release
 :docname: 20200614-bugfix-release
 :page-publish_date: 2020-06-14
 :page-layout: news-article
