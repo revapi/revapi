@@ -50,7 +50,6 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
-import org.jboss.dmr.ModelNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
@@ -68,7 +67,7 @@ public final class Analyzer {
     private static final Pattern ANY_NON_SNAPSHOT = Pattern.compile("^.*(?<!-SNAPSHOT)$");
     private static final Pattern ANY = Pattern.compile(".*");
 
-    private final PlexusConfiguration pipelineConfiguration;
+    private final PipelineConfiguration.Builder pipelineConfiguration;
 
     private final String[] oldGavs;
 
@@ -109,7 +108,7 @@ public final class Analyzer {
 
     private Revapi revapi;
 
-    Analyzer(PlexusConfiguration pipelineConfiguration, PlexusConfiguration analysisConfiguration,
+    Analyzer(PipelineConfiguration.Builder pipelineConfiguration, PlexusConfiguration analysisConfiguration,
             Object[] analysisConfigurationFiles, Artifact[] oldArtifacts, Artifact[] newArtifacts, String[] oldGavs,
             String[] newGavs, MavenProject project, RepositorySystem repositorySystem,
             RepositorySystemSession repositorySystemSession, Class<? extends Reporter> reporterType,
@@ -423,83 +422,14 @@ public final class Analyzer {
         return revapi;
     }
 
-    private PipelineConfiguration.Builder gatherPipelineConfiguration() {
-        String jsonConfig = pipelineConfiguration == null ? null : pipelineConfiguration.getValue();
-
-        PipelineConfiguration.Builder ret;
-
-        if (jsonConfig == null) {
-            // we're seeing XML. PipelineConfiguration is a set "format", not something dynamic as the extension
-            // configurations. We can therefore try to parse it straight away.
-            ret = parsePipelineConfigurationXML();
-        } else {
-            ModelNode json = ModelNode.fromJSONString(jsonConfig);
-            ret = PipelineConfiguration.parse(json);
-        }
-
-        // important to NOT add any extensions here yet. That's the job of the pipelineModifier that is responsible
-        // to construct
-        return ret;
-    }
-
-    private PipelineConfiguration.Builder parsePipelineConfigurationXML() {
-        PipelineConfiguration.Builder bld = PipelineConfiguration.builder();
-
-        if (pipelineConfiguration == null) {
-            return bld;
-        }
-
-        for (PlexusConfiguration c : pipelineConfiguration.getChildren()) {
-            switch (c.getName()) {
-            case "analyzers":
-                parseIncludeExclude(c, bld::addAnalyzerExtensionIdInclude, bld::addAnalyzerExtensionIdExclude);
-                break;
-            case "reporters":
-                parseIncludeExclude(c, bld::addReporterExtensionIdInclude, bld::addReporterExtensionIdExclude);
-                break;
-            case "filters":
-                parseIncludeExclude(c, bld::addFilterExtensionIdInclude, bld::addFilterExtensionIdExclude);
-                break;
-            case "transforms":
-                parseIncludeExclude(c, bld::addTransformExtensionIdInclude, bld::addTransformExtensionIdExclude);
-                break;
-            case "transformBlocks":
-                for (PlexusConfiguration b : c.getChildren()) {
-                    List<String> blockIds = Stream.of(b.getChildren())
-                            .map(PlexusConfiguration::getValue).collect(toList());
-                    bld.addTransformationBlock(blockIds);
-                }
-                break;
-            }
-        }
-
-        return bld;
-    }
-
-    private void parseIncludeExclude(PlexusConfiguration parent, Consumer<String> handleInclude,
-            Consumer<String> handleExclude) {
-
-        PlexusConfiguration include = parent.getChild("include");
-        PlexusConfiguration exclude = parent.getChild("exclude");
-
-        if (include != null) {
-            Stream.of(include.getChildren()).forEach(c -> handleInclude.accept(c.getValue()));
-        }
-
-        if (exclude != null) {
-            Stream.of(exclude.getChildren()).forEach(c -> handleExclude.accept(c.getValue()));
-        }
-    }
-
     private void buildRevapi() {
         if (revapi == null) {
-            PipelineConfiguration.Builder builder = gatherPipelineConfiguration();
-            pipelineModifier.accept(builder);
+            pipelineModifier.accept(pipelineConfiguration);
             if (reporterType != null) {
-                builder.withReporters(reporterType);
+                pipelineConfiguration.withReporters(reporterType);
             }
 
-            revapi = new Revapi(builder.build());
+            revapi = new Revapi(pipelineConfiguration.build());
         }
     }
 

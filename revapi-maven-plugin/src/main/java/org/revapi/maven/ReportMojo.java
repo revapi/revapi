@@ -180,9 +180,25 @@ public class ReportMojo extends AbstractMavenReport {
     /**
      * Problems with this or higher severity will be included in the report.
      * Possible values: equivalent, nonBreaking, potentiallyBreaking, breaking.
+     *
+     * @deprecated use {@link #reportCriticality} instead
      */
+    @Deprecated
     @Parameter(property = Props.reportSeverity.NAME, defaultValue = Props.reportSeverity.DEFAULT_VALUE)
     protected FailSeverity reportSeverity;
+
+    /**
+     * The minimum criticality of the differences that should be included in the report. This has to be one of
+     * the criticalities configured in the pipeline configuration (if the pipeline configuration doesn't define any,
+     * the following are  the default ones: {@code allowed}, {@code documented}, {@code highlight}, {@code error}).
+     *
+     * If not defined, the value is derived from {@link #reportSeverity} using the severity-to-criticality mapping
+     * (which is again configured in the pipeline configuration. If not defined in the pipeline configuration
+     * explicitly, the default mapping is the following: {@code EQUIVALENT} = {@code allowed}, {@code NON_BREAKING} =
+     * {@code documented}, {@code POTENTIALLY_BREAKING} = {@code error}, {@code BREAKING} = error.
+     */
+    @Parameter(property = Props.reportCriticality.NAME)
+    protected String reportCriticality;
 
     /**
      * Whether to skip the mojo execution.
@@ -423,7 +439,7 @@ public class ReportMojo extends AbstractMavenReport {
 
         AnalyzerBuilder.Result res = AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
                 .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
-                .withPipelineConfiguration(this.pipelineConfiguration)
+                .withPipelineConfiguration(PipelineConfigurationParser.parse(this.pipelineConfiguration))
                 .withAnalysisConfiguration(this.analysisConfiguration)
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
                 .withCheckDependencies(this.checkDependencies)

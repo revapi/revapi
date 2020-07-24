@@ -195,7 +195,7 @@ public final class Difference {
     public final String justification;
 
     /**
-     * The criticality of the difference.
+     * The criticality of the difference. Never null when accessed in a {@link Reporter}.
      */
     public final @Nullable Criticality criticality;
 

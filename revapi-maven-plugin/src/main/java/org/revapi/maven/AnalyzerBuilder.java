@@ -59,7 +59,7 @@ class AnalyzerBuilder {
     private String newVersion;
     private String disallowedExtensions;
     private Class<? extends Reporter> reporterType;
-    private PlexusConfiguration pipelineConfiguration;
+    private PipelineConfiguration.Builder pipelineConfiguration;
     private PlexusConfiguration analysisConfiguration;
     private Object[] analysisConfigurationFiles;
     private RepositorySystem repositorySystem;
@@ -126,7 +126,7 @@ class AnalyzerBuilder {
         return this;
     }
 
-    AnalyzerBuilder withPipelineConfiguration(PlexusConfiguration pipelineConfiguration) {
+    AnalyzerBuilder withPipelineConfiguration(PipelineConfiguration.Builder pipelineConfiguration) {
         this.pipelineConfiguration = pipelineConfiguration;
         return this;
     }

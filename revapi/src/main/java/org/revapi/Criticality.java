@@ -84,7 +84,7 @@ public final class Criticality implements Comparable<Criticality> {
      * The default set of criticalities known to the pipeline configuration.
      */
     public static Set<Criticality> defaultCriticalities() {
-        Set<Criticality> ret = new HashSet<>();
+        Set<Criticality> ret = new HashSet<>(4, 1.0f);
         ret.add(ALLOWED);
         ret.add(DOCUMENTED);
         ret.add(HIGHLIGHT);

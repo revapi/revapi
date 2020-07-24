@@ -30,6 +30,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.revapi.AnalysisResult;
+import org.revapi.Criticality;
+import org.revapi.PipelineConfiguration;
 
 /**
  * Runs the API check of old and new artifacts using the specified configuration of extensions declared as dependencies
@@ -48,7 +50,7 @@ public class CheckMojo extends AbstractRevapiMojo {
      * {@link #ignoreSuggestionsFormat} property.
      * <p>
      * Since 0.11.6 the suggestions are printed even if {@link #failBuildOnProblemsFound} is false. In that case all
-     * the problems that have the severity larger or equal to the {@link #failSeverity} are printed.
+     * the problems that have the criticality larger or equal to the {@link #failCriticality} are printed.
      *
      * @since 0.10.4
      */
@@ -93,8 +95,11 @@ public class CheckMojo extends AbstractRevapiMojo {
         StringWriter wrt = new StringWriter();
         BuildTimeReporter reporter;
 
-        try (AnalysisResult res = analyze(BuildTimeReporter.class,
-                BuildTimeReporter.BREAKING_SEVERITY_KEY, failSeverity.asDifferenceSeverity(), "maven-log", getLog(),
+        PipelineConfiguration.Builder pipelineCfg = PipelineConfigurationParser.parse(pipelineConfiguration);
+        Criticality maxCriticality = determineMaximumCriticality(pipelineCfg.build());
+
+        try (AnalysisResult res = analyze(BuildTimeReporter.class, pipelineCfg,
+                BuildTimeReporter.BREAKING_CRITICALITY_KEY, maxCriticality, "maven-log", getLog(),
                 "writer", wrt, BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, outputNonIdentifyingDifferenceInfo,
                 BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, getSuggestionsBuilder())) {
 

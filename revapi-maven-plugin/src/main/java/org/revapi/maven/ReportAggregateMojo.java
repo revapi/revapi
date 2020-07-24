@@ -264,7 +264,7 @@ public class ReportAggregateMojo extends ReportMojo {
 
         AnalyzerBuilder bld = AnalyzerBuilder.forArtifacts(oldArtifacts, newArtifacts)
                 .withAlwaysCheckForReleasedVersion(this.alwaysCheckForReleaseVersion)
-                .withPipelineConfiguration(this.pipelineConfiguration)
+                .withPipelineConfiguration(PipelineConfigurationParser.parse(this.pipelineConfiguration))
                 .withAnalysisConfiguration(this.analysisConfiguration)
                 .withAnalysisConfigurationFiles(this.analysisConfigurationFiles)
                 .withCheckDependencies(this.checkDependencies)

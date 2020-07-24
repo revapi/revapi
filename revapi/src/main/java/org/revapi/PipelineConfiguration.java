@@ -604,7 +604,7 @@ public final class PipelineConfiguration {
             return this;
         }
 
-        private Builder withUntypedSeverityMapping(Map<DifferenceSeverity, String> severityMapping) {
+        public Builder withUntypedSeverityMapping(Map<DifferenceSeverity, String> severityMapping) {
             if (severityMapping == null || severityMapping.isEmpty()) {
                 return this;
             }
@@ -619,35 +619,41 @@ public final class PipelineConfiguration {
         }
 
         public Builder addSeverityMapping(DifferenceSeverity severity, Criticality criticality) {
+            return addUntypedSeverityMapping(severity, criticality.getName());
+        }
+
+        public Builder addUntypedSeverityMapping(DifferenceSeverity severity, String criticalityName) {
             if (this.severityMapping == null) {
                 this.severityMapping = new EnumMap<>(DifferenceSeverity.class);
             }
 
-            this.severityMapping.put(severity, criticality.getName());
+            this.severityMapping.put(severity, criticalityName);
             return this;
         }
-
         /**
+         * Returns a new {@link PipelineConfiguration} instance. The builder is reusable after this call and the
+         * returned instance is independent of it.
+         *
          * @return a new Revapi pipeline configuration
          * @throws IllegalStateException if there are no api analyzers or no reporters added.
          */
         public PipelineConfiguration build() throws IllegalStateException {
-            analyzers = analyzers == null ? emptySet() : analyzers;
-            reporters = reporters == null ? emptySet() : reporters;
-            transforms = transforms == null ? emptySet() : transforms;
-            filters = filters == null ? emptySet() : filters;
-            transformationBlocks = transformationBlocks == null ? emptySet() : transformationBlocks;
-            includedAnalyzerExtensionIds = includedAnalyzerExtensionIds == null ? emptyList() : includedAnalyzerExtensionIds;
-            excludedAnalyzerExtensionIds = excludedAnalyzerExtensionIds == null ? emptyList() : excludedAnalyzerExtensionIds;
-            includedReporterExtensionIds = includedReporterExtensionIds == null ? emptyList() : includedReporterExtensionIds;
-            excludedReporterExtensionIds = excludedReporterExtensionIds == null ? emptyList() : excludedReporterExtensionIds;
-            includedTransformExtensionIds = includedTransformExtensionIds == null ? emptyList() : includedTransformExtensionIds;
-            excludedTransformExtensionIds = excludedTransformExtensionIds == null ? emptyList() : excludedTransformExtensionIds;
-            includedFilterExtensionIds = includedFilterExtensionIds == null ? emptyList() : includedFilterExtensionIds;
-            excludedFilterExtensionIds = excludedFilterExtensionIds == null ? emptyList() : excludedFilterExtensionIds;
+            Set<Class<? extends ApiAnalyzer>> analyzers = this.analyzers == null ? emptySet() : new HashSet<>(this.analyzers);
+            Set<Class<? extends Reporter>> reporters = this.reporters == null ? emptySet() : new HashSet<>(this.reporters);
+            Set<Class<? extends DifferenceTransform<?>>> transforms = this.transforms == null ? emptySet() : new HashSet<>(this.transforms);
+            Set<Class<? extends ElementFilter>> filters = this.filters == null ? emptySet() : new HashSet<>(this.filters);
+            Set<List<String>> transformationBlocks = this.transformationBlocks == null ? emptySet() : new HashSet<>(this.transformationBlocks);
+            List<String> includedAnalyzerExtensionIds = this.includedAnalyzerExtensionIds == null ? emptyList() : new ArrayList<>(this.includedAnalyzerExtensionIds);
+            List<String> excludedAnalyzerExtensionIds = this.excludedAnalyzerExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedAnalyzerExtensionIds);
+            List<String> includedReporterExtensionIds = this.includedReporterExtensionIds == null ? emptyList() : new ArrayList<>(this.includedReporterExtensionIds);
+            List<String> excludedReporterExtensionIds = this.excludedReporterExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedReporterExtensionIds);
+            List<String> includedTransformExtensionIds = this.includedTransformExtensionIds == null ? emptyList() : new ArrayList<>(this.includedTransformExtensionIds);
+            List<String> excludedTransformExtensionIds = this.excludedTransformExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedTransformExtensionIds);
+            List<String> includedFilterExtensionIds = this.includedFilterExtensionIds == null ? emptyList() : new ArrayList<>(this.includedFilterExtensionIds);
+            List<String> excludedFilterExtensionIds = this.excludedFilterExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedFilterExtensionIds);
 
             boolean defaultCriticalities = criticalities == null;
-            criticalities = criticalities == null ? Criticality.defaultCriticalities() : criticalities;
+            Set<Criticality> criticalities = this.criticalities == null ? Criticality.defaultCriticalities() : new HashSet<>(this.criticalities);
 
             Map<DifferenceSeverity, Criticality> sm;
             if (severityMapping == null) {
