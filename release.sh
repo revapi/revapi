@@ -34,6 +34,20 @@ ORDER_revapi_java=5
 ORDER_revapi_maven_plugin=5
 ORDER_revapi_ant_task=5
 ORDER_revapi_standalone=5
+SITE_revapi_parent=0
+SITE_revapi_build_support=0
+SITE_revapi_build=0
+SITE_revapi_maven_utils=0
+SITE_revapi=1
+SITE_revapi_basic_features=1
+SITE_revapi_reporter_file_base=1
+SITE_revapi_reporter_json=1
+SITE_revapi_reporter_text=1
+SITE_revapi_java_spi=1
+SITE_revapi_java=1
+SITE_revapi_maven_plugin=1
+SITE_revapi_ant_task=1
+SITE_revapi_standalone=1
 
 function to_dep() {
   echo "${@//-/_}"
@@ -185,6 +199,8 @@ function publish_site() {
 :page-layout: news-article
 
 You're in news. Write release notes and save the file using an appropriate name.
+The following modules were released:
+$to_release
 " \
   | vim -
   git add -A
@@ -192,40 +208,44 @@ You're in news. Write release notes and save the file using an appropriate name.
 
   cd "${cwd}/revapi-site-assembly"
 
-  ./build.sh antora-playbook.yaml
+  rm -Rf build
+  git clone https://github.com/revapi/revapi.github.io.git --depth 1 build/site
+  ./build.sh antora-playbook.yaml --stacktrace
 
   ensure_clean_workdir
 
-  for m in $to_release; do
-    m="$(to_module "$m")"
-    cd "../$m"
-    releases=$(git tag | grep ${m}_v)
-    for r in $releases; do
-      git checkout "${r}"
-      # package so that the revapi report can be produced
-      mvn package site -DskipTests
-      ver=$(echo $r | sed 's/^.*_v//')
+  for dep in $to_release; do
+    # if the module has a site
+    if [ 1 = $(eval "echo \$SITE_$dep") ]; then
+      m="$(to_module "$dep")"
+      cd "../$m"
+      # check that all releases have their mvn sites present in the checkout
+      releases=$(git tag | grep ${m}_v)
+      for r in $releases; do
+        ver=$(echo $r | sed 's/^.*_v//')
+        dir="../revapi-site-assembly/build/site/$m/$ver/_attachments"
+        check_dir="$dir/apidocs"
+        if [ ! -d $check_dir ]; then
+          git checkout "${r}"
+          # package so that the revapi report can be produced
+          mvn package site -DskipTests
 
-      dir=../revapi-site-assembly/build/site/$m/$ver/_attachments
-      mkdir -p $dir
-      cp -R target/site/* $dir
-    done
+          mkdir -p $dir
+          cp -R target/site/* $dir
+        fi
+      done
+    fi
   done
 
   git checkout "$current_branch"
 
-  git clone https://github.com/revapi/revapi.github.io.git --depth 1 -b staging checkout
-  rm -Rf checkout/* checkout/.nojekyll
-  cp -r build/site/. checkout
-  cd checkout
+  cd build/site
   git add -A
   git commit -m "Site changes for release of $to_release"
   git remote set-url --push origin git@github.com:revapi/revapi.github.io.git
   git push -f origin HEAD:staging
-  cd ..
-  rm -Rf checkout
 
-  cd ..
+  cd ../..
 }
 
 do_releases $@
