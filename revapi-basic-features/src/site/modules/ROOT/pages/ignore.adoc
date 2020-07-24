@@ -2,7 +2,7 @@
 
 *Extension*: `revapi.ignore`
 
-WARNING: This extension is deprecated in favor of link:differences.adoc[`revapi.differences`].
+WARNING: This extension is deprecated in favor of xref:differences.adoc[`revapi.differences`].
 
 Using this extension one can ignore certain API problems found during the analysis so that they don't appear in the
 reported output.
