@@ -276,7 +276,7 @@ The transformation blocks are configured, as the allowed extensions, in the pipe
 as explained in the xref:revapi::architecture.adoc[architecture], the transform blocks enable multiple transform to
 "act as one".
 
-==== Criticality
+=== Criticality
 
 Revapi comes with a default set of criticalities that roughly describe common situations when dealing with API changes.
 The criticality describes how severe the API change is and its effect on the state of the code. There is a default set
