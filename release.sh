@@ -224,8 +224,8 @@ $to_release
       for r in $releases; do
         ver=$(echo $r | sed 's/^.*_v//')
         dir="../revapi-site-assembly/build/site/$m/$ver/_attachments"
-        check_dir="$dir/apidocs"
-        if [ ! -d $check_dir ]; then
+        check_file="$dir/index.html"
+        if [ ! -f $check_file ]; then
           git checkout "${r}"
           # package so that the revapi report can be produced
           mvn package site -DskipTests
@@ -237,15 +237,15 @@ $to_release
     fi
   done
 
-  git checkout "$current_branch"
+  cd "${cwd}/revapi-site-assembly/build/site"
 
-  cd build/site
   git add -A
   git commit -m "Site changes for release of $to_release"
   git remote set-url --push origin git@github.com:revapi/revapi.github.io.git
   git push -f origin HEAD:staging
 
-  cd ../..
+  cd "${cwd}"
+  git checkout "$current_branch"
 }
 
 do_releases $@
