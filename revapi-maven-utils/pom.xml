@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>42-SNAPSHOT</version>
+        <version>41</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,7 +33,7 @@
     <url>https://revapi.org</url>
 
     <artifactId>revapi-maven-utils</artifactId>
-    <version>0.10.2-SNAPSHOT</version>
+    <version>0.10.2</version>
 
     <properties>
         <skipTests>false</skipTests>
