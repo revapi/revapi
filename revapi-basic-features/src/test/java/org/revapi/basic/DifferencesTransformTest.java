@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.Criticality;
 import org.revapi.Difference;
 import org.revapi.Element;
 
@@ -67,6 +68,25 @@ public class DifferencesTransformTest {
 
         assertNotNull(transformed);
         assertEquals("because", transformed.justification);
+    }
+
+    @Test
+    public void testAddsCriticality() throws Exception {
+        DifferencesTransform tr = new DifferencesTransform();
+        tr.initialize(context(new ModelNode()
+                .add("differences", new ModelNode()
+                        .add(new ModelNode()
+                                .add("regex", true)
+                                .add("code", ".*")
+                                .add("criticality", "documented")
+                                .asObject())
+                )
+                .asObject()));
+
+        Difference transformed = tr.transform(oldEl, newEl, Difference.builder().withCode("whatevs").build());
+
+        assertNotNull(transformed);
+        assertEquals(Criticality.DOCUMENTED, transformed.criticality);
     }
 
     @Test
@@ -184,6 +204,34 @@ public class DifferencesTransformTest {
         transformed = tr.transform(oldEl, newEl, Difference.builder().withCode("c3").build());
         assertNotNull(transformed);
         assertNull(transformed.justification);
+    }
+
+    @Test
+    public void testBulkAddsCriticality() throws Exception {
+        DifferencesTransform tr = new DifferencesTransform();
+        tr.initialize(context(new ModelNode()
+                .add("criticality", "highlight")
+                .add("differences", new ModelNode()
+                        .add(new ModelNode()
+                                .add("code", "c1")
+                                .asObject())
+                        .add(new ModelNode()
+                                .add("code", "c2")
+                                .asObject())
+                )
+                .asObject()));
+
+        Difference transformed = tr.transform(oldEl, newEl, Difference.builder().withCode("c1").build());
+        assertNotNull(transformed);
+        assertEquals(Criticality.HIGHLIGHT, transformed.criticality);
+
+        transformed = tr.transform(oldEl, newEl, Difference.builder().withCode("c2").build());
+        assertNotNull(transformed);
+        assertEquals(Criticality.HIGHLIGHT, transformed.criticality);
+
+        transformed = tr.transform(oldEl, newEl, Difference.builder().withCode("c3").build());
+        assertNotNull(transformed);
+        assertNull(transformed.criticality);
     }
 
     @Test

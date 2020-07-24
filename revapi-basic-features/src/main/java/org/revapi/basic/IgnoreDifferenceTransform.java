@@ -88,7 +88,7 @@ public class IgnoreDifferenceTransform extends DifferencesTransform {
     protected DifferenceRecipe newRecipe(ModelNode config) {
         config = config.clone();
         config.get("ignore").set(true);
-        return new DifferenceRecipe(config);
+        return new DifferenceRecipe(config, analysisContext);
     }
 
     @Override

@@ -14,6 +14,9 @@
     "attachments": {
       "$ref": "#/definitions/attachments"
     },
+    "criticality": {
+      "$ref": "#/definitions/criticality"
+    },
     "differences": {
       "type": "array",
       "items": {
@@ -43,6 +46,9 @@
           },
           "attachments": {
             "$ref": "#/definitions/attachments"
+          },
+          "criticality": {
+            "$ref": "#/definitions/criticality"
           }
         },
         "additionalProperties": {
@@ -93,6 +99,9 @@
     "attachments": {
       "type": "object",
       "additionalProperties": true
+    },
+    "criticality": {
+      "type": "string"
     }
   }
 }

@@ -29,16 +29,23 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.jboss.dmr.ModelNode;
+import org.revapi.AnalysisContext;
 import org.revapi.CompatibilityType;
+import org.revapi.Criticality;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DifferencesTransform extends AbstractDifferenceReferringTransform {
+    private static final Logger LOG = LoggerFactory.getLogger(DifferencesTransform.class);
+
     private ModelNode bulkClassify;
     private ModelNode bulkIgnore;
     private ModelNode bulkJustification;
     private ModelNode bulkAttachments;
+    private ModelNode bulkCriticality;
 
     public DifferencesTransform() {
         super("revapi.differences");
@@ -109,7 +116,11 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
             }
         }
 
-        return new DifferenceRecipe(configNode);
+        if (!configNode.hasDefined("criticality") && bulkCriticality.isDefined()) {
+            configNode.get("criticality").set(bulkCriticality.asString());
+        }
+
+        return new DifferenceRecipe(configNode, analysisContext);
     }
 
     @Override
@@ -123,6 +134,7 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
         bulkIgnore = configNode.get("ignore");
         bulkJustification = configNode.get("justification");
         bulkAttachments = configNode.get("attachments");
+        bulkCriticality = configNode.get("criticality");
 
         return configNode.get("differences");
     }
@@ -139,9 +151,10 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
         protected final String justification;
         protected final Map<CompatibilityType, DifferenceSeverity> classification;
         protected final Map<String, String> newAttachments;
+        protected final Criticality criticality;
 
-        public DifferenceRecipe(ModelNode config) {
-            super(config, "classify", "ignore", "justification", "attachments");
+        public DifferenceRecipe(ModelNode config, AnalysisContext ctx) {
+            super(config, "classify", "ignore", "justification", "attachments", "criticality");
             ignore = config.get("ignore").asBoolean(false);
             justification = config.get("justification").asString(null);
             classification = parseClassification(config.get("classify"));
@@ -154,6 +167,17 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
             } else {
                 newAttachments = emptyMap();
             }
+
+            if (config.hasDefined("criticality")) {
+                String name = config.get("criticality").asString();
+                criticality = ctx.getCriticalityByName(name);
+                if (criticality == null) {
+                    LOG.warn("Unknown criticality '" + name + "' used in difference match recipe. Letting the" +
+                            " analysis continue but the results might be skewed.");
+                }
+            } else {
+                criticality = null;
+            }
         }
 
         @Override
@@ -162,7 +186,8 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
                 return null;
             }
 
-            if (justification == null && classification.isEmpty() && newAttachments.isEmpty()) {
+            // avoid creating a copy when no updates would be made...
+            if (justification == null && classification.isEmpty() && newAttachments.isEmpty() && criticality == null) {
                 return difference;
             }
 
@@ -170,6 +195,10 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
 
             if (justification != null) {
                 copy.withJustification(justification);
+            }
+
+            if (criticality != null) {
+                copy.withCriticality(criticality);
             }
 
             copy.addClassifications(classification);

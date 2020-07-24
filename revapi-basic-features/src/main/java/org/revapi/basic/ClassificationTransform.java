@@ -94,7 +94,7 @@ public class ClassificationTransform extends DifferencesTransform {
     @Nonnull
     @Override
     protected DifferenceMatchRecipe newRecipe(ModelNode config) {
-        return new DifferenceRecipe(config);
+        return new DifferenceRecipe(config, analysisContext);
     }
 
     @Override

@@ -17,6 +17,7 @@ provides new functionality that enables sharing the configuration for build-time
         "extension": "revapi.differences",
         "configuration": {
             "justification": "This change is necessary to fix bug #1234",
+            "criticality": "highlight",
             "differences": [
                 {
                     "code": "java.method.addToInterface",
@@ -38,6 +39,7 @@ provides new functionality that enables sharing the configuration for build-time
 ```xml
 <revapi.differences>
     <justification>This change is necessary to fix bug #1234</justification>
+    <criticality>hightlight</criticality>
     <differences>
         <item>
             <code>java.method.addToInterface</code>
@@ -58,6 +60,9 @@ provides new functionality that enables sharing the configuration for build-time
 `justification`::
 The justification that will be added to all the matching differences, if the concrete difference match recipe doesn't
 provide its own justification.
+`criticality`::
+The criticality that will be assigned to all of the matching differences, if the concrete difference match recipe
+doesn't provide its own criticality.
 `ignore`::
 If `true`, all the matching differences will be ignored. This can be locally redefined in each difference match recipe.
 `classify`::
@@ -83,6 +88,9 @@ Specifies the new element of the problem to ignore. This property is optional.
 `justification`:::
 This can used to describe why this change was necessary. This can be used in the reports to give additional detail for
 why a change was necessary.
+`criticality`:::
+This is used to assign the criticality of the difference for the overall analysis result. This must be one of the
+configured criticality names.
 `attachments`:::
 This can be used to add additional attachments (match parameters) to the difference that can be used by the difference
 transformations down the line. It is an ordinary key-value map with string keys and values.
