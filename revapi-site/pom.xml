@@ -29,7 +29,7 @@
 
   <name>Revapi Site</name>
   <description>Full-featured API checker for Java and beyond.</description>
-  <url>${web.url}</url>
+  <url>https://revapi.org</url>
 
   <artifactId>revapi-site</artifactId>
   <version>0</version>
@@ -43,7 +43,7 @@
   <distributionManagement>
     <site>
       <id>site</id>
-      <url>${web.repo}</url>
+      <url>https://revapi.org</url>
     </site>
   </distributionManagement>
 

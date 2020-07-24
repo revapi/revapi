@@ -30,7 +30,7 @@
     <description>
         Maven utilities for Revapi.
     </description>
-    <url>${web.url}/modules/${project.artifactId}</url>
+    <url>https://revapi.org</url>
 
     <artifactId>revapi-maven-utils</artifactId>
     <version>0.10.2-SNAPSHOT</version>

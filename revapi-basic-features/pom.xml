@@ -31,7 +31,7 @@
         The basic extensions loaded by default both in the standalone
         distribution and by the maven plugin.
     </description>
-    <url>${web.url}/modules/${project.artifactId}</url>
+    <url>https://revapi.org</url>
 
     <artifactId>revapi-basic-features</artifactId>
     <version>0.10.0-SNAPSHOT</version>
@@ -68,7 +68,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.repo}</url>
+            <url>https://revapi.org</url>
         </site>
     </distributionManagement>
 

@@ -10,7 +10,7 @@
 
     <artifactId>revapi-build-support</artifactId>
     <version>6-SNAPSHOT</version>
-    <url>${web.url}/modules/${project.artifactId}</url>
+    <url>https://revapi.org</url>
 
     <name>Revapi Build Support</name>
     <description>Support library for build. As of now it contains checkstyle definitions.</description>
@@ -18,7 +18,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.repo}</url>
+            <url>https://revapi.org</url>
         </site>
     </distributionManagement>
 

@@ -32,10 +32,6 @@
     <version>0</version>
     <packaging>pom</packaging>
 
-    <properties>
-        <web.repo>scm:git:ssh://git@github.com/revapi/revapi.github.io.git</web.repo>
-    </properties>
-
     <modules>
         <module>revapi-parent</module>
         <module>revapi-build-support</module>
@@ -90,7 +86,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.repo}</url>
+            <url>scm:git:ssh://git@github.com/revapi/revapi.git</url>
         </site>
     </distributionManagement>
 </project>

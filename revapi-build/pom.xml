@@ -353,7 +353,7 @@
                 <configuration>
                     <sourceHighlighter>highlightjs</sourceHighlighter>
                     <attributes>
-                        <base_url>${web.url}</base_url>
+                        <base_url>https://revapi.org</base_url>
                         <scm>${project.scm.url}</scm>
                     </attributes>
                 </configuration>

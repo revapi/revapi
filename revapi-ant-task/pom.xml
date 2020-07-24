@@ -30,7 +30,7 @@
     <description>
         Ant integration for Revapi.
     </description>
-    <url>${web.url}/modules/${project.artifactId}</url>
+    <url>https://revapi.org</url>
 
     <artifactId>revapi-ant-task</artifactId>
     <version>0.10.0-SNAPSHOT</version>
@@ -143,7 +143,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.repo}</url>
+            <url>https://revapi.org</url>
         </site>
     </distributionManagement>
 

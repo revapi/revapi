@@ -31,7 +31,7 @@
         Super simple Revapi reporter outputting a textual representation of
         the differences to a file or on standard output. Takes Freemarker templates for formatting the output.
     </description>
-    <url>${web.url}/modules/${project.artifactId}</url>
+    <url>https://revapi.org</url>
 
     <artifactId>revapi-reporter-text</artifactId>
     <version>0.12.0-SNAPSHOT</version>
@@ -79,7 +79,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.repo}</url>
+            <url>https://revapi.org</url>
         </site>
     </distributionManagement>
 
