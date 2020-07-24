@@ -4,7 +4,7 @@ site:
   start_page: revapi-site::index.adoc
   robots: allow
 content:
-  edit_url: 'https://github.com/revapi/revapi/edit/{refname}/{path}'
+  edit_url: 'https://github.com/revapi/revapi/edit/master/{path}'
   sources:
     - url: ../
       branches: master
