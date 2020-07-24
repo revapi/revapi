@@ -6,7 +6,7 @@ site:
 content:
   sources:
     - url: ../
-      branches: HEAD
+      branches: master
       start_path: revapi-site/src/site
     - url: ../
       branches: ~
@@ -51,13 +51,16 @@ content:
 ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
-    snapshot: true
   supplemental_files: ./supplemental-ui
 runtime:
   fetch: true
 asciidoc:
   attributes:
     plantuml-server-url: http://www.plantuml.com/plantuml
+    news-feed-title: Revapi
+    news-feed-description: Full-featured API checker for Java and beyond
+    news-feed-id: https://revapi.org
+    news-feed-max-items: 10
   extensions:
     - asciidoctor-plantuml
     - ./extensions/news
