@@ -150,8 +150,18 @@ public final class Revapi {
         }
 
         StreamSupport.stream(extensions.spliterator(), false)
-                .map(e -> (Map.Entry<ExtensionInstance<? extends Configurable>, AnalysisContext>) (Map.Entry) e)
-                .forEach(e -> e.getKey().getInstance().initialize(e.getValue()));
+                .map(e -> (Map.Entry<ExtensionInstance<Configurable>, AnalysisContext>) (Map.Entry) e)
+                .forEach(e -> {
+                    ExtensionInstance<Configurable> i = e.getKey();
+
+                    try {
+                        i.getInstance().initialize(e.getValue());
+                    } catch (Exception ex) {
+                        throw new IllegalStateException("Extension " + i.getInstance().getExtensionId()
+                                + (i.getId() == null ? "" : "(id=" + i.getId() + ")")
+                                + " failed to initialize: " + ex.getMessage(), ex);
+                    }
+                });
 
         AnalysisProgress progress = new AnalysisProgress(extensions, pipelineConfiguration, analysisContext.getOldApi(),
                 analysisContext.getNewApi());
