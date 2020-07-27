@@ -4,11 +4,14 @@
   "properties": {
     "minSeverity": {
       "enum": [
+        "EQUIVALENT",
         "NON_BREAKING",
         "POTENTIALLY_BREAKING",
         "BREAKING"
-      ],
-      "default": "POTENTIALLY_BREAKING"
+      ]
+    },
+    "minCriticality": {
+      "type": "string"
     },
     "output": {
       "type": "string",

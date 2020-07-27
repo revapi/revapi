@@ -4,8 +4,15 @@
   "type": "object",
   "properties": {
     "minSeverity": {
-      "enum": ["NON_BREAKING", "POTENTIALLY_BREAKING", "BREAKING"],
-      "default": "POTENTIALLY_BREAKING"
+      "enum": [
+        "EQUIVALENT",
+        "NON_BREAKING",
+        "POTENTIALLY_BREAKING",
+        "BREAKING"
+      ]
+    },
+    "minCriticality": {
+      "type": "string"
     },
     "output": {
       "type": "string",
