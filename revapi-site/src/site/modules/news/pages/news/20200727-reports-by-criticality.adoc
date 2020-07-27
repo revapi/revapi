@@ -1,0 +1,7 @@
+= Reports by Criticality
+:page-publish_date: 2020-07-27
+:page-layout: news-article
+
+This is a quick small release that adds the ability to report by the criticality to `revapi.reporter.json`
+and `revapi.reporter.text` extensions. This should have really been part of the last release but hey :)
+
