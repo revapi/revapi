@@ -17,6 +17,6 @@
 
 name: revapi-java-spi
 title: Java Extension SPI
-version: 0.21.1-SNAPSHOT
+version: master
 nav:
   - modules/ROOT/nav.adoc

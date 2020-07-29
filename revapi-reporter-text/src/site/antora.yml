@@ -17,6 +17,6 @@
 
 name: revapi-reporter-text
 title: Text Reporter
-version: 0.12.2-SNAPSHOT
+version: master
 nav:
   - modules/ROOT/nav.adoc

@@ -10,43 +10,43 @@ content:
       branches: master
       start_path: revapi-site/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi_v*
       start_path: revapi/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi-basic-features_v*
       start_path: revapi-basic-features/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi-maven-plugin_v*
       start_path: revapi-maven-plugin/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi-ant-task_v*
       start_path: revapi-ant-task/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi-java_v*
       start_path: revapi-java/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi-java-spi_v*
       start_path: revapi-java-spi/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi-reporter-file-base_v*
       start_path: revapi-reporter-file-base/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi-reporter-json_v*
       start_path: revapi-reporter-json/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi-reporter-text_v*
       start_path: revapi-reporter-text/src/site
     - url: ../
-      branches: ~
+      branches: master
       tags: revapi-standalone_v*
       start_path: revapi-standalone/src/site
 ui:

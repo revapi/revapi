@@ -136,13 +136,13 @@ function release_module() {
   fi
   mvn versions:update-parent versions:force-releases -DprocessParent=true -Dincludes="org.revapi:*"
   mvn versions:set -DremoveSnapshot=true
-  mvn license:format verify
+  mvn license:format verify -Pantora-release #antora-release makes sure we set the appropriate version in the antora.yml
   version=$(xpath -q -e "/project/version/text()" pom.xml)
   git add -A
   git commit -m "Release $module-$version"
   git tag "${module}_v${version}"
   ensure_clean_workdir
-  mvn -Prelease install deploy -DskipTests
+  mvn -Prelease install deploy -DskipTests # this will also set the version in antora.yml back to master
   mvn versions:set \
     -DnextSnapshot=true
   mvn versions:use-next-snapshots versions:update-parent \
@@ -151,7 +151,6 @@ function release_module() {
     -DprocessParent=true \
     -Dincludes='org.revapi:*'
   version=$(xpath -q -e "/project/version/text()" pom.xml)
-  mvn process-sources # to set the version in antora.yml
   git add -A
   git commit -m "Setting $module to version $version"
   #now we need to install so that the subsequent builds pick up our new version
@@ -234,6 +233,11 @@ $to_release
           cp -R target/site/* $dir
         fi
       done
+      # and copy the attachments of the latest version of the module to the "master" version of it
+      latestTag=$(git tag -l --sort=creatordate "${m}_v*" | head -1)
+      latestVer=$(echo $latestTag | sed 's/^.*_v//')
+      rm -Rf "../revapi-site-assembly/build/site/$m/_attachments"
+      cp -r "../revapi-site-assembly/build/site/$m/$latestVer/_attachments" "../revapi-site-assembly/build/site/$m"
     fi
   done
 

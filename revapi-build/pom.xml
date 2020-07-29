@@ -60,6 +60,8 @@
 	-->
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+
+        <antora-module.version>master</antora-module.version>
     </properties>
 
     <dependencyManagement>
@@ -289,7 +291,7 @@
                             <target>
                                 <replaceregexp byline="true">
                                     <regexp pattern="^version: .*"/>
-                                    <substitution expression="version: ${project.version}"/>
+                                    <substitution expression="version: ${antora-module.version}"/>
                                     <fileset dir="${basedir}">
                                         <include name="src/site/antora.yml"/>
                                     </fileset>
@@ -509,6 +511,12 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>antora-release</id>
+            <properties>
+                <antora-module.version>${project.version}</antora-module.version>
+            </properties>
         </profile>
     </profiles>
 

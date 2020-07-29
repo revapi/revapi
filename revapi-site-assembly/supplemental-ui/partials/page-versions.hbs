@@ -1,6 +1,15 @@
+{{#if (not (eq @root.page.component.name "revapi-site"))}}
+  Version:
+{{/if}}
 <div class="page-versions">
   {{#if page.versions}}
-    <button class="version-menu-toggle" title="Versions of the component">{{@root.page.componentVersion.displayVersion}}</button>
+    <button class="version-menu-toggle" title="Versions of the component">
+      {{#if (eq @root.page.componentVersion.displayVersion "master")}}
+        latest
+      {{else}}
+        {{@root.page.componentVersion.displayVersion}}
+      {{/if}}
+    </button>
   {{else}}
     {{#if (not (eq @root.page.component.name "revapi-site"))}}
       <div class="sole-version" title="Version of the component">{{@root.page.componentVersion.displayVersion}}</div>
@@ -9,9 +18,16 @@
   <div class="version-menu">
     {{#if page.versions}}
       {{#each page.versions}}
-      <a class="version
-        {{~#if (eq ./version @root.page.version)}} is-current{{/if~}}
-        {{~#if ./missing}} is-missing{{/if}}" href="{{{relativize ./url}}}">{{./displayVersion}}</a>
+        <a class="version
+          {{~#if (eq ./version @root.page.version)}} is-current{{/if~}}
+          {{~#if ./missing}} is-missing{{/if}}" href="{{{relativize ./url}}}">
+
+          {{#if (eq ./displayVersion "master")}}
+            latest
+          {{else}}
+            {{./displayVersion}}
+          {{/if}}
+        </a>
       {{/each}}
     {{/if}}
   </div>
