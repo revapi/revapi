@@ -150,7 +150,7 @@ function release_module() {
   git commit -m "Release $module-$version"
   git tag "${module}_v${version}"
   ensure_clean_workdir
-  mvn -Prelease install deploy -DskipTests # this will also set the version in antora.yml back to master
+  mvn -Prelease install deploy -DskipTests
   mvn versions:set \
     -DnextSnapshot=true
   mvn versions:use-next-snapshots versions:update-parent \
@@ -159,6 +159,7 @@ function release_module() {
     -DprocessParent=true \
     -Dincludes='org.revapi:*'
   version=$(xpath -q -e "/project/version/text()" pom.xml)
+  mvn process-resources # reset the version in antora.yml back to master
   git add -A
   git commit -m "Setting $module to version $version"
   #now we need to install so that the subsequent builds pick up our new version
