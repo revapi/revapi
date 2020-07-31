@@ -153,6 +153,18 @@ public class SemverIgnoreTransformTest {
         Assert.assertSame(BREAKING, tr.transform(null, null, BREAKING));
     }
 
+    @Test
+    public void testAppliesNameAndDescriptionChangesOnlyOnce() {
+        DifferenceTransform<?> tr = getTestTransform("1.0.0", "1.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
+
+        Difference transformed = tr.transform(null, null, POTENTIALLY_BREAKING);
+        Assert.assertNotNull(transformed);
+
+        Difference transformed2 = tr.transform(null, null, transformed);
+
+        Assert.assertEquals(transformed, transformed2);
+    }
+
     private boolean isBreaking(Difference difference) {
         return difference.classification.values().stream().anyMatch(ds -> ds == DifferenceSeverity.BREAKING);
     }

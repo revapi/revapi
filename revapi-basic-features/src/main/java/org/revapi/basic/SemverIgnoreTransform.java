@@ -77,11 +77,21 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
     }
 
     private Difference asBreaking(Difference d) {
-        return Difference.copy(d)
-                .withDescription(d.description + " (breaks semantic versioning)")
-                .withName("Incompatible with the current version: " + d.name)
+        Difference.Builder bld = Difference.copy(d)
                 .addClassification(CompatibilityType.OTHER, DifferenceSeverity.BREAKING)
-                .build();
+                .addAttachment("breaksSemanticVersioning", "true");
+
+        if (d.description == null || !d.description.endsWith("(breaks semantic versioning)")) {
+            bld.withDescription(d.description == null
+                    ? "(breaks semantic versioning)"
+                    : (d.description + " (breaks semantic versioning)"));
+        }
+
+        if (!d.name.startsWith("Incompatible with the current version: ")) {
+            bld.withName("Incompatible with the current version: " + d.name);
+        }
+
+        return bld.build();
     }
 
     private DifferenceSeverity getMaxSeverity(Difference diff) {
