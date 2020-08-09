@@ -14,6 +14,16 @@ function process(parent, target, attributes) {
         let component = null
         if (componentVersion == null) {
             component = model.latest
+        } else if (componentVersion == "latest") {
+            if (model.versions.length > 1) {
+                if (model.versions[0].version == "master") {
+                    component = model.versions[1]
+                } else {
+                    component = model.versions[0]
+                }
+            } else {
+                component = model.versions[0]
+            }
         } else {
             component = model.versions.find(c => {
                 return c.version == componentVersion
