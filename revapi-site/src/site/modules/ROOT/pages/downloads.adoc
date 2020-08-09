@@ -26,7 +26,7 @@ Here are the links to the latest versions of the individual artifacts.
 
 |Revapi Standalone CLI
 |`org.revapi:revapi-standalone`
-|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-standalone/component:latest@revapi-standalone[version]/revapi-standalone-component:latest@revapi-standalone[version].jar[component:latest@revapi-standalone[version]]
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-standalone/component:latest@revapi-standalone[version]/revapi-standalone-component:latest@revapi-standalone[version]-standalone.zip[component:latest@revapi-standalone[version]]
 |https://search.maven.org/artifact/org.revapi/revapi-standalone[here]
 
 |Revapi Basic Features Extension
