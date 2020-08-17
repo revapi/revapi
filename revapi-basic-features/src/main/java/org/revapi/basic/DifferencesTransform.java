@@ -172,8 +172,7 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
                 String name = config.get("criticality").asString();
                 criticality = ctx.getCriticalityByName(name);
                 if (criticality == null) {
-                    LOG.warn("Unknown criticality '" + name + "' used in difference match recipe. Letting the" +
-                            " analysis continue but the results might be skewed.");
+                    throw new IllegalArgumentException("Unknown criticality '" + name + "'.");
                 }
             } else {
                 criticality = null;
