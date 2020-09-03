@@ -175,4 +175,20 @@ public class StringRepresentationTest {
         expected = "T extends U extends java.lang.Enum<U> (I extends U extends java.lang.Enum<U>) throws E extends java.lang.Throwable";
         assertEquals(expected, Util.toHumanReadableString(im1.asType()));
     }
+
+    @Test
+    public void testMethodWithGenericParameterInBound() throws Exception {
+        CompiledJar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
+
+        TypeElement ToStrings = env.elements().getTypeElement("ToStrings");
+        List<ExecutableElement> methods = ElementFilter.methodsIn(ToStrings.getEnclosedElements());
+        ExecutableElement method = methods.stream()
+                .filter(m -> m.getSimpleName().contentEquals("methodWithGenericParameterInBound" +
+                        "")).findFirst().get();
+
+        String expected;
+
+        expected = "<T extends java.lang.Cloneable & java.lang.Comparable<? super T>> java.util.Set<T> ToStrings::methodWithGenericParameterInBound(T)";
+        assertEquals(expected, Util.toHumanReadableString(method));
+    }
 }

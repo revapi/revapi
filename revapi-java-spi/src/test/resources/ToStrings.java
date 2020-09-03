@@ -42,4 +42,6 @@ public interface ToStrings {
             }
         }
     }
+
+    <T extends Cloneable & Comparable<? super T>> java.util.Set<T> methodWithGenericParameterInBound(T param);
 }

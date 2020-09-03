@@ -525,7 +525,7 @@ public final class Util {
                 return null;
             }
 
-            state.bld.append(t.asElement().getSimpleName());
+            state.bld.append(tName);
 
             TypeMirror lowerBound = IgnoreCompletionFailures.in(t::getLowerBound);
 
@@ -575,7 +575,9 @@ public final class Util {
             List<? extends TypeVariable> typeVars = IgnoreCompletionFailures.in(t::getTypeVariables);
             visitTypeVars(typeVars, state);
             List<Name> typeVarNames = typeVars.stream()
-                    .map(v -> v.asElement().getSimpleName()).collect(Collectors.toList());
+                    .map(v -> v.asElement().getSimpleName())
+                    .filter(v -> !state.forwardTypeVarDecls.contains(v))
+                    .collect(Collectors.toList());
             state.forwardTypeVarDecls.addAll(typeVarNames);
             state.anticipatedTypeVarDeclDepth = currentTypeDeclDepth;
 
@@ -701,6 +703,7 @@ public final class Util {
         private boolean visitTypeVars(List<? extends TypeMirror> vars, StringBuilderAndState<TypeMirror> state) {
             if (!vars.isEmpty()) {
                 Set<Name> names = vars.stream().map(v -> getTypeVariableName.visit(v)).collect(Collectors.toSet());
+                names.removeAll(state.forwardTypeVarDecls);
                 state.forwardTypeVarDecls.addAll(names);
                 try {
                     state.bld.append("<");
