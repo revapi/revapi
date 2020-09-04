@@ -47,7 +47,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-ant-task</artifactId>
-            <version>0.10.2-SNAPSHOT</version>
+            <version>0.10.2</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
