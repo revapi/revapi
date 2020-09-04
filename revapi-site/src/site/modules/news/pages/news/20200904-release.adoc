@@ -1,0 +1,18 @@
+= Release Notes
+:page-publish_date: 2020-09-04
+:page-layout: news-article
+
+The most important feature of this release is the fix to a nasty stack overflow error while constructing
+a textual representation of method signatures with intersection types in their type parameters (https://github.com/revapi/revapi/issues/211).
+
+The other is a more strict handling of criticality configuration where the analysis will fail if it encounters an unknown criticality name (previously it would just print out a warning).
+
+The following modules were released:
+
+* revapi-basic-features:0.10.2
+* revapi-java-spi:0.21.1
+* revapi-ant-task:0.10.2
+* revapi-java:0.22.1
+* revapi-maven-plugin:0.12.2
+* revapi-standalone:0.9.8
+
