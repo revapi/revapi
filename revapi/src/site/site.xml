@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2017 Lukas Krejci
+    Copyright 2014-2020 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,4 @@
     <name>${project.name}</name>
     <href>${project.url}</href>
   </bannerLeft>
-
-  <custom>
-    <msb3Skin>
-      <slogan>${project.description}</slogan>
-      <bottomDescription>${project.name}</bottomDescription>
-    </msb3Skin>
-  </custom>
 </project>

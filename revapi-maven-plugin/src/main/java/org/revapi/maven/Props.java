@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 package org.revapi.maven;
+
 /**
  * @author Lukas Krejci
  * @since 0.6.0
@@ -156,6 +157,11 @@ final class Props {
         static final String DEFAULT_VALUE = "true";
     }
 
+    static final class ignoreSuggestionsFormat {
+        static final String NAME = PREFIX + "ignoreSuggestionsFormat";
+        static final String DEFAULT_VALUE = "json";
+    }
+
     static final class outputNonIdentifyingDifferenceInfo {
         static final String NAME = PREFIX + "outputNonIdentifyingDifferenceInfo";
         static final String DEFAULT_VALUE = "true";
@@ -164,5 +170,23 @@ final class Props {
     static final class forceVersionUpdate {
         static final String NAME = PREFIX + "forceVersionUpdate";
         static final String DEFAULT_VALUE = "false";
+    }
+
+    static final class expandProperties {
+        static final String NAME = PREFIX + "expandProperties";
+        static final String DEFAULT_VALUE = "false";
+    }
+
+    static final class ignoreSuggestionsFile {
+        static final String NAME = PREFIX + "ignoreSuggestionsFile";
+        static final String DEFAULT_VALUE = "";
+    }
+
+    static final class failCriticality {
+        static final String NAME = PREFIX + "maximumCriticality";
+    }
+
+    static final class reportCriticality {
+        static final String NAME = PREFIX + "minimumCriticality";
     }
 }

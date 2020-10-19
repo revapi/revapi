@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,14 +55,10 @@ public final class XmlToJson<Xml> {
     private final Map<String, ModelNode> knownExtensionSchemas;
 
     /**
-     * Constructs a new instance using the schemas obtained from the provided Revapi instance.
+     * A convenience constructor to create an instance using the extension schemas known to the provided Revapi
+     * instance.
      *
-     * @param revapi the Revapi instance to extract the extension schemas from
-     * @param getName a function to extract the name of a node
-     * @param getValue a function to extract the text value of a node
-     * @param getAttributeValue a function to extract the value of an attribute with given name from a node
-     * @param getChildren a function to extract children. The list must ONLY include child nodes, not the "virtual" text
-     *                    and attribute nodes.
+     * @see #XmlToJson(Map, Function, Function, BiFunction, Function)
      */
     public XmlToJson(Revapi revapi, Function<Xml, String> getName, Function<Xml, String> getValue,
                      BiFunction<Xml, String, String> getAttributeValue, Function<Xml, List<Xml>> getChildren) {
@@ -70,14 +66,17 @@ public final class XmlToJson<Xml> {
     }
 
     /**
-     * Constructs a new instance using the provided schemas.
+     * Constructs a new XML to JSON convertor. To be able to navigate the XML and to convert to JSON data types
+     * correctly, the instance needs to know about the schemas used by various extensions.
      *
-     * @param knownExtensionSchemas the schemas to use when trying to convert XML to JSON
-     * @param getName a function to extract the name of a node
-     * @param getValue a function to extract the text value of a node
-     * @param getAttributeValue a function to extract the value of an attribute with given name from a node
-     * @param getChildren a function to extract children. The list must ONLY include child nodes, not the "virtual" text
-     *                    and attribute nodes.
+     * @param knownExtensionSchemas the schemas of the known extensions. Keys are extension ids, values are extension
+     *                              schemas
+     * @param getName a function that gets the name of an XML tag
+     * @param getValue a function that gets the textual value of an XML node, e.g. it's textual content.
+     * @param getAttributeValue a function to get a value of an attribute of an XML node
+     * @param getChildren a function that gets the children of an XML node. Note that the returned list MUST NOT
+     *                    contain any text or CDATA nodes - those are to be used in the {@code getValue} function.
+     *                    It also MUST NOT contain any comment nodes.
      */
     public XmlToJson(Map<String, ModelNode> knownExtensionSchemas, Function<Xml, String> getName,
               Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
@@ -252,9 +251,14 @@ public final class XmlToJson<Xml> {
             throw new IllegalArgumentException(
                     "No schema found for items of a list. Cannot continue with XML-to-JSON conversion.");
         }
-        if (getValue.apply( configuration ) != null) {
-            throw new IllegalArgumentException("Array is not allowed to have a text node");
+
+        String value = getValue.apply(configuration);
+
+        if (value != null && !value.trim().isEmpty()) {
+            throw new IllegalArgumentException("<" + getName.apply(configuration)
+                    + "> should represent an array of values, but a textual value was found.");
         }
+
         ModelNode list = new ModelNode();
         list.setEmptyList();
         for (Xml childConfig : getChildren.apply(configuration)) {

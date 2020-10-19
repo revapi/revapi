@@ -27,11 +27,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
 import org.revapi.AnalysisContext;
-import org.revapi.Difference;
+import org.revapi.Criticality;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 import org.revapi.Report;
@@ -49,10 +50,16 @@ public abstract class AbstractFileReporter implements Reporter {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractFileReporter.class);
 
     protected DifferenceSeverity minLevel;
+    protected Criticality minCriticality;
     protected PrintWriter output;
+    protected File file;
+
     protected boolean shouldClose;
+    protected boolean keepEmptyFile;
 
     protected AnalysisContext analysis;
+    private boolean reportsInOutput = false;
+
 
     /**
      * For testing.
@@ -82,14 +89,30 @@ public abstract class AbstractFileReporter implements Reporter {
 
         this.analysis = analysis;
 
-        String minLevel = analysis.getConfiguration().get("minSeverity").asString();
-        String output = analysis.getConfiguration().get("output").asString();
-        output = "undefined".equals(output) ? "out" : output;
+        String minLevel = analysis.getConfiguration().get("minSeverity").asString(null);
+        String minCrit = analysis.getConfiguration().get("minCriticality").asString(null);
+        String output = analysis.getConfiguration().get("output").asString(null);
+        output = output == null ? "out" : output;
 
         boolean append = analysis.getConfiguration().get("append").asBoolean(false);
+        keepEmptyFile = append || analysis.getConfiguration().get("keepEmptyFile").asBoolean(true);
 
-        this.minLevel = "undefined".equals(minLevel) ? DifferenceSeverity.POTENTIALLY_BREAKING :
-                DifferenceSeverity.valueOf(minLevel);
+        if (minLevel == null && minCrit == null) {
+            LOG.warn("At least one of `minLevel` and `minCriticality` should to be defined. Defaulting to" +
+                    " the obsolete behavior of reporting all potentially breaking elements.");
+            this.minLevel = DifferenceSeverity.POTENTIALLY_BREAKING;
+        }
+
+        if (minLevel != null) {
+            this.minLevel = DifferenceSeverity.valueOf(minLevel);
+        }
+
+        if (minCrit != null) {
+            this.minCriticality = analysis.getCriticalityByName(minCrit);
+            if (minCriticality == null) {
+                throw new IllegalArgumentException("Unknown criticality '" + minCrit + "'.");
+            }
+        }
 
         OutputStream out;
 
@@ -101,36 +124,59 @@ public abstract class AbstractFileReporter implements Reporter {
             out = System.err;
             break;
         default:
-            File f = new File(output);
-            if (f.exists() && !f.canWrite()) {
-                LOG.warn(
-                        "The configured file, '" + f.getAbsolutePath() + "' is not a writable." +
-                                " Defaulting the output to standard output.");
-                out = System.out;
+            file = new File(output);
+            if (file.exists()) {
+                if (!file.isFile()) {
+                    LOG.warn(
+                            "The configured file, '" + file.getAbsolutePath() + "' is not a file." +
+                                    " Defaulting the output to standard output.");
+                    out = System.out;
+                    break;
+                } else if (!file.canWrite()) {
+                    LOG.warn(
+                            "The configured file, '" + file.getAbsolutePath() + "' is not a writable." +
+                                    " Defaulting the output to standard output.");
+                    out = System.out;
+                    break;
+                }
             } else {
-                File parent = f.getParentFile();
-                if (!parent.exists()) {
+                File parent = file.getParentFile();
+                if (parent != null && !parent.exists()) {
                     if (!parent.mkdirs()) {
                         LOG.warn("Failed to create directory structure to write to the configured output file '" +
-                                f.getAbsolutePath() + "'. Defaulting the output to standard output.");
+                                file.getAbsolutePath() + "'. Defaulting the output to standard output.");
                         out = System.out;
                         break;
                     }
                 }
+            }
 
-                try {
-                    out = new FileOutputStream(output, append);
-                } catch (FileNotFoundException e) {
-                    LOG.warn("Failed to create the configured output file '" + f.getAbsolutePath() + "'." +
-                            " Defaulting the output to standard output.", e);
-                    out = System.out;
-                }
+            try {
+                out = new FileOutputStream(output, append);
+            } catch (FileNotFoundException e) {
+                LOG.warn("Failed to create the configured output file '" + file.getAbsolutePath() + "'." +
+                        " Defaulting the output to standard output.", e);
+                out = System.out;
             }
         }
 
         shouldClose = out != System.out && out != System.err;
 
-        this.output = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+        this.output = createOutputWriter(out, analysis);
+    }
+
+    /**
+     * Creates a print writer to be used as an output from the supplied output stream.
+     *
+     * This method is called during the default {@link #initialize(AnalysisContext)} and the default implementation
+     * creates a print writer writing in UTF-8.
+     *
+     * @param stream the stream to convert to a print writer
+     * @param ctx the analysis context which is being used in {@link #initialize(AnalysisContext)}
+     * @return a print writer to be used as output
+     */
+    protected PrintWriter createOutputWriter(OutputStream stream, AnalysisContext ctx) {
+        return new PrintWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8));
     }
 
     /**
@@ -146,20 +192,38 @@ public abstract class AbstractFileReporter implements Reporter {
             return;
         }
 
-        DifferenceSeverity maxReportedSeverity = DifferenceSeverity.NON_BREAKING;
-        for (Difference d : report.getDifferences()) {
-            for (DifferenceSeverity c : d.classification.values()) {
-                if (c.compareTo(maxReportedSeverity) > 0) {
-                    maxReportedSeverity = c;
-                }
-            }
+        if (isReportable(report)) {
+            reportsInOutput = true;
+            doReport(report);
+        }
+    }
+
+    protected boolean isReportable(Report report) {
+        boolean ret = true;
+
+        // it is guaranteed in initialize() that one of these is not null
+        if (minLevel != null) {
+            ret = isReportableBySeverity(report);
         }
 
-        if (maxReportedSeverity.compareTo(minLevel) < 0) {
-            return;
+        if (minCriticality != null) {
+            ret = ret && isReportableByCriticality(report);
         }
 
-        doReport(report);
+        return ret;
+    }
+
+    private boolean isReportableBySeverity(Report report) {
+        return report.getDifferences().stream()
+                .flatMap(d -> d.classification.values().stream())
+                .anyMatch(s -> s.compareTo(minLevel) >= 0);
+    }
+
+    private boolean isReportableByCriticality(Report report) {
+        return report.getDifferences().stream()
+                .map(d -> d.criticality)
+                .filter(Objects::nonNull)
+                .anyMatch(c -> c.getLevel() >= minCriticality.getLevel());
     }
 
     /**
@@ -174,6 +238,12 @@ public abstract class AbstractFileReporter implements Reporter {
 
         if (shouldClose) {
             output.close();
+        }
+
+        if (!keepEmptyFile && !reportsInOutput && file != null) {
+            if (!file.delete()) {
+                LOG.warn("Failed to delete an empty output file: " + file.getAbsolutePath());
+            }
         }
     }
 

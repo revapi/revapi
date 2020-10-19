@@ -1,0 +1,28 @@
+{{!--
+The "display: none" is added so that this is still present in the DOM because other parts
+of the UI depend on data defined here...
+--}}
+<div class="nav-panel-explore{{#unless page.navigation}} is-active{{/unless}}" data-panel="explore" style="display: none">
+  {{#if page.component}}
+  <div class="context">
+    <span class="title">{{page.component.title}}</span>
+    <span class="version">{{page.componentVersion.displayVersion}}</span>
+  </div>
+  {{/if}}
+  <ul class="components">
+    {{#each site.components}}
+    <li class="component{{#if (eq this @root.page.component)}} is-current{{/if}}">
+      <span class="title">{{{./title}}}</span>
+      <ul class="versions">
+        {{#each ./versions}}
+        <li class="version
+          {{~#if (and (eq .. @root.page.component) (eq this @root.page.componentVersion))}} is-current{{/if~}}
+          {{~#if (eq this ../latestVersion)}} is-latest{{/if}}">
+          <a href="{{{relativize ./url}}}">{{./displayVersion}}</a>
+        </li>
+        {{/each}}
+      </ul>
+    </li>
+    {{/each}}
+  </ul>
+</div>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
  * @since 0.1
  */
 public final class IgnoreCompletionFailures {
+    private static final int RETRY_CNT = 10;
 
     private IgnoreCompletionFailures() {
 
@@ -44,6 +45,7 @@ public final class IgnoreCompletionFailures {
 
     public static <R> R in(Fn0<R> action) {
         Throwable fail;
+        int cnt = 0;
 
         do {
             try {
@@ -51,13 +53,14 @@ public final class IgnoreCompletionFailures {
             } catch (Exception e) {
                 fail = e;
             }
-        } while (isCompletionFailure(fail));
+        } while (cnt++ < RETRY_CNT || isCompletionFailure(fail));
 
         throw new IllegalStateException(fail);
     }
 
     public static void inVoid(VoidFn0 action) {
         Throwable fail;
+        int cnt = 0;
 
         do {
             try {
@@ -66,13 +69,14 @@ public final class IgnoreCompletionFailures {
             } catch (Exception e) {
                 fail = e;
             }
-        } while (isCompletionFailure(fail));
+        } while (cnt++ < RETRY_CNT || isCompletionFailure(fail));
 
         throw new IllegalStateException(fail);
     }
 
     public static <R, T> R in(Fn1<R, T> action, T arg) {
         Throwable fail;
+        int cnt = 0;
 
         do {
             try {
@@ -80,13 +84,14 @@ public final class IgnoreCompletionFailures {
             } catch (Exception e) {
                 fail = e;
             }
-        } while (isCompletionFailure(fail));
+        } while (cnt++ < RETRY_CNT || isCompletionFailure(fail));
 
         throw new IllegalStateException(fail);
     }
 
     public static <T> void inVoid(VoidFn1<T> action, T arg) {
         Throwable fail;
+        int cnt = 0;
 
         do {
             try {
@@ -95,14 +100,14 @@ public final class IgnoreCompletionFailures {
             } catch (Exception e) {
                 fail = e;
             }
-        } while (isCompletionFailure(fail));
+        } while (cnt++ < RETRY_CNT || isCompletionFailure(fail));
 
         throw new IllegalStateException(fail);
     }
 
-    public static <R, T1, T2> R in(Fn2<R, T1, T2> action,
-        T1 arg1, T2 arg2) {
+    public static <R, T1, T2> R in(Fn2<R, T1, T2> action, T1 arg1, T2 arg2) {
         Throwable fail;
+        int cnt = 0;
 
         do {
             try {
@@ -110,13 +115,14 @@ public final class IgnoreCompletionFailures {
             } catch (Exception e) {
                 fail = e;
             }
-        } while (isCompletionFailure(fail));
+        } while (cnt++ < RETRY_CNT || isCompletionFailure(fail));
 
         throw new IllegalStateException(fail);
     }
 
     public static <T1, T2> void inVoid(VoidFn2<T1, T2> action, T1 arg1, T2 arg2) {
         Throwable fail;
+        int cnt = 0;
 
         do {
             try {
@@ -125,13 +131,14 @@ public final class IgnoreCompletionFailures {
             } catch (Exception e) {
                 fail = e;
             }
-        } while (isCompletionFailure(fail));
+        } while (cnt++ < RETRY_CNT || isCompletionFailure(fail));
 
         throw new IllegalStateException(fail);
     }
 
     public static <R, T1, T2, T3> R in(Fn3<R, T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
         Throwable fail;
+        int cnt = 0;
 
         do {
             try {
@@ -139,13 +146,14 @@ public final class IgnoreCompletionFailures {
             } catch (Exception e) {
                 fail = e;
             }
-        } while (isCompletionFailure(fail));
+        } while (cnt++ < RETRY_CNT || isCompletionFailure(fail));
 
         throw new IllegalStateException(fail);
     }
 
     public static <T1, T2, T3> void inVoid(VoidFn3<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
         Throwable fail;
+        int cnt = 0;
 
         do {
             try {
@@ -154,48 +162,48 @@ public final class IgnoreCompletionFailures {
             } catch (Exception e) {
                 fail = e;
             }
-        } while (isCompletionFailure(fail));
+        } while (cnt++ < RETRY_CNT || isCompletionFailure(fail));
 
         throw new IllegalStateException(fail);
     }
 
     @FunctionalInterface
-    public static interface Fn0<R> {
+    public interface Fn0<R> {
         R call() throws Exception;
     }
 
     @FunctionalInterface
-    public static interface Fn1<R, T> {
+    public interface Fn1<R, T> {
         R call(T t) throws Exception;
     }
 
     @FunctionalInterface
-    public static interface Fn2<R, T1, T2> {
+    public interface Fn2<R, T1, T2> {
         R call(T1 t1, T2 t2) throws Exception;
     }
 
     @FunctionalInterface
-    public static interface Fn3<R, T1, T2, T3> {
+    public interface Fn3<R, T1, T2, T3> {
         R call(T1 t1, T2 t2, T3 t3) throws Exception;
     }
 
     @FunctionalInterface
-    public static interface VoidFn0 {
+    public interface VoidFn0 {
         void call() throws Exception;
     }
 
     @FunctionalInterface
-    public static interface VoidFn1<T> {
+    public interface VoidFn1<T> {
         void call(T t) throws Exception;
     }
 
     @FunctionalInterface
-    public static interface VoidFn2<T1, T2> {
+    public interface VoidFn2<T1, T2> {
         void call(T1 arg1, T2 arg2) throws Exception;
     }
 
     @FunctionalInterface
-    public static interface VoidFn3<T1, T2, T3> {
+    public interface VoidFn3<T1, T2, T3> {
         void call(T1 t1, T2 t2, T3 t3) throws Exception;
     }
 }

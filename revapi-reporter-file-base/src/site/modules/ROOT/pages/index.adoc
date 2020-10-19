@@ -1,0 +1,72 @@
+= Base Class For File-based Reporters
+
+This module contains an abstract implementation of a file-based reporter defining some common behavior and logic
+the concrete reporters can take advantage of.
+
+== Usage
+
+Depend on this module and inherit your concrete reporter implementation from
+the `org.revapi.reporter.file.AbstractFileReporter`.
+```xml
+<dependencies>
+  ...
+  <dependency>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-reporter-file-base</artifactId>
+    <version>...</version>
+  </dependency>
+</dependencies>
+```
+
+In your class, provide the implementation for the abstract methods and follow the javadocs.
+This module also contains the JSON schema that corresponds to the configuration properties supported by this base
+implementation. There is no way of reusing that currently so you need to copy it and enhance it in your reporter module.
+
+== Sample Configuration
+
+```javascript
+[
+  {
+    "extension": >>>YOUR EXTENSION<<<,
+    "configuration": {
+      "minSeverity": "POTENTIALLY_BREAKING",
+      "minCriticality": "documented",
+      "output" : "out",
+      "append": false,
+      "keepEmptyFile": true
+    }
+  }
+]
+```
+
+```xml
+<analysisConfiguration>
+  <YOUR_EXTENSION>
+    <minSeverity>POTENTIALLY_BREAKING</minSeverity>
+    <minCriticality>documented</minCriticality>
+    <output>out</output>
+    <append>false</append>
+    <keepEmptyFile>true</keepEmptyFile>
+  </YOUR_EXTENSION>
+</analysisConfiguration>
+```
+
+== Properties
+
+These are the configuration properties supported by this base implementation.
+
+`minSeverity`::
+The minimum severity of problems that will be included in the output. Possible values are `EQUIVALENT`, `NON_BREAKING`,
+`POTENTIALLY_BREAKING` and `BREAKING`. At least one of `minSeverity` and `minCriticality` should be specified.
+`minCriticality`::
+The minimum criticality of problems that will be included in the output. The possible values are the ones defined
+in the pipeline configuration of the analysis. By default, these are `allowed`, `documented`, `highlight` and `error`.
+`output`::
+The path to the output file. Two special values are recognized: `out` (which is the default value of this property) and
+`err` which represent standard output or standard error output respectively.
+`append`::
+Whether to append to the chosen output or whether to overwrite it (doesn't make sense for standard (error) output).
+The default value is `false` meaning the output file will be overwritten if it already exists.
+`keepEmptyFile`::
+Defaults to `true`. If `true` the output file is kept even if no reports were written to it and thus it is empty. Has
+no effect if `append` is set to `true`.

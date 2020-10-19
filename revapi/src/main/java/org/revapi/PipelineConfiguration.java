@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,16 +17,24 @@
 package org.revapi;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -88,6 +96,8 @@ public final class PipelineConfiguration {
     private final List<String> excludedFilterExtensionIds;
     private final List<String> includedMatcherExtensionIds;
     private final List<String> excludedMatcherExtensionIds;
+    private final Set<Criticality> criticalities;
+    private final Map<DifferenceSeverity, Criticality> severityMapping;
 
     /**
      * @return a pipeline configuration builder instance
@@ -121,6 +131,8 @@ public final class PipelineConfiguration {
         ModelNode reporterExcludeNode = json.get("reporters").get("exclude");
         ModelNode matcherIncludeNode = json.get("matchers").get("include");
         ModelNode matcherExcludeNode = json.get("matchers").get("exclude");
+        ModelNode criticalities = json.get("criticalities");
+        ModelNode severityMapping = json.get("severityMapping");
 
         return builder()
                 .withTransformationBlocks(json.get("transformBlocks"))
@@ -133,7 +145,10 @@ public final class PipelineConfiguration {
                 .withReporterExtensionIdsInclude(asStringList(reporterIncludeNode))
                 .withReporterExtensionIdsExclude(asStringList(reporterExcludeNode))
                 .withMatcherExtensionIdsInclude(asStringList(matcherIncludeNode))
-                .withMatcherExtensionIdsExclude(asStringList(matcherExcludeNode));
+                .withMatcherExtensionIdsExclude(asStringList(matcherExcludeNode))
+                .withReporterExtensionIdsExclude(asStringList(reporterExcludeNode))
+                .withCriticalities(asCriticalitySet(criticalities))
+                .withUntypedSeverityMapping(asSeverityMapping(severityMapping));
     }
 
     /**
@@ -174,6 +189,27 @@ public final class PipelineConfiguration {
         }
     }
 
+    private static Set<Criticality> asCriticalitySet(ModelNode node) {
+        if (!node.isDefined()) {
+            return emptySet();
+        }
+
+        return node.asList().stream()
+                .map(n -> new Criticality(n.get("name").asString(), n.get("level").asInt()))
+                .collect(toSet());
+    }
+
+    private static Map<DifferenceSeverity, String> asSeverityMapping(ModelNode node) {
+        if (!node.isDefined()) {
+            return emptyMap();
+        }
+
+        return node.asList().stream()
+                .collect(Collectors.toMap(
+                        n -> DifferenceSeverity.fromCamelCase(n.get("severity").asString()),
+                        n -> n.get("criticality").asString()));
+    }
+
     public PipelineConfiguration(Set<Class<? extends ApiAnalyzer>> apiAnalyzerTypes,
             Set<Class<? extends Reporter>> reporterTypes, Set<Class<? extends DifferenceTransform<?>>> transformTypes,
             Set<Class<? extends TreeFilterProvider>> treeFilterTypes, Set<Class<? extends ElementMatcher>> matcherTypes,
@@ -182,7 +218,9 @@ public final class PipelineConfiguration {
             List<String> includedReporterExtensionIds, List<String> excludedReporterExtensionIds,
             List<String> includedTransformExtensionIds, List<String> excludedTransformExtensionIds,
             List<String> includedFilterExtensionIds, List<String> excludedFilterExtensionIds,
-            List<String> includedMatcherExtensionIds, List<String> excludedMatcherExtensionIds) {
+            List<String> includedMatcherExtensionIds, List<String> excludedMatcherExtensionIds,
+            Set<Criticality> criticalities,
+            Map<DifferenceSeverity, Criticality> severityMapping) {
         this.apiAnalyzerTypes = apiAnalyzerTypes;
         this.reporterTypes = reporterTypes;
         this.transformTypes = transformTypes;
@@ -199,6 +237,8 @@ public final class PipelineConfiguration {
         this.excludedFilterExtensionIds = excludedFilterExtensionIds;
         this.includedMatcherExtensionIds = includedMatcherExtensionIds;
         this.excludedMatcherExtensionIds = excludedMatcherExtensionIds;
+        this.criticalities = criticalities;
+        this.severityMapping = severityMapping;
     }
 
     public Set<Class<? extends ApiAnalyzer>> getApiAnalyzerTypes() {
@@ -265,6 +305,14 @@ public final class PipelineConfiguration {
         return excludedMatcherExtensionIds;
     }
 
+    public Set<Criticality> getCriticalities() {
+        return criticalities;
+    }
+
+    public Map<DifferenceSeverity, Criticality> getSeverityMapping() {
+        return severityMapping;
+    }
+
     public static final class Builder {
         private Set<Class<? extends ApiAnalyzer>> analyzers = null;
         private Set<Class<? extends Reporter>> reporters = null;
@@ -282,6 +330,8 @@ public final class PipelineConfiguration {
         private List<String> excludedFilterExtensionIds = null;
         private List<String> includedMatcherExtensionIds = null;
         private List<String> excludedMatcherExtensionIds = null;
+        private Set<Criticality> criticalities = null;
+        private Map<DifferenceSeverity, String> severityMapping;
 
         public Builder withAnalyzersFromThreadContextClassLoader() {
             return withAnalyzers(ServiceTypeLoader.load(ApiAnalyzer.class));
@@ -607,33 +657,139 @@ public final class PipelineConfiguration {
             return this;
         }
 
+        public Builder withCriticalities(Set<Criticality> criticalities) {
+            if (criticalities == null || criticalities.isEmpty()) {
+                return this;
+            }
+
+            if (this.criticalities == null) {
+                this.criticalities = new HashSet<>();
+            }
+
+            this.criticalities.addAll(criticalities);
+            return this;
+        }
+
+        public Builder addCriticality(Criticality criticality) {
+            if (this.criticalities == null) {
+                this.criticalities = new HashSet<>();
+            }
+
+            this.criticalities.add(criticality);
+            return this;
+        }
+
+        public Builder withSeverityMapping(Map<DifferenceSeverity, Criticality> severityMapping) {
+            if (severityMapping == null || severityMapping.isEmpty()) {
+                return this;
+            }
+
+            if (this.severityMapping == null) {
+                this.severityMapping = new EnumMap<>(DifferenceSeverity.class);
+            }
+
+            severityMapping.forEach((s, c) -> this.severityMapping.put(s, c.getName()));
+
+            return this;
+        }
+
+        public Builder withUntypedSeverityMapping(Map<DifferenceSeverity, String> severityMapping) {
+            if (severityMapping == null || severityMapping.isEmpty()) {
+                return this;
+            }
+
+            if (this.severityMapping == null) {
+                this.severityMapping = new EnumMap<>(DifferenceSeverity.class);
+            }
+
+            this.severityMapping.putAll(severityMapping);
+
+            return this;
+        }
+
+        public Builder addSeverityMapping(DifferenceSeverity severity, Criticality criticality) {
+            return addUntypedSeverityMapping(severity, criticality.getName());
+        }
+
+        public Builder addUntypedSeverityMapping(DifferenceSeverity severity, String criticalityName) {
+            if (this.severityMapping == null) {
+                this.severityMapping = new EnumMap<>(DifferenceSeverity.class);
+            }
+
+            this.severityMapping.put(severity, criticalityName);
+            return this;
+        }
         /**
+         * Returns a new {@link PipelineConfiguration} instance. The builder is reusable after this call and the
+         * returned instance is independent of it.
+         *
          * @return a new Revapi pipeline configuration
          * @throws IllegalStateException if there are no api analyzers or no reporters added.
          */
         public PipelineConfiguration build() throws IllegalStateException {
-            analyzers = analyzers == null ? emptySet() : analyzers;
-            reporters = reporters == null ? emptySet() : reporters;
-            transforms = transforms == null ? emptySet() : transforms;
-            filters = filters == null ? emptySet() : filters;
-            matchers = matchers == null ? emptySet() : matchers;
-            transformationBlocks = transformationBlocks == null ? emptySet() : transformationBlocks;
-            includedAnalyzerExtensionIds = includedAnalyzerExtensionIds == null ? emptyList() : includedAnalyzerExtensionIds;
-            excludedAnalyzerExtensionIds = excludedAnalyzerExtensionIds == null ? emptyList() : excludedAnalyzerExtensionIds;
-            includedReporterExtensionIds = includedReporterExtensionIds == null ? emptyList() : includedReporterExtensionIds;
-            excludedReporterExtensionIds = excludedReporterExtensionIds == null ? emptyList() : excludedReporterExtensionIds;
-            includedTransformExtensionIds = includedTransformExtensionIds == null ? emptyList() : includedTransformExtensionIds;
-            excludedTransformExtensionIds = excludedTransformExtensionIds == null ? emptyList() : excludedTransformExtensionIds;
-            includedFilterExtensionIds = includedFilterExtensionIds == null ? emptyList() : includedFilterExtensionIds;
-            excludedFilterExtensionIds = excludedFilterExtensionIds == null ? emptyList() : excludedFilterExtensionIds;
-            includedMatcherExtensionIds = includedMatcherExtensionIds == null ? emptyList() : includedMatcherExtensionIds;
-            excludedMatcherExtensionIds = excludedMatcherExtensionIds == null ? emptyList() : excludedMatcherExtensionIds;
+            Set<Class<? extends ApiAnalyzer>> analyzers = this.analyzers == null ? emptySet() : new HashSet<>(this.analyzers);
+            Set<Class<? extends Reporter>> reporters = this.reporters == null ? emptySet() : new HashSet<>(this.reporters);
+            Set<Class<? extends DifferenceTransform<?>>> transforms = this.transforms == null ? emptySet() : new HashSet<>(this.transforms);
+            Set<Class<? extends TreeFilterProvider>> filters = this.filters == null ? emptySet() : new HashSet<>(this.filters);
+            Set<Class<? extends ElementMatcher>> matchers = this.matchers == null ? emptySet() : new HashSet<>(this.matchers);
+            Set<List<String>> transformationBlocks = this.transformationBlocks == null ? emptySet() : new HashSet<>(this.transformationBlocks);
+            List<String> includedAnalyzerExtensionIds = this.includedAnalyzerExtensionIds == null ? emptyList() : new ArrayList<>(this.includedAnalyzerExtensionIds);
+            List<String> excludedAnalyzerExtensionIds = this.excludedAnalyzerExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedAnalyzerExtensionIds);
+            List<String> includedReporterExtensionIds = this.includedReporterExtensionIds == null ? emptyList() : new ArrayList<>(this.includedReporterExtensionIds);
+            List<String> excludedReporterExtensionIds = this.excludedReporterExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedReporterExtensionIds);
+            List<String> includedTransformExtensionIds = this.includedTransformExtensionIds == null ? emptyList() : new ArrayList<>(this.includedTransformExtensionIds);
+            List<String> excludedTransformExtensionIds = this.excludedTransformExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedTransformExtensionIds);
+            List<String> includedFilterExtensionIds = this.includedFilterExtensionIds == null ? emptyList() : new ArrayList<>(this.includedFilterExtensionIds);
+            List<String> excludedFilterExtensionIds = this.excludedFilterExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedFilterExtensionIds);
+            List<String> includedMatcherExtensionIds = this.includedMatcherExtensionIds == null ? emptyList() : new ArrayList<>(this.includedMatcherExtensionIds);
+            List<String> excludedMatcherExtensionIds = this.excludedMatcherExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedMatcherExtensionIds);
+
+            boolean defaultCriticalities = criticalities == null;
+            Set<Criticality> criticalities = this.criticalities == null ? Criticality.defaultCriticalities() : new HashSet<>(this.criticalities);
+
+            Map<DifferenceSeverity, Criticality> sm;
+            if (severityMapping == null) {
+                if (defaultCriticalities) {
+                    sm = Criticality.defaultSeverityMapping();
+                } else {
+                    sm = new EnumMap<>(DifferenceSeverity.class);
+
+                    Map<String, Criticality> cByName = criticalities.stream()
+                            .collect(toMap(Criticality::getName, identity()));
+
+                    for (Map.Entry<DifferenceSeverity, Criticality> e : Criticality.defaultSeverityMapping().entrySet()) {
+                        // we might have redefined the criticalities with the same name, so let's use what's actually
+                        // configured
+                        Criticality realC = cByName.get(e.getValue().getName());
+                        sm.put(e.getKey(), realC);
+                    }
+                }
+            } else {
+                Map<String, Criticality> cByName = criticalities.stream()
+                        .collect(toMap(Criticality::getName, identity()));
+
+                sm = new EnumMap<>(DifferenceSeverity.class);
+                for (Map.Entry<DifferenceSeverity, String> e : severityMapping.entrySet()) {
+                    Criticality c = cByName.get(e.getValue());
+                    if (c == null) {
+                        throw new IllegalArgumentException("Criticality '" + e.getValue() + "' not configured.");
+                    }
+                    sm.put(e.getKey(), c);
+                }
+            }
+
+            Set<DifferenceSeverity> expectedMappings = EnumSet.allOf(DifferenceSeverity.class);
+            expectedMappings.removeAll(sm.keySet());
+            if (!expectedMappings.isEmpty()) {
+                throw new IllegalArgumentException("The severity-to-criticality mapping is incomplete." +
+                        " Missing mapping for: " + expectedMappings);
+            }
 
             return new PipelineConfiguration(analyzers, reporters, transforms, filters, matchers, transformationBlocks,
                     includedAnalyzerExtensionIds, excludedAnalyzerExtensionIds, includedReporterExtensionIds,
                     excludedReporterExtensionIds, includedTransformExtensionIds, excludedTransformExtensionIds,
                     includedFilterExtensionIds, excludedFilterExtensionIds, includedMatcherExtensionIds,
-                    excludedMatcherExtensionIds);
+                    excludedMatcherExtensionIds, criticalities, sm);
         }
     }
 }

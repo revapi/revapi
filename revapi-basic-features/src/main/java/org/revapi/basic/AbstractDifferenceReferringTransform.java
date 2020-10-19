@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,13 +39,14 @@ import org.revapi.TransformationResult;
  * @author Lukas Krejci
  * @since 0.1
  */
-public abstract class AbstractDifferenceReferringTransform<Recipe extends DifferenceMatchRecipe>
+public abstract class AbstractDifferenceReferringTransform
     implements DifferenceTransform<Element> {
 
     private final String extensionId;
-    private Collection<Recipe> configuredRecipes;
-    private Collection<Recipe> activeRecipes;
+    private Collection<DifferenceMatchRecipe> configuredRecipes;
+    private Collection<DifferenceMatchRecipe> activeRecipes;
     private Pattern[] codes;
+    protected AnalysisContext analysisContext;
 
     protected AbstractDifferenceReferringTransform(@Nonnull String extensionId) {
         this.extensionId = extensionId;
@@ -61,15 +62,21 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
         return codes;
     }
 
-    @Nonnull
-    protected abstract Recipe newRecipe(AnalysisContext context, ModelNode configNode)
-        throws IllegalArgumentException;
+    /**
+     * @return a list node where the difference recipes are stored
+     */
+    protected ModelNode getRecipesConfigurationAndInitialize() {
+        return analysisContext.getConfiguration();
+    }
+
+    protected abstract DifferenceMatchRecipe newRecipe(ModelNode configNode) throws IllegalArgumentException;
 
     @Override
     public final void initialize(@Nonnull AnalysisContext analysisContext) {
+        this.analysisContext = analysisContext;
         configuredRecipes = new ArrayList<>();
 
-        ModelNode myNode = analysisContext.getConfiguration();
+        ModelNode myNode = getRecipesConfigurationAndInitialize();
 
         if (myNode.getType() != ModelType.LIST) {
             this.codes = new Pattern[0];
@@ -79,13 +86,13 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
         List<Pattern> codes = new ArrayList<>();
 
         for (ModelNode config : myNode.asList()) {
-            Recipe recipe = newRecipe(analysisContext, config);
+            DifferenceMatchRecipe recipe = newRecipe(config);
             codes.add(
                 recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code) + "$") :
                     recipe.codeRegex);
             configuredRecipes.add(recipe);
         }
-        this.codes = codes.toArray(new Pattern[codes.size()]);
+        this.codes = codes.toArray(new Pattern[0]);
     }
 
     @Override
@@ -96,7 +103,7 @@ public abstract class AbstractDifferenceReferringTransform<Recipe extends Differ
             return TransformationResult.keep();
         }
 
-        for (Recipe r : activeRecipes) {
+        for (DifferenceMatchRecipe r : activeRecipes) {
             if (r.matches(difference, oldElement, newElement)) {
                 Difference d = r.transformMatching(difference, oldElement, newElement);
                 if (d == null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
 import org.revapi.CompatibilityType;
+import org.revapi.Criticality;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
 import org.revapi.Report;
@@ -49,7 +50,8 @@ public class BuildTimeReporterTest {
         AnalysisContext ctx = AnalysisContext.builder()
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi)
-                .withData(BuildTimeReporter.BREAKING_SEVERITY_KEY, DifferenceSeverity.EQUIVALENT)
+                .withData(BuildTimeReporter.BREAKING_CRITICALITY_KEY, Criticality.ALLOWED)
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
                 .build();
 
         reporter.initialize(ctx);
@@ -98,6 +100,7 @@ public class BuildTimeReporterTest {
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
                 /**/.addAttachment("shouldBeEscaped", "{\"a\", \"b\"}")
+                /**/.withCriticality(Criticality.ERROR)
                 /**/.withIdentifyingAttachments(Collections.singletonList("shouldBeEscaped"))
                 .done()
                 .build();
@@ -111,7 +114,7 @@ public class BuildTimeReporterTest {
         int end = resultMessage.lastIndexOf('}');
 
         String json = resultMessage.substring(start, end + 1);
-        json = json.replace("<<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE >>>>>", "\"\"");
+        json = json.replace("<<<<< ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE >>>>>", "");
 
         ModelNode parsed = ModelNode.fromJSONString(json);
 
@@ -129,7 +132,8 @@ public class BuildTimeReporterTest {
         AnalysisContext ctx = AnalysisContext.builder()
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi)
-                .withData(BuildTimeReporter.BREAKING_SEVERITY_KEY, DifferenceSeverity.EQUIVALENT)
+                .withData(BuildTimeReporter.BREAKING_CRITICALITY_KEY, Criticality.ALLOWED)
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
                 .build();
 
         reporter.initialize(ctx);
@@ -177,6 +181,7 @@ public class BuildTimeReporterTest {
                 /**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
+                /**/.withCriticality(Criticality.ERROR)
                 /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")
                 .done()
                 .build();
@@ -204,8 +209,9 @@ public class BuildTimeReporterTest {
         AnalysisContext ctx = AnalysisContext.builder()
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi)
-                .withData(BuildTimeReporter.BREAKING_SEVERITY_KEY, DifferenceSeverity.EQUIVALENT)
+                .withData(BuildTimeReporter.BREAKING_CRITICALITY_KEY, Criticality.ALLOWED)
                 .withData(BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, false)
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
                 .build();
 
         reporter.initialize(ctx);
@@ -254,6 +260,7 @@ public class BuildTimeReporterTest {
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
                 /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")
+                /**/.withCriticality(Criticality.ERROR)
                 .done()
                 .build();
 

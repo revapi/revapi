@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,9 @@ import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.revapi.AnalysisResult;
+import org.revapi.Criticality;
+import org.revapi.DifferenceSeverity;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
 
 /**
@@ -178,11 +181,28 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean skip;
 
     /**
-     * The severity of found problems at which to break the build. Defaults to API breaking changes.
+     * The severity of found problems at which to break the build. Defaults to potentiallyBreaking.
      * Possible values: equivalent, nonBreaking, potentiallyBreaking, breaking.
+     *
+     * @deprecated use the new {@link #failCriticality}
      */
     @Parameter(property = Props.failSeverity.NAME, defaultValue = Props.failSeverity.DEFAULT_VALUE)
+    @Deprecated
     protected FailSeverity failSeverity;
+
+    /**
+     * The minimum criticality of the found differences at which to fail the build. This has to be one of
+     * the criticalities configured in the pipeline configuration (if the pipeline configuration doesn't define any,
+     * the following are the default ones: {@code allowed}, {@code documented}, {@code highlight}, {@code error}).
+     *
+     * If not defined, the value is derived from {@link #failSeverity} using the severity-to-criticality mapping
+     * (which is again configured in the pipeline configuration. If not defined in the pipeline configuration
+     * explicitly, the default mapping is the following: {@code EQUIVALENT} = {@code allowed}, {@code NON_BREAKING} =
+     * {@code documented}, {@code POTENTIALLY_BREAKING} = {@code error}, {@code BREAKING} = error.
+     * @since 0.12.0
+     */
+    @Parameter(property = Props.failCriticality.NAME)
+    protected String failCriticality;
 
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
@@ -201,7 +221,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean alwaysCheckForReleaseVersion;
 
     /**
-     * If true (the default), the maven plugin will fail the build when it finds API problems.
+     * If true (the default), the maven plugin will fail the build when it finds API problems (e.g. problems with
+     * with the criticality at least equal to {@link #failCriticality}).
      */
     @Parameter(property = Props.failBuildOnProblemsFound.NAME, defaultValue = Props.failBuildOnProblemsFound.DEFAULT_VALUE)
     protected boolean failBuildOnProblemsFound;
@@ -289,10 +310,43 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     @Parameter(property = Props.disallowedExtensions.NAME, defaultValue = Props.disallowedExtensions.DEFAULT_VALUE)
     protected String disallowedExtensions;
 
-    protected AnalysisResult analyze(Class<? extends Reporter> reporter, Object... contextDataKeyValues)
+    /**
+     * If set to true, the Maven properties will be expanded in the configuration before it is supplied to Revapi.
+     * I.e. any {@code ${var}} appearing in the configuration <b>values</b> will be replaced with the value of the
+     * {@code var} property as known to Maven. If the property is not defined, the expansion doesn't take place.
+     *
+     * @since 0.11.6
+     */
+    @Parameter(property = Props.expandProperties.NAME, defaultValue = Props.expandProperties.DEFAULT_VALUE)
+    protected boolean expandProperties;
+
+    static Criticality determineCriticality(PipelineConfiguration configuration, String propertyValue,
+            String propertyName, DifferenceSeverity fallBackSeverity) throws MojoExecutionException {
+        if (propertyValue != null) {
+            return configuration.getCriticalities().stream()
+                    .filter(c -> propertyValue.equals(c.getName()))
+                    .findFirst()
+                    .orElseThrow(() -> new MojoExecutionException("'" + propertyName + "' is not a valid" +
+                            " criticality. Please use one of the values defined in the pipeline configuration for" +
+                            " the " + propertyName + "."));
+        } else {
+            return configuration.getSeverityMapping().get(fallBackSeverity);
+        }
+    }
+
+    protected Criticality determineMaximumCriticality(PipelineConfiguration pipelineConfiguration)
+            throws MojoExecutionException {
+        return determineCriticality(pipelineConfiguration, failCriticality, "maximumCriticality",
+                failSeverity.asDifferenceSeverity());
+    }
+
+    protected AnalysisResult analyze(Class<? extends Reporter> reporter,
+            PipelineConfiguration.Builder pipelineConfiguration, Object... contextDataKeyValues)
             throws MojoExecutionException, MojoFailureException {
 
-        Analyzer analyzer = prepareAnalyzer(project, reporter, toContextData(contextDataKeyValues));
+        Analyzer analyzer = prepareAnalyzer(project, pipelineConfiguration, reporter,
+                toContextData(contextDataKeyValues));
+
         if (analyzer != null) {
             return analyzer.analyze();
         } else {
@@ -301,9 +355,9 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         }
     }
 
-    protected Analyzer prepareAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
-                                       Map<String, Object> contextData) {
-        AnalyzerBuilder.Result res = buildAnalyzer(project, reporter, contextData);
+    protected Analyzer prepareAnalyzer(MavenProject project, PipelineConfiguration.Builder pipelineConfiguration,
+            Class<? extends Reporter> reporter, Map<String, Object> contextData) {
+        AnalyzerBuilder.Result res = buildAnalyzer(project, pipelineConfiguration, reporter, contextData);
 
         if (res.skip) {
             this.skip = true;
@@ -315,9 +369,11 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         return res.analyzer;
     }
 
-    protected Analyzer prepareAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
-            Map<String, Object> contextData, Map<String, Object> propertyOverrides) {
-        AnalyzerBuilder.Result res = buildAnalyzer(project, reporter, contextData, propertyOverrides);
+    protected Analyzer prepareAnalyzer(MavenProject project, PipelineConfiguration.Builder pipelineConfiguration,
+            Class<? extends Reporter> reporter, Map<String, Object> contextData,
+            Map<String, Object> propertyOverrides) {
+        AnalyzerBuilder.Result res = buildAnalyzer(project, pipelineConfiguration, reporter, contextData,
+                propertyOverrides);
 
         if (res.skip) {
             this.skip = true;
@@ -329,16 +385,16 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         return res.analyzer;
     }
 
-    AnalyzerBuilder.Result buildAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
-                                                   Map<String, Object> contextData) {
-        return buildAnalyzer(project, reporter, contextData, Collections.emptyMap());
+    AnalyzerBuilder.Result buildAnalyzer(MavenProject project, PipelineConfiguration.Builder pipelineConfiguration,
+            Class<? extends Reporter> reporter, Map<String, Object> contextData) {
+        return buildAnalyzer(project, pipelineConfiguration, reporter, contextData, Collections.emptyMap());
     }
 
-    AnalyzerBuilder.Result buildAnalyzer(MavenProject project, Class<? extends Reporter> reporter,
-            Map<String, Object> contextData, Map<String, Object> propertyOverrides) {
+    AnalyzerBuilder.Result buildAnalyzer(MavenProject project, PipelineConfiguration.Builder pipelineConfiguration,
+            Class<? extends Reporter> reporter, Map<String, Object> contextData, Map<String, Object> propertyOverrides) {
         return AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
                 .withAlwaysCheckForReleasedVersion(overrideOrDefault("alwaysCheckForReleaseVersion", this.alwaysCheckForReleaseVersion, propertyOverrides))
-                .withPipelineConfiguration(overrideOrDefault("pipelineConfiguration", this.pipelineConfiguration, propertyOverrides))
+                .withPipelineConfiguration(pipelineConfiguration)
                 .withAnalysisConfiguration(overrideOrDefault("analysisConfiguration", this.analysisConfiguration, propertyOverrides))
                 .withAnalysisConfigurationFiles(overrideOrDefault("analysisConfigurationFiles", this.analysisConfigurationFiles, propertyOverrides))
                 .withCheckDependencies(overrideOrDefault("checkDependencies", this.checkDependencies, propertyOverrides))
@@ -359,6 +415,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
                 .withSkip(overrideOrDefault("skip", this.skip, propertyOverrides))
                 .withVersionFormat(overrideOrDefault("versionFormat", this.versionFormat, propertyOverrides))
                 .withContextData(contextData)
+                .withExpandProperties(overrideOrDefault("expandProperties", expandProperties, propertyOverrides))
                 .build();
     }
 

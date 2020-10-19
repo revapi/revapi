@@ -21,7 +21,7 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>13-SNAPSHOT</version>
+        <version>14-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,19 +33,20 @@
     </description>
 
     <artifactId>revapi-build</artifactId>
-    <version>40-SNAPSHOT</version>
+    <version>42-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <url>${web.url}</url>
+    <url>https://revapi.org</url>
 
     <properties>
-        <self-api-check.maven-version>0.11.2</self-api-check.maven-version>
-        <self-api-check.java-extension-version>0.20.0</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.12.2</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.22.1</self-api-check.java-extension-version>
 
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
         <version.junit>4.12</version.junit>
         <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
         <version.org.slf4j>1.7.5</version.org.slf4j>
+        <version.org.mockito>3.2.4</version.org.mockito>
 
         <version.revapi-build-support>5</version.revapi-build-support>
 
@@ -59,6 +60,8 @@
 	-->
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+
+        <antora-module.version>master</antora-module.version>
     </properties>
 
     <dependencyManagement>
@@ -82,11 +85,9 @@
             </dependency>
 
             <dependency>
-                <groupId>org.revapi</groupId>
-                <artifactId>revapi-site-shared</artifactId>
-                <version>4-SNAPSHOT</version>
-                <type>zip</type>
-                <classifier>resources</classifier>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${version.org.mockito}</version>
             </dependency>
 
             <dependency>
@@ -98,14 +99,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-site-shared</artifactId>
-            <classifier>resources</classifier>
-            <type>zip</type>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>annotations</artifactId>
@@ -162,42 +155,6 @@
                                     <version>9</version>
                                 </requireJavaVersion>
                             </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-site-plugin</artifactId>
-                <configuration>
-                    <relativizeDecorationLinks>false</relativizeDecorationLinks>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-sitexml</id>
-                        <phase>package</phase>
-                        <goals><goal>attach-descriptor</goal></goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-site-shared</id>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <phase>site</phase>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/site/modules/${project.artifactId}</outputDirectory>
-                            <includeArtifactIds>revapi-site-shared</includeArtifactIds>
-                            <includeGroupIds>org.revapi</includeGroupIds>
-                            <includeClassifiers>resources</includeClassifiers>
-                            <includeTypes>zip</includeTypes>
-                            <excludeTransitive>true</excludeTransitive>
                         </configuration>
                     </execution>
                 </executions>
@@ -319,6 +276,45 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>set-metadata-in-antora</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <replaceregexp byline="true">
+                                    <regexp pattern="^version: .*"/>
+                                    <substitution expression="version: ${antora-module.version}"/>
+                                    <fileset dir="${basedir}">
+                                        <include name="src/site/antora.yml"/>
+                                    </fileset>
+                                </replaceregexp>
+                                <replaceregexp byline="true">
+                                    <regexp pattern="^title: .*"/>
+                                    <substitution expression="title: ${project.name}"/>
+                                    <fileset dir="${basedir}">
+                                        <include name="src/site/antora.yml"/>
+                                    </fileset>
+                                </replaceregexp>
+                                <replaceregexp byline="true">
+                                    <regexp pattern="^name: .*"/>
+                                    <substitution expression="name: ${project.artifactId}"/>
+                                    <fileset dir="${basedir}">
+                                        <include name="src/site/antora.yml"/>
+                                    </fileset>
+                                </replaceregexp>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -345,6 +341,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                </configuration>
                 <reportSets>
                     <reportSet>
                         <reports>
@@ -359,7 +358,7 @@
                 <configuration>
                     <sourceHighlighter>highlightjs</sourceHighlighter>
                     <attributes>
-                        <base_url>${web.url}</base_url>
+                        <base_url>https://revapi.org</base_url>
                         <scm>${project.scm.url}</scm>
                     </attributes>
                 </configuration>
@@ -513,12 +512,18 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>antora-release</id>
+            <properties>
+                <antora-module.version>${project.version}</antora-module.version>
+            </properties>
+        </profile>
     </profiles>
 
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.repo}</url>
+            <url>https://revapi.org</url>
         </site>
     </distributionManagement>
 

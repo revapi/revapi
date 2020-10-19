@@ -1,0 +1,153 @@
+= Getting Started
+
+Revapi can be used in 4 ways. Either as a standalone java program, using its maven plugin or ant task during build or as
+an embedded library.
+
+== Maven
+
+NOTE: You can read more about the maven plugin in its xref:revapi-maven-plugin::index.adoc[dedicated section].
+
+NOTE: You can find the latest versions of the various Revapi components in the xref:downloads.adoc[downloads section].
+
+Revapi's main purpose is to track API changes between releases. This is ideally done during build and so the maven
+integration is essential.
+
+The basic usage of the Revapi's maven plugin is quite simple. In your `pom.xml`, do:
+
+[source,xml,subs=+macros]
+----
+<build>
+    ...
+    <plugins>
+        ...
+        <plugin>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-maven-plugin</artifactId>
+            <version>component:revapi-maven-plugin[version]</version>
+            <dependencies>
+                <dependency>
+                    <groupId>org.revapi</groupId>
+                    <artifactId>revapi-java</artifactId>
+                    <version>component:revapi-java[version]</version>
+                </dependency>
+                ...
+            </dependencies>
+            <executions>
+                <execution>
+                    <id>check</id>
+                    <goals><goal>check</goal></goals>
+                </execution>
+            </executions>
+        </plugin>
+        ...
+    </plugins>
+    ...
+</build>
+----
+
+By default, Revapi only bundles the xref:revapi-basic-features::index.adoc[basic features] so in order to
+check your java code, you need to add the Revapi's java extension as a dependency to the maven plugin.
+
+For more detailed info, check the maven plugin's xref:revapi-maven-plugin::index.adoc[site].
+
+== Gradle
+
+There is an externally developed Gradle plugin contributed by https://palantir.com[Palantir],
+the https://github.com/palantir/gradle-revapi[gradle-revapi] plugin. Please consult
+the https://github.com/palantir/gradle-revapi[home page] of the project for usage guidelines and documentation.
+
+== Standalone Usage
+
+NOTE: More information about the Revapi's CLI tool, can be obtained from its
+xref:revapi-standalone::index.adoc[dedicated section].
+
+First you need to download the standalone distribution of Revapi, say `revapi-standalone-component:revapi-standalone[version].zip`.
+Now you have to:
+
+[subs=+macros]
+```
+$ unzip revapi-standalone-component:revapi-standalone[version].zip
+$ cd revapi-standalone-component:revapi-standalone[version]
+```
+
+Your installation is now ready. To start using it, you can simply invoke
+
+```
+$ ./revapi.sh
+```
+
+(or if you're unfortunate enough to be on windows)
+
+```
+> revapi.bat
+```
+
+and you will be presented with the usual usage information.
+
+An invocation of Revapi could look like this:
+
+[subs=+macros]
+----
+./revapi.sh \
+  --extensions=org.revapi:revapi-java:component:revapi-java[version],org.revapi:revapi-reporter-text:component:revapi-reporter-text[version] \
+  --old=my-lib-0.1.0.jar --new=my-lib-0.2.0.jar -D revapi.reporter.text.minSeverity=BREAKING
+----
+
+Different extensions might define different configuration options that you might supply to them using either the `-D`
+command line parameter or they can be read from configuration file(s) specified by the `-c` option.
+
+== Ant
+
+NOTE: You can read more about the Revapi's Ant task in its xref:revapi-ant-task::index.adoc[dedicated section].
+
+There is also an Ant task to invoke Revapi analysis on arbitrary archives.
+The task implicitly supports the xref:revapi-basic-features::index.adoc[basic features] but other extensions
+need to be added.
+
+The following attributes are supported:
+
+|====
+|`oldArchives`|The `FileSet` of archives of the old version of the API
+|`oldSupplementaryArchives`|The `FileSet` of archives that support the old API (i.e. dependencies)
+|`newArchives`|The `FileSet` of archives of the new version of the API
+|`newSupplementaryArchives`|The `FileSet` of archives that support the new API (i.e. dependencies)
+|`revapiClassPath`|A `Path` to additional extensions to use with Revapi
+|`configuration`|A JSON string with the Revapi configuration
+|`breakingSeverity`|The minimal severity of differences that will be reported
+|====
+
+An example for checking Java code:
+
+[source,xml,subs=+macros]
+----
+<target name="api-check">
+  <taskdef name="revapi" classname="org.revapi.ant.RevapiTask" classpath="lib/revapi-ant-task-component:revapi-ant-task[version].jar"/>
+  <revapi>
+    <oldArchives file="mylib-1.0.jar"/>
+    <newArchives file="mylib-1.1.jar"/>
+    <revapiClassPath>
+      <pathelement location="lib/revapi-java-component:revapi-java[version]-uber.jar"/>
+    </revapiClassPath>
+  </revapi>
+</target>
+----
+
+Notice the use of the "uber" jar for the java extension. The uber jar of
+the java extension contains its dependencies (excluding the revapi API
+itself which is considered provided).
+
+== Embedding
+
+[source,java]
+----
+Revapi revapi = Revapi.builder().withAllExtensionsFromThreadContextClassLoader().build();
+
+AnalysisContext analysisContext = AnalysisContext.builder()
+    .withOldAPI(API.of(...))
+    .withNewAPI(API.of(...))
+    .withConfigurationFromJSON("json").build();
+
+revapi.analyze(analysisContext);
+----
+
+For more details, see xref:revapi::index.adoc[dedicated section].

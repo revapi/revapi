@@ -16,6 +16,7 @@
  */
 package org.revapi.basic;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Collections;
@@ -89,9 +90,7 @@ public abstract class DifferenceMatchRecipe {
         reservedProperties.add("code");
         reservedProperties.add("old");
         reservedProperties.add("new");
-        for (String p : additionalReservedProperties) {
-            reservedProperties.add(p);
-        }
+        reservedProperties.addAll(asList(additionalReservedProperties));
 
         regex = config.has("regex") && config.get("regex").asBoolean();
         code = config.get("code").asString();

@@ -21,19 +21,19 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>40-SNAPSHOT</version>
+        <version>42-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Revapi Java Extension</name>
+    <name>Java Extension</name>
     <description>
         Revapi extension to check API of java classes in jar archives.
     </description>
-    <url>${web.url}/modules/${project.artifactId}</url>
+    <url>https://revapi.org</url>
 
     <artifactId>revapi-java</artifactId>
-    <version>0.21.0-SNAPSHOT</version>
+    <version>0.23.0-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.java</automatic.module.name>
@@ -56,13 +56,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.12.0-SNAPSHOT</version>
+            <version>0.13.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-java-spi</artifactId>
-            <version>0.20.0-SNAPSHOT</version>
+            <version>0.22.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -126,7 +126,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.repo}</url>
+            <url>https://revapi.org</url>
         </site>
     </distributionManagement>
 

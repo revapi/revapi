@@ -382,8 +382,8 @@ final class ClasspathScanner {
                 // make sure we always have java.lang.Object in the set of super types. If the current class' super type
                 // is missing, we might not be able to climb the full hierarchy up to java.lang.Object. But that would
                 // be highly misleading to the users.
-                if (type.getKind() != ElementKind.INTERFACE && type.getKind() != ElementKind.ANNOTATION_TYPE
-                        && !type.equals(objectType)) {
+                // Consider Object a superType of interfaces, too, so that we have the Object methods on them.
+                if (!type.equals(objectType)) {
                     tr.superTypes.add(getTypeRecord(objectType));
                     if (!processed.contains(objectType)) {
                         requiredTypes.put(objectType, false);
@@ -436,7 +436,7 @@ final class ClasspathScanner {
                     }
                 }
 
-                type.getAnnotationMirrors().forEach(a -> scanAnnotation(tr, type, a, -1));
+                type.getAnnotationMirrors().forEach(a -> scanAnnotation(tr, type, -1, a));
 
                 finishFiltering(tr, t);
             } catch (Exception e) {
@@ -497,7 +497,7 @@ final class ClasspathScanner {
                 addTypeParamUses(owningType, field, field.asType());
             }
 
-            field.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, field, a, -1));
+            field.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, field, -1, a));
         }
 
         void scanMethod(TypeRecord owningType, ExecutableElement method) {
@@ -524,10 +524,9 @@ final class ClasspathScanner {
                     addTypeParamUses(owningType, method, p.asType());
                 }
 
-                int tmp = idx;
-                p.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, p, a, tmp));
-
-                idx++;
+                for (AnnotationMirror a : p.getAnnotationMirrors()) {
+                    scanAnnotation(owningType, p, idx, a);
+                }
             }
 
             method.getThrownTypes().forEach(t -> {
@@ -538,17 +537,16 @@ final class ClasspathScanner {
                     addTypeParamUses(owningType, method, t);
                 }
 
-                t.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a, -1));
+                t.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, -1, a));
             });
 
-            method.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, a, -1));
+            method.getAnnotationMirrors().forEach(a -> scanAnnotation(owningType, method, -1, a));
         }
 
-        void scanAnnotation(TypeRecord owningType, Element annotated, AnnotationMirror annotation,
-                int indexOfAnnotated) {
+        void scanAnnotation(TypeRecord owningType, Element annotated, int indexInParent, AnnotationMirror annotation) {
             TypeElement type = annotation.getAnnotationType().accept(getTypeElement, null);
             if (type != null) {
-                addUse(owningType, annotated, type, UseSite.Type.ANNOTATES, indexOfAnnotated);
+                addUse(owningType, annotated, type, UseSite.Type.ANNOTATES, indexInParent);
                 addType(type, true);
             }
         }

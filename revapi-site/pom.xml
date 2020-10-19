@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2019 Lukas Krejci
+    Copyright 2014-2020 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,14 @@
   <parent>
     <groupId>org.revapi</groupId>
     <artifactId>revapi-build</artifactId>
-    <version>40-SNAPSHOT</version>
+    <version>42-SNAPSHOT</version>
     <relativePath>../revapi-build</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <name>Revapi Site</name>
   <description>Full-featured API checker for Java and beyond.</description>
-  <url>${web.url}</url>
+  <url>https://revapi.org</url>
 
   <artifactId>revapi-site</artifactId>
   <version>0</version>
@@ -43,7 +43,7 @@
   <distributionManagement>
     <site>
       <id>site</id>
-      <url>${web.repo}</url>
+      <url>https://revapi.org</url>
     </site>
   </distributionManagement>
 
@@ -88,6 +88,21 @@
           </excludes>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>set-version-in-antora</id>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>com.googlecode.maven-download-plugin</groupId>
         <artifactId>download-maven-plugin</artifactId>

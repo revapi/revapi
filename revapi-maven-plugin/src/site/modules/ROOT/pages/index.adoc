@@ -1,0 +1,66 @@
+= Revapi Maven Plugin
+
+Revapi Maven plugin enables API checks during the Maven build. By default, it checks the currently built project against
+the its latest released version (as reported by Maven). Alternatively, the two artifacts to can be set arbitrarily.
+
+The plugin offers the following Maven goals:
+
+* link:{attachmentsdir}/check-mojo.html[revapi:check] is used as part of the build to ensure a configurable level of compatibility.
+* link:{attachmentsdir}/report-mojo.html[revapi:report] generates a simple report for the project's maven-generated site.
+* link:{attachmentsdir}/report-aggregate-mojo.html[revapi:report-aggregate] runs a report on all projects in a reactor using a
+configuration supplied at the top-level aggregator project.
+* link:{attachmentsdir}/validate-configuration-mojo.html[revapi:validate-configuration] validates the configuration of Revapi (use
+this to debug problems with the configuration).
+* link:{attachmentsdir}/update-versions-mojo.html[revapi:update-versions] updates the version string in pom.xml according to
+http://semver.org[semver] rules.
+* link:{attachmentsdir}/update-release-properties-mojo.html[revapi:update-release-properties] updates the `release.properties` file
+with the release and development versions as determined by Revapi according to the http://semver.org[semver] rules.
+
+The full description of all available goals is located link:{attachmentsdir}/plugin-info.html[here].
+
+
+== Usage
+
+Revapi maven plugin is very simple to use. Just define what revapi extensions should be used, what artifacts to
+compare and off you go. See the <<Examples,examples>> section, below.
+
+In case you still have questions regarding the plugin's usage, please feel free to contact the
+link:{attachmentsdir}/mail-lists.html[user mailing list]. The posts to the mailing list are archived and could
+already contain the answer to your question as part of an older thread. Hence, it is also worth browsing/searching
+the link:{attachmentsdir}/mail-lists.html[mail archive].
+
+If you feel like the plugin is missing a feature or has a defect, you can fill a feature request or bug report in our
+link:{attachmentsdir}/issue-tracking.html[issue tracker]. When creating a new issue, please provide a comprehensive description of
+your concern. Especially for fixing bugs it is crucial that the developers can reproduce your problem. For this reason,
+entire debug logs, POMs or most preferably little demo projects attached to the issue are very much appreciated.
+Of course, patches are most welcome, too. Contributors can check out the project from our
+link:{attachmentsdir}/source-repository.html[source repository] and will find supplementary information in the
+http://maven.apache.org/guides/development/guide-helping.html[guide to helping with Maven].
+
+=== Examples
+
+The list of extensions you want to use with Revapi is provided to it as plugin dependencies. Usually you will want to
+check the API of your java archives, so this is the minimal configuration you need to provide to revapi (note that the
+xref:revapi-basic-features::index.adoc[basic features] extension is implicitly present because without it Revapi
+can do literally nothing).
+
+[subs="attributes+,macros+"]
+```xml
+<plugin>
+  <groupId>org.revapi</groupId>
+  <artifactId>revapi-maven-plugin</artifactId>
+  <version>{page-component-version}</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.revapi</groupId>
+      <artifactId>revapi-java</artifactId>
+      <version>component:revapi-java[version]</version>
+    </dependency>
+  </dependencies>
+  <executions>
+    <execution>
+      <goals><goal>check</goal></goals>
+    </execution>
+  </executions>
+</plugin>
+```

@@ -1,0 +1,46 @@
+= Handling Other Types of Archives
+
+Revapi understands JAR files. But java-based applications are not deployed just as JAR files. There are other types of
+artifacts like WAR files, EAR files, Spring Boot fat jars, etc. While these usually don't have any Java API as such that
+would be reusable in other Java code (i.e. such non-jar archives usually cannot function as libraries) and thus
+performing API checks might not be that crucial on them, it still might be useful to perform the API check on such
+archives (for whatever reason, you, my dear user, know best).
+
+Since `revapi-java-spi-0.18.0` (used in `revapi-java-0.19.0`) the API check can be extended by `JarExtractor`
+implementations that can transform certain archives into "plain" JAR structure that Revapi will understand. See the
+link:../revapi-java-spi/index.html[SPI] documentation for more details.
+
+== Handling WAR Archives
+
+`revapi-java` by default contains an implementation of `JarExtractor` that makes it
+understand the structure of WAR files and automatically assume classes from `WEB-INF/classes` as the classes of the
+archive (i.e. If any archive contains a directory called `/WEB-INF/classes/` it is automatically assumed that it is a
+WAR archive and only the contents of `/WEB-INF/classes/` is considered for API checks.
+
+The behavior of the WAR extractor is configurable. The below is the default configuration:
+
+```xml
+<revapi.java>
+  <extract>
+    <war>
+      <disabled>false</disabled> <.>
+      <scan>
+        <item> <.>
+          <archive>.*</archive> <.>
+          <prefixes>
+            <item>/WEB-INF/classes/</item> <.>
+          </prefixes>
+        </item>
+      </scan>
+    </war>
+  </extract>
+</revapi.java>
+```
+
+<1> The WAR file detection and extraction can be disabled (it is enabled by default)
+<2> There can be many ways to extract classes from different WAR archives
+<3> To limit how and what is extracted from different archives, you can specify a regex on the archive name
+<4> And specify a list of path prefixes that are supposed to contain the "significant" classes for the archive
+
+Given the above default configuration, you can see that the WAR extractor looks at all archives and if it finds any
+files under `/WEB-INF/classes/` the classes from there are the only ones considered during the API analysis.

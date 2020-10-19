@@ -1,0 +1,39 @@
+= New Releases
+:docname: 20200527-releases
+:page-publish_date: 2020-05-27
+:page-layout: news-article
+
+There's actually been a couple of releases of all Revapi components since the last time about which I failed to get
+the news out. Life sometimes intervenes :)
+
+IMPORTANT: In this release the rendering of Java elements was generally improved, especially in the case of elements
+with type parameters. This may cause your existing `revapi.ignore` recipes to stop working. Please update the ignore
+recipes with the new way Revapi represents the Java elements textually.
+
+The following issues were fixed in the latest set of Revapi components:
+
+* https://github.com/revapi/revapi/issues/135[#135] - improvements in the `update-versions` goal of the maven plugin
+* https://github.com/revapi/revapi/issues/179[#179] - `singleVersionForAllModules` parameter of `update-version` goal
+is now properly honored. Thanks go out to https://github.com/mkavanagh[Matthew Kavanagh] for the fix!
+* https://github.com/revapi/revapi/issues/180[#180] - an NPE in ancient code in `revapi.ignore`
+* https://github.com/revapi/revapi/issues/181[#181] - methods from `java.lang.Object` are now considered present also
+on interfaces and annotation types because every instance of those types is going to have those methods. This gets rid
+of reports of these methods added/removed when an interface becomes a class or vice versa.
+
+
+Based on the input from https://github.com/vmassol[Vincent Massol] in https://github.com/revapi/revapi/issues/182[#182]
+there's been a couple of improvements made to the maven plugin:
+
+* `convert-config-to-xml` maven goal should now properly escape special characters
+* `check` maven goal now has `ignoreSuggestionsFormat` property. Use this property to make the maven plugin print out
+the suggestions for ignoring the found problems in either JSON (by setting it to `json`, which is the default) or in XML
+(by setting it to `xml`).
+
+Additionally, there is now a new link:../modules/revapi-reporter-json/index.html[JSON reporter] that you can use in pipelines for
+easier further processing.
+
+Last but not least, you can now sponsor the further maintenance and development of Revapi using its
+https://opencollective.com/revapi[Open Collective] page or by clicking the sponsor button on the
+https://github.com/revapi/revapi[github repo].
+
+Go to the link:../downloads.html[downloads page] to check out the latest versions of the various Revapi components.

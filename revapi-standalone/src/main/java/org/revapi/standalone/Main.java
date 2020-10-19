@@ -53,6 +53,7 @@ import org.jboss.modules.ModuleSpec;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
+import org.revapi.PipelineConfiguration;
 import org.revapi.Revapi;
 import org.revapi.maven.utils.ArtifactResolver;
 import org.revapi.simple.FileArchive;
@@ -353,9 +354,9 @@ public final class Main {
 
         Module project = bld.create();
 
-        Revapi revapi = Revapi.builder()
+        Revapi revapi = new Revapi(PipelineConfiguration.builder()
                 .withAllExtensionsFrom(project.getClassLoader())
-                .withAllExtensionsFromThreadContextClassLoader().build();
+                .withAllExtensionsFromThreadContextClassLoader().build());
 
         AnalysisContext.Builder ctxBld = AnalysisContext.builder(revapi)
                 .withOldAPI(API.of(oldArchives).supportedBy(oldSupplementaryArchives).build())

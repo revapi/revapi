@@ -1,0 +1,5 @@
+* xref:specifying-versions.adoc[Specifying Versions]
+* xref:configuring-revapi.adoc[Configuration Approaches]
+* xref:reporting.adoc[Generating Reports]
+* link:{attachmentsdir}/index.html[Maven Site]
+* link:{attachmentsdir}/apidocs/index.html[Javadoc]

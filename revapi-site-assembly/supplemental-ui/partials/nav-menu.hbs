@@ -1,0 +1,28 @@
+{{#with site.components.revapi-site}}
+    <div class="nav-panel-menu is-active" data-panel="menu">
+        <nav class="nav-menu">
+            {{!-- The site is not versions and always has the version "0" --}}
+            {{#with (lookup this.versions 0)}}
+                {{> nav-tree navigation=this.navigation}}
+            {{/with}}
+            <ul class="nav-list">
+                <li class="nav-item" data-depth="0">
+                    <hr/>
+                    <i class="nav-text">Modules</i>
+                    {{#each @root.site.components}}
+                        {{#if (not (eq ./name 'revapi-site'))}}
+                            <li class="nav-item{{#if (eq @root.page.component.name ./name)}} is-active{{/if}}{{#if (eq ./url @root.page.url)}} is-current-page{{/if}}" data-depth="0">
+                                <a class="nav-link" href="{{{relativize ./url}}}">
+                                    <span class="nav-text">{{{./title}}}</span>
+                                </a>
+                                {{#if (eq @root.page.component.name ./name)}}
+                                    {{> nav-tree navigation=@root.page.navigation}}
+                                {{/if}}
+                            </li>
+                        {{/if}}
+                    {{/each}}
+                </li>
+            </ul>
+        </nav>
+    </div>
+{{/with}}

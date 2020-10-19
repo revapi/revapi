@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "classify": {
+      "$ref": "#/definitions/classify"
+    },
+    "ignore": {
+      "$ref": "#/definitions/ignore"
+    },
+    "justification": {
+      "$ref": "#/definitions/justification"
+    },
+    "attachments": {
+      "$ref": "#/definitions/attachments"
+    },
+    "criticality": {
+      "$ref": "#/definitions/criticality"
+    },
+    "differences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "regex": {
+            "type": "boolean",
+            "default": "false"
+          },
+          "code": {
+            "type": "string"
+          },
+          "old": {
+            "type": "string"
+          },
+          "new": {
+            "type": "string"
+          },
+          "classify": {
+            "$ref": "#/definitions/classify"
+          },
+          "ignore": {
+            "$ref": "#/definitions/ignore"
+          },
+          "justification": {
+            "$ref": "#/definitions/justification"
+          },
+          "attachments": {
+            "$ref": "#/definitions/attachments"
+          },
+          "criticality": {
+            "$ref": "#/definitions/criticality"
+          }
+        },
+        "additionalProperties": {
+          "type": "string"
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["differences"],
+  "definitions": {
+    "classification": {
+      "type": "string",
+      "enum": [
+        "EQUIVALENT",
+        "NON_BREAKING",
+        "POTENTIALLY_BREAKING",
+        "BREAKING"
+      ]
+    },
+    "classify": {
+      "type": "object",
+      "properties": {
+        "SOURCE": {
+          "$ref": "#/definitions/classification"
+        },
+        "BINARY": {
+          "$ref": "#/definitions/classification"
+        },
+        "SEMANTIC": {
+          "$ref": "#/definitions/classification"
+        },
+        "OTHER": {
+          "$ref": "#/definitions/classification"
+        }
+      },
+      "minProperties": 1
+    },
+    "ignore": {
+      "type": "boolean"
+    },
+    "justification": {
+      "type": "string"
+    },
+    "attachments": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "criticality": {
+      "type": "string"
+    }
+  }
+}

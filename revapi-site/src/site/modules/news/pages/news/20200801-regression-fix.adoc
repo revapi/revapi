@@ -1,0 +1,13 @@
+= Fixed Regression 
+:page-publish_date: 2020-08-01
+:page-layout: news-article
+
+There was a regression found that caused the `semver.ignore` extension to cause an infinite loop
+when it found a problem breaking the semantic versioning constraints.
+
+The new version of `revapi-basic-features`, `0.10.1`, fixes that problem. This new version is incorporated
+in the newly released `revapi-maven-plugin` version `0.12.1`, `revapi-ant-task` version `0.10.1` and
+`revapi-standalone` version `0.9.7`.
+
+Thanks go out to https://github.com/brandstaetter[Hannes Brandstätter-Müller] for reporting the problem.
+

@@ -1,0 +1,6 @@
+= Basic Extensions
+
+There is a couple of basic extensions that are developed alongside the core Revapi library. These are by default
+available when using the Revapi's maven plugin or using Revapi standalone. If you're using Revapi on your own, you need
+to explicitly put the `revapi-basic-features-{page-component-version}.jar` on your class path, or depend on
+`org.revapi:revapi-basic-features:{page-component-version}` maven artifact.

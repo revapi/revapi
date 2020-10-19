@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Set;
+
 public interface ToStrings {
 
     void methodWithTypeParamsInMethodParams(int i, java.util.function.Function<String, ?> f, java.util.HashMap<?, ?> h);
+
+    public enum Enums {
+        A, B;
+        public void customMethod() {}
+    }
+
+    class Generic<T extends U, U extends Enum<U>, E extends Throwable> {
+        public <X extends Enum<U> & Cloneable, Y extends Set<X>> X m1(U arg1, Map<Comparator<? super T>, String> arg2, X arg3) throws E {
+            return null;
+        }
+
+        public E m2(U arg) {
+            return null;
+        }
+
+        class Inner<I extends U> {
+            public T m1(I arg) throws E {
+                return null;
+            }
+        }
+    }
+
+    <T extends Cloneable & Comparable<? super T>> java.util.Set<T> methodWithGenericParameterInBound(T param);
 }

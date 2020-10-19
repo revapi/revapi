@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,9 @@
  */
 package org.revapi.reporter.text;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -28,7 +31,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -60,6 +62,7 @@ public class TextReporterTest {
                 .build();
 
         AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(TextReporter.class);
+        assertNotNull(reporterCtx);
 
         reporter.initialize(reporterCtx);
 
@@ -84,10 +87,11 @@ public class TextReporterTest {
                 "\n" +
                 "old: old2\n" +
                 "new: new2\n" +
-                "code2: descr2\n" +
+                "code2\n" +
+                "justified\n" +
                 "BINARY: BREAKING\n\n";
 
-        Assert.assertEquals(expected, out.toString());
+        assertEquals(expected, out.toString());
     }
 
     @Test
@@ -107,6 +111,7 @@ public class TextReporterTest {
                     .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
             AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(TextReporter.class);
+            assertNotNull(reporterCtx);
 
             reporter.initialize(reporterCtx);
 
@@ -121,7 +126,7 @@ public class TextReporterTest {
 
             String expected = "old1 VS new1\nold2 VS new2\n";
 
-            Assert.assertEquals(expected, out.toString());
+            assertEquals(expected, out.toString());
         } finally {
             Files.delete(tempFile);
         }
@@ -131,8 +136,9 @@ public class TextReporterTest {
         List<Report> ret = new ArrayList<>();
 
         Report report = Report.builder().withOld(new DummyElement("old2")).withNew(new DummyElement("new2"))
-                .addProblem().withCode("code2").withDescription("descr2").withName("name2")
-                .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).done().build();
+                .addProblem().withCode("code2").withName("name2")
+                .withJustification("justified").addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
+                .done().build();
 
         ret.add(report);
 

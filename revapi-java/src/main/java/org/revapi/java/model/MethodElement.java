@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -32,6 +33,12 @@ import org.revapi.java.spi.Util;
  * @since 0.1
  */
 public final class MethodElement extends JavaElementBase<ExecutableElement, ExecutableType> implements JavaMethodElement {
+
+    public static String createComparableSignature(ExecutableElement m, TypeMirror mType) {
+        //the choice of '#' for a separator between the name and signature is because it precedes both '(' and any
+        //legal character in a method name in the ASCII table
+        return m.getSimpleName() + "#" + Util.toUniqueString(mType);
+    }
 
     public MethodElement(ProbingEnvironment env, Archive archive, ExecutableElement element, ExecutableType type) {
         super(env, archive, element, type);
@@ -54,10 +61,7 @@ public final class MethodElement extends JavaElementBase<ExecutableElement, Exec
 
     @Override
     protected String createComparableSignature() {
-        //the choice of '#' for a separator between the name and signature is because it precedes both '(' and any
-        //legal character in a method name in the ASCII table
-        return getDeclaringElement().getSimpleName() + "#" +
-            Util.toUniqueString(getModelRepresentation());
+        return createComparableSignature(getDeclaringElement(), getModelRepresentation());
     }
 
     @Override

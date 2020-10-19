@@ -1,0 +1,29 @@
+= New Releases and Updates to The Site
+:docname: 20170712-releases
+:page-publish_date: 2017-07-12
+:page-layout: news-article
+
+After a couple of silent weeks I've finally managed to release new versions of the Revapi components. There are exactly
+2 fixes, one new feature and many improvements to the site.
+
+== Fixes
+* The analysis doesn't break on archives that contain member classes anymore (i.e. classes defined inside the methods).
+* The Ant task now assumes Ant being provided by the runtime as it should.
+
+== New Features
+
+It is now possible for the Java checks to be configured (none of the present java checks requires a configuration but
+that may change in the future).
+
+Many thanks go out to Martin Montperrus and Christian Dietrich for updates to the site and to twogee github user for the
+fix of the ant task.
+
+== Future
+
+I've been working on the link:https://github.com/revapi/revapi/issues/17[element matching] issue which should greatly
+improve the ability to define what constitutes an API by being able to define advanced filters using "literate DSL"
+like: `is not in package /.*\.impl/ or is annotated by '@my.annos.Public'` which would only consider classes that are
+not in a package ending in ".impl" or which are annotated by "@my.annos.Public" annotation.
+
+Even though I think the above is a great and much needed improvement, Revapi still has many other
+link:https://github.com/revapi/revapi/issues[areas to improve in]. Your help of any kind is greatly appreciated.

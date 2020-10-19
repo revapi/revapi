@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +18,12 @@ package org.revapi;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -132,6 +134,8 @@ public final class AnalysisContext {
     private final API newApi;
     private final Map<String, ElementMatcher> matchers;
     private final Map<String, Object> data;
+    private final Map<DifferenceSeverity, Criticality> defaultSeverityMapping;
+    private final Map<String, Criticality> criticalityByName;
 
     /**
      * Constructor
@@ -143,7 +147,8 @@ public final class AnalysisContext {
      * @param data          the data that should be attached to the analysis context
      */
     private AnalysisContext(@Nonnull Locale locale, @Nullable ModelNode configuration, @Nonnull API oldApi,
-            @Nonnull API newApi, Collection<ElementMatcher> elementMatchers, @Nonnull Map<String, Object> data) {
+            @Nonnull API newApi, Collection<ElementMatcher> elementMatchers, @Nonnull Map<String, Object> data,
+            Collection<Criticality> knownCriticalities, Map<DifferenceSeverity, Criticality> defaultSeverityMapping) {
         this.locale = locale;
         if (configuration == null) {
             this.configuration = new ModelNode();
@@ -158,6 +163,8 @@ public final class AnalysisContext {
                 : Collections.unmodifiableMap(elementMatchers.stream()
                 .collect(Collectors.toMap(Configurable::getExtensionId, Function.identity())));
         this.data = data;
+        this.criticalityByName = knownCriticalities.stream().collect(toMap(Criticality::getName, identity()));
+        this.defaultSeverityMapping = defaultSeverityMapping;
     }
 
     /**
@@ -169,27 +176,43 @@ public final class AnalysisContext {
      * @param revapi the revapi instance to read the available extensions from
      * @return a new analysis context builder
      */
-    @Nonnull
     public static Builder builder(Revapi revapi) {
+        return builder(revapi.getPipelineConfiguration());
+    }
+
+
+    /**
+     * Returns a new analysis context builder that extracts the information about the available extensions from
+     * the provided pipeline configuration.
+     *
+     * <p>The extensions have to be known so that both old and new style of configuration can be usefully worked with.
+     *
+     * @param pipelineConfiguration the pipeline configuration to initialize from
+     * @return a new analysis context builder
+     */
+    public static Builder builder(PipelineConfiguration pipelineConfiguration) {
         List<String> knownExtensionIds = new ArrayList<>();
 
-        addExtensionIds(revapi.getPipelineConfiguration().getApiAnalyzerTypes(), knownExtensionIds);
-        addExtensionIds(revapi.getPipelineConfiguration().getTransformTypes(), knownExtensionIds);
-        addExtensionIds(revapi.getPipelineConfiguration().getTreeFilterTypes(), knownExtensionIds);
-        addExtensionIds(revapi.getPipelineConfiguration().getReporterTypes(), knownExtensionIds);
-        addExtensionIds(revapi.getPipelineConfiguration().getMatcherTypes(), knownExtensionIds);
+        addExtensionIds(pipelineConfiguration.getApiAnalyzerTypes(), knownExtensionIds);
+        addExtensionIds(pipelineConfiguration.getTransformTypes(), knownExtensionIds);
+        addExtensionIds(pipelineConfiguration.getTreeFilterTypes(), knownExtensionIds);
+        addExtensionIds(pipelineConfiguration.getReporterTypes(), knownExtensionIds);
+        addExtensionIds(pipelineConfiguration.getMatcherTypes(), knownExtensionIds);
 
-        return new Builder(knownExtensionIds);
+        return new Builder(knownExtensionIds, pipelineConfiguration.getCriticalities(),
+                pipelineConfiguration.getSeverityMapping());
     }
 
     /**
      * This method can be used to instantiate a new analysis context builder without the need for prior instantiation
      * of Revapi. Such builder is only able to process a new-style configuration though!
      *
+     * <p>This analysis context will also always uses the default criticalities and severity-to-criticality mapping.
+     *
      * @return a new analysis context builder
      */
     public static Builder builder() {
-        return new Builder(null);
+        return new Builder(null, Criticality.defaultCriticalities(), Criticality.defaultSeverityMapping());
     }
 
     /**
@@ -202,7 +225,7 @@ public final class AnalysisContext {
      */
     public AnalysisContext copyWithConfiguration(ModelNode configuration) {
         return new AnalysisContext(this.locale, configuration, this.oldApi, this.newApi, this.matchers.values(),
-                this.data);
+                this.data, this.criticalityByName.values(), this.defaultSeverityMapping);
     }
 
     /**
@@ -213,7 +236,8 @@ public final class AnalysisContext {
      * @return a copy of this instance with the provided matchers replacing any existing in this instance
      */
     public AnalysisContext copyWithMatchers(Set<ElementMatcher> matchers) {
-        return new AnalysisContext(this.locale, this.configuration, this.oldApi, this.newApi, matchers, this.data);
+        return new AnalysisContext(this.locale, this.configuration, this.oldApi, this.newApi, matchers, this.data,
+                this.criticalityByName.values(), this.defaultSeverityMapping);
     }
 
     @Nonnull
@@ -246,6 +270,15 @@ public final class AnalysisContext {
         return data.get(key);
     }
 
+    @Nullable
+    public Criticality getCriticalityByName(String name) {
+        return criticalityByName.get(name);
+    }
+
+    public Criticality getDefaultCriticality(DifferenceSeverity severity) {
+        return defaultSeverityMapping.get(severity);
+    }
+
     private static <T extends Configurable>
     void addExtensionIds(Collection<Class<? extends T>> cs, List<String> extensionIds) {
         cs.stream()
@@ -265,15 +298,20 @@ public final class AnalysisContext {
 
     public static final class Builder {
         private final List<String> knownExtensionIds;
+        private final Set<Criticality> knownCriticalities;
 
         private Locale locale = Locale.getDefault();
         private API oldApi;
         private API newApi;
         private ModelNode configuration;
         private Map<String, Object> data = new HashMap<>(2);
+        private final Map<DifferenceSeverity, Criticality> defaultSeverityMapping;
 
-        private Builder(List<String> knownExtensionIds) {
+        private Builder(List<String> knownExtensionIds, Set<Criticality> knownCriticalities,
+                Map<DifferenceSeverity, Criticality> defaultSeverityMapping) {
             this.knownExtensionIds = knownExtensionIds;
+            this.knownCriticalities = knownCriticalities;
+            this.defaultSeverityMapping = defaultSeverityMapping;
         }
 
         public Builder withLocale(Locale locale) {
@@ -303,7 +341,7 @@ public final class AnalysisContext {
 
         public Builder withConfigurationFromJSONStream(InputStream jsonStream) throws IOException {
             this.configuration = convertToNewStyle(ModelNode
-                    .fromJSONStream(JSONUtil.stripComments(jsonStream, Charset.forName("UTF-8"))));
+                    .fromJSONStream(JSONUtil.stripComments(jsonStream, StandardCharsets.UTF_8)));
             return this;
         }
 
@@ -338,7 +376,7 @@ public final class AnalysisContext {
                 configuration = new ModelNode();
                 configuration.setEmptyList();
             }
-            InputStream str = JSONUtil.stripComments(jsonStream, Charset.forName("UTF-8"));
+            InputStream str = JSONUtil.stripComments(jsonStream, StandardCharsets.UTF_8);
             mergeConfigs(configuration, ModelNode.fromJSONStream(str));
             return this;
         }
@@ -354,7 +392,8 @@ public final class AnalysisContext {
         }
 
         public AnalysisContext build() {
-            return new AnalysisContext(locale, configuration, oldApi, newApi, Collections.emptySet(), data);
+            return new AnalysisContext(locale, configuration, oldApi, newApi, Collections.emptySet(), data, knownCriticalities,
+                    defaultSeverityMapping);
         }
 
         private ModelNode convertToNewStyle(ModelNode configuration) {

@@ -1,0 +1,10 @@
+= New Release of Revapi Java Extension
+:docname: 20171031-revapi-java-release
+:page-publish_date: 2017-10-31
+:page-layout: news-article
+
+It was https://github.com/revapi/revapi/issues/101[discovered] that the analysis may fail if it encounters classes that
+are missing from the dependency graph in certain situations. This should now be fixed and all users are encouraged to
+upgrade to using `revapi-java-0.14.4` if possible.
+
+Thanks go out to Martin Monperrus who discovered and helped analyze the issue.

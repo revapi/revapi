@@ -1,0 +1,228 @@
+= Architecture
+
+Revapi has a very simple architecture consisting of a simple linear pipeline that processes a "forest" (a set of trees)
+of individual API elements.
+
+The API elements come from archives. As of now, the only possible source of archives is the file system (future versions
+of Revapi may introduce other implementations for different sources of archives).
+
+A set of archives containing the old version of API is passed to an archive analyzer that produces a forest of API
+elements. Then archives of the new version are analyzed the same way.
+
+The two API forests are then consistently sorted and traversed in parallel. New or missing elements are detected and
+equivalent elements are compared using an element analyzer, producing a set of reports that contain the differences
+found while comparing the elements. The differences are then simply reported.
+
+The following diagram depicts the work flow graphically. 
+
+[plantuml]
+....
+start
+fork
+  :Old Archives;
+  :Archive Analyzer;
+  ->AST;
+  :Element Filters;
+  ->Pruned AST;
+fork again
+  :New Archives;
+  :Archive Analyzer;
+  ->AST;
+  :Element Filters;
+  ->Pruned AST;
+end fork
+:Difference Analyzer;
+->Difference Reports;
+:Difference Transforms;
+->Finalized Difference Reports;
+:Reporters;
+stop
+....
+
+Each of the stages in that work flow is configurable. The configuration is supplied as JSON files, that are validated
+against JSON schemas that each extension can supply.
+
+== Extension points
+
+The diagram above hints at several extension points available in Revapi.
+
+=== Archives
+An fref:revapi::attachment$apidocs/org/revapi/Archive.html[archive] is a very simple abstraction over a file that represents
+the archive containing some API elements (like Java's jar archive or a class file, an XML document, properties file,
+etc).
+
+Revapi actually doesn't provide any implementation of it on its own (only the standalone Revapi's CLI contains a private
+implementation able to read from files) but it is trivial to implement one.
+
+=== API Analyzer
+An fref:revapi::attachment$/apidocs/org/revapi/ApiAnalyzer.html[API analyzer] (which is kinda implicit in the diagram) is
+the main interface for implementing API checks for custom "language". It provides and configures the analyzers of the
+archives and API difference analyzers both to be detailed below.
+
+=== Archive Analyzer
+An fref:revapi::attachment$/apidocs/org/revapi/ArchiveAnalyzer.html[archive analyzer] is instantiated and configured by the
+API analyzer to analyze archives of a version of API. It represents the results of the analysis as an
+fref:revapi::attachment$/apidocs/org/revapi/ElementForest.html[element forest] (i.e. a set of element trees).
+
+=== Element Filter
+An fref:revapi::attachment$/apidocs/org/revapi/ElementFilter.html[element filter] can filter out elements from the element
+forest before they are passed further down the API analysis pipeline. The same set of element filters is applied to
+both the old API and new API element forests.
+
+=== Difference Analyzer
+The magic happens in the fref:revapi::attachment$/apidocs/org/revapi/DifferenceAnalyzer.html[difference analyzers]. Revapi
+simultaneously traverses the two element forests discovering new or removed elements and matching the comparable
+elements in them (using a fref:revapi::attachment$/apidocs/org/revapi/CoIterator.html[co-iterator]). It then passes the
+matched pairs to the difference analyzer that performs the actual analysis of changes and provides the reports
+summarizing them.
+
+A report summarizes the differences found between 2 elements - one from the old API and the other from the new API
+(accounting for removals or additions by one of the pair being null).
+
+In addition to the two elements in comparison, the report also contains the list of the differences the analyzer found
+between the two.
+
+==== Differences
+
+Each difference is identified by its `code`. The `code` is a textual ID of the difference that should be unique. In
+addition to that, the difference can also define a human readable name and description. The difference has
+a classification - a mapping between a compatibility type and the severity - basically saying how severe the difference
+is for given type of compatibility. In addition to that, a difference contains `attachments` which is a varying list
+of additional information about the difference and criticality - how critical the difference is for the analysis
+results.
+
+Revapi recognizes 4 types of compatibility:
+
+* `SOURCE` - old and new API is source compatible if the code using the old API can be compiled against the new API
+without modification.
+* `BINARY` - old and new API is binary compatible if the code compiled against the old API can run using the new API
+with modification and error.
+* `SEMANTIC` - old and new API is semantically compatible if they behave the same
+* `OTHER` - other type of compatibility not captured by the previous three.
+
+And here are the severities of differences:
+
+* `BREAKING` - the differences breaks the API compatibility (of given type)
+* `POTENTIALLY_BREAKING` - the difference may break the API compatibility (of given type) under some specific
+circumstances
+* `NON_BREAKING` - the difference doesn't break the API
+* `EQUIVALENT` - "there is no change" - this is provided so that transforms and other tools can declare that certain
+changes are not even non-breaking - they are effectively non-existent.
+
+Apart from this classification, a difference also defines its criticality. This expresses how severe the change is
+regardless of the severity under different compatibility types. This is meant to be supplied mostly through
+the configuration by the library author and should give the user the information about how severe the change is
+perceived by the library author or how critical it is for the results of the current analysis (this may be configured
+differently for build-time analysis or for report generation).
+
+A criticality is identified by its name and has a level associated with it. The higher the level, the more critical
+the criticality is. There are 4 predefined criticalities:
+
+* `allowed` - for API changes that are allowed to happen and might not even be tracked in some kind of generated report.
+The level of this is set to `1000`.
+* `documented` - for API changes that are justified and documented in some generated report. The level of this is set
+to `2000`.
+* `highlight` - essentially the same as `documented` but more "severe". Such API changes should be somehow highlighted
+in the generated reports because they are very important to take note of by the users. The level of this is set to
+`3000`.
+* `error` - These changes should not be allowed in a release. The level of this is set to the maximum integer value.
+There can be no more severe criticality than this.
+
+The criticality is not generally assigned directly by the difference analyzer. It is meant to be assigned by
+the user that configures the analysis through configuring difference transform extensions to assign the criticality
+based on some criteria.
+
+The recognized criticalities can be configured in the pipeline configuration where one can define a completely new set
+of criticalities known to the analysis or just augment the levels of the default ones.
+
+Additionally, there is a default mapping for converting a difference severity to criticality. This is used in situations
+where no transform assigns a criticality to the difference. This mapping can again be configured. The default mapping
+is rather conservative:
+
+* `EQUIVALENT` is assumed to have `allowed` criticality
+* `NON_BREAKING` is assumed to have `documented` criticality
+* `POTENTIALLY_BREAKING` is assumed to have `error` criticality
+* `BREAKING` is assumed to have `error` criticality
+
+=== Difference Transform
+Once the differences are found they are supplied to the
+fref:revapi::attachment$/apidocs/org/revapi/DifferenceTransform.html[difference transforms]. These extensions can, as the
+name suggests, transform the found differences into different ones or altogether remove them from the results.
+
+==== Transformation Algorithm
+As briefly explained above, Revapi compares element pairs from old and new API one at a time. For each element pair,
+a report is produced detailing all the found differences. Each such report is then processed by the transformers. Each
+transformer is given a chance to transform the differences from the original report and their intended changes are
+gathered. After the "round", the changes are applied to the list of differences for the element pair and all
+the transformers can again react on the new list of differences. This repeats until no further changes are made to
+the list by the transformers.
+
+You can spot in the explanation above that there is a good chance for an infinite loop if two or more transformers form
+a "cycle", meaning that a difference that produced by one transformer is changed again into the original by a second
+transformer, which again is transformed by the first transformer, etc.
+
+Revapi guards against this simply by doing at most 1{nbsp}000{nbsp}000 such iterations and then throwing an error.
+
+=== Transformation Blocks
+One thing was not explicitly mentioned in the basic description of the transformation algorithm. Transformations can
+be grouped into blocks that then act as a single transformation in the above algorithm.
+
+What is this good for?
+
+You can notice that it is hard (read impossible without transformation blocks) to "prepare" differences using one
+transform and then produce the final difference using a different transform.
+
+As an example, let's suppose that we would like to use Revapi for checking semantic versioning of our code but we would
+only like to base our semantic version on the binary compatibility of the code, disregarding any source or semantic
+incompatibilities.
+
+Such thing would be impossible without transformation blocks because the transformation algorithm makes sure each
+transform sees all the differences and all changes to the original differences are transferred to the next
+"transformation round".
+
+So, how would we use transformation blocks and how would we configure Revapi to only consider binary compatibility?
+
+Let's use Maven for our example:
+
+```xml
+<analysisConfiguration>
+  <revapi.semver.ignore>
+    <enabled>true</enabled>
+  </revapi.semver.ignore>
+  <revapi.reclassify>
+    <item>
+      <regex>true</regex>
+      <code>.*</code>
+      <classify>
+        <SOURCE>EQUIVALENT</SOURCE>
+        <SEMANTIC>EQUIVALENT</SEMANTIC>
+        <OTHER>EQUIVALENT</OTHER>
+      </classify>
+    </item>
+  </revapi.reclassify>
+</analysisConfiguration>
+<pipelineConfiguration>
+  <transformBlocks>
+    <block>
+      <item>revapi.reclassify</item>
+      <item>revapi.semver.ignore</item>
+    </block>
+  </transformBlocks>
+</pipelineConfiguration>
+```
+
+What have we done there? The analysis configuration looks "normal". We enable the `revapi.semver.ignore` extension and
+leave it with the default configuration. We additionally configure `revapi.reclassify` to tone down any difference
+(with any code, by using `.*` as the regex to match any difference code) to `EQUIVALENT`, effectively "switching them
+off" for all compatibility types but `BINARY`.
+
+The new thing is the `pipelineConfiguration`. This tells Revapi to group the two transforms together and consider them
+as one - the "output" difference of `revapi.reclassify` is used as "input" difference to `revapi.semver.ignore` and
+"output" of that is used for the reporting purposes. The important thing is that `revapi.semver.ignore` never sees
+the original differences as reported by the analyzer. It only ever sees the differences first transformed by
+`revapi.reclassify`.
+
+=== Reporter
+Finally, after the final set of differences is settled, it is passed to the
+fref:revapi::attachment$/apidocs/org/revapi/Reporter.html[reporters]. These are responsible to report the found
+differences to the caller somehow (standard output, database, xml files, whatever one imagines).

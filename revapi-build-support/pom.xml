@@ -3,14 +3,14 @@
     <parent>
         <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
-        <version>13-SNAPSHOT</version>
+        <version>14-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>revapi-build-support</artifactId>
-    <version>6-SNAPSHOT</version>
-    <url>${web.url}/modules/${project.artifactId}</url>
+    <version>7-SNAPSHOT</version>
+    <url>https://revapi.org</url>
 
     <name>Revapi Build Support</name>
     <description>Support library for build. As of now it contains checkstyle definitions.</description>
@@ -18,7 +18,7 @@
     <distributionManagement>
         <site>
             <id>site</id>
-            <url>${web.repo}</url>
+            <url>https://revapi.org</url>
         </site>
     </distributionManagement>
 

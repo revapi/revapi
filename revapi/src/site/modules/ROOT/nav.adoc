@@ -1,0 +1,3 @@
+* xref:architecture.adoc[Architecture]
+* xref:configuration.adoc[Configuration]
+* link:{attachmentsdir}/apidocs/index.html[Javadoc]

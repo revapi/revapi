@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
 
-    Copyright 2014-2019 Lukas Krejci
+    Copyright 2014-2020 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,39 @@
 <feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom">
   <id>https://revapi.org</id>
   <title>Revapi - Full-featured API checker for Java and beyond.</title>
-  <updated>2018-05-06T00:00:00+01:00</updated>
+  <updated>2020-06-14T00:00:00+01:00</updated>
   <link href="https://revapi.org/news.atom" rel="self" type="application/atom+xml" />
   <link href="https://revapi.org/" rel="alternate" type="text/html" />
+  <entry>
+    <id>https://revapi.org/news/20200614-bugfix-release.html</id>
+    <title>Bugfix Release</title>
+    <updated>2020-06-14T00:00:00+00:00</updated>
+    <published>2020-06-14T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20200614-bugfix-release.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+      The `revapi-java` extension released a couple of weeks ago contained a rather ugly regression that caused an index out
+      of bounds exception on interfaces that override methods from `java.lang.Object`.
+    </summary>
+    <content type="html">
+      The revapi-java extension released a couple of weeks ago contained a rather ugly regression that caused an index out
+      of bounds exception on interfaces that override methods from java.lang.Object.
+    </content>
+  </entry>
+  <entry>
+    <id>https://revapi.org/news/20200527-releases.html</id>
+    <title>New Releases</title>
+    <updated>2020-05-27T00:00:00+00:00</updated>
+    <published>2020-05-27T00:00:00+00:00</published>
+    <link href="https://revapi.org/news/20200527-releases.html" rel="alternate" type="text/html" />
+    <author>Lukas Krejci</author>
+    <summary>
+        Bugfixes and improvements
+    </summary>
+    <content type="html">
+        Bugfixes and improvements
+    </content>
+  </entry>
   <entry>
     <id>https://revapi.org/news/20190506-releases.html</id>
     <title>New Releases</title>

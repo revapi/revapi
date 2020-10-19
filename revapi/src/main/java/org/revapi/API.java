@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -138,6 +138,29 @@ public final class API {
     @Nullable
     public Iterable<? extends Archive> getSupplementaryArchives() {
         return supplementaryArchives;
+    }
+
+    /**
+     * Returns the role of the archive in the API.
+     * @param archive the archive to check
+     * @return the role of the archive in the API
+     */
+    public Archive.Role getArchiveRole(Archive archive) {
+        for (Archive a : archives) {
+            if (a.equals(archive)) {
+                return Archive.Role.PRIMARY;
+            }
+        }
+
+        if (supplementaryArchives != null) {
+            for (Archive a : supplementaryArchives) {
+                if (a.equals(archive)) {
+                    return Archive.Role.SUPPLEMENTARY;
+                }
+            }
+        }
+
+        return Archive.Role.UNKNOWN;
     }
 
     @Override

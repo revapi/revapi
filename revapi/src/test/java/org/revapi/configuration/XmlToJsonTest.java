@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +16,15 @@
  */
 package org.revapi.configuration;
 
-import static java.util.stream.Collectors.toList;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.AbstractList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -128,7 +129,7 @@ public class XmlToJsonTest {
     @Test
     public void testArrayConversion() throws Exception {
         XmlToJson<Node> converter = converter("list", "{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
-        Node xml = xml("<config><list><item>1</item><item>2</item></list></config>");
+        Node xml = xml("<config><list><item>1</item>\n\n  <item>2</item></list></config>");
 
         ModelNode config = converter.convert(xml).get(0).get("configuration");
         Assert.assertNotNull(config);
@@ -138,12 +139,29 @@ public class XmlToJsonTest {
         Assert.assertEquals(2L, config.asList().get(1).asLong());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testArrayConversion_invalid() throws Exception {
+    @Test
+    public void testArrayConversion_commentsAndWhitespaceIgnored() throws Exception {
         XmlToJson<Node> converter = converter("list", "{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
-        Node xml = xml("<config><list>text</list></config>");
+        Node xml = xml("<config><list>\n\n   <!-- just whitespace -->\n\t   </list></config>");
 
-        converter.convert(xml).get(0).get("configuration");
+        ModelNode config = converter.convert(xml).get(0).get("configuration");
+        Assert.assertNotNull(config);
+        Assert.assertEquals(ModelType.LIST, config.getType());
+        Assert.assertTrue(config.asList().isEmpty());
+    }
+
+    @Test
+    public void testArrayConversion_invalid() throws Exception {
+        try {
+            XmlToJson<Node> converter = converter("list", "{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
+            Node xml = xml("<config><list>text is invalid</list></config>");
+
+            converter.convert(xml).get(0).get("configuration");
+
+            Assert.fail("Invalid array conversion shouldn't have succeeded.");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("<list>"));
+        }
     }
 
     @Test
@@ -339,6 +357,8 @@ public class XmlToJsonTest {
         Map<String, ModelNode> exts = new HashMap<>(1);
         exts.put(extension, json(schema));
 
+        List<Short> nonChildrenNodeTypes = Arrays.asList(Node.TEXT_NODE, Node.CDATA_SECTION_NODE, Node.COMMENT_NODE);
+
         return new XmlToJson<>(exts,
                 Node::getNodeName,
                 n -> {
@@ -366,7 +386,8 @@ public class XmlToJsonTest {
                     return attr.getNodeValue();
                 },
                 n -> new NodeListList(n.getChildNodes()).stream()
-                        .filter(e -> e.getNodeType() == Node.ELEMENT_NODE).collect(toList()));
+                        .filter(x -> !nonChildrenNodeTypes.contains(x.getNodeType()))
+                        .collect(Collectors.toList()));
     }
 
     private static final class NodeListList extends AbstractList<Node> {

@@ -1,0 +1,19 @@
+= Introducing Online API Difference Checking
+:docname: 20170424-intro
+:page-layout: news-article
+:page-publish_date: 2017-04-24
+
+Starting today there is an online tool for checking the difference between different versions of libraries on
+https://diff.revapi.org.
+
+For any artifact available in Maven Central, you can simply enter its coordinates and the versions that you want to
+compare and you will get the summary of the API changes made between those versions. Because Java libraries don't
+have clear API boundaries, you can filter out the non-interesting elements from the list.
+
+Go ahead and https://diff.revapi.org[check it out]!
+
+As everything in Revapi, the site is in beta, so your feedback, suggestions and bug reports are more than welcome!
+
+NOTE: The tool is meant to aid in deciding whether it is safe to upgrade to a newer versions of some library. While it can
+detect API changes, it cannot detect behavioral changes, so you should not base any decision solely on the output
+of this tool.

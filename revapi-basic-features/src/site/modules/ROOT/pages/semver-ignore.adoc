@@ -1,0 +1,83 @@
+= Version-based Ignore Transformation
+
+*Extension*: `revapi.semver.ignore`
+
+Using this extension one can automatically ignore API changes that are allowed for a given version delta based on the
+rules of semantic versioning (http://semver.org).
+
+== Sample Configuration
+
+```javascript
+[
+  {
+    "extension": "revapi.semver.ignore",
+    "configuration": {
+      "enabled" : true,
+      "versionIncreaseAllows" : {
+        "major" : "breaking",
+        "minor" : "nonBreaking",
+        "patch" : "equivalent"
+      },
+      "passThroughDifferences": ["java.class.nonPublicPartOfAPI"]
+    }
+  }
+]
+```
+
+```xml
+<analysisConfiguration>
+  <revapi.semver.ignore>
+    <enabled>true</enabled>
+    <versionIncreaseAllows>
+      <major>breaking</major>
+      <minor>nonBreaking</minor>
+      <patch>equivalent</patch>
+    <versionIncreaseAllows>
+    <passThroughDifferences>
+      <item>java.class.nonPublicPartOfAPI</item>
+    </passThroughDifferences>
+  </revapi.semver.ignore>
+</analysisConfiguration>
+```
+
+== Properties
+
+`enabled`::
+If true, the transformation is in effect and ignores API differences according to the version delta. If false, which
+is the default, the transformation does nothing.
+
+`versionIncreaseAllows`::
+Overrides the allowed severity of changes allowed at the certain version number increase. The defaults are based on the
+semver versioning which allows breaking API changes on major release, non-breaking API changes on minor release and
+no API changes on patch release or if the major version is `0`, breaking changes on minor release and non-breaking
+changes on patch release.
++
+The allowed properties in this map are: `major`, `minor` and `patch` indicating the component of the version string
+being changed and the allowed values are `breaking`, `potentiallyBreaking`, `nonBreaking`, `equivalent` and `none`
+indicating the severity of the API changes allowed for given version number change.
++
+If some of the properties (`major`, `minor`, `patch`) are not specified, they assume the default values as outlined in
+the above sample configuration.
+
+`passThroughDifferences`::
+A list of differences (empty by default) that should not be "silenced" by the semver ignore even if they should be
+according to the semver rules. This can be used for differences that you really want to pay attention to regardless
+of the version change.
++
+NOTE: For example `java.class.nonPublicPartOfAPI` difference signifies a semantic error where you expose
+a non-public class as part of your API. This means that the callers of your API won't be able to access the class or
+pass it to the methods in the API that require it. This is a serious enough error that you usually don't want to
+ignore it.
+
+=== Implementation Note
+
+This extension requires that the archives supplied to the analysis implement the
+link:../../revapi/apidocs/org/revapi/Archive.Versioned.html[Archive.Versioned] interface. This is true for archives used
+when analyzing using the Revapi maven plugin but if Revapi is used in the standalone mode or in some embedded situation
+this might not be the case.
+
+It is the responsibility of the caller of Revapi to supply the correct archive implementations, because Revapi in and
+on itself doesn't know how to extract a version from an archive.
+
+NOTE: It should be possible to implement a helper and/or a specialized archive decorating implementation that would
+read the version from the jar manifest for example, but that work hasn't been done yet.

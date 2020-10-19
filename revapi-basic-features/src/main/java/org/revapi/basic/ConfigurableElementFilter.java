@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,9 +41,9 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterFinishResult;
-import org.revapi.TreeFilterProvider;
 import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
+import org.revapi.TreeFilterProvider;
 
 /**
  * An element filter that can filter out elements based on matching their full human readable representations.

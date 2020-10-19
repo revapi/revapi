@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -110,7 +110,7 @@ final class XmlUtil {
             }
 
             if (hasContent) {
-                wrt.write(xml.getValue());
+                escaped(wrt, xml.getValue());
             }
 
             wrt.write("</");
@@ -126,4 +126,22 @@ final class XmlUtil {
         }
     }
 
+    private static void escaped(Writer wrt, String value) throws IOException {
+        for (int i = 0; i < value.length(); ++i) {
+            char c = value.charAt(i);
+            switch (c) {
+            case '&':
+                wrt.write("&amp;");
+                break;
+            case '<':
+                wrt.write("&lt;");
+                break;
+            case '>':
+                wrt.write("&gt;");
+                break;
+            default:
+                wrt.write(c);
+            }
+        }
+    }
 }

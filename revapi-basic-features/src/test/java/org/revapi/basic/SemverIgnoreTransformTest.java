@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -153,6 +153,18 @@ public class SemverIgnoreTransformTest {
         Assert.assertSame(NON_BREAKING, transformAndAssumeOne(tr, null, null, NON_BREAKING));
         Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
         Assert.assertSame(BREAKING, transformAndAssumeOne(tr, null, null, BREAKING));
+    }
+
+    @Test
+    public void testAppliesNameAndDescriptionChangesOnlyOnce() {
+        DifferenceTransform<?> tr = getTestTransform("1.0.0", "1.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
+
+        Difference transformed = tr.transform(null, null, POTENTIALLY_BREAKING);
+        Assert.assertNotNull(transformed);
+
+        Difference transformed2 = tr.transform(null, null, transformed);
+
+        Assert.assertEquals(transformed, transformed2);
     }
 
     private boolean isBreaking(Difference difference) {

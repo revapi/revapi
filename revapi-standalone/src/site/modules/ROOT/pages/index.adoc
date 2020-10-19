@@ -1,0 +1,58 @@
+= Revapi Standalone
+
+This is a CLI for Revapi. Revapi has 2 intended audiences - library authors who would like to make sure they don't
+break their users' codebase unintentionally, but also library users that want to make sure that upgrading a library
+won't break their code. The first group of users is best served by the Revapi's maven plugin, while the second group
+can leverage this CLI tool.
+
+== Invocation
+
+The tool can be used to compare the API changes in two pairs of archives. Both old and new version of the API consist
+of the set of the API archives and another set of "supplementary" archives - which are supposed to complement the API
+- basically these are the dependencies of the API archives.
+
+Revapi standalone CLI can be either supplied with the JAR files of the archives to compare or it can be told their
+Maven coordinates and it will download the archives and figure out its dependencies on its own.
+
+Because Revapi is all based around extensions, the invocation must include the set of extensions to be used during
+the analysis - these are supplied using the Maven coordinates of the extensions.
+
+Let's take a look at an example invocation - comparing Guava 17.0 to Guava 18.0.
+
+First, let's try that using the file-based approach:
+
+```
+revapi.sh
+    --extensions=org.revapi:revapi-java:0.7.0,org.revapi:revapi-reporter-text:0.5.0  <1>
+    --old path/to/guava-17.0.jar                                                     <2>
+    --new path/to/guava-18.0.jar                                                     <3>
+    -Drevapi.java.missing-classes.behavior=report                                    <4>
+```
+
+<1> This is a comma-separated list of extensions to use - in here we're using the java extension to check the API
+changes in the java code in the archives and a simple reporter that outputs the changes to standard output. The
+extensions are identified by their Maven GAVs.
+<2> The path to the old version of the API, in our case Guava 17.0.
+<3> The path to the new version of the API, in our case Guava 18.0.
+<4> This is a little bit of configuration required for the API check to not fail on the missing classes. We're not
+supplying any "supplementary archives", i.e. the dependencies of the Guava library and so it may happen that some
+classes that contribute to the API are not present in the "main" archives.
+
+NOTE: The `report` behavior is the default as of `revapi-java` extension version `0.5.3`.
+
+Now, let's try the same but using the maven coordinates for the guava libraries:
+
+```
+revapi.sh
+    --extensions=org.revapi:revapi-java:0.5.2,org.revapi:revapi-reporting-text:0.3.4 <1>
+    --old-gavs com.google.guava:guava:17.0                                           <2>
+    --new-gavs com.google.guava:guava:18.0                                           <3>
+    -Drevapi.java.missing-classes.behavior=report                                    <4>
+```
+
+<1> The same as in the previous example, this is the list of extensions to use during the API check
+<2> The old archive(s) specified as comma-separated list of maven coordinates
+<3> The new archive(s) specified as comma-separated list of maven coordinates
+<4> This is still required because some of the deps of Guava are optional and therefore not present on the classpath.
+
+The CLI is equipped with a simple help on the available commands, just invoke it with `-h`.

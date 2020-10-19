@@ -1,0 +1,226 @@
+= Filtering based on annotations
+
+*Extension*: `revapi.java.filter.annotated`
+
+The annotated element filter is able to include or exclude java elements based on the presence of certain annotation
+on them. This also works for annotations with certain attributes having certain values, because the match is done on
+the "standard" annotation textual notation.
+
+If no `include` filter is specified, all elements are included, otherwise only the elements annotated with one of the
+`included` annotations are API checked.
+
+The `exclude` filter narrows down the included elements - i.e. if an element is to be included according to the
+include filter (or lack thereof), the exclude filter is consulted whether that really should be the case.
+
+If an element is included, all its child elements are included, too. I.e. if a class is included, all its methods,
+fields and inner classes are included in the analysis, too (if you need to exclude some child element that would be
+included by default, you can either annotate it with some annotation and configure this filter to exclude such
+elements, or you can use some other Revapi filter, like
+link:../../revapi-basic-features/extensions/filter.html[configurable element filter]).
+
+NOTE: Currently, this filter does NOT take into account annotations placed on the packages.
+
+== Sample Configuration
+
+```javascript
+[
+  {
+    "extension": "revapi.java.filter.annotated",
+    "configuration": {
+      "regex": true,
+      "include": ["@my\\.annotations\\.Public.*"],
+      "exclude": ["@my\\.annotations\\.Beta"]
+    }
+  }
+]
+```
+
+```xml
+<analysisConfiguration>
+  <revapi.java.filter.annotated>
+    <regex>true</regex>
+    <include>
+      <item>@my\.annotations\.Public.*</item>
+    </include>
+    <exclude>
+      <item>@my\.annotations\.Beta</item>
+    </exclude>
+  </revapi.java.filter.annotated>
+</analysisConfiguration>
+```
+
+== Properties
+`regex`::
+Specifies whether to consider the strings in `exclude` and `include` lists as regular expressions or not. The default
+value is `false`, meaning the strings are not considered as regular expressions.
+`exclude`::
+Elements annotated with annotation that matches at least one from this list will be excluded from the API check.
+`include`::
+Elements annotated with annotation that matches at least one from this list will be included from the API check.
+
+== Notation
+The string formatting of the annotations with values follows that of Java8. Notably:
+
+* The full canonical class names are used for every type.
+* If the annotation specifies only the value of the `value` attribute, the name, `value`, must not be included in the
+notation. I.e. `@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)`, not
+`@java.lang.annotation.Retention(value = java.lang.annotation.RetentionPolicy.RUNTIME)`.
+* Array attributes are always enclosed in curly braces even if only a single element is present, i.e. `@java.lang
+.annotation.Target({java.lang.annotation.ElementType.METHOD})`, not
+`@java.lang.annotation.Target(java.lang.annotation.ElementType.METHOD)`.
+* Equals sign is always surrounded by a single space from each side.
+
+== Examples
+
+Let's consider the following classes in our API, that we want to filter:
+
+```java
+@Public
+public class MyAPI {
+
+   public static final int CONSTANT = 42;
+
+   public void method() {
+   }
+
+   public static class InnerAPI {
+   }
+
+   @Private
+   public static class InnerImplementation {
+   }
+}
+
+@Private
+public class Implementation {
+
+    public static final int DETAIL = 43;
+
+    @Public
+    public void method() {
+    }
+}
+
+
+public class JustAClass {
+
+    public void method() {
+    }
+
+    @Private
+    public void implMethod() {
+    }
+
+    @Public
+    public void definitelyAPIMethod() {
+    }
+}
+```
+
+Given the classes above, the following example configurations will show different ways of setting up the filtering to
+achieve anticipated results.
+
+NOTE: The `@Public` and `@Private` annotations are not defined by Revapi. They just represent any annotation you may
+choose to be used in their place for the same purpose.
+
+=== Leave out only `@Private` Elements
+
+This one of the simple approaches. You don't want to sprinkle your code with annotations everywhere - most of your
+classes are to be considered public but you want to make sure that certain classes are not meant for public
+consumption. You neither use Java 9, nor you mandate execution in some of the modular classloading frameworks like
+OSGi or JBoss Modules, so your options are limited in terms of visibility and you might not have other choice but to
+make even these classes public.
+
+If you configure Revapi like this:
+
+```javascript
+[
+  {
+    "extension": "revapi.java.filter.annotated",
+    "configuration": {
+      "exclude": ["@my.annotations.Private"]
+    }
+  }
+]
+```
+
+The API analysis will not consider these elements:
+
+* `MyAPI.InnerImplementation` class
+* `Implementation` class and any of its members
+* `JustAClass.implMethod()` method
+
+All other elements will be included in the analysis.
+
+=== Only Consider `@Public` Elements
+
+This is an approach where you want to have strict control over what is considered public API and what is not. You do
+this by annotating the elements to be considered part of the public API using the `@Public` annotation (of your own
+making).
+
+The Revapi configuration for this might include this snippet:
+
+```javascript
+[
+  {
+    "extension": "revapi.java.filter.annotated",
+    "configuration": {
+      "include": ["@my.annotations.Public"]
+    }
+  }
+]
+```
+
+The API analysis will not consider these elements:
+
+* `Implementation` class and all its members but the `method()` method
+* `JustAClass` class and all its members but the `definitelyAPIMethod()` method
+
+The following elements will be analyzed:
+
+* `MyAPI` class and all its members, including the `InnerImplementation` class
+* `Implementation.method()` method
+* `JustAClass.definitelyAPIMethod()` method
+
+The `Implementation` class is not included in the API analysis, because it's not annotated by the `@Public`
+annotation. On the other hand, the `MyAPI.InnerImplementation` class *is* included in the API analysis, because it is
+a member of the the `MyAPI` class, which is annotated with `@Public` and there is no configuration for exclusion.
+
+Similarly, `JustAClass` and its members are not included, because they are not annotated by `@Public`.
+
+The situation with `Implementation.method()` and `JustAClass.definititelyAPIMethod()` is actually quite similar. In
+both, the presence of the `@Public` annotation overrides the decision about the parent element's exclusion (this
+decision is based on the lack of the `@Public` annotation on the parents).
+
+Doing this might not seem particularly useful but there are scenarios, where it might be. Imagine that over the
+evolution of your library certain users became reliant on an implementation class that you never meant to be public.
+Over the time, you marked your certain methods or the whole class as `@Private` to really discourage users from using
+them yet you know of the importance of some method in the class that your clients depend on and don't want to break
+the clients using it. You thus annotate it `@Public` even though it is in a non-public class.
+
+=== Precise Control Using Both `@Public` and `@Private`
+
+This is of course a combination of both the approaches above but still is worth its own explanation.
+
+The configuration would look something like this:
+
+```javascript
+[
+  {
+    "extension": "revapi.java.filter.annotated",
+    "configuration": {
+      "include": ["@my.annotations.Public"],
+      "exclude": ["@my.annotations.Private"]
+    }
+  }
+]
+```
+
+And the following elements will not be included in the analysis:
+
+* `MyAPI.InnerImplementation` class (and all of its members, if there were any)
+* `Implementation` class and all its members but the `method()` method
+* `JustAClass` and all its members but the `definitelyAPIMethod()` method
+
+This is the most "intuitive" result and probably the one the author of the library anticipated when they annotated
+the methods and classes with the annotations.

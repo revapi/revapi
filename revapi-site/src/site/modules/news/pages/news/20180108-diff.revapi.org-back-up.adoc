@@ -1,0 +1,11 @@
+= diff.revapi.org Back Up
+:docname: 20180108-diff.revapi.org-back-up
+:page-publish_date: 2018-01-08
+:page-layout: news-article
+
+Some time before the Christmas, https://diff.revapi.org went down for some reason.
+
+It being a highly professional website and managed by a team of dedicated engineers, it took me until today to realize that :)
+
+It should be back up now, sorry for any inconvenience caused.
+

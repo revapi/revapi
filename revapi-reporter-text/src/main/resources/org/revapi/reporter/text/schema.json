@@ -4,8 +4,15 @@
     "type": "object",
     "properties": {
         "minSeverity": {
-            "enum": ["NON_BREAKING", "POTENTIALLY_BREAKING", "BREAKING"],
-            "default": "POTENTIALLY_BREAKING"
+            "enum": [
+                "EQUIVALENT",
+                "NON_BREAKING",
+                "POTENTIALLY_BREAKING",
+                "BREAKING"
+            ]
+        },
+        "minCriticality": {
+            "type": "string"
         },
         "output": {
             "type": "string",
@@ -18,6 +25,11 @@
             "description": "Whether to append to the output or whether to overwrite it.",
             "type": "boolean",
             "default": false
+        },
+        "keepEmptyFile": {
+            "description": "Whether to keep the report file when it contains no data.",
+            "type": "boolean",
+            "default": "true"
         }
     }
 }
