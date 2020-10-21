@@ -282,6 +282,10 @@ public final class AnalysisContext {
         return JSONUtil.convert(configuration);
     }
 
+    /**
+     * Returns the configuration node. This is never null. If the configuration is not present
+     * a {@link com.fasterxml.jackson.databind.node.NullNode} is returned.
+     */
     public JsonNode getConfigurationNode() {
         return configuration;
     }

@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,9 +82,9 @@ public class ClassificationTransform extends DifferencesTransform {
     }
 
     @Override
-    protected ModelNode getRecipesConfigurationAndInitialize() {
-        ModelNode ret = analysisContext.getConfiguration();
-        if (ret.isDefined()) {
+    protected JsonNode getRecipesConfigurationAndInitialize() {
+        JsonNode ret = analysisContext.getConfigurationNode();
+        if (ret.isNull()) {
             LOG.warn("The `revapi.reclassify` extension is deprecated. Consider using the `revapi.differences` instead.");
         }
 
@@ -93,7 +93,7 @@ public class ClassificationTransform extends DifferencesTransform {
 
     @Nonnull
     @Override
-    protected DifferenceMatchRecipe newRecipe(ModelNode config) {
+    protected DifferenceMatchRecipe newRecipe(JsonNode config) {
         return new DifferenceRecipe(config, analysisContext);
     }
 

@@ -21,7 +21,7 @@ import static org.revapi.FilterStartResult.inherit;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,8 +34,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.ModelType;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.revapi.AnalysisContext;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
@@ -77,24 +76,24 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
     @Override
     public Reader getJSONSchema() {
         return new InputStreamReader(getClass().getResourceAsStream("/META-INF/filter-schema.json"),
-                Charset.forName("UTF-8"));
+                StandardCharsets.UTF_8);
     }
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
-        ModelNode root = analysisContext.getConfiguration();
-        if (!root.isDefined()) {
+        JsonNode root = analysisContext.getConfigurationNode();
+        if (root.isNull()) {
             doNothing = true;
             return;
         }
 
-        ModelNode elements = root.get("elements");
-        if (elements.isDefined()) {
+        JsonNode elements = root.path("elements");
+        if (!elements.isMissingNode()) {
             readComplexFilter(elements, analysisContext.getMatchers(), elementIncludeRecipes, elementExcludeRecipes);
         }
 
-        ModelNode archives = root.get("archives");
-        if (archives.isDefined()) {
+        JsonNode archives = root.path("archives");
+        if (!archives.isMissingNode()) {
             readSimpleFilter(archives, archiveIncludes, archiveExcludes);
         }
 
@@ -258,39 +257,39 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
                 .orElse(null);
     }
 
-    private static void readSimpleFilter(ModelNode root, List<Pattern> include, List<Pattern> exclude) {
-        ModelNode includeNode = root.get("include");
+    private static void readSimpleFilter(JsonNode root, List<Pattern> include, List<Pattern> exclude) {
+        JsonNode includeNode = root.path("include");
 
-        if (includeNode.isDefined()) {
-            for (ModelNode inc : includeNode.asList()) {
-                include.add(Pattern.compile(inc.asString()));
+        if (includeNode.isArray()) {
+            for (JsonNode inc : includeNode) {
+                include.add(Pattern.compile(inc.asText()));
             }
         }
 
-        ModelNode excludeNode = root.get("exclude");
+        JsonNode excludeNode = root.path("exclude");
 
-        if (excludeNode.isDefined()) {
-            for (ModelNode exc : excludeNode.asList()) {
-                exclude.add(Pattern.compile(exc.asString()));
+        if (excludeNode.isArray()) {
+            for (JsonNode exc : excludeNode) {
+                exclude.add(Pattern.compile(exc.asText()));
             }
         }
     }
 
-    private static void readComplexFilter(ModelNode root, Map<String, ElementMatcher> availableMatchers,
+    private static void readComplexFilter(JsonNode root, Map<String, ElementMatcher> availableMatchers,
             List<ElementMatcher.CompiledRecipe> include, List<ElementMatcher.CompiledRecipe> exclude) {
-        ModelNode includeNode = root.get("include");
+        JsonNode includeNode = root.path("include");
 
-        if (includeNode.isDefined()) {
-            for (ModelNode inc : includeNode.asList()) {
+        if (includeNode.isArray()) {
+            for (JsonNode inc : includeNode) {
                 ElementMatcher.CompiledRecipe filter = parse(inc, availableMatchers);
                 include.add(filter);
             }
         }
 
-        ModelNode excludeNode = root.get("exclude");
+        JsonNode excludeNode = root.path("exclude");
 
-        if (excludeNode.isDefined()) {
-            for (ModelNode exc : excludeNode.asList()) {
+        if (excludeNode.isArray()) {
+            for (JsonNode exc : excludeNode) {
                 ElementMatcher.CompiledRecipe filter = parse(exc, availableMatchers);
                 exclude.add(filter);
             }
@@ -298,20 +297,20 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
     }
 
     @Nullable
-    private static ElementMatcher.CompiledRecipe parse(ModelNode filterDefinition,
+    private static ElementMatcher.CompiledRecipe parse(JsonNode filterDefinition,
             Map<String, ElementMatcher> availableMatchers) {
         String recipe;
         ElementMatcher matcher;
-        if (filterDefinition.getType() == ModelType.STRING) {
-            recipe = filterDefinition.asString();
+        if (filterDefinition.isTextual()) {
+            recipe = filterDefinition.asText();
             matcher = new RegexElementMatcher();
         } else {
-            recipe = filterDefinition.get("match").asString();
-            matcher = availableMatchers.get(filterDefinition.get("matcher").asString());
+            recipe = filterDefinition.path("match").asText();
+            matcher = availableMatchers.get(filterDefinition.path("matcher").asText(null));
         }
 
         if (matcher == null) {
-            throw new IllegalStateException("Element matcher with id '" + filterDefinition.get("matcher").asString()
+            throw new IllegalStateException("Element matcher with id '" + filterDefinition.path("matcher").asText(null)
                     + "' was not found.");
         }
 

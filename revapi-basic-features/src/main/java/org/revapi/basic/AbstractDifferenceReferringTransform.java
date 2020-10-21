@@ -25,8 +25,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.ModelType;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
 import org.revapi.ArchiveAnalyzer;
@@ -65,27 +64,27 @@ public abstract class AbstractDifferenceReferringTransform
     /**
      * @return a list node where the difference recipes are stored
      */
-    protected ModelNode getRecipesConfigurationAndInitialize() {
-        return analysisContext.getConfiguration();
+    protected JsonNode getRecipesConfigurationAndInitialize() {
+        return analysisContext.getConfigurationNode();
     }
 
-    protected abstract DifferenceMatchRecipe newRecipe(ModelNode configNode) throws IllegalArgumentException;
+    protected abstract DifferenceMatchRecipe newRecipe(JsonNode configNode) throws IllegalArgumentException;
 
     @Override
     public final void initialize(@Nonnull AnalysisContext analysisContext) {
         this.analysisContext = analysisContext;
         configuredRecipes = new ArrayList<>();
 
-        ModelNode myNode = getRecipesConfigurationAndInitialize();
+        JsonNode myNode = getRecipesConfigurationAndInitialize();
 
-        if (myNode.getType() != ModelType.LIST) {
+        if (!myNode.isArray()) {
             this.codes = new Pattern[0];
             return;
         }
 
         List<Pattern> codes = new ArrayList<>();
 
-        for (ModelNode config : myNode.asList()) {
+        for (JsonNode config : myNode) {
             DifferenceMatchRecipe recipe = newRecipe(config);
             codes.add(
                 recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code) + "$") :

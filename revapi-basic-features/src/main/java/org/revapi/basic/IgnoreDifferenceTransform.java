@@ -23,7 +23,8 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +49,9 @@ public class IgnoreDifferenceTransform extends DifferencesTransform {
     }
 
     @Override
-    protected ModelNode getRecipesConfigurationAndInitialize() {
-        ModelNode ret = analysisContext.getConfiguration();
-        if (ret.isDefined()) {
+    protected JsonNode getRecipesConfigurationAndInitialize() {
+        JsonNode ret = analysisContext.getConfigurationNode();
+        if (ret.isNull()) {
             LOG.warn("The `revapi.ignore` extension is deprecated. Consider using the `revapi.differences` instead.");
         }
 
@@ -66,10 +67,10 @@ public class IgnoreDifferenceTransform extends DifferencesTransform {
 
     @Nonnull
     @Override
-    protected DifferenceRecipe newRecipe(ModelNode config) {
-        config = config.clone();
-        config.get("ignore").set(true);
-        return new DifferenceRecipe(config, analysisContext);
+    protected DifferenceRecipe newRecipe(JsonNode config) {
+        ObjectNode cfg = config.deepCopy();
+        cfg.put("ignore", true);
+        return new DifferenceRecipe(cfg, analysisContext);
     }
 
     @Override

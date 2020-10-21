@@ -23,12 +23,14 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.revapi.AnalysisContext;
 import org.revapi.CompatibilityType;
 import org.revapi.Criticality;
@@ -41,11 +43,11 @@ import org.slf4j.LoggerFactory;
 public class DifferencesTransform extends AbstractDifferenceReferringTransform {
     private static final Logger LOG = LoggerFactory.getLogger(DifferencesTransform.class);
 
-    private ModelNode bulkClassify;
-    private ModelNode bulkIgnore;
-    private ModelNode bulkJustification;
-    private ModelNode bulkAttachments;
-    private ModelNode bulkCriticality;
+    private JsonNode bulkClassify;
+    private JsonNode bulkIgnore;
+    private JsonNode bulkJustification;
+    private JsonNode bulkAttachments;
+    private JsonNode bulkCriticality;
 
     public DifferencesTransform() {
         super("revapi.differences");
@@ -55,11 +57,11 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
         super(extensionId);
     }
 
-    private static Map<CompatibilityType, DifferenceSeverity> parseClassification(ModelNode config) {
+    private static Map<CompatibilityType, DifferenceSeverity> parseClassification(JsonNode config) {
         Map<CompatibilityType, DifferenceSeverity> classification = new EnumMap<>(CompatibilityType.class);
         for (CompatibilityType ct : CompatibilityType.values()) {
             if (config.has(ct.name())) {
-                String val = config.get(ct.name()).asString();
+                String val = config.path(ct.name()).asText();
                 DifferenceSeverity sev = DifferenceSeverity.valueOf(val);
                 classification.put(ct, sev);
             }
@@ -70,73 +72,78 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
 
     @Nonnull
     @Override
-    protected DifferenceMatchRecipe newRecipe(ModelNode configNode) throws IllegalArgumentException {
-        configNode = configNode.clone();
+    protected DifferenceMatchRecipe newRecipe(JsonNode node) throws IllegalArgumentException {
+        ObjectNode configNode = node.deepCopy();
 
-        if (!configNode.hasDefined("ignore") && bulkIgnore.isDefined()) {
-            configNode.get("ignore").set(bulkIgnore.asBoolean());
+        if (!configNode.hasNonNull("ignore") && !bulkIgnore.isMissingNode()) {
+            configNode.put("ignore", bulkIgnore.asBoolean());
         }
 
-        if (!configNode.hasDefined("justification") && bulkJustification.isDefined()) {
-            configNode.get("justification").set(bulkJustification.asString());
+        if (!configNode.hasNonNull("justification") && !bulkJustification.isMissingNode()) {
+            configNode.put("justification", bulkJustification.asText());
         }
 
-        if (configNode.hasDefined("classify")) {
-            ModelNode classify = configNode.get("classify");
-            if (!classify.hasDefined("SOURCE") && bulkClassify.hasDefined("SOURCE")) {
-                classify.get("SOURCE").set(bulkClassify.get("SOURCE").asString());
+        if (configNode.hasNonNull("classify")) {
+            ObjectNode classify = (ObjectNode) configNode.path("classify");
+            if (!classify.hasNonNull("SOURCE") && bulkClassify.hasNonNull("SOURCE")) {
+                classify.put("SOURCE", bulkClassify.get("SOURCE").asText());
             }
-            if (!classify.hasDefined("BINARY") && bulkClassify.hasDefined("BINARY")) {
-                classify.get("BINARY").set(bulkClassify.get("BINARY").asString());
+            if (!classify.hasNonNull("BINARY") && bulkClassify.hasNonNull("BINARY")) {
+                classify.put("BINARY", bulkClassify.get("BINARY").asText());
             }
-            if (!classify.hasDefined("SEMANTIC") && bulkClassify.hasDefined("SEMANTIC")) {
-                classify.get("SEMANTIC").set(bulkClassify.get("SEMANTIC").asString());
+            if (!classify.hasNonNull("SEMANTIC") && bulkClassify.hasNonNull("SEMANTIC")) {
+                classify.put("SEMANTIC", bulkClassify.get("SEMANTIC").asText());
             }
-            if (!classify.hasDefined("OTHER") && bulkClassify.hasDefined("OTHER")) {
-                classify.get("OTHER").set(bulkClassify.get("OTHER").asString());
+            if (!classify.hasNonNull("OTHER") && bulkClassify.hasNonNull("OTHER")) {
+                classify.put("OTHER", bulkClassify.get("OTHER").asText());
             }
         } else {
-            if (bulkClassify.isDefined()) {
-                configNode.get("classify").set(bulkClassify.asObject());
+            if (!bulkClassify.isMissingNode()) {
+                configNode.set("classify", bulkClassify);
             }
         }
 
-        if (configNode.hasDefined("attachments")) {
-            ModelNode attachments = configNode.get("attachments");
-            if (bulkAttachments.isDefined()) {
-                for (String key : bulkAttachments.keys()) {
-                    if (!attachments.hasDefined(key)) {
-                        attachments.get(key).set(bulkAttachments.get(key));
+        if (configNode.hasNonNull("attachments")) {
+            ObjectNode attachments = (ObjectNode) configNode.get("attachments");
+            if (bulkAttachments.isObject()) {
+                Iterator<Map.Entry<String, JsonNode>> it = bulkAttachments.fields();
+                while (it.hasNext()) {
+                    Map.Entry<String, JsonNode> e = it.next();
+                    String key = e.getKey();
+                    JsonNode bulkAttachment = e.getValue();
+
+                    if (!attachments.hasNonNull(key)) {
+                        attachments.set(key, bulkAttachment);
                     }
                 }
             }
         } else {
-            if (bulkAttachments.isDefined()) {
-                configNode.get("attachments").set(bulkAttachments.asObject());
+            if (bulkAttachments.isObject()) {
+                configNode.set("attachments", bulkAttachments);
             }
         }
 
-        if (!configNode.hasDefined("criticality") && bulkCriticality.isDefined()) {
-            configNode.get("criticality").set(bulkCriticality.asString());
+        if (!configNode.hasNonNull("criticality") && !bulkCriticality.isMissingNode()) {
+            configNode.put("criticality", bulkCriticality.asText());
         }
 
         return new DifferenceRecipe(configNode, analysisContext);
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
     }
 
     @Override
-    protected ModelNode getRecipesConfigurationAndInitialize() {
-        ModelNode configNode = analysisContext.getConfiguration();
-        bulkClassify = configNode.get("classify");
-        bulkIgnore = configNode.get("ignore");
-        bulkJustification = configNode.get("justification");
-        bulkAttachments = configNode.get("attachments");
-        bulkCriticality = configNode.get("criticality");
+    protected JsonNode getRecipesConfigurationAndInitialize() {
+        JsonNode configNode = analysisContext.getConfigurationNode();
+        bulkClassify = configNode.path("classify");
+        bulkIgnore = configNode.path("ignore");
+        bulkJustification = configNode.path("justification");
+        bulkAttachments = configNode.path("attachments");
+        bulkCriticality = configNode.path("criticality");
 
-        return configNode.get("differences");
+        return configNode.path("differences");
     }
 
     @Nullable
@@ -153,23 +160,21 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
         protected final Map<String, String> newAttachments;
         protected final Criticality criticality;
 
-        public DifferenceRecipe(ModelNode config, AnalysisContext ctx) {
+        public DifferenceRecipe(JsonNode config, AnalysisContext ctx) {
             super(ctx.getMatchers(), config, "classify", "ignore", "justification", "attachments", "criticality");
-            ignore = config.get("ignore").asBoolean(false);
-            justification = config.get("justification").asString(null);
-            classification = parseClassification(config.get("classify"));
-            if (config.hasDefined("attachments")) {
-                ModelNode attachments = config.get("attachments");
+            ignore = config.path("ignore").asBoolean(false);
+            justification = config.path("justification").asText(null);
+            classification = parseClassification(config.path("classify"));
+            if (config.hasNonNull("attachments")) {
+                JsonNode attachments = config.get("attachments");
                 newAttachments = new HashMap<>();
-                for (String key : attachments.keys()) {
-                    newAttachments.put(key, attachments.get(key).asString(null));
-                }
+                attachments.fields().forEachRemaining(e -> newAttachments.put(e.getKey(), e.getValue().asText(null)));
             } else {
                 newAttachments = emptyMap();
             }
 
-            if (config.hasDefined("criticality")) {
-                String name = config.get("criticality").asString();
+            if (config.hasNonNull("criticality")) {
+                String name = config.path("criticality").asText();
                 criticality = ctx.getCriticalityByName(name);
                 if (criticality == null) {
                     throw new IllegalArgumentException("Unknown criticality '" + name + "'.");

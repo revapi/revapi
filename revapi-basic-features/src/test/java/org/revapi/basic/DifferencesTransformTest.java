@@ -29,7 +29,9 @@ import static org.revapi.DifferenceSeverity.EQUIVALENT;
 import static org.revapi.DifferenceSeverity.NON_BREAKING;
 import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -52,17 +54,15 @@ public class DifferencesTransformTest {
     private static final API EMPTY_API = API.builder().build();
 
     @Test
-    public void testAddsJustification() throws Exception {
+    public void testAddsJustification() {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("regex", true)
-                                .add("code", ".*")
-                                .add("justification", "because")
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("regex", true)
+                                .put("code", ".*")
+                                .put("justification", "because"))
+                )));
 
         Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("whatevs").build());
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("whatevs").build());
@@ -74,15 +74,13 @@ public class DifferencesTransformTest {
     @Test
     public void testAddsCriticality() throws Exception {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("regex", true)
-                                .add("code", ".*")
-                                .add("criticality", "documented")
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("regex", true)
+                                .put("code", ".*")
+                                .put("criticality", "documented"))
+                )));
 
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("whatevs").build());
 
@@ -93,20 +91,17 @@ public class DifferencesTransformTest {
     @Test
     public void testAddsClassification() throws Exception {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("regex", true)
-                                .add("code", ".*")
-                                .add("classify", new ModelNode()
-                                        .add("SOURCE", "BREAKING")
-                                        .add("BINARY", "NON_BREAKING")
-                                        .add("SEMANTIC", "POTENTIALLY_BREAKING")
-                                        .add("OTHER", "EQUIVALENT")
-                                        .asObject())
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("regex", true)
+                                .put("code", ".*")
+                                .set("classify", JsonNodeFactory.instance.objectNode()
+                                        .put("SOURCE", "BREAKING")
+                                        .put("BINARY", "NON_BREAKING")
+                                        .put("SEMANTIC", "POTENTIALLY_BREAKING")
+                                        .put("OTHER", "EQUIVALENT")))
+                )));
 
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder()
                 .withCode("whatevs")
@@ -136,15 +131,13 @@ public class DifferencesTransformTest {
     @Test
     public void testIgnores() throws Exception {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("regex", true)
-                                .add("code", ".*")
-                                .add("ignore", true)
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("regex", true)
+                                .put("code", ".*")
+                                .put("ignore", true))
+                )));
 
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder()
                 .withCode("whatevs")
@@ -156,18 +149,15 @@ public class DifferencesTransformTest {
     @Test
     public void testAddsAttachments() throws Exception {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("regex", true)
-                                .add("code", ".*")
-                                .add("attachments", new ModelNode()
-                                        .add("attach1", "val1")
-                                        .add("attach2", "val2")
-                                        .asObject())
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("regex", true)
+                                .put("code", ".*")
+                                .set("attachments", JsonNodeFactory.instance.objectNode()
+                                        .put("attach1", "val1")
+                                        .put("attach2", "val2")))
+                )));
 
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder()
                 .withCode("whatevs")
@@ -182,17 +172,14 @@ public class DifferencesTransformTest {
     @Test
     public void testBulkAddsJustification() throws Exception {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("justification", "all of this is cool")
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("code", "c1")
-                                .asObject())
-                        .add(new ModelNode()
-                                .add("code", "c2")
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .put("justification", "all of this is cool")
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c1"))
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c2"))
+                )));
 
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("c1").build());
         assertNotNull(transformed);
@@ -210,17 +197,14 @@ public class DifferencesTransformTest {
     @Test
     public void testBulkAddsCriticality() throws Exception {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("criticality", "highlight")
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("code", "c1")
-                                .asObject())
-                        .add(new ModelNode()
-                                .add("code", "c2")
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .put("criticality", "highlight")
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c1"))
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c2"))
+                )));
 
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("c1").build());
         assertNotNull(transformed);
@@ -238,22 +222,18 @@ public class DifferencesTransformTest {
     @Test
     public void testBulkAddsClassification() throws Exception {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("classify", new ModelNode()
-                        .add("SOURCE", "BREAKING")
-                        .add("BINARY", "NON_BREAKING")
-                        .add("SEMANTIC", "POTENTIALLY_BREAKING")
-                        .add("OTHER", "EQUIVALENT")
-                        .asObject())
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("code", "c1")
-                                .asObject())
-                        .add(new ModelNode()
-                                .add("code", "c2")
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(((ObjectNode) JsonNodeFactory.instance.objectNode()
+                .set("classify", JsonNodeFactory.instance.objectNode()
+                        .put("SOURCE", "BREAKING")
+                        .put("BINARY", "NON_BREAKING")
+                        .put("SEMANTIC", "POTENTIALLY_BREAKING")
+                        .put("OTHER", "EQUIVALENT")))
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c1"))
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c2"))
+                )));
 
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("c1").build());
         assertEquals(BREAKING, transformed.classification.get(SOURCE));
@@ -276,17 +256,14 @@ public class DifferencesTransformTest {
     @Test
     public void testBulkIgnores() throws Exception {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("ignore", true)
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("code", "c1")
-                                .asObject())
-                        .add(new ModelNode()
-                                .add("code", "c2")
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .put("ignore", true)
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c1"))
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c2"))
+                )));
 
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("c1").build());
         assertNull(transformed);
@@ -301,20 +278,16 @@ public class DifferencesTransformTest {
     @Test
     public void testBulkAddsAttachments() throws Exception {
         DifferencesTransform tr = new DifferencesTransform();
-        tr.initialize(context(new ModelNode()
-                .add("attachments", new ModelNode()
-                        .add("attach1", "val1")
-                        .add("attach2", "val2")
-                        .asObject())
-                .add("differences", new ModelNode()
-                        .add(new ModelNode()
-                                .add("code", "c1")
-                                .asObject())
-                        .add(new ModelNode()
-                                .add("code", "c2")
-                                .asObject())
-                )
-                .asObject()));
+        tr.initialize(context(((ObjectNode) JsonNodeFactory.instance.objectNode()
+                .set("attachments", JsonNodeFactory.instance.objectNode()
+                        .put("attach1", "val1")
+                        .put("attach2", "val2")))
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c1"))
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "c2"))
+                )));
 
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("c1").build());
         assertNotNull(transformed);
@@ -331,7 +304,7 @@ public class DifferencesTransformTest {
         assertTrue(transformed.attachments.isEmpty());
     }
 
-    private static AnalysisContext context(ModelNode configuration) {
+    private static AnalysisContext context(JsonNode configuration) {
         return AnalysisContext.builder()
                 .withOldAPI(EMPTY_API)
                 .withNewAPI(EMPTY_API)
