@@ -468,29 +468,40 @@
                                         <item>java.class.nonPublicPartOfAPI</item>
                                     </passThroughDifferences>
                                 </revapi.semver.ignore>
-                                <revapi.ignore>
-                                    <item>
-                                        <regex>true</regex>
-                                        <code>java.class.externalClassExposedInAPI</code>
-                                        <newArchive>org\.revapi:revapi:.*</newArchive>
-                                        <justification>
-                                            Revapi sub-modules implement the Revapi API which makes them expose
-                                            Revapi-specific classes usually. In our case this is generally OK because
-                                            the modules are just Revapi extensions which are supposed to do that.
-                                        </justification>
-                                    </item>
-                                    <item>
-                                        <regex>true</regex>
-                                        <code>java.class.externalClassExposedInAPI</code>
-                                        <newArchive>org\.jboss:jboss-dmr:.*</newArchive>
-                                        <justification>
-                                            Revapi sub-modules implement the Revapi API which makes them expose
-                                            Jboss DMR (which is part of our API). In our case this is generally OK
-                                            because the modules are just Revapi extensions which are supposed to do
-                                            that.
-                                        </justification>
-                                    </item>
-                                </revapi.ignore>
+                                <revapi.differences>
+                                    <ignore>true</ignore>
+                                    <differences>
+                                        <item>
+                                            <regex>true</regex>
+                                            <code>java.class.externalClassExposedInAPI</code>
+                                            <newArchive>org\.revapi:revapi:.*</newArchive>
+                                            <justification>
+                                                Revapi sub-modules implement the Revapi API which makes them expose
+                                                Revapi-specific classes usually. In our case this is generally OK because
+                                                the modules are just Revapi extensions which are supposed to do that.
+                                            </justification>
+                                        </item>
+                                        <item>
+                                            <regex>true</regex>
+                                            <code>java.class.externalClassExposedInAPI</code>
+                                            <newArchive>org\.jboss:jboss-dmr:.*</newArchive>
+                                            <justification>
+                                                Revapi sub-modules implement the Revapi API which makes them expose
+                                                Jboss DMR (which is part of our API). In our case this is generally OK
+                                                because the modules are just Revapi extensions which are supposed to do
+                                                that.
+                                            </justification>
+                                        </item>
+                                        <item>
+                                            <regex>true</regex>
+                                            <code>java.class.nonPublicPartOfAPI</code>
+                                            <newArchive>com\.fasterxml\.jackson\.core:jackson-databind:.*</newArchive>
+                                            <justification>
+                                                Revapi uses Jackson for representing the JSON configuration.
+                                            </justification>
+                                        </item>
+                                    </differences>
+                                </revapi.differences>
                             </analysisConfiguration>
                             <analysisConfigurationFiles>
                                 <configurationFile>

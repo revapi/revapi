@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,46 +17,29 @@
 package org.revapi.configuration;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.ref.WeakReference;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import javax.script.SimpleScriptContext;
+import javax.annotation.Nullable;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaException;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.SpecVersionDetector;
+import com.networknt.schema.ValidationMessage;
 import org.jboss.dmr.ModelNode;
 
 /**
- * @see #validate(org.jboss.dmr.ModelNode, Configurable)
+ * @see #validate(JsonNode, Configurable)
  *
  * @author Lukas Krejci
  * @since 0.1
  */
 public final class ConfigurationValidator {
-
-    private static class PartialValidationResult {
-        final String rootPath;
-        final ModelNode results;
-
-        private PartialValidationResult(String rootPath, ModelNode results) {
-            this.rootPath = rootPath;
-            this.results = results;
-        }
-    }
-
-    private WeakReference<ScriptEngine> jsEngine;
 
     /**
      * Validates that the full configuration contains valid configuration for given configurable.
@@ -67,19 +50,36 @@ public final class ConfigurationValidator {
      * @return the result of the validation.
      *
      * @throws ConfigurationException if reading the JSON schemas of the configurable failed
+     * @deprecated use the Jackson-based variant
      */
+    @Deprecated
     public ValidationResult validate(@Nonnull ModelNode fullConfiguration, @Nonnull Configurable configurable)
         throws ConfigurationException {
+        return validate(JSONUtil.convert(fullConfiguration), configurable);
+    }
+    /**
+     * Validates that the full configuration contains valid configuration for given configurable.
+     *
+     * @param fullConfiguration the full configuration containing properties for all configurables
+     * @param configurable      the configurable to validate the configuration for
+     *
+     * @return the result of the validation.
+     *
+     * @throws ConfigurationException if reading the JSON schemas of the configurable failed
+     */
+    public ValidationResult validate(@Nullable JsonNode fullConfiguration, Configurable configurable)
+            throws ConfigurationException {
         try {
-            switch (fullConfiguration.getType()) {
-                case LIST:
-                    return _validate(fullConfiguration, configurable);
-                case UNDEFINED:
-                    return ValidationResult.success();
-                default:
-                    throw new ConfigurationException("Expecting a JSON array as the configuration object.");
+            if (JSONUtil.isNullOrUndefined(fullConfiguration)) {
+                return ValidationResult.success();
             }
-        } catch (IOException | ScriptException e) {
+
+            if (!fullConfiguration.isArray()) {
+                throw new ConfigurationException("Expecting a JSON array as the configuration object.");
+            }
+
+            return _validate(fullConfiguration, configurable);
+        } catch (IOException e) {
             throw new ConfigurationException("Failed to validate configuration.", e);
         }
     }
@@ -93,186 +93,98 @@ public final class ConfigurationValidator {
      * @return the results of the validation
      * @throws ConfigurationException if an error occurs during the processing of the data or schema as opposed to
      * a simple validation failure which would be captured in the returned object
+     * @deprecated use the Jackson-based variant
      */
+    @Deprecated
     public ValidationResult validate(@Nonnull ModelNode extensionConfiguration, @Nonnull ModelNode configurationSchema)
             throws ConfigurationException {
+        return validate(JSONUtil.convert(extensionConfiguration), JSONUtil.convert(configurationSchema));
+    }
+
+    /**
+     * Validates the provided configuration against the provided schema.
+     * @param extensionConfiguration the actual configuration of some extension (not wrapped in the identifying object
+     *                               as is the case with the full configuration provided to
+     *                               {@link #validate(JsonNode, Configurable)}.
+     * @param configurationSchema the schema to validate the configuration against
+     * @return the results of the validation
+     * @throws ConfigurationException if an error occurs during the processing of the data or schema as opposed to
+     * a simple validation failure which would be captured in the returned object
+     */
+    public ValidationResult validate(JsonNode extensionConfiguration, JsonNode configurationSchema)
+            throws ConfigurationException {
         try {
-            StringWriter output = new StringWriter();
-
-            ScriptEngine js = getJsEngine(output);
-
-            String schema = configurationSchema.toJSONString(true);
-            String config = extensionConfiguration.toJSONString(true);
-
-            Bindings variables = js.createBindings();
-
-            js.eval("var data = " + config + ";", variables);
-            try {
-                js.eval("var schema = " + schema + ";", variables);
-            } catch (ScriptException e) {
-                throw new IllegalArgumentException("Failed to parse the schema: " + schema, e);
-            }
-
-            variables.put("tv4", js.getContext().getAttribute("tv4", ScriptContext.GLOBAL_SCOPE));
-
-            Object resultObject = js.eval("tv4.validateMultiple(data, schema)", variables);
-            ModelNode result = JSONUtil.toModelNode(resultObject);
-
-            PartialValidationResult r = new PartialValidationResult("/", result);
-
-            return convert(Collections.singletonList(r));
-        } catch (IOException | ScriptException e) {
+            JsonSchema jsonSchema = JsonSchemaFactory.getInstance(detectVersionOrV4(configurationSchema))
+                    .getSchema(configurationSchema);
+            Set<ValidationMessage> result = jsonSchema.validate(extensionConfiguration);
+            return ValidationResult.fromValidationMessages(result);
+        } catch (RuntimeException e) {
             throw new ConfigurationException("Failed to validate configuration.", e);
         }
     }
 
-    private ValidationResult _validate(ModelNode fullConfiguration, Configurable configurable)
-            throws IOException, ScriptException {
+    private ValidationResult _validate(JsonNode fullConfiguration, Configurable configurable) throws IOException {
         String extensionId = configurable.getExtensionId();
         if (extensionId == null) {
             return ValidationResult.success();
         }
 
-        StringWriter output = new StringWriter();
-
-        ScriptEngine js = getJsEngine(output);
-
-        List<PartialValidationResult> validationResults = new ArrayList<>();
-
-        String schema;
+        JsonNode schema;
         try (Reader rdr = configurable.getJSONSchema()) {
             if (rdr == null) {
                 return ValidationResult.success();
             }
-            schema = read(rdr);
+            schema = JSONUtil.parse(rdr);
         }
 
+        JsonNode extensionConfig = null;
         int idx = 0;
-        for (ModelNode extensionConfig : fullConfiguration.asList()) {
-            ModelNode currentExtensionId = extensionConfig.get("extension");
-            if (!currentExtensionId.isDefined()) {
+        for (JsonNode cfg : fullConfiguration) {
+            JsonNode extensionIdNode = cfg.get("extension");
+            if (JSONUtil.isNullOrUndefined(extensionIdNode)) {
                 throw new ConfigurationException(
                         "Found invalid configuration object without \"extension\" identifier.");
             }
 
-            if (!extensionId.equals(currentExtensionId.asString())) {
-                idx++;
-                continue;
+            if (extensionId.equals(extensionIdNode.asText())) {
+                extensionConfig = cfg.get("configuration");
+                break;
             }
-
-            ModelNode currentConfig = extensionConfig.get("configuration");
-
-            StringWriter configJSONWrt = new StringWriter();
-            PrintWriter wrt = new PrintWriter(configJSONWrt);
-            currentConfig.writeJSONString(wrt, true);
-
-            String config = configJSONWrt.toString();
-
-            Bindings variables = js.createBindings();
-
-            js.eval("var data = " + config + ";", variables);
-            try {
-                js.eval("var schema = " + schema + ";", variables);
-            } catch (ScriptException e) {
-                throw new IllegalArgumentException("Failed to parse the schema: " + schema, e);
-            }
-
-            variables.put("tv4", js.getContext().getAttribute("tv4", ScriptContext.GLOBAL_SCOPE));
-
-            Object resultObject = js.eval("tv4.validateMultiple(data, schema)", variables);
-            ModelNode result = JSONUtil.toModelNode(resultObject);
-
-            PartialValidationResult r = new PartialValidationResult("[" + idx + "].configuration", result);
-
-            validationResults.add(r);
             idx++;
         }
 
-        return convert(validationResults);
-    }
+        if (extensionConfig == null) {
+            extensionConfig = JsonNodeFactory.instance.nullNode();
+        }
 
-    private ValidationResult convert(List<PartialValidationResult> results) {
-        ModelNode result = new ModelNode();
+        ValidationResult result = validate(extensionConfig, schema);
+        if (result.getErrors() != null) {
+            for (int i = 0; i < result.getErrors().length; ++i) {
+                ValidationResult.Error e = result.getErrors()[i];
+                String path = e.dataPath == null
+                        ? ""
+                        : (e.dataPath.startsWith("$") ? e.dataPath.substring(1) : e.dataPath);
 
-        for (PartialValidationResult r : results) {
-            if (r.results.has("errors")) {
-                List<ModelNode> errors = r.results.get("errors").asList();
-                for (ModelNode error : errors) {
-                    if (error.has("dataPath")) {
-                        error.get("dataPath")
-                            .set("/" + r.rootPath.replace(".", "/") + error.get("dataPath").asString());
-                    }
+                path = "$[" + idx + "].configuration" + (path.isEmpty() ? "" : ("." + path));
+
+                String message = e.message;
+                if (e.dataPath != null && message.startsWith(e.dataPath)) {
+                    message = path + message.substring(e.dataPath.length());
                 }
-            }
 
-            boolean valid =
-                r.results.get("valid").asBoolean() && ((!result.has("valid")) || result.get("valid").asBoolean());
-
-            result.get("valid").set(valid);
-
-            if (result.has("errors")) {
-                for (ModelNode e : r.results.get("errors").asList()) {
-                    result.get("errors").add(e);
-                }
-            } else {
-                result.get("errors").set(r.results.get("errors"));
-            }
-
-            if (result.has("missing")) {
-                for (ModelNode m : r.results.get("missing").asList()) {
-                    result.get("missing").add(m.asString());
-                }
-            } else {
-                result.get("missing").set(r.results.get("missing"));
+                ValidationResult.Error newErr = new ValidationResult.Error(e.code, message, path);
+                result.getErrors()[i] = newErr;
             }
         }
 
-        return result.isDefined() ? ValidationResult.fromTv4Results(result) : new ValidationResult(null, null);
+        return result;
     }
 
-    private ScriptEngine getJsEngine(Writer output) throws IOException, ScriptException {
-        ScriptEngine ret = null;
-
-        if (jsEngine != null) {
-            ret = jsEngine.get();
+    private static SpecVersion.VersionFlag detectVersionOrV4(JsonNode schema) {
+        try {
+            return SpecVersionDetector.detect(schema);
+        } catch (JsonSchemaException e) {
+            return SpecVersion.VersionFlag.V4;
         }
-
-        if (ret == null) {
-            ret = new ScriptEngineManager().getEngineByName("javascript");
-            ScriptContext ctx = new SimpleScriptContext();
-
-            Bindings globalScope = ret.createBindings();
-            ctx.setBindings(globalScope, ScriptContext.GLOBAL_SCOPE);
-
-            initTv4(ret, globalScope);
-
-            ret.setContext(ctx);
-
-            jsEngine = new WeakReference<>(ret);
-        }
-
-        ret.getContext().setWriter(output);
-        ret.getContext().setErrorWriter(output);
-
-        return ret;
-    }
-
-    private void initTv4(ScriptEngine engine, Bindings bindings) throws IOException, ScriptException {
-        try (Reader rdr = new InputStreamReader(getClass().getResourceAsStream("/tv4.min.js"),
-                Charset.forName("UTF-8"))) {
-            engine.eval(rdr, bindings);
-        }
-    }
-
-    private static String read(Reader rdr) throws IOException {
-        StringBuilder bld = new StringBuilder();
-        char[] buffer = new char[4096];
-
-        int cnt;
-        while ((cnt = rdr.read(buffer)) != -1) {
-            bld.append(buffer, 0, cnt);
-        }
-
-        return bld.toString();
     }
 }

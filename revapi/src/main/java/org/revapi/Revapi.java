@@ -46,10 +46,12 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.revapi.AnalysisResult.ExtensionInstance;
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.ConfigurationValidator;
+import org.revapi.configuration.JSONUtil;
 import org.revapi.configuration.ValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +95,8 @@ public final class Revapi {
      * @return the validation result
      */
     public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
+        TIMING_LOG.debug("Validation starts");
+
         ValidationResult validation = ValidationResult.success();
 
         // even though we're not using the extensions much during validation and we actually don't run any analysis
@@ -100,6 +104,8 @@ public final class Revapi {
         // actually don't need the extensions classified by their type.
         AnalysisResult.Extensions exts = prepareAnalysis(analysisContext);
         validation = validate(analysisContext, validation, exts);
+
+        TIMING_LOG.debug("Validation finished");
 
         return validation;
     }
@@ -225,8 +231,8 @@ public final class Revapi {
 
             T inst = null;
             boolean configured = false;
-            for (ModelNode config : fullConfig.getConfiguration().asList()) {
-                String configExtension = config.get("extension").asString();
+            for (JsonNode config : fullConfig.getConfigurationNode()) {
+                String configExtension = config.get("extension").asText();
                 if (!extensionId.equals(configExtension)) {
                     continue;
                 }
@@ -236,19 +242,19 @@ public final class Revapi {
                     inst = instantiate(cc);
                 }
 
-                ModelNode idNode = config.get("id");
+                JsonNode idNode = config.get("id");
 
-                String instanceId = idNode.isDefined() ? idNode.asString() : null;
+                String instanceId = !JSONUtil.isNullOrUndefined(idNode) ? idNode.asText() : null;
 
                 ExtensionInstance<T> key = new ExtensionInstance<>(inst, instanceId);
 
-                map.put(key, fullConfig.copyWithConfiguration(config.get("configuration").clone()));
+                map.put(key, fullConfig.copyWithConfiguration(config.get("configuration").deepCopy()));
 
                 configured = true;
             }
 
             if (!configured) {
-                map.put(new ExtensionInstance<>(c, null), fullConfig.copyWithConfiguration(new ModelNode()));
+                map.put(new ExtensionInstance<>(c, null), fullConfig.copyWithConfiguration(JsonNodeFactory.instance.nullNode()));
             }
         }
 
@@ -263,7 +269,7 @@ public final class Revapi {
             }
 
             Configurable c = (Configurable) e.getKey().getInstance();
-            ValidationResult partial = configurationValidator.validate(analysisContext.getConfiguration(), c);
+            ValidationResult partial = configurationValidator.validate(analysisContext.getConfigurationNode(), c);
             validationResult = validationResult.merge(partial);
         }
 

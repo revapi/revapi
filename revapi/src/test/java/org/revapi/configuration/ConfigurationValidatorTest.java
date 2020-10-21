@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ import java.io.StringReader;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
@@ -46,7 +46,7 @@ public class ConfigurationValidatorTest {
     private ValidationResult test(String object, final String extensionId, final String schema) {
         ConfigurationValidator validator = new ConfigurationValidator();
 
-        ModelNode fullConfig = ModelNode.fromJSONString(object);
+        JsonNode fullConfig = JSONUtil.parse(object);
 
         Configurable fakeConfigurable = new Configurable() {
             @Nullable
@@ -163,7 +163,7 @@ public class ConfigurationValidatorTest {
         Assert.assertFalse(res.isSuccessful());
         Assert.assertNotNull(res.getErrors());
         Assert.assertEquals(1, res.getErrors().length);
-        Assert.assertEquals("/[2]/configuration", res.getErrors()[0].dataPath);
+        Assert.assertEquals("$[2].configuration", res.getErrors()[0].dataPath);
     }
 
     @Test
@@ -191,7 +191,7 @@ public class ConfigurationValidatorTest {
         Assert.assertNotNull(res.getErrors());
         //we merged "my-config" from the second config into the first, so that should be ok. Only other-config should error out.
         Assert.assertEquals(1, res.getErrors().length);
-        Assert.assertEquals("/[1]/configuration", res.getErrors()[0].dataPath);
+        Assert.assertEquals("$[1].configuration", res.getErrors()[0].dataPath);
     }
 
     @Test
@@ -216,7 +216,7 @@ public class ConfigurationValidatorTest {
         Assert.assertFalse(res.isSuccessful());
         Assert.assertNotNull(res.getErrors());
         Assert.assertEquals(1, res.getErrors().length);
-        Assert.assertEquals("/[2]/configuration", res.getErrors()[0].dataPath);
+        Assert.assertEquals("$[2].configuration", res.getErrors()[0].dataPath);
     }
 
     public static final class TestFilter implements ElementFilter {

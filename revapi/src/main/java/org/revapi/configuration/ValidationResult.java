@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +16,15 @@
  */
 package org.revapi.configuration;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
+import com.networknt.schema.ValidationMessage;
 
 /**
  * Represents the results of the the configuration validation.
@@ -99,38 +100,10 @@ public final class ValidationResult {
         this.errors = errors;
     }
 
-    static ValidationResult fromTv4Results(ModelNode tv4ResultJSON) {
-        if (tv4ResultJSON.get("valid").asBoolean()) {
-            return ValidationResult.success();
-        } else {
-
-            List<String> missingSchemas = new ArrayList<>();
-
-            for (ModelNode missing : tv4ResultJSON.get("missing").asList()) {
-                missingSchemas.add(missing.asString());
-            }
-
-            List<Error> errors = new ArrayList<>();
-            for (ModelNode error : tv4ResultJSON.get("errors").asList()) {
-                int code = error.get("code").asInt();
-                String message = error.get("message").asString();
-                String dataPath = error.get("dataPath").asString();
-
-                errors.add(new Error(code, message, dataPath));
-            }
-
-            String[] missingSchemasA = missingSchemas.isEmpty() ? null : new String[missingSchemas.size()];
-            if (missingSchemasA != null) {
-                missingSchemasA = missingSchemas.toArray(missingSchemasA);
-            }
-
-            Error[] errorsA = errors.isEmpty() ? null : new Error[errors.size()];
-            if (errorsA != null) {
-                errorsA = errors.toArray(errorsA);
-            }
-
-            return new ValidationResult(missingSchemasA, errorsA);
-        }
+    static ValidationResult fromValidationMessages(Set<ValidationMessage> validationMessages) {
+        return new ValidationResult(null, validationMessages.stream()
+                .map(vm -> new ValidationResult.Error(0, vm.getMessage(), vm.getPath()))
+                .toArray(ValidationResult.Error[]::new));
     }
 
     public ValidationResult merge(ValidationResult other) {
@@ -143,7 +116,7 @@ public final class ValidationResult {
         }
 
         HashSet<String> newMissingSchemas = missingSchemas == null ? null
-            : new HashSet<>(Arrays.asList(missingSchemas));
+                : new HashSet<>(Arrays.asList(missingSchemas));
 
         if (other.missingSchemas != null) {
             if (newMissingSchemas == null) {
@@ -153,7 +126,7 @@ public final class ValidationResult {
         }
 
         String[] retMissingSchemas =
-            newMissingSchemas == null ? null : newMissingSchemas.toArray(new String[newMissingSchemas.size()]);
+                newMissingSchemas == null ? null : newMissingSchemas.toArray(new String[newMissingSchemas.size()]);
 
         HashSet<Error> newErrors = errors == null ? null : new HashSet<>(Arrays.asList(errors));
 
@@ -187,7 +160,27 @@ public final class ValidationResult {
     }
 
     public boolean isSuccessful() {
-        return missingSchemas == null && errors == null;
+        return (missingSchemas == null || missingSchemas.length == 0)
+                && (errors == null || errors.length == 0);
+    }
+
+    public ConfigurationException asException() {
+        StringBuilder sb = new StringBuilder();
+        if (missingSchemas != null && missingSchemas.length > 0) {
+            sb.append("Found missing schemas referenced in the extension configurations: ");
+            sb.append(String.join(", ", Arrays.asList(missingSchemas)));
+        }
+
+        if (errors != null && errors.length > 0) {
+            if (sb.length() != 0) {
+                sb.append("\n");
+            }
+
+            sb.append("The extension configuration failed to validate:\n");
+            sb.append(Stream.of(errors).map(e -> e.message).collect(Collectors.joining("\n")));
+        }
+
+        return new ConfigurationException(sb.toString());
     }
 
     @Override

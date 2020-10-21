@@ -16,6 +16,10 @@
  */
 package org.revapi.configuration;
 
+import static java.util.stream.Collectors.toMap;
+
+import static org.revapi.configuration.JSONUtil.isNullOrUndefined;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
@@ -25,12 +29,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.revapi.Revapi;
@@ -38,7 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A tool to convert some XML representation of the Revapi configuration to {@link ModelNode} used by Revapi.
+ * A tool to convert some XML representation of the Revapi configuration to {@link JsonNode} used by Revapi.
  *
  * @param <Xml> The type of the xml representation used by the calling code.
  *
@@ -52,21 +59,46 @@ public final class XmlToJson<Xml> {
     private final BiFunction<Xml, String, String> getAttributeValue;
     private final Function<Xml, String> getValue;
     private final Function<Xml, List<Xml>> getChildren;
-    private final Map<String, ModelNode> knownExtensionSchemas;
+    private final Map<String, JsonNode> knownExtensionSchemas;
 
     /**
      * A convenience constructor to create an instance using the extension schemas known to the provided Revapi
      * instance.
      *
      * @see #XmlToJson(Map, Function, Function, BiFunction, Function)
+     * @deprecated use #fromRevapi
      */
+    @Deprecated
     public XmlToJson(Revapi revapi, Function<Xml, String> getName, Function<Xml, String> getValue,
                      BiFunction<Xml, String, String> getAttributeValue, Function<Xml, List<Xml>> getChildren) {
-        this(getKnownExtensionSchemas(revapi), getName, getValue, getAttributeValue, getChildren);
+        this(getKnownExtensionSchemas(revapi), getName, getValue, getAttributeValue, getChildren, 42);
     }
 
     /**
-     * Constructs a new XML to JSON convertor. To be able to navigate the XML and to convert to JSON data types
+     * Constructs a new XML to JSON converter. To be able to navigate the XML and to convert to JSON data types
+     * correctly, the instance needs to know about the schemas used by various extensions.
+     *
+     * @param knownExtensionSchemas the schemas of the known extensions. Keys are extension ids, values are extension
+     *                              schemas
+     * @param getName a function that gets the name of an XML tag
+     * @param getValue a function that gets the textual value of an XML node, e.g. it's textual content.
+     * @param getAttributeValue a function to get a value of an attribute of an XML node
+     * @param getChildren a function that gets the children of an XML node. Note that the returned list MUST NOT
+     *                    contain any text or CDATA nodes - those are to be used in the {@code getValue} function.
+     *                    It also MUST NOT contain any comment nodes.
+     * @deprecated use the Jackson-based variant
+     */
+    @Deprecated
+    public XmlToJson(Map<String, ModelNode> knownExtensionSchemas, Function<Xml, String> getName,
+              Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
+              Function<Xml, List<Xml>> getChildren) {
+        this(knownExtensionSchemas.entrySet().stream()
+                .collect(toMap(Map.Entry::getKey, e -> JSONUtil.convert(e.getValue()))),
+        getName, getValue, getAttributeValue, getChildren, 42);
+    }
+
+    /**
+     * Constructs a new XML to JSON converter. To be able to navigate the XML and to convert to JSON data types
      * correctly, the instance needs to know about the schemas used by various extensions.
      *
      * @param knownExtensionSchemas the schemas of the known extensions. Keys are extension ids, values are extension
@@ -78,9 +110,25 @@ public final class XmlToJson<Xml> {
      *                    contain any text or CDATA nodes - those are to be used in the {@code getValue} function.
      *                    It also MUST NOT contain any comment nodes.
      */
-    public XmlToJson(Map<String, ModelNode> knownExtensionSchemas, Function<Xml, String> getName,
-              Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
-              Function<Xml, List<Xml>> getChildren) {
+    public static <Xml> XmlToJson<Xml> fromKnownSchemas(Map<String, JsonNode> knownExtensionSchemas,
+            Function<Xml, String> getName,
+            Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
+            Function<Xml, List<Xml>> getChildren) {
+        return new XmlToJson<>(knownExtensionSchemas, getName, getValue, getAttributeValue, getChildren, 42);
+    }
+
+    public static <Xml> XmlToJson<Xml> fromRevapi(Revapi revapi,
+            Function<Xml, String> getName,
+            Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
+            Function<Xml, List<Xml>> getChildren) {
+        return fromKnownSchemas(getKnownExtensionSchemas(revapi), getName, getValue, getAttributeValue, getChildren);
+    }
+
+    // dummy just to distinguish this from the deprecated constructor using the map of ModelNode based extension
+    // schemas.
+    private XmlToJson(Map<String, JsonNode> knownExtensionSchemas, Function<Xml, String> getName,
+            Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
+            Function<Xml, List<Xml>> getChildren, int dummy) {
         this.getName = getName;
         this.getValue = getValue;
         this.getAttributeValue = getAttributeValue;
@@ -88,15 +136,22 @@ public final class XmlToJson<Xml> {
         this.knownExtensionSchemas = knownExtensionSchemas;
     }
 
+    /**
+     * @deprecated use {@link #convertXml(Object)} instead
+     */
+    @Deprecated
     public ModelNode convert(Xml xml) {
-        ModelNode fullConfiguration = new ModelNode();
-        fullConfiguration.setEmptyList();
+        return JSONUtil.convert(convertXml(xml));
+    }
+
+    public JsonNode convertXml(Xml xml) {
+        ArrayNode fullConfiguration = JsonNodeFactory.instance.arrayNode();
 
         for (Xml c : getChildren.apply(xml)) {
 
             String extensionId = getName.apply(c);
             String id = getAttributeValue.apply(c, "id");
-            ModelNode schema = knownExtensionSchemas.get(extensionId);
+            JsonNode schema = knownExtensionSchemas.get(extensionId);
             if (schema == null) {
                 LOG.warn("Extension '" + extensionId +
                         "' doesn't declare a JSON schema but XML contains its configuration. Cannot convert it into" +
@@ -104,14 +159,14 @@ public final class XmlToJson<Xml> {
                 continue;
             }
 
-            ModelNode config = convert(c, schema);
+            JsonNode config = convert(c, schema);
 
-            ModelNode instanceConfig = new ModelNode();
-            instanceConfig.get("extension").set(extensionId);
+            ObjectNode instanceConfig = JsonNodeFactory.instance.objectNode();
+            instanceConfig.put("extension", extensionId);
             if (id != null) {
-                instanceConfig.get("id").set(id);
+                instanceConfig.put("id", id);
             }
-            instanceConfig.get("configuration").set(config);
+            instanceConfig.set("configuration", config);
 
             fullConfiguration.add(instanceConfig);
         }
@@ -119,44 +174,44 @@ public final class XmlToJson<Xml> {
         return fullConfiguration;
     }
 
-    private ModelNode convert(Xml configuration, ModelNode jsonSchema) {
+    private JsonNode convert(Xml configuration, JsonNode jsonSchema) {
         return convert(configuration, jsonSchema, jsonSchema);
     }
 
-    private ModelNode convert(Xml configuration, ModelNode jsonSchema, ModelNode rootSchema) {
-        ModelNode typeNode = jsonSchema.get("type");
-        if (!typeNode.isDefined()) {
-            ModelNode ret = null;
-            if (jsonSchema.get("enum").isDefined()) {
+    private JsonNode convert(Xml configuration, JsonNode jsonSchema, JsonNode rootSchema) {
+        JsonNode typeNode = jsonSchema.get("type");
+        if (isNullOrUndefined(typeNode)) {
+            JsonNode ret = null;
+            if (jsonSchema.hasNonNull("enum")) {
                 ret = convertByEnum(configuration, jsonSchema.get("enum"));
-            } else if (jsonSchema.get("$ref").isDefined()) {
-                jsonSchema = findRef(rootSchema, jsonSchema.get("$ref").asString());
+            } else if (jsonSchema.hasNonNull("$ref")) {
+                jsonSchema = findRef(rootSchema, jsonSchema.get("$ref").asText());
                 ret = convert(configuration, jsonSchema, rootSchema);
-            } else if (jsonSchema.hasDefined("oneOf")) {
-                ret = convertByOneOf(configuration, jsonSchema.get("oneOf").asList());
-            } else if (jsonSchema.hasDefined("anyOf")) {
-                ret = convertByAnyOf(configuration, jsonSchema.get("anyOf").asList());
-            } else if (jsonSchema.hasDefined("allOf")) {
-                ret = convertByAllOf(configuration, jsonSchema.get("allOf").asList());
+            } else if (jsonSchema.hasNonNull("oneOf")) {
+                ret = convertByOneOf(configuration, jsonSchema.get("oneOf"));
+            } else if (jsonSchema.hasNonNull("anyOf")) {
+                ret = convertByAnyOf(configuration, jsonSchema.get("anyOf"));
+            } else if (jsonSchema.hasNonNull("allOf")) {
+                ret = convertByAllOf(configuration, jsonSchema.get("allOf"));
             }
 
             if (ret == null) {
                 throw new IllegalArgumentException("Could not convert the configuration. Schema:\n"
-                        + jsonSchema.toJSONString(false)
+                        + JSONUtil.toString(jsonSchema)
                 + "\n\nData:\n" + configuration);
             }
 
             return ret;
         }
 
-        if (typeNode.getType() != ModelType.STRING) {
+        if (typeNode.getNodeType() != JsonNodeType.STRING) {
             throw new IllegalArgumentException(
                     "JSON schema allows for multiple possible types. " +
                             "This is not supported by the XML-to-JSON conversion yet. Schema:\n"
-                            + jsonSchema.toJSONString(false));
+                            + JSONUtil.toString(jsonSchema));
         }
 
-        String type = typeNode.asString();
+        String type = typeNode.asText();
 
         switch (type) {
             case "boolean":
@@ -176,78 +231,62 @@ public final class XmlToJson<Xml> {
         }
     }
 
-    private static ModelNode findRef(ModelNode rootSchema, String ref) {
-        return JSONPointer.parse(ref).navigate(rootSchema);
+    private static JsonNode findRef(JsonNode rootSchema, String ref) {
+        if (ref.startsWith("#")) {
+            ref = ref.substring(1);
+        }
+        return rootSchema.at(ref);
     }
 
-    private ModelNode convertByEnum(Xml configuration, ModelNode enumValues) {
+    private JsonNode convertByEnum(Xml configuration, Iterable<JsonNode> enumValues) {
         String xmlValue = getValue.apply(configuration);
-        Map<String, ModelType> jsonValues = enumValues.asList().stream()
-                .collect(Collectors.toMap(ModelNode::asString, ModelNode::getType));
 
-        for (Map.Entry<String, ModelType> e : jsonValues.entrySet()) {
-            String jsonValue = e.getKey();
-            ModelType jsonType = e.getValue();
-
-            if (Objects.equals(xmlValue, jsonValue)) {
-                switch (jsonType) {
-                    case BIG_INTEGER:
-                    case INT:
-                    case LONG:
-                        return new ModelNode(Long.parseLong(xmlValue));
-                    case BIG_DECIMAL:
-                    case DOUBLE:
-                        return new ModelNode(Double.parseDouble(xmlValue));
-                    case BOOLEAN:
-                        return new ModelNode(Boolean.parseBoolean(xmlValue));
-                    case STRING:
-                        return new ModelNode(xmlValue);
-                    default:
-                        throw new IllegalArgumentException(
-                                "Unsupported type of enum value defined in schema: " + jsonValue);
-                }
+        for (JsonNode jsonValue : enumValues) {
+            String txt = jsonValue.asText();
+            if (txt.equals(xmlValue)) {
+                return jsonValue.deepCopy();
             }
         }
 
         throw new IllegalArgumentException(
-                "XML value '" + xmlValue + " doesn't match any of the allowed: " + jsonValues.keySet());
+                "XML value '" + xmlValue + " doesn't match any of the allowed: " + enumValues);
     }
 
-    private ModelNode convertObject(Xml configuration, ModelNode jsonSchema, ModelNode rootSchema) {
+    private JsonNode convertObject(Xml configuration, JsonNode jsonSchema, JsonNode rootSchema) {
         if (getValue.apply(configuration) != null) {
             // object cannot contain text nodes.. or rather we don't support that
             throw new IllegalArgumentException("Converting an XML node with text (and possibly children) to JSON" +
                     " object is not supported.");
         }
 
-        ModelNode object = new ModelNode();
-        object.setEmptyObject();
-        ModelNode propertySchemas = jsonSchema.get("properties");
-        ModelNode additionalPropSchemas = jsonSchema.get("additionalProperties");
+        ObjectNode object = JsonNodeFactory.instance.objectNode();
+
+        JsonNode propertySchemas = jsonSchema.get("properties");
+        JsonNode additionalPropSchemas = jsonSchema.get("additionalProperties");
         for (Xml childConfig : getChildren.apply(configuration)) {
             String name = getName.apply(childConfig);
-            ModelNode childSchema = propertySchemas.get(name);
-            if (!childSchema.isDefined()) {
-                if (additionalPropSchemas.getType() == ModelType.BOOLEAN) {
+            JsonNode childSchema = propertySchemas == null ? null : propertySchemas.get(name);
+            if (childSchema == null) {
+                if (additionalPropSchemas != null && additionalPropSchemas.getNodeType() == JsonNodeType.BOOLEAN) {
                     throw new IllegalArgumentException("Cannot determine the format for the '" + name +
                             "' XML tag during the XML-to-JSON conversion.");
                 }
                 childSchema = additionalPropSchemas;
             }
 
-            if (!childSchema.isDefined()) {
+            if (childSchema == null) {
                 throw new IllegalArgumentException("Could not determine the format for the '" + name +
                         "' XML tag during the XML-to-JSON conversion.");
             }
-            ModelNode jsonChild = convert(childConfig, childSchema, rootSchema);
-            object.get(name).set(jsonChild);
+            JsonNode jsonChild = convert(childConfig, childSchema, rootSchema);
+            object.set(name, jsonChild);
         }
         return object;
     }
 
-    private ModelNode convertArray(Xml configuration, ModelNode jsonSchema, ModelNode rootSchema) {
-        ModelNode itemsSchema = jsonSchema.get("items");
-        if (!itemsSchema.isDefined()) {
+    private ArrayNode convertArray(Xml configuration, JsonNode jsonSchema, JsonNode rootSchema) {
+        JsonNode itemsSchema = jsonSchema.get("items");
+        if (itemsSchema == null) {
             throw new IllegalArgumentException(
                     "No schema found for items of a list. Cannot continue with XML-to-JSON conversion.");
         }
@@ -259,38 +298,42 @@ public final class XmlToJson<Xml> {
                     + "> should represent an array of values, but a textual value was found.");
         }
 
-        ModelNode list = new ModelNode();
-        list.setEmptyList();
+        ArrayNode list = JsonNodeFactory.instance.arrayNode();
+
         for (Xml childConfig : getChildren.apply(configuration)) {
-            ModelNode child = convert(childConfig, itemsSchema, rootSchema);
+            JsonNode child = convert(childConfig, itemsSchema, rootSchema);
             list.add(child);
         }
         return list;
     }
 
-    private ModelNode convertString(Xml configuration) {
-        return new ModelNode(getValue.apply(configuration));
+    private JsonNode convertString(Xml configuration) {
+        String val = getValue.apply(configuration);
+        if (val == null) {
+            throw new IllegalArgumentException("Null string not allowed.");
+        }
+        return JsonNodeFactory.instance.textNode(val);
     }
 
-    private ModelNode convertNumber(Xml configuration) {
+    private JsonNode convertNumber(Xml configuration) {
         try {
             double floatVal = Double.parseDouble(getValue.apply(configuration));
-            return new ModelNode(floatVal);
+            return JsonNodeFactory.instance.numberNode(floatVal);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid value.", e);
         }
     }
 
-    private ModelNode convertInteger(Xml configuration) {
+    private JsonNode convertInteger(Xml configuration) {
         try {
             long intVal = Long.parseLong(getValue.apply(configuration));
-            return new ModelNode(intVal);
+            return JsonNodeFactory.instance.numberNode(intVal);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid value.", e);
         }
     }
 
-    private ModelNode convertBoolean(Xml configuration) {
+    private JsonNode convertBoolean(Xml configuration) {
         String v = getValue.apply(configuration);
         Boolean boolVal = "true".equalsIgnoreCase(v)
                 ? Boolean.TRUE
@@ -298,13 +341,13 @@ public final class XmlToJson<Xml> {
         if (boolVal == null) {
             throw new IllegalArgumentException("'true' or 'false' expected as a boolean value.");
         }
-        return new ModelNode(boolVal);
+        return JsonNodeFactory.instance.booleanNode(boolVal);
     }
 
-    private ModelNode convertByOneOf(Xml configuration, Iterable<ModelNode> candidateSchemas) {
+    private JsonNode convertByOneOf(Xml configuration, Iterable<JsonNode> candidateSchemas) {
         boolean matched = false;
-        ModelNode parsed = null;
-        for (ModelNode candidateSchema : candidateSchemas) {
+        JsonNode parsed = null;
+        for (JsonNode candidateSchema : candidateSchemas) {
             try {
                 parsed = convert(configuration, candidateSchema);
                 if (matched) {
@@ -320,8 +363,8 @@ public final class XmlToJson<Xml> {
         return parsed;
     }
 
-    private ModelNode convertByAnyOf(Xml configuration, Iterable<ModelNode> candidateSchemas) {
-        for (ModelNode candidateSchema : candidateSchemas) {
+    private JsonNode convertByAnyOf(Xml configuration, Iterable<JsonNode> candidateSchemas) {
+        for (JsonNode candidateSchema : candidateSchemas) {
             try {
                 return convert(configuration, candidateSchema);
             } catch (IllegalArgumentException __) {
@@ -332,9 +375,9 @@ public final class XmlToJson<Xml> {
         return null;
     }
 
-    private ModelNode convertByAllOf(Xml configuration, Iterable<ModelNode> candidateSchemas) {
-        ModelNode parsed = null;
-        for (ModelNode candidateSchema : candidateSchemas) {
+    private JsonNode convertByAllOf(Xml configuration, Iterable<JsonNode> candidateSchemas) {
+        JsonNode parsed = null;
+        for (JsonNode candidateSchema : candidateSchemas) {
             try {
                 parsed = convert(configuration, candidateSchema);
             } catch (IllegalArgumentException __) {
@@ -345,7 +388,11 @@ public final class XmlToJson<Xml> {
         return parsed;
     }
 
+    /**
+     * @deprecated use Jackson's impl
+     */
     //heavily inspired by the implementation in org.json.JSONPointer
+    @Deprecated
     public static final class JSONPointer {
         private final List<String> tokens;
 
@@ -424,8 +471,8 @@ public final class XmlToJson<Xml> {
         }
     }
 
-    private static Map<String, ModelNode> getKnownExtensionSchemas(Revapi revapi) {
-        Map<String, ModelNode> knownSchemas = new HashMap<>();
+    private static Map<String, JsonNode> getKnownExtensionSchemas(Revapi revapi) {
+        Map<String, JsonNode> knownSchemas = new HashMap<>();
         extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getApiAnalyzerTypes());
         extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getTransformTypes());
         extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getTreeFilterTypes());
@@ -435,7 +482,7 @@ public final class XmlToJson<Xml> {
     }
 
     private static <T extends Configurable>
-    void extractKnownSchemas(Map<String, ModelNode> schemaByExtensionId, Set<Class<? extends T>> types) {
+    void extractKnownSchemas(Map<String, JsonNode> schemaByExtensionId, Set<Class<? extends T>> types) {
         for (Class<? extends T> extensionType : types) {
             try {
                 Configurable c = extensionType.newInstance();
@@ -450,7 +497,7 @@ public final class XmlToJson<Xml> {
                 }
 
                 String schemaString = readFull(schema);
-                ModelNode schemaNode = ModelNode.fromJSONString(schemaString);
+                JsonNode schemaNode = JSONUtil.parse(schemaString);
 
                 schemaByExtensionId.put(extensionId, schemaNode);
             } catch (InstantiationException | IllegalAccessException e) {

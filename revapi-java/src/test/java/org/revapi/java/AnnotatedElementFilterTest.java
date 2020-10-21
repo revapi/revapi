@@ -144,7 +144,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testIncludeByAnnotationWithAttributeValues() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"include\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(since = /2\\.0/) *;\"}]}}}}", results -> {
+                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(since = /2\\\\.0/) *;\"}]}}}}", results -> {
 
             Assert.assertEquals(2, results.size());
             Assert.assertEquals("method void annotationfilter.PublicClass::implDetail()",
