@@ -58,7 +58,7 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
@@ -90,10 +90,8 @@ public class SerializationChecker extends CheckBase {
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         super.initialize(analysisContext);
-        ModelNode changeDetectionType = analysisContext.getConfiguration().get("changeDetection");
-        if (changeDetectionType.isDefined() && "jvm".equals(changeDetectionType.asString())) {
-            strict = true;
-        }
+        JsonNode changeDetectionType = analysisContext.getConfigurationNode().path("changeDetection");
+        strict = "jvm".equals(changeDetectionType.asText(null));
     }
 
     @Override

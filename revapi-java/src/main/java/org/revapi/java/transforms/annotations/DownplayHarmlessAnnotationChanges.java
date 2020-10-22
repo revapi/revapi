@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.revapi.AnalysisContext;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
@@ -88,12 +88,10 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
     }
 
     @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
-        ModelNode conf = analysisContext.getConfiguration()
-                .get("downplayHarmlessAnnotationChanges");
+        JsonNode conf = analysisContext.getConfigurationNode()
+                .path("downplayHarmlessAnnotationChanges");
 
-        if (conf.isDefined()) {
-            skip = !conf.asBoolean();
-        }
+        skip = !conf.asBoolean(true);
     }
 
     private static Pattern exact(String string) {

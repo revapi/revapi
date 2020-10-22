@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
@@ -45,12 +45,8 @@ public final class NonPublicClassPartOfAPI extends CheckBase {
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         super.initialize(analysisContext);
-        ModelNode reportUnchanged = analysisContext.getConfiguration().get("reportUnchanged");
-        if (reportUnchanged.isDefined()) {
-            this.reportUnchanged = reportUnchanged.asBoolean();
-        } else {
-            this.reportUnchanged = true;
-        }
+        JsonNode reportUnchanged = analysisContext.getConfigurationNode().path("reportUnchanged");
+        this.reportUnchanged = reportUnchanged.asBoolean(true);
     }
 
     @Nullable

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -46,7 +46,9 @@ import javax.annotation.Nullable;
 import javax.lang.model.util.Types;
 import javax.tools.ToolProvider;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
@@ -57,6 +59,7 @@ import org.revapi.CorrespondenceComparatorDeducer;
 import org.revapi.DifferenceAnalyzer;
 import org.revapi.Element;
 import org.revapi.configuration.Configurable;
+import org.revapi.configuration.JSONUtil;
 import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
@@ -478,27 +481,27 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         }
 
         Reader rdr = new InputStreamReader(getClass().getResourceAsStream("/META-INF/config-schema.json"),
-                Charset.forName("UTF-8"));
+                StandardCharsets.UTF_8);
 
         if (checkSchemas.isEmpty()) {
             return rdr;
         } else {
             try {
-                ModelNode baseSchema = ModelNode.fromJSONString(consume(rdr));
+                JsonNode baseSchema = JSONUtil.parse(consume(rdr));
 
-                ModelNode checksNode = baseSchema.get("properties", "checks");
-                checksNode.get("type").set("object");
+                ObjectNode checksNode = baseSchema.with("properties").with("checks");
+                checksNode.put("type", "object");
 
                 for (Map.Entry<String, Reader> entry : checkSchemas.entrySet()) {
                     String checkId = entry.getKey();
                     Reader checkSchemaReader = entry.getValue();
 
-                    ModelNode checkSchema = ModelNode.fromJSONString(consume(checkSchemaReader));
+                    JsonNode checkSchema = JSONUtil.parse(consume(checkSchemaReader));
 
-                    checksNode.get("properties").get(checkId).set(checkSchema);
+                    checksNode.with("properties").set(checkId, checkSchema);
                 }
 
-                return new StringReader(baseSchema.toJSONString(false));
+                return new StringReader(baseSchema.toString());
             } catch (IOException e) {
                 throw new IllegalStateException("Could not read the schema for the revapi extension...", e);
             }
@@ -508,7 +511,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         this.analysisContext = analysisContext;
-        this.configuration = AnalysisConfiguration.fromModel(analysisContext.getConfiguration());
+        this.configuration = AnalysisConfiguration.fromModel(analysisContext.getConfigurationNode());
 
         configureExtensions("checks", checks);
         configureExtensions("extract", jarExtractors);
@@ -517,11 +520,11 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     private void configureExtensions(String rootNode, Iterable<? extends Configurable> exts) {
         for (Configurable c : exts) {
             if (c.getExtensionId() != null) {
-                ModelNode checkConfig = analysisContext.getConfiguration().get(rootNode, c.getExtensionId());
+                JsonNode checkConfig = analysisContext.getConfigurationNode().path(rootNode).path(c.getExtensionId());
                 AnalysisContext checkCtx = analysisContext.copyWithConfiguration(checkConfig);
                 c.initialize(checkCtx);
             } else {
-                c.initialize(analysisContext.copyWithConfiguration(new ModelNode()));
+                c.initialize(analysisContext.copyWithConfiguration(JsonNodeFactory.instance.nullNode()));
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementFilter;
@@ -86,27 +86,27 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
     @Override
     @Nullable
     public Reader getJSONSchema() {
-        return new InputStreamReader(getClass().getResourceAsStream(schemaPath), Charset.forName("UTF-8"));
+        return new InputStreamReader(getClass().getResourceAsStream(schemaPath), StandardCharsets.UTF_8);
     }
 
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
-        ModelNode root = analysisContext.getConfiguration();
-        if (!root.isDefined()) {
+        JsonNode root = analysisContext.getConfigurationNode();
+        if (root.isNull()) {
             doNothing = true;
             LOG.warn("Filtering using the revapi.java.filter.annotated has been deprecated in favor of revapi.filter" +
                     " together with the java specific matchers (matcher.java).");
             return;
         }
 
-        ModelNode regex = root.get("regex");
-        boolean regexes = regex.isDefined() && regex.asBoolean();
+        JsonNode regex = root.path("regex");
+        boolean regexes = regex.asBoolean(false);
 
         List<String> fullMatches = new ArrayList<>();
         List<Pattern> patterns = new ArrayList<>();
 
-        readMatches(root.get("exclude"), regexes, fullMatches, patterns);
+        readMatches(root.path("exclude"), regexes, fullMatches, patterns);
 
         validateConfiguration(true, fullMatches, patterns, regexes);
 
@@ -115,7 +115,7 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
         fullMatches = new ArrayList<>();
         patterns = new ArrayList<>();
 
-        readMatches(root.get("include"), regexes, fullMatches, patterns);
+        readMatches(root.path("include"), regexes, fullMatches, patterns);
 
         validateConfiguration(false, fullMatches, patterns, regexes);
 
@@ -132,13 +132,13 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
     protected abstract void validateConfiguration(boolean excludes, List<String> fullMatches, List<Pattern> patterns,
             boolean regexes);
 
-    private void readMatches(ModelNode array, boolean regexes, List<String> fullMatches, List<Pattern> patterns) {
-        if (!array.isDefined()) {
+    private void readMatches(JsonNode array, boolean regexes, List<String> fullMatches, List<Pattern> patterns) {
+        if (!array.isArray()) {
             return;
         }
 
-        for (ModelNode ann : array.asList()) {
-            String name = ann.asString();
+        for (JsonNode ann : array) {
+            String name = ann.asText();
 
             if (regexes) {
                 patterns.add(Pattern.compile(name));

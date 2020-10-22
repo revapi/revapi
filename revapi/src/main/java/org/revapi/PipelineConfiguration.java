@@ -35,10 +35,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.jboss.dmr.ModelNode;
+import org.revapi.configuration.JSONUtil;
 
 /**
  * This class represents the configuration of the Revapi analysis pipeline. This is different from the configuration of
@@ -119,23 +122,43 @@ public final class PipelineConfiguration {
      * @param json the configuration node
      * @return a pipeline configuration parsed from the configuration
      * @see Builder#build()
+     * @deprecated use the Jackson-based variant
      */
+    @Deprecated
     public static PipelineConfiguration.Builder parse(ModelNode json) {
-        ModelNode analyzerIncludeNode = json.get("analyzers").get("include");
-        ModelNode analyzerExcludeNode = json.get("analyzers").get("exclude");
-        ModelNode filterIncludeNode = json.get("filters").get("include");
-        ModelNode filterExcludeNode = json.get("filters").get("exclude");
-        ModelNode transformIncludeNode = json.get("transforms").get("include");
-        ModelNode transformExcludeNode = json.get("transforms").get("exclude");
-        ModelNode reporterIncludeNode = json.get("reporters").get("include");
-        ModelNode reporterExcludeNode = json.get("reporters").get("exclude");
-        ModelNode matcherIncludeNode = json.get("matchers").get("include");
-        ModelNode matcherExcludeNode = json.get("matchers").get("exclude");
-        ModelNode criticalities = json.get("criticalities");
-        ModelNode severityMapping = json.get("severityMapping");
+        return parse(JSONUtil.convert(json));
+    }
+
+    /**
+     * Parses the configuration node and provides a pipeline configuration without any extensions marked for loading.
+     * The configuration node is supposed to conform to the pipeline configuration JSON schema.
+     *
+     * <p>The caller is supposed to use the methods from the builder to add/find extension classes that will be used in
+     * the analysis.
+     *
+     * <p>Note that the returned pipeline configuration might not contain all the extensions available in
+     * the classloader depending on the include/exclude filters in the configuration.
+     *
+     * @param json the configuration node
+     * @return a pipeline configuration parsed from the configuration
+     * @see Builder#build()
+     */
+    public static PipelineConfiguration.Builder parse(JsonNode json) {
+        JsonNode analyzerIncludeNode = json.path("analyzers").path("include");
+        JsonNode analyzerExcludeNode = json.path("analyzers").path("exclude");
+        JsonNode filterIncludeNode = json.path("filters").path("include");
+        JsonNode filterExcludeNode = json.path("filters").path("exclude");
+        JsonNode transformIncludeNode = json.path("transforms").path("include");
+        JsonNode transformExcludeNode = json.path("transforms").path("exclude");
+        JsonNode reporterIncludeNode = json.path("reporters").path("include");
+        JsonNode reporterExcludeNode = json.path("reporters").path("exclude");
+        JsonNode matcherIncludeNode = json.path("matchers").path("include");
+        JsonNode matcherExcludeNode = json.path("matchers").path("exclude");
+        JsonNode criticalities = json.path("criticalities");
+        JsonNode severityMapping = json.path("severityMapping");
 
         return builder()
-                .withTransformationBlocks(json.get("transformBlocks"))
+                .withTransformationBlocks(json.path("transformBlocks"))
                 .withAnalyzerExtensionIdsInclude(asStringList(analyzerIncludeNode))
                 .withAnalyzerExtensionIdsExclude(asStringList(analyzerExcludeNode))
                 .withFilterExtensionIdsInclude(asStringList(filterIncludeNode))
@@ -165,8 +188,33 @@ public final class PipelineConfiguration {
      * @param reporters  the set of reporters to choose from
      * @return pipeline configuration corresponding to the provided configuration node
      * @see Builder#build()
+     * @deprecated use the Jackson-based variant
      */
+    @Deprecated
     public static PipelineConfiguration parse(ModelNode json, Collection<Class<? extends ApiAnalyzer>> analyzers,
+            Collection<Class<? extends TreeFilterProvider>> filters,
+            Collection<Class<? extends DifferenceTransform<?>>> transforms,
+            Collection<Class<? extends Reporter>> reporters,
+            Collection<Class<? extends ElementMatcher>> matchers) {
+        return parse(JSONUtil.convert(json), analyzers, filters, transforms, reporters, matchers);
+    }
+
+    /**
+     * Similar to {@link #parse(JsonNode)} but the extensions to use are provided by the caller straight away instead
+     * of letting the caller use the builder to finish up the configuration.
+     *
+     * <p>Note that the returned pipeline configuration might not contain all the extensions available in
+     * the classloader depending on the include/exclude filters in the configuration.
+     *
+     * @param json       the configuration node
+     * @param analyzers  the set of analyzers to choose from
+     * @param filters    the set of filters to choose from
+     * @param transforms the set of transforms to choose from
+     * @param reporters  the set of reporters to choose from
+     * @return pipeline configuration corresponding to the provided configuration node
+     * @see Builder#build()
+     */
+    public static PipelineConfiguration parse(JsonNode json, Collection<Class<? extends ApiAnalyzer>> analyzers,
             Collection<Class<? extends TreeFilterProvider>> filters,
             Collection<Class<? extends DifferenceTransform<?>>> transforms,
             Collection<Class<? extends Reporter>> reporters,
@@ -181,33 +229,33 @@ public final class PipelineConfiguration {
                 .build();
     }
 
-    private static List<String> asStringList(ModelNode listNode) {
-        if (!listNode.isDefined()) {
+    private static List<String> asStringList(JsonNode listNode) {
+        if (listNode.isMissingNode()) {
             return Collections.emptyList();
         } else {
-            return listNode.asList().stream().map(ModelNode::asString).collect(toList());
+            return StreamSupport.stream(listNode.spliterator(), false).map(JsonNode::asText).collect(toList());
         }
     }
 
-    private static Set<Criticality> asCriticalitySet(ModelNode node) {
-        if (!node.isDefined()) {
+    private static Set<Criticality> asCriticalitySet(JsonNode node) {
+        if (node.isMissingNode()) {
             return emptySet();
         }
 
-        return node.asList().stream()
-                .map(n -> new Criticality(n.get("name").asString(), n.get("level").asInt()))
+        return StreamSupport.stream(node.spliterator(), false)
+                .map(n -> new Criticality(n.path("name").asText(), n.path("level").asInt()))
                 .collect(toSet());
     }
 
-    private static Map<DifferenceSeverity, String> asSeverityMapping(ModelNode node) {
-        if (!node.isDefined()) {
+    private static Map<DifferenceSeverity, String> asSeverityMapping(JsonNode node) {
+        if (node.isMissingNode()) {
             return emptyMap();
         }
 
-        return node.asList().stream()
+        return StreamSupport.stream(node.spliterator(), false)
                 .collect(Collectors.toMap(
-                        n -> DifferenceSeverity.fromCamelCase(n.get("severity").asString()),
-                        n -> n.get("criticality").asString()));
+                        n -> DifferenceSeverity.fromCamelCase(n.path("severity").asText()),
+                        n -> n.path("criticality").asText()));
     }
 
     public PipelineConfiguration(Set<Class<? extends ApiAnalyzer>> apiAnalyzerTypes,
@@ -640,17 +688,27 @@ public final class PipelineConfiguration {
             return this;
         }
 
+        /**
+         * @deprecated use the Jackson-based variant
+         */
+        @Deprecated
         public Builder withTransformationBlocks(ModelNode configuration) {
-            if (configuration == null || !configuration.isDefined()) {
+            if (configuration == null) {
                 return this;
             }
 
-            List<ModelNode> blocks = configuration.asList();
+            return withTransformationBlocks(JSONUtil.convert(configuration));
+        }
+
+        public Builder withTransformationBlocks(JsonNode configuration) {
+            if (JSONUtil.isNullOrUndefined(configuration) || !configuration.isArray()) {
+                return this;
+            }
 
             transformationBlocks = new HashSet<>();
 
-            for (ModelNode block : blocks) {
-                List<String> ids = block.asList().stream().map(ModelNode::asString).collect(toList());
+            for (JsonNode block : configuration) {
+                List<String> ids = StreamSupport.stream(block.spliterator(), false).map(JsonNode::asText).collect(toList());
                 transformationBlocks.add(ids);
             }
 

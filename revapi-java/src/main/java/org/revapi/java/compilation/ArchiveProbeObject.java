@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import javax.lang.model.element.NestingKind;
 import javax.tools.SimpleJavaFileObject;
@@ -46,7 +46,7 @@ final class ArchiveProbeObject extends SimpleJavaFileObject {
             return new URI(CLASS_NAME + ".java");
         } catch (URISyntaxException e) {
             //doesn't happen
-            return null;
+            throw new AssertionError("Could not create a URI for " + (CLASS_NAME + ".java"));
         }
     }
 
@@ -64,7 +64,7 @@ final class ArchiveProbeObject extends SimpleJavaFileObject {
     @Override
     public InputStream openInputStream() throws IOException {
         generateIfNeeded();
-        return new ByteArrayInputStream(source.getBytes(Charset.forName("UTF-8")));
+        return new ByteArrayInputStream(source.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override

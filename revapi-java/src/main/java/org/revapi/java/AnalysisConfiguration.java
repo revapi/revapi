@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-import org.jboss.dmr.ModelNode;
+import javax.annotation.Nullable;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,21 +48,21 @@ public final class AnalysisConfiguration {
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
     }
 
-    public static AnalysisConfiguration fromModel(ModelNode node) {
+    public static AnalysisConfiguration fromModel(JsonNode node) {
         MissingClassReporting reporting = readMissingClassReporting(node);
         Set<String> useReportingCodes = readUseReportingCodes(node);
         boolean ignoreMissingAnnotations = readIgnoreMissingAnnotations(node);
 
-        ModelNode classesRegex = node.get("filter", "classes", "regex");
-        ModelNode packagesRegex = node.get("filter", "packages", "regex");
+        JsonNode classesRegex = node.path("filter").path("classes").path("regex");
+        JsonNode packagesRegex = node.path("filter").path("packages").path("regex");
 
-        Set<Pattern> classInclusionFilters = readFilter(node.get("filter", "classes", "include"),
+        Set<Pattern> classInclusionFilters = readFilter(node.path("filter").path("classes").path("include"),
                 classesRegex);
-        Set<Pattern> classExclusionFilters = readFilter(node.get("filter", "classes", "exclude"),
+        Set<Pattern> classExclusionFilters = readFilter(node.path("filter").path("classes").path("classes"),
                 classesRegex);
-        Set<Pattern> packageInclusionFilters = readFilter(node.get("filter", "packages", "include"),
+        Set<Pattern> packageInclusionFilters = readFilter(node.path("filter").path("packages").path("packages"),
                 packagesRegex);
-        Set<Pattern> packageExclusionFilters = readFilter(node.get("filter", "packages", "exclude"),
+        Set<Pattern> packageExclusionFilters = readFilter(node.path("filter").path("packages").path("packages"),
                 packagesRegex);
 
         if (!(classInclusionFilters.isEmpty() && classExclusionFilters.isEmpty() && packageInclusionFilters.isEmpty()
@@ -87,10 +90,10 @@ public final class AnalysisConfiguration {
         return ignoreMissingAnnotations;
     }
 
-    private static MissingClassReporting readMissingClassReporting(ModelNode analysisConfig) {
-        ModelNode config = analysisConfig.get("missing-classes", "behavior");
-        if (config.isDefined()) {
-            switch (config.asString()) {
+    private static MissingClassReporting readMissingClassReporting(JsonNode analysisConfig) {
+        JsonNode config = analysisConfig.path("missing-classes").path("behavior");
+        if (config.isTextual()) {
+            switch (config.asText()) {
             case "report":
                 return MissingClassReporting.REPORT;
             case "ignore":
@@ -99,38 +102,27 @@ public final class AnalysisConfiguration {
                 return MissingClassReporting.ERROR;
             default:
                 throw new IllegalArgumentException("Unsupported value of revapi.java.missing-classes.behavior: '" +
-                        config.asString() + "'. Only 'report', 'ignore' and 'error' are recognized.");
+                        config.asText() + "'. Only 'report', 'ignore' and 'error' are recognized.");
             }
         }
 
         return MissingClassReporting.REPORT;
     }
 
-    private static boolean readIgnoreMissingAnnotations(ModelNode analysisConfig) {
-        ModelNode config = analysisConfig.get("missing-classes", "ignoreMissingAnnotations");
-        if (config.isDefined()) {
-            return config.asBoolean();
-        }
-
-        return false;
+    private static boolean readIgnoreMissingAnnotations(JsonNode analysisConfig) {
+        JsonNode config = analysisConfig.path("missing-classes").path("ignoreMissingAnnotations");
+        return config.asBoolean(false);
     }
 
-    private static Set<String> readUseReportingCodes(ModelNode analysisConfig) {
+    private static @Nullable Set<String> readUseReportingCodes(JsonNode analysisConfig) {
         Set<String> ret = new HashSet<>(5);
-        ModelNode config = analysisConfig.get("reportUsesFor");
-        if (config.isDefined()) {
-            switch (config.getType()) {
-                case LIST:
-                    for (ModelNode code : config.asList()) {
-                        ret.add(code.asString());
-                    }
-                    break;
-                case STRING:
-                    if ("all-differences".equals(config.asString())) {
-                        ret = null;
-                    }
-                    break;
+        JsonNode config = analysisConfig.path("reportUsesFor");
+        if (config.isArray()) {
+            for (JsonNode code : config) {
+                ret.add(code.asText());
             }
+        } else if (config.isTextual() && "all-differences".equals(config.asText())) {
+            ret = null;
         } else {
             ret.add("java.missing.oldClass");
             ret.add("java.missing.newClass");
@@ -142,19 +134,19 @@ public final class AnalysisConfiguration {
         return ret;
     }
 
-    private static Set<Pattern> readFilter(ModelNode filterNode, ModelNode regexNode) {
-        if (!filterNode.isDefined()) {
+    private static Set<Pattern> readFilter(JsonNode filterNode, JsonNode regexNode) {
+        if (!filterNode.isArray()) {
             return Collections.emptySet();
         }
 
-        boolean isRegex = regexNode.isDefined() && regexNode.asBoolean();
+        boolean isRegex = regexNode.asBoolean(false);
 
-        return filterNode.asList().stream()
+        return StreamSupport.stream(filterNode.spliterator(), false)
                 .map(filter -> {
                     if (isRegex) {
-                        return Pattern.compile(filter.asString());
+                        return Pattern.compile(filter.asText());
                     } else {
-                        return Pattern.compile(Pattern.quote(filter.asString()));
+                        return Pattern.compile(Pattern.quote(filter.asText()));
                     }
                 })
                 .collect(Collectors.toSet());
