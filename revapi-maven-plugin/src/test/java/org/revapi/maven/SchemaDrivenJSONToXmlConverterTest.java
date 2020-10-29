@@ -25,9 +25,10 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
-import org.jboss.dmr.ModelNode;
 import org.junit.Test;
+import org.revapi.configuration.JSONUtil;
 
 /**
  * @author Lukas Krejci
@@ -37,8 +38,8 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testBooleanConversion_true() throws Exception {
-        ModelNode schema = json("{\"type\": \"boolean\"}");
-        ModelNode json = json("true");
+        JsonNode schema = json("{\"type\": \"boolean\"}");
+        JsonNode json = json("true");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -49,8 +50,8 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testBooleanConversion_false() throws Exception {
-        ModelNode schema = json("{\"type\": \"boolean\"}");
-        ModelNode json = json("false");
+        JsonNode schema = json("{\"type\": \"boolean\"}");
+        JsonNode json = json("false");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -61,16 +62,16 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testBooleanConversion_invalid() throws Exception {
-        ModelNode schema = json("{\"type\": \"boolean\"}");
-        ModelNode json = json("kachny");
+        JsonNode schema = json("{\"type\": \"boolean\"}");
+        JsonNode json = json("kachny");
 
         SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
     }
 
     @Test
     public void testIntegerConversion_valid() throws Exception {
-        ModelNode schema = json("{\"type\": \"integer\"}");
-        ModelNode json = json("1");
+        JsonNode schema = json("{\"type\": \"integer\"}");
+        JsonNode json = json("1");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -81,16 +82,16 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testIntegerConversion_invalid() throws Exception {
-        ModelNode schema = json("{\"type\": \"integer\"}");
-        ModelNode json = json("asdf");
+        JsonNode schema = json("{\"type\": \"integer\"}");
+        JsonNode json = json("asdf");
 
         SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
     }
 
     @Test
     public void testNumberConversion_valid() throws Exception {
-        ModelNode schema = json("{\"type\": \"number\"}");
-        ModelNode json = json("1.2");
+        JsonNode schema = json("{\"type\": \"number\"}");
+        JsonNode json = json("1.2");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -101,16 +102,16 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testNumberConversion_invalid() throws Exception {
-        ModelNode schema = json("{\"type\": \"number\"}");
-        ModelNode json = json("1.2ff");
+        JsonNode schema = json("{\"type\": \"number\"}");
+        JsonNode json = json("1.2ff");
 
         SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
     }
 
     @Test
     public void testStringConversion() throws Exception {
-        ModelNode schema = json("{\"type\": \"string\"}");
-        ModelNode json = json("\"str\"");
+        JsonNode schema = json("{\"type\": \"string\"}");
+        JsonNode json = json("\"str\"");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -121,8 +122,8 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testStringConversion_escapes() throws Exception {
-        ModelNode schema = json("{\"type\": \"string\"}");
-        ModelNode json = json("\"&<>\"");
+        JsonNode schema = json("{\"type\": \"string\"}");
+        JsonNode json = json("\"&<>\"");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -136,8 +137,8 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testArrayConversion() throws Exception {
-        ModelNode schema = json("{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
-        ModelNode json = json("[1,2,3]");
+        JsonNode schema = json("{\"type\": \"array\", \"items\": {\"type\": \"integer\"}}");
+        JsonNode json = json("[1,2,3]");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -154,10 +155,10 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testObjectConversion() throws Exception {
-        ModelNode schema =
+        JsonNode schema =
                 json("{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}, " +
                         "\"b\": {\"type\": \"boolean\"}}}");
-        ModelNode json = json("{\"a\": 1, \"b\": true}");
+        JsonNode json = json("{\"a\": 1, \"b\": true}");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -171,11 +172,11 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testObjectConversion_additionalProperties() throws Exception {
-        ModelNode schema =
+        JsonNode schema =
                 json("{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}, " +
                         "\"b\": {\"type\": \"boolean\"}}, " +
                         "\"additionalProperties\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}");
-        ModelNode json = json("{\"a\": 4, \"b\": true, \"c\": [], \"d\": [\"x\"]}");
+        JsonNode json = json("{\"a\": 4, \"b\": true, \"c\": [], \"d\": [\"x\"]}");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -197,8 +198,8 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testEnumBasedConversion() throws Exception {
-        ModelNode schema = json("{\"enum\": [1, \"a\", true, 2.0]}");
-        ModelNode json = json("1");
+        JsonNode schema = json("{\"enum\": [1, \"a\", true, 2.0]}");
+        JsonNode json = json("1");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -230,17 +231,17 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testEnumBasedConversion_unsupported() throws Exception {
-        ModelNode schema = json("{\"enum\": [{}]}");
-        ModelNode json = json("{}");
+        JsonNode schema = json("{\"enum\": [{}]}");
+        JsonNode json = json("{}");
 
         SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
     }
 
     @Test
     public void testObjectConversion_with$refs() throws Exception {
-        ModelNode schema = json("{\"type\": \"object\", \"properties\": {\"a\": {\"$ref\": \"#/definitions/a\"}}, " +
+        JsonNode schema = json("{\"type\": \"object\", \"properties\": {\"a\": {\"$ref\": \"#/definitions/a\"}}, " +
                 "\"definitions\": {\"a\": {\"type\": \"boolean\"}}}");
-        ModelNode json = json("{\"a\": true}");
+        JsonNode json = json("{\"a\": true}");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", null);
         assertNotNull(config);
@@ -253,8 +254,8 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testIdUsed() throws Exception {
-        ModelNode schema = json("{\"type\": \"boolean\"}");
-        ModelNode json = json("true");
+        JsonNode schema = json("{\"type\": \"boolean\"}");
+        JsonNode json = json("true");
 
         PlexusConfiguration config = SchemaDrivenJSONToXmlConverter.convert(json, schema, "tag", "id");
         assertNotNull(config);
@@ -266,14 +267,14 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testNestedSchemasConverted() throws Exception {
-        ModelNode topSchema = json("{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\"}}}");
-        ModelNode nestedSchema = json("{\"type\": \"boolean\"}");
+        JsonNode topSchema = json("{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\"}}}");
+        JsonNode nestedSchema = json("{\"type\": \"boolean\"}");
 
-        Map<String, ModelNode> extensionSchemas = new HashMap<>();
+        Map<String, JsonNode> extensionSchemas = new HashMap<>();
         extensionSchemas.put("top", topSchema);
         extensionSchemas.put("top.nested", nestedSchema);
 
-        ModelNode config = json("{\"top\": {\"a\": \"kachny\", \"nested\": true}}");
+        JsonNode config = json("{\"top\": {\"a\": \"kachny\", \"nested\": true}}");
 
         PlexusConfiguration xml = SchemaDrivenJSONToXmlConverter.convertToXml(extensionSchemas, config);
         assertEquals(2, xml.getChildCount());
@@ -294,9 +295,9 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testOneOf() throws Exception {
-        ModelNode schema = json("{\"oneOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
-        ModelNode json1 = json("1");
-        ModelNode json2 = json("1.1");
+        JsonNode schema = json("{\"oneOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
+        JsonNode json1 = json("1");
+        JsonNode json2 = json("1.1");
 
         try {
             SchemaDrivenJSONToXmlConverter.convert(json1, schema, "ext", null);
@@ -314,10 +315,10 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testAnyOf() throws Exception {
-        ModelNode schema = json("{\"anyOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
-        ModelNode json1 = json("1.1");
-        ModelNode json2 = json("true");
-        ModelNode json3 = json("\"asdf\"");
+        JsonNode schema = json("{\"anyOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
+        JsonNode json1 = json("1.1");
+        JsonNode json2 = json("true");
+        JsonNode json3 = json("\"asdf\"");
 
         PlexusConfiguration c1 = SchemaDrivenJSONToXmlConverter.convert(json1, schema, "ext", null);
         PlexusConfiguration c2 = SchemaDrivenJSONToXmlConverter.convert(json2, schema, "ext", null);
@@ -344,8 +345,8 @@ public class SchemaDrivenJSONToXmlConverterTest {
 
     @Test
     public void testAllOf() throws Exception {
-        ModelNode schema = json("{\"allOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}]}");
-        ModelNode json = json("1");
+        JsonNode schema = json("{\"allOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}]}");
+        JsonNode json = json("1");
 
         PlexusConfiguration c = SchemaDrivenJSONToXmlConverter.convert(json, schema, "ext", null);
 
@@ -356,7 +357,7 @@ public class SchemaDrivenJSONToXmlConverterTest {
     }
 
 
-    private static ModelNode json(String json) {
-        return ModelNode.fromJSONString(json);
+    private static JsonNode json(String json) {
+        return JSONUtil.parse(json);
     }
 }

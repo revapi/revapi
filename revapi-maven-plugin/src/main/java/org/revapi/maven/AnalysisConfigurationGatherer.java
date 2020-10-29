@@ -23,23 +23,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.jboss.dmr.ModelNode;
-import org.jboss.dmr.ValueExpression;
-import org.jboss.dmr.ValueExpressionResolver;
 import org.revapi.AnalysisContext;
 import org.revapi.Revapi;
 import org.revapi.configuration.JSONUtil;
@@ -54,7 +53,7 @@ final class AnalysisConfigurationGatherer {
 
     private final boolean expandProperties;
 
-    private final ValueExpressionResolver resolver;
+    private final PropertyValueResolver propertyValueResolver;
 
     private final File relativePathBaseDir;
 
@@ -62,13 +61,13 @@ final class AnalysisConfigurationGatherer {
 
     AnalysisConfigurationGatherer(PlexusConfiguration analysisConfiguration,
             Object[] analysisConfigurationFiles, boolean failOnMissingConfigurationFiles, boolean expandProperties,
-            PropertyValueInterpolator interpolator, File relativePathBaseDir, Log log) {
+            PropertyValueResolver propertyValueResolver, File relativePathBaseDir, Log log) {
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
         this.failOnMissingConfigurationFiles = failOnMissingConfigurationFiles;
         this.expandProperties = expandProperties;
         this.log = log;
-        this.resolver = new PropertyExpressionResolver(interpolator);
+        this.propertyValueResolver = propertyValueResolver;
         this.relativePathBaseDir = relativePathBaseDir;
     }
 
@@ -150,7 +149,7 @@ final class AnalysisConfigurationGatherer {
                 List<Integer> nonJsonIndexes = new ArrayList<>(4);
                 int idx = 0;
                 while (it.hasNext()) {
-                    ModelNode config;
+                    JsonNode config;
                     try (InputStream in = it.next()) {
                         config = readJson(in);
                     } catch (IllegalArgumentException | IOException e) {
@@ -162,7 +161,7 @@ final class AnalysisConfigurationGatherer {
                         continue;
                     }
 
-                    expandVariables(config);
+                    config = expandVariables(config);
 
                     mergeJsonConfigFile(ctxBld, configFile, config);
 
@@ -192,7 +191,7 @@ final class AnalysisConfigurationGatherer {
             if (text == null || text.isEmpty()) {
                 convertNewStyleConfigFromXml(ctxBld, revapi);
             } else {
-                ctxBld.mergeConfiguration(expandVariables(ModelNode.fromJSONString(JSONUtil.stripComments(text))));
+                ctxBld.mergeConfiguration(expandVariables(JSONUtil.parse(JSONUtil.stripComments(text))));
             }
         }
     }
@@ -207,7 +206,7 @@ final class AnalysisConfigurationGatherer {
         String[] roots = configFile.getRoots();
 
         if (roots == null) {
-            ctxBld.mergeConfiguration(expandVariables(conv.convert(xml)));
+            ctxBld.mergeConfiguration(expandVariables(conv.convertXml(xml)));
         } else {
             roots:
             for (String r : roots) {
@@ -228,12 +227,12 @@ final class AnalysisConfigurationGatherer {
                     }
                 }
 
-                ctxBld.mergeConfiguration(expandVariables(conv.convert(root)));
+                ctxBld.mergeConfiguration(expandVariables(conv.convertXml(root)));
             }
         }
     }
 
-    private void mergeJsonConfigFile(AnalysisContext.Builder ctxBld, ConfigurationFile configFile, ModelNode config) {
+    private void mergeJsonConfigFile(AnalysisContext.Builder ctxBld, ConfigurationFile configFile, JsonNode config) {
         String[] roots = configFile.getRoots();
 
         if (roots == null) {
@@ -241,9 +240,12 @@ final class AnalysisConfigurationGatherer {
         } else {
             for (String r : roots) {
                 String[] rootPath = r.split("/");
-                ModelNode root = config.get(rootPath);
+                JsonNode root = config;
+                for (String path : rootPath) {
+                    root = root.path(path);
+                }
 
-                if (!root.isDefined()) {
+                if (root.isMissingNode()) {
                     continue;
                 }
 
@@ -253,78 +255,49 @@ final class AnalysisConfigurationGatherer {
     }
 
     private void convertNewStyleConfigFromXml(AnalysisContext.Builder bld, Revapi revapi) {
-        XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
+        XmlToJson<PlexusConfiguration> conv = XmlToJson.fromRevapi(revapi, PlexusConfiguration::getName,
                 PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
 
-        bld.mergeConfiguration(expandVariables(conv.convert(analysisConfiguration)));
+        bld.mergeConfiguration(expandVariables(conv.convertXml(analysisConfiguration)));
     }
 
-    private ModelNode readJson(InputStream in) {
+    private JsonNode readJson(InputStream in) {
         try {
-            return ModelNode.fromJSONStream(JSONUtil.stripComments(in, StandardCharsets.UTF_8));
+            return JSONUtil.parse(JSONUtil.stripComments(in));
         } catch (IOException e) {
             return null;
         }
     }
 
-    private ModelNode expandVariables(ModelNode config) {
+    private JsonNode expandVariables(JsonNode config) {
         if (!expandProperties) {
             return config;
         }
 
-        switch (config.getType()) {
-        case LIST:
-            config.asList().forEach(this::expandVariables);
-            break;
-        case OBJECT:
-            for (String key : config.asObject().keys()) {
-                expandVariables(config.get(key));
+        if (config.isArray()) {
+            for (int i = 0; i < config.size(); ++i) {
+                ((ArrayNode) config).set(i, expandVariables(config.get(i)));
             }
-            break;
-        default:
-            expandVariable(config, resolver);
+        } else if (config.isObject()) {
+            Iterator<Map.Entry<String, JsonNode>> it = config.fields();
+            while (it.hasNext()) {
+                Map.Entry<String, JsonNode> e = it.next();
+                e.setValue(expandVariables(e.getValue()));
+            }
+        } else {
+            config = expandVariable(config, propertyValueResolver);
         }
 
         return config;
     }
 
-    private static void expandVariable(ModelNode node, ValueExpressionResolver resolver) {
-        ValueExpression val = new ValueExpression(node.asString());
-        switch (node.getType()) {
-        case STRING:
-            node.set(val.resolveString(resolver));
-            break;
-        case BOOLEAN:
-            node.set(val.resolveBoolean(resolver));
-            break;
-        case LONG:
-            node.set(val.resolveLong(resolver));
-            break;
-        case DOUBLE:
-            node.set(val.resolveBigDecimal(resolver).doubleValue());
-            break;
-        case INT:
-            node.set(val.resolveInt(resolver));
-            break;
-        case BIG_DECIMAL:
-            node.set(val.resolveBigDecimal(resolver));
-            break;
-        case BIG_INTEGER:
-            node.set(val.resolveBigDecimal(resolver).toBigInteger());
-            break;
+    private static JsonNode expandVariable(JsonNode node, PropertyValueResolver resolver) {
+        // Intentionally call .toString(), because that produces a valid JSON representation of the node that we will
+        // then interpolate and reparse. Reparsing is required
+        String val = node.toString();
+        if (!resolver.containsVariables(val)) {
+            return node;
         }
-    }
-
-    private static final class PropertyExpressionResolver extends ValueExpressionResolver {
-        private final PropertyValueInterpolator interpolator;
-
-        private PropertyExpressionResolver(PropertyValueInterpolator interpolator) {
-            this.interpolator = interpolator;
-        }
-
-        @Override
-        protected String resolvePart(String name) {
-            return interpolator.interpolate(name);
-        }
+        return JSONUtil.parse(resolver.resolve(val));
     }
 }

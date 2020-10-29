@@ -22,11 +22,12 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
-import org.jboss.dmr.ModelNode;
 import org.revapi.Criticality;
 import org.revapi.DifferenceSeverity;
 import org.revapi.PipelineConfiguration;
+import org.revapi.configuration.JSONUtil;
 
 final class PipelineConfigurationParser {
 
@@ -44,7 +45,7 @@ final class PipelineConfigurationParser {
             // configurations. We can therefore try to parse it straight away.
             ret = parsePipelineConfigurationXML(pipelineConfiguration);
         } else {
-            ModelNode json = ModelNode.fromJSONString(jsonConfig);
+            JsonNode json = JSONUtil.parse(jsonConfig);
             ret = PipelineConfiguration.parse(json);
         }
 

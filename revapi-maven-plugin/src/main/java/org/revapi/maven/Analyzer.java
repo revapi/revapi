@@ -151,7 +151,7 @@ public final class Analyzer {
         this.pipelineModifier = pipelineModifier;
 
         this.configGatherer = new AnalysisConfigurationGatherer(analysisConfiguration, analysisConfigurationFiles,
-                failOnMissingConfigurationFiles, expandProperties, new PropertyValueInterpolator(project),
+                failOnMissingConfigurationFiles, expandProperties, new PropertyValueResolver(project),
                 project.getBasedir(), log);
     }
 

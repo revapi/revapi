@@ -30,6 +30,7 @@ import java.util.Properties;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.codehaus.plexus.configuration.DefaultPlexusConfiguration;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.jboss.dmr.ModelNode;
@@ -38,6 +39,7 @@ import org.revapi.AnalysisContext;
 import org.revapi.Element;
 import org.revapi.ElementFilter;
 import org.revapi.Revapi;
+import org.revapi.configuration.JSONUtil;
 
 public class AnalysisConfigurationGathererTest {
 
@@ -48,7 +50,7 @@ public class AnalysisConfigurationGathererTest {
         analysisConfiguration.setValue(json);
 
         AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(analysisConfiguration, new Object[0],
-                false, false, new PropertyValueInterpolator(new Properties()), null, null);
+                false, false, new PropertyValueResolver(new Properties()), null, null);
 
         Revapi revapi = Revapi.builder()
                 .withFilters(TestExtension.class)
@@ -72,7 +74,7 @@ public class AnalysisConfigurationGathererTest {
         analysisConfiguration.addChild(testConfig);
 
         AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(analysisConfiguration, new Object[0],
-                false, false, new PropertyValueInterpolator(new Properties()), null, null);
+                false, false, new PropertyValueResolver(new Properties()), null, null);
 
         Revapi revapi = Revapi.builder()
                 .withFilters(TestExtension.class)
@@ -99,7 +101,7 @@ public class AnalysisConfigurationGathererTest {
 
         try {
             AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(null,
-                    new Object[] { f.getAbsolutePath() }, false, false, new PropertyValueInterpolator(new Properties()),
+                    new Object[] { f.getAbsolutePath() }, false, false, new PropertyValueResolver(new Properties()),
                     null, null);
 
             Revapi revapi = Revapi.builder()
@@ -128,7 +130,7 @@ public class AnalysisConfigurationGathererTest {
         configurationFile.setResource("test-configuration-file.xml");
 
         AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(null,
-                new Object[] { configurationFile }, false, false, new PropertyValueInterpolator(new Properties()), null,
+                new Object[] { configurationFile }, false, false, new PropertyValueResolver(new Properties()), null,
                 null);
 
         Revapi revapi = Revapi.builder()
@@ -155,7 +157,7 @@ public class AnalysisConfigurationGathererTest {
         Properties props = new Properties();
         props.put("prop", "yes");
         AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(null,
-                new Object[] { configurationFile }, false, true, new PropertyValueInterpolator(props),
+                new Object[] { configurationFile }, false, true, new PropertyValueResolver(props),
                 null, null);
 
         Revapi revapi = Revapi.builder()
@@ -166,10 +168,10 @@ public class AnalysisConfigurationGathererTest {
         gatherer.gatherConfig(revapi, ctxBld);
 
         AnalysisContext ctx = ctxBld.build();
-        ModelNode cfg = ctx.getConfiguration();
+        JsonNode cfg = ctx.getConfigurationNode();
 
         String json = "[{\"extension\": \"test\", \"configuration\": \"yes\"}]";
-        ModelNode expected = ModelNode.fromJSONString(json);
+        JsonNode expected = JSONUtil.parse(json);
 
         assertEquals(expected, cfg);
     }
@@ -182,7 +184,7 @@ public class AnalysisConfigurationGathererTest {
         Properties props = new Properties();
         props.put("prop", "yes");
         AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(null,
-                new Object[] { configurationFile }, false, true, new PropertyValueInterpolator(props),
+                new Object[] { configurationFile }, false, true, new PropertyValueResolver(props),
                 null, null);
 
         Revapi revapi = Revapi.builder()

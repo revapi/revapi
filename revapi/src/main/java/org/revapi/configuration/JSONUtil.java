@@ -153,12 +153,8 @@ public final class JSONUtil {
         }
     }
 
-    public static JsonNode parse(Reader reader) {
-        try {
-            return OBJECT_MAPPER.readTree(reader);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to parse JSON.", e);
-        }
+    public static JsonNode parse(Reader reader) throws IOException {
+        return OBJECT_MAPPER.readTree(reader);
     }
 
     public static String toString(JsonNode json) {
