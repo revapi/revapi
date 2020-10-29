@@ -89,13 +89,13 @@ public abstract class AbstractFileReporter implements Reporter {
 
         this.analysis = analysis;
 
-        String minLevel = analysis.getConfiguration().get("minSeverity").asString(null);
-        String minCrit = analysis.getConfiguration().get("minCriticality").asString(null);
-        String output = analysis.getConfiguration().get("output").asString(null);
+        String minLevel = analysis.getConfigurationNode().path("minSeverity").asText(null);
+        String minCrit = analysis.getConfigurationNode().path("minCriticality").asText(null);
+        String output = analysis.getConfigurationNode().path("output").asText(null);
         output = output == null ? "out" : output;
 
-        boolean append = analysis.getConfiguration().get("append").asBoolean(false);
-        keepEmptyFile = append || analysis.getConfiguration().get("keepEmptyFile").asBoolean(true);
+        boolean append = analysis.getConfigurationNode().path("append").asBoolean(false);
+        keepEmptyFile = append || analysis.getConfigurationNode().path("keepEmptyFile").asBoolean(true);
 
         if (minLevel == null && minCrit == null) {
             LOG.warn("At least one of `minLevel` and `minCriticality` should to be defined. Defaulting to" +

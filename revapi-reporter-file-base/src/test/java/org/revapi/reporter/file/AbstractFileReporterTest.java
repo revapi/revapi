@@ -34,10 +34,10 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import org.jboss.dmr.ModelNode;
 import org.junit.Test;
 import org.revapi.AnalysisContext;
 import org.revapi.Report;
+import org.revapi.configuration.JSONUtil;
 
 public class AbstractFileReporterTest {
 
@@ -89,7 +89,7 @@ public class AbstractFileReporterTest {
             buf.append("}");
 
             reporter.initialize(AnalysisContext.builder()
-                    .build().copyWithConfiguration(ModelNode.fromJSONString(buf.toString())));
+                    .build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
             reporter.report(Report.builder().build());
 
         } finally {
@@ -163,7 +163,7 @@ public class AbstractFileReporterTest {
         }
         sb.append("}");
         return AnalysisContext.builder()
-                .build().copyWithConfiguration(ModelNode.fromJSONString(sb.toString()));
+                .build().copyWithConfiguration(JSONUtil.parse(sb.toString()));
     }
 
     static final class Reporter extends AbstractFileReporter {

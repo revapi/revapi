@@ -500,6 +500,14 @@
                                                 Revapi uses Jackson for representing the JSON configuration.
                                             </justification>
                                         </item>
+                                        <item>
+                                            <regex>true</regex>
+                                            <code>java.class.externalClassExposedInAPI</code>
+                                            <newArchive>com\.fasterxml\.jackson\.core:jackson-databind:.*</newArchive>
+                                            <justification>
+                                                Revapi uses Jackson for representing the JSON configuration.
+                                            </justification>
+                                        </item>
                                     </differences>
                                 </revapi.differences>
                             </analysisConfiguration>
