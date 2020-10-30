@@ -70,8 +70,8 @@ public class TextReporter extends AbstractFileReporter {
     @Override
     public void initialize(@Nonnull AnalysisContext analysis) {
         super.initialize(analysis);
-        String templatePath = analysis.getConfiguration().get("template").asString();
-        if ("undefined".equals(templatePath)) {
+        String templatePath = analysis.getConfigurationNode().path("template").asText("");
+        if (templatePath.isEmpty()) {
             templatePath = null;
         }
 
