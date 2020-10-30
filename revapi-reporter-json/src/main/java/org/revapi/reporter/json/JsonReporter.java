@@ -16,9 +16,7 @@
  */
 package org.revapi.reporter.json;
 
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonMap;
-
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -29,10 +27,9 @@ import java.util.TreeSet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.json.spi.JsonProvider;
-import javax.json.stream.JsonGenerator;
-import javax.json.stream.JsonGeneratorFactory;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import org.revapi.AnalysisContext;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
@@ -42,7 +39,7 @@ import org.revapi.reporter.file.AbstractFileReporter;
 
 public class JsonReporter extends AbstractFileReporter {
     private Set<Report> reports;
-    private JsonGeneratorFactory jsonFactory;
+    private boolean prettyPrint;
 
     @Override
     protected void setOutput(PrintWriter wrt) {
@@ -63,29 +60,32 @@ public class JsonReporter extends AbstractFileReporter {
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         super.initialize(analysisContext);
-        boolean prettyPrint = analysisContext.getConfiguration().get("indent").asBoolean(false);
-
-        Map<String, Object> config = prettyPrint
-                ? singletonMap(JsonGenerator.PRETTY_PRINTING, null)
-                : emptyMap();
-
-        jsonFactory = JsonProvider.provider().createGeneratorFactory(config);
-
+        prettyPrint = analysisContext.getConfigurationNode().path("indent").asBoolean(false);
         this.reports = new TreeSet<>(getReportsByElementOrderComparator());
     }
 
     @Override
     protected void flushReports() {
-        JsonGenerator gen = jsonFactory.createGenerator(output);
-        gen.writeStartArray();
-        reports.stream().flatMap(r -> {
-            String oldEl = r.getOldElement() == null ? null : r.getOldElement().getFullHumanReadableString();
-            String newEl = r.getNewElement() == null ? null : r.getNewElement().getFullHumanReadableString();
+        try {
+            JsonGenerator jsonGenerator = createGenerator();
+            jsonGenerator.writeStartArray();
+            reports.stream().flatMap(r -> {
+                String oldEl = r.getOldElement() == null ? null : r.getOldElement().getFullHumanReadableString();
+                String newEl = r.getNewElement() == null ? null : r.getNewElement().getFullHumanReadableString();
 
-            return r.getDifferences().stream().map(d -> new DifferenceWithElements(oldEl, newEl, d));
-        }).forEach(d -> writeDifference(gen, d));
-        gen.writeEnd();
-        gen.flush();
+                return r.getDifferences().stream().map(d -> new DifferenceWithElements(oldEl, newEl, d));
+            }).forEach(d -> {
+                try {
+                    writeDifference(jsonGenerator, d);
+                } catch (IOException e) {
+                    throw new IllegalStateException("Failed to write the output.", e);
+                }
+            });
+            jsonGenerator.writeEndArray();
+            jsonGenerator.flush();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to write the output.", e);
+        }
     }
 
     @Override
@@ -93,7 +93,7 @@ public class JsonReporter extends AbstractFileReporter {
         reports.add(report);
     }
 
-    private static void writeDifference(JsonGenerator gen, DifferenceWithElements de) {
+    private static void writeDifference(JsonGenerator gen, DifferenceWithElements de) throws IOException {
         gen.writeStartObject();
         Difference d = de.diff;
         write(gen, "code", d.code);
@@ -101,30 +101,39 @@ public class JsonReporter extends AbstractFileReporter {
         write(gen, "new", de.newEl);
         write(gen, "name", d.name);
         write(gen, "description", d.description);
-        gen.writeStartArray("classification");
+        gen.writeArrayFieldStart("classification");
         for (Map.Entry<CompatibilityType, DifferenceSeverity> e : d.classification.entrySet()) {
             gen.writeStartObject();
-            gen.write("compatibility", e.getKey().toString());
-            gen.write("severity", e.getValue().toString());
-            gen.writeEnd();
+            gen.writeStringField("compatibility", e.getKey().toString());
+            gen.writeStringField("severity", e.getValue().toString());
+            gen.writeEndObject();
         }
-        gen.writeEnd();
-        gen.writeStartArray("attachments");
+        gen.writeEndArray();
+        gen.writeArrayFieldStart("attachments");
         for (Map.Entry<String, String> e : d.attachments.entrySet()) {
             gen.writeStartObject();
-            gen.write("name", e.getKey());
+            gen.writeStringField("name", e.getKey());
             write(gen, "value", e.getValue());
-            gen.writeEnd();
+            gen.writeEndObject();
         }
-        gen.writeEnd();
-        gen.writeEnd();
+        gen.writeEndArray();
+        gen.writeEndObject();
     }
 
-    private static void write(JsonGenerator gen, String key, @Nullable String value) {
+    private JsonGenerator createGenerator() throws IOException {
+        JsonGenerator jsonGenerator = JsonFactory.builder().build().createGenerator(output);
+        if (prettyPrint) {
+            jsonGenerator.useDefaultPrettyPrinter();
+        }
+
+        return jsonGenerator;
+    }
+
+    private static void write(JsonGenerator gen, String key, @Nullable String value) throws IOException {
         if (value == null) {
-            gen.writeNull(key);
+            gen.writeNullField(key);
         } else {
-            gen.write(key, value);
+            gen.writeStringField(key, value);
         }
     }
 

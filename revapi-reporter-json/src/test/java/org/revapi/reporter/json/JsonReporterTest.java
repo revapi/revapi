@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNotEquals;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,12 +30,8 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
 
-import org.jboss.dmr.ModelNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -48,6 +43,7 @@ import org.revapi.PipelineConfiguration;
 import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
+import org.revapi.configuration.JSONUtil;
 import org.revapi.simple.FileArchive;
 import org.revapi.simple.SimpleElement;
 
@@ -65,7 +61,7 @@ public class JsonReporterTest {
             buf.append("}");
 
             reporter.initialize(AnalysisContext.builder()
-                    .build().copyWithConfiguration(ModelNode.fromJSONString(buf.toString())));
+                    .build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
             reporter.report(Report.builder().build());
 
         } finally {
@@ -97,37 +93,36 @@ public class JsonReporterTest {
 
         reporter.close();
 
-        JsonReader reader = Json.createReader(new StringReader(out.toString()));
-        JsonArray diffs = reader.readArray();
+        JsonNode diffs = JSONUtil.parse(out.toString());
 
         assertEquals(2, diffs.size());
-        JsonObject diff = diffs.getJsonObject(0);
-        assertEquals("code1", diff.getString("code"));
-        assertEquals("old1", diff.getString("old"));
-        assertEquals("new1", diff.getString("new"));
-        JsonArray classifications = diff.getJsonArray("classification");
+        JsonNode diff = diffs.get(0);
+        assertEquals("code1", diff.get("code").asText());
+        assertEquals("old1", diff.get("old").asText());
+        assertEquals("new1", diff.get("new").asText());
+        JsonNode classifications = diff.get("classification");
         assertEquals(1, classifications.size());
-        JsonObject classification = classifications.getJsonObject(0);
-        assertEquals("SOURCE", classification.getString("compatibility"));
-        assertEquals("BREAKING", classification.getString("severity"));
-        JsonArray attachments = diff.getJsonArray("attachments");
-        JsonObject attachment = attachments.getJsonObject(0);
-        assertEquals("at1", attachment.getString("name"));
-        assertEquals("at1val", attachment.getString("value"));
+        JsonNode classification = classifications.get(0);
+        assertEquals("SOURCE", classification.get("compatibility").asText());
+        assertEquals("BREAKING", classification.get("severity").asText());
+        JsonNode attachments = diff.get("attachments");
+        JsonNode attachment = attachments.get(0);
+        assertEquals("at1", attachment.get("name").asText());
+        assertEquals("at1val", attachment.get("value").asText());
 
-        diff = diffs.getJsonObject(1);
-        assertEquals("code2", diff.getString("code"));
-        assertEquals("old2", diff.getString("old"));
-        assertEquals("new2", diff.getString("new"));
-        classifications = diff.getJsonArray("classification");
+        diff = diffs.get(1);
+        assertEquals("code2", diff.get("code").asText());
+        assertEquals("old2", diff.get("old").asText());
+        assertEquals("new2", diff.get("new").asText());
+        classifications = diff.get("classification");
         assertEquals(1, classifications.size());
-        classification = classifications.getJsonObject(0);
-        assertEquals("BINARY", classification.getString("compatibility"));
-        assertEquals("BREAKING", classification.getString("severity"));
-        attachments = diff.getJsonArray("attachments");
-        attachment = attachments.getJsonObject(0);
-        assertEquals("at2", attachment.getString("name"));
-        assertEquals("at2val", attachment.getString("value"));
+        classification = classifications.get(0);
+        assertEquals("BINARY", classification.get("compatibility").asText());
+        assertEquals("BREAKING", classification.get("severity").asText());
+        attachments = diff.get("attachments");
+        attachment = attachments.get(0);
+        assertEquals("at2", attachment.get("name").asText());
+        assertEquals("at2val", attachment.get("value").asText());
     }
 
     @Test
@@ -142,9 +137,8 @@ public class JsonReporterTest {
                 .build();
 
         AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JsonReporter.class);
-        reporterCtx.getConfiguration().get("indent").set(true);
 
-        reporter.initialize(reporterCtx);
+        reporter.initialize(reporterCtx.copyWithConfiguration(JSONUtil.parse("{\"indent\": true}")));
 
         buildReports().forEach(reporter::report);
 

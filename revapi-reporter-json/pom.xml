@@ -34,7 +34,7 @@
     <url>https://revapi.org</url>
 
     <artifactId>revapi-reporter-json</artifactId>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.reporter.json</automatic.module.name>
@@ -44,19 +44,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.12.1-SNAPSHOT</version>
+            <version>0.13.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-reporter-file-base</artifactId>
-            <version>0.2.2-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.json</artifactId>
-            <version>1.1.4</version>
+            <version>0.3.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
