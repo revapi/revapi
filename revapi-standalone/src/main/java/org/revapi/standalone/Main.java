@@ -36,6 +36,9 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -46,7 +49,6 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
-import org.jboss.dmr.ModelNode;
 import org.jboss.modules.DependencySpec;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleSpec;
@@ -375,17 +377,24 @@ public final class Main {
 
         for (Map.Entry<String, String> e : additionalConfig.entrySet()) {
             String[] keyPath = e.getKey().split("\\.");
-            ModelNode additionalNode = new ModelNode();
-            ModelNode key = additionalNode.get(keyPath);
+            ObjectNode additionalNode = JsonNodeFactory.instance.objectNode();
+            ObjectNode keyParent = additionalNode;
+            for (int i = 0; i < keyPath.length - 1; ++i) {
+                ObjectNode child = JsonNodeFactory.instance.objectNode();
+                keyParent.set(keyPath[i], child);
+                keyParent = child;
+            }
 
+            String key = keyPath[keyPath.length - 1];
             String value = e.getValue();
             if (value.startsWith("[") && value.endsWith("]")) {
+                ArrayNode node = keyParent.putArray(key);
                 String[] values = value.substring(1, value.length() - 1).split("\\s*,\\s*");
                 for (String v : values) {
-                    key.add(v);
+                    node.add(v);
                 }
             } else {
-                key.set(value);
+                keyParent.put(key, value);
             }
             ctxBld.mergeConfiguration(additionalNode);
         }

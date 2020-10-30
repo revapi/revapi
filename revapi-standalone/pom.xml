@@ -37,7 +37,7 @@
 
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
-        <version.org.revapi.revapi>0.12.0-SNAPSHOT</version.org.revapi.revapi>
+        <version.org.revapi.revapi>0.13.0-SNAPSHOT</version.org.revapi.revapi>
     </properties>
 
     <dependencies>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.10.3-SNAPSHOT</version>
+            <version>0.11.0-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
 
