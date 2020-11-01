@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +72,9 @@ import java.nio.charset.CodingErrorAction;
  *
  * @see org.apache.commons.io.output.WriterOutputStream
  * @since 2.0
+ * @deprecated remove this once {@link JSONUtil#stripComments(InputStream, Charset)} is removed.
  */
+@Deprecated
 final class ReaderInputStream extends InputStream {
     private static final int DEFAULT_BUFFER_SIZE = 1024;
 

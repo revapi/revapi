@@ -294,8 +294,8 @@ public final class Revapi {
 
         TIMING_LOG.debug("Obtaining API trees.");
 
-        ElementForest oldTree = analyzeAndPrune(oldAnalyzer, filter, config.extensions);
-        ElementForest newTree = analyzeAndPrune(newAnalyzer, filter, config.extensions);
+        ElementForest oldTree = analyzeAndPrune(oldAnalyzer, filter);
+        ElementForest newTree = analyzeAndPrune(newAnalyzer, filter);
 
         TIMING_LOG.debug("API trees obtained");
 
@@ -370,7 +370,7 @@ public final class Revapi {
         TIMING_LOG.debug("Difference analyzer closed");
     }
 
-    private ElementForest analyzeAndPrune(ArchiveAnalyzer analyzer, TreeFilterProvider filter, AnalysisResult.Extensions extensions) {
+    private ElementForest analyzeAndPrune(ArchiveAnalyzer analyzer, TreeFilterProvider filter) {
         TreeFilter tf = filter.filterFor(analyzer);
         if (tf == null) {
             tf = TreeFilter.matchAndDescend();
@@ -481,7 +481,6 @@ public final class Revapi {
 
     private TreeFilterProvider unionFilter(AnalysisResult.Extensions extensions) {
         return new TreeFilterProvider() {
-            @Nullable
             @Override
             public TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer) {
                 List<TreeFilter> applicables = extensions.getFilters().keySet().stream()

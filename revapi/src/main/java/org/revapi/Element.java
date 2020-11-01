@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,11 +18,9 @@ package org.revapi;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedSet;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -136,7 +134,9 @@ public interface Element extends Comparable<Element> {
      * @return the iterator that will iterate over the results
      *
      * @see #searchChildren(Class, boolean, org.revapi.query.Filter)
+     * @deprecated use the more standard {@link #stream(Class, boolean)}
      */
+    @Deprecated
     @Nonnull
     <T extends Element> Iterator<T> iterateOverChildren(@Nonnull Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);
@@ -149,13 +149,17 @@ public interface Element extends Comparable<Element> {
      * @param elementType the type of elements to look for
      * @param recurse     if true, the iterator traverses the element forest using depth first search
      * @return the stream of elements complying to the filter
-     * @see #iterateOverChildren(Class, boolean, Filter)
      */
     default <T extends Element> Stream<T> stream(Class<T> elementType, boolean recurse) {
-        Iterator<T> it = iterateOverChildren(elementType, recurse, null);
-        Spliterator<T> sit = Spliterators.spliteratorUnknownSize(it,
-                Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED);
+        Stream<T> stream = getChildren().stream()
+                .filter(Objects::nonNull)
+                .filter(e -> elementType.isAssignableFrom(e.getClass()))
+                .map(elementType::cast);
 
-        return StreamSupport.stream(sit, false);
+        if (recurse) {
+            stream = stream.flatMap(e -> Stream.concat(Stream.of(e), e.stream(elementType, true)));
+        }
+
+        return stream;
     }
 }

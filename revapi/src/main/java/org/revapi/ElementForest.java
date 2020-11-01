@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,11 +19,9 @@ package org.revapi;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedSet;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -81,7 +79,9 @@ public interface ElementForest {
      * @param filter     the optional filter
      * @param searchRoot optional element from which to conduct the search
      * @return a list of elements of given type (or any subtype) from the forest, filtered by the filter if provided
+     * @deprecated in favor of more versatile {@link #stream(Class, boolean, Element)}
      */
+    @Deprecated
     @Nonnull
     default <T extends Element> List<T> search(@Nonnull Class<T> resultType, boolean recurse,
             @Nullable Filter<? super T> filter, @Nullable Element searchRoot) {
@@ -95,6 +95,10 @@ public interface ElementForest {
         return ret;
     }
 
+    /**
+     * @deprecated use the more versatile {@link #stream(Class, boolean, Element)}
+     */
+    @Deprecated
     @Nonnull
     default <T extends Element> Iterator<T> iterateOverElements(@Nonnull Class<T> resultType, boolean recurse,
             @Nullable Filter<? super T> filter, @Nullable Element searchRoot) {
@@ -108,11 +112,18 @@ public interface ElementForest {
     @Nonnull
     default <T extends Element> Stream<T> stream(@Nonnull Class<T> resultType, boolean recurse,
             @Nullable Element searchRoot) {
-        Iterator<T> it = iterateOverElements(resultType, recurse, null, searchRoot);
-        Spliterator<T> sit = Spliterators.spliteratorUnknownSize(it,
-                Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED);
+        SortedSet<? extends Element> start = searchRoot == null ? getRoots() : searchRoot.getChildren();
 
-        return StreamSupport.stream(sit, false);
+        Stream<T> stream = start.stream()
+                .filter(Objects::nonNull)
+                .filter(e -> resultType.isAssignableFrom(e.getClass()))
+                .map(resultType::cast);
+
+        if (recurse) {
+            stream = stream.flatMap(e -> Stream.concat(Stream.of(e), e.stream(resultType, true)));
+        }
+
+        return stream;
     }
 
     /**

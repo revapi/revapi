@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,10 @@ import javax.annotation.Nullable;
  *
  * @author Lukas Krejci
  * @since 0.1
+ * @deprecated Filtering turned out to be more complex than this. {@link Filter} has been superseded by
+ * {@link org.revapi.TreeFilter}.
  */
+@Deprecated
 public class FilteringIterator<E> implements Iterator<E> {
     private final Class<E> resultType;
     private final Iterator<?> wrapped;

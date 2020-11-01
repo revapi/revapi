@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,10 @@ import java.util.function.Predicate;
  *
  * @author Lukas Krejci
  * @since 0.1
+ * @deprecated Filtering turned out to be not that usable and will be removed. This class has been superseded by the
+ * {@link org.revapi.TreeFilter}.
  */
+@Deprecated
 public interface Filter<T> {
 
     static <T> Filter<T> shallow(Predicate<T> predicate) {

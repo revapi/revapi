@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,10 @@ import org.revapi.Element;
  *
  * @author Lukas Krejci
  * @since 0.1
+ * @deprecated This always had very limited utility and {@link Element#stream(Class, boolean)} seems to be a more usable
+ * alternative.
  */
+@Deprecated
 public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
     private final Class<? extends E> resultClass;
     private final Deque<Iterator<? extends Element>> dfsStack = new LinkedList<>();

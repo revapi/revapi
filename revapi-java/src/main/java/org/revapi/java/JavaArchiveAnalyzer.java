@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,7 +101,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         Set<TypeElement> toRemove = new HashSet<>();
 
         do {
-            Iterator<TypeElement> it = forest.iterateOverElements(TypeElement.class, true, null, null);
+            Iterator<TypeElement> it = forest.stream(TypeElement.class, true, null).iterator();
 
             toRemove.clear();
 
