@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -137,7 +137,7 @@ public class ConfigurableElementFilterTest {
     @Test
     public void testInclusionByMatch() {
         testWithConfig("{\"elements\": {" +
-                "\"include\": [{\"matcher\": \"matcher.exact\", \"match\": \"el1\"}]" +
+                "\"include\": [{\"matcher\": \"exact\", \"match\": \"el1\"}]" +
                 "}}", setOf(new ExactElementMatcher()), results -> {
             assertEquals(FilterMatch.MATCHES, results.get(el1));
             assertEquals(FilterMatch.DOESNT_MATCH, results.get(el2));
@@ -147,7 +147,7 @@ public class ConfigurableElementFilterTest {
     @Test
     public void testExclusionByMatch() {
         testWithConfig("{\"elements\": {" +
-                "\"exclude\": [{\"matcher\": \"matcher.regex\", \"match\": \"e.1\"}]" +
+                "\"exclude\": [{\"matcher\": \"regex\", \"match\": \"e.1\"}]" +
                 "}}", setOf(new RegexElementMatcher()), results -> {
             assertEquals(FilterMatch.DOESNT_MATCH, results.get(el1));
             assertEquals(FilterMatch.MATCHES, results.get(el2));

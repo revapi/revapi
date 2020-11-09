@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.revapi.CompatibilityType.BINARY;
 import static org.revapi.CompatibilityType.OTHER;
 import static org.revapi.CompatibilityType.SEMANTIC;
@@ -41,6 +43,7 @@ import org.revapi.AnalysisContext;
 import org.revapi.Criticality;
 import org.revapi.Difference;
 import org.revapi.Element;
+import org.revapi.TransformationResult;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DifferencesTransformTest {
@@ -64,7 +67,6 @@ public class DifferencesTransformTest {
                                 .put("justification", "because"))
                 )));
 
-        Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("whatevs").build());
         Difference transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("whatevs").build());
 
         assertNotNull(transformed);
@@ -302,6 +304,164 @@ public class DifferencesTransformTest {
         transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("c3").build());
         assertNotNull(transformed);
         assertTrue(transformed.attachments.isEmpty());
+    }
+
+    @Test
+    public void testMatchByOldParent() throws Exception {
+        DifferencesTransform tr = new DifferencesTransform();
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "code")
+                                .put("old", "parent")
+                                .put("justification", "matched"))
+                )));
+
+        Element parent = mock(Element.class);
+        when(parent.getFullHumanReadableString()).thenReturn("parent");
+        when(oldEl.getParent()).thenReturn(parent);
+
+        tr.startTraversal(null, null, null);
+        tr.startElements(parent, null);
+        tr.startElements(oldEl, newEl);
+        tr.endElements(oldEl, newEl);
+        tr.endElements(parent, null);
+        tr.endTraversal(null);
+
+        TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
+        assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
+        assertNotNull(res.getDifferences());
+        assertEquals(1, res.getDifferences().size());
+        assertEquals("matched", res.getDifferences().iterator().next().justification);
+    }
+
+    @Test
+    public void testMatchByNewParent() throws Exception {
+        DifferencesTransform tr = new DifferencesTransform();
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "code")
+                                .put("new", "parent")
+                                .put("justification", "matched"))
+                )));
+
+        Element parent = mock(Element.class);
+        when(parent.getFullHumanReadableString()).thenReturn("parent");
+        when(newEl.getParent()).thenReturn(parent);
+
+        tr.startTraversal(null, null, null);
+        tr.startElements(null, parent);
+        tr.startElements(oldEl, newEl);
+        tr.endElements(oldEl, newEl);
+        tr.endElements(null, parent);
+        tr.endTraversal(null);
+
+        TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
+        assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
+        assertNotNull(res.getDifferences());
+        assertEquals(1, res.getDifferences().size());
+        assertEquals("matched", res.getDifferences().iterator().next().justification);
+    }
+
+    @Test
+    public void testMatchByBothParents() throws Exception {
+        DifferencesTransform tr = new DifferencesTransform();
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "code")
+                                .put("old", "oldParent")
+                                .put("new", "newParent")
+                                .put("justification", "matched"))
+                )));
+
+        Element oldParent = mock(Element.class);
+        when(oldParent.getFullHumanReadableString()).thenReturn("oldParent");
+        when(oldEl.getParent()).thenReturn(oldParent);
+
+        Element newParent = mock(Element.class);
+        when(newParent.getFullHumanReadableString()).thenReturn("newParent");
+        when(newEl.getParent()).thenReturn(newParent);
+
+        tr.startTraversal(null, null, null);
+        tr.startElements(oldParent, newParent);
+        tr.startElements(oldEl, newEl);
+        tr.endElements(oldEl, newEl);
+        tr.endElements(oldParent, newParent);
+        tr.endTraversal(null);
+
+        TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
+        assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
+        assertNotNull(res.getDifferences());
+        assertEquals(1, res.getDifferences().size());
+        assertEquals("matched", res.getDifferences().iterator().next().justification);
+    }
+
+    @Test
+    public void testMatchByOldParentWithBothParentsPresent() throws Exception {
+        DifferencesTransform tr = new DifferencesTransform();
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "code")
+                                .put("old", "oldParent")
+                                .put("justification", "matched"))
+                )));
+
+        Element oldParent = mock(Element.class);
+        when(oldParent.getFullHumanReadableString()).thenReturn("oldParent");
+        when(oldEl.getParent()).thenReturn(oldParent);
+
+        Element newParent = mock(Element.class);
+        when(newParent.getFullHumanReadableString()).thenReturn("newParent");
+        when(newEl.getParent()).thenReturn(newParent);
+
+        tr.startTraversal(null, null, null);
+        tr.startElements(oldParent, newParent);
+        tr.startElements(oldEl, newEl);
+        tr.endElements(oldEl, newEl);
+        tr.endElements(oldParent, newParent);
+        tr.endTraversal(null);
+
+        TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
+        assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
+        assertNotNull(res.getDifferences());
+        assertEquals(1, res.getDifferences().size());
+        assertEquals("matched", res.getDifferences().iterator().next().justification);
+    }
+
+    @Test
+    public void testMatchByNewParentWithBothParentsPresent() throws Exception {
+        DifferencesTransform tr = new DifferencesTransform();
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "code")
+                                .put("new", "newParent")
+                                .put("justification", "matched"))
+                )));
+
+        Element oldParent = mock(Element.class);
+        when(oldParent.getFullHumanReadableString()).thenReturn("oldParent");
+        when(oldEl.getParent()).thenReturn(oldParent);
+
+        Element newParent = mock(Element.class);
+        when(newParent.getFullHumanReadableString()).thenReturn("newParent");
+        when(newEl.getParent()).thenReturn(newParent);
+
+        tr.startTraversal(null, null, null);
+        tr.startElements(oldParent, newParent);
+        tr.startElements(oldEl, newEl);
+        tr.endElements(oldEl, newEl);
+        tr.endElements(oldParent, newParent);
+        tr.endTraversal(null);
+
+        TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
+        assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
+        assertNotNull(res.getDifferences());
+        assertEquals(1, res.getDifferences().size());
+        assertEquals("matched", res.getDifferences().iterator().next().justification);
     }
 
     private static AnalysisContext context(JsonNode configuration) {

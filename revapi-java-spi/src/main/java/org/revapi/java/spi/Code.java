@@ -55,7 +55,7 @@ import org.revapi.DifferenceSeverity;
  * @since 0.1
  */
 public enum Code {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                MISSING_IN_OLD_API("java.missing.oldClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
+    MISSING_IN_OLD_API("java.missing.oldClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
     MISSING_IN_NEW_API("java.missing.newClass", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
     MISSING_OLD_SUPERTYPE("java.missing.oldSuperType", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING,
             null, "superClass"),
@@ -164,9 +164,9 @@ public enum Code {
         NON_BREAKING, null),
     METHOD_RETURN_TYPE_CHANGED_COVARIANTLY("java.method.returnTypeChangedCovariantly", NON_BREAKING, BREAKING, null),
     METHOD_NUMBER_OF_PARAMETERS_CHANGED("java.method.numberOfParametersChanged", BREAKING, BREAKING, null),
-    METHOD_PARAMETER_TYPE_CHANGED("java.method.parameterTypeChanged", POTENTIALLY_BREAKING, BREAKING, null),
+    METHOD_PARAMETER_TYPE_CHANGED("java.method.parameterTypeChanged", POTENTIALLY_BREAKING, BREAKING, null, "parameterIndex"),
     METHOD_PARAMETER_TYPE_PARAMETER_CHANGED("java.method.parameterTypeParameterChanged", POTENTIALLY_BREAKING,
-            NON_BREAKING, null),
+            NON_BREAKING, null, "parameterIndex"),
     METHOD_NO_LONGER_STATIC("java.method.noLongerStatic", BREAKING, BREAKING, null),
     METHOD_NOW_STATIC("java.method.nowStatic", NON_BREAKING, BREAKING, null),
     METHOD_CHECKED_EXCEPTION_ADDED("java.method.exception.checkedAdded", BREAKING, NON_BREAKING, null, "exception"),

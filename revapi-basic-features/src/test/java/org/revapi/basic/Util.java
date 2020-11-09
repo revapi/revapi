@@ -58,11 +58,11 @@ final class Util {
             Difference orig) {
         transform.startTraversal(null, null, null);
         transform.startElements(oldEl, newEl);
-        TransformationResult res = transform.tryTransform(oldEl, newEl, orig);
         transform.endElements(oldEl, newEl);
         transform.endTraversal(null);
         transform.endAnalysis(null);
 
+        TransformationResult res = transform.tryTransform(oldEl, newEl, orig);
         switch (res.getResolution()) {
             case KEEP:
                 return orig;

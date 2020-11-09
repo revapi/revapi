@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2020 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -114,7 +114,7 @@ public class ClassificationTransformTest {
 
     @Test
     public void testReclassifyByComplexElementMatch() throws Exception {
-        test("[{\"extension\": \"revapi.reclassify\", \"configuration\":[{\"code\":\"code\", \"new\": {\"matcher\": \"matcher.regex\", \"match\": \"n.*\"}, \"classify\": {\"BINARY\" : \"BREAKING\"}}]}]",
+        test("[{\"extension\": \"revapi.reclassify\", \"configuration\":[{\"code\":\"code\", \"new\": {\"matcher\": \"regex\", \"match\": \"n.*\"}, \"classify\": {\"BINARY\" : \"BREAKING\"}}]}]",
                 new RegexElementMatcher(), difference -> {
                     Assert.assertNotNull(difference);
                     Assert.assertEquals(BREAKING, difference.classification.get(CompatibilityType.BINARY));

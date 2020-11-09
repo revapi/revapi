@@ -232,6 +232,9 @@ public final class Revapi {
             T inst = null;
             boolean configured = false;
             for (JsonNode config : fullConfig.getConfigurationNode()) {
+                if (config.path("extension").isMissingNode()) {
+                    throw new IllegalArgumentException("Invalid configuration: missing the extension name.");
+                }
                 String configExtension = config.get("extension").asText();
                 if (!extensionId.equals(configExtension)) {
                     continue;

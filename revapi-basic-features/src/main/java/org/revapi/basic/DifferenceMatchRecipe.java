@@ -60,8 +60,8 @@ public abstract class DifferenceMatchRecipe {
     final Map<String, String> attachments;
     final Map<String, Pattern> attachmentRegexes;
 
-    Set<ElementPair> decidedlyMatchingElementPairs;
-    Set<ElementPair> undecidedElementPairs;
+    Map<Element, Set<Element>> decidedlyMatchingElementPairs;
+    Map<Element, Set<Element>> undecidedElementPairs;
 
     protected DifferenceMatchRecipe(Map<String, ElementMatcher> matchers, JsonNode config,
             String... additionalReservedProperties) {
@@ -94,8 +94,8 @@ public abstract class DifferenceMatchRecipe {
     public boolean startWithAnalyzers(ArchiveAnalyzer oldAnalyzer, ArchiveAnalyzer newAnalyzer) {
         oldFilter = oldRecipe == null ? null : oldRecipe.filterFor(oldAnalyzer);
         newFilter = newRecipe == null ? null : newRecipe.filterFor(newAnalyzer);
-        decidedlyMatchingElementPairs = new HashSet<>();
-        undecidedElementPairs = new HashSet<>();
+        decidedlyMatchingElementPairs = new HashMap<>();
+        undecidedElementPairs = new HashMap<>();
         return true;
     }
 
@@ -110,9 +110,9 @@ public abstract class DifferenceMatchRecipe {
                 : (newFilter == null ? FilterStartResult.matchAndDescend() : newFilter.start(newElement));
 
         if (oldRes.getMatch().toBoolean(false) && newRes.getMatch().toBoolean(false)) {
-            decidedlyMatchingElementPairs.add(new ElementPair(oldElement, newElement));
+            decidedlyMatchingElementPairs.computeIfAbsent(oldElement, __ -> new HashSet<>()).add(newElement);
         } else if (oldRes.getMatch() == FilterMatch.UNDECIDED || newRes.getMatch() == FilterMatch.UNDECIDED) {
-            undecidedElementPairs.add(new ElementPair(oldElement, newElement));
+            undecidedElementPairs.computeIfAbsent(oldElement, __ -> new HashSet<>()).add(newElement);
         }
 
         return true;
@@ -128,23 +128,26 @@ public abstract class DifferenceMatchRecipe {
                 : (newFilter == null ? FilterMatch.MATCHES : newFilter.finish(newElement).getMatch());
 
         if (oldMatch.toBoolean(false) && newMatch.toBoolean(false)) {
-            ElementPair pair = new ElementPair(oldElement, newElement);
-            decidedlyMatchingElementPairs.add(pair);
-            undecidedElementPairs.remove(pair);
+            decidedlyMatchingElementPairs.computeIfAbsent(oldElement, __ -> new HashSet<>()).add(newElement);
+            Set<Element> undecidedNews = undecidedElementPairs.get(oldElement);
+            if (undecidedNews != null) {
+                undecidedNews.remove(newElement);
+            }
         }
     }
 
     public void finishMatching() {
-        Set<ElementPair> decided = new HashSet<>();
+        Map<Element, Set<Element>> decided = new HashMap<>();
         if (oldFilter != null) {
             for (Map.Entry<Element, FilterFinishResult> e : oldFilter.finish().entrySet()) {
                 if (!e.getValue().getMatch().toBoolean(false)) {
                     continue;
                 }
 
-                for (ElementPair p : undecidedElementPairs) {
-                    if (p.getOldElement() == null || p.getOldElement().equals(e.getKey())) {
-                        decided.add(p);
+                for (Map.Entry<Element, Set<Element>> undecidedE : undecidedElementPairs.entrySet()) {
+                    Element oldEl = undecidedE.getKey();
+                    if (oldEl == null || oldEl.equals(e.getKey())) {
+                        decided.computeIfAbsent(oldEl, __ -> new HashSet<>()).addAll(undecidedE.getValue());
                     }
                 }
             }
@@ -153,18 +156,14 @@ public abstract class DifferenceMatchRecipe {
         if (newFilter != null) {
             for (Map.Entry<Element, FilterFinishResult> e : newFilter.finish().entrySet()) {
                 if (!e.getValue().getMatch().toBoolean(false)) {
-                    continue;
-                }
-
-                for (ElementPair p : decided) {
-                    if (p.getNewElement() == null || p.getNewElement().equals(e.getKey())) {
-                        decided.add(p);
+                    for(Set<Element> news : decided.values()) {
+                        news.remove(e.getKey());
                     }
                 }
             }
         }
 
-        decidedlyMatchingElementPairs.addAll(decided);
+        decided.forEach((o, ns) -> decidedlyMatchingElementPairs.computeIfAbsent(o, __ -> new HashSet<>()).addAll(ns));
     }
 
     public void cleanup() {
@@ -186,7 +185,20 @@ public abstract class DifferenceMatchRecipe {
             return false;
         }
 
-        boolean elementsMatch = decidedlyMatchingElementPairs.contains(new ElementPair(oldElement, newElement));
+        Set<Element> news = decidedlyMatchingElementPairs.get(oldElement);
+        boolean elementsMatch = news != null && news.contains(newElement);
+
+        while (!elementsMatch) {
+            oldElement = oldElement == null ? null : oldElement.getParent();
+            newElement = newElement == null ? null : newElement.getParent();
+
+            if (oldElement == null && newElement == null) {
+                break;
+            }
+
+            news = decidedlyMatchingElementPairs.get(oldElement);
+            elementsMatch = news != null && news.contains(newElement);
+        }
 
         if (!elementsMatch) {
             return false;
