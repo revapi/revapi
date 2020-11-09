@@ -16,10 +16,16 @@
  */
 package org.revapi.basic;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.revapi.CompatibilityType.BINARY;
@@ -30,6 +36,9 @@ import static org.revapi.DifferenceSeverity.BREAKING;
 import static org.revapi.DifferenceSeverity.EQUIVALENT;
 import static org.revapi.DifferenceSeverity.NON_BREAKING;
 import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
+
+import java.util.Collections;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -43,7 +52,12 @@ import org.revapi.AnalysisContext;
 import org.revapi.Criticality;
 import org.revapi.Difference;
 import org.revapi.Element;
+import org.revapi.ElementMatcher;
+import org.revapi.FilterFinishResult;
+import org.revapi.FilterMatch;
+import org.revapi.FilterStartResult;
 import org.revapi.TransformationResult;
+import org.revapi.TreeFilter;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DifferencesTransformTest {
@@ -304,6 +318,45 @@ public class DifferencesTransformTest {
         transformed = Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("c3").build());
         assertNotNull(transformed);
         assertTrue(transformed.attachments.isEmpty());
+    }
+
+    @Test
+    public void testBulkMatcher() throws Exception {
+        boolean[] matcherCalled = new boolean[1];
+
+        TreeFilter filter = mock(TreeFilter.class);
+        when(filter.start(any())).thenAnswer(inv -> {
+            Element e = inv.getArgument(0);
+            if (e != null && "element".equals(e.getFullHumanReadableString())) {
+                matcherCalled[0] = true;
+            }
+            return FilterStartResult.doesntMatch();
+        });
+
+        when(filter.finish(any())).thenReturn(FilterFinishResult.direct(FilterMatch.DOESNT_MATCH));
+        when(filter.finish()).thenReturn(emptyMap());
+
+        ElementMatcher.CompiledRecipe recipe = mock(ElementMatcher.CompiledRecipe.class);
+        when(recipe.filterFor(any())).thenReturn(filter);
+
+        ElementMatcher matcher = mock(ElementMatcher.class);
+        when(matcher.getExtensionId()).thenReturn("testMatcher");
+        when(matcher.compile(eq("element"))).thenReturn(Optional.of(recipe));
+
+        when(oldEl.getFullHumanReadableString()).thenReturn("element");
+
+        DifferencesTransform tr = new DifferencesTransform();
+        tr.initialize(context(JsonNodeFactory.instance.objectNode()
+                .put("matcher", "testMatcher")
+                .set("differences", JsonNodeFactory.instance.arrayNode()
+                        .add(JsonNodeFactory.instance.objectNode()
+                                .put("code", "code")
+                                .put("old", "element"))
+                )).copyWithMatchers(singleton(matcher)));
+
+        Util.transformAndAssumeOne(tr, oldEl, newEl, Difference.builder().withCode("code").build());
+
+        assertTrue(matcherCalled[0]);
     }
 
     @Test

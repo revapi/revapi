@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.revapi.AnalysisContext;
 import org.revapi.CompatibilityType;
@@ -48,6 +49,7 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
     private JsonNode bulkJustification;
     private JsonNode bulkAttachments;
     private JsonNode bulkCriticality;
+    private JsonNode bulkMatcher;
 
     public DifferencesTransform() {
         super("revapi.differences");
@@ -127,6 +129,21 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
             configNode.put("criticality", bulkCriticality.asText());
         }
 
+        if (!bulkMatcher.isMissingNode()) {
+            if (configNode.path("old").isTextual()) {
+                ObjectNode match = JsonNodeFactory.instance.objectNode();
+                match.put("matcher", bulkMatcher.asText());
+                match.put("match", configNode.get("old").asText());
+                configNode.set("old", match);
+            }
+            if (configNode.path("new").isTextual()) {
+                ObjectNode match = JsonNodeFactory.instance.objectNode();
+                match.put("matcher", bulkMatcher.asText());
+                match.put("match", configNode.get("new").asText());
+                configNode.set("new", match);
+            }
+        }
+
         return new DifferenceRecipe(configNode, analysisContext);
     }
 
@@ -142,6 +159,7 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
         bulkJustification = configNode.path("justification");
         bulkAttachments = configNode.path("attachments");
         bulkCriticality = configNode.path("criticality");
+        bulkMatcher = configNode.path("matcher");
 
         return configNode.path("differences");
     }
