@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2020 Lukas Krejci
+    Copyright 2014-2021 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,13 +38,25 @@
     <url>https://revapi.org</url>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <self-api-check.maven-version>0.12.2</self-api-check.maven-version>
         <self-api-check.java-extension-version>0.22.1</self-api-check.java-extension-version>
 
+        <version.maven-assembly-plugin>2.5.5</version.maven-assembly-plugin>
+        <version.build-helper-maven-plugin>3.0.0</version.build-helper-maven-plugin>
+        <version.maven-enforce-plugin>3.0.0-M3</version.maven-enforce-plugin>
+        <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
+        <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
+        <version.maven-jar-plugin>3.2.0</version.maven-jar-plugin>
+        <version.maven-failsafe-plugin>${version.maven-surefire-plugin}</version.maven-failsafe-plugin>
+        <version.impsort-maven-plugin>1.4.1</version.impsort-maven-plugin>
+        <version.license-maven-plugin>3.0</version.license-maven-plugin>
+        <version.jacoco-maven-plugin>0.8.2</version.jacoco-maven-plugin>
+
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
-        <version.junit>4.12</version.junit>
-        <version.org.revapi.revapi-site-shared>3</version.org.revapi.revapi-site-shared>
+        <version.org.junit>5.7.0</version.org.junit>
         <version.org.slf4j>1.7.5</version.org.slf4j>
         <version.org.mockito>3.2.4</version.org.mockito>
 
@@ -79,12 +91,6 @@
             </dependency>
 
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${version.junit}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${version.org.mockito}</version>
@@ -94,6 +100,14 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${version.org.slf4j}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${version.org.junit}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -106,8 +120,14 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -120,6 +140,61 @@
                 <version>${version.pw.krejci.multi-release-jar-maven-plugin}</version>
             </extension>
         </extensions>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${version.build-helper-maven-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${version.maven-enforce-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${version.maven-surefire-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${version.maven-failsafe-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${version.maven-compiler-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${version.maven-jar-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>net.revelc.code.formatter</groupId>
+                    <artifactId>formatter-maven-plugin</artifactId>
+                    <version>${version.net.revelc.code.formatter}</version>
+                </plugin>
+                <plugin>
+                    <groupId>net.revelc.code</groupId>
+                    <artifactId>impsort-maven-plugin</artifactId>
+                    <version>${version.impsort-maven-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>${version.license-maven-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${version.jacoco-maven-plugin}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 
         <plugins>
             <plugin>
@@ -141,6 +216,7 @@
                     <mainModuleInfo>9</mainModuleInfo>
                 </configuration>
             </plugin>
+
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -171,7 +247,6 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.2</version>
                 <executions>
                     <execution>
                         <id>prepare-unit-test</id>
@@ -236,8 +311,9 @@
                 </configuration>
                 <executions>
                     <execution>
+                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>check</goal>
+                            <goal>format</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -254,6 +330,35 @@
                     </dependency>
                 </dependencies>
             </plugin>
+            <plugin>
+                <groupId>net.revelc.code</groupId>
+                <artifactId>impsort-maven-plugin</artifactId>
+                <configuration>
+                    <groups>java.,javax.,*</groups>
+                    <staticGroups>java,javax,*</staticGroups>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>sort</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+<!-- Enable this once we have formatter rules very similar to the current convention -->
+<!--            <plugin>-->
+<!--                <groupId>net.revelc.code.formatter</groupId>-->
+<!--                <artifactId>formatter-maven-plugin</artifactId>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>format</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <dependencies>
@@ -351,17 +456,6 @@
                         </reports>
                     </reportSet>
                 </reportSets>
-            </plugin>
-            <plugin>
-                <groupId>org.asciidoctor</groupId>
-                <artifactId>asciidoctor-maven-plugin</artifactId>
-                <configuration>
-                    <sourceHighlighter>highlightjs</sourceHighlighter>
-                    <attributes>
-                        <base_url>https://revapi.org</base_url>
-                        <scm>${project.scm.url}</scm>
-                    </attributes>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.revapi</groupId>
@@ -495,7 +589,7 @@
                                         <item>
                                             <regex>true</regex>
                                             <code>java.class.nonPublicPartOfAPI</code>
-                                            <newArchive>com\.fasterxml\.jackson\.core:jackson-databind:.*</newArchive>
+                                            <newArchive>com\.fasterxml\.jackson\.core:.*:.*</newArchive>
                                             <justification>
                                                 Revapi uses Jackson for representing the JSON configuration.
                                             </justification>
@@ -503,7 +597,7 @@
                                         <item>
                                             <regex>true</regex>
                                             <code>java.class.externalClassExposedInAPI</code>
-                                            <newArchive>com\.fasterxml\.jackson\.core:jackson-databind:.*</newArchive>
+                                            <newArchive>com\.fasterxml\.jackson\.core:.*.*</newArchive>
                                             <justification>
                                                 Revapi uses Jackson for representing the JSON configuration.
                                             </justification>
