@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,9 @@
  */
 package org.revapi.query;
 
-import javax.annotation.Nullable;
 import java.util.function.Predicate;
+
+import javax.annotation.Nullable;
 
 /**
  * A basic filter designed to work with element {@link org.revapi.ElementForest forests}.

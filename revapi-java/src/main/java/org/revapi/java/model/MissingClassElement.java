@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +19,8 @@ package org.revapi.java.model;
 import javax.annotation.Nonnull;
 import javax.lang.model.type.DeclaredType;
 
-import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaElement;
 
 /**
  * @author Lukas Krejci
@@ -50,7 +50,7 @@ public final class MissingClassElement extends TypeElement {
     }
 
     @Override
-    public int compareTo(@Nonnull Element o) {
+    public int compareTo(@Nonnull JavaElement o) {
         if (!(o instanceof MissingClassElement)) {
             return JavaElementFactory.compareByType(this, o);
         }

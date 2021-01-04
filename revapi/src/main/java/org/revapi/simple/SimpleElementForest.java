@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,7 +39,9 @@ import org.revapi.query.Filter;
  *
  * @author Lukas Krejci
  * @since 0.1
+ * @deprecated use {@link org.revapi.base.BaseElementForest} instead
  */
+@Deprecated
 public class SimpleElementForest implements ElementForest {
     private SortedSet<? extends SimpleElement> roots;
     private final API api;
@@ -63,14 +66,8 @@ public class SimpleElementForest implements ElementForest {
     }
 
     @Override
-    @Nonnull
-    public <T extends Element> List<T> search(@Nonnull Class<T> resultType, boolean recurse,
-        @Nullable Filter<? super T> filter,
-        @Nullable Element root) {
-
-        List<T> results = new ArrayList<>();
-        search(results, resultType, root == null ? getRoots() : root.getChildren(), recurse, filter);
-        return results;
+    public Stream stream(Class resultType, boolean recurse, TreeFilter filter, @Nullable Element root) {
+        return search(resultType, recurse, filter, root).stream();
     }
 
     public <T extends Element> void search(@Nonnull List<T> results, @Nonnull Class<T> resultType,
@@ -112,7 +109,7 @@ public class SimpleElementForest implements ElementForest {
                 res = FilterStartResult.matchAndDescend();
             } else {
                 res = filter.start(e);
-            }
+                }
 
             boolean added = res.getMatch().toBoolean(false);
 

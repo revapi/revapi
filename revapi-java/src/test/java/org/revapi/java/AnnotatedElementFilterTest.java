@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +49,7 @@ import org.revapi.java.matcher.JavaElementMatcher;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.MethodParameterElement;
+import org.revapi.java.spi.JavaElement;
 
 /**
  * @author Lukas Krejci
@@ -67,7 +68,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testExcludeByAnnotationPresence() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"exclude\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(**) *;\"}]}}}}",
+                "[{\"matcher\": \"java\", \"match\": \"@annotationfilter.NonPublic(**) *;\"}]}}}}",
                 results -> {
 
                     int expectedCount = NUMBER_OF_ELEMENTS_ON_ANNOTATION + 4 //@NonPublic + since() + @Retention, @Target
@@ -93,7 +94,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
    public void testExcludeByAnnotationWithAttributeValues() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"exclude\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(since = '2.0') *;\"}]}}}}", results -> {
+                "[{\"matcher\": \"java\", \"match\": \"@annotationfilter.NonPublic(since = '2.0') *;\"}]}}}}", results -> {
 
             int expectedCount = NUMBER_OF_ELEMENTS_ON_ANNOTATION + 3 //@NonPublic, @Target, @Retention
                     + 1 //@NonPublic.since()
@@ -120,7 +121,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testIncludeByAnnotationPresence() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"include\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.Public *;\"}]}}}}", results -> {
+                "[{\"matcher\": \"java\", \"match\": \"@annotationfilter.Public *;\"}]}}}}", results -> {
 
             int expectedCount = 2 //NonPublicClass.m(), @Public
                     + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass, PublicClass(), @Public
@@ -144,7 +145,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testIncludeByAnnotationWithAttributeValues() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"include\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(since = /2\\\\.0/) *;\"}]}}}}", results -> {
+                "[{\"matcher\": \"java\", \"match\": \"@annotationfilter.NonPublic(since = /2\\\\.0/) *;\"}]}}}}", results -> {
 
             Assert.assertEquals(2, results.size());
             Assert.assertEquals("method void annotationfilter.PublicClass::implDetail()",
@@ -155,8 +156,8 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     @Test
     public void testIncludeAndExclude() throws Exception {
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"exclude\":" +
-                "[{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.NonPublic(**) *;\"}]," +
-                "\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"@annotationfilter.Public(**) *;\"}]}}}}", results
+                "[{\"matcher\": \"java\", \"match\": \"@annotationfilter.NonPublic(**) *;\"}]," +
+                "\"include\": [{\"matcher\": \"java\", \"match\": \"@annotationfilter.Public(**) *;\"}]}}}}", results
                 -> {
 
             int expectedCount = 2 //NonPublicClass.m(), @Public
@@ -184,7 +185,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     public void testChangesReportedOnAnnotationElements() throws Exception {
         CollectingReporter reporter = runAnalysis(CollectingReporter.class,
                 "{\"revapi\": {\"filter\": {\"elements\": {\"include\":[" +
-                        "{\"matcher\": \"matcher.java\", \"match\": \"@Attributes.Anno(**) ^*;\"}]}}}}",
+                        "{\"matcher\": \"java\", \"match\": \"@Attributes.Anno(**) ^*;\"}]}}}}",
                 "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
 
         List<Report> reports = reporter.getReports();
@@ -204,13 +205,15 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 annotationChanges.getDifferences().stream().map(d -> d.code).collect(Collectors.toSet()));
     }
 
-    private void testWith(String configJSON, Consumer<List<Element>> test) throws Exception {
+    private void testWith(String configJSON, Consumer<List<JavaElement>> test) throws Exception {
         ArchiveAndCompilationPath archive = createCompiledJar("test.jar", "annotationfilter/NonPublic.java",
                 "annotationfilter/NonPublicClass.java", "annotationfilter/Public.java",
                 "annotationfilter/PublicClass.java", "annotationfilter/UndecisiveClass.java");
 
         try {
-            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(
+            JavaApiAnalyzer apiAnalyzer = new JavaApiAnalyzer();
+
+            JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
                     new API(Arrays.asList(new ShrinkwrapArchive(archive.archive)), null),
                     Collections.emptyList(), Executors.newSingleThreadExecutor(), null, false
             );
@@ -229,7 +232,8 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
             ConfigurableElementFilter filter = new ConfigurableElementFilter();
             filter.initialize(filterCtx);
 
-            List<Element> results = forest.search(Element.class, true, filter.filterFor(analyzer), null);
+            List<JavaElement> results = forest.stream(JavaElement.class, true, filter.filterFor(analyzer).get(), null)
+                    .collect(toList());
 
             analyzer.getCompilationValve().removeCompiledResults();
 

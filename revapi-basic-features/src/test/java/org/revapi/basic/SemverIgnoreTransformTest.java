@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.DifferenceTransform;
-import org.revapi.Element;
+import org.revapi.base.BaseElement;
 
 /**
  * @author Lukas Krejci
@@ -58,7 +58,7 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testDisabledByDefault() {
-        DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {}}]");
+        DifferenceTransform<DummyElement> tr = getTestTransform("0.0.0", "0.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {}}]");
         Assert.assertSame(NON_BREAKING, transformAndAssumeOne(tr, null, null, NON_BREAKING));
         Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
         Assert.assertSame(BREAKING, transformAndAssumeOne(tr, null, null, BREAKING));
@@ -68,7 +68,7 @@ public class SemverIgnoreTransformTest {
     public void testDefaultSeverities() {
         String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]";
 
-        DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", config);
+        DifferenceTransform<DummyElement> tr = getTestTransform("0.0.0", "0.0.1", config);
         Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
@@ -105,7 +105,7 @@ public class SemverIgnoreTransformTest {
                 "\"versionIncreaseAllows\":{\"major\":\"potentiallyBreaking\",\"minor\":\"nonBreaking\",\"patch\": \"none\"}}}]";
 
 
-        DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", config);
+        DifferenceTransform<DummyElement> tr = getTestTransform("0.0.0", "0.0.1", config);
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, NON_BREAKING)));
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
@@ -140,7 +140,7 @@ public class SemverIgnoreTransformTest {
     public void testPassthrough() {
         String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true, \"passThroughDifferences\": [\"potentiallyBreaking\"]}}]";
 
-        DifferenceTransform<?> tr = getTestTransform("1.0.0", "2.0.0", config);
+        DifferenceTransform<DummyElement> tr = getTestTransform("1.0.0", "2.0.0", config);
 
         Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
         Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
@@ -149,7 +149,7 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testNoOldVersion() {
-        DifferenceTransform<?> tr = getTestTransform(null, "15", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
+        DifferenceTransform<DummyElement> tr = getTestTransform(null, "15", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
         Assert.assertSame(NON_BREAKING, transformAndAssumeOne(tr, null, null, NON_BREAKING));
         Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
         Assert.assertSame(BREAKING, transformAndAssumeOne(tr, null, null, BREAKING));
@@ -157,7 +157,7 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testAppliesNameAndDescriptionChangesOnlyOnce() {
-        DifferenceTransform<?> tr = getTestTransform("1.0.0", "1.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
+        DifferenceTransform<DummyElement> tr = getTestTransform("1.0.0", "1.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
 
         Difference transformed = tr.transform(null, null, POTENTIALLY_BREAKING);
         Assert.assertNotNull(transformed);
@@ -171,7 +171,7 @@ public class SemverIgnoreTransformTest {
         return difference != null && difference.classification.values().stream().anyMatch(ds -> ds == DifferenceSeverity.BREAKING);
     }
 
-    private DifferenceTransform<Element> getTestTransform(String oldVersion, String newVersion,
+    private DifferenceTransform<DummyElement> getTestTransform(String oldVersion, String newVersion,
                                                           String configuration) {
 
         API oldApi = oldVersion != null
@@ -186,11 +186,22 @@ public class SemverIgnoreTransformTest {
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi), SemverIgnoreTransform.class, configuration);
 
-        SemverIgnoreTransform tr = new SemverIgnoreTransform();
+        SemverIgnoreTransform<DummyElement> tr = new SemverIgnoreTransform<>();
 
         tr.initialize(ctx);
 
         return tr;
+    }
+
+    private static final class DummyElement extends BaseElement<DummyElement> {
+        public DummyElement(API api) {
+            super(api);
+        }
+
+        @Override
+        public int compareTo(DummyElement o) {
+            return 0;
+        }
     }
 
     private static final class Ar implements Archive.Versioned {

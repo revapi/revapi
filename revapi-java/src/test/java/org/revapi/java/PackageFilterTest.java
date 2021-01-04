@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ import org.junit.Test;
 public class PackageFilterTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testExclude() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"type packagefilter.a.a.a.* {}\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"type packagefilter.a.a.a.* {}\"}]}}}}",
                 Stream.of(
                             "class packagefilter.b.a.A",
                             "method void packagefilter.b.a.A::<init>()",
@@ -40,7 +40,7 @@ public class PackageFilterTest extends AbstractJavaElementAnalyzerTest {
                             "method void packagefilter.a.b.B::<init>()"
                     ).collect(toSet()));
 
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"type packagefilter.a.a.a.* {}\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"java\", \"match\": \"type packagefilter.a.a.a.* {}\"}]}}}}",
                 Stream.of(
                             "class packagefilter.a.a.a.A",
                             "method void packagefilter.a.a.a.A::<init>()"
@@ -49,7 +49,7 @@ public class PackageFilterTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testInclude() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"type packagefilter./a|b/.**.a.* {}\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"java\", \"match\": \"type packagefilter./a|b/.**.a.* {}\"}]}}}}",
                 Stream.of(
                             "class packagefilter.a.a.a.A",
                             "method void packagefilter.a.a.a.A::<init>()",

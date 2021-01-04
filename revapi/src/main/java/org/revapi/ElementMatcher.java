@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,11 +50,11 @@ public interface ElementMatcher extends Configurable, AutoCloseable {
          * forest to correctly set up the filter.
          *
          * @param archiveAnalyzer the archive analyzer that produced the element forest that will be filtered by the
-         *                        return tree filter
+         *                        returned tree filter
          * @return a tree filter to use for filtering the forest or null if the recipe is not applicable to elements of
          * the provided archive analyzer
          */
         @Nullable
-        TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer);
+        <E extends Element<E>> TreeFilter<E> filterFor(ArchiveAnalyzer<E> archiveAnalyzer);
     }
 }

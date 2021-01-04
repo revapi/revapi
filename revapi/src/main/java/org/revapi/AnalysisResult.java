@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@ package org.revapi;
 
 import static org.revapi.Revapi.TIMING_LOG;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -28,6 +27,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,13 +133,13 @@ public final class AnalysisResult implements AutoCloseable {
     }
 
     public static final class Extensions implements Iterable<Map.Entry<ExtensionInstance<?>, AnalysisContext>> {
-        private final Map<ExtensionInstance<ApiAnalyzer>, AnalysisContext> analyzers;
+        private final Map<ExtensionInstance<ApiAnalyzer<?>>, AnalysisContext> analyzers;
         private final Map<ExtensionInstance<TreeFilterProvider>, AnalysisContext> filters;
         private final Map<ExtensionInstance<Reporter>, AnalysisContext> reporters;
         private final Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> transforms;
         private final Map<ExtensionInstance<ElementMatcher>, AnalysisContext> matchers;
 
-        Extensions(Map<ExtensionInstance<ApiAnalyzer>, AnalysisContext> analyzers,
+        Extensions(Map<ExtensionInstance<ApiAnalyzer<?>>, AnalysisContext> analyzers,
                 Map<ExtensionInstance<TreeFilterProvider>, AnalysisContext> filters,
                 Map<ExtensionInstance<Reporter>, AnalysisContext> reporters,
                 Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> transforms,
@@ -150,7 +151,7 @@ public final class AnalysisResult implements AutoCloseable {
             this.matchers = matchers;
         }
 
-        public Map<ExtensionInstance<ApiAnalyzer>, AnalysisContext> getAnalyzers() {
+        public Map<ExtensionInstance<ApiAnalyzer<?>>, AnalysisContext> getAnalyzers() {
             return analyzers;
         }
 

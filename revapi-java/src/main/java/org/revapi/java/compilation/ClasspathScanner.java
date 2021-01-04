@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -126,14 +126,14 @@ final class ClasspathScanner {
     private final Map<Archive, File> additionalClassPath;
     private final AnalysisConfiguration.MissingClassReporting missingClassReporting;
     private final boolean ignoreMissingAnnotations;
-    private final TreeFilter filter;
+    private final TreeFilter<JavaElement> filter;
     private final TypeElement objectType;
 
     ClasspathScanner(StandardJavaFileManager fileManager, ProbingEnvironment environment,
             Map<Archive, File> classPath, Map<Archive, File> additionalClassPath,
             AnalysisConfiguration.MissingClassReporting missingClassReporting,
             boolean ignoreMissingAnnotations,
-            TreeFilter filter) {
+            TreeFilter<JavaElement> filter) {
         this.fileManager = fileManager;
         this.environment = environment;
         this.classPath = classPath;
@@ -741,8 +741,10 @@ final class ClasspathScanner {
                         }
 
                         //find the first owning class that is part of our model
-                        List<TypeElement> siblings = environment.getTree().getRootsUnsafe().stream().map(
-                                org.revapi.java.model.TypeElement::getDeclaringElement).collect(Collectors.toList());
+                        List<TypeElement> siblings = environment.getTree().getRootsUnsafe().stream()
+                                .map(org.revapi.java.model.TypeElement.class::cast)
+                                .map(org.revapi.java.model.TypeElement::getDeclaringElement)
+                                .collect(Collectors.toList());
 
                         while (!owners.isEmpty()) {
                             if (ignored.contains(owners.peek()) || siblings.contains(owners.peek())) {

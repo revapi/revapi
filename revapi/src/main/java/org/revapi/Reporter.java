@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 package org.revapi;
-
-import javax.annotation.Nonnull;
 
 import org.revapi.configuration.Configurable;
 
@@ -35,5 +33,5 @@ import org.revapi.configuration.Configurable;
  */
 public interface Reporter extends AutoCloseable, Configurable {
 
-    void report(@Nonnull Report report);
+    void report(Report report);
 }

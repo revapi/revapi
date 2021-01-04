@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -101,22 +102,21 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
         doNothing = includeByDefault && elementExcludeRecipes.isEmpty() && archiveExcludes.isEmpty();
     }
 
-    @Nullable
     @Override
-    public TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer) {
-        List<TreeFilter> excludes = elementExcludeRecipes.stream()
+    public  <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
+        List<TreeFilter<E>> excludes = elementExcludeRecipes.stream()
                 .map(r -> r.filterFor(archiveAnalyzer))
                 .collect(Collectors.toList());
 
-        List<TreeFilter> includes = elementIncludeRecipes.stream()
+        List<TreeFilter<E>> includes = elementIncludeRecipes.stream()
                 .map(r -> r.filterFor(archiveAnalyzer))
                 .collect(Collectors.toList());
 
-        return new TreeFilter() {
-            private final IdentityHashMap<Element, IncludeExcludeResult> filterResults = new IdentityHashMap<>();
+        return Optional.of(new TreeFilter<E>() {
+            private final IdentityHashMap<E, IncludeExcludeResult> filterResults = new IdentityHashMap<>();
 
             @Override
-            public FilterStartResult start(Element element) {
+            public FilterStartResult start(E element) {
                 if (doNothing) {
                     return FilterStartResult.matchAndDescendInherited();
                 }
@@ -128,7 +128,7 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
                 }
 
                 // exploit the fact that parent elements are always filtered before the children
-                Element parent = element.getParent();
+                E parent = element.getParent();
                 IncludeExcludeResult parentResults = parent == null ? null : filterResults.get(parent);
 
                 // at this point, we need to invoke both include and exclude filters so that we fulfill the contract
@@ -144,7 +144,7 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
             }
 
             @Override
-            public FilterFinishResult finish(Element element) {
+            public FilterFinishResult finish(E element) {
                 if (doNothing) {
                     return FilterFinishResult.matches();
                 }
@@ -171,25 +171,25 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
             }
 
             @Override
-            public Map<Element, FilterFinishResult> finish() {
+            public Map<E, FilterFinishResult> finish() {
                 if (doNothing) {
                     return Collections.emptyMap();
                 }
 
-                Map<Element, FilterFinishResult> finalIncludes = new HashMap<>();
-                for (TreeFilter f : includes) {
+                Map<E, FilterFinishResult> finalIncludes = new HashMap<>();
+                for (TreeFilter<E> f : includes) {
                     finalIncludes.putAll(f.finish());
                 }
 
-                Map<Element, FilterFinishResult> finalExcludes = new HashMap<>();
-                for (TreeFilter f : excludes) {
+                Map<E, FilterFinishResult> finalExcludes = new HashMap<>();
+                for (TreeFilter<E> f : excludes) {
                     finalExcludes.putAll(f.finish());
                 }
 
-                Map<Element, FilterFinishResult> ret = new HashMap<>();
-                for (Map.Entry<Element, IncludeExcludeResult> e : filterResults.entrySet()) {
+                Map<E, FilterFinishResult> ret = new HashMap<>();
+                for (Map.Entry<E, IncludeExcludeResult> e : filterResults.entrySet()) {
                     IncludeExcludeResult r = e.getValue();
-                    Element el = e.getKey();
+                    E el = e.getKey();
 
                     if (r.compute().getMatch() != UNDECIDED) {
                         continue;
@@ -214,7 +214,7 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
 
                 return ret;
             }
-        };
+        });
     }
 
     @Override
@@ -222,7 +222,7 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
     }
 
     @Nullable
-    private static FilterStartResult includeFilterStart(List<TreeFilter> includes, Element element) {
+    private static <E extends Element<E>> FilterStartResult includeFilterStart(List<TreeFilter<E>> includes, E element) {
         return includes.stream()
                 // we always want to descend, no matter the filter result because of the "include inside an exclude"
                 // feature
@@ -232,7 +232,7 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
     }
 
     @Nullable
-    private static FilterFinishResult includeFilterEnd(List<TreeFilter> includes, Element element) {
+    private static <E extends Element<E>> FilterFinishResult includeFilterEnd(List<TreeFilter<E>> includes, E element) {
         return includes.stream()
                 .map(f -> f.finish(element))
                 .reduce(FilterFinishResult::or)
@@ -240,7 +240,7 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
     }
 
     @Nullable
-    private static FilterStartResult excludeFilterStart(List<TreeFilter> excludes, Element element) {
+    private static <E extends Element<E>> FilterStartResult excludeFilterStart(List<TreeFilter<E>> excludes, E element) {
         return excludes.stream()
                 // we always want to descend, no matter the filter result because of the "include inside an exclude"
                 // feature
@@ -250,7 +250,7 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
     }
 
     @Nullable
-    private static FilterFinishResult excludeFilterEnd(List<TreeFilter> excludes, Element element) {
+    private static <E extends Element<E>> FilterFinishResult excludeFilterEnd(List<TreeFilter<E>> excludes, E element) {
         return excludes.stream()
                 .map(f -> f.finish(element))
                 .reduce(FilterFinishResult::or)
@@ -314,7 +314,7 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
                     + "' was not found.");
         }
 
-        return matcher.compile(recipe).orElse(null);
+        return matcher.compile(recipe).orElseThrow(() -> new IllegalArgumentException("Failed to compile the match recipe."));
     }
 
     private static boolean isIncluded(String representation, List<Pattern> includePatterns,

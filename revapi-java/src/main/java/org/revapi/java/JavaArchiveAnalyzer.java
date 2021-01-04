@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,8 @@ import java.util.concurrent.ExecutorService;
 import javax.annotation.Nonnull;
 
 import org.revapi.API;
+import org.revapi.ApiAnalyzer;
 import org.revapi.ArchiveAnalyzer;
-import org.revapi.Element;
 import org.revapi.ElementForest;
 import org.revapi.TreeFilter;
 import org.revapi.java.compilation.CompilationFuture;
@@ -36,6 +36,7 @@ import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JarExtractor;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 
@@ -43,7 +44,8 @@ import org.revapi.java.spi.UseSite;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
+public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
+    private final JavaApiAnalyzer apiAnalyzer;
     private final API api;
     private final ExecutorService executor;
     private final ProbingEnvironment probingEnvironment;
@@ -52,9 +54,10 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final Iterable<JarExtractor> jarExtractors;
     private CompilationValve compilationValve;
 
-    public JavaArchiveAnalyzer(API api, Iterable<JarExtractor> jarExtractors,ExecutorService compilationExecutor,
-            AnalysisConfiguration.MissingClassReporting missingClassReporting,
+    public JavaArchiveAnalyzer(JavaApiAnalyzer apiAnalyzer, API api, Iterable<JarExtractor> jarExtractors,
+            ExecutorService compilationExecutor, AnalysisConfiguration.MissingClassReporting missingClassReporting,
             boolean ignoreMissingAnnotations) {
+        this.apiAnalyzer = apiAnalyzer;
         this.api = api;
         this.jarExtractors = jarExtractors;
         this.executor = compilationExecutor;
@@ -63,9 +66,19 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         this.probingEnvironment = new ProbingEnvironment(api);
     }
 
+    @Override
+    public ApiAnalyzer<JavaElement> getApiAnalyzer() {
+        return apiAnalyzer;
+    }
+
+    @Override
+    public API getApi() {
+        return api;
+    }
+
     @Nonnull
     @Override
-    public JavaElementForest analyze(TreeFilter filter) {
+    public JavaElementForest analyze(TreeFilter<JavaElement> filter) {
         if (Timing.LOG.isDebugEnabled()) {
             Timing.LOG.debug("Starting analysis of " + api);
         }
@@ -91,7 +104,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     }
 
     @Override
-    public void prune(ElementForest forest) {
+    public void prune(ElementForest<JavaElement> forest) {
         if (!(forest instanceof JavaElementForest)) {
             return;
         }
@@ -167,8 +180,8 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         return compilationValve;
     }
 
-    private static boolean isInForest(ElementForest forest, Element element) {
-        Element parent = element.getParent();
+    private static boolean isInForest(ElementForest<JavaElement> forest, JavaElement element) {
+        JavaElement parent = element.getParent();
         while (parent != null) {
             element = parent;
             parent = parent.getParent();

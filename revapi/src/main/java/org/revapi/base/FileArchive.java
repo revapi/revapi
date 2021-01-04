@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.revapi.simple;
+package org.revapi.base;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,5 +47,9 @@ public class FileArchive implements Archive {
     @Override
     public @Nonnull InputStream openStream() throws IOException {
         return new FileInputStream(file);
+    }
+
+    public File getFile() {
+        return file;
     }
 }

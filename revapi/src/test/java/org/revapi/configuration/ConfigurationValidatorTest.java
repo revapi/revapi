@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -230,11 +230,11 @@ public class ConfigurationValidatorTest {
                 "   }" +
                 "}}";
 
-        @Nullable @Override public String getExtensionId() {
+        @Override public String getExtensionId() {
             return "my-config";
         }
 
-        @Nullable @Override public Reader getJSONSchema() {
+        @Override public Reader getJSONSchema() {
             return new StringReader(SCHEMA);
         }
 
@@ -244,7 +244,7 @@ public class ConfigurationValidatorTest {
         @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
         }
 
-        @Override public boolean applies(@Nullable Element element) {
+        @Override public boolean applies(@Nullable Element<?> element) {
             return false;
         }
 

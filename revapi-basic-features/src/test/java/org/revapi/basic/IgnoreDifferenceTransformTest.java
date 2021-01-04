@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,16 +19,12 @@ package org.revapi.basic;
 import static org.revapi.basic.Util.getAnalysisContextFromFullConfig;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.revapi.API;
 import org.revapi.AnalysisContext;
-import org.revapi.Archive;
 import org.revapi.Difference;
-import org.revapi.Element;
-import org.revapi.simple.SimpleElement;
+import org.revapi.base.BaseElement;
 
 /**
  * @author Lukas Krejci
@@ -36,25 +32,13 @@ import org.revapi.simple.SimpleElement;
  */
 public class IgnoreDifferenceTransformTest {
 
-    private static class DummyElement extends SimpleElement {
+    private static class DummyElement extends BaseElement<DummyElement> {
 
         private final String name;
 
         public DummyElement(String name) {
+            super(null, null);
             this.name = name;
-        }
-
-        @Nonnull
-        @Override
-        @SuppressWarnings("ConstantConditions")
-        public API getApi() {
-            return null;
-        }
-
-        @Nullable
-        @Override
-        public Archive getArchive() {
-            return null;
         }
 
         @Nonnull
@@ -64,12 +48,8 @@ public class IgnoreDifferenceTransformTest {
         }
 
         @Override
-        public int compareTo(@Nonnull Element o) {
-            if (!(o instanceof DummyElement)) {
-                return -1;
-            }
-
-            return name.compareTo(((DummyElement) o).name);
+        public int compareTo(@Nonnull DummyElement o) {
+            return name.compareTo(o.name);
         }
     }
 

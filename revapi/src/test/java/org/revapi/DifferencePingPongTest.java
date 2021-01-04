@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@ package org.revapi;
 
 import java.io.Reader;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -27,8 +26,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.junit.Test;
-import org.revapi.simple.SimpleElement;
-import org.revapi.simple.SimpleElementForest;
+import org.revapi.base.BaseElement;
+import org.revapi.base.BaseElementForest;
 
 public class DifferencePingPongTest {
 
@@ -61,7 +60,7 @@ public class DifferencePingPongTest {
         }
     }
 
-    public static class TransformOther implements DifferenceTransform<Element> {
+    public static class TransformOther implements DifferenceTransform {
         private final DifferenceSeverity targetSeverity;
         private final String extensionId;
         public TransformOther(DifferenceSeverity targetSeverity, String extensionId) {
@@ -113,43 +112,55 @@ public class DifferencePingPongTest {
         }
     }
 
-    public static final class DummyAnalyzer implements ApiAnalyzer {
+    public static final class DummyElement extends BaseElement<DummyElement> {
+
+        protected DummyElement(API api) {
+            super(api);
+        }
+
+        protected DummyElement(API api, @Nullable Archive archive) {
+            super(api, archive);
+        }
+
+        @Override
+        public int compareTo(DummyElement o) {
+            return 0;
+        }
+    }
+
+    public static final class DummyAnalyzer implements ApiAnalyzer<DummyElement> {
 
         @Nonnull
         @Override
-        public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
-            return new ArchiveAnalyzer() {
+        public ArchiveAnalyzer<DummyElement> getArchiveAnalyzer(@Nonnull API api) {
+            return new ArchiveAnalyzer<DummyElement>() {
+                @Override
+                public ApiAnalyzer<DummyElement> getApiAnalyzer() {
+                    return DummyAnalyzer.this;
+                }
+
+                @Override
+                public API getApi() {
+                    return api;
+                }
+
                 @Nonnull
                 @Override
-                public ElementForest analyze(TreeFilter filter) {
-                    ElementForest ret = new SimpleElementForest(api) {
-                    };
-                    @SuppressWarnings("unchecked") Set<Element> roots = (Set) ret.getRoots();
-                    roots.add(new SimpleElement() {
-                        @Nonnull
-                        @Override
-                        public API getApi() {
-                            return api;
-                        }
+                public ElementForest<DummyElement> analyze(TreeFilter<DummyElement> filter) {
+                    BaseElementForest<DummyElement> ret = new BaseElementForest<>(api);
 
-                        @Nullable
-                        @Override
-                        public Archive getArchive() {
-                            Iterator<? extends Archive> it = api.getArchives().iterator();
-                            return it.hasNext() ? it.next() : null;
-                        }
+                    Archive archive = api.getArchives().iterator().hasNext()
+                            ? api.getArchives().iterator().next()
+                            : null;
 
-                        @Override
-                        public int compareTo(Element o) {
-                            return 0;
-                        }
-                    });
+                    Set<DummyElement> roots = ret.getRoots();
+                    roots.add(new DummyElement(api, archive));
 
                     return ret;
                 }
 
                 @Override
-                public void prune(ElementForest forest) {
+                public void prune(ElementForest<DummyElement> forest) {
 
                 }
             };
@@ -157,26 +168,26 @@ public class DifferencePingPongTest {
 
         @Nonnull
         @Override
-        public DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
-                @Nonnull ArchiveAnalyzer newArchive) {
-            return new DifferenceAnalyzer() {
+        public DifferenceAnalyzer<DummyElement> getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer<DummyElement> oldArchive,
+                @Nonnull ArchiveAnalyzer<DummyElement> newArchive) {
+            return new DifferenceAnalyzer<DummyElement>() {
                 @Override
                 public void open() {
 
                 }
 
                 @Override
-                public void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
+                public void beginAnalysis(@Nullable DummyElement oldElement, @Nullable DummyElement newElement) {
 
                 }
 
                 @Override
-                public boolean isDescendRequired(@Nullable Element oldElement, @Nullable Element newElement) {
+                public boolean isDescendRequired(@Nullable DummyElement oldElement, @Nullable DummyElement newElement) {
                     return false;
                 }
 
                 @Override
-                public Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
+                public Report endAnalysis(@Nullable DummyElement oldElement, @Nullable DummyElement newElement) {
                     return Report.builder()
                             .withOld(oldElement)
                             .withNew(newElement)
@@ -197,7 +208,7 @@ public class DifferencePingPongTest {
 
         @Nonnull
         @Override
-        public CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
+        public CorrespondenceComparatorDeducer<DummyElement> getCorrespondenceDeducer() {
             return CorrespondenceComparatorDeducer.naturalOrder();
         }
 
@@ -206,7 +217,6 @@ public class DifferencePingPongTest {
 
         }
 
-        @Nullable
         @Override
         public String getExtensionId() {
             return "dummy-analyzer";
@@ -227,7 +237,7 @@ public class DifferencePingPongTest {
     public static final class DummyReporter implements Reporter {
 
         @Override
-        public void report(@Nonnull Report report) {
+        public void report(Report report) {
 
         }
 
@@ -236,7 +246,6 @@ public class DifferencePingPongTest {
 
         }
 
-        @Nullable
         @Override
         public String getExtensionId() {
             return "dummy-reporter";

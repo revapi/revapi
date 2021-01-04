@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,6 @@
 package org.revapi.basic;
 
 import java.io.Reader;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -27,12 +25,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
+import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
-import org.revapi.FilterFinishResult;
 import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
-import org.revapi.simple.RepeatingTreeFilter;
+import org.revapi.TreeFilter;
+import org.revapi.base.IndependentTreeFilter;
 
 /**
  * @author Lukas Krejci
@@ -41,7 +40,12 @@ public final class RegexElementMatcher implements ElementMatcher {
     @Override
     public Optional<CompiledRecipe> compile(String recipe) {
         try {
-            return Optional.of(__ -> new PatternMatch(Pattern.compile(recipe)));
+            return Optional.of(new CompiledRecipe() {
+                @Override
+                public <E extends Element<E>> TreeFilter<E> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
+                    return new PatternMatch<>(Pattern.compile(recipe));
+                }
+            });
         } catch (PatternSyntaxException __) {
             return Optional.empty();
         }
@@ -51,7 +55,6 @@ public final class RegexElementMatcher implements ElementMatcher {
     public void close() throws Exception {
     }
 
-    @Nullable
     @Override
     public String getExtensionId() {
         return "regex";
@@ -67,7 +70,7 @@ public final class RegexElementMatcher implements ElementMatcher {
     public void initialize(@Nonnull AnalysisContext analysisContext) {
     }
 
-    private static final class PatternMatch extends RepeatingTreeFilter {
+    private static final class PatternMatch<E extends Element<E>> extends IndependentTreeFilter<E> {
         final Pattern match;
 
         private PatternMatch(Pattern match) {
@@ -75,14 +78,9 @@ public final class RegexElementMatcher implements ElementMatcher {
         }
 
         @Override
-        protected FilterStartResult doStart(Element element) {
+        protected FilterStartResult doStart(E element) {
             boolean m = match.matcher(element.getFullHumanReadableString()).matches();
             return FilterStartResult.direct(FilterMatch.fromBoolean(m), m);
-        }
-
-        @Override
-        public Map<Element, FilterFinishResult> finish() {
-            return Collections.emptyMap();
         }
     }
 }

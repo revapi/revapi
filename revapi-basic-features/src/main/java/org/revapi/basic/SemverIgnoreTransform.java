@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ import org.revapi.TransformationResult;
  * @author Lukas Krejci
  * @since 0.3.7
  */
-public class SemverIgnoreTransform implements DifferenceTransform<Element> {
+public class SemverIgnoreTransform<E extends Element<E>> implements DifferenceTransform<E> {
     private boolean enabled;
     private DifferenceSeverity allowedSeverity;
     private List<String> passThroughDifferences;
@@ -55,7 +55,7 @@ public class SemverIgnoreTransform implements DifferenceTransform<Element> {
     }
 
     @Override
-    public TransformationResult tryTransform(@Nullable Element oldElement, @Nullable Element newElement,
+    public TransformationResult tryTransform(@Nullable E oldElement, @Nullable E newElement,
             Difference difference) {
         if (!enabled) {
             return TransformationResult.keep();

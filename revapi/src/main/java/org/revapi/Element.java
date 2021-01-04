@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.SortedSet;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.query.Filter;
@@ -34,10 +33,42 @@ import org.revapi.query.Filter;
  * <p>An element is comparable with all other element types for given language, giving a total ordering across all and
  * any element types given language defines.
  *
+ * <p>The {@link #compareTo(Object)} method is used by Revapi to match up the pairs of elements from the old and new
+ * API. Revapi sorts the elements from old and new API (using their natural order, i.e. using the {@code compareTo}
+ * method) and then iterates through both sets at the same time, comparing the elements.
+ *
+ * <table border=10>
+ *     <tr><th>Comparison</th><th>Meaning</th><th>Result</th><th>Iteration Progress</th></tr>
+ *     <tr>
+ *         <td>old &lt; new</td>
+ *         <td>New is considered removed from the API</td>
+ *         <td>(old, null)</td>
+ *         <td>Old moves forward, new stays</td>
+ *     </tr>
+ *     <tr>
+ *         <td>old > new</td>
+ *         <td>Old is considered removed from the API</td>
+ *         <td>(null, new)</td>
+ *         <td>New moves forward, old stays</td>
+ *     </tr>
+ *     <tr>
+ *         <td>old == new</td>
+ *         <td>New is considered equal to old</td>
+ *         <td>(old, new)</td>
+ *         <td>Old moves forward, new moves forward</td>
+ *     </tr>
+ * </table>
+ *
+ * The result from the above comparison is handed over to the difference analyzer which is assumed to do a more detailed
+ * analysis on the elements and return a (possibly empty) set of differences.
+ *
+ * @param <E> the common base class of all elements of some api analyzer
+ *
  * @author Lukas Krejci
  * @since 0.1
+ * @see CoIterator
  */
-public interface Element extends Comparable<Element> {
+public interface Element<E extends Element<E>> extends Comparable<E> {
 
     /**
      * Casts this element to the provided type.
@@ -45,14 +76,13 @@ public interface Element extends Comparable<Element> {
      * @return this cast as the provided type
      * @throws ClassCastException if this instance cannot be cast to the provided type
      */
-    default <T extends Element> T as(Class<T> type) {
+    default <T extends Element<?>> T as(Class<T> type) {
         return type.cast(this);
     }
 
     /**
      * @return the API version this element comes from
      */
-    @Nonnull
     API getApi();
 
     /**
@@ -65,16 +95,15 @@ public interface Element extends Comparable<Element> {
      * @return the parent element or null if this is a root element
      */
     @Nullable
-    Element getParent();
+    E getParent();
 
     /**
      * Sets a new parent.
      * @param parent the new parent of this element
      */
-    void setParent(@Nullable Element parent);
+    void setParent(@Nullable E parent);
 
-    @Nonnull
-    SortedSet<? extends Element> getChildren();
+    SortedSet<E> getChildren();
 
     /**
      * Provides the full "path" to the element in the forest in a human readable way.
@@ -82,7 +111,6 @@ public interface Element extends Comparable<Element> {
      *
      * @return human readable representation of the element
      */
-    @Nonnull
     String getFullHumanReadableString();
 
     /**
@@ -100,8 +128,7 @@ public interface Element extends Comparable<Element> {
      * @deprecated in favor of {@link #stream(Class, boolean)}
      */
     @Deprecated
-    @Nonnull
-    <T extends Element> List<T> searchChildren(@Nonnull Class<T> resultType, boolean recurse,
+    <T extends Element<E>> List<T> searchChildren(Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);
 
     /**
@@ -119,7 +146,7 @@ public interface Element extends Comparable<Element> {
      * @deprecated in favor of {@link #stream(Class, boolean)}
      */
     @Deprecated
-    <T extends Element> void searchChildren(@Nonnull List<T> results, @Nonnull Class<T> resultType, boolean recurse,
+    <T extends Element<E>> void searchChildren(List<T> results, Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);
 
     /**
@@ -137,8 +164,7 @@ public interface Element extends Comparable<Element> {
      * @deprecated use the more standard {@link #stream(Class, boolean)}
      */
     @Deprecated
-    @Nonnull
-    <T extends Element> Iterator<T> iterateOverChildren(@Nonnull Class<T> resultType, boolean recurse,
+    <T extends Element<E>> Iterator<T> iterateOverChildren(Class<T> resultType, boolean recurse,
         @Nullable Filter<? super T> filter);
 
     /**
@@ -150,7 +176,7 @@ public interface Element extends Comparable<Element> {
      * @param recurse     if true, the iterator traverses the element forest using depth first search
      * @return the stream of elements complying to the filter
      */
-    default <T extends Element> Stream<T> stream(Class<T> elementType, boolean recurse) {
+    default <T extends Element<E>> Stream<T> stream(Class<T> elementType, boolean recurse) {
         Stream<T> stream = getChildren().stream()
                 .filter(Objects::nonNull)
                 .filter(e -> elementType.isAssignableFrom(e.getClass()))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaElement;
 
 /**
  * @author Lukas Krejci
@@ -54,7 +55,7 @@ public final class JavaElementFactory {
         //TODO I could see use for PackageElement, because packages can have annotations on them
     }
 
-    public static int compareByType(org.revapi.Element a, org.revapi.Element b) {
+    public static int compareByType(JavaElement a, JavaElement b) {
         int ar = a == null ? -1 : getModelTypeRank(a.getClass());
         int br = b == null ? -1 : getModelTypeRank(b.getClass());
         return ar - br;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ package org.revapi.basic;
 import static java.util.Collections.emptySet;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,11 +27,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
@@ -40,14 +40,13 @@ import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
-import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
+import org.revapi.base.BaseElement;
 import org.revapi.configuration.ConfigurationValidator;
 import org.revapi.configuration.ValidationResult;
-import org.revapi.simple.SimpleElement;
 
 /**
  * @author Lukas Krejci
@@ -55,8 +54,8 @@ import org.revapi.simple.SimpleElement;
  */
 public class ConfigurableElementFilterTest {
 
-    private Element el1;
-    private Element el2;
+    private DummyElement el1;
+    private DummyElement el2;
 
     @Before
     public void setupElements() {
@@ -154,12 +153,12 @@ public class ConfigurableElementFilterTest {
         });
     }
 
-    private void testWithConfig(String configJSON, Consumer<Map<Element, FilterMatch>> test) {
+    private void testWithConfig(String configJSON, Consumer<Map<DummyElement, FilterMatch>> test) {
         testWithConfig(configJSON, emptySet(), test);
     }
 
     private void testWithConfig(String configJSON, Set<ElementMatcher> matchers,
-            Consumer<Map<Element, FilterMatch>> test) {
+            Consumer<Map<DummyElement, FilterMatch>> test) {
         ConfigurableElementFilter filter = new ConfigurableElementFilter();
 
         AnalysisContext ctx = AnalysisContext.builder().build()
@@ -168,10 +167,11 @@ public class ConfigurableElementFilterTest {
 
         filter.initialize(ctx);
 
-        TreeFilter f = filter.filterFor(null);
-        assertNotNull(f);
+        Optional<TreeFilter<DummyElement>> of = filter.filterFor(null);
+        assertTrue(of.isPresent());
+        TreeFilter<DummyElement> f = of.get();
 
-        Map<Element, FilterMatch> ret = new HashMap<>();
+        Map<DummyElement, FilterMatch> ret = new HashMap<>();
         addElementResults(f, el1, ret);
         addElementResults(f, el2, ret);
 
@@ -180,7 +180,7 @@ public class ConfigurableElementFilterTest {
         test.accept(ret);
     }
 
-    private static void addElementResults(TreeFilter f, Element el, Map<Element, FilterMatch> results) {
+    private static void addElementResults(TreeFilter<DummyElement> f, DummyElement el, Map<DummyElement, FilterMatch> results) {
         FilterStartResult sr = f.start(el);
         results.put(el, sr.getMatch());
 
@@ -212,16 +212,11 @@ public class ConfigurableElementFilterTest {
         }
     }
 
-    private static final class DummyElement extends SimpleElement {
-        final Archive archive;
+    private static final class DummyElement extends BaseElement<DummyElement> {
         final String name;
 
-        DummyElement(Archive archive) {
-            this("", archive);
-        }
-
         DummyElement(String name, Archive archive) {
-            this.archive = archive;
+            super(null, archive);
             this.name = name;
         }
 
@@ -231,21 +226,15 @@ public class ConfigurableElementFilterTest {
             throw new UnsupportedOperationException();
         }
 
-        @Nullable
-        @Override
-        public Archive getArchive() {
-            return archive;
-        }
-
-        @Override
-        public int compareTo(Element o) {
-            return 0;
-        }
-
         @Nonnull
         @Override
         public String getFullHumanReadableString() {
             return name;
+        }
+
+        @Override
+        public int compareTo(DummyElement o) {
+            return 0;
         }
     }
 }

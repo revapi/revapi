@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,17 +20,21 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.SortedSet;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.revapi.simple.SimpleElement;
-import org.revapi.simple.SimpleElementForest;
+import org.revapi.base.BaseApiAnalyzer;
+import org.revapi.base.BaseArchiveAnalyzer;
+import org.revapi.base.BaseDifferenceAnalyzer;
+import org.revapi.base.BaseElement;
+import org.revapi.base.BaseElementForest;
+import org.revapi.base.BaseReporter;
 
 /**
  * @author Lukas Krejci
@@ -67,7 +71,18 @@ public class AnalysisTest {
         }
     }
 
-    public static final class SemVerImitationDifferenceTransform implements DifferenceTransform<Element> {
+    public static final class DummyElement extends BaseElement<DummyElement> {
+        public DummyElement(API api, @Nullable Archive archive) {
+            super(api, archive);
+        }
+
+        @Override
+        public int compareTo(DummyElement o) {
+            return 0;
+        }
+    }
+
+    public static final class SemVerImitationDifferenceTransform implements DifferenceTransform<DummyElement> {
 
         @Override
         public @Nonnull Pattern[] getDifferenceCodePatterns() {
@@ -75,7 +90,7 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable Difference transform(@Nullable Element oldElement, @Nullable Element newElement, @Nonnull Difference d) {
+        public @Nullable Difference transform(@Nullable DummyElement oldElement, @Nullable DummyElement newElement, @Nonnull Difference d) {
             if ( d.classification.get( CompatibilityType.BINARY ) != null ) {
                 return d;
             }
@@ -87,7 +102,7 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable String getExtensionId() {
+        public String getExtensionId() {
             return "fake-semver";
         }
 
@@ -101,7 +116,7 @@ public class AnalysisTest {
         }
     }
 
-    public static final class BreakingDifferenceTransform implements DifferenceTransform<Element> {
+    public static final class BreakingDifferenceTransform implements DifferenceTransform<DummyElement> {
 
         @Override
         public @Nonnull Pattern[] getDifferenceCodePatterns() {
@@ -109,7 +124,7 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable Difference transform(@Nullable Element oldElement, @Nullable Element newElement, @Nonnull Difference d) {
+        public @Nullable Difference transform(@Nullable DummyElement oldElement, @Nullable DummyElement newElement, @Nonnull Difference d) {
             return Difference.builder().withCode(d.code).withName(d.name).withDescription(d.description)
                     .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).build();
         }
@@ -119,7 +134,7 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable String getExtensionId() {
+        public String getExtensionId() {
             return "breaking-transform";
         }
 
@@ -133,7 +148,7 @@ public class AnalysisTest {
         }
     }
 
-    public static final class CloningDifferenceTransform implements DifferenceTransform<Element> {
+    public static final class CloningDifferenceTransform implements DifferenceTransform<DummyElement> {
 
         @Override
         public @Nonnull Pattern[] getDifferenceCodePatterns() {
@@ -141,7 +156,7 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable Difference transform(@Nullable Element oldElement, @Nullable Element newElement, @Nonnull Difference d) {
+        public @Nullable Difference transform(@Nullable DummyElement oldElement, @Nullable DummyElement newElement, @Nonnull Difference d) {
             return Difference.builder().withCode(d.code).withName(d.name).withDescription(d.description)
                     .addClassifications(d.classification).build();
         }
@@ -151,7 +166,7 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable String getExtensionId() {
+        public String getExtensionId() {
             return "cloning-transform";
         }
 
@@ -162,32 +177,6 @@ public class AnalysisTest {
 
         @Override
         public void initialize(@Nonnull AnalysisContext analysisContext) {
-        }
-    }
-
-    public static final class DummyElement extends SimpleElement {
-
-        private final API api;
-        private final Archive archive;
-
-        private DummyElement(API api, Archive archive) {
-            this.api = api;
-            this.archive = archive;
-        }
-
-        @Override
-        public @Nonnull API getApi() {
-            return api;
-        }
-
-        @Override
-        public @Nullable Archive getArchive() {
-            return archive;
-        }
-
-        @Override
-        public int compareTo(Element o) {
-            return 0;
         }
     }
 
@@ -204,24 +193,19 @@ public class AnalysisTest {
         }
     }
 
-    public static final class DummyAnalyzer implements ApiAnalyzer {
+    public static final class DummyAnalyzer extends BaseApiAnalyzer<DummyElement> {
 
-        private final BiFunction<Element, Element, Report> differenceAnalyzer = (o, n) ->
+        private final BiFunction<DummyElement, DummyElement, Report> differenceAnalyzer = (o, n) ->
                 Report.builder().withNew(n).withOld(o).addProblem().withCode("code").done().build();;
 
         @Override
-        public @Nonnull CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
-            return CorrespondenceComparatorDeducer.naturalOrder();
+        public @Nonnull ArchiveAnalyzer<DummyElement> getArchiveAnalyzer(@Nonnull API api) {
+            return new DummyArchiveAnalyzer(api, this);
         }
 
         @Override
-        public @Nonnull ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
-            return new DummyArchiveAnalyzer(api);
-        }
-
-        @Override
-        public @Nonnull DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
-                                                                 @Nonnull ArchiveAnalyzer newArchive) {
+        public DummyDifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer<DummyElement> oldArchive,
+                                                                 @Nonnull ArchiveAnalyzer<DummyElement> newArchive) {
             return new DummyDifferenceAnalyzer(differenceAnalyzer);
         }
 
@@ -230,113 +214,70 @@ public class AnalysisTest {
         }
 
         @Override
-        public @Nullable String getExtensionId() {
+        public String getExtensionId() {
             return "dummy-analyzer";
-        }
-
-        @Override
-        public @Nullable Reader getJSONSchema() {
-            return null;
-        }
-
-        @Override
-        public void initialize(@Nonnull AnalysisContext analysisContext) {
         }
     }
 
-    public static final class DummyElementForest extends SimpleElementForest {
+    public static final class DummyElementForest extends BaseElementForest<DummyElement> {
 
         DummyElementForest(@Nonnull API api) {
             super(api);
         }
+    }
 
-        @SuppressWarnings("unchecked")
+    public static final class DummyArchiveAnalyzer extends BaseArchiveAnalyzer<DummyElementForest, DummyElement> {
+        private DummyArchiveAnalyzer(API api, ApiAnalyzer apiAnalyzer) {
+            super(apiAnalyzer, api);
+        }
+
         @Override
-        public @Nonnull SortedSet<DummyElement> getRoots() {
-            return (SortedSet<DummyElement>) super.getRoots();
+        protected DummyElementForest newElementForest() {
+            return new DummyElementForest(getApi());
+        }
+
+        @Override
+        protected Stream<DummyElement> discoverRoots(Object ctx) {
+            return Stream.of(new DummyElement(getApi(), new DummyArchive()));
+        }
+
+        @Override
+        protected Stream<DummyElement> discoverElements(Object ctx, DummyElement parent) {
+            return Stream.empty();
         }
     }
 
-    public static final class DummyArchiveAnalyzer implements ArchiveAnalyzer {
+    public static final class DummyDifferenceAnalyzer extends BaseDifferenceAnalyzer<DummyElement> {
 
-        private final API api;
+        private final BiFunction<DummyElement, DummyElement, Report> reportingFunction;
 
-        private DummyArchiveAnalyzer(API api) {
-            this.api = api;
-        }
-
-        @Override
-        public @Nonnull ElementForest analyze(TreeFilter filter) {
-            DummyElementForest ret = new DummyElementForest(api);
-            ret.getRoots().add(new DummyElement(api, new DummyArchive()));
-            return ret;
-        }
-
-        @Override
-        public void prune(ElementForest forest) {
-
-        }
-    }
-
-    public static final class DummyDifferenceAnalyzer implements DifferenceAnalyzer {
-
-        private final BiFunction<Element, Element, Report> reportingFunction;
-
-        private DummyDifferenceAnalyzer(BiFunction<Element, Element, Report> reportingFunction) {
+        private DummyDifferenceAnalyzer(BiFunction<DummyElement, DummyElement, Report> reportingFunction) {
             this.reportingFunction = reportingFunction;
         }
 
         @Override
-        public void open() {
+        public void beginAnalysis(@Nullable DummyElement oldElement, @Nullable DummyElement newElement) {
         }
 
         @Override
-        public void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
-        }
-
-        @Override
-        public boolean isDescendRequired(@Nullable Element oldElement, @Nullable Element newElement) {
-            return false;
-        }
-
-        @Override
-        public Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
+        public Report endAnalysis(@Nullable DummyElement oldElement, @Nullable DummyElement newElement) {
             return reportingFunction.apply(oldElement, newElement);
-        }
-
-        @Override
-        public void close() throws Exception {
         }
     }
 
-    public static final class DummyReporter implements Reporter {
+    public static final class DummyReporter extends BaseReporter {
 
         @Override
         public void report(@Nonnull Report report) {
         }
 
         @Override
-        public void close() throws Exception {
-        }
-
-        @Nullable
-        @Override
         public String getExtensionId() {
             return "dummy-reporter";
         }
-
-        @Nullable
-        @Override
-        public Reader getJSONSchema() {
-            return null;
-        }
-
-        @Override
-        public void initialize(@Nonnull AnalysisContext analysisContext) {
-        }
     }
 
-    public static final class FailingReporter implements Reporter {
+    public static final class FailingReporter extends BaseReporter {
 
         @Override
         public void report(@Nonnull Report report) {
@@ -344,23 +285,8 @@ public class AnalysisTest {
         }
 
         @Override
-        public void close() throws Exception {
-        }
-
-        @Nullable
-        @Override
         public String getExtensionId() {
             return "failing-reporter";
-        }
-
-        @Nullable
-        @Override
-        public Reader getJSONSchema() {
-            return null;
-        }
-
-        @Override
-        public void initialize(@Nonnull AnalysisContext analysisContext) {
         }
     }
 }

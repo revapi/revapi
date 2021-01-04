@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,6 @@
  */
 package org.revapi;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -30,17 +29,17 @@ import java.util.List;
  * @author Lukas Krejci
  * @since 0.4.0
  */
-public interface CorrespondenceComparatorDeducer {
+public interface CorrespondenceComparatorDeducer<E extends Element<E>> {
 
     /**
      * @return a deducer that just uses the natural order of elements.
      */
-    static CorrespondenceComparatorDeducer naturalOrder() {
-        return (c1, c2) -> {
-            Comparator<? super Element> ret = Comparator.naturalOrder();
+    static <E extends Element<E>> CorrespondenceComparatorDeducer<E> naturalOrder() {
+        return (l1, l2) -> {
+            Comparator<? super E> ret = Comparator.naturalOrder();
 
-            Collections.sort(c1, ret);
-            Collections.sort(c2, ret);
+            l1.sort(ret);
+            l2.sort(ret);
 
             return ret;
         };
@@ -51,12 +50,12 @@ public interface CorrespondenceComparatorDeducer {
      * the elements for the two lists mutually is consistent.
      *
      * <p> The collections will contain elements of different types (which is consistent with how {@link ElementForest}
-     * stores the children) and it is assumed that the sorter is able to pick and choose with types of elements it is
+     * stores the children) and it is assumed that the sorter is able to pick and choose which types of elements it is
      * able to sort. The collections will be sorted according the natural order of the elements when entering this
      * method.
      *
      * @param first the first collection of elements
      * @param second the second collection of elements
      */
-    Comparator<? super Element> sortAndGetCorrespondenceComparator(List<Element> first, List<Element> second);
+    Comparator<? super E> sortAndGetCorrespondenceComparator(List<E> first, List<E> second);
 }

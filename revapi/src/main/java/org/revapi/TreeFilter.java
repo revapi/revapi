@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,22 +26,22 @@ import java.util.Map;
  * As a caller of some implementation of this interface, please study the documentation of the individual methods on
  * this interface to learn at what times the methods are supposed to be called.
  */
-public interface TreeFilter {
+public interface TreeFilter<E extends Element<E>> {
 
-    static TreeFilter matchAndDescend() {
-        return new TreeFilter() {
+    static <E extends Element<E>> TreeFilter<E> matchAndDescend() {
+        return new TreeFilter<E>() {
             @Override
-            public FilterStartResult start(Element element) {
+            public FilterStartResult start(E element) {
                 return FilterStartResult.matchAndDescend();
             }
 
             @Override
-            public FilterFinishResult finish(Element element) {
+            public FilterFinishResult finish(E element) {
                 return FilterFinishResult.matches();
             }
 
             @Override
-            public Map<Element, FilterFinishResult> finish() {
+            public Map<E, FilterFinishResult> finish() {
                 return Collections.emptyMap();
             }
         };
@@ -56,7 +56,7 @@ public interface TreeFilter {
      * @return a filter result informing the caller what was the result of filtering and whether to descend to children
      * or not
      */
-    FilterStartResult start(Element element);
+    FilterStartResult start(E element);
 
     /**
      * This method is called after the filtering has {@link #start(Element) started} and all children have
@@ -68,7 +68,7 @@ public interface TreeFilter {
      * @param element the element for which the filtering has finished
      * @return the result of filtering
      */
-    FilterFinishResult finish(Element element);
+    FilterFinishResult finish(E element);
 
     /**
      * Called after all elements have been processed to see if any of them have changed in their filtering
@@ -79,5 +79,5 @@ public interface TreeFilter {
      *
      * @return the final results for elements that were previously undecided if their filtering status changed
      */
-    Map<Element, FilterFinishResult> finish();
+    Map<E, FilterFinishResult> finish();
 }

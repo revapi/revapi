@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,42 +36,36 @@ import static org.revapi.DifferenceSeverity.EQUIVALENT;
 import static org.revapi.DifferenceSeverity.NON_BREAKING;
 import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
+import org.revapi.ApiAnalyzer;
 import org.revapi.Criticality;
 import org.revapi.Difference;
-import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterFinishResult;
 import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
 import org.revapi.TransformationResult;
 import org.revapi.TreeFilter;
+import org.revapi.base.BaseElement;
 
-@RunWith(MockitoJUnitRunner.class)
 public class DifferencesTransformTest {
 
-    @Mock
-    private Element oldEl;
+    private DummyElement oldEl = mock(DummyElement.class);
 
-    @Mock
-    private Element newEl;
+    private DummyElement newEl = mock(DummyElement.class);
 
     private static final API EMPTY_API = API.builder().build();
 
     @Test
     public void testAddsJustification() {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -89,7 +82,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testAddsCriticality() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -106,7 +99,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testAddsClassification() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -146,7 +139,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testIgnores() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -164,7 +157,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testAddsAttachments() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -187,7 +180,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testBulkAddsJustification() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .put("justification", "all of this is cool")
                 .set("differences", JsonNodeFactory.instance.arrayNode()
@@ -212,7 +205,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testBulkAddsCriticality() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .put("criticality", "highlight")
                 .set("differences", JsonNodeFactory.instance.arrayNode()
@@ -237,7 +230,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testBulkAddsClassification() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(((ObjectNode) JsonNodeFactory.instance.objectNode()
                 .set("classify", JsonNodeFactory.instance.objectNode()
                         .put("SOURCE", "BREAKING")
@@ -271,7 +264,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testBulkIgnores() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .put("ignore", true)
                 .set("differences", JsonNodeFactory.instance.arrayNode()
@@ -293,7 +286,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testBulkAddsAttachments() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(((ObjectNode) JsonNodeFactory.instance.objectNode()
                 .set("attachments", JsonNodeFactory.instance.objectNode()
                         .put("attach1", "val1")
@@ -324,9 +317,9 @@ public class DifferencesTransformTest {
     public void testBulkMatcher() throws Exception {
         boolean[] matcherCalled = new boolean[1];
 
-        TreeFilter filter = mock(TreeFilter.class);
+        TreeFilter<DummyElement> filter = mock(TreeFilter.class);
         when(filter.start(any())).thenAnswer(inv -> {
-            Element e = inv.getArgument(0);
+            DummyElement e = inv.getArgument(0);
             if (e != null && "element".equals(e.getFullHumanReadableString())) {
                 matcherCalled[0] = true;
             }
@@ -337,7 +330,7 @@ public class DifferencesTransformTest {
         when(filter.finish()).thenReturn(emptyMap());
 
         ElementMatcher.CompiledRecipe recipe = mock(ElementMatcher.CompiledRecipe.class);
-        when(recipe.filterFor(any())).thenReturn(filter);
+        when(recipe.filterFor(any())).thenReturn((TreeFilter) filter);
 
         ElementMatcher matcher = mock(ElementMatcher.class);
         when(matcher.getExtensionId()).thenReturn("testMatcher");
@@ -345,7 +338,7 @@ public class DifferencesTransformTest {
 
         when(oldEl.getFullHumanReadableString()).thenReturn("element");
 
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .put("matcher", "testMatcher")
                 .set("differences", JsonNodeFactory.instance.arrayNode()
@@ -361,7 +354,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testMatchByOldParent() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -370,16 +363,17 @@ public class DifferencesTransformTest {
                                 .put("justification", "matched"))
                 )));
 
-        Element parent = mock(Element.class);
+        DummyElement parent = mock(DummyElement.class);
         when(parent.getFullHumanReadableString()).thenReturn("parent");
         when(oldEl.getParent()).thenReturn(parent);
 
-        tr.startTraversal(null, null, null);
-        tr.startElements(parent, null);
-        tr.startElements(oldEl, newEl);
-        tr.endElements(oldEl, newEl);
-        tr.endElements(parent, null);
-        tr.endTraversal(null);
+        tr.startTraversal((ApiAnalyzer<DummyElement>) null, null, null).ifPresent(r -> {
+            r.startElements(parent, null);
+            r.startElements(oldEl, newEl);
+            r.endElements(oldEl, newEl);
+            r.endElements(parent, null);
+            r.endTraversal();
+        });
 
         TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
         assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
@@ -390,7 +384,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testMatchByNewParent() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -399,16 +393,17 @@ public class DifferencesTransformTest {
                                 .put("justification", "matched"))
                 )));
 
-        Element parent = mock(Element.class);
+        DummyElement parent = mock(DummyElement.class);
         when(parent.getFullHumanReadableString()).thenReturn("parent");
         when(newEl.getParent()).thenReturn(parent);
 
-        tr.startTraversal(null, null, null);
-        tr.startElements(null, parent);
-        tr.startElements(oldEl, newEl);
-        tr.endElements(oldEl, newEl);
-        tr.endElements(null, parent);
-        tr.endTraversal(null);
+        tr.startTraversal((ApiAnalyzer<DummyElement>) null, null, null).ifPresent(r -> {
+            r.startElements(null, parent);
+            r.startElements(oldEl, newEl);
+            r.endElements(oldEl, newEl);
+            r.endElements(null, parent);
+            r.endTraversal();
+        });
 
         TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
         assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
@@ -419,7 +414,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testMatchByBothParents() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -429,20 +424,21 @@ public class DifferencesTransformTest {
                                 .put("justification", "matched"))
                 )));
 
-        Element oldParent = mock(Element.class);
+        DummyElement oldParent = mock(DummyElement.class);
         when(oldParent.getFullHumanReadableString()).thenReturn("oldParent");
         when(oldEl.getParent()).thenReturn(oldParent);
 
-        Element newParent = mock(Element.class);
+        DummyElement newParent = mock(DummyElement.class);
         when(newParent.getFullHumanReadableString()).thenReturn("newParent");
         when(newEl.getParent()).thenReturn(newParent);
 
-        tr.startTraversal(null, null, null);
-        tr.startElements(oldParent, newParent);
-        tr.startElements(oldEl, newEl);
-        tr.endElements(oldEl, newEl);
-        tr.endElements(oldParent, newParent);
-        tr.endTraversal(null);
+        tr.startTraversal((ApiAnalyzer<DummyElement>) null, null, null).ifPresent(r -> {
+            r.startElements(oldParent, newParent);
+            r.startElements(oldEl, newEl);
+            r.endElements(oldEl, newEl);
+            r.endElements(oldParent, newParent);
+            r.endTraversal();
+        });
 
         TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
         assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
@@ -453,7 +449,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testMatchByOldParentWithBothParentsPresent() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -462,20 +458,20 @@ public class DifferencesTransformTest {
                                 .put("justification", "matched"))
                 )));
 
-        Element oldParent = mock(Element.class);
+        DummyElement oldParent = mock(DummyElement.class);
         when(oldParent.getFullHumanReadableString()).thenReturn("oldParent");
         when(oldEl.getParent()).thenReturn(oldParent);
 
-        Element newParent = mock(Element.class);
-        when(newParent.getFullHumanReadableString()).thenReturn("newParent");
+        DummyElement newParent = mock(DummyElement.class);
         when(newEl.getParent()).thenReturn(newParent);
 
-        tr.startTraversal(null, null, null);
-        tr.startElements(oldParent, newParent);
-        tr.startElements(oldEl, newEl);
-        tr.endElements(oldEl, newEl);
-        tr.endElements(oldParent, newParent);
-        tr.endTraversal(null);
+        tr.startTraversal((ApiAnalyzer<DummyElement>) null, null, null).ifPresent(r -> {
+            r.startElements(oldParent, newParent);
+            r.startElements(oldEl, newEl);
+            r.endElements(oldEl, newEl);
+            r.endElements(oldParent, newParent);
+            r.endTraversal();
+        });
 
         TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
         assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
@@ -486,7 +482,7 @@ public class DifferencesTransformTest {
 
     @Test
     public void testMatchByNewParentWithBothParentsPresent() throws Exception {
-        DifferencesTransform tr = new DifferencesTransform();
+        DifferencesTransform<DummyElement> tr = new DifferencesTransform<>();
         tr.initialize(context(JsonNodeFactory.instance.objectNode()
                 .set("differences", JsonNodeFactory.instance.arrayNode()
                         .add(JsonNodeFactory.instance.objectNode()
@@ -495,20 +491,20 @@ public class DifferencesTransformTest {
                                 .put("justification", "matched"))
                 )));
 
-        Element oldParent = mock(Element.class);
-        when(oldParent.getFullHumanReadableString()).thenReturn("oldParent");
+        DummyElement oldParent = mock(DummyElement.class);
         when(oldEl.getParent()).thenReturn(oldParent);
 
-        Element newParent = mock(Element.class);
+        DummyElement newParent = mock(DummyElement.class);
         when(newParent.getFullHumanReadableString()).thenReturn("newParent");
         when(newEl.getParent()).thenReturn(newParent);
 
-        tr.startTraversal(null, null, null);
-        tr.startElements(oldParent, newParent);
-        tr.startElements(oldEl, newEl);
-        tr.endElements(oldEl, newEl);
-        tr.endElements(oldParent, newParent);
-        tr.endTraversal(null);
+        tr.startTraversal((ApiAnalyzer<DummyElement>) null, null, null).ifPresent(r -> {
+            r.startElements(oldParent, newParent);
+            r.startElements(oldEl, newEl);
+            r.endElements(oldEl, newEl);
+            r.endElements(oldParent, newParent);
+            r.endTraversal();
+        });
 
         TransformationResult res = tr.tryTransform(oldEl, newEl, Difference.builder().withCode("code").build());
         assertEquals(TransformationResult.Resolution.REPLACE, res.getResolution());
@@ -523,5 +519,16 @@ public class DifferencesTransformTest {
                 .withNewAPI(EMPTY_API)
                 .build()
                 .copyWithConfiguration(configuration);
+    }
+
+    private static class DummyElement extends BaseElement<DummyElement> {
+        public DummyElement() {
+            super(null);
+        }
+
+        @Override
+        public int compareTo(DummyElement o) {
+            return 0;
+        }
     }
 }

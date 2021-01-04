@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,21 +18,16 @@ package org.revapi.maven;
 
 import java.util.Collections;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
-import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.Criticality;
 import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
 import org.revapi.Report;
-import org.revapi.simple.SimpleElement;
+import org.revapi.base.BaseElement;
 
 /**
  * @author Lukas Krejci
@@ -56,41 +51,8 @@ public class BuildTimeReporterTest {
 
         reporter.initialize(ctx);
 
-        Element oldEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return oldApi;
-            }
-
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "old element";
-            }
-        };
-
-        Element newEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return newApi;
-            }
-
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "new element";
-            }
-        };
+        DummyElement oldEl = new DummyElement(oldApi);
+        DummyElement newEl = new DummyElement(newApi);
 
         Report report = Report.builder()
                 .withNew(newEl)
@@ -138,41 +100,8 @@ public class BuildTimeReporterTest {
 
         reporter.initialize(ctx);
 
-        Element oldEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return oldApi;
-            }
-
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "old element";
-            }
-        };
-
-        Element newEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return newApi;
-            }
-
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "new element";
-            }
-        };
+        DummyElement oldEl = new DummyElement(oldApi);
+        DummyElement newEl = new DummyElement(newApi);
 
         Report report = Report.builder()
                 .withNew(newEl)
@@ -216,41 +145,8 @@ public class BuildTimeReporterTest {
 
         reporter.initialize(ctx);
 
-        Element oldEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return oldApi;
-            }
-
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "old element";
-            }
-        };
-
-        Element newEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return newApi;
-            }
-
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "new element";
-            }
-        };
+        DummyElement oldEl = new DummyElement(oldApi);
+        DummyElement newEl = new DummyElement(newApi);
 
         Report report = Report.builder()
                 .withNew(newEl)
@@ -276,5 +172,17 @@ public class BuildTimeReporterTest {
         Assert.assertEquals(-1, commentStart);
         Assert.assertEquals(-1, commentEnd);
         Assert.assertEquals(-1, nonIdentifyingIndex);
+    }
+
+    public static final class DummyElement extends BaseElement<DummyElement> {
+
+        public DummyElement(API api) {
+            super(api);
+        }
+
+        @Override
+        public int compareTo(DummyElement o) {
+            return 0;
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ public class PipelineConfigurationTest {
     private final ByteBuddy byteBuddy = new ByteBuddy();
 
     @SuppressWarnings("unchecked")
-    private final Class<? extends ApiAnalyzer> analyzerType = (Class) byteBuddy
+    private final Class<? extends ApiAnalyzer<?>> analyzerType = (Class) byteBuddy
             .subclass(Object.class)
             .name("test.extensions.Analyzer")
             .implement(ApiAnalyzer.class)

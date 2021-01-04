@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,6 +67,7 @@ import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Check;
 import org.revapi.java.spi.JarExtractor;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,7 @@ import org.slf4j.LoggerFactory;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class JavaApiAnalyzer implements ApiAnalyzer {
+public final class JavaApiAnalyzer implements ApiAnalyzer<JavaElement> {
     private static final Logger LOG = LoggerFactory.getLogger(JavaApiAnalyzer.class);
 
     //see #forceClearCompilerCache for what these are
@@ -134,8 +135,11 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     }
 
     @Override
-    @Nonnull
-    public CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
+    public CorrespondenceComparatorDeducer<JavaElement> getCorrespondenceDeducer() {
+        if (!configuration.isMatchOverloads()) {
+            return CorrespondenceComparatorDeducer.naturalOrder();
+        }
+        
         return (l1, l2) -> {
             //so, we have to come up with some correspondence order... This is pretty easy for all java elements
             //but methods.
@@ -146,7 +150,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
 
             //quickly peek inside to see if there even can be methods in the lists - all of the elements in either list
             //will have a common parent and parents of both lists will have the same type or be both null.
-            Element parent = l1.get(0).getParent();
+            JavaElement parent = l1.get(0).getParent();
             if (!(parent instanceof TypeElement)) {
                 return Comparator.naturalOrder();
             }
@@ -180,7 +184,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         };
     }
 
-    private static void determineOrder(List<Element> l1, List<Element> l2,
+    private static void determineOrder(List<JavaElement> l1, List<JavaElement> l2,
             IdentityHashMap<MethodElement, Integer> l1MethodOrder,
             IdentityHashMap<MethodElement, Integer> l2MethodOrder) {
 
@@ -200,10 +204,10 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         //iterate over the maps, sorted by name and assign the comparison index to the methods.
         //we iterate over the maps sorted by method name
         CoIterator<Map.Entry<String, List<MethodElement>>> coit = new CoIterator<>(l1MethodsIterator, l2MethodsIterator,
-                Comparator.comparing(Map.Entry::getKey));
+                Map.Entry.comparingByKey());
 
-        List<Element> l2MethodsInOrder = new ArrayList<>(l1MethodsSize);
-        List<Element> l1MethodsInOrder = new ArrayList<>(l2MethodsSize);
+        List<JavaElement> l2MethodsInOrder = new ArrayList<>(l1MethodsSize);
+        List<JavaElement> l1MethodsInOrder = new ArrayList<>(l2MethodsSize);
 
         while (coit.hasNext()) {
             coit.next();
@@ -243,8 +247,8 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
                     //same place
                     List<MethodElement> as = l1Overloads;
                     List<MethodElement> bs = l2Overloads;
-                    List<Element> aio = l1MethodsInOrder;
-                    List<Element> bio = l2MethodsInOrder;
+                    List<JavaElement> aio = l1MethodsInOrder;
+                    List<JavaElement> bio = l2MethodsInOrder;
                     IdentityHashMap<MethodElement, Integer> ao = l1MethodOrder;
                     IdentityHashMap<MethodElement, Integer> bo = l2MethodOrder;
 
@@ -340,11 +344,11 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
         reAddSortedMethods(l2, l2MethodsInOrder);
     }
 
-    private static void reAddSortedMethods(List<Element> elements, List<Element> sortedMethods) {
+    private static void reAddSortedMethods(List<JavaElement> elements, List<JavaElement> sortedMethods) {
         int methodRank = JavaElementFactory.getModelTypeRank(MethodElement.class);
         int index = 0;
         for (; index < elements.size(); ++index) {
-            Element e = elements.get(index);
+            JavaElement e = elements.get(index);
             if (JavaElementFactory.getModelTypeRank(e.getClass()) >= methodRank) {
                 break;
             }
@@ -533,7 +537,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer {
     @Override
     public JavaArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
-        return new JavaArchiveAnalyzer(api, jarExtractors, getExecutor(api), configuration.getMissingClassReporting(),
+        return new JavaArchiveAnalyzer(this, api, jarExtractors, getExecutor(api), configuration.getMissingClassReporting(),
                 ignoreMissingAnnotations);
     }
 

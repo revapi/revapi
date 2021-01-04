@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,6 @@
  */
 package org.revapi;
 
-import javax.annotation.Nonnull;
-
 import org.revapi.configuration.Configurable;
 
 /**
@@ -30,11 +28,13 @@ import org.revapi.configuration.Configurable;
  *
  * <p>The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
  * resource acquisition in initialize, not during the construction of the object.
- * 
+ *
+ * @param <E> the base type of elements analyzed by this analyzer
+ *
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ApiAnalyzer extends AutoCloseable, Configurable {
+public interface ApiAnalyzer<E extends Element<E>> extends AutoCloseable, Configurable {
 
     /**
      * This method is called exactly twice during the API difference analysis. The first time it is called to obtain
@@ -44,8 +44,7 @@ public interface ApiAnalyzer extends AutoCloseable, Configurable {
      *
      * @return the analyzer for the supplied archives
      */
-    @Nonnull
-    ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api);
+    ArchiveAnalyzer<E> getArchiveAnalyzer(API api);
 
     /**
      * This method is called exactly once during the API difference analysis and produces an element analyzer which
@@ -56,14 +55,12 @@ public interface ApiAnalyzer extends AutoCloseable, Configurable {
      *
      * @return an element analyzer
      */
-    @Nonnull
-    DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
-        @Nonnull ArchiveAnalyzer newArchive);
+    DifferenceAnalyzer<E> getDifferenceAnalyzer(ArchiveAnalyzer<E> oldArchive, ArchiveAnalyzer<E> newArchive);
 
     /**
      * The correspondence sorter to use when finalizing the comparison order of the elements in the element forest.
      *
      * @return the correspondence sorter, never null
      */
-    @Nonnull CorrespondenceComparatorDeducer getCorrespondenceDeducer();
+    CorrespondenceComparatorDeducer<E> getCorrespondenceDeducer();
 }

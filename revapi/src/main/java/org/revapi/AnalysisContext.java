@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -153,15 +152,15 @@ public final class AnalysisContext {
      * @deprecated use jackson-based methods
      */
     @Deprecated
-    private AnalysisContext(@Nonnull Locale locale, @Nullable ModelNode configuration, @Nonnull API oldApi,
-            @Nonnull API newApi, Collection<ElementMatcher> elementMatchers, @Nonnull Map<String, Object> data,
+    private AnalysisContext(Locale locale, @Nullable ModelNode configuration, API oldApi,
+            API newApi, Collection<ElementMatcher> elementMatchers, Map<String, Object> data,
             Collection<Criticality> knownCriticalities, Map<DifferenceSeverity, Criticality> defaultSeverityMapping) {
         this(locale, JSONUtil.convert(configuration), oldApi, newApi, elementMatchers, data, knownCriticalities,
                 defaultSeverityMapping);
     }
 
-    private AnalysisContext(@Nonnull Locale locale, @Nullable JsonNode configuration, @Nonnull API oldApi,
-            @Nonnull API newApi, Collection<ElementMatcher> elementMatchers, @Nonnull Map<String, Object> data,
+    private AnalysisContext(Locale locale, @Nullable JsonNode configuration, API oldApi,
+            API newApi, Collection<ElementMatcher> elementMatchers, Map<String, Object> data,
             Collection<Criticality> knownCriticalities, Map<DifferenceSeverity, Criticality> defaultSeverityMapping) {
         this.locale = locale;
         if (configuration == null) {
@@ -268,7 +267,6 @@ public final class AnalysisContext {
                 this.criticalityByName.values(), this.defaultSeverityMapping);
     }
 
-    @Nonnull
     public Locale getLocale() {
         return locale;
     }
@@ -277,7 +275,6 @@ public final class AnalysisContext {
      * @deprecated use {@link #getConfigurationNode()} instead
      */
     @Deprecated
-    @Nonnull
     public ModelNode getConfiguration() {
         return JSONUtil.convert(configuration);
     }
@@ -290,17 +287,14 @@ public final class AnalysisContext {
         return configuration;
     }
 
-    @Nonnull
     public API getOldApi() {
         return oldApi;
     }
 
-    @Nonnull
     public API getNewApi() {
         return newApi;
     }
 
-    @Nonnull
     public Map<String, ElementMatcher> getMatchers() {
         return matchers;
     }

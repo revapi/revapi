@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,9 @@ import org.revapi.query.FilteringIterator;
  *
  * @author Lukas Krejci
  * @since 0.1
+ * @deprecated use {@link org.revapi.base.BaseElement} instead
  */
+@Deprecated
 public abstract class SimpleElement implements Element, Cloneable {
     private Element parent;
     private SortedSet<Element> children;
@@ -303,19 +305,19 @@ public abstract class SimpleElement implements Element, Cloneable {
 
     @Override
     @Nonnull
-    public final <T extends Element> List<T> searchChildren(@Nonnull Class<T> resultType, boolean recurse,
-        @Nullable Filter<? super T> filter) {
-        List<T> results = new ArrayList<>();
+    public final List searchChildren(@Nonnull Class resultType, boolean recurse,
+        @Nullable Filter filter) {
+        List results = new ArrayList<>();
         searchChildren(results, resultType, recurse, filter);
         return results;
     }
 
     @Override
-    public final <T extends Element> void searchChildren(@Nonnull List<T> results, @Nonnull Class<T> resultType,
-        boolean recurse, @Nullable Filter<? super T> filter) {
+    public final void searchChildren(@Nonnull List results, @Nonnull Class resultType,
+        boolean recurse, @Nullable Filter filter) {
         for (Element e : getChildren()) {
             if (resultType.isAssignableFrom(e.getClass())) {
-                T te = resultType.cast(e);
+                Object te = resultType.cast(e);
                 if (filter == null || filter.applies(te)) {
                     results.add(te);
                 }
@@ -343,15 +345,15 @@ public abstract class SimpleElement implements Element, Cloneable {
     @Override
     @SuppressWarnings("unchecked")
     @Nonnull
-    public <T extends Element> Iterator<T> iterateOverChildren(@Nonnull Class<T> resultType, boolean recurse,
-        @Nullable Filter<? super T> filter) {
+    public Iterator iterateOverChildren(@Nonnull Class resultType, boolean recurse,
+        @Nullable Filter filter) {
 
         if (children == null) {
             return new EmptyIterator<>();
         }
 
         return recurse ? new DFSFilteringIterator<>(getChildren().iterator(), resultType, filter) :
-            new FilteringIterator<>((Iterator<T>) getChildren().iterator(), resultType, filter);
+            new FilteringIterator<>(getChildren().iterator(), resultType, filter);
     }
 
     @Nonnull

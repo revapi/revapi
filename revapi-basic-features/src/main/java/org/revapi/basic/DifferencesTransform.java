@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,10 +38,11 @@ import org.revapi.Criticality;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Element;
+import org.revapi.TreeFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DifferencesTransform extends AbstractDifferenceReferringTransform {
+public class DifferencesTransform<E extends Element<E>> extends AbstractDifferenceReferringTransform<E> {
     private static final Logger LOG = LoggerFactory.getLogger(DifferencesTransform.class);
 
     private JsonNode bulkClassify;
@@ -203,31 +204,39 @@ public class DifferencesTransform extends AbstractDifferenceReferringTransform {
         }
 
         @Override
-        public Difference transformMatching(Difference difference, Element oldElement, Element newElement) {
-            if (ignore) {
-                return null;
-            }
+        protected <E extends Element<E>> MatchingProgress<E> createMatchingProgress(@Nullable TreeFilter<E> oldFilter,
+                @Nullable TreeFilter<E> newFilter) {
+            return new MatchingProgress<E>(regex, code, codeRegex, oldFilter, newFilter, attachments, attachmentRegexes) {
+                @Nullable
+                @Override
+                public Difference transformMatching(Difference difference, Element<?> oldElement,
+                        Element<?> newElement) {
+                    if (ignore) {
+                        return null;
+                    }
 
-            // avoid creating a copy when no updates would be made...
-            if (justification == null && classification.isEmpty() && newAttachments.isEmpty() && criticality == null) {
-                return difference;
-            }
+                    // avoid creating a copy when no updates would be made...
+                    if (justification == null && classification.isEmpty() && newAttachments.isEmpty() && criticality == null) {
+                        return difference;
+                    }
 
-            Difference.Builder copy = Difference.copy(difference);
+                    Difference.Builder copy = Difference.copy(difference);
 
-            if (justification != null) {
-                copy.withJustification(justification);
-            }
+                    if (justification != null) {
+                        copy.withJustification(justification);
+                    }
 
-            if (criticality != null) {
-                copy.withCriticality(criticality);
-            }
+                    if (criticality != null) {
+                        copy.withCriticality(criticality);
+                    }
 
-            copy.addClassifications(classification);
+                    copy.addClassifications(classification);
 
-            copy.addAttachments(newAttachments);
+                    copy.addAttachments(newAttachments);
 
-            return copy.build();
+                    return copy.build();
+                }
+            };
         }
     }
 }

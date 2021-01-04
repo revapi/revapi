@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,11 +35,11 @@ import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
 import org.revapi.ElementFilter;
 import org.revapi.ElementMatcher;
-import org.revapi.TreeFilterProvider;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.ServiceTypeLoader;
+import org.revapi.TreeFilterProvider;
 
 /**
  * Common {@link Analyzer} instantiation logic for mojos.
@@ -298,11 +298,7 @@ class AnalyzerBuilder {
 
             filters.addAll(legacyFilters);
 
-            @SuppressWarnings("unchecked")
-            List<Class<? extends DifferenceTransform<?>>> castTransforms =
-                    (List<Class<? extends DifferenceTransform<?>>>) (List) transforms;
-
-            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(castTransforms).withReporters(reporters)
+            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(transforms).withReporters(reporters)
                 .withMatchers(matchers);
         };
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,8 @@
  */
 package org.revapi.reporter.file;
 
+import static org.revapi.ReportComparator.Strategy.HIERARCHICAL;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,9 +26,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
@@ -34,8 +34,8 @@ import javax.annotation.Nonnull;
 import org.revapi.AnalysisContext;
 import org.revapi.Criticality;
 import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
 import org.revapi.Report;
+import org.revapi.ReportComparator;
 import org.revapi.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -248,34 +248,10 @@ public abstract class AbstractFileReporter implements Reporter {
     }
 
     /**
+     * @see ReportComparator
      * @return a comparator that can be used to sort the reports in the order of the compared elements.
      */
     protected Comparator<Report> getReportsByElementOrderComparator() {
-        return (r1, r2) -> {
-            Element r1El = r1.getOldElement() == null ? r1.getNewElement() : r1.getOldElement();
-            Element r2El = r2.getOldElement() == null ? r2.getNewElement() : r2.getOldElement();
-
-            Deque<Element> r1Ancestry = new ArrayDeque<>();
-            Deque<Element> r2Ancestry = new ArrayDeque<>();
-
-            while (r1El != null) {
-                r1Ancestry.push(r1El);
-                r1El = r1El.getParent();
-            }
-
-            while (r2El != null) {
-                r2Ancestry.push(r2El);
-                r2El = r2El.getParent();
-            }
-
-            while (!r1Ancestry.isEmpty() && !r2Ancestry.isEmpty()) {
-                int order = r1Ancestry.pop().compareTo(r2Ancestry.pop());
-                if (order != 0) {
-                    return order;
-                }
-            }
-
-            return r1Ancestry.size() - r2Ancestry.size();
-        };
+        return new ReportComparator.Builder().withComparisonStrategy(HIERARCHICAL).build();
     }
 }

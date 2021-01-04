@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2020 Lukas Krejci
+    Copyright 2014-2021 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.12.1-SNAPSHOT</version>
+            <version>0.13.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

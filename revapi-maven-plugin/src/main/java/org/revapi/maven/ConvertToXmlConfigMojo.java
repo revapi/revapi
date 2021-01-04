@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ximpleware.AutoPilot;
 import com.ximpleware.VTDGen;
@@ -51,10 +53,11 @@ import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
+import org.revapi.Report;
 import org.revapi.Revapi;
+import org.revapi.base.BaseReporter;
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.JSONUtil;
-import org.revapi.simple.SimpleReporter;
 
 /**
  * This is a helper goal to convert the old JSON Revapi configuration inside the POM files into the new XML based
@@ -337,11 +340,15 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
         void accept(T value) throws Exception;
     }
 
-    public static final class SilentReporter extends SimpleReporter {
+    public static final class SilentReporter extends BaseReporter {
 
         @Override
         public String getExtensionId() {
             return "revapi.maven.internal.silentReporter";
+        }
+
+        @Override
+        public void report(@Nonnull Report report) {
         }
     }
 }

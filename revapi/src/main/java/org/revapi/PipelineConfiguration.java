@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +82,7 @@ import org.revapi.configuration.JSONUtil;
  * called the extension ID).
  */
 public final class PipelineConfiguration {
-    private final Set<Class<? extends ApiAnalyzer>> apiAnalyzerTypes;
+    private final Set<Class<? extends ApiAnalyzer<?>>> apiAnalyzerTypes;
     private final Set<Class<? extends Reporter>> reporterTypes;
     private final Set<Class<? extends DifferenceTransform<?>>> transformTypes;
     private final Set<Class<? extends TreeFilterProvider>> treeFilterTypes;
@@ -193,7 +193,7 @@ public final class PipelineConfiguration {
     @Deprecated
     public static PipelineConfiguration parse(ModelNode json, Collection<Class<? extends ApiAnalyzer>> analyzers,
             Collection<Class<? extends TreeFilterProvider>> filters,
-            Collection<Class<? extends DifferenceTransform<?>>> transforms,
+            Collection<Class<? extends DifferenceTransform>> transforms,
             Collection<Class<? extends Reporter>> reporters,
             Collection<Class<? extends ElementMatcher>> matchers) {
         return parse(JSONUtil.convert(json), analyzers, filters, transforms, reporters, matchers);
@@ -216,7 +216,7 @@ public final class PipelineConfiguration {
      */
     public static PipelineConfiguration parse(JsonNode json, Collection<Class<? extends ApiAnalyzer>> analyzers,
             Collection<Class<? extends TreeFilterProvider>> filters,
-            Collection<Class<? extends DifferenceTransform<?>>> transforms,
+            Collection<Class<? extends DifferenceTransform>> transforms,
             Collection<Class<? extends Reporter>> reporters,
             Collection<Class<? extends ElementMatcher>> matchers) {
 
@@ -258,7 +258,7 @@ public final class PipelineConfiguration {
                         n -> n.path("criticality").asText()));
     }
 
-    public PipelineConfiguration(Set<Class<? extends ApiAnalyzer>> apiAnalyzerTypes,
+    public PipelineConfiguration(Set<Class<? extends ApiAnalyzer<?>>> apiAnalyzerTypes,
             Set<Class<? extends Reporter>> reporterTypes, Set<Class<? extends DifferenceTransform<?>>> transformTypes,
             Set<Class<? extends TreeFilterProvider>> treeFilterTypes, Set<Class<? extends ElementMatcher>> matcherTypes,
             Set<List<String>> transformationBlocks,
@@ -289,7 +289,7 @@ public final class PipelineConfiguration {
         this.severityMapping = severityMapping;
     }
 
-    public Set<Class<? extends ApiAnalyzer>> getApiAnalyzerTypes() {
+    public Set<Class<? extends ApiAnalyzer<?>>> getApiAnalyzerTypes() {
         return apiAnalyzerTypes;
     }
 
@@ -364,7 +364,7 @@ public final class PipelineConfiguration {
     public static final class Builder {
         private Set<Class<? extends ApiAnalyzer>> analyzers = null;
         private Set<Class<? extends Reporter>> reporters = null;
-        private Set<Class<? extends DifferenceTransform<?>>> transforms = null;
+        private Set<Class<? extends DifferenceTransform>> transforms = null;
         private Set<Class<? extends TreeFilterProvider>> filters = null;
         private Set<Class<? extends ElementMatcher>> matchers = null;
         private Set<List<String>> transformationBlocks = null;
@@ -430,39 +430,23 @@ public final class PipelineConfiguration {
         }
 
         public Builder withTransformsFromThreadContextClassLoader() {
-            //don't you love Java generics? ;)
-            @SuppressWarnings("rawtypes")
-            Iterable trs = ServiceTypeLoader.load(DifferenceTransform.class);
-
-            @SuppressWarnings("unchecked")
-            Iterable<Class<? extends DifferenceTransform<?>>> rtrs
-                    = (Iterable<Class<? extends DifferenceTransform<?>>>) trs;
-
-            return withTransforms(rtrs);
+            return withTransforms(ServiceTypeLoader.load(DifferenceTransform.class));
         }
 
         public Builder withTransformsFrom(ClassLoader cl) {
-            //don't you love Java generics? ;)
-            @SuppressWarnings("rawtypes")
-            Iterable trs = ServiceTypeLoader.load(DifferenceTransform.class, cl);
-
-            @SuppressWarnings("unchecked")
-            Iterable<Class<? extends DifferenceTransform<?>>> rtrs
-                    = (Iterable<Class<? extends DifferenceTransform<?>>>) trs;
-
-            return withTransforms(rtrs);
+            return withTransforms(ServiceTypeLoader.load(DifferenceTransform.class, cl));
         }
 
         @SafeVarargs
-        public final Builder withTransforms(Class<? extends DifferenceTransform<?>>... transforms) {
+        public final Builder withTransforms(Class<? extends DifferenceTransform>... transforms) {
             return withTransforms(Arrays.asList(transforms));
         }
 
-        public Builder withTransforms(Iterable<Class<? extends DifferenceTransform<?>>> transforms) {
+        public Builder withTransforms(Iterable<Class<? extends DifferenceTransform>> transforms) {
             if (this.transforms == null) {
                 this.transforms = new HashSet<>();
             }
-            for (Class<? extends DifferenceTransform<?>> t : transforms) {
+            for (Class<? extends DifferenceTransform> t : transforms) {
                 this.transforms.add(t);
             }
 
@@ -787,7 +771,7 @@ public final class PipelineConfiguration {
         public PipelineConfiguration build() throws IllegalStateException {
             Set<Class<? extends ApiAnalyzer>> analyzers = this.analyzers == null ? emptySet() : new HashSet<>(this.analyzers);
             Set<Class<? extends Reporter>> reporters = this.reporters == null ? emptySet() : new HashSet<>(this.reporters);
-            Set<Class<? extends DifferenceTransform<?>>> transforms = this.transforms == null ? emptySet() : new HashSet<>(this.transforms);
+            Set<Class<? extends DifferenceTransform>> transforms = this.transforms == null ? emptySet() : new HashSet<>(this.transforms);
             Set<Class<? extends TreeFilterProvider>> filters = this.filters == null ? emptySet() : new HashSet<>(this.filters);
             Set<Class<? extends ElementMatcher>> matchers = this.matchers == null ? emptySet() : new HashSet<>(this.matchers);
             Set<List<String>> transformationBlocks = this.transformationBlocks == null ? emptySet() : new HashSet<>(this.transformationBlocks);
@@ -843,7 +827,8 @@ public final class PipelineConfiguration {
                         " Missing mapping for: " + expectedMappings);
             }
 
-            return new PipelineConfiguration(analyzers, reporters, transforms, filters, matchers, transformationBlocks,
+            return new PipelineConfiguration((Set) analyzers, reporters, (Set) transforms, (Set) filters,
+                    (Set) matchers, transformationBlocks,
                     includedAnalyzerExtensionIds, excludedAnalyzerExtensionIds, includedReporterExtensionIds,
                     excludedReporterExtensionIds, includedTransformExtensionIds, excludedTransformExtensionIds,
                     includedFilterExtensionIds, excludedFilterExtensionIds, includedMatcherExtensionIds,

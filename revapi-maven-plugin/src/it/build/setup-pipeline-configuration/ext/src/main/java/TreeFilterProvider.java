@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,8 +29,8 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.TreeFilter;
 
 public class TreeFilterProvider implements org.revapi.TreeFilterProvider {
-    public TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer) {
-        return null;
+    public Optional<TreeFilter> filterFor(ArchiveAnalyzer archiveAnalyzer) {
+        return Optional.empty();
     }
 
 

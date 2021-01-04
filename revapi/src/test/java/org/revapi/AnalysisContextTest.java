@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
 import org.junit.Test;
+import org.revapi.base.BaseReporter;
 import org.revapi.configuration.JSONUtil;
-import org.revapi.simple.SimpleReporter;
 
 /**
  * @author Lukas Krejci
@@ -180,10 +180,14 @@ public class AnalysisContextTest {
         Assert.assertEquals(new ModelNode(), ctx.getConfigurationNode());
     }
 
-    public static final class TestReporter extends SimpleReporter {
+    public static final class TestReporter extends BaseReporter {
         @Override
         public String getExtensionId() {
             return "reporter";
+        }
+
+        @Override
+        public void report(@Nonnull Report report) {
         }
     }
 

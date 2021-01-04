@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,15 +16,17 @@
  */
 package org.revapi.simple;
 
+import javax.annotation.Nonnull;
+
 import org.revapi.Report;
 import org.revapi.Reporter;
-
-import javax.annotation.Nonnull;
 
 /**
  * @author Lukas Krejci
  * @since 0.4.0
+ * @deprecated use {@link org.revapi.base.BaseReporter} instead
  */
+@Deprecated
 public abstract class SimpleReporter extends SimpleConfigurable implements Reporter {
     @Override
     public void report(@Nonnull Report report) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +55,7 @@ public final class ProbingEnvironment implements TypeEnvironment {
 
     public ProbingEnvironment(API api) {
         this.api = api;
-        this.tree = new JavaElementForest(api, this);
+        this.tree = new JavaElementForest(api);
     }
 
     public API getApi() {

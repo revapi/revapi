@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
@@ -39,8 +37,8 @@ import org.revapi.TreeFilter;
 import org.revapi.basic.ConfigurableElementFilter;
 import org.revapi.java.matcher.JavaElementMatcher;
 import org.revapi.java.model.JavaElementForest;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
-import org.revapi.simple.SimpleElementFilter;
 
 /**
  * @author Lukas Krejci
@@ -49,7 +47,7 @@ import org.revapi.simple.SimpleElementFilter;
 public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testFilterByName_exclude() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A {}\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"class classfilter.A {}\"}]}}}}",
                 Stream.of(
                         "class classfilter.B",
                         "field classfilter.B.field",
@@ -63,7 +61,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testFilterByName_include() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A {}\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"java\", \"match\": \"class classfilter.A {}\"}]}}}}",
                 Stream.of(
                         "class classfilter.A",
                         "method void classfilter.A::m()",
@@ -78,8 +76,8 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testInnerClassExclusionOverride() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"matcher.java\", \"match\": \"class classfilter.A {}\"}]," +
-                " \"include\": [{\"matcher\": \"matcher.java\", \"match\": \"match %a|%b; class %a=classfilter.A.AA.AAA {} class %b=classfilter.B {}\"}]}}}}",
+        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"class classfilter.A {}\"}]," +
+                " \"include\": [{\"matcher\": \"java\", \"match\": \"match %a|%b; class %a=classfilter.A.AA.AAA {} class %b=classfilter.B {}\"}]}}}}",
                 Stream.of(
                         "class classfilter.A.AA.AAA",
                         "method void classfilter.A.AA.AAA::<init>()",
@@ -123,7 +121,7 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
 
             JavaElementForest forest = archiveAnalyzer.analyze(TreeFilter.matchAndDescend());
 
-            List<Element> results = forest.search(Element.class, true, filter.filterFor(archiveAnalyzer), null);
+            List<JavaElement> results = forest.stream(JavaElement.class, true, filter.filterFor(archiveAnalyzer).orElse(null), null).collect(toList());
 
             archiveAnalyzer.getCompilationValve().removeCompiledResults();
 
@@ -153,23 +151,6 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
             Assert.assertEquals(expected, actual);
         } finally {
             deleteDir(archive.compilationPath);
-        }
-    }
-
-    private static class AcceptingFilter extends SimpleElementFilter {
-        @Override
-        public boolean applies(@Nullable Element element) {
-            return true;
-        }
-
-        @Override
-        public boolean shouldDescendInto(@Nullable Object element) {
-            return true;
-        }
-
-        @Override
-        public String getExtensionId() {
-            return "accepting-filter";
         }
     }
 }

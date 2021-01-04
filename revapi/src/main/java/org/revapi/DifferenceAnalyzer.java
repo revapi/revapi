@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface DifferenceAnalyzer extends AutoCloseable {
+public interface DifferenceAnalyzer<E extends Element<E>> extends AutoCloseable {
 
     /**
      * Called right before the analysis starts. Can be used to "warm up" the analyzer. The corresponding
@@ -41,7 +41,7 @@ public interface DifferenceAnalyzer extends AutoCloseable {
      * @param oldElement the element from the old archives
      * @param newElement the element from the new archives
      */
-    void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement);
+    void beginAnalysis(@Nullable E oldElement, @Nullable E newElement);
 
     /**
      * Tells whether the analyzer needs to descend "into" the two provided elements. This is called after
@@ -55,7 +55,7 @@ public interface DifferenceAnalyzer extends AutoCloseable {
      * @param newElement the element from the new archives
      * @return true when the analysis should also include the children of the provided elements, false otherwise.
      */
-    boolean isDescendRequired(@Nullable Element oldElement, @Nullable Element newElement);
+    boolean isDescendRequired(@Nullable E oldElement, @Nullable E newElement);
 
     /**
      * Called when the analysis of the two elements ends (i.e. all the children have been visited).
@@ -65,5 +65,5 @@ public interface DifferenceAnalyzer extends AutoCloseable {
      *
      * @return a report detailing the difference found between these two elements
      */
-    Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement);
+    Report endAnalysis(@Nullable E oldElement, @Nullable E newElement);
 }

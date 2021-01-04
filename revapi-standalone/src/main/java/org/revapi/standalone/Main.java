@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,8 +57,8 @@ import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Revapi;
+import org.revapi.base.FileArchive;
 import org.revapi.maven.utils.ArtifactResolver;
-import org.revapi.simple.FileArchive;
 import org.slf4j.LoggerFactory;
 import pw.krejci.modules.maven.MavenBootstrap;
 import pw.krejci.modules.maven.ModuleSpecController;
@@ -501,5 +501,3 @@ public final class Main {
         }
     }
 }
-
-

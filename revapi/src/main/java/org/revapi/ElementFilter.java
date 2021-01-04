@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +16,11 @@
  */
 package org.revapi;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.Optional;
 
-import javax.annotation.Nullable;
-
+import org.revapi.base.IndependentTreeFilter;
 import org.revapi.configuration.Configurable;
 import org.revapi.query.Filter;
-import org.revapi.simple.RepeatingTreeFilter;
 
 /**
  * An element filter is a type of extension that can serve as an input filter on the element forest.
@@ -42,13 +39,12 @@ import org.revapi.simple.RepeatingTreeFilter;
  * @deprecated use {@link TreeFilterProvider} instead
  */
 @Deprecated
-public interface ElementFilter extends TreeFilterProvider, Filter<Element>, AutoCloseable, Configurable {
-    @Nullable
+public interface ElementFilter extends TreeFilterProvider, Filter<Element<?>>, AutoCloseable, Configurable {
     @Override
-    default TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer) {
-        return new RepeatingTreeFilter() {
+    default <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
+        return Optional.of(new IndependentTreeFilter<E>() {
             @Override
-            public FilterStartResult doStart(Element element) {
+            public FilterStartResult doStart(E element) {
                 boolean applies = applies(element);
                 boolean descends = shouldDescendInto(element);
 
@@ -56,11 +52,6 @@ public interface ElementFilter extends TreeFilterProvider, Filter<Element>, Auto
 
                 return FilterStartResult.direct(res, descends);
             }
-
-            @Override
-            public Map<Element, FilterFinishResult> finish() {
-                return Collections.emptyMap();
-            }
-        };
+        });
     }
 }

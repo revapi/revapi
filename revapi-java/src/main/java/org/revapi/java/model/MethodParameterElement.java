@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,8 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
-import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaMethodParameterElement;
 import org.revapi.java.spi.Util;
@@ -65,7 +65,7 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
     }
 
     @Override
-    public int compareTo(@Nonnull Element o) {
+    public int compareTo(@Nonnull JavaElement o) {
         if (!(o.getClass().equals(MethodParameterElement.class))) {
             return JavaElementFactory.compareByType(this, o);
         }

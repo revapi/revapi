@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,12 +20,15 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.revapi.Report;
+import org.revapi.base.BaseReporter;
 import org.revapi.configuration.ValidationResult;
-import org.revapi.simple.SimpleReporter;
 
 /**
  * @author Lukas Krejci
@@ -62,10 +65,14 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
         }
     }
 
-    public static final class ValidateReporter extends SimpleReporter {
+    public static final class ValidateReporter extends BaseReporter {
         @Override
         public String getExtensionId() {
             return "revapi.maven.validate-configuration-mojo-reporter";
+        }
+
+        @Override
+        public void report(@Nonnull Report report) {
         }
     }
 }

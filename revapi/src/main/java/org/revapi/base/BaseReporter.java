@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,30 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.revapi.simple;
+package org.revapi.base;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Nonnull;
-
-import org.revapi.Report;
 import org.revapi.Reporter;
 
 /**
- * This is a simple helper class that can be used by the users to collect all the
- * reports from Revapi.
+ * A convenience base class for reporters.
  */
-public abstract class CollectingReporter extends SimpleConfigurable implements Reporter {
-
-    private final List<Report> reports = new ArrayList<>();
-
+public abstract class BaseReporter extends BaseConfigurable implements Reporter {
     @Override
-    public void report(@Nonnull Report report) {
-        reports.add(report);
-    }
+    public void close() throws Exception {
 
-    public List<Report> getReports() {
-        return reports;
     }
 }

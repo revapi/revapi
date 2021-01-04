@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -172,7 +172,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(34L, reports.stream().mapToLong(r -> r.getDifferences().size()).sum());
     }
-        
+
     @Test
     public void testDefaultValueChangedCheck() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
@@ -189,9 +189,9 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "v1/methods/DefaultValue.java", "v2/methods/DefaultValue.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters()
-            .get(Code.METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE.code()));
+                .get(Code.METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters()
-            .get(Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE.code()));
+                .get(Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE.code()));
         Assert.assertNull(reporter.getProblemCounters().get(Code.METHOD_ABSTRACT_METHOD_ADDED.code()));
     }
 
@@ -201,7 +201,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "v2/methods/DefaultValue.java", "v1/methods/DefaultValue.java");
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters()
-            .get(Code.METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE.code()));
+                .get(Code.METHOD_ATTRIBUTE_REMOVED_FROM_ANNOTATION_TYPE.code()));
         Assert.assertNull(reporter.getProblemCounters().get(Code.METHOD_REMOVED.code()));
     }
 
@@ -213,7 +213,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NOW_FINAL.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_NO_LONGER_FINAL.code()));
         Assert.assertEquals(1,
-            (int) reporter.getProblemCounters().get(Code.METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS.code()));
+                (int) reporter.getProblemCounters().get(Code.METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS.code()));
     }
 
     @Test
@@ -233,7 +233,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.METHOD_RETURN_TYPE_CHANGED.code()));
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_RETURN_TYPE_CHANGED_COVARIANTLY.code()));
         Assert.assertEquals(3,
-            (int) reporter.getProblemCounters().get(Code.METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED.code()));
+                (int) reporter.getProblemCounters().get(Code.METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED.code()));
     }
 
     @Test
@@ -242,7 +242,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "v1/methods/NofParams.java", "v2/methods/NofParams.java");
 
         Assert
-            .assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED.code()));
+                .assertEquals(2, (int) reporter.getProblemCounters().get(Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED.code()));
     }
 
     @Test
@@ -251,6 +251,28 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "v1/methods/ParamType.java", "v2/methods/ParamType.java");
 
         Assert.assertEquals(3, (int) reporter.getProblemCounters().get(Code.METHOD_PARAMETER_TYPE_CHANGED.code()));
+    }
+
+    @Test
+    public void testParamTypeChangedIgnore() throws Exception {
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "[{" +
+                        "\"extension\": \"revapi.differences\"," +
+                        "\"configuration\": {" +
+                        "\"ignore\": true," +
+                        "\"differences\": [" +
+                        "{" +
+                        "\"code\": \"" + Code.METHOD_PARAMETER_TYPE_CHANGED.code() + "\"," +
+                        "\"old\": {" +
+                        "\"matcher\": \"java\"," +
+                        "\"match\": \"type ParamType { ^method1(int, **); }\"" +
+                        "}," +
+                        "\"parameterIndex\": 2" +
+                        "}" +
+                        "]}}]",
+                "v1/methods/ParamType.java", "v2/methods/ParamType.java");
+
+        Assert.assertEquals(2, (int) reporter.getProblemCounters().getOrDefault(Code.METHOD_PARAMETER_TYPE_CHANGED.code(), 0));
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,17 @@ package org.revapi;
  * @author Lukas Krejci
  * @since 0.1
  */
-public interface ArchiveAnalyzer {
+public interface ArchiveAnalyzer<E extends Element<E>> {
+
+    /**
+     * @return the {@link ApiAnalyzer} that created this instance
+     */
+    ApiAnalyzer<E> getApiAnalyzer();
+
+    /**
+     * @return the API that this analyzer analyzes
+     */
+    API getApi();
 
     /**
      * Analyzes the API archives and filters the forest using the provided filter.
@@ -36,7 +46,7 @@ public interface ArchiveAnalyzer {
      * @param filter the filter to use to "prune" the forest
      * @return the element forest ready for analysis
      */
-    ElementForest analyze(TreeFilter filter);
+    ElementForest<E> analyze(TreeFilter<E> filter);
 
     /**
      * Once all the filtering on the element forest is done, the analyzer is allowed one final "pass" through the forest
@@ -44,5 +54,5 @@ public interface ArchiveAnalyzer {
      *
      * @param forest the forest to prune
      */
-    void prune(ElementForest forest);
+    void prune(ElementForest<E> forest);
 }

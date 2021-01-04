@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,18 +40,21 @@ public final class AnalysisConfiguration {
     private final MissingClassReporting missingClassReporting;
     private final Set<String> useReportingCodes;
     private final boolean ignoreMissingAnnotations;
+    private final boolean matchOverloads;
 
     AnalysisConfiguration(MissingClassReporting missingClassReporting, Set<String> useReportingCodes,
-                                 boolean ignoreMissingAnnotations) {
+                                 boolean ignoreMissingAnnotations, boolean matchOverloads) {
         this.missingClassReporting = missingClassReporting;
         this.useReportingCodes = useReportingCodes;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
+        this.matchOverloads = matchOverloads;
     }
 
     public static AnalysisConfiguration fromModel(JsonNode node) {
         MissingClassReporting reporting = readMissingClassReporting(node);
         Set<String> useReportingCodes = readUseReportingCodes(node);
         boolean ignoreMissingAnnotations = readIgnoreMissingAnnotations(node);
+        boolean matchOverloads = readMatchOverloads(node);
 
         JsonNode classesRegex = node.path("filter").path("classes").path("regex");
         JsonNode packagesRegex = node.path("filter").path("packages").path("regex");
@@ -71,7 +74,7 @@ public final class AnalysisConfiguration {
                     " together with the java specific matchers (matcher.java).");
         }
 
-        return new AnalysisConfiguration(reporting, useReportingCodes, ignoreMissingAnnotations);
+        return new AnalysisConfiguration(reporting, useReportingCodes, ignoreMissingAnnotations, matchOverloads);
     }
 
     public MissingClassReporting getMissingClassReporting() {
@@ -88,6 +91,10 @@ public final class AnalysisConfiguration {
 
     public boolean isIgnoreMissingAnnotations() {
         return ignoreMissingAnnotations;
+    }
+
+    public boolean isMatchOverloads() {
+        return matchOverloads;
     }
 
     private static MissingClassReporting readMissingClassReporting(JsonNode analysisConfig) {
@@ -112,6 +119,10 @@ public final class AnalysisConfiguration {
     private static boolean readIgnoreMissingAnnotations(JsonNode analysisConfig) {
         JsonNode config = analysisConfig.path("missing-classes").path("ignoreMissingAnnotations");
         return config.asBoolean(false);
+    }
+
+    private static boolean readMatchOverloads(JsonNode analysisConfig) {
+        return analysisConfig.path("matchOverloads").asBoolean(true);
     }
 
     private static @Nullable Set<String> readUseReportingCodes(JsonNode analysisConfig) {

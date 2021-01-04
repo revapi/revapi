@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -145,7 +145,7 @@ public final class FilterStartResult {
         default:
             throw new IllegalArgumentException("Unhandled match type: " + getMatch());
         }
-        return from(getMatch().and(other.getMatch()), isDescend() && other.isDescend(), newInherited);
+        return from(getMatch().and(other.getMatch()), isDescend() || other.isDescend(), newInherited);
     }
 
     public FilterStartResult and(Iterable<FilterStartResult> others) {

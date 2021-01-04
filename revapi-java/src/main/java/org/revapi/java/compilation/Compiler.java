@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,6 +47,7 @@ import org.revapi.TreeFilter;
 import org.revapi.java.AnalysisConfiguration;
 import org.revapi.java.Timing;
 import org.revapi.java.spi.JarExtractor;
+import org.revapi.java.spi.JavaElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,13 +63,13 @@ public final class Compiler {
     private final Iterable<? extends Archive> classPath;
     private final Iterable<? extends Archive> additionalClassPath;
     private final ExecutorService executor;
-    private final TreeFilter filter;
+    private final TreeFilter<JavaElement> filter;
     private final Iterable<JarExtractor> jarExtractors;
 
     public Compiler(ExecutorService executor, Writer reportingOutput,
             Iterable<JarExtractor> jarExtractors,
             Iterable<? extends Archive> classPath,
-            Iterable<? extends Archive> additionalClassPath, TreeFilter filter) {
+            Iterable<? extends Archive> additionalClassPath, TreeFilter<JavaElement> filter) {
         this.jarExtractors = jarExtractors;
 
         compiler = ToolProvider.getSystemJavaCompiler();

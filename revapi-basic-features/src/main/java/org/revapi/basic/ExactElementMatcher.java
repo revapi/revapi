@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,20 +17,19 @@
 package org.revapi.basic;
 
 import java.io.Reader;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
+import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
-import org.revapi.FilterFinishResult;
 import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
-import org.revapi.simple.RepeatingTreeFilter;
+import org.revapi.TreeFilter;
+import org.revapi.base.IndependentTreeFilter;
 
 /**
  * @author Lukas Krejci
@@ -38,7 +37,12 @@ import org.revapi.simple.RepeatingTreeFilter;
 public final class ExactElementMatcher implements ElementMatcher {
     @Override
     public Optional<CompiledRecipe> compile(String recipe) {
-        return Optional.of(__ -> new StringMatch(recipe));
+        return Optional.of(new CompiledRecipe() {
+            @Override
+            public <E extends Element<E>> TreeFilter<E> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
+                return new StringMatch<>(recipe);
+            }
+        });
     }
 
     @Override
@@ -63,7 +67,7 @@ public final class ExactElementMatcher implements ElementMatcher {
 
     }
 
-    private static final class StringMatch extends RepeatingTreeFilter {
+    private static final class StringMatch<E extends Element<E>> extends IndependentTreeFilter<E> {
         final String match;
 
         private StringMatch(String match) {
@@ -71,14 +75,9 @@ public final class ExactElementMatcher implements ElementMatcher {
         }
 
         @Override
-        protected FilterStartResult doStart(Element element) {
+        protected FilterStartResult doStart(E element) {
             boolean m = match.equals(element.getFullHumanReadableString());
             return FilterStartResult.direct(FilterMatch.fromBoolean(m), m);
-        }
-
-        @Override
-        public Map<Element, FilterFinishResult> finish() {
-            return Collections.emptyMap();
         }
     }
 }

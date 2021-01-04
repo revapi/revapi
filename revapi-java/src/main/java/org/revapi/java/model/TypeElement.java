@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.revapi.java.model;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -39,11 +40,11 @@ import org.revapi.java.compilation.ClassPathUseSite;
 import org.revapi.java.compilation.InheritedUseSite;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.compilation.UseSitePath;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 import org.revapi.java.spi.Util;
-import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
@@ -92,16 +93,16 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     @Override
     protected String getHumanReadableElementType() {
         switch (element.getKind()) {
-            case ANNOTATION_TYPE:
-                return "@interface";
-            case CLASS:
-                return "class";
-            case ENUM:
-                return "enum";
-            case INTERFACE:
-                return "interface";
-            default:
-                return "class";
+        case ANNOTATION_TYPE:
+            return "@interface";
+        case CLASS:
+            return "class";
+        case ENUM:
+            return "enum";
+        case INTERFACE:
+            return "interface";
+        default:
+            return "class";
         }
     }
 
@@ -113,15 +114,18 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return canonicalName;
     }
 
-    @Override public boolean isInAPI() {
+    @Override
+    public boolean isInAPI() {
         return inApi;
     }
 
-    @Override public boolean isInApiThroughUse() {
+    @Override
+    public boolean isInApiThroughUse() {
         return inApiThroughUse;
     }
 
-    @Override public Set<UseSite> getUseSites() {
+    @Override
+    public Set<UseSite> getUseSites() {
         if (useSites == null) {
             if (rawUseSites == null) {
                 useSites = new HashSet<>(1);
@@ -202,7 +206,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     }
 
     @Override
-    public int compareTo(@Nonnull org.revapi.Element o) {
+    public int compareTo(@Nonnull JavaElement o) {
         if (!(o.getClass().equals(TypeElement.class))) {
             return JavaElementFactory.compareByType(this, o);
         }
@@ -210,7 +214,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return binaryName.compareTo(((TypeElement) o).binaryName);
     }
 
-    @Override protected String createFullHumanReadableString() {
+    @Override
+    protected String createFullHumanReadableString() {
         TypeMirror rep = getModelRepresentation();
         return getHumanReadableElementType() + " " + (rep == null ? canonicalName : Util.toHumanReadableString(rep));
     }
@@ -228,7 +233,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
     private JavaModelElement getModel(Element element, TypeElement owner, int indexInParent) {
         return element.accept(new SimpleElementVisitor8<JavaModelElement, Void>() {
-            @Override public JavaModelElement visitVariable(VariableElement e, Void ignored) {
+            @Override
+            public JavaModelElement visitVariable(VariableElement e, Void ignored) {
                 if (e.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
                     //this is a field
                     TypeElement type = findModelType(e.getEnclosingElement());
@@ -236,8 +242,9 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                         return null;
                     }
 
-                    List<FieldElement> fs = type.searchChildren(FieldElement.class, false,
-                            Filter.shallow(f -> f.getDeclaringElement().equals(e)));
+                    List<FieldElement> fs = type.stream(FieldElement.class, false)
+                            .filter(f -> f.getDeclaringElement().equals(e))
+                            .collect(toList());
                     return fs.isEmpty() ? null : fs.get(0);
                 } else if (e.getEnclosingElement() instanceof javax.lang.model.element.ExecutableElement) {
                     //this is a method parameter
@@ -247,8 +254,9 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                         return null;
                     }
 
-                    List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
-                            Filter.shallow(m -> m.getDeclaringElement().equals(methodEl)));
+                    List<MethodElement> ms = type.stream(MethodElement.class, false)
+                            .filter(m -> m.getDeclaringElement().equals(methodEl))
+                            .collect(toList());
 
                     if (ms.isEmpty()) {
                         return null;
@@ -258,7 +266,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
                     //now look for the parameter
                     List<MethodParameterElement> params =
-                            method.searchChildren(MethodParameterElement.class, false, Filter.shallow(p -> true));
+                            method.stream(MethodParameterElement.class, false).collect(toList());
 
                     return params.size() > indexInParent ? params.get(indexInParent) : null;
                 } else {
@@ -266,18 +274,21 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 }
             }
 
-            @Override public JavaModelElement visitType(javax.lang.model.element.TypeElement e, Void ignored) {
+            @Override
+            public JavaModelElement visitType(javax.lang.model.element.TypeElement e, Void ignored) {
                 return findModelType(e);
             }
 
-            @Override public JavaModelElement visitExecutable(ExecutableElement e, Void ignored) {
+            @Override
+            public JavaModelElement visitExecutable(ExecutableElement e, Void ignored) {
                 TypeElement type = findModelType(e.getEnclosingElement());
                 if (type == null) {
                     return null;
                 }
 
-                List<MethodElement> ms = type.searchChildren(MethodElement.class, false,
-                        Filter.shallow(m -> m.getDeclaringElement().equals(e)));
+                List<MethodElement> ms = type.stream(MethodElement.class, false)
+                        .filter(m -> m.getDeclaringElement().equals(e))
+                        .collect(toList());
 
                 return ms.isEmpty() ? null : ms.get(0);
             }

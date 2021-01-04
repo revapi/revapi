@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,6 @@
 package org.revapi.java.model;
 
 import java.util.Optional;
-import java.util.SortedSet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -48,7 +47,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     JavaElementBase(ProbingEnvironment env, Archive archive, E element, T representation) {
         super(env);
         this.element = element;
-        this.archive = archive;
+        setArchive(archive);
         this.representation = representation;
     }
 
@@ -62,7 +61,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     }
 
     @Override
-    public void setParent(@Nullable org.revapi.Element parent) {
+    public void setParent(@Nullable JavaElement parent) {
         if (parent != null && !(parent instanceof JavaModelElement)) {
             throw new IllegalArgumentException("A parent must be a java model element.");
         }
@@ -76,7 +75,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     }
 
     @Override
-    public int compareTo(@Nonnull org.revapi.Element o) {
+    public int compareTo(@Nonnull JavaElement o) {
         if (getClass() != o.getClass()) {
             return JavaElementFactory.compareByType(this, o);
         }
@@ -91,13 +90,6 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     @Override
     public T getModelRepresentation() {
         return representation;
-    }
-
-    @Nonnull
-    @Override
-    @SuppressWarnings("unchecked")
-    public SortedSet<JavaElement> getChildren() {
-        return (SortedSet<JavaElement>) super.getChildren();
     }
 
     @Override
@@ -192,11 +184,4 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     }
 
     protected abstract String createComparableSignature();
-
-    @Nonnull
-    @Override
-    protected final SortedSet<org.revapi.Element> newChildrenInstance() {
-        //return new UseSiteUpdatingSortedSet<>(environment, super.newChildrenInstance());
-        return super.newChildrenInstance();
-    }
 }

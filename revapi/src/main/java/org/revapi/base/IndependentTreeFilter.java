@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.revapi.simple;
+package org.revapi.base;
 
 import java.util.IdentityHashMap;
 import java.util.Objects;
@@ -27,20 +27,22 @@ import org.revapi.TreeFilter;
 /**
  * A simple implementation of the {@link TreeFilter} interface that simply repeats the result provided from
  * the {@link #start(Element)} method in its {@link #finish(Element)} method.
+ * <p>
+ * This is what filters that do not depend on any other element usually need.
  */
-public abstract class RepeatingTreeFilter implements TreeFilter {
-    private final IdentityHashMap<Element, FilterFinishResult> cache = new IdentityHashMap<>();
+public abstract class IndependentTreeFilter<E extends Element<E>> extends BaseTreeFilter<E> {
+    private final IdentityHashMap<E, FilterFinishResult> cache = new IdentityHashMap<>();
     @Override
-    public final FilterStartResult start(Element element) {
+    public final FilterStartResult start(E element) {
         FilterStartResult ret = doStart(element);
         cache.put(element, FilterFinishResult.from(ret));
         return ret;
     }
 
-    protected abstract FilterStartResult doStart(Element element);
+    protected abstract FilterStartResult doStart(E element);
 
     @Override
-    public FilterFinishResult finish(Element element) {
+    public FilterFinishResult finish(E element) {
         return Objects.requireNonNull(cache.remove(element));
     }
 }

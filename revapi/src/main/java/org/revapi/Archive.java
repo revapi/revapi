@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +19,6 @@ package org.revapi;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.annotation.Nonnull;
-
 /**
  * A simple abstraction of a file or archive. The archive merely has a name and can be opened as a stream.
  *
@@ -28,10 +26,8 @@ import javax.annotation.Nonnull;
  * @since 0.1
  */
 public interface Archive {
-    @Nonnull
     String getName();
 
-    @Nonnull
     InputStream openStream() throws IOException;
 
     /**
@@ -43,7 +39,7 @@ public interface Archive {
      * @since 0.4.1
      */
     interface Versioned extends Archive {
-        @Nonnull String getVersion();
+        String getVersion();
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -96,12 +95,12 @@ public final class API {
 
     /**
      * @param archives the archives
-     * @param supplementaryArchives the supplemenatry archives
+     * @param supplementaryArchives the supplementary archives
      *
      * @see #getArchives()
      * @see #getSupplementaryArchives()
      */
-    public API(@Nonnull Iterable<? extends Archive> archives,
+    public API(Iterable<? extends Archive> archives,
         @Nullable Iterable<? extends Archive> supplementaryArchives) {
         this.archives = archives;
         this.supplementaryArchives = supplementaryArchives;
@@ -122,7 +121,6 @@ public final class API {
     /**
      * @return The set of archives to check the API of.
      */
-    @Nonnull
     public Iterable<? extends Archive> getArchives() {
         return archives;
     }

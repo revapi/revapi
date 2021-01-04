@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,13 +31,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.Archive;
+import org.revapi.base.FileArchive;
 import org.revapi.java.AbstractJavaElementAnalyzerTest;
+import org.revapi.java.JavaApiAnalyzer;
 import org.revapi.java.JavaArchiveAnalyzer;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.UseSite;
-import org.revapi.simple.FileArchive;
 import org.revapi.testjars.CompiledJar;
 import org.revapi.testjars.junit4.Jar;
 
@@ -175,7 +176,7 @@ public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
 
         environment.setTypeMap(typeMap);
 
-        analyzer = new JavaArchiveAnalyzer(fakeApi, null, null, null, true);
+        analyzer = new JavaArchiveAnalyzer(new JavaApiAnalyzer(), fakeApi, null, null, null, true);
     }
 
     @Test
