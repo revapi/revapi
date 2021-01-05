@@ -1,0 +1,30 @@
+= Reporter Example
+
+This module defines a simple reporter that makes the computer beep whenever it encounters an API change with configured
+severity.
+
+To use the beeping reporter, just build it and bring it to the classpath of Revapi.
+
+In Maven, we would do it like this:
+
+[source,xml,subs=normal]
+----
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.revapi.examples</groupId>
+            <artifactId>reporter</artifactId>
+            <version>0</version>
+        </dependency>
+        ...
+    </dependencies>
+    <configuration>
+        <analysisConfiguration>
+            <beep>breaking</beep>
+        </analysisConfiguration>
+    </configuration>
+</plugin>
+----

@@ -1,25 +1,10 @@
 = Configuration
 
-Each of the extensions (see link:architecture.html[architecture]) can be supplied with configuration. Revapi natively
-uses https://github.com/jbossas/jboss-dmr[JBoss DMR] to represent the configuration in the code and supports JSON to
-read the configuration from files. Revapi can be made to also understand XML (as is done in the Revapi Maven plugin and
-standalone CLI).
+Each of the extensions (see xref:architecture.adoc[architecture]) can be supplied with configuration. Revapi natively
+uses Jackson to represent the configuration in the code and supports JSON or XML to read the configuration from files.
 
 Each extension is uniquely identified using its extension ID, which is supposed to be a dot-separated hierarchical name,
 e.g. `revapi.java`, `revapi.osgi`, etc. This ID is used to locate the configuration for the given extension.
-
-Revapi has been around for a little bit and over the time it has evolved. Originally (up until Revapi API 0.8.0),
-each extension was instantiated exactly once and therefore also configured exactly once. Since Revapi API 0.8.0,
-supported by Revapi Maven plugin 0.9.0 and Revapi CLI 0.6.1 and onwards, there can be multiple configurations for each
-extension (and the extension can be therefore instantiated multiple times). This brings the ability to e.g. have 2
-differently configured text reporter instances, each generating a different kind of output. Unfortunately, this
-complicates the configuration, because it is no longer possible to have a single "configuration tree" where extensions
-would read their configurations from their declared locations.
-
-Therefore, since Revapi API 0.8.0 there is a new kind of JSON format for configuration (which in turn also enables the
-maven plugin and CLI to support XML configuration btw). To ease the migration to the new versions, the old configuration
-format is still supported (but mixing the two formats can lead to unresolvable situations, see the
-<<Multi-file Configuration>> section for more details).
 
 == XML Configuration Format
 
@@ -29,7 +14,8 @@ it is basically ignored and used only as a starting point for reading the actual
 
 For example:
 
-```xml
+[source,xml]
+----
 <revapiExtensionsOrWhatever>
   <revapi.java>
     ...
@@ -41,14 +27,15 @@ For example:
     ...
   </my.extension>
 </revapiExtensionsOrWhatever>
-```
+----
 
 Each of the children, representing the extension instance, has a name that corresponds to the extension ID of
 the extension being configured.
 
 If you want to configure a single extension multiple times, you can do so very simply like this:
 
-```xml
+[source,xml]
+----
 <revapiExtensionsOrWhatever>
   <revapi.reporter.text>
     ...
@@ -58,7 +45,7 @@ If you want to configure a single extension multiple times, you can do so very s
   </revapi.reporter.text>
   ...
 </revapiExtensionsOrWhatever>
-```
+----
 
 Simply having multiple child elements with the same name is enough. If you want to read the revapi configuration from
 multiple files, you might want to declare an additional "extension instance ID" (as opposed to just the extension ID)
@@ -70,7 +57,8 @@ multiple files. Please consult <<Multi-file Configuration>> for more details.
 As explained above, each extension can be configured multiple times. To support this in JSON, the JSON configuration
 looks like this:
 
-```javascript
+[source,javascript]
+----
 [
   {
     "extension": "revapi.reporter.text",
@@ -93,7 +81,7 @@ looks like this:
   },
   ...
 ]
-```
+----
 
 The configuration is a list. The members of the list are individual configuration objects for the extensions.
 The extension being configured is specified by the `extension` key and the configuration (conforming to the schema
@@ -102,42 +90,6 @@ specified by the extension) is present under the `configuration` key.
 The optional `id` key is useful if there are multiple configuration sources (see
 <<Multi-file Configuration,multi file configuration>> for example) as it affects how the configurations from the
 different sources are merged together.
-
-=== The Legacy JSON Configuration Format
-
-WARNING: This describes the obsolete JSON configuration format that cannot handle multiple configurations per extension.
-If you still use it, rest assured that it is still supported (with the exception of certain scenarios during merging
-of multiple configuration sources) but you are encouraged to start using the new configuration format.
-
-The JSON data contains the configuration of all the extensions. Each of the extensions declares a "root" in the JSON
-data from which it reads its configuration (for example, ignoring specific problems found during the analysis can be
-done using the `IgnoreDifferenceTransform` extension from the link:modules/revapi-basic-features/index.html[basic
-features] under the root `revapi.ignore`).
-
-So, without further ado, let's configure the java extension to report the classes it finds missing from the API
-rather than failing the analysis upon encountering them and also only include the archives with `com.acme` groupId in
-the analysis:
-
-```javascript
-{
-  "revapi": {
-    "java": {
-      "missing-classes": {
-        "behavior": "report"
-      }
-    },
-    "filter": {
-      "archives": {
-        "include": ["com\\.acme:.*"]
-      }
-    }
-  }
-}
-```
-
-The configuration options of the various extensions can be found in their respective docs:
-link:../revapi-basic-features/index.html[basic features documentation], link:modules/revapi-java/index.html[java
-extension documentation].
 
 == Multi-file Configuration
 
@@ -155,7 +107,8 @@ need to be merged with what executions in the parent POM.
 
 In Revapi, too, an extension configuration can optionally have an ID. In JSON this is expressed like this:
 
-```javascript
+[source]
+----
 ...
     {
       "extension": "my.extension",
@@ -163,17 +116,18 @@ In Revapi, too, an extension configuration can optionally have an ID. In JSON th
       "configuration": ...
     }
 ...
-```
+----
 
 and in XML like so:
 
-```xml
+[source]
+----
 ...
     <my.extension id="myid">
       ...
     </my.extension>
 ...
-```
+----
 
 When merging configurations without an explicit ID, everything works as long as there is at most a single configuration
 for each extension in each configuration file to be merged. As soon as there is more than one configuration for some
@@ -198,7 +152,8 @@ extensions with certain extension IDs.
 
 E.g. in Maven plugin :
 
-```xml
+[source,xml]
+----
 <build>
   <plugins>
     <plugin>
@@ -229,7 +184,7 @@ E.g. in Maven plugin :
     </plugin>
   </plugins>
 </build>
-```
+----
 
 In the above, you can see that each type of the Revapi extensions can separately specify which extensions of that
 certain type to include and which to exclude (when include is not present, all extensions from the classpath are
@@ -248,7 +203,8 @@ transform before being passed to the other (the xref:revapi::architecture.adoc[a
 
 The transformation blocks are configured, as the allowed extensions, in the pipeline configuration.
 
-```xml
+[source,xml]
+----
 <build>
   <plugins>
     <plugin>
@@ -271,10 +227,67 @@ The transformation blocks are configured, as the allowed extensions, in the pipe
     </plugin>
   </plugins>
 </build>
-```
+----
 
-as explained in the xref:revapi::architecture.adoc[architecture], the transform blocks enable multiple transform to
-"act as one".
+The transform blocks enable multiple transforms to "act as one".
+
+What is this good for?
+
+You can notice that it is hard (read impossible without transformation blocks) to "prepare" differences using one
+transform and then produce the final difference using a different transform.
+
+As an example, let's suppose that we would like to use Revapi for checking semantic versioning of our code, but we would
+only like to base our semantic version on the binary compatibility of the code, disregarding any source or semantic
+incompatibilities.
+
+Such a thing would be impossible without transformation blocks because the transformation algorithm makes sure each
+transform sees all the differences and all changes to the original differences are transferred to the next
+"transformation round".
+
+So, how would we use transformation blocks and how would we configure Revapi to only consider binary compatibility?
+
+Let's use Maven for our example:
+
+[source,xml]
+----
+<analysisConfiguration>
+  <revapi.semver.ignore>
+    <enabled>true</enabled>
+  </revapi.semver.ignore>
+  <revapi.differences>
+      <classify>
+        <SOURCE>EQUIVALENT</SOURCE>
+        <SEMANTIC>EQUIVALENT</SEMANTIC>
+        <OTHER>EQUIVALENT</OTHER>
+      </classify>
+      <differences>
+        <item>
+          <regex>true</regex>
+          <code>.*</code>
+        </item>
+      </differences>
+  </revapi.differences>
+</analysisConfiguration>
+<pipelineConfiguration>
+  <transformBlocks>
+    <block>
+      <item>revapi.differences</item>
+      <item>revapi.semver.ignore</item>
+    </block>
+  </transformBlocks>
+</pipelineConfiguration>
+----
+
+What have we done there? The analysis configuration looks "normal". We enable the `revapi.semver.ignore` extension and
+leave it with the default configuration. We additionally configure `revapi.differences` to tone down any difference
+(with any code, by using `.*` as the regex to match any difference code) to `EQUIVALENT`, effectively "switching them
+off" for all compatibility types but `BINARY`.
+
+The new thing is in the `pipelineConfiguration`. This tells Revapi to group the two transforms together and consider
+them as one - the "output" difference of `revapi.reclassify` is used as "input" difference to `revapi.semver.ignore` and
+"output" of that is used for the reporting purposes. The important thing is that `revapi.semver.ignore` never sees
+the original differences as reported by the analyzer. It only ever sees the differences first transformed by
+`revapi.differences`.
 
 === Criticality
 
@@ -293,7 +306,8 @@ assigned to a difference during the analysis.
 
 The criticalities available in the analyses are defined in the plugin configuration:
 
-```xml
+[source,xml]
+----
 <build>
   <plugins>
     <plugin>
@@ -318,7 +332,7 @@ The criticalities available in the analyses are defined in the plugin configurat
     </plugin>
   </plugins>
 </build>
-```
+----
 
 Here, we define that the only 2 criticalities are available in our analysis: `OK` and `KO`. The higher the level,
 the more severe the criticality is.
@@ -326,7 +340,8 @@ the more severe the criticality is.
 The default mapping of severities to criticalities can be defined in the maven configuration as well. Note that if you
 define custom criticalities, the mapping is required:
 
-```xml
+[source,xml]
+----
 <build>
   <plugins>
     <plugin>
@@ -347,7 +362,7 @@ define custom criticalities, the mapping is required:
           </criticalities>
           <severityMapping>
             <equivalent>OK</equivalent>
-            <nonBreaking>OK<nonBreaking>
+            <nonBreaking>OK</nonBreaking>
             <potentiallyBreaking>KO</potentiallyBreaking>
             <breaking>KO</breaking>
           </severityMapping>
@@ -357,5 +372,60 @@ define custom criticalities, the mapping is required:
     </plugin>
   </plugins>
 </build>
-```
+----
+
+The default mapping for converting a difference severity to criticality is rather conservative:
+
+* `EQUIVALENT` is assumed to have `allowed` criticality
+* `NON_BREAKING` is assumed to have `documented` criticality
+* `POTENTIALLY_BREAKING` is assumed to have `error` criticality
+* `BREAKING` is assumed to have `error` criticality
+
+== The Legacy JSON Configuration Format
+
+WARNING: This describes the obsolete JSON configuration format that cannot handle multiple configurations per extension.
+If you still use it, rest assured that it is still supported (with the exception of certain scenarios during merging
+of multiple configuration sources) but you are encouraged to start using the new configuration format.
+
+WARNING: The support for old JSON configuration format will be removed with Revapi 1.0.0.
+
+Revapi has been around for a little bit and over the time it has evolved. Originally (up until Revapi API 0.8.0),
+each extension was instantiated exactly once and therefore also configured exactly once. Since Revapi API 0.8.0,
+supported by Revapi Maven plugin 0.9.0 and Revapi CLI 0.6.1 and onward, there can be multiple configurations for each
+extension (and the extension can be therefore instantiated multiple times). This brings the ability to e.g. have 2
+differently configured text reporter instances, each generating a different kind of output. Unfortunately, this
+complicates the configuration, because it is no longer possible to have a single "configuration tree" where extensions
+would read their configurations from their declared locations.
+
+Therefore, since Revapi API 0.8.0, there is a new kind of JSON format for configuration (which in turn also enables the
+maven plugin and CLI to support XML configuration btw). To ease the migration to the new versions, the old configuration
+format is still supported (but mixing the two formats can lead to unresolvable situations, see the
+<<Multi-file Configuration>> section for more details).
+
+The JSON data in the old format contains the configuration of all the extensions. Each of the extensions declares a
+"root" in the JSON data from which it reads its configuration (for example, ignoring specific problems found during
+the analysis can be done using the `IgnoreDifferenceTransform` extension from the
+xref:revapi-basic-features:ROOT:index.adoc[basic features] under the root `revapi.ignore`).
+
+So, without further ado, let's configure the java extension to report the classes it finds missing from the API
+rather than failing the analysis upon encountering them and also only include the archives with `com.acme` groupId in
+the analysis:
+
+[source,javascript]
+----
+{
+  "revapi": {
+    "java": {
+      "missing-classes": {
+        "behavior": "report"
+      }
+    },
+    "filter": {
+      "archives": {
+        "include": ["com\\.acme:.*"]
+      }
+    }
+  }
+}
+----
 

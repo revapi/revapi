@@ -1,0 +1,6 @@
+= Archive Example
+
+This is a very simple implementation of a file-based archive that also supplies a version of the archive.
+
+Archives are not Revapi extensions as such, because they cannot be configured or otherwise managed by Revapi. They are
+meant to be implemented by callers and supplied to Revapi analysis.

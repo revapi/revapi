@@ -61,6 +61,8 @@ asciidoc:
     news-feed-description: Full-featured API checker for Java and beyond
     news-feed-id: https://revapi.org
     news-feed-max-items: 10
+    scm-url: https://github.com/revapi/revapi
+    scm-files: https://github.com/revapi/revapi/tree/master
   extensions:
   - asciidoctor-plantuml
   - ./extensions/news

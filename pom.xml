@@ -44,6 +44,7 @@
         <module>revapi-jackson</module>
         <module>revapi-json</module>
         <module>revapi-yaml</module>
+        <module>revapi-reporter-file-base</module>
         <module>revapi-reporter-text</module>
         <module>revapi-reporter-json</module>
         <module>revapi-maven-utils</module>
@@ -51,7 +52,7 @@
         <module>revapi-standalone</module>
         <module>revapi-site</module>
         <module>coverage</module>
-        <module>revapi-reporter-file-base</module>
+        <module>revapi-examples</module>
     </modules>
 
     <build>

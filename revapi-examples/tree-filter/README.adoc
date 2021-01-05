@@ -1,0 +1,30 @@
+= Tree Filter Example
+
+We build a simple tree filter that can be configured to allow only elements from a certain package to participate in the
+API analysis.
+
+To use the filter, just build the jar and bring it to the classpath of Revapi.
+
+In Maven, one would do it like this:
+
+[source,xml]
+----
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.revapi.examples</groupId>
+            <artifactId>tree-filter</artifactId>
+            <version>0</version>
+        </dependency>
+        ...
+    </dependencies>
+    <configuration>
+        <analysisConfiguration>
+            <pkg>com.acme.api</pkg>
+        </analysisConfiguration>
+    </configuration>
+</plugin>
+----

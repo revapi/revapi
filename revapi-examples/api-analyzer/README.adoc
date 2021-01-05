@@ -1,0 +1,31 @@
+= API Analyzer
+
+API Analyzers are the extensions that make Revapi understand a new "language" or a new type of API.
+
+It is responsible for providing archive analyzers which are able to transform incoming binary archives into trees of
+API elements and for supplying an initial difference analyzer that, based on some kind of rules, tells whether
+the matching element pairs are different and how.
+
+In this example project we implement a "property files analyzer". This simple analyzer will be able to compare property
+files, detect added or removed keys and detect keys with changed values.
+
+== Element Type
+
+The first step for each API analyzer is to implement a class representing the API elements. The elements coming from
+a single API analyzer are supposed to all be mutually comparable which is crucial for the comparison algorithm employed
+by Revapi. Therefore, each API analyzer needs to have its own type of elements.
+
+== Archive Analyzer
+
+An archive analyzer is created by the API analyzer for a given API. It is responsible for turning the archives of
+the API into a tree of API elements.
+
+== Difference Analyzer
+
+The API analyzer then supplies a "difference analyzer". A gadget that Revapi uses to check whether two elements, one
+coming from the old API and the other from the new API are considered different or not. Revapi does a parallel
+depth-first traversal of the element trees (created by the archive analyzers) and can detect add, removed or changed
+elements. The job of the difference analyzer is to produce a report detailing the differences that quantify the change
+on the elements.
+
+

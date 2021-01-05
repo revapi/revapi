@@ -1,0 +1,71 @@
+= Difference Transform Example
+
+This is a simple example of a difference transform extension. This extension is meant to check that each API difference
+mentioned in the Revapi list of differences has an assigned bug tracker issue number.
+
+For this to work, we need to do 2 things. First, we need to make Revapi aware of the extension by putting it on the
+Revapi maven plugin's classpath. Second, we need to make sure that our extension is only run after the
+`revapi.differences` extension that is able to collect the recognized differences together with their justifications
+from Revapi configuration.
+
+[source,xml]
+----
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    <dependencies>
+        <dependency>
+            <groupId>com.acme</groupId> <1>
+            <artifactId>issue-number-transform</artifactId>
+            <version>42</version>
+        </dependency>
+        ...
+    </dependencies>
+    <configuration>
+        <pipelineConfiguration>
+            <transformationBlocks>
+                <block> <2>
+                  <item>revapi.differences</item>
+                  <item>issue-no</item>
+                </block>
+            </transformationBlocks>
+        </pipelineConfiguration>
+        <analysisConfiguration> <3>
+            <revapi.differences>
+                <ignore>true</ignore>
+                <differences>
+                    <item>
+                        <code>java.method.removed</code>
+                        <old>method void com.acme.Acme::initFromDb()</old>
+                        <justfication>
+                            ACME has been modernized to use YAML config files instead of DB for configuration.
+                            Only time will tell if this is an improvement.
+                        </justfication>
+                        <attachments>
+                            <issue-no>ACME-42</issue-no>
+                        </attachments>
+                    </item>
+                    <item> <4>
+                        <code>java.class.removed</code>
+                        <old>method void com.acme.DbConfigurator</old>
+                        <justfication>
+                            ACME has been modernized to use YAML config files instead of DB for configuration.
+                            Only time will tell if this is an improvement.
+                        </justfication>
+                    </item>
+                </differences>
+            </revapi.differences>
+        </analysisConfiguration>
+    </configuration>
+</plugin>
+----
+
+<1> make the revapi-maven-plugin depend on our transform so that it can pick it up on the classpath
+
+<2> Make sure that `revapi.differences` is always run before our `issue-no` transformation
+
+<3> The `analysisConfiguration` contains the list of the justified API differences.
+
+<4> This difference should make the build fail, because we don't specify the issue number as one of its attachments.
+The build will pass once the developer specifies the issue number as was done in the previous difference.
