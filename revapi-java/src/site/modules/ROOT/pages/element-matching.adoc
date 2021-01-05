@@ -1,0 +1,68 @@
+= Matching Java Elements
+
+When it comes to filtering out unneeded parts of the archives (like `impl` packages for example) or to ignoring found
+differences on elements, one needs to somehow identify the matching elements.
+
+The simplest way of matching the elements is to use the default text or regex matchers that operate on the "human
+readable" textual representation of the elements, see for the xref:differences.adoc[list of the API differences] for
+a short discussion of the format used for representing the different kinds of Java elements.
+
+E.g. to ignore a newly added method to a certain interface, you can write:
+```json
+{
+    "extension": "revapi.differences",
+    "configuration": {
+        "ignore": true,
+        "differences": [
+            {
+                "code": "java.method.addedToInterface",
+                "new": "method void newMethod()",
+                "classQualifiedName": "com.acme.Acme"
+            }
+        ]
+    }
+}
+```
+
+or equivalently in XML:
+```xml
+<revapi.differences>
+    <ignore>true</ignore>
+    <differences>
+        <item>
+            <code>java.method.addedToInterface</code>
+            <new>method void newMethod()</new>
+            <classQualifiedName>com.acme.Acme</classQualifiedName>
+        </item>
+    </differences>
+</revapi.differences>
+```
+
+But this may not be enough in many circumstances because the textual representation of the element doesn't capture its
+semantic relationships with other elements. You cannot therefore use it for ignoring elements annotated with certain
+annotation or for ignoring classes implementing certain interface for example.
+
+This is where xref:revapi::architecture.adoc#_element_matcher[element matchers] can come to the rescue. For java,
+the element matcher is implemented using the https://github.com/revapi/classif[Classif] library.
+
+The above example can be rewritten using the java element matcher like this:
+
+```json
+{
+    "extension": "revapi.differences",
+    "configuration": {
+        "ignore": true,
+        "differences": [
+            {
+                "code": "java.method.addedToInterface",
+                "new": {
+                    "matcher": "java",
+                    "match": "interface com.acme.Acme { void ^newMethod(); }"
+                }
+            }
+        ]
+    }
+}
+```
+
+TODO finish this

@@ -1,0 +1,3 @@
+= Configuration
+
+TODO - document the config here similarly to other extensions.

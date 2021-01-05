@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>revapi-build</artifactId>
+        <groupId>org.revapi</groupId>
+        <version>42-SNAPSHOT</version>
+        <relativePath>../revapi-build/pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>revapi-yaml</artifactId>
+    <name>YAML Analyzer</name>
+    <version>0.1.0-SNAPSHOT</version>
+
+    <properties>
+        <version.com.fasterxml.jackson>2.12.0</version.com.fasterxml.jackson>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-jackson</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>${version.com.fasterxml.jackson}</version>
+        </dependency>
+    </dependencies>
+</project>
