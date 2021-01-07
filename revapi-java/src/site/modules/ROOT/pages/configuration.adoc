@@ -1,3 +1,86 @@
 = Configuration
 
-TODO - document the config here similarly to other extensions.
+*Extension:* `revapi.java`
+
+The Java extension offers a wide range of configuration properties that influence the way the analysis of the java
+archives is performed.
+
+== Sample Configuration
+
+```javascript
+[
+  {
+    "extension": "revapi.java",
+    "configuration": {
+      "missing-classes": {
+        "behavior": "report",
+        "ignoreMissingAnnotations": false
+      },
+      "reportUsesFor": ["java.missing.newClass", "java.class.nonPublicPartOfAPI"],
+      "matchOverloads": true
+    }
+  }
+]
+```
+
+== Properties
+
+`missing-classes`::
+Configures the way the extension behaves when it doesn't find classes that seem to contribute to the API in any of the
+archives supplied for analysis.
+
+    `behavior`:::
+    One of `ignore`, `error`, `report`, defaults to `report`. If set to `ignore` the missing classes are simply ignored
+    and not considered in the analysis. `report` causes the analyzer to report the missing classes using the
+    `java.missing.oldClass` or `java.missing.newClass` respectively.
+
+    `ignoreMissingAnnotations`:::
+    A boolean value specifying whether to ignore the annotations for which there no class found in the analyzed
+    archives. Defaults to `false`.
+
+`reportUsesFor`::
+The analyzer performs a use-chain analysis on the declarations in the API. I.e. it tracks what types are used in method
+return types and parameters, what types are extended, etc. and uses this information to figure out the true "API
+surface" that is exposed by the classes. This configuration can be either a list of difference codes for which an example
+use-chain should be added to the difference annotations or a string `all-differences` which makes the use-chain example
+be part of every found difference. The default value is a list of `java.missing.newClass`, `java.missing.oldClass`,
+`java.missing.oldSuperType`, `java.missing.newSuperType`, `java.class.nonPublicPartOfAPI`,
+`java.class.externalClassNoLongerExposedInAPI`, `java.class.externalClassExposedInAPI`.
+
+`matchOverloads`::
+The extension tries to match up overloaded methods from the two versions of the API. This can be quite tricky and boils
+down to using heuristics to judge the similarity of the method signatures from the 2 versions of the API. This might not
+always produce intuitive results and so it is possible to turn this feature off. This is a boolean property defaulting
+to `true` (i.e. the attempt to match the overloaded methods is performed).
+
+`filter`::
++
+WARNING: All the configuration properties in this section are deprecated and will be removed in the future. They are
+provided here because they were the only choice for the filtering of the analyzed classes for a long time. Please
+take a look at xref:element-matching.adoc[] for more information about the more capable way of filtering the classes.
+
+    `classes`:::
+    The definitions for filtering the analyzed classes.
+
+        `regex`::::
+        Specifies whether to consider the strings in `exclude` and `include` lists as regular expressions or not. The default
+        value is `false`, meaning the strings are not considered as regular expressions.
+        `exclude`::::
+        List of strings representing FQCNs or regular expressions matching FQCNs. Classes with the matching fully qualified
+        names (and the members of those classes) will be excluded from the API check.
+        `include`::::
+        List of strings representing FQCNs or regular expressions matching FQCNs. Only classes with the matching fully qualified
+        names (and their members) will be included in the API check.
+
+    `packages`:::
+    The definitions for filtering the analyzed classes by package.
+
+        `regex`::::
+        Specifies whether to consider the strings in `exclude` and `include` lists as regular expressions or not. The default
+        value is `false`, meaning the strings are not considered as regular expressions.
+        `exclude`::::
+        List of strings representing full package names or regular expressions matching them. Classes with the matching package
+        names (and the members of those classes) will be excluded from the API check.
+        `include`::::
+        List of strings representing full package names or regular expressions matching them. Classes with the matching package
+        names (and the members of those classes) will be included in the API check.

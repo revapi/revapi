@@ -142,7 +142,7 @@ All types of differences report the `elementKind` parameter that can have 1 of t
 |=============
 
 Additionally, if the analyzer is configured to report example use chains for given difference (see the java extension
-link:extensions/java.html[configuration]), there will be 1 or 2 more parameters with the example use chains present:
+xref:configuration.adoc[configuration]), there will be 1 or 2 more parameters with the example use chains present:
 `exampleUseChainInOldApi` and/or `exampleUseChainInNewApi`.
 
 == Detected Differences
@@ -1252,7 +1252,7 @@ This is reported as a breaking change because it is assumed that if a class is s
 serialized and deserialized. Changing the value of the `serialVersionUID` static field causes the new class to no longer
 be able to deserialize objects that were serialized using the old version of the class.
 
-This check can be configured the same way as <<Field serialVersionUID Unchanged>>.
+This check can be configured the same way as <<_field_serialversionuid_unchanged__java_field_serialversionuidunchanged>>.
 
 [options=header]
 |====
@@ -1486,13 +1486,14 @@ This represents no API breakage and is included for completeness' sake.
 | Semantic severity | breaking
 |=============
 
-While technically a variant of <<a_method_added_to_interface, Method Added To Interface>>, this is similar in
-consequences to <<a_default_value_removed_from_method, Default Value Removed From Method>>. This is not binary
-incompatible, there can be no code compiled against the previous version of the API that would try to access or use
-the new attribute in any way. This is source incompatible though, because any code that declares annotations
-according to the old version of the API will fail to compile against the new version of the API because it will not
-define explicit value for the new attribute. This also breaks semantics because any element annotated without such
-attribute won't be possible to process using a processor that depends on the new version of the API and therefore
+While technically a variant of <<_method_added_to_interface__java_method_addedtointerface, Method Added To Interface>>,
+this is similar in consequences to
+<<_default_value_removed_from_method__java_method_defaultvalueremoved, Default Value Removed From Method>>.
+This is not binary incompatible, there can be no code compiled against the previous version of the API that would try to
+access or use the new attribute in any way. This is source incompatible though, because any code that declares
+annotations according to the old version of the API will fail to compile against the new version of the API because it
+will not define explicit value for the new attribute. This also breaks semantics because any element annotated without
+such attribute won't be possible to process using a processor that depends on the new version of the API and therefore
 assumes an explicit value for the annotation attribute.
 
 [options=header]
@@ -1639,8 +1640,7 @@ Removing a method from a class is an incompatible change.
 |=============
 
 A method that was declared in the class in the old version is now declared in one of its super types.
-If such move should represent a compatibility breakage it is reported differently, like for example
-<<a_method_replaced_by_abstract_in_superclass, Method Replaced By Abstract In Superclass>>.
+If such move should represent a compatibility breakage it is reported differently.
 Otherwise this is a compatible change and is reported for completeness' sake.
 
 [options=header]
@@ -1663,7 +1663,7 @@ Otherwise this is a compatible change and is reported for completeness' sake.
 | Semantic severity | NA
 |=============
 
-This is identical to <<a_method_removed, Method Removed>> but specialized for annotation types.
+This is identical to <<_method_removed__java_method_removed, Method Removed>> but specialized for annotation types.
 
 [options=header]
 |====
@@ -1991,6 +1991,8 @@ is strictly bigger than the old one and the old one is implicitly convertible to
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+NOTE: This difference is not reported when overloads matching is turned off.
+
 === Method Parameter Type Parameter Changed - `java.method.parameterTypeParameterChanged`
 [cols="35s,<65d"]
 |=============
@@ -2014,6 +2016,8 @@ type changed. This is binary compatible because of the type erasure but it can b
 | `newType` | the new type of the parameter
 2+| See <<Match Parameters>> for the common match parameters
 |====
+
+NOTE: This difference is not reported when overloads matching is turned off.
 
 === Method Now Throws a Checked Exception - `java.method.exception.checkedAdded`
 [cols="35s,<65d"]

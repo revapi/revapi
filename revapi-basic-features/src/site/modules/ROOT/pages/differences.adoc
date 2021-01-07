@@ -21,13 +21,14 @@ provides new functionality that enables sharing the configuration for build-time
             "differences": [
                 {
                     "code": "java.method.addToInterface",
-                    "fullQualifiedClassName": "com.acme.ToolInterface",
                     "new": "method void com.acme.ToolInterface::setup()"
                 },
                 {
                     "code": "java.method.removed",
-                    "fullQualifiedClassName": "com.acme.ToolInterface",
-                    "old": "method void com.acme.ToolInterface::initialize()",
+                    "old": {
+                        "matcher": "java",
+                        "match": "interface com.acme.ToolInterface { void ^initialize(); }"
+                    },
                     "justification": "As part of fix for #1234, we thought renaming this method is just fine."
                 },
             ]
@@ -43,12 +44,10 @@ provides new functionality that enables sharing the configuration for build-time
     <differences>
         <item>
             <code>java.method.addToInterface</code>
-            <fullQualifiedClassName>com.acme.ToolInterface</fullyQualifiedClassName>
             <new>method void com.acme.ToolInterface::setup()</new>
         </item>
         <item>
             <code>java.method.removed</code>
-            <fullQualifiedClassName>com.acme.ToolInterface</fullyQualifiedClassName>
             <old>method void com.acme.ToolInterface::initialize()</old>
             <justification>As part of fix for #1234, we thought renaming this method is just fine.</justification>
         </item>
@@ -82,9 +81,11 @@ to be java regular expressions.
 `code`:::
 Specifies the API problem code to ignore. This is property mandatory.
 `old`:::
-Specifies the old element of the problem to ignore. This property is optional.
+Specifies the old element of the problem to ignore either using (a regex of) its textual representation or as a matcher
+expression. This property is optional.
 `new`:::
-Specifies the new element of the problem to ignore. This property is optional.
+Specifies the new element of the problem to ignore either using (a regex of) its textual representation or as a matcher
+expression. This property is optional.
 `justification`:::
 This can used to describe why this change was necessary. This can be used in the reports to give additional detail for
 why a change was necessary.
@@ -96,9 +97,11 @@ This can be used to add additional attachments (match parameters) to the differe
 transformations down the line. It is an ordinary key-value map with string keys and values.
 additional properties:::
 The analyzers can define additional match parameters on the differences that can be used to further focus the ignore
-rule. For java, see the link:../../revapi-java/differences.html[list] of the detected differences. Such additional
-properties always have a string value. These are the attachments (match parameters) defined by the analyzer or by
-previously run difference transforms.
+rule. For java, see the xref:revapi-java::differences.adoc#_list_of_api_differences[list] of the detected differences.
+Such additional properties always have a string value. These are the attachments (match parameters) defined by
+the analyzer or by previously run difference transforms.
+
+NOTE: To learn more about the element matching, read xref:element-matching.adoc[].
 
 == Examples
 
