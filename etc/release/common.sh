@@ -1,14 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "The site should be published only when there are no unreleased changes to the docs of the individual modules.
-I.e. make sure that you release all the modules that have docs changes."
-read -p "Are you sure you want to start the release and site publication process? [y/n]: " start_release
-if [ "$start_release" != "y" ] && [ "$start_release" != "Y" ]; then
-  echo "Aborting."
-  exit 1
-fi
-
 ALL_MODULES=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi"
 
 DEPS_revapi_parent=()
@@ -208,6 +200,7 @@ function publish_site() {
   current_branch=$(git rev-parse --abbrev-ref HEAD)
 
   cwd=$(pwd)
+  echo "I'm here: ${cwd}"
 
   to_release=$(determine_releases $@)
   cd revapi-site/src/site/modules/news/pages/news
@@ -221,7 +214,7 @@ $to_release
 " \
   | vim -
   git add -A
-  git commit -m "Adding release notes for release of $to_release"
+  git commit -m "Adding release notes for release of $to_release" || true
 
   cd "${cwd}/revapi-site-assembly"
 
@@ -269,6 +262,3 @@ $to_release
   cd "${cwd}"
   git checkout "$current_branch"
 }
-
-do_releases $@
-publish_site $@
