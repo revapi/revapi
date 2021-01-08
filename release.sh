@@ -245,7 +245,7 @@ $to_release
         if [ ! -f $check_file ]; then
           git checkout "${r}"
           # package so that the revapi report can be produced
-          mvn package site -DskipTests
+          mvn package site -DskipTests -Pantora-release
 
           mkdir -p $dir
           cp -R target/site/* $dir
