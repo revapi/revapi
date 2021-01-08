@@ -445,9 +445,10 @@ public final class Revapi {
             Stats.of("analysisEnds").start();
 
             Report r = elementDifferenceAnalyzer.endAnalysis(a, b);
-            addDefaultAttachments(r, progress);
-
-            progress.reports.add(r);
+            if (r != null && !r.getDifferences().isEmpty()) {
+                addDefaultAttachments(r, progress);
+                progress.reports.add(r);
+            }
 
             Stats.of("analysisEnds").end(a, b);
             Stats.of("analyses").end(beginDuration, new AbstractMap.SimpleEntry<>(a, b));
