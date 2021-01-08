@@ -21,7 +21,7 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>43-SNAPSHOT</version>
+        <version>42</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -34,7 +34,7 @@
     <url>https://revapi.org</url>
 
     <artifactId>revapi-reporter-json</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.3.0</version>
 
     <properties>
         <automatic.module.name>org.revapi.reporter.json</automatic.module.name>
@@ -44,13 +44,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.13.1-SNAPSHOT</version>
+            <version>0.13.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-reporter-file-base</artifactId>
-            <version>0.3.1-SNAPSHOT</version>
+            <version>0.3.0</version>
         </dependency>
     </dependencies>
 

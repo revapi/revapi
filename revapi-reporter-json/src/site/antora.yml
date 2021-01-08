@@ -17,6 +17,6 @@
 
 name: revapi-reporter-json
 title: JSON Reporter
-version: master
+version: 0.3.0
 nav:
   - modules/ROOT/nav.adoc
