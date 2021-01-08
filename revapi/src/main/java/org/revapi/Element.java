@@ -37,7 +37,8 @@ import org.revapi.query.Filter;
  * API. Revapi sorts the elements from old and new API (using their natural order, i.e. using the {@code compareTo}
  * method) and then iterates through both sets at the same time, comparing the elements.
  *
- * <table border=10>
+ * <table>
+ *     <caption>API traversal outline</caption>
  *     <tr><th>Comparison</th><th>Meaning</th><th>Result</th><th>Iteration Progress</th></tr>
  *     <tr>
  *         <td>old &lt; new</td>
@@ -46,7 +47,7 @@ import org.revapi.query.Filter;
  *         <td>Old moves forward, new stays</td>
  *     </tr>
  *     <tr>
- *         <td>old > new</td>
+ *         <td>old &gt; new</td>
  *         <td>Old is considered removed from the API</td>
  *         <td>(null, new)</td>
  *         <td>New moves forward, old stays</td>
