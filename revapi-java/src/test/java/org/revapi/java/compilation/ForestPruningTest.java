@@ -176,7 +176,7 @@ public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
 
         environment.setTypeMap(typeMap);
 
-        analyzer = new JavaArchiveAnalyzer(new JavaApiAnalyzer(), fakeApi, null, null, null, true);
+        analyzer = new JavaArchiveAnalyzer(new JavaApiAnalyzer(), fakeApi, null, null, null, true, null);
     }
 
     @Test

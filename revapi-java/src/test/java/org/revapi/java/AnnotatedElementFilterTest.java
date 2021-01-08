@@ -215,7 +215,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
 
             JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
                     new API(Arrays.asList(new ShrinkwrapArchive(archive.archive)), null),
-                    Collections.emptyList(), Executors.newSingleThreadExecutor(), null, false
+                    Collections.emptyList(), Executors.newSingleThreadExecutor(), null, false, null
             );
 
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());

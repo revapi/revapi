@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.revapi.API;
 import org.revapi.ApiAnalyzer;
@@ -54,9 +55,15 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
     private final Iterable<JarExtractor> jarExtractors;
     private CompilationValve compilationValve;
 
+    /**
+     * @deprecated only to support the obsolete package and class filtering
+     */
+    @Deprecated
+    private final @Nullable TreeFilter<JavaElement> implicitFilter;
+
     public JavaArchiveAnalyzer(JavaApiAnalyzer apiAnalyzer, API api, Iterable<JarExtractor> jarExtractors,
             ExecutorService compilationExecutor, AnalysisConfiguration.MissingClassReporting missingClassReporting,
-            boolean ignoreMissingAnnotations) {
+            boolean ignoreMissingAnnotations, @Nullable TreeFilter<JavaElement> implicitFilter) {
         this.apiAnalyzer = apiAnalyzer;
         this.api = api;
         this.jarExtractors = jarExtractors;
@@ -64,6 +71,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
         this.missingClassReporting = missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.probingEnvironment = new ProbingEnvironment(api);
+        this.implicitFilter = implicitFilter;
     }
 
     @Override
@@ -83,10 +91,14 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
             Timing.LOG.debug("Starting analysis of " + api);
         }
 
+        TreeFilter<JavaElement> finalFilter = implicitFilter == null
+                ? filter
+                : TreeFilter.union(filter, implicitFilter);
+
         StringWriter output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, jarExtractors, api.getArchives(),
                 api.getSupplementaryArchives(),
-                filter);
+                finalFilter);
         try {
             compilationValve = compiler
                 .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations);

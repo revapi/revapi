@@ -16,8 +16,14 @@
  */
 package org.revapi;
 
+import static java.util.Arrays.asList;
+
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * A tree filter is something that is called repeatedly by the caller as the caller walks a tree of elements in a depth
@@ -43,6 +49,36 @@ public interface TreeFilter<E extends Element<E>> {
             @Override
             public Map<E, FilterFinishResult> finish() {
                 return Collections.emptyMap();
+            }
+        };
+    }
+
+    @SafeVarargs
+    static <E extends Element<E>> TreeFilter<E> union(TreeFilter<E>... fs) {
+        return union(asList(fs));
+    }
+
+    static <E extends Element<E>> TreeFilter<E> union(List<TreeFilter<E>> fs) {
+        return new TreeFilter<E>() {
+            @Override
+            public FilterStartResult start(E element) {
+                return fs.stream().map(f -> f.start(element)).reduce(FilterStartResult::and)
+                        .orElse(FilterStartResult.matchAndDescend());
+            }
+
+            @Override
+            public FilterFinishResult finish(E element) {
+                return fs.stream().map(f -> f.finish(element)).reduce(FilterFinishResult::and)
+                        .orElse(FilterFinishResult.doesntMatch());
+            }
+
+            @Override
+            public Map<E, FilterFinishResult> finish() {
+                return fs.stream().map(TreeFilter::finish)
+                        .reduce(new HashMap<>(), (ret, res) -> {
+                            ret.putAll(res);
+                            return ret;
+                        });
             }
         };
     }

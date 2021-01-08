@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,6 @@ import javax.lang.model.type.DeclaredType;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceAnalyzer;
-import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Stats;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -67,7 +66,7 @@ import org.slf4j.LoggerFactory;
  * @author Lukas Krejci
  * @since 0.1
  */
-public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
+public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<JavaElement> {
     private static final Logger LOG = LoggerFactory.getLogger(JavaElementDifferenceAnalyzer.class);
 
     private static final Map<Check.Type, Set<Check.Type>> POSSIBLE_CHILDREN_TYPES;
@@ -100,8 +99,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     // descending on non-existing elements are used for both speed and correctness reasons. For it to work correctly
     // we need to track where did we enter this special mode.
     private boolean nonExistenceMode;
-    private Element nonExistenceOldRoot;
-    private Element nonExistenceNewRoot;
+    private JavaElement nonExistenceOldRoot;
+    private JavaElement nonExistenceNewRoot;
 
     private final Map<Check.Type, Set<Check>> descendingChecksByTypes;
 
@@ -145,7 +144,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     @Override
-    public void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
+    public void beginAnalysis(@Nullable JavaElement oldElement, @Nullable JavaElement newElement) {
         Timing.LOG.trace("Beginning analysis of {} and {}.", oldElement, newElement);
 
         Check.Type elementsType = getCheckType(oldElement, newElement);
@@ -197,7 +196,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     @Override
-    public boolean isDescendRequired(@Nullable Element oldElement, @Nullable Element newElement) {
+    public boolean isDescendRequired(@Nullable JavaElement oldElement, @Nullable JavaElement newElement) {
         if (oldElement != null && newElement != null) {
             return true;
         }
@@ -242,7 +241,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     @Override
-    public Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
+    public Report endAnalysis(@Nullable JavaElement oldElement, @Nullable JavaElement newElement) {
         if (oldElement == nonExistenceOldRoot && newElement == nonExistenceNewRoot) {
             nonExistenceMode = false;
             nonExistenceOldRoot = null;
@@ -316,7 +315,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         return ca && cb;
     }
 
-    private Check.Type getCheckType(Element a, Element b) {
+    private Check.Type getCheckType(JavaElement a, JavaElement b) {
         if (a != null) {
             return getCheckType(a);
         } else if (b != null) {
@@ -326,7 +325,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
     }
 
-    private Check.Type getCheckType(Element e) {
+    private Check.Type getCheckType(JavaElement e) {
         if (e instanceof TypeElement) {
             return Check.Type.CLASS;
         } else if (e instanceof AnnotationElement) {
@@ -383,7 +382,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         bld.append(message);
     }
 
-    private void appendUses(ProbingEnvironment env, Element element, final StringBuilder bld) {
+    private void appendUses(ProbingEnvironment env, JavaElement element, final StringBuilder bld) {
         LOG.trace("Reporting uses of {}", element);
 
         if (element == null) {
@@ -437,7 +436,6 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         List<TypeAndUseSite> chain = getExamplePathToApiArchive(env, usedType, type, use);
-        Iterator<TypeAndUseSite> chainIt = chain.iterator();
 
         if (chain.isEmpty()) {
             if (LOG.isDebugEnabled()) {
@@ -447,11 +445,10 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             return false;
         }
 
-        TypeAndUseSite last = null;
-        if (chainIt.hasNext()) {
-            last = chainIt.next();
-            append(bld, last);
-        }
+        Iterator<TypeAndUseSite> chainIt = chain.iterator();
+
+        TypeAndUseSite last = chainIt.next();
+        append(bld, last);
 
         while (chainIt.hasNext()) {
             bld.append(" <- ");
@@ -557,7 +554,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
     private JavaTypeElement findClassOf(JavaElement element) {
         while (element != null && !(element instanceof JavaTypeElement)) {
-            element = (JavaElement) element.getParent();
+            element = element.getParent();
         }
 
         return (JavaTypeElement) element;
@@ -577,7 +574,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         JavaModelElement dme = (JavaModelElement) declaredElement;
-        for (Element e : owningElement.getChildren()) {
+        for (JavaElement e : owningElement.getChildren()) {
             if (e instanceof JavaModelElement
                     && ((JavaModelElement) e).getDeclaringElement().equals(dme.getDeclaringElement())) {
                 return (JavaModelElement) e;

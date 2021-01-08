@@ -460,8 +460,8 @@ public final class Revapi {
     }
 
     private void addDefaultAttachments(Report r, AnalysisProgress progress) {
-        Element oldElement = r.getOldElement();
-        Element newElement = r.getNewElement();
+        Element<?> oldElement = r.getOldElement();
+        Element<?> newElement = r.getNewElement();
         API oldApi = progress.oldApi;
         API newApi = progress.newApi;
 
@@ -480,7 +480,6 @@ public final class Revapi {
 
             it.set(d.build());
         }
-
     }
 
     private <T> T instantiate(Class<? extends T> type) {
@@ -500,28 +499,7 @@ public final class Revapi {
                         .filter(Objects::nonNull)
                         .collect(toList());
 
-                return Optional.of(new TreeFilter<E>() {
-                    @Override
-                    public FilterStartResult start(E element) {
-                        return applicables.stream().map(f -> f.start(element)).reduce(FilterStartResult::and)
-                                .orElse(FilterStartResult.matchAndDescend());
-                    }
-
-                    @Override
-                    public FilterFinishResult finish(E element) {
-                        return applicables.stream().map(f -> f.finish(element)).reduce(FilterFinishResult::and)
-                                .orElse(FilterFinishResult.doesntMatch());
-                    }
-
-                    @Override
-                    public Map<E, FilterFinishResult> finish() {
-                        return applicables.stream().map(TreeFilter::finish)
-                                .reduce(new HashMap<>(), (ret, res) -> {
-                                    ret.putAll(res);
-                                    return ret;
-                                });
-                    }
-                });
+                return Optional.of(TreeFilter.union(applicables));
             }
 
             @Override

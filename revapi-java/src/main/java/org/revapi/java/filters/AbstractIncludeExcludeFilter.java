@@ -95,8 +95,6 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
         JsonNode root = analysisContext.getConfigurationNode();
         if (root.isNull()) {
             doNothing = true;
-            LOG.warn("Filtering using the revapi.java.filter.annotated has been deprecated in favor of revapi.filter" +
-                    " together with the java specific matchers (matcher.java).");
             return;
         }
 
@@ -125,7 +123,7 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
 
         if (!doNothing) {
             LOG.warn("Filtering using the revapi.java.filter.annotated has been deprecated in favor of revapi.filter" +
-                    " together with the java specific matchers (matcher.java).");
+                    " in combination with the java matchers.");
         }
     }
 

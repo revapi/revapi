@@ -67,7 +67,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null
         );
 
         try {
@@ -98,7 +98,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), emptyList(), Executors.newSingleThreadExecutor(), null,
-                false);
+                false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -129,7 +129,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null
         );
 
         try {
@@ -180,7 +180,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(Arrays.asList(new ShrinkwrapArchive(api)),
                 Arrays.asList(new ShrinkwrapArchive(sup))), emptyList(), Executors.newSingleThreadExecutor(), null,
-                false);
+                false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -208,7 +208,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
                 Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false);
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -234,7 +234,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
                 singletonList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false);
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -277,7 +277,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
                 singletonList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false);
+                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null);
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
 

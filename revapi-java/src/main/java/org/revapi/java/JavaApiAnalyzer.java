@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.lang.model.util.Types;
 import javax.tools.ToolProvider;
 
@@ -57,7 +56,6 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.CoIterator;
 import org.revapi.CorrespondenceComparatorDeducer;
 import org.revapi.DifferenceAnalyzer;
-import org.revapi.Element;
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.JSONUtil;
 import org.revapi.java.compilation.CompilationValve;
@@ -356,7 +354,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer<JavaElement> {
 
         //remove all the method elements
         while (index < elements.size()) {
-            Element e = elements.get(index);
+            JavaElement e = elements.get(index);
             if (e instanceof MethodElement) {
                 elements.remove(index);
             } else {
@@ -445,11 +443,11 @@ public final class JavaApiAnalyzer implements ApiAnalyzer<JavaElement> {
         return retCost + paramsDistance;
     }
 
-    private static int addAllMethods(Collection<? extends Element> els, TreeMap<String,
+    private static int addAllMethods(Collection<? extends JavaElement> els, TreeMap<String,
             List<MethodElement>> methods) {
 
         int ret = 0;
-        for (Element e : els) {
+        for (JavaElement e : els) {
             if (e instanceof MethodElement) {
                 add((MethodElement) e, methods);
                 ret++;
@@ -466,13 +464,11 @@ public final class JavaApiAnalyzer implements ApiAnalyzer<JavaElement> {
         overloads.add(method);
     }
 
-    @Nullable
     @Override
     public String getExtensionId() {
         return "revapi.java";
     }
 
-    @Nullable
     @Override
     public Reader getJSONSchema() {
         Map<String, Reader> checkSchemas = new HashMap<>(4);
@@ -538,13 +534,13 @@ public final class JavaApiAnalyzer implements ApiAnalyzer<JavaElement> {
     public JavaArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
         boolean ignoreMissingAnnotations = configuration.isIgnoreMissingAnnotations();
         return new JavaArchiveAnalyzer(this, api, jarExtractors, getExecutor(api), configuration.getMissingClassReporting(),
-                ignoreMissingAnnotations);
+                ignoreMissingAnnotations, configuration.getPackageClassFilter());
     }
 
     @Nonnull
     @Override
-    public DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
-            @Nonnull ArchiveAnalyzer newArchive) {
+    public DifferenceAnalyzer<JavaElement> getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer<JavaElement> oldArchive,
+            @Nonnull ArchiveAnalyzer<JavaElement> newArchive) {
         JavaArchiveAnalyzer oldA = (JavaArchiveAnalyzer) oldArchive;
         JavaArchiveAnalyzer newA = (JavaArchiveAnalyzer) newArchive;
 

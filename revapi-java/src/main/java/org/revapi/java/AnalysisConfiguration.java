@@ -26,6 +26,10 @@ import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.revapi.TreeFilter;
+import org.revapi.java.filters.ClassFilter;
+import org.revapi.java.filters.PackageFilter;
+import org.revapi.java.spi.JavaElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,13 +45,16 @@ public final class AnalysisConfiguration {
     private final Set<String> useReportingCodes;
     private final boolean ignoreMissingAnnotations;
     private final boolean matchOverloads;
+    private final TreeFilter<JavaElement> filter;
 
     AnalysisConfiguration(MissingClassReporting missingClassReporting, Set<String> useReportingCodes,
-                                 boolean ignoreMissingAnnotations, boolean matchOverloads) {
+                                 boolean ignoreMissingAnnotations, boolean matchOverloads,
+            @Nullable TreeFilter<JavaElement> filter) {
         this.missingClassReporting = missingClassReporting;
         this.useReportingCodes = useReportingCodes;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.matchOverloads = matchOverloads;
+        this.filter = filter;
     }
 
     public static AnalysisConfiguration fromModel(JsonNode node) {
@@ -61,20 +68,37 @@ public final class AnalysisConfiguration {
 
         Set<Pattern> classInclusionFilters = readFilter(node.path("filter").path("classes").path("include"),
                 classesRegex);
-        Set<Pattern> classExclusionFilters = readFilter(node.path("filter").path("classes").path("classes"),
+        Set<Pattern> classExclusionFilters = readFilter(node.path("filter").path("classes").path("exclude"),
                 classesRegex);
-        Set<Pattern> packageInclusionFilters = readFilter(node.path("filter").path("packages").path("packages"),
+        Set<Pattern> packageInclusionFilters = readFilter(node.path("filter").path("packages").path("include"),
                 packagesRegex);
-        Set<Pattern> packageExclusionFilters = readFilter(node.path("filter").path("packages").path("packages"),
+        Set<Pattern> packageExclusionFilters = readFilter(node.path("filter").path("packages").path("exclude"),
                 packagesRegex);
+
+        TreeFilter<JavaElement> includeFilter = null;
 
         if (!(classInclusionFilters.isEmpty() && classExclusionFilters.isEmpty() && packageInclusionFilters.isEmpty()
                 && packageExclusionFilters.isEmpty())) {
-            LOG.warn("Filtering using the revapi.java.filter.* has been deprecated in favor of revapi.filter" +
-                    " together with the java specific matchers (matcher.java).");
+            LOG.warn("Filtering using the revapi.java.filter.(classes|packages) has been deprecated in favor of" +
+                    " revapi.filter in combination with the java matcher.");
+
+            if (!classInclusionFilters.isEmpty() || !classExclusionFilters.isEmpty()) {
+                includeFilter = new ClassFilter(classInclusionFilters.toArray(new Pattern[0]),
+                        classExclusionFilters.toArray(new Pattern[0]));
+            }
+
+            if (!packageInclusionFilters.isEmpty() || !packageExclusionFilters.isEmpty()) {
+                PackageFilter pkgFilter = new PackageFilter(packageInclusionFilters.toArray(new Pattern[0]),
+                        packageExclusionFilters.toArray(new Pattern[0]));
+                if (includeFilter == null) {
+                    includeFilter = pkgFilter;
+                } else {
+                    includeFilter = TreeFilter.union(includeFilter, pkgFilter);
+                }
+            }
         }
 
-        return new AnalysisConfiguration(reporting, useReportingCodes, ignoreMissingAnnotations, matchOverloads);
+        return new AnalysisConfiguration(reporting, useReportingCodes, ignoreMissingAnnotations, matchOverloads, includeFilter);
     }
 
     public MissingClassReporting getMissingClassReporting() {
@@ -95,6 +119,15 @@ public final class AnalysisConfiguration {
 
     public boolean isMatchOverloads() {
         return matchOverloads;
+    }
+
+    /**
+     * @deprecated only supports the obsolete package and class name filtering before we can remove it.
+     */
+    @Deprecated
+    @Nullable
+    public TreeFilter<JavaElement> getPackageClassFilter() {
+        return filter;
     }
 
     private static MissingClassReporting readMissingClassReporting(JsonNode analysisConfig) {
