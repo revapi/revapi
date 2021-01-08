@@ -26,10 +26,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Java Extension SPI</name>
+    <name>Java Analyzer SPI</name>
 
     <description>
-        SPI for extending the java extension of Revapi.
+        SPI for extending the java analyzer of Revapi.
     </description>
     <url>https://revapi.org</url>
 
