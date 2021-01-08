@@ -64,7 +64,7 @@ asciidoc:
     scm-url: https://github.com/revapi/revapi
     scm-files: https://github.com/revapi/revapi/tree/master
   extensions:
-  - asciidoctor-plantuml
+  - asciidoctor-kroki
   - ./extensions/news
   - ./extensions/component
   - ./extensions/fref

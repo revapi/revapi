@@ -1,4 +1,4 @@
-/build/
-/node_modules/
-/default-ui-bundle/
+build/
+node_modules/
+default-ui-bundle/
 package-lock.json

@@ -1,7 +1,7 @@
 = Matching and Filtering Java Elements
 
 NOTE: Here we describe how the `java` element matcher can be used with
-xref:revapi-basic-features::differences.adoc[`revapi.difference`] and
+xref:revapi-basic-features::differences.adoc[`revapi.differences`] and
 xref:revapi-basic-features::filter.adoc[`revapi.filter`]. For the documentation on how to use those, please refer to
 their respective docs. For detailed documentation on the syntax of the java matcher, please refer to the documentation
 of the https://github.com/revapi/classif[Classif library] that the java matcher is using.

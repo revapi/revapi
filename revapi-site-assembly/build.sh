@@ -1,6 +1,6 @@
 #!/bin/sh
 
-npm install @antora/cli @antora/site-generator-default rss asciidoctor-plantuml antora-site-generator-lunr
+npm install @antora/cli @antora/site-generator-default rss asciidoctor-kroki antora-site-generator-lunr
 
 DOCSEARCH_ENABLED=true \
 DOCSEARCH_ENGINE=lunr \
