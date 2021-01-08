@@ -17,6 +17,6 @@
 
 name: revapi
 title: API
-version: 0.13.0
+version: master
 nav:
   - modules/ROOT/nav.adoc
