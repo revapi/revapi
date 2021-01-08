@@ -5,7 +5,7 @@
     "pathRegex": {
       "type": "string",
       "default": "",
-      "description": "A regex for matching a concrete file within a zip archive. If left empty, the file is not considered a ZIP to look into but is considered a JSON file itself."
+      "description": "A regex for matching a concrete file within a zip archive. If left empty, the file is not considered a ZIP to look into but is considered a file to be analyzed itself."
     },
     "charset": {
       "type": "string",

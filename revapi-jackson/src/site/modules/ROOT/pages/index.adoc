@@ -1,0 +1,28 @@
+= Jackson Analyzer Base
+
+The Jackson analyzer is meant as a base for writing API analyzers that can take advantage of the Jackson library for
+parsing files.
+
+NOTE: Take a look at xref:revapi-json::index.adoc[] or xref:revapi-yaml::index.adoc[].
+
+The analyzer supports either directly interpreting the provided archives as JSON/YAML/... files or it can scan for
+the files within a zipped archive (e.g. in jar files, etc.).
+
+== Configuration
+
+Even though the Jackson analyzer is abstract and doesn't do anything in and of itself, it defines certain configuration
+properties that configure its behavior. The inheriting extensions of course are free to add their own and/or to modify
+the existing ones.
+
+charset::
+The character set of the files. Defaults to `UTF-8`.
+pathRegex::
+If the archive that is being scanned is a ZIP archive, this regular expression can pick what files will be considered
+for the analysis. By default, it is empty with the consequence of ignoring any files in the ZIP archives and only
+performing the analysis on the Revapi archives that can directly be interpreted as textual files.
+
+== Detected Differences
+
+Because Jackson considers all files to have structure equivalent to that of JSON, there is not much that can be detected
+in this base analyzer. The analyzer can only detect *additions*, *removals* and *changes* of individual "nodes".
+The subclasses are required to provide the Revapi codes for those though.
