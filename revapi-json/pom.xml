@@ -23,7 +23,7 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>42</version>
+        <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
