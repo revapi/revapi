@@ -62,7 +62,7 @@
 
         <version.revapi-build-support>5</version.revapi-build-support>
 
-        <version.pw.krejci.multi-release-jar-maven-plugin>0.1.4</version.pw.krejci.multi-release-jar-maven-plugin>
+        <version.pw.krejci.multi-release-jar-maven-plugin>0.1.5</version.pw.krejci.multi-release-jar-maven-plugin>
 
         <automatic.module.name>define this in child modules</automatic.module.name>
 
