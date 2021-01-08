@@ -34,12 +34,12 @@ Here are the links to the latest versions of the individual artifacts.
 |http://search.maven.org/remotecontent?filepath=org/revapi/revapi-basic-features/component:latest@revapi-basic-features[version]/revapi-basic-features-component:latest@revapi-basic-features[version].jar[component:latest@revapi-basic-features[version]]
 |https://search.maven.org/artifact/org.revapi/revapi-basic-features[here]
 
-|Revapi Java Extension
+|Revapi Java Analyzer
 |`org.revapi:revapi-java`
 |http://search.maven.org/remotecontent?filepath=org/revapi/revapi-java/component:latest@revapi-java[version]/revapi-java-component:latest@revapi-java[version].jar[component:latest@revapi-java[version]]
 |https://search.maven.org/artifact/org.revapi/revapi-java[here]
 
-|Revapi Java Extension SPI
+|Revapi Java Analyzer SPI
 |`org.revapi:revapi-java-spi`
 |http://search.maven.org/remotecontent?filepath=org/revapi/revapi-java-spi/component:latest@revapi-java-spi[version]/revapi-java-spi-component:latest@revapi-java-spi[version].jar[component:latest@revapi-java-spi[version]]
 |https://search.maven.org/artifact/org.revapi/revapi-java-spi[here]
@@ -58,5 +58,20 @@ Here are the links to the latest versions of the individual artifacts.
 |`org.revapi:revapi-reporter-json`
 |http://search.maven.org/remotecontent?filepath=org/revapi/revapi-reporter-json/component:latest@revapi-reporter-json[version]/revapi-reporter-json-component:latest@revapi-reporter-json[version].jar[component:latest@revapi-reporter-json[version]]
 |https://search.maven.org/artifact/org.revapi/revapi-reporter-json[here]
+
+|Revapi Jackson Analyzer Base
+|`org.revapi:revapi-jackson`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-jackson/component:latest@revapi-jackson[version]/revapi-jackson-component:latest@revapi-jackson[version].jar[component:latest@revapi-jackson[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-jackson[here]
+
+|Revapi JSON Analyzer
+|`org.revapi:revapi-json`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-json/component:latest@revapi-json[version]/revapi-json-component:latest@revapi-json[version].jar[component:latest@revapi-json[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-json[here]
+
+|Revapi YAML Analyzer
+|`org.revapi:revapi-yaml`
+|http://search.maven.org/remotecontent?filepath=org/revapi/revapi-yaml/component:latest@revapi-yaml[version]/revapi-yaml-component:latest@revapi-yaml[version].jar[component:latest@revapi-yaml[version]]
+|https://search.maven.org/artifact/org.revapi/revapi-yaml[here]
 
 |===
