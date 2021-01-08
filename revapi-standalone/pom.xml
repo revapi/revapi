@@ -57,7 +57,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.10.3-SNAPSHOT</version>
+            <version>0.10.3</version>
         </dependency>
 
         <dependency>
