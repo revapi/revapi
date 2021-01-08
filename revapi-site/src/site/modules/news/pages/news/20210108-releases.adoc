@@ -1,0 +1,42 @@
+= Release Notes
+:page-publish_date: 2021-01-08
+:page-layout: news-article
+
+This is possibly the biggest Revapi release in its 7 years history. Prominently, this release finally
+introduces an almost all-powerful filtering of java elements using the
+https://github.com/revapi/classif[Classif] library and thus closes one of the oldest open issues -
+https://github.com/revapi/issues/17[#17] (almost exactly 5 years old).
+
+But that is actually a smaller part of the release. The underlying extension schema validator has been ported from an
+ancient tv4.js (executed using a script manager that is being phased out in Java) to the Java-based
+https://github.com/networknt/json-schema-validator[JSON schema validator] which sped up the checks considerably. This
+also prompted a move away from JBoss DMR for configuration representation and use of a more widespread library, Jackson.
+The JBoss DMR based methods are still present to keep backwards compatibility for some time, but the move to Jackson is
+highly encouraged in your custom extensions.
+
+Also, the first non-java analyzers have been introduced. Having Jackson on the classpath implicitly prompted me to go
+ahead and implement the xref:revapi-json::index.adoc[JSON] and xref:revapi-yaml::index.adoc[YAML] analyzers that are
+able to detect additions, removals and changes in JSON and YAML files. That is not awfully useful in and of itself I
+assume (although it could, depending on the usage), but these two are meant more as building blocks for more specialized
+extensions tailored to specific configuration files for example.
+
+The biggest part of the release though is a long overdue shake up of the analysis API itself. I have tried to minimize
+the API breakage, but I was not completely successful and this release therefore is breaking both source and binary
+compatibility with the previous versions of the API. As such, all extensions have to upgrade to the new API (which
+shouldn't be too much work, but anyway). The extensions that come directly with Revapi are of course already upgraded.
+I am sorry about the breakage, but I think the API has gotten to a much better state now, and I am quite happy with it.
+We're getting close to 1.0.0 (I hope!) and so I want to make sure further changes won't be necessary after that for some
+time.
+
+In other words, if you plan to upgrade to the latest versions of Revapi components, please upgrade them all :) The new
+Revapi API is at 0.13.0 and is used by the Maven plugin 0.13.0 and Revapi Java 0.23.0. Older releases of the extensions
+are not compatible with the maven plugin 0.13.0.
+
+There has also been a quite large update of the documentation which should reflect the additions of the advanced
+matching, but most importantly contains a refreshed section on extending Revapi, complete with a set of examples now
+included directly with the source code of Revapi itself (and part of the normal build, too, so that they are always
+up-to-date).
+
+So head over to xref:ROOT:downloads.adoc[] and check out all the new goodness (and please report any issues you
+encounter :) ).
+
