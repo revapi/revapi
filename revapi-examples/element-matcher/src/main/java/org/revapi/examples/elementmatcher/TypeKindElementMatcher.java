@@ -16,7 +16,6 @@
  */
 package org.revapi.examples.elementmatcher;
 
-import java.io.Reader;
 import java.util.Optional;
 
 import javax.annotation.Nullable;

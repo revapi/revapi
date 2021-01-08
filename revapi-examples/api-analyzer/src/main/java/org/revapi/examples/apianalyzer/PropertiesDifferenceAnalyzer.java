@@ -21,7 +21,6 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.revapi.CompatibilityType;
-import org.revapi.DifferenceAnalyzer;
 import org.revapi.DifferenceSeverity;
 import org.revapi.Report;
 import org.revapi.base.BaseDifferenceAnalyzer;

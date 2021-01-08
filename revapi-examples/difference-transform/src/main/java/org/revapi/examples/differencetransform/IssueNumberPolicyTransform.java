@@ -16,7 +16,6 @@
  */
 package org.revapi.examples.differencetransform;
 
-import java.io.Reader;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
