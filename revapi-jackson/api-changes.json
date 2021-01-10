@@ -1,0 +1,17 @@
+{
+  "0.1.1": [
+    {
+      "extension": "revapi.differences",
+      "id": "api-changes",
+      "configuration": {
+        "differences": [
+          {
+            "code": "java.annotation.removed",
+            "annotation": "@javax.annotation.Nonnull",
+            "justification": "The convention in Revapi is that everything is non-null unless marked as @Nullable."
+          }
+        ]
+      }
+    }
+  ]
+}

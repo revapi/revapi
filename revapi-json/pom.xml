@@ -51,11 +51,11 @@
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-plugin</artifactId>
                 <configuration>
-                    <analysisConfiguration combine.children="append">
+                    <analysisConfiguration>
                         <revapi.differences>
-                            <ignore>true</ignore>
-                            <differences>
+                            <differences combine.children="append">
                                 <item>
+                                    <ignore>true</ignore>
                                     <code>java.class.externalClassExposedInAPI</code>
                                     <new>class org.revapi.jackson.JacksonElement&lt;E extends org.revapi.jackson.JacksonElement&lt;E&gt;&gt;</new>
                                     <justification>

@@ -22,7 +22,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,6 +37,7 @@ public abstract class JacksonApiAnalyzer<E extends JacksonElement<E>> extends Ba
 
     public JacksonApiAnalyzer(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
+        this.charset = StandardCharsets.UTF_8;
     }
 
     @Nullable
@@ -48,7 +48,7 @@ public abstract class JacksonApiAnalyzer<E extends JacksonElement<E>> extends Ba
     }
 
     @Override
-    public void initialize(@Nonnull AnalysisContext analysisContext) {
+    public void initialize(AnalysisContext analysisContext) {
         JsonNode charsetNode = analysisContext.getConfigurationNode().path("charset");
         JsonNode pattern = analysisContext.getConfigurationNode().path("pathRegex");
 
