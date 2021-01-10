@@ -1,0 +1,10 @@
+= Release Notes
+:page-publish_date: 2021-01-10
+:page-layout: news-article
+
+As is usually the case with new things, not everything goes to the plan at first.
+
+The 3 new modules - `revapi-jackson`, `revapi-json` and `revapi-yaml` needed a quick respin
+and are now all at `0.1.1`.
+
+
