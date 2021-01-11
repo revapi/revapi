@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
@@ -62,6 +63,7 @@ import org.revapi.java.compilation.CompilationValve;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.model.MethodElement;
+import org.revapi.java.model.MethodParameterElement;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Check;
 import org.revapi.java.spi.JarExtractor;
@@ -140,16 +142,46 @@ public final class JavaApiAnalyzer implements ApiAnalyzer<JavaElement> {
         
         return (l1, l2) -> {
             //so, we have to come up with some correspondence order... This is pretty easy for all java elements
-            //but methods.
+            //but methods because of overloads and method parameters because they are positional.
 
             if (l1.isEmpty() || l2.isEmpty()) {
                 return Comparator.naturalOrder();
             }
 
-            //quickly peek inside to see if there even can be methods in the lists - all of the elements in either list
-            //will have a common parent and parents of both lists will have the same type or be both null.
+            // quickly peek inside to see if there even can be methods or method params in the lists - all of
+            // the elements in either list will have a common parent and parents of both lists will have the same type
+            // or be both null.
             JavaElement parent = l1.get(0).getParent();
-            if (!(parent instanceof TypeElement)) {
+            if (parent instanceof MethodElement) {
+                // the method can contain method parameters but also annotations, so we have to be careful...
+
+                // we will use this diff comparator to cleverly figure out how to transform the old params to the new
+                // params with the min number of edits.
+                Comparator<? super JavaElement> diff = CorrespondenceComparatorDeducer.
+                        <JavaElement>diff((p1, p2) -> {
+                            if (p1 instanceof MethodParameterElement && p2 instanceof MethodParameterElement) {
+                                return ((MethodParameterElement) p1).getIndex()
+                                        == ((MethodParameterElement) p2).getIndex();
+                            } else {
+                                return Objects.equals(p1, p2);
+                            }
+                        })
+                        .sortAndGetCorrespondenceComparator(l1, l2);
+
+                return (e1, e2) -> {
+                    int ret = JavaElementFactory.compareByType(e1, e2);
+
+                    if (ret != 0) {
+                        return ret;
+                    }
+
+                    if (e1 instanceof MethodParameterElement && e2 instanceof MethodParameterElement) {
+                        return diff.compare(e1, e2);
+                    } else {
+                        return e1.compareTo(e2);
+                    }
+                };
+            } else if (!(parent instanceof TypeElement)) {
                 return Comparator.naturalOrder();
             }
 

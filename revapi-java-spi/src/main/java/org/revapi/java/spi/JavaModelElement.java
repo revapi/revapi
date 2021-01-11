@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,4 +61,16 @@ public interface JavaModelElement extends JavaElement {
      * @return false if the parent type declares this child element, true if it is inherited from a super type
      */
     boolean isInherited();
+
+    /**
+     * @return the closest parent that is a java type element.
+     */
+    default @Nullable JavaTypeElement getParentType() {
+        JavaElement parent = getParent();
+        while (parent != null && !(parent instanceof JavaTypeElement)) {
+            parent = parent.getParent();
+        }
+
+        return (JavaTypeElement) parent;
+    }
 }

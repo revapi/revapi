@@ -120,11 +120,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     protected String createFullHumanReadableString() {
         String decl = Util.toHumanReadableString(getDeclaringElement());
         if (isInherited()) {
-            org.revapi.Element parent = getParent();
-            while (parent != null && !(parent instanceof JavaTypeElement)) {
-                parent = parent.getParent();
-            }
-            JavaTypeElement parentType = (JavaTypeElement) parent;
+            JavaTypeElement parentType = getParentType();
 
             if (parentType != null) {
                 decl += " @ " + Util.toHumanReadableString(parentType.getDeclaringElement());
