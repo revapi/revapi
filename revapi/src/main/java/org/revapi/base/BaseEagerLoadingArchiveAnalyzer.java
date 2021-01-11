@@ -128,17 +128,22 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
          */
         public void remember(Set<E> elements) {
             for (E e : elements) {
+                if (originalChildren.containsKey(e)) {
+                    continue;
+                }
+
+                Set<E> children = e.getChildren();
+
+                originalChildren.computeIfAbsent(e, __ -> new HashSet<>()).addAll(children);
+
                 if (e.getParent() == null) {
                     roots.add(e);
                 } else {
                     remember(e.getParent().getChildren());
                 }
-                Set<E> children = e.getChildren();
-                e.getChildren().clear();
-
-                originalChildren.computeIfAbsent(e, __ -> new HashSet<>()).addAll(children);
 
                 remember(children);
+                children.clear();
             }
         }
     }
