@@ -79,7 +79,7 @@ public abstract class ZipArchiveAnalyzer<F extends BaseElementForest<E>, E exten
             all.clear();
         }
 
-        if (all.isEmpty()) {
+        if (all.isEmpty() && matchPatterns.isEmpty()) {
             try (InputStream in2 = archive.openStream()) {
                 all.addAll(createElements(archive, null, in2));
             } catch (IOException e2) {
