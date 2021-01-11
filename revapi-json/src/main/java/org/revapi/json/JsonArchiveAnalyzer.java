@@ -19,6 +19,8 @@ package org.revapi.json;
 import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.revapi.API;
@@ -26,7 +28,7 @@ import org.revapi.Archive;
 import org.revapi.jackson.JacksonArchiveAnalyzer;
 
 public class JsonArchiveAnalyzer extends JacksonArchiveAnalyzer<JsonElement> {
-    public JsonArchiveAnalyzer(JsonApiAnalyzer apiAnalyzer, API api, Pattern pathMatcher, ObjectMapper objectMapper,
+    public JsonArchiveAnalyzer(JsonApiAnalyzer apiAnalyzer, API api, @Nullable Pattern pathMatcher, ObjectMapper objectMapper,
             Charset charset) {
         super(apiAnalyzer, api, pathMatcher, objectMapper, charset);
     }

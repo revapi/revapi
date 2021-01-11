@@ -54,7 +54,7 @@ class JacksonArchiveAnalyzerTest {
         ).build();
 
         @SuppressWarnings("unchecked") TestAnalyzer analyzer =
-                new TestAnalyzer(mock(JacksonApiAnalyzer.class), api, Pattern.compile(".*"), new ObjectMapper(),
+                new TestAnalyzer(mock(JacksonApiAnalyzer.class), api, null, new ObjectMapper(),
                         StandardCharsets.UTF_8);
 
         BaseElementForest<TestElement> forest = analyzer.analyze(TreeFilter.matchAndDescend());

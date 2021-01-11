@@ -20,6 +20,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -27,6 +29,7 @@ import javax.annotation.Nullable;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.revapi.AnalysisContext;
+import org.revapi.CorrespondenceComparatorDeducer;
 import org.revapi.base.BaseApiAnalyzer;
 
 public abstract class JacksonApiAnalyzer<E extends JacksonElement<E>> extends BaseApiAnalyzer<E> {
@@ -34,10 +37,12 @@ public abstract class JacksonApiAnalyzer<E extends JacksonElement<E>> extends Ba
     protected Pattern pathMatcher;
     protected Charset charset;
     protected final ObjectMapper objectMapper;
+    private final CorrespondenceComparatorDeducer<E> diff;
 
     public JacksonApiAnalyzer(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.charset = StandardCharsets.UTF_8;
+        this.diff = CorrespondenceComparatorDeducer.diff(Objects::equals);
     }
 
     @Nullable
@@ -59,6 +64,31 @@ public abstract class JacksonApiAnalyzer<E extends JacksonElement<E>> extends Ba
         if (pattern.isTextual()) {
             this.pathMatcher = Pattern.compile(pattern.asText());
         }
+    }
+
+    @Override
+    public CorrespondenceComparatorDeducer<E> getCorrespondenceDeducer() {
+        // let's try to be clever with the arrays and find the optimal edits to get the two arrays to the same state
+        return (as, bs) -> {
+            if (as.isEmpty() || bs.isEmpty()) {
+                return Comparator.naturalOrder();
+            }
+
+            // the elements in the supplied lists each have a common parent... so we take a look at the parent to
+            // figure out if we're looking at an array or object or value
+            E aParent = as.get(0).getParent();
+            if (aParent == null || !aParent.getNode().isArray()) {
+                return Comparator.naturalOrder();
+            }
+
+            E bParent = bs.get(0).getParent();
+            if (bParent == null || !bParent.getNode().isArray()) {
+                return Comparator.naturalOrder();
+            }
+
+            // k, we have 2 arrays.. we want to compare them in a diff-like manner...
+            return diff.sortAndGetCorrespondenceComparator(as, bs);
+        };
     }
 
     @Override

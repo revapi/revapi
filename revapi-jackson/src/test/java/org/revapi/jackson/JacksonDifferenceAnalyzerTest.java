@@ -19,6 +19,7 @@ package org.revapi.jackson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.revapi.CompatibilityType.SEMANTIC;
 import static org.revapi.DifferenceSeverity.BREAKING;
 import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
@@ -116,6 +117,42 @@ class JacksonDifferenceAnalyzerTest {
         assertEquals("/here", diff.attachments.get("path"));
         assertEquals("42", diff.attachments.get("oldValue"));
         assertEquals("different", diff.attachments.get("newValue"));
+    }
+
+    @Test
+    void doesntReportArraysAsWhole() {
+        Archive ar = Mockito.mock(Archive.class);
+        API api = API.of(ar).build();
+
+        TestElement oldEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.arrayNode().add(1), "here");
+        TestElement newEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.arrayNode().add(0).add(1), "here");
+
+        TestDifferenceAnalyzer analyzer = new TestDifferenceAnalyzer();
+
+        analyzer.beginAnalysis(oldEl, newEl);
+        Report report = analyzer.endAnalysis(oldEl, newEl);
+
+        assertSame(oldEl, report.getOldElement());
+        assertSame(newEl, report.getNewElement());
+        assertTrue(report.getDifferences().isEmpty());
+    }
+
+    @Test
+    void doesntReportObjectsAsWhole() {
+        Archive ar = Mockito.mock(Archive.class);
+        API api = API.of(ar).build();
+
+        TestElement oldEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.objectNode().put("a", 1), "here");
+        TestElement newEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.objectNode().put("b", 2), "here");
+
+        TestDifferenceAnalyzer analyzer = new TestDifferenceAnalyzer();
+
+        analyzer.beginAnalysis(oldEl, newEl);
+        Report report = analyzer.endAnalysis(oldEl, newEl);
+
+        assertSame(oldEl, report.getOldElement());
+        assertSame(newEl, report.getNewElement());
+        assertTrue(report.getDifferences().isEmpty());
     }
 
     public static final class TestElement extends JacksonElement<TestElement> {

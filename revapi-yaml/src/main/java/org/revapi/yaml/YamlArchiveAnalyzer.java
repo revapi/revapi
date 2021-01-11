@@ -19,6 +19,8 @@ package org.revapi.yaml;
 import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.revapi.API;
@@ -26,7 +28,7 @@ import org.revapi.Archive;
 import org.revapi.jackson.JacksonArchiveAnalyzer;
 
 public class YamlArchiveAnalyzer extends JacksonArchiveAnalyzer<YamlElement> {
-    public YamlArchiveAnalyzer(YamlApiAnalyzer apiAnalyzer, API api, Pattern pathMatcher, ObjectMapper objectMapper,
+    public YamlArchiveAnalyzer(YamlApiAnalyzer apiAnalyzer, API api, @Nullable Pattern pathMatcher, ObjectMapper objectMapper,
             Charset charset) {
         super(apiAnalyzer, api, pathMatcher, objectMapper, charset);
     }

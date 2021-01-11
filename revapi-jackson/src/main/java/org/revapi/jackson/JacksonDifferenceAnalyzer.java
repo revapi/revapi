@@ -60,7 +60,8 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
             addRemoved(dbld);
             path = path(currentOldPath);
             file = oldEl.filePath;
-        } else if (!oldEl.equals(newEl)) {
+        } else if ((oldEl.getNode().isValueNode() || newEl.getNode().isValueNode()) && !oldEl.equals(newEl)) {
+            // we're only reporting changes on value nodes
             dbld = bld.addProblem();
             addChanged(dbld);
             path = path(currentNewPath);

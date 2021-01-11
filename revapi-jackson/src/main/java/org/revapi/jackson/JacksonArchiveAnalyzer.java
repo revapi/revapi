@@ -16,14 +16,15 @@
  */
 package org.revapi.jackson;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.regex.Pattern;
@@ -44,9 +45,9 @@ public abstract class JacksonArchiveAnalyzer<E extends JacksonElement<E>> extend
     private final ObjectMapper objectMapper;
     private final Charset charset;
 
-    protected JacksonArchiveAnalyzer(JacksonApiAnalyzer<E> apiAnalyzer, API api, Pattern pathMatcher,
+    protected JacksonArchiveAnalyzer(JacksonApiAnalyzer<E> apiAnalyzer, API api, @Nullable Pattern pathMatcher,
             ObjectMapper objectMapper, Charset charset) {
-        super(apiAnalyzer, api, Collections.singletonList(pathMatcher));
+        super(apiAnalyzer, api, pathMatcher == null ? emptyList() : singletonList(pathMatcher));
         this.objectMapper = objectMapper.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
         this.charset = charset;
     }
