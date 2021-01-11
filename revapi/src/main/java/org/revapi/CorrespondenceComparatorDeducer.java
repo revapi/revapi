@@ -17,7 +17,9 @@
 package org.revapi;
 
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.function.BiPredicate;
 
 /**
  * A correspondence comparator deducer produces a comparator that is used to compare elements from 2 collections.
@@ -36,12 +38,45 @@ public interface CorrespondenceComparatorDeducer<E extends Element<E>> {
      */
     static <E extends Element<E>> CorrespondenceComparatorDeducer<E> naturalOrder() {
         return (l1, l2) -> {
-            Comparator<? super E> ret = Comparator.naturalOrder();
+            // by definition the collections are already sorted by their natural order, so we don't have to do
+            // any sorting here and just return the comparator.
+            return Comparator.naturalOrder();
+        };
+    }
 
-            l1.sort(ret);
-            l2.sort(ret);
+    /**
+     * This correspondence deducer is a good match for situations where the ordering of the children of some element
+     * is not semantic but rather positional, e.g. method parameters or elements of an array. The deducer will then
+     * return a comparator that will make Revapi produce the minimal set of changes necessary to transform the old into
+     * the new.
+     *
+     * <p>This uses the longest common subsequence algorithm to produce a diff-like output.
+     *
+     * @param equality a function to determine the element equality
+     *
+     * @param <E> the base type of the elements
+     * @return a correspondence comparator deducer that will produce a diff-like ordering of the elements
+     */
+    static <E extends Element<E>> CorrespondenceComparatorDeducer<E> diff(BiPredicate<? super E, ? super E> equality) {
+        return (as, bs) -> {
+            if (as.isEmpty() || bs.isEmpty()) {
+                return Comparator.naturalOrder();
+            }
 
-            return ret;
+            List<LongestCommonSubsequence.Pair<E>> pairs = LongestCommonSubsequence.sort(as, bs, equality);
+            IdentityHashMap<E, Integer> order = new IdentityHashMap<>();
+
+            for (int i = 0; i < pairs.size(); ++i) {
+                LongestCommonSubsequence.Pair<E> pair = pairs.get(i);
+                if (pair.left != null) {
+                    order.put(pair.left, i);
+                }
+                if (pair.right != null) {
+                    order.put(pair.right, i);
+                }
+            }
+
+            return Comparator.comparingInt(order::get);
         };
     }
 
@@ -59,3 +94,4 @@ public interface CorrespondenceComparatorDeducer<E extends Element<E>> {
      */
     Comparator<? super E> sortAndGetCorrespondenceComparator(List<E> first, List<E> second);
 }
+
