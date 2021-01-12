@@ -185,7 +185,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
     public void testChangesReportedOnAnnotationElements() throws Exception {
         CollectingReporter reporter = runAnalysis(CollectingReporter.class,
                 "{\"revapi\": {\"filter\": {\"elements\": {\"include\":[" +
-                        "{\"matcher\": \"java\", \"match\": \"@Attributes.Anno(**) ^*;\"}]}}}}",
+                        "{\"matcher\": \"java\", \"match\": \"match %c|%a; @Attributes.Anno(**) %a=*; class %c=Attributes{}\"}]}}}}",
                 "v1/annotations/Attributes.java", "v2/annotations/Attributes.java");
 
         List<Report> reports = reporter.getReports();

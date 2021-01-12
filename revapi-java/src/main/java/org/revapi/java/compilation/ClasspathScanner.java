@@ -793,11 +793,6 @@ final class ClasspathScanner {
             while (!undetermined.isEmpty()) {
                 undetermined = undetermined.stream()
                         .filter(tr -> tr.inclusionState.getMatch() != FilterMatch.DOESNT_MATCH || tr.inclusionState.isDescend())
-                        .peek(tr -> {
-                            if (tr.inclusionState.getMatch().toBoolean(false) && !tr.inclusionState.isInherited()) {
-                                tr.inApi = true;
-                            }
-                        })
                         .filter(tr -> tr.inApi)
                         .flatMap(tr -> tr.usedTypes.entrySet().stream()
                                 .map(e -> new AbstractMap.SimpleImmutableEntry<>(tr, e)))
