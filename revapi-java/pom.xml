@@ -21,7 +21,7 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>42</version>
+        <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,7 +33,7 @@
     <url>https://revapi.org</url>
 
     <artifactId>revapi-java</artifactId>
-    <version>0.23.1</version>
+    <version>0.23.2-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.java</automatic.module.name>
@@ -56,13 +56,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.13.1</version>
+            <version>0.13.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-java-spi</artifactId>
-            <version>0.22.1</version>
+            <version>0.22.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -118,7 +118,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.11.1</version>
+            <version>0.11.2-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
