@@ -26,8 +26,10 @@ import org.revapi.Report;
 /**
  * This is a simple helper class that can be used by the users to collect all the
  * reports from Revapi.
+ *
+ * The extension ID is {@code test.collecting-reporter}.
  */
-public abstract class CollectingReporter extends BaseReporter {
+public class CollectingReporter extends BaseReporter {
 
     private final List<Report> reports = new ArrayList<>();
 
@@ -38,5 +40,10 @@ public abstract class CollectingReporter extends BaseReporter {
 
     public List<Report> getReports() {
         return reports;
+    }
+
+    @Override
+    public String getExtensionId() {
+        return "test.collecting-reporter";
     }
 }
