@@ -17,6 +17,6 @@
 
 name: revapi-json
 title: JSON Analyzer
-version: master
+version: 0.2.0
 nav:
   - modules/ROOT/nav.adoc
