@@ -37,12 +37,12 @@ public abstract class JacksonApiAnalyzer<E extends JacksonElement<E>> extends Ba
     protected Pattern pathMatcher;
     protected Charset charset;
     protected final ObjectMapper objectMapper;
-    private final CorrespondenceComparatorDeducer<E> diff;
+    private final CorrespondenceComparatorDeducer<E> arrayDiff;
 
     public JacksonApiAnalyzer(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.charset = StandardCharsets.UTF_8;
-        this.diff = CorrespondenceComparatorDeducer.diff(Objects::equals);
+        this.arrayDiff = CorrespondenceComparatorDeducer.editDistance(Objects::equals);
     }
 
     @Nullable
@@ -87,7 +87,7 @@ public abstract class JacksonApiAnalyzer<E extends JacksonElement<E>> extends Ba
             }
 
             // k, we have 2 arrays.. we want to compare them in a diff-like manner...
-            return diff.sortAndGetCorrespondenceComparator(as, bs);
+            return arrayDiff.sortAndGetCorrespondenceComparator(as, bs);
         };
     }
 

@@ -50,24 +50,22 @@ public interface CorrespondenceComparatorDeducer<E extends Element<E>> {
      * return a comparator that will make Revapi produce the minimal set of changes necessary to transform the old into
      * the new.
      *
-     * <p>This uses the longest common subsequence algorithm to produce a diff-like output.
-     *
      * @param equality a function to determine the element equality
      *
      * @param <E> the base type of the elements
      * @return a correspondence comparator deducer that will produce a diff-like ordering of the elements
      */
-    static <E extends Element<E>> CorrespondenceComparatorDeducer<E> diff(BiPredicate<? super E, ? super E> equality) {
+    static <E extends Element<E>> CorrespondenceComparatorDeducer<E> editDistance(BiPredicate<? super E, ? super E> equality) {
         return (as, bs) -> {
             if (as.isEmpty() || bs.isEmpty()) {
                 return Comparator.naturalOrder();
             }
 
-            List<LongestCommonSubsequence.Pair<E>> pairs = LongestCommonSubsequence.sort(as, bs, equality);
+            List<EditDistance.Pair<E>> pairs = EditDistance.compute(as, bs, equality);
             IdentityHashMap<E, Integer> order = new IdentityHashMap<>();
 
             for (int i = 0; i < pairs.size(); ++i) {
-                LongestCommonSubsequence.Pair<E> pair = pairs.get(i);
+                EditDistance.Pair<E> pair = pairs.get(i);
                 if (pair.left != null) {
                     order.put(pair.left, i);
                 }

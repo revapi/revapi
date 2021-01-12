@@ -158,7 +158,7 @@ public final class JavaApiAnalyzer implements ApiAnalyzer<JavaElement> {
                 // we will use this diff comparator to cleverly figure out how to transform the old params to the new
                 // params with the min number of edits.
                 Comparator<? super JavaElement> diff = CorrespondenceComparatorDeducer.
-                        <JavaElement>diff((p1, p2) -> {
+                        <JavaElement>editDistance((p1, p2) -> {
                             if (p1 instanceof MethodParameterElement && p2 instanceof MethodParameterElement) {
                                 return ((MethodParameterElement) p1).getIndex()
                                         == ((MethodParameterElement) p2).getIndex();
