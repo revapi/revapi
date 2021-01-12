@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>43-SNAPSHOT</version>
+        <version>42</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,7 +33,7 @@
     <url>https://revapi.org</url>
 
     <artifactId>revapi-ant-task</artifactId>
-    <version>0.11.1-SNAPSHOT</version>
+    <version>0.11.1</version>
 
     <properties>
         <automatic.module.name>org.revapi.ant</automatic.module.name>
@@ -43,13 +43,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.13.2-SNAPSHOT</version>
+            <version>0.13.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.11.2-SNAPSHOT</version>
+            <version>0.11.1</version>
         </dependency>
 
         <dependency>
