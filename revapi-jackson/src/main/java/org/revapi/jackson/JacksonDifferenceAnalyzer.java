@@ -18,9 +18,6 @@ package org.revapi.jackson;
 
 import static java.util.Collections.singletonList;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import org.revapi.CompatibilityType;
@@ -30,44 +27,36 @@ import org.revapi.Report;
 import org.revapi.base.BaseDifferenceAnalyzer;
 
 public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> extends BaseDifferenceAnalyzer<E> {
-    // these really should be deques but those do not support nulls and we need to store nulls
-    private final List<E> currentOldPath = new ArrayList<>();
-    private final List<E> currentNewPath = new ArrayList<>();
 
     @Override
     public void beginAnalysis(@Nullable E oldElement, @Nullable E newElement) {
-        currentOldPath.add(oldElement);
-        currentNewPath.add(newElement);
     }
 
     @Override
     public Report endAnalysis(@Nullable E oldElement, @Nullable E newElement) {
-        E oldEl = currentOldPath.get(currentOldPath.size() - 1);
-        E newEl = currentNewPath.get(currentNewPath.size() - 1);
-
-        Report.Builder bld = Report.builder().withOld(oldEl).withNew(newEl);
+        Report.Builder bld = Report.builder().withOld(oldElement).withNew(newElement);
 
         Difference.InReportBuilder dbld = null;
         String path = null;
         String file = null;
-        if (oldEl == null) {
+        if (oldElement == null) {
             dbld = bld.addProblem();
             addAdded(dbld);
-            path = path(currentNewPath);
-            file = newEl.filePath;
-        } else if (newEl == null) {
+            path = newElement.getPath();
+            file = newElement.getFilePath();
+        } else if (newElement == null) {
             dbld = bld.addProblem();
             addRemoved(dbld);
-            path = path(currentOldPath);
-            file = oldEl.filePath;
-        } else if ((oldEl.getNode().isValueNode() || newEl.getNode().isValueNode()) && !oldEl.equals(newEl)) {
+            path = oldElement.getPath();
+            file = oldElement.getFilePath();
+        } else if ((oldElement.getNode().isValueNode() || newElement.getNode().isValueNode()) && !oldElement.equals(newElement)) {
             // we're only reporting changes on value nodes
             dbld = bld.addProblem();
             addChanged(dbld);
-            path = path(currentNewPath);
-            file = newEl.filePath;
-            dbld.addAttachment("oldValue", oldEl.getValueString());
-            dbld.addAttachment("newValue", newEl.getValueString());
+            path = newElement.getPath();
+            file = newElement.getFilePath();
+            dbld.addAttachment("oldValue", oldElement.getValueString());
+            dbld.addAttachment("newValue", newElement.getValueString());
         }
 
         if (dbld != null) {
@@ -76,9 +65,6 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
             dbld.withIdentifyingAttachments(singletonList("path"));
             dbld.done();
         }
-
-        currentOldPath.remove(currentOldPath.size() - 1);
-        currentNewPath.remove(currentNewPath.size() - 1);
 
         return bld.build();
     }
@@ -106,19 +92,4 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
     protected abstract String valueAddedCode();
 
     protected abstract String valueChangedCode();
-
-    protected String path(List<E> path) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = path.size() - 1; i >= 0; --i) {
-            E e = path.get(i);
-            sb.append("/");
-            if (e.keyInParent != null) {
-                sb.append(e.keyInParent);
-            } else if (e.indexInParent >= 0) {
-                sb.append(e.indexInParent);
-            }
-        }
-
-        return sb.toString();
-    }
 }

@@ -41,6 +41,8 @@ class JacksonDifferenceAnalyzerTest {
         API api = API.of(ar).build();
 
         TestElement element = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.numberNode(42), 0);
+        TestElement root = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.arrayNode(), -1);
+        root.getChildren().add(element);
 
         TestDifferenceAnalyzer analyzer = new TestDifferenceAnalyzer();
 
@@ -68,6 +70,8 @@ class JacksonDifferenceAnalyzerTest {
         API api = API.of(ar).build();
 
         TestElement element = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.numberNode(42), "here");
+        TestElement root = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.objectNode(), -1);
+        root.getChildren().add(element);
 
         TestDifferenceAnalyzer analyzer = new TestDifferenceAnalyzer();
 
@@ -96,6 +100,10 @@ class JacksonDifferenceAnalyzerTest {
 
         TestElement oldEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.numberNode(42), "here");
         TestElement newEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.textNode("different"), "here");
+        TestElement oldRoot = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.arrayNode(), -1);
+        oldRoot.getChildren().add(oldEl);
+        TestElement newRoot = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.arrayNode(), -1);
+        newRoot.getChildren().add(newEl);
 
         TestDifferenceAnalyzer analyzer = new TestDifferenceAnalyzer();
 
