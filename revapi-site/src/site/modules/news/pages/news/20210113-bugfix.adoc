@@ -1,0 +1,15 @@
+= Important Bugfix
+:page-publish_date: 2021-01-13
+:page-layout: news-article
+
+The outbreak of releases continues :)
+
+This time, an ugly bug in the configuration parsing was discovered and fixed. The bug has been there forever but didn't manifest itself with the simple schemas that have been used in the extensions. The newer versions of the extensions have more complicated schemas which uncovered the bug.
+
+If you get complaints that XML configuration could not be converted, because no rule in the JSON schema could be found for it, you're being hit by this bug and are urged to upgrade.
+
+Because this bug was located in the core API, a new version of all components has been released so that
+they pick up the fix.
+
+Keep them coming :)
+
