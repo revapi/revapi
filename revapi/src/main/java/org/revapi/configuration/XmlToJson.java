@@ -159,7 +159,7 @@ public final class XmlToJson<Xml> {
                 continue;
             }
 
-            JsonNode config = convert(c, schema);
+            JsonNode config = convert(c, schema, schema);
 
             ObjectNode instanceConfig = JsonNodeFactory.instance.objectNode();
             instanceConfig.put("extension", extensionId);
@@ -174,10 +174,6 @@ public final class XmlToJson<Xml> {
         return fullConfiguration;
     }
 
-    private JsonNode convert(Xml configuration, JsonNode jsonSchema) {
-        return convert(configuration, jsonSchema, jsonSchema);
-    }
-
     private JsonNode convert(Xml configuration, JsonNode jsonSchema, JsonNode rootSchema) {
         JsonNode typeNode = jsonSchema.get("type");
         if (isNullOrUndefined(typeNode)) {
@@ -188,11 +184,11 @@ public final class XmlToJson<Xml> {
                 jsonSchema = findRef(rootSchema, jsonSchema.get("$ref").asText());
                 ret = convert(configuration, jsonSchema, rootSchema);
             } else if (jsonSchema.hasNonNull("oneOf")) {
-                ret = convertByOneOf(configuration, jsonSchema.get("oneOf"));
+                ret = convertByOneOf(configuration, jsonSchema.get("oneOf"), rootSchema);
             } else if (jsonSchema.hasNonNull("anyOf")) {
-                ret = convertByAnyOf(configuration, jsonSchema.get("anyOf"));
+                ret = convertByAnyOf(configuration, jsonSchema.get("anyOf"), rootSchema);
             } else if (jsonSchema.hasNonNull("allOf")) {
-                ret = convertByAllOf(configuration, jsonSchema.get("allOf"));
+                ret = convertByAllOf(configuration, jsonSchema.get("allOf"), rootSchema);
             }
 
             if (ret == null) {
@@ -344,12 +340,12 @@ public final class XmlToJson<Xml> {
         return JsonNodeFactory.instance.booleanNode(boolVal);
     }
 
-    private JsonNode convertByOneOf(Xml configuration, Iterable<JsonNode> candidateSchemas) {
+    private JsonNode convertByOneOf(Xml configuration, Iterable<JsonNode> candidateSchemas, JsonNode rootSchema) {
         boolean matched = false;
         JsonNode parsed = null;
         for (JsonNode candidateSchema : candidateSchemas) {
             try {
-                parsed = convert(configuration, candidateSchema);
+                parsed = convert(configuration, candidateSchema, rootSchema);
                 if (matched) {
                     return null;
                 } else {
@@ -363,10 +359,10 @@ public final class XmlToJson<Xml> {
         return parsed;
     }
 
-    private JsonNode convertByAnyOf(Xml configuration, Iterable<JsonNode> candidateSchemas) {
+    private JsonNode convertByAnyOf(Xml configuration, Iterable<JsonNode> candidateSchemas, JsonNode rootSchema) {
         for (JsonNode candidateSchema : candidateSchemas) {
             try {
-                return convert(configuration, candidateSchema);
+                return convert(configuration, candidateSchema, rootSchema);
             } catch (IllegalArgumentException __) {
                 //continue
             }
@@ -375,11 +371,11 @@ public final class XmlToJson<Xml> {
         return null;
     }
 
-    private JsonNode convertByAllOf(Xml configuration, Iterable<JsonNode> candidateSchemas) {
+    private JsonNode convertByAllOf(Xml configuration, Iterable<JsonNode> candidateSchemas, JsonNode rootSchema) {
         JsonNode parsed = null;
         for (JsonNode candidateSchema : candidateSchemas) {
             try {
-                parsed = convert(configuration, candidateSchema);
+                parsed = convert(configuration, candidateSchema, rootSchema);
             } catch (IllegalArgumentException __) {
                 return null;
             }

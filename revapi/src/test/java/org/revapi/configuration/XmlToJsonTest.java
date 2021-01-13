@@ -342,6 +342,20 @@ public class XmlToJsonTest {
         Assert.assertEquals(1D, c.asDouble(), 0);
     }
 
+    @Test
+    public void testDeepReferences() throws Exception {
+        XmlToJson<Node> converter = converter("ext", "{\"definitions\": {\"blah\": {\"type\": \"boolean\"}}, \"oneOf\": [{\"type\": \"integer\"}, {\"$ref\": \"#/definitions/blah\"}]}");
+        Node xml = xml("<config><ext>true</ext></config>");
+
+        JsonNode c = converter.convertXml(xml).get(0).get("configuration");
+
+        Assert.assertNotNull(c);
+
+        Assert.assertTrue(c.isBoolean());
+        Assert.assertTrue(c.asBoolean());
+
+    }
+
     private static Node xml(String xml) throws IOException, ParserConfigurationException, SAXException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
