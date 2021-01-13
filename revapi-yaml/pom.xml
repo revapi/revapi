@@ -23,14 +23,14 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>42</version>
+        <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>revapi-yaml</artifactId>
     <name>YAML Analyzer</name>
-    <version>0.2.1</version>
+    <version>0.2.2-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.yaml</automatic.module.name>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-jackson</artifactId>
-            <version>0.2.1</version>
+            <version>0.2.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
