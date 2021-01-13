@@ -23,14 +23,14 @@
     <parent>
         <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
-        <version>43-SNAPSHOT</version>
+        <version>42</version>
         <relativePath>../revapi-build/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>Jackson Analyzer Base</name>
     <artifactId>revapi-jackson</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>0.2.1</version>
 
     <properties>
         <automatic.module.name>org.revapi.jackson</automatic.module.name>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.13.3-SNAPSHOT</version>
+            <version>0.13.2</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
