@@ -17,6 +17,6 @@
 
 name: revapi-basic-features
 title: Basic Features
-version: master
+version: 0.11.2
 nav:
   - modules/ROOT/nav.adoc
