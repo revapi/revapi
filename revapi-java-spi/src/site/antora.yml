@@ -17,6 +17,6 @@
 
 name: revapi-java-spi
 title: Java Analyzer SPI
-version: master
+version: 0.22.2
 nav:
   - modules/ROOT/nav.adoc
