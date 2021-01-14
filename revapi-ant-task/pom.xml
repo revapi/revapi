@@ -17,7 +17,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
@@ -33,7 +34,7 @@
     <url>https://revapi.org</url>
 
     <artifactId>revapi-ant-task</artifactId>
-    <version>0.11.3-SNAPSHOT</version>
+    <version>0.11.1-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.ant</automatic.module.name>
@@ -43,13 +44,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.13.3-SNAPSHOT</version>
+            <version>0.13.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.11.3-SNAPSHOT</version>
+            <version>0.11.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -86,28 +87,15 @@
                 <artifactId>revapi-maven-plugin</artifactId>
                 <version>${self-api-check.maven-version}</version>
                 <configuration>
-                    <analysisConfiguration><![CDATA[
-                        {
-                            "revapi" : {
-                                "filter" : {
-                                    "elements": {
-                                       "include" : ["\\w+ (.+ )?org\.revapi\..*"]
-                                    }
-                                },
-                                "java" : {
-                                    "missing-classes" : {
-                                        "behavior" : "report"
-                                    }
-                                },
-                                "semver": {
-                                    "ignore": {
-                                        "enabled": true,
-                                        "passThroughDifferences": ["java.class.nonPublicPartOfAPI"]
-                                    }
-                                }
-                            }
-                        }
-                    ]]></analysisConfiguration>
+                    <analysisConfiguration>
+                        <revapi.filter>
+                            <archives>
+                                <include>
+                                    <item>org\.revapi.*</item>
+                                </include>
+                            </archives>
+                        </revapi.filter>
+                    </analysisConfiguration>
                 </configuration>
             </plugin>
         </plugins>
@@ -120,22 +108,15 @@
                 <artifactId>revapi-maven-plugin</artifactId>
                 <version>${self-api-check.maven-version}</version>
                 <configuration>
-                    <analysisConfiguration><![CDATA[
-                        {
-                            "revapi" : {
-                                "filter" : {
-                                    "elements": {
-                                       "include" : ["\\w+ (.+ )?org\.revapi\..*"]
-                                    }
-                                },
-                                "java" : {
-                                    "missing-classes" : {
-                                        "behavior" : "report"
-                                    }
-                                }
-                            }
-                        }
-                    ]]></analysisConfiguration>
+                    <analysisConfiguration>
+                        <revapi.filter>
+                            <archives>
+                                <include>
+                                    <item>org\.revapi.*</item>
+                                </include>
+                            </archives>
+                        </revapi.filter>
+                    </analysisConfiguration>
                 </configuration>
             </plugin>
         </plugins>
