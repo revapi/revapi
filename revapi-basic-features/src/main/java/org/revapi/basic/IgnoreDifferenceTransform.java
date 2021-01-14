@@ -51,7 +51,7 @@ public class IgnoreDifferenceTransform extends DifferencesTransform {
     @Override
     protected JsonNode getRecipesConfigurationAndInitialize() {
         JsonNode ret = analysisContext.getConfigurationNode();
-        if (ret.isNull()) {
+        if (!ret.isNull()) {
             LOG.warn("The `revapi.ignore` extension is deprecated. Consider using the `revapi.differences` instead.");
         }
 
