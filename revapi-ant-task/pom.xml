@@ -87,13 +87,16 @@
                 <artifactId>revapi-maven-plugin</artifactId>
                 <version>${self-api-check.maven-version}</version>
                 <configuration>
-                    <analysisConfiguration>
+                    <analysisConfiguration combine.children="append">
                         <revapi.filter>
-                            <archives>
+                            <elements>
                                 <include>
-                                    <item>org\.revapi.*</item>
+                                    <item>
+                                        <matcher>java</matcher>
+                                        <match>type ^org.revapi.** {}</match>
+                                    </item>
                                 </include>
-                            </archives>
+                            </elements>
                         </revapi.filter>
                     </analysisConfiguration>
                 </configuration>
@@ -108,13 +111,16 @@
                 <artifactId>revapi-maven-plugin</artifactId>
                 <version>${self-api-check.maven-version}</version>
                 <configuration>
-                    <analysisConfiguration>
+                    <analysisConfiguration combine.children="append">
                         <revapi.filter>
-                            <archives>
+                            <elements>
                                 <include>
-                                    <item>org\.revapi.*</item>
+                                    <item>
+                                        <matcher>java</matcher>
+                                        <match>type ^org.revapi.** {}</match>
+                                    </item>
                                 </include>
-                            </archives>
+                            </elements>
                         </revapi.filter>
                     </analysisConfiguration>
                 </configuration>
