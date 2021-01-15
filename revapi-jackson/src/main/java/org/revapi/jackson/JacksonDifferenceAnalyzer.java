@@ -42,11 +42,13 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
         if (oldElement == null) {
             dbld = bld.addProblem();
             addAdded(dbld);
+            dbld.withDescription("The node was added.");
             path = newElement.getPath();
             file = newElement.getFilePath();
         } else if (newElement == null) {
             dbld = bld.addProblem();
             addRemoved(dbld);
+            dbld.withDescription("The node was removed.");
             path = oldElement.getPath();
             file = oldElement.getFilePath();
         } else if ((oldElement.getNode().isValueNode() || newElement.getNode().isValueNode()) && !oldElement.equals(newElement)) {
@@ -55,6 +57,7 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
             addChanged(dbld);
             path = newElement.getPath();
             file = newElement.getFilePath();
+            dbld.withDescription("The value changed from `" + oldElement.getValueString() + "` to `" + newElement.getValueString() + "`.");
             dbld.addAttachment("oldValue", oldElement.getValueString());
             dbld.addAttachment("newValue", newElement.getValueString());
         }
