@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -106,10 +107,12 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
     public  <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
         List<TreeFilter<E>> excludes = elementExcludeRecipes.stream()
                 .map(r -> r.filterFor(archiveAnalyzer))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         List<TreeFilter<E>> includes = elementIncludeRecipes.stream()
                 .map(r -> r.filterFor(archiveAnalyzer))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         return Optional.of(new TreeFilter<E>() {
