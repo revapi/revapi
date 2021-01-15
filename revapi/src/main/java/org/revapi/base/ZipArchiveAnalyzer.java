@@ -84,7 +84,8 @@ public abstract class ZipArchiveAnalyzer<F extends BaseElementForest<E>, E exten
                 all.addAll(createElements(archive, null, in2));
             } catch (IOException e2) {
                 // well, we can't do much but to log and continue...
-                LOG.warn("Failed to analyze archive '" + archive + "' both as a zip archive and as an uncompressed file.");
+                LOG.debug(getClass().getSimpleName() + ": failed to analyze archive '" + archive.getName()
+                        + "' both as a zip archive and as an uncompressed file.");
             }
         }
 
