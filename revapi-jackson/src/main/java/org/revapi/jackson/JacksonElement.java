@@ -170,6 +170,11 @@ public class JacksonElement<E extends JacksonElement<E>> extends BaseElement<E> 
         return Objects.hash(node);
     }
 
+    @Override
+    public String toString() {
+        return getFullHumanReadableString();
+    }
+
     protected String getPathPart() {
         if (getParent() == null) {
             return "";
