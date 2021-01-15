@@ -60,9 +60,9 @@ public abstract class JacksonArchiveAnalyzer<E extends JacksonElement<E>> extend
     @Override
     protected Set<E> createElements(Archive a, @Nullable ZipEntry entry, InputStream data) throws IOException {
         JsonNode tree = parseStream(data);
-        String filePath = entry == null ? "" : entry.getName();
+        String filePath = entry == null ? a.getName() : entry.getName();
 
-        E root = toElement(a, filePath, tree, a.getName() + ":" + filePath);
+        E root = toElement(a, filePath, tree, filePath);
         if (tree.isArray()) {
             for (int idx = 0; idx < tree.size(); ++idx) {
                 add(a, root.filePath, root.getChildren(), tree.get(idx), idx);
