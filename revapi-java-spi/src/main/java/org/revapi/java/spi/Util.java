@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1259,24 +1259,28 @@ public final class Util {
     private static TypeElement findTypeByBinaryName(Elements elements, StringBuilder binaryName) {
         TypeElement ret;
 
+        // just for laughs and giggles, let's track the number of lookups we make...
+        int lookups = 1;
+
         //first, a quick check for the case where the name has just dollars in it, but is not a nested class.
         //Scala seems to use this for its generated classes.
         //Javac can have real trouble trying to initialize member classes... Let's guard for that here...
         try {
             ret = elements.getTypeElement(binaryName);
             if (ret != null) {
-                return ret;
+                return traceLookupResult(binaryName, ret, lookups);
             }
         } catch (Exception __) {
             //k, we're most probably dealing with a member class. There is no point in continuing, the class is not
             //reachable by any caller but from within a method the member class is defined.
-            return null;
+            return traceLookupResult(binaryName, null, lookups);
         }
 
         int lastIndex = binaryName.length() - 1;
 
         //remember the exact positions of the $ in the binaryName
-        List<Integer> tmp = new ArrayList<>(4);
+        List<Integer> tmpDollars = new ArrayList<>(4);
+        List<Integer> tmpDigits = new ArrayList<>(4);
         int dollarPos = -1;
         while (true) {
             dollarPos = binaryName.indexOf("$", dollarPos + 1);
@@ -1285,7 +1289,11 @@ public final class Util {
                 //the name
                 if (dollarPos > 0 && dollarPos < lastIndex && binaryName.charAt(dollarPos - 1) != '.'
                         && binaryName.charAt(dollarPos + 1) != '.') {
-                    tmp.add(dollarPos);
+                    tmpDollars.add(dollarPos);
+
+                    if (Character.isDigit(binaryName.charAt(dollarPos + 1))) {
+                        tmpDigits.add(dollarPos + 1);
+                    }
                 }
             } else {
                 break;
@@ -1293,23 +1301,29 @@ public final class Util {
         }
 
         //convert to a faster int[]
-        int[] dollarPoses = new int[tmp.size()];
+        int[] dollarPoses = new int[tmpDollars.size()];
         for (int i = 0; i < dollarPoses.length; ++i) {
-            dollarPoses[i] = tmp.get(i);
+            dollarPoses[i] = tmpDollars.get(i);
+        }
+
+        int[] digitPoses = new int[tmpDigits.size()];
+        for (int i = 0; i < digitPoses.length; ++i) {
+            digitPoses[i] = tmpDigits.get(i);
         }
 
         //ok, $ in class names are uncommon (at least in java), so let's try just replacing all dollars first
         //if the name is valid even if all dollars were replaced by . (i.e. all class names without $), let's try
         //resolve it as such..
-        if (isValidDotConstellation(dollarPoses, dollarPoses.length)) {
+        if (isValidDotConstellation(dollarPoses, digitPoses, dollarPoses.length)) {
             for (int i = 0; i < dollarPoses.length; ++i) {
                 binaryName.setCharAt(dollarPoses[i], '.');
             }
 
             try {
+                lookups++;
                 ret = elements.getTypeElement(binaryName);
                 if (ret != null) {
-                    return ret;
+                    return traceLookupResult(binaryName, ret, lookups);
                 } else {
                     //shame, we need to go through the slow path
                     for (int i = 0; i < dollarPoses.length; ++i) {
@@ -1317,7 +1331,7 @@ public final class Util {
                     }
                 }
             } catch (Exception __) {
-                return null;
+                return traceLookupResult(binaryName, null, lookups);
             }
         }
 
@@ -1337,7 +1351,7 @@ public final class Util {
             int attempt = 0;
 
             while (attempt++ < constellations) {
-                if (!isValidDotConstellation(dotPoses, nestingLevel)) {
+                if (!isValidDotConstellation(dotPoses, digitPoses, nestingLevel)) {
                     nextDotConstellation(dollarPoses, dotPoses, nestingLevel);
                     continue;
                 }
@@ -1350,13 +1364,14 @@ public final class Util {
                 }
 
                 try {
+                    lookups++;
                     ret = elements.getTypeElement(binaryName);
                     if (ret != null) {
                         break;
                     }
                 } catch (Exception e) {
                     //see the top of the method for the reason we're breaking out here...
-                    return null;
+                    return traceLookupResult(binaryName, null, lookups);
                 }
 
                 for (int i = 0; i < dotPoses.length; ++i) {
@@ -1372,6 +1387,18 @@ public final class Util {
                 break;
             } else {
                 nestingLevel++;
+            }
+        }
+
+        return traceLookupResult(binaryName, ret, lookups);
+    }
+
+    private static TypeElement traceLookupResult(CharSequence binaryName, TypeElement ret, int lookups) {
+        if (LOG.isTraceEnabled()) {
+            if (ret != null) {
+                LOG.trace(binaryName + ": " + lookups + " lookups to success.");
+            } else {
+                LOG.trace(binaryName + ": " + lookups + " lookups to failure.");
             }
         }
 
@@ -1463,7 +1490,7 @@ public final class Util {
         return nChooseK(n - 1, k - 1) + nChooseK(n - 1, k);
     }
 
-    private static boolean isValidDotConstellation(int[] dotPositions, int nestingLevel) {
+    private static boolean isValidDotConstellation(int[] dotPositions, int[] digitPositions, int nestingLevel) {
         int assigned = 0;
         int lastAssignedIndex = -1;
 
@@ -1472,6 +1499,16 @@ public final class Util {
                 //disallow 2 consecutive $
                 if (lastAssignedIndex != -1 && dotPositions[lastAssignedIndex] == dotPositions[i] - 1) {
                     return false;
+                }
+
+                // disallow a class name starting with a digit
+                int classNameStartIndex = dotPositions[i] + 1;
+                for (int j = 0; j < digitPositions.length; ++j) {
+                    if (digitPositions[j] == classNameStartIndex) {
+                        return false;
+                    } else if (digitPositions[j] > classNameStartIndex) {
+                        break;
+                    }
                 }
 
                 assigned++;
