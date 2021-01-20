@@ -18,3 +18,5 @@ pom.xml.versionsBackup
 *.iws
 nb-configuration.xml
 .vscode/
+
+.factorypath
