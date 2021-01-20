@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,6 +101,9 @@ public class JsonReporter extends AbstractFileReporter {
         write(gen, "new", de.newEl);
         write(gen, "name", d.name);
         write(gen, "description", d.description);
+        write(gen, "criticality", d.criticality == null ? null : d.criticality.getName());
+        write(gen, "justification", d.justification);
+
         gen.writeArrayFieldStart("classification");
         for (Map.Entry<CompatibilityType, DifferenceSeverity> e : d.classification.entrySet()) {
             gen.writeStartObject();
