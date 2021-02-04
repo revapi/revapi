@@ -318,7 +318,7 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     }
 
     private Version nextVersion(String baseVersion, ApiChangeLevel changeLevel) {
-        Version v = Version.parse(project.getVersion());
+        Version v = Version.parse(baseVersion);
 
         boolean isDev = v.getMajor() == 0;
 
