@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,9 +47,12 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.revapi.AnalysisResult;
 import org.revapi.Archive;
+import org.revapi.PipelineConfiguration;
+import org.revapi.base.CollectingReporter;
 
 /**
  * @author Lukas Krejci
@@ -122,9 +125,15 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         AnalysisResults analysisResults;
 
         if (!initializeComparisonArtifacts()) {
-            //we've got non-file artifacts, for which there is no reason to run analysis
-            DefaultArtifact oldArtifact = new DefaultArtifact(oldArtifacts[0]);
-            analysisResults = new AnalysisResults(ApiChangeLevel.NO_CHANGE, oldArtifact.getVersion());
+            // we've got non-file artifacts, for which there is no reason to run analysis
+            // nevertheless, let's prepare the analyzer so that we get the resolved artifacts which we can use
+            // to mimic the results
+            AnalyzerBuilder.Result bld = buildAnalyzer(project, PipelineConfiguration.builder(),
+                    CollectingReporter.class, Collections.emptyMap());
+
+            Artifact newArtifact =  new DefaultArtifact(bld.newArtifacts[0]);
+
+            analysisResults = new AnalysisResults(ApiChangeLevel.NO_CHANGE, newArtifact.getVersion());
         } else {
             analysisResults = analyzeProject(project);
         }
@@ -192,7 +201,7 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
                         roots.add(pr);
                     }
 
-                    children.put(pr, new HashSet<MavenProject>());
+                    children.put(pr, new HashSet<>());
                 }
 
                 Iterator<MavenProject> it = roots.iterator();
