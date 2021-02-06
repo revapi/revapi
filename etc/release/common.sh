@@ -94,23 +94,15 @@ function upstream_deps() {
 function contains() {
   a=$1
   b=$2
-  if [[ $b == "$a "* ]]; then
-    echo 0
-  elif [[ $b == *" $a" ]]; then
-    echo 0
-  elif [[ $b == *" $a "* ]]; then
-    echo 0
-  else
-    echo 1
-  fi
+  echo "$b" | grep -q -E "(^| )$a( |$)"
 }
 
 function downstream_deps() {
   dep=$(to_dep "$1")
   downs=""
   for d in $ALL_MODULES; do
-    ups=$(upstream_deps "$d" | tr "\n" " ")
-    if [ "$(contains "$dep" "$ups")" -eq 0 ]; then
+    ups=$(upstream_deps "$d")
+    if contains "$dep" "$ups"; then
       downs="$downs $d"
     fi
   done
@@ -140,7 +132,7 @@ function release_module() {
   ensure_clean_workdir
   module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
   ups=$(upstream_deps "$module")
-  if [ "$(contains "revapi-build" "$ups")" -eq 0 ]; then
+  if contains "revapi_build" "$ups"; then
     mvn package revapi:update-versions -DskipTests
   fi
   mvn versions:update-parent versions:force-releases -DprocessParent=true -Dincludes="org.revapi:*"
@@ -165,6 +157,16 @@ function release_module() {
   git commit -m "Setting $module to version $version"
   #now we need to install so that the subsequent builds pick up our new version
   mvn install -DskipTests
+}
+
+function update_module_version() {
+  module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
+  ups=$(upstream_deps "$module")
+  if contains "revapi_build" "$ups"; then
+    mvn package revapi:update-versions -DskipTests
+  fi
+  cd ..
+  mvn validate -Pversion-snapshots
 }
 
 function determine_releases() {
@@ -261,4 +263,19 @@ $to_release
 
   cd "${cwd}"
   git checkout "$current_branch"
+}
+
+function update_versions() {
+  to_update=$(determine_releases $@)
+  echo "The following modules will have versions updated $(echo "$to_update" | tr "\n" " ")"
+
+  for m in $to_update; do
+    m=$(to_module "$m")
+    echo "--------- Updating $m"
+    cd "$m"
+    update_module_version "$m"
+    cd "$CWD"
+  done
+
+  echo to_update
 }
