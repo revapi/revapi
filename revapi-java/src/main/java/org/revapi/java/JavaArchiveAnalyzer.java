@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,7 +60,8 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
      * @deprecated only to support the obsolete package and class filtering
      */
     @Deprecated
-    private final @Nullable TreeFilter<JavaElement> implicitFilter;
+    private final @Nullable
+    TreeFilter<JavaElement> implicitFilter;
 
     public JavaArchiveAnalyzer(JavaApiAnalyzer apiAnalyzer, API api, Iterable<JarExtractor> jarExtractors,
             ExecutorService compilationExecutor, AnalysisConfiguration.MissingClassReporting missingClassReporting,
@@ -93,7 +95,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
 
         TreeFilter<JavaElement> finalFilter = implicitFilter == null
                 ? filter
-                : TreeFilter.union(filter, implicitFilter);
+                : TreeFilter.intersection(filter, implicitFilter);
 
         StringWriter output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, jarExtractors, api.getArchives(),
@@ -101,10 +103,10 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
                 finalFilter);
         try {
             compilationValve = compiler
-                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations);
+                    .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations);
 
             probingEnvironment.getTree()
-                .setCompilationFuture(new CompilationFuture(compilationValve, output));
+                    .setCompilationFuture(new CompilationFuture(compilationValve, output));
 
             if (Timing.LOG.isDebugEnabled()) {
                 Timing.LOG.debug("Preliminary API tree produced for " + api);
@@ -160,11 +162,24 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
             changed = !toRemove.isEmpty();
 
             for (TypeElement t : toRemove) {
+                // the inner classes of the removed type might be used, so we can't just remove them from the tree
+                // classpath scanner just puts grandchild classes under a parent if the child is excluded from the tree
+                // so we'll do the same here... add all child types of the removed element to the children of the
+                // parent of the removed element
+                Consumer<JavaElement> readd;
                 if (t.getParent() == null) {
                     forest.getRoots().remove(t);
+                    readd = c -> {
+                        forest.getRoots().add(c);
+                        c.setParent(null);
+                    };
                 } else {
-                    t.getParent().getChildren().remove(t);
+                    JavaElement parent = t.getParent();
+                    parent.getChildren().remove(t);
+                    readd = c -> parent.getChildren().add(c);
                 }
+
+                t.getChildren().stream().filter(c -> c instanceof TypeElement).forEach(readd);
 
                 t.getUsedTypes().entrySet().removeIf(e -> {
                     UseSite.Type useType = e.getKey();

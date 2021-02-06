@@ -30,7 +30,7 @@
 
     <artifactId>revapi-json</artifactId>
     <name>JSON Analyzer</name>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
 
     <properties>
         <automatic.module.name>org.revapi.json</automatic.module.name>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-jackson</artifactId>
-            <version>0.2.2-SNAPSHOT</version>
+            <version>0.3.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

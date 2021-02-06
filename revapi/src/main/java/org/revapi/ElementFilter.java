@@ -48,9 +48,7 @@ public interface ElementFilter extends TreeFilterProvider, Filter<Element<?>>, A
                 boolean applies = applies(element);
                 boolean descends = shouldDescendInto(element);
 
-                FilterMatch res = FilterMatch.fromBoolean(applies);
-
-                return FilterStartResult.direct(res, descends);
+                return FilterStartResult.direct(Ternary.fromBoolean(applies), Ternary.fromBoolean(descends));
             }
         });
     }

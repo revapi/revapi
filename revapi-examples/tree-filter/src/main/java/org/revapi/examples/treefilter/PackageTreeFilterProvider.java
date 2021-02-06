@@ -26,8 +26,8 @@ import javax.lang.model.element.PackageElement;
 import org.revapi.AnalysisContext;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 import org.revapi.TreeFilterProvider;
 import org.revapi.base.IndependentTreeFilter;
@@ -68,14 +68,14 @@ public class PackageTreeFilterProvider implements TreeFilterProvider {
     }
 
     @Override
-    public Optional<TreeFilter> filterFor(ArchiveAnalyzer analyzer) {
+    public <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> analyzer) {
         if ("revapi.java".equals(analyzer.getApiAnalyzer().getExtensionId())) {
-            return Optional.of(new IndependentTreeFilter() {
+            return Optional.of(new IndependentTreeFilter<E>() {
                 @Override
-                public FilterStartResult doStart(Element element) {
+                public FilterStartResult doStart(E element) {
                     if (!(element instanceof JavaTypeElement)) {
                         // we let through anything that we don't know
-                        return FilterStartResult.matchAndDescend();
+                        return FilterStartResult.defaultResult();
                     }
 
                     PackageElement pkg = findPackage((JavaTypeElement) element);
@@ -87,7 +87,8 @@ public class PackageTreeFilterProvider implements TreeFilterProvider {
                     }
 
                     boolean inPkg = pkg.getQualifiedName().toString().startsWith(packagePrefix);
-                    return FilterStartResult.direct(FilterMatch.fromBoolean(inPkg), false);
+
+                    return FilterStartResult.direct(Ternary.fromBoolean(inPkg), Ternary.fromBoolean(inPkg));
                 }
             });
         } else {

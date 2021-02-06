@@ -32,8 +32,8 @@ import org.revapi.API;
 import org.revapi.ApiAnalyzer;
 import org.revapi.Archive;
 import org.revapi.ElementForest;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 
 class BaseEagerLoadingArchiveAnalyzerTest {
@@ -97,7 +97,7 @@ class BaseEagerLoadingArchiveAnalyzerTest {
         ElementForest<TestElement> forest = analyzer.analyze(new IndependentTreeFilter<TestElement>() {
             @Override
             protected FilterStartResult doStart(TestElement element) {
-                return FilterStartResult.direct(FilterMatch.fromBoolean(!"ab".equals(element.name) && !"ba".equals(element.name)), true);
+                return FilterStartResult.direct(Ternary.fromBoolean(!"ab".equals(element.name) && !"ba".equals(element.name)), Ternary.TRUE);
             }
         });
 

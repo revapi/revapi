@@ -16,20 +16,17 @@
  */
 package org.revapi.basic;
 
-import static org.revapi.FilterMatch.UNDECIDED;
-import static org.revapi.FilterStartResult.inherit;
-
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -38,6 +35,7 @@ import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.revapi.AnalysisContext;
+import org.revapi.Archive;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
@@ -45,6 +43,7 @@ import org.revapi.FilterFinishResult;
 import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
 import org.revapi.TreeFilterProvider;
+import org.revapi.base.OverridableIncludeExcludeTreeFilter;
 
 /**
  * An element filter that can filter out elements based on matching their full human readable representations.
@@ -66,7 +65,6 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
     private final List<Pattern> archiveExcludes = new ArrayList<>();
 
     private boolean doNothing;
-    private boolean includeByDefault;
 
     @Nullable
     @Override
@@ -99,51 +97,42 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
             readSimpleFilter(archives, archiveIncludes, archiveExcludes);
         }
 
-        includeByDefault = elementIncludeRecipes.isEmpty() && archiveIncludes.isEmpty();
-        doNothing = includeByDefault && elementExcludeRecipes.isEmpty() && archiveExcludes.isEmpty();
+        doNothing = elementIncludeRecipes.isEmpty() && archiveIncludes.isEmpty()
+                && elementExcludeRecipes.isEmpty() && archiveExcludes.isEmpty();
     }
 
     @Override
     public  <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
-        List<TreeFilter<E>> excludes = elementExcludeRecipes.stream()
+        @Nullable TreeFilter<E> excludes = elementExcludeRecipes.isEmpty()
+                ? null
+                : TreeFilter.union(elementExcludeRecipes.stream()
                 .map(r -> r.filterFor(archiveAnalyzer))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        List<TreeFilter<E>> includes = elementIncludeRecipes.stream()
+                .collect(Collectors.toList()));
+        @Nullable TreeFilter<E> includes = elementIncludeRecipes.isEmpty()
+                ? null
+                : TreeFilter.union(elementIncludeRecipes.stream()
                 .map(r -> r.filterFor(archiveAnalyzer))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
 
-        return Optional.of(new TreeFilter<E>() {
-            private final IdentityHashMap<E, IncludeExcludeResult> filterResults = new IdentityHashMap<>();
+        return Optional.of(new OverridableIncludeExcludeTreeFilter<E>(includes, excludes) {
+            final Set<Archive> excludedArchives = Collections.newSetFromMap(new IdentityHashMap<>());
 
             @Override
             public FilterStartResult start(E element) {
                 if (doNothing) {
-                    return FilterStartResult.matchAndDescendInherited();
+                    return FilterStartResult.defaultResult();
                 }
 
                 String archive = element.getArchive() == null ? null : element.getArchive().getName();
 
                 if (archive != null && !isIncluded(archive, archiveIncludes, archiveExcludes)) {
+                    excludedArchives.add(element.getArchive());
                     return FilterStartResult.doesntMatch();
                 }
 
-                // exploit the fact that parent elements are always filtered before the children
-                E parent = element.getParent();
-                IncludeExcludeResult parentResults = parent == null ? null : filterResults.get(parent);
-
-                // at this point, we need to invoke both include and exclude filters so that we fulfill the contract
-                // of TreeFilter and do the full traversal.
-                FilterStartResult inclusion = includeFilterStart(includes, element);
-                FilterStartResult exclusion = excludeFilterStart(excludes, element);
-
-                IncludeExcludeResult res = new IncludeExcludeResult(inclusion, exclusion, parentResults);
-
-                filterResults.put(element, res);
-
-                return res.compute();
+                return super.start(element);
             }
 
             @Override
@@ -152,25 +141,11 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
                     return FilterFinishResult.matches();
                 }
 
-                IncludeExcludeResult currentResult = filterResults.get(element);
-                if (currentResult == null) {
-                    // this indicates non-matching archive, we didn't invoke start of the filters in that case,
-                    // so we're free to return early
+                if (excludedArchives.contains(element.getArchive())) {
                     return FilterFinishResult.doesntMatch();
                 }
 
-                // we need to end the filters in any case to conform to the contract of TreeFilter
-                FilterFinishResult include = includeFilterEnd(includes, element);
-                FilterFinishResult exclude = excludeFilterEnd(excludes, element);
-
-                currentResult.include = currentResult.include == null
-                        ? null
-                        : include == null ? null : currentResult.include.withMatch(include.getMatch());
-                currentResult.exclude = currentResult.exclude == null
-                        ? null
-                        : exclude == null ? null : currentResult.exclude.withMatch(exclude.getMatch());
-
-                return FilterFinishResult.from(currentResult.compute());
+                return super.finish(element);
             }
 
             @Override
@@ -179,85 +154,15 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
                     return Collections.emptyMap();
                 }
 
-                Map<E, FilterFinishResult> finalIncludes = new HashMap<>();
-                for (TreeFilter<E> f : includes) {
-                    finalIncludes.putAll(f.finish());
-                }
+                excludedArchives.clear();
 
-                Map<E, FilterFinishResult> finalExcludes = new HashMap<>();
-                for (TreeFilter<E> f : excludes) {
-                    finalExcludes.putAll(f.finish());
-                }
-
-                Map<E, FilterFinishResult> ret = new HashMap<>();
-                for (Map.Entry<E, IncludeExcludeResult> e : filterResults.entrySet()) {
-                    IncludeExcludeResult r = e.getValue();
-                    E el = e.getKey();
-
-                    if (r.compute().getMatch() != UNDECIDED) {
-                        continue;
-                    }
-
-                    FilterFinishResult im = finalIncludes.get(el);
-                    if (im == null) {
-                        im = FilterFinishResult.from(r.include);
-                    }
-
-                    FilterFinishResult em = finalExcludes.get(el);
-                    if (em == null) {
-                        em = FilterFinishResult.from(r.exclude);
-                    } else {
-                        em = em.negateMatch();
-                    }
-
-                    ret.put(el, im.and(em));
-                }
-
-                filterResults.clear();
-
-                return ret;
+                return super.finish();
             }
         });
     }
 
     @Override
     public void close() {
-    }
-
-    @Nullable
-    private static <E extends Element<E>> FilterStartResult includeFilterStart(List<TreeFilter<E>> includes, E element) {
-        return includes.stream()
-                // we always want to descend, no matter the filter result because of the "include inside an exclude"
-                // feature
-                .map(f -> f.start(element).withDescend(true))
-                .reduce(FilterStartResult::or)
-                .orElse(null);
-    }
-
-    @Nullable
-    private static <E extends Element<E>> FilterFinishResult includeFilterEnd(List<TreeFilter<E>> includes, E element) {
-        return includes.stream()
-                .map(f -> f.finish(element))
-                .reduce(FilterFinishResult::or)
-                .orElse(null);
-    }
-
-    @Nullable
-    private static <E extends Element<E>> FilterStartResult excludeFilterStart(List<TreeFilter<E>> excludes, E element) {
-        return excludes.stream()
-                // we always want to descend, no matter the filter result because of the "include inside an exclude"
-                // feature
-                .map(f -> f.start(element).withDescend(true))
-                .reduce(FilterStartResult::or)
-                .orElse(null);
-    }
-
-    @Nullable
-    private static <E extends Element<E>> FilterFinishResult excludeFilterEnd(List<TreeFilter<E>> excludes, E element) {
-        return excludes.stream()
-                .map(f -> f.finish(element))
-                .reduce(FilterFinishResult::or)
-                .orElse(null);
     }
 
     private static void readSimpleFilter(JsonNode root, List<Pattern> include, List<Pattern> exclude) {
@@ -344,61 +249,5 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
         }
 
         return include;
-    }
-
-    private static final class IncludeExcludeResult {
-        @Nullable
-        FilterStartResult include;
-        @Nullable
-        FilterStartResult exclude;
-        IncludeExcludeResult parent;
-
-        public IncludeExcludeResult(FilterStartResult include, FilterStartResult exclude, IncludeExcludeResult parent) {
-            this.include = include;
-            this.exclude = exclude;
-            this.parent = parent;
-        }
-
-        FilterStartResult compute() {
-            if (parent == null) {
-                if (include == null) {
-                    if (exclude == null) {
-                        return FilterStartResult.matchAndDescendInherited();
-                    } else {
-                        // exclude is never authoritative
-                        return exclude.negateMatch().withInherited(true);
-                    }
-                } else {
-                    if (exclude == null) {
-                        return include;
-                    } else {
-                        return include.and(exclude.negateMatch());
-                    }
-                }
-            } else {
-                FilterStartResult parentResult = parent.compute();
-                if (include == null) {
-                    if (exclude == null) {
-                        return parentResult;
-                    } else {
-                        return inherit(parentResult).and(exclude.negateMatch());
-                    }
-                } else {
-                    if (exclude == null) {
-                        // if a parent is included, all its children are included unless explicitly excluded
-                        // if the parent is excluded, explicit include can override that
-                        return inherit(parentResult).or(include);
-                    } else {
-                        // if parent is included, our include match cannot override it, just the excludes
-                        // if parent is not included, our include can determine whether this element is included or not
-                        if (parentResult.getMatch().toBoolean(true)) {
-                            return inherit(parentResult).and(exclude.negateMatch());
-                        } else {
-                            return include.and(exclude.negateMatch());
-                        }
-                    }
-                }
-            }
-        }
     }
 }

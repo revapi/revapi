@@ -41,8 +41,8 @@ import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterFinishResult;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 import org.revapi.classif.ModelInspector;
 import org.revapi.classif.StructuralMatcher;
@@ -139,17 +139,17 @@ public final class JavaElementMatcher implements ElementMatcher {
     }
 
     private static FilterStartResult convert(WalkInstruction instruction) {
-        return FilterStartResult.direct(convert(instruction.getTestResult()), instruction.isDescend());
+        return FilterStartResult.direct(convert(instruction.getTestResult()), Ternary.fromBoolean(instruction.isDescend()));
     }
 
-    private static FilterMatch convert(TestResult result) {
+    private static Ternary convert(TestResult result) {
         switch (result) {
             case DEFERRED:
-                return FilterMatch.UNDECIDED;
+                return Ternary.UNDECIDED;
             case PASSED:
-                return FilterMatch.MATCHES;
+                return Ternary.TRUE;
             case NOT_PASSED:
-                return FilterMatch.DOESNT_MATCH;
+                return Ternary.FALSE;
             default:
                 throw new IllegalArgumentException(result + " not handled.");
         }

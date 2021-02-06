@@ -295,7 +295,7 @@ public final class Revapi {
         ArchiveAnalyzer<E> oldAnalyzer = apiAnalyzer.getArchiveAnalyzer(oldApi);
         ArchiveAnalyzer<E> newAnalyzer = apiAnalyzer.getArchiveAnalyzer(newApi);
 
-        TreeFilterProvider filter = unionFilter(config.extensions);
+        TreeFilterProvider filter = allMatch(config.extensions);
 
         TIMING_LOG.debug("Obtaining API trees.");
 
@@ -490,7 +490,7 @@ public final class Revapi {
         }
     }
 
-    private TreeFilterProvider unionFilter(AnalysisResult.Extensions extensions) {
+    private TreeFilterProvider allMatch(AnalysisResult.Extensions extensions) {
         return new TreeFilterProvider() {
             @Override
             public <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
@@ -499,7 +499,7 @@ public final class Revapi {
                         .filter(Objects::nonNull)
                         .collect(toList());
 
-                return Optional.of(TreeFilter.union(applicables));
+                return Optional.of(TreeFilter.intersection(applicables));
             }
 
             @Override

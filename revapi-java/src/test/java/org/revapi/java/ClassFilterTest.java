@@ -60,8 +60,37 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     }
 
     @Test
+    public void testDeprecatedFilterByName_exclude() throws Exception {
+        testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"exclude\": [\"classfilter.A\"]}}}}}",
+                Stream.of(
+                        "class classfilter.B",
+                        "field classfilter.B.field",
+                        "method void classfilter.B::m()",
+                        "method void classfilter.B::<init>()",
+                        "class classfilter.B.BA",
+                        "method void classfilter.B.BA::<init>()",
+                        "class classfilter.B.BB",
+                        "method void classfilter.B.BB::<init>()").collect(toSet()));
+    }
+
+    @Test
     public void testFilterByName_include() throws Exception {
         testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"java\", \"match\": \"class classfilter.A {}\"}]}}}}",
+                Stream.of(
+                        "class classfilter.A",
+                        "method void classfilter.A::m()",
+                        "method void classfilter.A::<init>()",
+                        "class classfilter.A.AA",
+                        "method void classfilter.A.AA::<init>()",
+                        "class classfilter.A.AA.AAA",
+                        "method void classfilter.A.AA.AAA::<init>()",
+                        "class classfilter.A.AB",
+                        "method void classfilter.A.AB::<init>()").collect(toSet()));
+    }
+
+    @Test
+    public void testDeprecatedFilterByName_include() throws Exception {
+        testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"include\": [\"classfilter.A\"]}}}}}",
                 Stream.of(
                         "class classfilter.A",
                         "method void classfilter.A::m()",
@@ -78,6 +107,23 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
     public void testInnerClassExclusionOverride() throws Exception {
         testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"class classfilter.A {}\"}]," +
                 " \"include\": [{\"matcher\": \"java\", \"match\": \"match %a|%b; class %a=classfilter.A.AA.AAA {} class %b=classfilter.B {}\"}]}}}}",
+                Stream.of(
+                        "class classfilter.A.AA.AAA",
+                        "method void classfilter.A.AA.AAA::<init>()",
+                        "class classfilter.B",
+                        "field classfilter.B.field",
+                        "method void classfilter.B::m()",
+                        "method void classfilter.B::<init>()",
+                        "class classfilter.B.BA",
+                        "method void classfilter.B.BA::<init>()",
+                        "class classfilter.B.BB",
+                        "method void classfilter.B.BB::<init>()").collect(toSet()));
+    }
+
+    @Test
+    public void testDeprecatedInnerClassExclusionOverride() throws Exception {
+        testWith("{\"revapi\": {\"java\": {\"filter\": {\"classes\": {\"exclude\": [\"classfilter.A\"]," +
+                        " \"include\": [\"classfilter.A.AA.AAA\", \"classfilter.B\"]}}}}}",
                 Stream.of(
                         "class classfilter.A.AA.AAA",
                         "method void classfilter.A.AA.AAA::<init>()",
@@ -119,9 +165,10 @@ public class ClassFilterTest extends AbstractJavaElementAnalyzerTest {
             JavaArchiveAnalyzer archiveAnalyzer = apiAnalyzer.getArchiveAnalyzer(
                     new API(Collections.singletonList(new ShrinkwrapArchive(archive.archive)), null));
 
-            JavaElementForest forest = archiveAnalyzer.analyze(TreeFilter.matchAndDescend());
+            JavaElementForest forest = archiveAnalyzer.analyze(filter.filterFor(archiveAnalyzer).orElse(TreeFilter.matchAndDescend()));
+            archiveAnalyzer.prune(forest);
 
-            List<JavaElement> results = forest.stream(JavaElement.class, true, filter.filterFor(archiveAnalyzer).orElse(null), null).collect(toList());
+            List<JavaElement> results = forest.stream(JavaElement.class, true, null).collect(toList());
 
             archiveAnalyzer.getCompilationValve().removeCompiledResults();
 

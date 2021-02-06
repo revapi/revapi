@@ -34,7 +34,7 @@
     <url>https://revapi.org</url>
 
     <artifactId>revapi-maven-plugin</artifactId>
-    <version>0.13.3-SNAPSHOT</version>
+    <version>0.14.0-SNAPSHOT</version>
 
     <properties>
         <maven.version>3.2.5</maven.version>
@@ -43,10 +43,10 @@
         <skipTests>false</skipTests>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts />
-        <revapi.version>0.13.0</revapi.version>
-        <revapi-java.version>0.23.0</revapi-java.version>
-        <revapi-java-spi.version>0.22.0</revapi-java-spi.version>
-        <revapi-reporter-text.version>0.13.0</revapi-reporter-text.version>
+        <revapi.version>0.14.0-SNAPSHOT</revapi.version>
+        <revapi-java.version>0.24.0-SNAPSHOT</revapi-java.version>
+        <revapi-java-spi.version>0.23.0-SNAPSHOT</revapi-java-spi.version>
+        <revapi-reporter-text.version>0.14.0-SNAPSHOT</revapi-reporter-text.version>
 
         <automatic.module.name>org.revapi.maven.plugin</automatic.module.name>
     </properties>
@@ -59,13 +59,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.13.3-SNAPSHOT</version>
+            <version>0.14.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.11.3-SNAPSHOT</version>
+            <version>0.12.0-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,32 +16,45 @@
  */
 package org.revapi;
 
+import static org.revapi.Ternary.FALSE;
+import static org.revapi.Ternary.TRUE;
+import static org.revapi.Ternary.UNDECIDED;
+
 /**
  * A result of a finished filtering (see {@link TreeFilter#finish(Element)}.
  */
-public class FilterFinishResult {
-    private static final FilterFinishResult MATCH_NOT_INHERITED = new FilterFinishResult(FilterMatch.MATCHES, false);
-    private static final FilterFinishResult DOESNT_MATCH_NOT_INHERITED = new FilterFinishResult(FilterMatch.DOESNT_MATCH, false);
-    private static final FilterFinishResult UNDECIDED_NOT_INHERITED = new FilterFinishResult(FilterMatch.UNDECIDED, false);
-    private static final FilterFinishResult MATCH_INHERITED = new FilterFinishResult(FilterMatch.MATCHES, true);
-    private static final FilterFinishResult DOESNT_MATCH_INHERITED = new FilterFinishResult(FilterMatch.DOESNT_MATCH, true);
-    private static final FilterFinishResult UNDECIDED_INHERITED = new FilterFinishResult(FilterMatch.UNDECIDED, true);
+public final class FilterFinishResult {
+    private static final FilterFinishResult TRUE_FALSE = new FilterFinishResult(TRUE, false);
+    private static final FilterFinishResult FALSE_FALSE = new FilterFinishResult(FALSE, false);
+    private static final FilterFinishResult UNDECIDED_FALSE = new FilterFinishResult(UNDECIDED, false);
+    private static final FilterFinishResult TRUE_TRUE = new FilterFinishResult(TRUE, true);
+    private static final FilterFinishResult FALSE_TRUE = new FilterFinishResult(FALSE, true);
+    private static final FilterFinishResult UNDECIDED_TRUE = new FilterFinishResult(UNDECIDED, true);
 
-    private final FilterMatch match;
+    private final Ternary match;
     private final boolean inherited;
+
+    /**
+     * Similar to {@link FilterStartResult#defaultResult()}, this returns a finish result that is undecided about
+     * the match and is marked as inherited. This means that if there are any other results that need to be combined
+     * with this one, those results will take precedence.
+     */
+    public static FilterFinishResult defaultResult() {
+        return from(UNDECIDED, true);
+    }
 
     /**
      * @return produces a result signifying that the filter didn't match.
      */
     public static FilterFinishResult doesntMatch() {
-        return from(FilterMatch.DOESNT_MATCH, false);
+        return from(FALSE, false);
     }
 
     /**
      * @return produces a result signifying that the filter matched.
      */
     public static FilterFinishResult matches() {
-        return from(FilterMatch.MATCHES, false);
+        return from(TRUE, false);
     }
 
     /**
@@ -50,7 +63,7 @@ public class FilterFinishResult {
      * @param match the result of the filter
      * @return the filter finish result
      */
-    public static FilterFinishResult direct(FilterMatch match) {
+    public static FilterFinishResult direct(Ternary match) {
         return from(match, false);
     }
 
@@ -70,14 +83,14 @@ public class FilterFinishResult {
      * @param inherited whether the finish result is inherited or explicit
      * @return the filter finish result
      */
-    public static FilterFinishResult from(FilterMatch match, boolean inherited) {
+    public static FilterFinishResult from(Ternary match, boolean inherited) {
         switch (match) {
-        case DOESNT_MATCH:
-            return inherited ? DOESNT_MATCH_INHERITED : DOESNT_MATCH_NOT_INHERITED;
-        case MATCHES:
-            return inherited ? MATCH_INHERITED : MATCH_NOT_INHERITED;
+        case FALSE:
+            return inherited ? FALSE_TRUE : FALSE_FALSE;
+        case TRUE:
+            return inherited ? TRUE_TRUE : TRUE_FALSE;
         case UNDECIDED:
-            return inherited ? UNDECIDED_INHERITED : UNDECIDED_NOT_INHERITED;
+            return inherited ? UNDECIDED_TRUE : UNDECIDED_FALSE;
         default:
             throw new IllegalArgumentException("Unhandled filter match value: " + match);
         }
@@ -92,7 +105,7 @@ public class FilterFinishResult {
         return from(startResult.getMatch(), startResult.isInherited());
     }
 
-    private FilterFinishResult(FilterMatch match, boolean inherited) {
+    private FilterFinishResult(Ternary match, boolean inherited) {
         this.match = match;
         this.inherited = inherited;
     }
@@ -100,7 +113,7 @@ public class FilterFinishResult {
     /**
      * The result of the test
      */
-    public FilterMatch getMatch() {
+    public Ternary getMatch() {
         return match;
     }
 
@@ -114,32 +127,30 @@ public class FilterFinishResult {
 
     public FilterFinishResult and(FilterFinishResult other) {
         boolean newInherited;
-        switch (getMatch()) {
-        case MATCHES:
-            switch (other.getMatch()) {
-            case MATCHES:
-                newInherited = isInherited() || other.isInherited();
+        switch (match) {
+        case TRUE:
+            switch (other.match) {
+            case TRUE:
+                newInherited = inherited || other.inherited;
                 break;
-            case DOESNT_MATCH:
-                newInherited = other.isInherited();
-                break;
+            case FALSE:
             case UNDECIDED:
-                newInherited = other.isInherited();
+                newInherited = other.inherited;
                 break;
             default:
-                throw new IllegalArgumentException("Unhandled match type: " + getMatch());
+                throw new IllegalArgumentException("Unhandled match type: " + other.match);
             }
             break;
-        case DOESNT_MATCH:
-            newInherited = isInherited();
+        case FALSE:
+            newInherited = inherited;
             break;
         case UNDECIDED:
-            newInherited = other.getMatch() == FilterMatch.DOESNT_MATCH ? isInherited() : other.isInherited();
+            newInherited = other.match == FALSE ? inherited : other.inherited;
             break;
         default:
-            throw new IllegalArgumentException("Unhandled match type: " + getMatch());
+            throw new IllegalArgumentException("Unhandled match type: " + match);
         }
-        return from(getMatch().and(other.getMatch()), newInherited);
+        return from(match.and(other.match), newInherited);
     }
 
     public FilterFinishResult and(Iterable<FilterFinishResult> others) {
@@ -152,33 +163,31 @@ public class FilterFinishResult {
 
     public FilterFinishResult or(FilterFinishResult other) {
         boolean newInherited;
-        switch (getMatch()) {
-        case MATCHES:
-            switch (other.getMatch()) {
-            case MATCHES:
-                newInherited = isInherited() || other.isInherited();
+        switch (match) {
+        case TRUE:
+            switch (other.match) {
+            case TRUE:
+                newInherited = inherited || other.inherited;
                 break;
-            case DOESNT_MATCH:
-                newInherited = isInherited();
-                break;
+            case FALSE:
             case UNDECIDED:
-                newInherited = isInherited();
+                newInherited = inherited;
                 break;
             default:
-                throw new IllegalArgumentException("Unhandled match type: " + getMatch());
+                throw new IllegalArgumentException("Unhandled match type: " + other.match);
             }
             break;
-        case DOESNT_MATCH:
-            newInherited = other.isInherited();
+        case FALSE:
+            newInherited = other.inherited;
             break;
         case UNDECIDED:
-            newInherited = other.getMatch() == FilterMatch.MATCHES ? other.isInherited() : isInherited();
+            newInherited = other.match == TRUE ? other.inherited : inherited;
             break;
         default:
-            throw new IllegalArgumentException("Unhandled match type: " + getMatch());
+            throw new IllegalArgumentException("Unhandled match type: " + match);
         }
 
-        return from(getMatch().or(other.getMatch()), newInherited);
+        return from(match.or(other.match), newInherited);
     }
 
     public FilterFinishResult or(Iterable<FilterFinishResult> others) {
@@ -190,15 +199,15 @@ public class FilterFinishResult {
     }
 
     public FilterFinishResult negateMatch() {
-        return from(getMatch().negate(), isInherited());
+        return from(match.negate(), inherited);
     }
 
-    public FilterFinishResult withMatch(FilterMatch match) {
-        return from(match, isInherited());
+    public FilterFinishResult withMatch(Ternary match) {
+        return from(match, inherited);
     }
 
     public FilterFinishResult withInherited(boolean inherited) {
-        return from(getMatch(), inherited);
+        return from(match, inherited);
     }
 
     @Override
@@ -210,30 +219,23 @@ public class FilterFinishResult {
             return false;
         }
 
-        FilterStartResult filterResult = (FilterStartResult) o;
+        FilterFinishResult other = (FilterFinishResult) o;
 
-        if (isInherited() != filterResult.isInherited()) {
-            return false;
-        }
-        if (getMatch() != filterResult.getMatch()) {
-            return false;
-        }
-
-        return true;
+        return inherited == other.inherited && match == other.match;
     }
 
     @Override
     public int hashCode() {
-        int result = getMatch().hashCode();
-        result = 31 * result + (isInherited() ? 1 : 0);
+        int result = match.hashCode();
+        result = 31 * result + (inherited ? 1 : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "FilterEndResult{" +
-                "match=" + getMatch() +
-                ", inherited=" + isInherited() +
+                "match=" + match +
+                ", inherited=" + inherited +
                 '}';
     }
 }

@@ -18,6 +18,7 @@ package org.revapi.examples.treefilter;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,8 +31,9 @@ import org.junit.jupiter.api.Test;
 import org.revapi.AnalysisContext;
 import org.revapi.ApiAnalyzer;
 import org.revapi.ArchiveAnalyzer;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
 
 class PackageTreeFilterProviderTest {
@@ -39,11 +41,12 @@ class PackageTreeFilterProviderTest {
     PackageTreeFilterProvider filter = new PackageTreeFilterProvider();
 
     @Test
+    @SuppressWarnings("unchecked")
     void testAcceptsElementsFromPackage() throws Exception {
         filter.initialize(AnalysisContext.builder().build().copyWithConfiguration(new ObjectMapper().readTree("\"com.acme\"")));
 
-        ArchiveAnalyzer archiveAnalyzer = mock(ArchiveAnalyzer.class);
-        ApiAnalyzer apiAnalyzer = mock(ApiAnalyzer.class);
+        ArchiveAnalyzer<JavaElement> archiveAnalyzer = mock(ArchiveAnalyzer.class);
+        ApiAnalyzer<JavaElement> apiAnalyzer = mock(ApiAnalyzer.class);
 
         when(archiveAnalyzer.getApiAnalyzer()).thenReturn(apiAnalyzer);
         when(apiAnalyzer.getExtensionId()).thenReturn("revapi.java");
@@ -59,17 +62,18 @@ class PackageTreeFilterProviderTest {
         when(pkgName.toString()).thenReturn("com.acme");
 
         FilterStartResult res = filter.filterFor(archiveAnalyzer).get().start(element);
-        assertSame(FilterMatch.MATCHES, res.getMatch());
+        assertSame(Ternary.TRUE, res.getMatch());
         assertFalse(res.isInherited());
-        assertFalse(res.isDescend());
+        assertTrue(res.getDescend().toBoolean(false));
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void testDoesntAcceptElementsFromOtherPackage() throws Exception {
         filter.initialize(AnalysisContext.builder().build().copyWithConfiguration(new ObjectMapper().readTree("\"com.acme\"")));
 
-        ArchiveAnalyzer archiveAnalyzer = mock(ArchiveAnalyzer.class);
-        ApiAnalyzer apiAnalyzer = mock(ApiAnalyzer.class);
+        ArchiveAnalyzer<JavaElement> archiveAnalyzer = mock(ArchiveAnalyzer.class);
+        ApiAnalyzer<JavaElement> apiAnalyzer = mock(ApiAnalyzer.class);
 
         when(archiveAnalyzer.getApiAnalyzer()).thenReturn(apiAnalyzer);
         when(apiAnalyzer.getExtensionId()).thenReturn("revapi.java");
@@ -85,8 +89,8 @@ class PackageTreeFilterProviderTest {
         when(pkgName.toString()).thenReturn("corp.acme");
 
         FilterStartResult res = filter.filterFor(archiveAnalyzer).get().start(element);
-        assertSame(FilterMatch.DOESNT_MATCH, res.getMatch());
+        assertSame(Ternary.FALSE, res.getMatch());
         assertFalse(res.isInherited());
-        assertFalse(res.isDescend());
+        assertFalse(res.getDescend().toBoolean(true));
     }
 }

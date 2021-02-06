@@ -93,7 +93,7 @@ public final class AnalysisConfiguration {
                 if (includeFilter == null) {
                     includeFilter = pkgFilter;
                 } else {
-                    includeFilter = TreeFilter.union(includeFilter, pkgFilter);
+                    includeFilter = TreeFilter.intersection(includeFilter, pkgFilter);
                 }
             }
         }

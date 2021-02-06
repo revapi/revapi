@@ -19,6 +19,7 @@ package org.revapi.basic;
 import static java.util.Collections.emptySet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,8 +43,8 @@ import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.Archive;
 import org.revapi.ElementMatcher;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 import org.revapi.base.BaseElement;
 import org.revapi.configuration.ConfigurationValidator;
@@ -98,8 +100,10 @@ public class ConfigurableElementFilterTest {
         testWithConfig("{\"archives\": {" +
                 "\"include\": [\"archive\"]" +
                 "}}", results -> {
-            assertEquals(FilterMatch.MATCHES, results.get(el1));
-            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el2));
+            // undecided because that's the default include - to include an archive doesn't mean to automatically
+            // include everything inside it
+            assertEquals(Ternary.UNDECIDED, results.get(el1));
+            assertEquals(Ternary.FALSE, results.get(el2));
         });
     }
 
@@ -108,8 +112,8 @@ public class ConfigurableElementFilterTest {
         testWithConfig("{\"archives\": {" +
                 "\"exclude\": [\"archive\"]" +
                 "}}", results -> {
-            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el1));
-            assertEquals(FilterMatch.MATCHES, results.get(el2));
+            assertEquals(Ternary.FALSE, results.get(el1));
+            assertEquals(Ternary.UNDECIDED, results.get(el2));
         });
     }
 
@@ -118,8 +122,8 @@ public class ConfigurableElementFilterTest {
         testWithConfig("{\"elements\": {" +
                 "\"include\": [\"el1\"]" +
                 "}}", results -> {
-            assertEquals(FilterMatch.MATCHES, results.get(el1));
-            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el2));
+            assertEquals(Ternary.TRUE, results.get(el1));
+            assertEquals(Ternary.FALSE, results.get(el2));
         });
     }
 
@@ -128,8 +132,8 @@ public class ConfigurableElementFilterTest {
         testWithConfig("{\"elements\": {" +
                 "\"exclude\": [\"el1\"]" +
                 "}}", results -> {
-            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el1));
-            assertEquals(FilterMatch.MATCHES, results.get(el2));
+            assertEquals(Ternary.FALSE, results.get(el1));
+            assertEquals(Ternary.TRUE, results.get(el2));
         });
     }
 
@@ -138,8 +142,8 @@ public class ConfigurableElementFilterTest {
         testWithConfig("{\"elements\": {" +
                 "\"include\": [{\"matcher\": \"exact\", \"match\": \"el1\"}]" +
                 "}}", setOf(new ExactElementMatcher()), results -> {
-            assertEquals(FilterMatch.MATCHES, results.get(el1));
-            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el2));
+            assertEquals(Ternary.TRUE, results.get(el1));
+            assertEquals(Ternary.FALSE, results.get(el2));
         });
     }
 
@@ -148,17 +152,58 @@ public class ConfigurableElementFilterTest {
         testWithConfig("{\"elements\": {" +
                 "\"exclude\": [{\"matcher\": \"regex\", \"match\": \"e.1\"}]" +
                 "}}", setOf(new RegexElementMatcher()), results -> {
-            assertEquals(FilterMatch.DOESNT_MATCH, results.get(el1));
-            assertEquals(FilterMatch.MATCHES, results.get(el2));
+            assertEquals(Ternary.FALSE, results.get(el1));
+            assertEquals(Ternary.TRUE, results.get(el2));
         });
     }
 
-    private void testWithConfig(String configJSON, Consumer<Map<DummyElement, FilterMatch>> test) {
+    @Test
+    public void exclusionOverride() throws Exception {
+        String configJSON = "{" +
+                "\"elements\": {" +
+                "\"exclude\": [\"el1\"]," +
+                "\"include\": [\"el2\", \"el11\"]" +
+                "}}";
+
+        ConfigurableElementFilter filter = new ConfigurableElementFilter();
+
+        AnalysisContext ctx = AnalysisContext.builder().build()
+                .copyWithConfiguration(new ObjectMapper().readTree(configJSON));
+
+        filter.initialize(ctx);
+
+        Optional<TreeFilter<DummyElement>> of = filter.filterFor(null);
+        assertTrue(of.isPresent());
+        TreeFilter<DummyElement> f = of.get();
+
+        DummyElement el11 = new DummyElement("el11", el1.getArchive());
+        el1.getChildren().add(el11);
+
+        Map<DummyElement, Ternary> ret = new HashMap<>();
+
+        FilterStartResult sr = f.start(el1);
+        ret.put(el1, sr.getMatch());
+
+        addElementResults(f, el11, ret);
+
+        Ternary fr = f.finish(el1).getMatch();
+        ret.put(el1, fr);
+
+        addElementResults(f, el2, ret);
+
+        f.finish().forEach((e, r) -> ret.put(e, r.getMatch()));
+
+        assertSame(Ternary.FALSE, ret.get(el1));
+        assertSame(Ternary.TRUE, ret.get(el11));
+        assertSame(Ternary.TRUE, ret.get(el2));
+    }
+
+    private void testWithConfig(String configJSON, Consumer<Map<DummyElement, Ternary>> test) {
         testWithConfig(configJSON, emptySet(), test);
     }
 
     private void testWithConfig(String configJSON, Set<ElementMatcher> matchers,
-            Consumer<Map<DummyElement, FilterMatch>> test) {
+            Consumer<Map<DummyElement, Ternary>> test) {
         ConfigurableElementFilter filter = new ConfigurableElementFilter();
 
         AnalysisContext ctx = AnalysisContext.builder().build()
@@ -171,7 +216,7 @@ public class ConfigurableElementFilterTest {
         assertTrue(of.isPresent());
         TreeFilter<DummyElement> f = of.get();
 
-        Map<DummyElement, FilterMatch> ret = new HashMap<>();
+        Map<DummyElement, Ternary> ret = new HashMap<>();
         addElementResults(f, el1, ret);
         addElementResults(f, el2, ret);
 
@@ -180,11 +225,11 @@ public class ConfigurableElementFilterTest {
         test.accept(ret);
     }
 
-    private static void addElementResults(TreeFilter<DummyElement> f, DummyElement el, Map<DummyElement, FilterMatch> results) {
+    private static void addElementResults(TreeFilter<DummyElement> f, DummyElement el, Map<DummyElement, Ternary> results) {
         FilterStartResult sr = f.start(el);
         results.put(el, sr.getMatch());
 
-        FilterMatch fr = f.finish(el).getMatch();
+        Ternary fr = f.finish(el).getMatch();
         results.put(el, fr);
     }
 

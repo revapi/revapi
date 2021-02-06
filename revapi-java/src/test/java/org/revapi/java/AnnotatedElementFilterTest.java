@@ -43,7 +43,6 @@ import org.revapi.Element;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Report;
 import org.revapi.Revapi;
-import org.revapi.TreeFilter;
 import org.revapi.basic.ConfigurableElementFilter;
 import org.revapi.java.matcher.JavaElementMatcher;
 import org.revapi.java.model.JavaElementForest;
@@ -123,7 +122,10 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"include\":" +
                 "[{\"matcher\": \"java\", \"match\": \"@annotationfilter.Public *;\"}]}}}}", results -> {
 
-            int expectedCount = 2 //NonPublicClass.m(), @Public
+            int expectedCount =
+                    2 // NonPublicClass, @NonPublic (but nothing more on this class, because it is excluded apart from
+                      // the bare minimum to get m() part of the tree
+                    + 2 //NonPublicClass.m(), @Public
                     + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass, PublicClass(), @Public
                     + 1 //PublicClass.f
                     + 1 //PublicClass.m()
@@ -132,13 +134,27 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                     + NUMBER_OF_ELEMENTS_ON_OBJECT + 2 //PublicClass.PublicInnerClass, PublicClass.PublicInnerClass()
                     ;
 
-            Assert.assertEquals(expectedCount, results.size());
-            assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
+            //Assert.assertEquals(expectedCount, results.size());
+            List<String> resultStrings = results.stream().map(Element::getFullHumanReadableString).collect(toList());
+            assertNotContains(resultStrings,
                     "class annotationfilter.NonPublic", "method java.lang.String annotationfilter.NonPublic::since()",
-                    "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
+                    "field annotationfilter.NonPublicClass.f",
                     "class annotationfilter.Public", "class annotationfilter.UndecisiveClass",
                     "field annotationfilter.UndecisiveClass.f",
                     "method void annotationfilter.UndecisiveClass::m()");
+
+            assertContains(resultStrings,
+                    "class annotationfilter.NonPublicClass", // because it contains the explicitly included m()
+                    "method void annotationfilter.NonPublicClass::m()",
+                    "class annotationfilter.PublicClass",
+                    "method void annotationfilter.PublicClass::<init>()",
+                    "field annotationfilter.PublicClass.f",
+                    "method void annotationfilter.PublicClass::m()",
+                    "method void annotationfilter.PublicClass::implDetail()",
+                    "class annotationfilter.PublicClass.NonPublicInnerClass",
+                    "method void annotationfilter.PublicClass.NonPublicInnerClass::<init>()",
+                    "class annotationfilter.PublicClass.PublicInnerClass",
+                    "method void annotationfilter.PublicClass.PublicInnerClass::<init>()");
         });
     }
 
@@ -147,9 +163,16 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         testWith("{\"revapi\":{\"filter\":{\"elements\":{\"include\":" +
                 "[{\"matcher\": \"java\", \"match\": \"@annotationfilter.NonPublic(since = /2\\\\.0/) *;\"}]}}}}", results -> {
 
-            Assert.assertEquals(2, results.size());
-            Assert.assertEquals("method void annotationfilter.PublicClass::implDetail()",
+            // we don't leave the "naked" methods in the roots of the java element forest
+            Assert.assertEquals(4, results.size());
+            Assert.assertEquals("class annotationfilter.PublicClass",
                     results.get(0).getFullHumanReadableString());
+            Assert.assertEquals("method void annotationfilter.PublicClass::implDetail()",
+                    results.get(1).getFullHumanReadableString());
+            Assert.assertEquals("@annotationfilter.NonPublic(since = \"2.0\")",
+                    results.get(2).getFullHumanReadableString());
+            Assert.assertEquals("@annotationfilter.Public",
+                    results.get(3).getFullHumanReadableString());
         });
     }
 
@@ -160,7 +183,10 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                 "\"include\": [{\"matcher\": \"java\", \"match\": \"@annotationfilter.Public(**) *;\"}]}}}}", results
                 -> {
 
-            int expectedCount = 2 //NonPublicClass.m(), @Public
+            int expectedCount =
+                    2 // NonPublicClass, @NonPublic (but nothing more on this class, because it is excluded apart from
+                      // the bare minimum to get m() part of the tree
+                    + 2 //NonPublicClass.m(), @Public
                     + NUMBER_OF_ELEMENTS_ON_OBJECT + 3 //PublicClass, PublicClass(), @Public
                     + NUMBER_OF_ELEMENTS_ON_OBJECT + 2 //PublicClass.PublicInnerClass, PublicClass.PublicInnerClass()
                     + 1 //PublicClass.f
@@ -171,7 +197,7 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
             assertNotContains(results.stream().map(Element::getFullHumanReadableString).collect(toList()),
                     "class annotationfilter.NonPublic",
                     "method java.lang.String annotationfilter.NonPublic::since()",
-                    "class annotationfilter.NonPublicClass", "field annotationfilter.NonPublicClass.f",
+                    "field annotationfilter.NonPublicClass.f",
                     "class annotationfilter.Public",
                     "method void annotationfilter.PublicClass::implDetail()",
                     "class annotationfilter.PublicClass.NonPublicInnerClass",
@@ -218,8 +244,6 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
                     Collections.emptyList(), Executors.newSingleThreadExecutor(), null, false, null
             );
 
-            JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
-
             Revapi r = new Revapi(PipelineConfiguration.builder()
                     .withFilters(ConfigurableElementFilter.class)
                     .withMatchers(JavaElementMatcher.class)
@@ -232,7 +256,10 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
             ConfigurableElementFilter filter = new ConfigurableElementFilter();
             filter.initialize(filterCtx);
 
-            List<JavaElement> results = forest.stream(JavaElement.class, true, filter.filterFor(analyzer).get(), null)
+            JavaElementForest forest = analyzer.analyze(filter.filterFor(analyzer).get());
+            analyzer.prune(forest);
+
+            List<JavaElement> results = forest.stream(JavaElement.class, true, null)
                     .collect(toList());
 
             analyzer.getCompilationValve().removeCompiledResults();
@@ -243,12 +270,26 @@ public class AnnotatedElementFilterTest extends AbstractJavaElementAnalyzerTest 
         }
     }
 
-    private <T> void assertNotContains(List<T> list, T... elements) {
+    @SafeVarargs
+    private final <T> void assertContains(List<T> list, T... elements) {
+        List<T> els = Arrays.asList(elements);
+
+        if (!list.containsAll(els)) {
+            ArrayList<T> unique = new ArrayList<>(els);
+            unique.removeAll(list);
+            Assert.fail("List " + list + " should have contained all of the " + els
+                    + " but it does not contain " + unique);
+        }
+    }
+
+    @SafeVarargs
+    private final <T> void assertNotContains(List<T> list, T... elements) {
         ArrayList<T> intersection = new ArrayList<>(list);
         intersection.retainAll(Arrays.asList(elements));
 
         if (!intersection.isEmpty()) {
-            Assert.fail("List " + list + " shouldn't have contained any of the " + Arrays.asList(elements));
+            Assert.fail("List " + list + " shouldn't have contained any of the " + Arrays.asList(elements)
+                    + " but it contains " + intersection);
         }
     }
 

@@ -49,8 +49,8 @@ import org.revapi.Criticality;
 import org.revapi.Difference;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterFinishResult;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TransformationResult;
 import org.revapi.TreeFilter;
 import org.revapi.base.BaseElement;
@@ -326,7 +326,7 @@ public class DifferencesTransformTest {
             return FilterStartResult.doesntMatch();
         });
 
-        when(filter.finish(any())).thenReturn(FilterFinishResult.direct(FilterMatch.DOESNT_MATCH));
+        when(filter.finish(any())).thenReturn(FilterFinishResult.direct(Ternary.FALSE));
         when(filter.finish()).thenReturn(emptyMap());
 
         ElementMatcher.CompiledRecipe recipe = mock(ElementMatcher.CompiledRecipe.class);

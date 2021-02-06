@@ -28,8 +28,8 @@ import org.revapi.AnalysisContext;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 import org.revapi.base.IndependentTreeFilter;
 
@@ -79,8 +79,8 @@ public final class RegexElementMatcher implements ElementMatcher {
 
         @Override
         protected FilterStartResult doStart(E element) {
-            boolean m = match.matcher(element.getFullHumanReadableString()).matches();
-            return FilterStartResult.direct(FilterMatch.fromBoolean(m), m);
+            Ternary m = Ternary.fromBoolean(match.matcher(element.getFullHumanReadableString()).matches());
+            return FilterStartResult.direct(m, m);
         }
     }
 }

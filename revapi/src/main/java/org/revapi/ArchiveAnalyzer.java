@@ -38,13 +38,12 @@ public interface ArchiveAnalyzer<E extends Element<E>> {
     /**
      * Analyzes the API archives and filters the forest using the provided filter.
      * <p>
-     * This produces a preliminary forest which can be too "wide" because of {@link FilterMatch#UNDECIDED} elements.
-     * Once the preliminary forest is obtained and filtered down, it can then be {@link #prune(ElementForest) pruned}
-     * by this analyzer to account for "non-local" effects removal of elements can have on it (like for example removal
-     * of elements that are no longer used by any other element in the forest, if the analyzer deems it necessary).
+     * This produces a preliminary forest which can be too "wide" because of {@link Ternary#UNDECIDED} elements or
+     * non-local relationships between elements. Once this method returns the preliminary forest, the callers should
+     * also call the {@link #prune(ElementForest)} method to obtain a forest that is truly minimal.
      *
-     * @param filter the filter to use to "prune" the forest
-     * @return the element forest ready for analysis
+     * @param filter the filter to use to filter out unwanted elements from the forest
+     * @return the preliminary element forest that should be {@link #prune(ElementForest) pruned} before analysis
      */
     ElementForest<E> analyze(TreeFilter<E> filter);
 

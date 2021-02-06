@@ -26,8 +26,8 @@ import org.revapi.AnalysisContext;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 import org.revapi.base.IndependentTreeFilter;
 
@@ -77,7 +77,8 @@ public final class ExactElementMatcher implements ElementMatcher {
         @Override
         protected FilterStartResult doStart(E element) {
             boolean m = match.equals(element.getFullHumanReadableString());
-            return FilterStartResult.direct(FilterMatch.fromBoolean(m), m);
+            Ternary res = Ternary.fromBoolean(m);
+            return FilterStartResult.direct(res, res);
         }
     }
 }

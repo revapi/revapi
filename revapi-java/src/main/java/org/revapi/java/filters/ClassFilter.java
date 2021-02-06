@@ -16,12 +16,22 @@
  */
 package org.revapi.java.filters;
 
+import static java.util.stream.Collectors.toList;
+
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-import javax.lang.model.element.TypeElement;
+import javax.annotation.Nullable;
 
+import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
+import org.revapi.TreeFilter;
+import org.revapi.base.IndependentTreeFilter;
+import org.revapi.base.OverridableIncludeExcludeTreeFilter;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
+import org.revapi.java.spi.Util;
 
 /**
  * This is a solution to the removal of package and class filtering directly in the classpath scanner.
@@ -31,23 +41,45 @@ import org.revapi.java.spi.JavaTypeElement;
  * @deprecated This is deprecated because it is a temporary measure
  */
 @Deprecated
-public class ClassFilter extends IncludeExcludeFilter {
+public class ClassFilter extends OverridableIncludeExcludeTreeFilter<JavaElement> {
     public ClassFilter(Pattern[] includes, Pattern[] excludes) {
-        super(includes, excludes);
+        super(asFilter(includes), asFilter(excludes));
     }
 
-    @Override
-    protected String getMatchableRepresentation(JavaElement el) {
-        TypeElement type = findType(el);
-        return type == null ? "" : type.getQualifiedName().toString();
+    private static @Nullable TreeFilter<JavaElement> asFilter(Pattern[] patterns) {
+        return asFilter(patterns, ClassFilter::asFilter);
     }
 
-    private TypeElement findType(JavaElement el) {
+    // package private so that we can reuse this in the PackageFilter
+    static @Nullable TreeFilter<JavaElement> asFilter(Pattern[] patterns, Function<Pattern, TreeFilter<JavaElement>> toFilter) {
+        if (patterns == null || patterns.length == 0) {
+            return null;
+        }
+
+        return TreeFilter.union(Stream.of(patterns).map(toFilter).collect(toList()));
+    }
+
+    private static TreeFilter<JavaElement> asFilter(Pattern pattern) {
+        return new IndependentTreeFilter<JavaElement>() {
+            @Override
+            protected FilterStartResult doStart(JavaElement element) {
+                JavaTypeElement typeEl = findType(element);
+                String el = typeEl == null ? "" : Util.toHumanReadableString(typeEl.getDeclaringElement());
+
+                Ternary match = Ternary.fromBoolean(pattern.matcher(el).matches());
+                // undecided about the descend so that other filters can make a decisive decision and at the same time
+                // we don't force the descend
+                return FilterStartResult.direct(match, Ternary.UNDECIDED);
+            }
+        };
+    }
+
+
+    private static JavaTypeElement findType(JavaElement el) {
         while (el != null && !(el instanceof JavaTypeElement)) {
             el = el.getParent();
         }
 
-        return el == null ? null : ((JavaTypeElement) el).getDeclaringElement();
+        return el == null ? null : (JavaTypeElement) el;
     }
-
 }

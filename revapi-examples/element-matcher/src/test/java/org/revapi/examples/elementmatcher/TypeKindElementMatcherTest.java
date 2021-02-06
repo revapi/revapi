@@ -40,8 +40,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.revapi.ApiAnalyzer;
 import org.revapi.ArchiveAnalyzer;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
 
@@ -76,9 +76,9 @@ class TypeKindElementMatcherTest {
     @MethodSource("kindsWithMatchingElements")
     void shouldMatchTypeOfKind(String typeKind, JavaTypeElement type) {
         FilterStartResult res = matcher.compile(typeKind).map(r -> r.filterFor(archiveAnalyzer).start(type)).get();
-        assertSame(FilterMatch.MATCHES, res.getMatch());
+        assertSame(Ternary.TRUE, res.getMatch());
         assertFalse(res.isInherited());
-        assertFalse(res.isDescend());
+        assertFalse(res.getDescend().toBoolean(true));
     }
 
     @Test
@@ -91,11 +91,11 @@ class TypeKindElementMatcherTest {
                 FilterStartResult res = matcher.compile(ek.getKey())
                         .map(r -> r.filterFor(archiveAnalyzer).start(ev.getValue())).get();
 
-                FilterMatch expectedMatch = FilterMatch.fromBoolean(ek.getKey().equals(ev.getKey()));
+                Ternary expectedMatch = Ternary.fromBoolean(ek.getKey().equals(ev.getKey()));
 
                 assertSame(expectedMatch, res.getMatch());
                 assertFalse(res.isInherited());
-                assertFalse(res.isDescend());
+                assertFalse(res.getDescend().toBoolean(true));
             }
         }
     }

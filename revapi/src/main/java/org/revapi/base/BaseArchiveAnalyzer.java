@@ -156,7 +156,7 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
             siblings.add(element);
         }
 
-        if (startRes.isDescend()) {
+        if (startRes.getDescend().toBoolean(false)) {
             discoverElements(context, element).forEach(e -> {
                 addTo(context, filter, element.getChildren(), e);
             });

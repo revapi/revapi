@@ -16,49 +16,64 @@
  */
 package org.revapi;
 
+import static org.revapi.Ternary.FALSE;
+import static org.revapi.Ternary.TRUE;
+import static org.revapi.Ternary.UNDECIDED;
+
 /**
  * The result of the element filtering in {@link TreeFilter}. The result tells the analysis whether to let
  * the element pass or not to the next stage but also whether to descend to its children or not.
  */
 public final class FilterStartResult {
-    private static final FilterStartResult MATCH_DESCEND_NOT_INHERITED = new FilterStartResult(FilterMatch.MATCHES, true, false);
-    private static final FilterStartResult MATCH_NOT_DESCEND_NOT_INHERITED = new FilterStartResult(FilterMatch.MATCHES, false, false);
-    private static final FilterStartResult DOESNT_MATCH_DESCEND_NOT_INHERITED = new FilterStartResult(FilterMatch.DOESNT_MATCH, true, false);
-    private static final FilterStartResult DOESNT_MATCH_NOT_DESCEND_NOT_INHERITED = new FilterStartResult(FilterMatch.DOESNT_MATCH, false, false);
-    private static final FilterStartResult UNDECIDED_DESCEND_NOT_INHERITED = new FilterStartResult(FilterMatch.UNDECIDED, true, false);
-    private static final FilterStartResult UNDECIDED_NOT_DESCEND_NOT_INHERITED = new FilterStartResult(FilterMatch.UNDECIDED, false, false);
-    private static final FilterStartResult MATCH_DESCEND_INHERITED = new FilterStartResult(FilterMatch.MATCHES, true, true);
-    private static final FilterStartResult MATCH_NOT_DESCEND_INHERITED = new FilterStartResult(FilterMatch.MATCHES, false, true);
-    private static final FilterStartResult DOESNT_MATCH_DESCEND_INHERITED = new FilterStartResult(FilterMatch.DOESNT_MATCH, true, true);
-    private static final FilterStartResult DOESNT_MATCH_NOT_DESCEND_INHERITED = new FilterStartResult(FilterMatch.DOESNT_MATCH, false, true);
-    private static final FilterStartResult UNDECIDED_DESCEND_INHERITED = new FilterStartResult(FilterMatch.UNDECIDED, true, true);
-    private static final FilterStartResult UNDECIDED_NOT_DESCEND_INHERITED = new FilterStartResult(FilterMatch.UNDECIDED, false, true);
+    private static final FilterStartResult FALSE_FALSE_FALSE = new FilterStartResult(FALSE, FALSE, false);
+    private static final FilterStartResult FALSE_FALSE_TRUE = new FilterStartResult(FALSE, FALSE, true);
+    private static final FilterStartResult FALSE_TRUE_FALSE = new FilterStartResult(FALSE, TRUE, false);
+    private static final FilterStartResult FALSE_TRUE_TRUE = new FilterStartResult(FALSE, TRUE, true);
+    private static final FilterStartResult FALSE_UNDECIDED_FALSE = new FilterStartResult(FALSE, UNDECIDED, false);
+    private static final FilterStartResult FALSE_UNDECIDED_TRUE = new FilterStartResult(FALSE, UNDECIDED, true);
+    private static final FilterStartResult TRUE_FALSE_FALSE = new FilterStartResult(TRUE, FALSE, false);
+    private static final FilterStartResult TRUE_FALSE_TRUE = new FilterStartResult(TRUE, FALSE, true);
+    private static final FilterStartResult TRUE_TRUE_FALSE = new FilterStartResult(TRUE, TRUE, false);
+    private static final FilterStartResult TRUE_TRUE_TRUE = new FilterStartResult(TRUE, TRUE, true);
+    private static final FilterStartResult TRUE_UNDECIDED_FALSE = new FilterStartResult(TRUE, UNDECIDED, false);
+    private static final FilterStartResult TRUE_UNDECIDED_TRUE = new FilterStartResult(TRUE, UNDECIDED, true);
+    private static final FilterStartResult UNDECIDED_FALSE_FALSE = new FilterStartResult(UNDECIDED, FALSE, false);
+    private static final FilterStartResult UNDECIDED_FALSE_TRUE = new FilterStartResult(UNDECIDED, FALSE, true);
+    private static final FilterStartResult UNDECIDED_TRUE_FALSE = new FilterStartResult(UNDECIDED, TRUE, false);
+    private static final FilterStartResult UNDECIDED_TRUE_TRUE = new FilterStartResult(UNDECIDED, TRUE, true);
+    private static final FilterStartResult UNDECIDED_UNDECIDED_FALSE = new FilterStartResult(UNDECIDED, UNDECIDED, false);
+    private static final FilterStartResult UNDECIDED_UNDECIDED_TRUE = new FilterStartResult(UNDECIDED, UNDECIDED, true);
 
-    private final FilterMatch match;
-    private final boolean descend;
+    private final Ternary match;
+    private final Ternary descend;
     private final boolean inherited;
 
+    /**
+     * This result is undecided about its match and descend and is marked as inherited. This means that it doesn't
+     * influence the "decision" of other filters but if it is the only one present, it gives the consumers of the result
+     * the chance to make a decision whether to make the elements pass or not.
+     *
+     * <p>This should be used by the tree filters in cases where they don't have anything to "say" about filtering (due
+     * to lack of configuration or something similar).
+     */
+    public static FilterStartResult defaultResult() {
+        return from(UNDECIDED, UNDECIDED, true);
+    }
+
+    /**
+     * The result will match any element and will always descend to any element's children. This SHOULD NOT be used
+     * as a default value of the filter result. Instead, it is meant for situations where one wants to retrieve all
+     * elements in the tree using {@link ElementForest#stream(Class, boolean, TreeFilter, Element)} or similar methods.
+     */
     public static FilterStartResult matchAndDescend() {
-        return from(FilterMatch.MATCHES, true, false);
-    }
-
-    public static FilterStartResult matchAndDescendInherited() {
-        return from(FilterMatch.MATCHES, true, true);
-    }
-
-    public static FilterStartResult undecidedAndDescend() {
-        return from(FilterMatch.UNDECIDED, true, false);
+        return TRUE_TRUE_FALSE;
     }
 
     public static FilterStartResult doesntMatch() {
-        return from(FilterMatch.DOESNT_MATCH, false, false);
+        return FALSE_FALSE_FALSE;
     }
 
-    public static FilterStartResult doesntMatchAndDescend() {
-        return from(FilterMatch.DOESNT_MATCH, true, false);
-    }
-
-    public static FilterStartResult direct(FilterMatch match, boolean descend) {
+    public static FilterStartResult direct(Ternary match, Ternary descend) {
         return from(match, descend, false);
     }
 
@@ -66,30 +81,47 @@ public final class FilterStartResult {
         return from(parent.match, parent.descend, true);
     }
 
-    public static FilterStartResult from(FilterMatch match, boolean descend, boolean inherited) {
+    public static FilterStartResult from(Ternary match, Ternary descend, boolean inherited) {
         switch (match) {
-        case DOESNT_MATCH:
-            return descend
-                    ? (inherited ? DOESNT_MATCH_DESCEND_INHERITED : DOESNT_MATCH_DESCEND_NOT_INHERITED)
-                    : (inherited ? DOESNT_MATCH_NOT_DESCEND_INHERITED : DOESNT_MATCH_NOT_DESCEND_NOT_INHERITED);
-        case MATCHES:
-            return descend
-                    ? (inherited ? MATCH_DESCEND_INHERITED : MATCH_DESCEND_NOT_INHERITED)
-                    : (inherited ? MATCH_NOT_DESCEND_INHERITED : MATCH_NOT_DESCEND_NOT_INHERITED);
+        case TRUE:
+            switch (descend) {
+            case FALSE:
+                return inherited ? TRUE_FALSE_TRUE : TRUE_FALSE_FALSE;
+            case TRUE:
+                return inherited ? TRUE_TRUE_TRUE : TRUE_TRUE_FALSE;
+            case UNDECIDED:
+                return inherited ? TRUE_UNDECIDED_TRUE: TRUE_UNDECIDED_FALSE;
+            }
+            break;
+        case FALSE:
+            switch (descend) {
+            case FALSE:
+                return inherited ? FALSE_FALSE_TRUE : FALSE_FALSE_FALSE;
+            case TRUE:
+                return inherited ? FALSE_TRUE_TRUE : FALSE_TRUE_FALSE;
+            case UNDECIDED:
+                return inherited ? FALSE_UNDECIDED_TRUE: FALSE_UNDECIDED_FALSE;
+            }
+            break;
         case UNDECIDED:
-            return descend
-                    ? (inherited ? UNDECIDED_DESCEND_INHERITED : UNDECIDED_DESCEND_NOT_INHERITED)
-                    : (inherited ? UNDECIDED_NOT_DESCEND_INHERITED : UNDECIDED_NOT_DESCEND_NOT_INHERITED);
-        default:
-            throw new IllegalArgumentException("Unhandled filter match value: " + match);
+            switch (descend) {
+            case FALSE:
+                return inherited ? UNDECIDED_FALSE_TRUE : UNDECIDED_FALSE_FALSE;
+            case TRUE:
+                return inherited ? UNDECIDED_TRUE_TRUE : UNDECIDED_TRUE_FALSE;
+            case UNDECIDED:
+                return inherited ? UNDECIDED_UNDECIDED_TRUE: UNDECIDED_UNDECIDED_FALSE;
+            }
+            break;
         }
+        throw new IllegalStateException("Unhandled filter match or descend value.");
     }
 
-    public static FilterStartResult from(FilterFinishResult result, boolean descend) {
+    public static FilterStartResult from(FilterFinishResult result, Ternary descend) {
         return from(result.getMatch(), descend, result.isInherited());
     }
 
-    private FilterStartResult(FilterMatch match, boolean descend, boolean inherited) {
+    private FilterStartResult(Ternary match, Ternary descend, boolean inherited) {
         this.match = match;
 
         this.descend = descend;
@@ -99,14 +131,11 @@ public final class FilterStartResult {
     /**
      * The result of the test
      */
-    public FilterMatch getMatch() {
+    public Ternary getMatch() {
         return match;
     }
 
-    /**
-     * Whether the caller should continue with the depth-first search descend down the element tree or not.
-     */
-    public boolean isDescend() {
+    public Ternary getDescend() {
         return descend;
     }
 
@@ -120,32 +149,30 @@ public final class FilterStartResult {
 
     public FilterStartResult and(FilterStartResult other) {
         boolean newInherited;
-        switch (getMatch()) {
-        case MATCHES:
-            switch (other.getMatch()) {
-            case MATCHES:
-                newInherited = isInherited() || other.isInherited();
+        switch (match) {
+        case TRUE:
+            switch (other.match) {
+            case TRUE:
+                newInherited = inherited || other.inherited;
                 break;
-            case DOESNT_MATCH:
-                newInherited = other.isInherited();
-                break;
+            case FALSE:
             case UNDECIDED:
-                newInherited = other.isInherited();
+                newInherited = other.inherited;
                 break;
             default:
-                throw new IllegalArgumentException("Unhandled match type: " + getMatch());
+                throw new IllegalArgumentException("Unhandled match type: " + match);
             }
             break;
-        case DOESNT_MATCH:
-            newInherited = isInherited();
+        case FALSE:
+            newInherited = inherited;
             break;
         case UNDECIDED:
-            newInherited = other.getMatch() == FilterMatch.DOESNT_MATCH ? isInherited() : other.isInherited();
+            newInherited = other.match == FALSE ? inherited : other.inherited;
             break;
         default:
-            throw new IllegalArgumentException("Unhandled match type: " + getMatch());
+            throw new IllegalArgumentException("Unhandled match type: " + match);
         }
-        return from(getMatch().and(other.getMatch()), isDescend() || other.isDescend(), newInherited);
+        return from(match.and(other.match), combineDescend(other), newInherited);
     }
 
     public FilterStartResult and(Iterable<FilterStartResult> others) {
@@ -158,33 +185,31 @@ public final class FilterStartResult {
 
     public FilterStartResult or(FilterStartResult other) {
         boolean newInherited;
-        switch (getMatch()) {
-        case MATCHES:
-            switch (other.getMatch()) {
-            case MATCHES:
-                newInherited = isInherited() || other.isInherited();
+        switch (match) {
+        case TRUE:
+            switch (other.match) {
+            case TRUE:
+                newInherited = inherited || other.inherited;
                 break;
-            case DOESNT_MATCH:
-                newInherited = isInherited();
-                break;
+            case FALSE:
             case UNDECIDED:
-                newInherited = isInherited();
+                newInherited = inherited;
                 break;
             default:
-                throw new IllegalArgumentException("Unhandled match type: " + getMatch());
+                throw new IllegalArgumentException("Unhandled match type: " + match);
             }
             break;
-        case DOESNT_MATCH:
-            newInherited = other.isInherited();
+        case FALSE:
+            newInherited = other.inherited;
             break;
         case UNDECIDED:
-            newInherited = other.getMatch() == FilterMatch.MATCHES ? other.isInherited() : isInherited();
+            newInherited = other.match == FALSE ? other.inherited : inherited;
             break;
         default:
-            throw new IllegalArgumentException("Unhandled match type: " + getMatch());
+            throw new IllegalArgumentException("Unhandled match type: " + match);
         }
 
-        return from(getMatch().or(other.getMatch()), isDescend() || other.isDescend(), newInherited);
+        return from(match.or(other.match), combineDescend(other), newInherited);
     }
 
     public FilterStartResult or(Iterable<FilterStartResult> others) {
@@ -196,19 +221,19 @@ public final class FilterStartResult {
     }
 
     public FilterStartResult negateMatch() {
-        return from(getMatch().negate(), isDescend(), isInherited());
+        return from(match.negate(), descend, inherited);
     }
 
-    public FilterStartResult withMatch(FilterMatch match) {
-        return from(match, isDescend(), isInherited());
+    public FilterStartResult withMatch(Ternary match) {
+        return from(match, descend, inherited);
     }
 
-    public FilterStartResult withDescend(boolean descend) {
-        return from(getMatch(), descend, isInherited());
+    public FilterStartResult withDescend(Ternary descend) {
+        return from(match, descend, inherited);
     }
 
     public FilterStartResult withInherited(boolean inherited) {
-        return from(getMatch(), isDescend(), inherited);
+        return from(match, descend, inherited);
     }
 
     @Override
@@ -220,35 +245,43 @@ public final class FilterStartResult {
             return false;
         }
 
-        FilterStartResult filterResult = (FilterStartResult) o;
+        FilterStartResult other = (FilterStartResult) o;
 
-        if (isDescend() != filterResult.isDescend()) {
-            return false;
-        }
-        if (isInherited() != filterResult.isInherited()) {
-            return false;
-        }
-        if (getMatch() != filterResult.getMatch()) {
-            return false;
-        }
-
-        return true;
+        return descend == other.descend && inherited == other.inherited && match == other.match;
     }
 
     @Override
     public int hashCode() {
-        int result = getMatch().hashCode();
-        result = 31 * result + (isDescend() ? 1 : 0);
-        result = 31 * result + (isInherited() ? 1 : 0);
+        int result = match.hashCode();
+        result = 31 * result + descend.hashCode();
+        result = 31 * result + (inherited ? 1 : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "FilterStartResult{" +
-                "match=" + getMatch() +
-                ", descend=" + isDescend() +
-                ", inherited=" + isInherited() +
+                "match=" + match +
+                ", descend=" + descend +
+                ", inherited=" + inherited +
                 '}';
+    }
+
+    private Ternary combineDescend(FilterStartResult other) {
+        // we favor descend over non-descend.. E.g. if one filter wants to descend, it overrides the decision of
+        // other filters to not descend...
+        // we also favor a decision over a non-decision. E.g. if we're undecided about the descend, we let the other
+        // result decide.
+
+        switch (descend) {
+        case TRUE:
+            return descend;
+        case FALSE:
+            return other.descend == TRUE ? TRUE : FALSE;
+        case UNDECIDED:
+            return other.descend;
+        default:
+            throw new IllegalStateException("Unhandled descend type");
+        }
     }
 }

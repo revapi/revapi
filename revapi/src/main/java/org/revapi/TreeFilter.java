@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
 
 /**
  * A tree filter is something that is called repeatedly by the caller as the caller walks a tree of elements in a depth
@@ -51,23 +52,38 @@ public interface TreeFilter<E extends Element<E>> {
         };
     }
 
+    /**
+     * @see #merge(BinaryOperator, BinaryOperator, FilterStartResult, FilterFinishResult, List)
+     */
     @SafeVarargs
-    static <E extends Element<E>> TreeFilter<E> union(TreeFilter<E>... fs) {
-        return union(asList(fs));
+    static <E extends Element<E>> TreeFilter<E> merge(BinaryOperator<FilterStartResult> mergeStarts,
+            BinaryOperator<FilterFinishResult> mergeFinishes, FilterStartResult defaultStartResult,
+            FilterFinishResult defaultFinishResult, TreeFilter<E>... fs) {
+        return merge(mergeStarts, mergeFinishes, defaultStartResult, defaultFinishResult, asList(fs));
     }
 
-    static <E extends Element<E>> TreeFilter<E> union(List<TreeFilter<E>> fs) {
+    /**
+     * Merges the filters together using the provided functions to combine the individual results.
+     * @param mergeStarts the function to combine two filter start results
+     * @param mergeFinishes the function to combine two filter finish results
+     * @param defaultStartResult the default start result in case there are no filters in the provided list
+     * @param defaultFinishResult the default finish result in case there are no filters in the provided list
+     * @param fs the list of filters to merge
+     */
+    static <E extends Element<E>> TreeFilter<E> merge(BinaryOperator<FilterStartResult> mergeStarts,
+            BinaryOperator<FilterFinishResult> mergeFinishes, FilterStartResult defaultStartResult,
+            FilterFinishResult defaultFinishResult, List<TreeFilter<E>> fs) {
         return new TreeFilter<E>() {
             @Override
             public FilterStartResult start(E element) {
-                return fs.stream().map(f -> f.start(element)).reduce(FilterStartResult::and)
-                        .orElse(FilterStartResult.matchAndDescend());
+                return fs.stream().map(f -> f.start(element)).reduce(mergeStarts)
+                        .orElse(defaultStartResult);
             }
 
             @Override
             public FilterFinishResult finish(E element) {
-                return fs.stream().map(f -> f.finish(element)).reduce(FilterFinishResult::and)
-                        .orElse(FilterFinishResult.doesntMatch());
+                return fs.stream().map(f -> f.finish(element)).reduce(mergeFinishes)
+                        .orElse(defaultFinishResult);
             }
 
             @Override
@@ -79,6 +95,38 @@ public interface TreeFilter<E extends Element<E>> {
                         });
             }
         };
+    }
+
+    /**
+     * @see #intersection(List)
+     */
+    @SafeVarargs
+    static <E extends Element<E>> TreeFilter<E> intersection(TreeFilter<E>... fs) {
+        return intersection(asList(fs));
+    }
+
+    /**
+     * Returns a filter that matches if all of the provided filters match.
+     */
+    static <E extends Element<E>> TreeFilter<E> intersection(List<TreeFilter<E>> fs) {
+        return merge(FilterStartResult::and, FilterFinishResult::and, FilterStartResult.defaultResult(),
+                FilterFinishResult.defaultResult(), fs);
+    }
+
+    /**
+     * @see #union(List)
+     */
+    @SafeVarargs
+    static <E extends Element<E>> TreeFilter<E> union(TreeFilter<E>... fs) {
+        return union(asList(fs));
+    }
+
+    /**
+     * @return a filter that matches if at least one of the provided filters matches.
+     */
+    static <E extends Element<E>> TreeFilter<E> union(List<TreeFilter<E>> fs) {
+        return merge(FilterStartResult::or, FilterFinishResult::or, FilterStartResult.defaultResult(),
+                FilterFinishResult.defaultResult(), fs);
     }
 
     /**
@@ -96,7 +144,7 @@ public interface TreeFilter<E extends Element<E>> {
      * This method is called after the filtering has {@link #start(Element) started} and all children have
      * been processed by this filter.
      * <p>
-     * Note that the result can still be {@link FilterMatch#UNDECIDED}. It is expected that such elements
+     * Note that the result can still be {@link Ternary#UNDECIDED}. It is expected that such elements
      * will in the end be resolved with the {@link #finish()} method.
      *
      * @param element the element for which the filtering has finished
@@ -108,7 +156,7 @@ public interface TreeFilter<E extends Element<E>> {
      * Called after all elements have been processed to see if any of them have changed in their filtering
      * result (which could be the case if there are dependencies between elements other than that of parent-child).
      * <p>
-     * Note that the result can remain {@link FilterMatch#UNDECIDED}. It is upon the caller to then decide what to do
+     * Note that the result can remain {@link Ternary#UNDECIDED}. It is upon the caller to then decide what to do
      * with such elements.
      *
      * @return the final results for elements that were previously undecided if their filtering status changed

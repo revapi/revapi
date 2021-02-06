@@ -102,6 +102,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
+            analyzer.prune(forest);
 
             Assert.assertEquals(3, forest.getRoots().size());
 
@@ -184,6 +185,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
+            analyzer.prune(forest);
 
             Set<TypeElement> roots = forest.getRoots().stream().map(n -> n.as(TypeElement.class)).collect(toSet());
 
@@ -280,6 +282,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null);
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
+            analyzer.prune(forest);
 
             forest.getRoots();
 

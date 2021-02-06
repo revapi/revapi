@@ -117,7 +117,7 @@ public class SimpleElementForest implements ElementForest {
                 results.add(resultType.cast(e));
             }
 
-            if (recurse && res.isDescend()) {
+            if (recurse && res.getDescend().toBoolean(false)) {
                 search(results, resultType, e.getChildren(), true, filter, false);
             }
 

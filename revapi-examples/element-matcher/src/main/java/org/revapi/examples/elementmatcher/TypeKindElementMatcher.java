@@ -25,8 +25,8 @@ import org.revapi.AnalysisContext;
 import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 import org.revapi.base.BaseElementMatcher;
 import org.revapi.base.IndependentTreeFilter;
@@ -120,14 +120,14 @@ public class TypeKindElementMatcher extends BaseElementMatcher {
             if (!(element instanceof JavaTypeElement)) {
                 // we are not able to filter anything other than java types. The matcher therefore needs to be
                 // "transparent" and let other potential matchers do their filtering.
-                return FilterStartResult.matchAndDescend();
+                return FilterStartResult.defaultResult();
             }
 
             JavaTypeElement type = (JavaTypeElement) element;
 
             boolean matches = type.getDeclaringElement().getKind() == acceptedTypeKind;
 
-            return FilterStartResult.direct(FilterMatch.fromBoolean(matches), false);
+            return FilterStartResult.direct(Ternary.fromBoolean(matches), Ternary.FALSE);
         }
     }
 }

@@ -85,7 +85,7 @@ public class BaseElementForest<E extends Element<E>> implements ElementForest<E>
                 results.add(resultType.cast(e));
             }
 
-            if (recurse && res.isDescend()) {
+            if (recurse && res.getDescend().toBoolean(false)) {
                 search(results, resultType, e.getChildren(), true, filter, false);
             }
 

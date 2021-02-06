@@ -28,8 +28,8 @@ import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
 import org.revapi.FilterFinishResult;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 
 public abstract class MatchingProgress<E extends Element<E>> implements DifferenceTransform.TraversalTracker<E> {
@@ -57,16 +57,16 @@ public abstract class MatchingProgress<E extends Element<E>> implements Differen
 
     public boolean startElements(@Nullable E oldElement, @Nullable E newElement) {
         FilterStartResult oldRes = oldElement == null
-                ? (oldFilter == null ? FilterStartResult.matchAndDescend() : FilterStartResult.doesntMatch())
-                : (oldFilter == null ? FilterStartResult.matchAndDescend() : oldFilter.start(oldElement));
+                ? (oldFilter == null ? FilterStartResult.defaultResult() : FilterStartResult.doesntMatch())
+                : (oldFilter == null ? FilterStartResult.defaultResult() : oldFilter.start(oldElement));
 
         FilterStartResult newRes = newElement == null
-                ? (newFilter == null ? FilterStartResult.matchAndDescend() : FilterStartResult.doesntMatch())
-                : (newFilter == null ? FilterStartResult.matchAndDescend() : newFilter.start(newElement));
+                ? (newFilter == null ? FilterStartResult.defaultResult() : FilterStartResult.doesntMatch())
+                : (newFilter == null ? FilterStartResult.defaultResult() : newFilter.start(newElement));
 
         if (oldRes.getMatch().toBoolean(false) && newRes.getMatch().toBoolean(false)) {
             decidedlyMatchingElementPairs.computeIfAbsent(oldElement, __ -> new HashSet<>()).add(newElement);
-        } else if (oldRes.getMatch() == FilterMatch.UNDECIDED || newRes.getMatch() == FilterMatch.UNDECIDED) {
+        } else if (oldRes.getMatch() == Ternary.UNDECIDED || newRes.getMatch() == Ternary.UNDECIDED) {
             undecidedElementPairs.computeIfAbsent(oldElement, __ -> new HashSet<>()).add(newElement);
         }
 
@@ -74,13 +74,13 @@ public abstract class MatchingProgress<E extends Element<E>> implements Differen
     }
 
     public void endElements(@Nullable E oldElement, @Nullable E newElement) {
-        FilterMatch oldMatch = oldElement == null
-                ? (oldFilter == null ? FilterMatch.MATCHES : FilterMatch.DOESNT_MATCH)
-                : (oldFilter == null ? FilterMatch.MATCHES : oldFilter.finish(oldElement).getMatch());
+        Ternary oldMatch = oldElement == null
+                ? (oldFilter == null ? Ternary.TRUE : Ternary.FALSE)
+                : (oldFilter == null ? Ternary.TRUE : oldFilter.finish(oldElement).getMatch());
 
-        FilterMatch newMatch = newElement == null
-                ? (newFilter == null ? FilterMatch.MATCHES : FilterMatch.DOESNT_MATCH)
-                : (newFilter == null ? FilterMatch.MATCHES : newFilter.finish(newElement).getMatch());
+        Ternary newMatch = newElement == null
+                ? (newFilter == null ? Ternary.TRUE : Ternary.FALSE)
+                : (newFilter == null ? Ternary.TRUE : newFilter.finish(newElement).getMatch());
 
         if (oldMatch.toBoolean(false) && newMatch.toBoolean(false)) {
             decidedlyMatchingElementPairs.computeIfAbsent(oldElement, __ -> new HashSet<>()).add(newElement);
