@@ -46,10 +46,68 @@ This may not be enough in many circumstances tough, because the textual represen
 semantic relationships with other elements. You cannot therefore use it for ignoring elements annotated with certain
 annotation or for ignoring classes implementing certain interface for example.
 
-This is where xref:revapi::extending-revapi.adoc#_element_matcher[element matchers] can come to the rescue. For java,
-the element matcher is implemented using the https://github.com/revapi/classif[Classif] library.
+This is where xref:revapi::extending-revapi.adoc#_element_matcher[element matchers] can come to the rescue.
 
-The above example can be rewritten using the java element matcher like this:
+== Java Element Matchers
+
+For java, there are currently two dedicated matchers.
+
+=== Package Matcher
+
+*Matcher Name*: `java-package`
+
+This is a simple matcher for situations where you need to filter by packages. It being simple, it is also faster than
+the generic java matcher.
+
+==== Examples
+
+To only include a single package in the API checks, you can use it like this:
+
+[source,xml]
+....
+<revapi.filter>
+    <elements>
+        <include>
+            <item>
+                <matcher>java-package</matcher>
+                <match>com.acme.api</match>
+            </item>
+        </include>
+    </elements>
+</revapi.filter>
+....
+
+This will only match the elements from that exact package.
+
+If you need to match more packages by a regular expression, you can enclose the `match` in slashes like so:
+
+[source,xml]
+....
+<revapi.filter>
+    <elements>
+        <include>
+            <item>
+                <matcher>java-package</matcher>
+                <match>/com\.acme\.api(\..*)?/</match>
+            </item>
+        </include>
+    </elements>
+</revapi.filter>
+....
+
+which would match `com.acme.api` and any subpackage.
+
+=== Generic Element Matcher
+
+*Matcher Name*: `java`
+
+This is a very powerful matcher to match any java element with complex relationships. It is implemented using
+the https://github.com/revapi/classif[Classif] library. Please consult the documentation of Classif to learn more
+about the syntax and the possibilities.
+
+==== Examples
+
+The example from the introduction can be rewritten using the java element matcher like this:
 
 ```json
 {
