@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 import org.revapi.API;
 import org.revapi.ApiAnalyzer;
 import org.revapi.ArchiveAnalyzer;
+import org.revapi.Element;
 import org.revapi.ElementForest;
 import org.revapi.FilterFinishResult;
 import org.revapi.FilterStartResult;
@@ -33,7 +34,7 @@ import org.revapi.TreeFilter;
 /**
  * A convenience base class for API analyzers. This class tries to simplify the element filtering performed during the
  * analysis ({@link #analyze(TreeFilter)}) by requiring the subclasses to implement a more fine-grained "discovery" of
- * elements ({@link #preAnalyze()}, {@link #discoverRoots(Object)}, {@link #discoverElements(Object, BaseElement)} and
+ * elements ({@link #preAnalyze()}, {@link #discoverRoots(Object)}, {@link #discoverElements(Object, Element)} and
  * {@link #postAnalyze(Object)}).
  *
  * @param <E> the parent type of all elements produced by the API analyzer
@@ -41,7 +42,7 @@ import org.revapi.TreeFilter;
  * @see BaseEagerLoadingArchiveAnalyzer
  * @see ZipArchiveAnalyzer
  */
-public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E extends BaseElement<E>>
+public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E extends Element<E>>
         implements ArchiveAnalyzer<E> {
 
     private final ApiAnalyzer<E> apiAnalyzer;
@@ -125,7 +126,7 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
      * Discovers all the root elements in the relevant archives of the API. What is a relevant archive is
      * determined by the implementor.
      *
-     * This is called after {@link #preAnalyze()} and before all {@link #discoverElements(Object, BaseElement)} calls.
+     * This is called after {@link #preAnalyze()} and before all {@link #discoverElements(Object, Element)} calls.
      *
      * @param context the optional context obtained from the {@link #preAnalyze()} method
      * @return a stream of elements
