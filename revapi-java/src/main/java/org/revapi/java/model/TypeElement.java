@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
@@ -130,18 +131,18 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
             if (rawUseSites == null) {
                 useSites = new HashSet<>(1);
             } else {
-                useSites = rawUseSites.stream()
-                        .map(u -> {
-                            if (u instanceof InheritedUseSite) {
-                                JavaModelElement model = getModel(u.site, ((InheritedUseSite) u).inheritor,
-                                        u.indexInParent);
-                                return model == null ? null : new UseSite(u.useType, model);
-                            } else {
-                                JavaModelElement model = getModel(u.site, null, u.indexInParent);
-                                return model == null ? null : new UseSite(u.useType, model);
-                            }
-                        }).filter(Objects::nonNull)
-                        .collect(toSet());
+                useSites = new HashSet<>();
+                for (ClassPathUseSite u : rawUseSites) {
+                    JavaModelElement model;
+                    if (u instanceof InheritedUseSite) {
+                        model = getModel(u.site, ((InheritedUseSite) u).inheritor, u.indexInParent);
+                    } else {
+                        model = getModel(u.site, null, u.indexInParent);
+                    }
+                    if (model != null) {
+                        useSites.add(new UseSite(u.useType, model));
+                    }
+                }
             }
             rawUseSites = null;
         }
@@ -160,29 +161,33 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
             usedTypes = new HashMap<>();
             if (rawUsedTypes != null) {
                 for (Map.Entry<UseSite.Type, Map<TypeElement, Set<UseSitePath>>> e : rawUsedTypes.entrySet()) {
-                    Map<JavaTypeElement, Set<JavaModelElement>> value = e.getValue().entrySet().stream()
-                            .collect(toMap(
-                                    Map.Entry::getKey,
-                                    entry -> entry.getValue().stream().map(path -> {
-                                        int index = -1;
-                                        if (path.useSite instanceof VariableElement
-                                                && path.useSite.getEnclosingElement() instanceof ExecutableElement) {
-                                            //find the index of the method parameter
-                                            index = ((ExecutableElement) path.useSite.getEnclosingElement())
-                                                    .getParameters()
-                                                    .indexOf(path.useSite);
-                                        }
+                    for (Map.Entry<TypeElement, Set<UseSitePath>> sites : e.getValue().entrySet()) {
+                        TypeElement type = sites.getKey();
+                        HashSet<JavaModelElement> users = new HashSet<>();
+                        for (UseSitePath path : sites.getValue()) {
+                            int index = -1;
+                            if (path.useSite instanceof VariableElement
+                                    && path.useSite.getEnclosingElement() instanceof ExecutableElement) {
+                                //find the index of the method parameter
+                                index = ((ExecutableElement) path.useSite.getEnclosingElement())
+                                        .getParameters()
+                                        .indexOf(path.useSite);
+                            }
 
-                                        TypeElement owner = null;
+                            TypeElement owner = null;
 
-                                        if (path.owner != null) {
-                                            owner = (TypeElement) getModel(path.owner, null, -1);
-                                        }
+                            if (path.owner != null) {
+                                owner = (TypeElement) getModel(path.owner, null, -1);
+                            }
 
-                                        return getModel(path.useSite, owner, index);
-                                    }).filter(Objects::nonNull).collect(toSet())));
+                            JavaModelElement model = getModel(path.useSite, owner, index);
+                            if (model != null) {
+                                users.add(model);
+                            }
+                        }
 
-                    usedTypes.put(e.getKey(), value);
+                        usedTypes.computeIfAbsent(e.getKey(), __ -> new HashMap<>()).put(type, users);
+                    }
                 }
             }
         }
@@ -241,11 +246,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                     if (type == null) {
                         return null;
                     }
-
-                    List<FieldElement> fs = type.stream(FieldElement.class, false)
-                            .filter(f -> f.getDeclaringElement().equals(e))
-                            .collect(toList());
-                    return fs.isEmpty() ? null : fs.get(0);
+                    return type.lookupChildElement(FieldElement.class, FieldElement.createComparableSignature(e));
                 } else if (e.getEnclosingElement() instanceof javax.lang.model.element.ExecutableElement) {
                     //this is a method parameter
                     Element methodEl = e.getEnclosingElement();
@@ -254,21 +255,13 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                         return null;
                     }
 
-                    List<MethodElement> ms = type.stream(MethodElement.class, false)
-                            .filter(m -> m.getDeclaringElement().equals(methodEl))
-                            .collect(toList());
-
-                    if (ms.isEmpty()) {
-                        return null;
-                    }
-
-                    MethodElement method = ms.get(0);
-
+                    MethodElement method = type.lookupChildElement(MethodElement.class,
+                            MethodElement.createComparableSignature((ExecutableElement) methodEl, methodEl.asType()));
                     //now look for the parameter
-                    List<MethodParameterElement> params =
-                            method.stream(MethodParameterElement.class, false).collect(toList());
-
-                    return params.size() > indexInParent ? params.get(indexInParent) : null;
+                    return method == null
+                            ? null
+                            : method.stream(MethodParameterElement.class, false).skip(indexInParent).findFirst()
+                            .orElse(null);
                 } else {
                     return null;
                 }
@@ -285,12 +278,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 if (type == null) {
                     return null;
                 }
-
-                List<MethodElement> ms = type.stream(MethodElement.class, false)
-                        .filter(m -> m.getDeclaringElement().equals(e))
-                        .collect(toList());
-
-                return ms.isEmpty() ? null : ms.get(0);
+                return type.lookupChildElement(MethodElement.class, MethodElement.createComparableSignature(e, e.asType()));
             }
 
             private TypeElement findModelType(Element enclosingElement) {

@@ -343,6 +343,16 @@ final class ClasspathScanner {
 
         void scanClass(ArchiveLocation loc, TypeElement type, boolean primaryApi) {
             try {
+                if (processed.contains(type)) {
+                    return;
+                }
+
+                // Technically, we could find this out later on in the method, but doing this here ensures that the
+                // javac tries to fully load the class (and therefore throws any completion failures).
+                // Doing this now ensures that we get a correct info about the class (like the enclosing element,
+                // type kind, etc).
+                TypeElement superType = getTypeElement.visit(IgnoreCompletionFailures.in(type::getSuperclass));
+
                 // we need to be strict about hierarchy to adhere to the TreeFilter contract
                 if (type.getEnclosingElement() instanceof TypeElement) {
                     TypeElement enclosing = (TypeElement) type.getEnclosingElement();
@@ -354,22 +364,17 @@ final class ClasspathScanner {
                         // the decision of the enclosing class to not scan its children.
                         return;
                     }
-                }
 
-                // important to have this AFTER the above check, because scanning the enclosing class will scan also
-                // all the enclosed classes, thus this should bail out quickly (and also don't cause duplicate records
-                // for the same element)
-                if (processed.contains(type)) {
-                    return;
+                    // important to have this ALSO here, because scanning the enclosing class will scan
+                    // also all the enclosed classes, thus this should bail out quickly (and also don't cause duplicate
+                    // records for the same element)
+                    if (processed.contains(type)) {
+                        return;
+                    }
                 }
 
                 processed.add(type);
                 Boolean wasAnno = requiredTypes.remove(type);
-
-                //technically, we could find this out later on in the method, but doing this here ensures that the
-                //javac tries to fully load the class (and therefore throw any completion failures.
-                //Doing this then ensures that we get a correct TypeKind after this call.
-                TypeElement superType = getTypeElement.visit(IgnoreCompletionFailures.in(type::getSuperclass));
 
                 //type.asType() possibly not completely correct when dealing with inner class of a parameterized class
                 TypeMirror typeType = type.asType();

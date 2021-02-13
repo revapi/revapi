@@ -16,6 +16,8 @@
  */
 package org.revapi.java.model;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
@@ -43,6 +45,7 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     private String comparableSignature;
     private boolean inherited = false;
     private String stringRepre;
+    private Map<Class<?>, Map<String, Object>> childrenByTypeAndSignature;
 
     JavaElementBase(ProbingEnvironment env, Archive archive, E element, T representation) {
         super(env);
@@ -171,6 +174,24 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
         }
     }
 
+    @Nullable
+    public <X extends JavaElementBase<?, ?>> X lookupChildElement(Class<X> childType, String comparableSignature) {
+        if (!environment.isScanningComplete()) {
+            return null;
+        }
+
+        if (childrenByTypeAndSignature == null) {
+            childrenByTypeAndSignature = buildChildrenByTypeAndSignature();
+        }
+
+        Map<String, Object> children = childrenByTypeAndSignature.get(childType);
+        if (children == null) {
+            return null;
+        }
+
+        return childType.cast(children.get(comparableSignature));
+    }
+
     protected String getComparableSignature() {
         if (comparableSignature == null) {
             comparableSignature = createComparableSignature();
@@ -180,4 +201,20 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
     }
 
     protected abstract String createComparableSignature();
+
+    private Map<Class<?>, Map<String, Object>> buildChildrenByTypeAndSignature() {
+        Map<Class<?>, Map<String, Object>> ret = new HashMap<>();
+
+        for (JavaElement el : getChildren()) {
+            if (!(el instanceof JavaElementBase)) {
+                continue;
+            }
+
+            Class<?> type = el.getClass();
+            String sig = ((JavaElementBase<?, ?>) el).getComparableSignature();
+
+            ret.computeIfAbsent(type, __ -> new HashMap<>()).put(sig, el);
+        }
+        return ret;
+    }
 }
