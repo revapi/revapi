@@ -20,3 +20,6 @@ nb-configuration.xml
 .vscode/
 
 .factorypath
+
+# Java Flight Recorder
+*.jfr
