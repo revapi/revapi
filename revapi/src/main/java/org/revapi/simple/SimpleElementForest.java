@@ -111,19 +111,19 @@ public class SimpleElementForest implements ElementForest {
                 res = filter.start(e);
                 }
 
-            boolean added = res.getMatch().toBoolean(false);
+            boolean added = res.getMatch().toBoolean(true);
 
             if (added) {
                 results.add(resultType.cast(e));
             }
 
-            if (recurse && res.getDescend().toBoolean(false)) {
+            if (recurse && res.getDescend().toBoolean(true)) {
                 search(results, resultType, e.getChildren(), true, filter, false);
             }
 
             if (filter != null) {
                 FilterFinishResult finalMatch = filter.finish(e);
-                if (!added && finalMatch.getMatch().toBoolean(false)) {
+                if (!added && finalMatch.getMatch().toBoolean(true)) {
                     results.add(resultType.cast(e));
                 }
             }
@@ -132,7 +132,7 @@ public class SimpleElementForest implements ElementForest {
         if (topLevel && filter != null) {
             Map<Element, FilterFinishResult> matches = filter.finish();
             for (Map.Entry<Element, FilterFinishResult> e : matches.entrySet()) {
-                if (e.getValue().getMatch().toBoolean(false) && !results.contains(e.getKey())) {
+                if (e.getValue().getMatch().toBoolean(true) && !results.contains(e.getKey())) {
                     results.add(resultType.cast(e.getKey()));
                 }
             }

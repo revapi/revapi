@@ -79,19 +79,19 @@ public class BaseElementForest<E extends Element<E>> implements ElementForest<E>
                 res = filter.start(e);
             }
 
-            boolean added = res.getMatch().toBoolean(false);
+            boolean added = res.getMatch().toBoolean(true);
 
             if (added && resultType.isAssignableFrom(e.getClass())) {
                 results.add(resultType.cast(e));
             }
 
-            if (recurse && res.getDescend().toBoolean(false)) {
+            if (recurse && res.getDescend().toBoolean(true)) {
                 search(results, resultType, e.getChildren(), true, filter, false);
             }
 
             if (filter != null) {
                 FilterFinishResult finalMatch = filter.finish(e);
-                if (!added && finalMatch.getMatch().toBoolean(false) && resultType.isAssignableFrom(e.getClass())) {
+                if (!added && finalMatch.getMatch().toBoolean(true) && resultType.isAssignableFrom(e.getClass())) {
                     results.add(resultType.cast(e));
                 }
             }
@@ -100,7 +100,7 @@ public class BaseElementForest<E extends Element<E>> implements ElementForest<E>
         if (topLevel && filter != null) {
             Map<E, FilterFinishResult> matches = filter.finish();
             for (Map.Entry<E, FilterFinishResult> e : matches.entrySet()) {
-                if (e.getValue().getMatch().toBoolean(false) && !results.contains(e.getKey())) {
+                if (e.getValue().getMatch().toBoolean(true) && !results.contains(e.getKey())) {
                     results.add(resultType.cast(e.getKey()));
                 }
             }

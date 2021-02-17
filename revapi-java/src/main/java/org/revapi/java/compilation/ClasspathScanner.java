@@ -1045,7 +1045,7 @@ final class ClasspathScanner {
                 }
             }
 
-            if (!finish.isInherited() && finish.getMatch().toBoolean(false)) {
+            if (!finish.isInherited() && finish.getMatch().toBoolean(true)) {
                 while (elementOwner != null) {
                     elementOwner.inclusionState = elementOwner.inclusionState.or(
                             FilterStartResult.from(finish, elementOwner.inclusionState.getDescend()));

@@ -73,7 +73,7 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
             discoverRoots(context).forEach(r -> addTo(context, filter, forest.getRoots(), r));
 
             for (Map.Entry<E, FilterFinishResult> e : filter.finish().entrySet()) {
-                if (!e.getValue().getMatch().toBoolean(false)) {
+                if (!e.getValue().getMatch().toBoolean(true)) {
                     E parent = e.getKey().getParent();
                     if (parent == null) {
                         forest.getRoots().remove(e.getKey());
@@ -157,10 +157,8 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
             siblings.add(element);
         }
 
-        if (startRes.getDescend().toBoolean(false)) {
-            discoverElements(context, element).forEach(e -> {
-                addTo(context, filter, element.getChildren(), e);
-            });
+        if (startRes.getDescend().toBoolean(true)) {
+            discoverElements(context, element).forEach(e -> addTo(context, filter, element.getChildren(), e));
         }
 
         FilterFinishResult endRes = filter.finish(element);
