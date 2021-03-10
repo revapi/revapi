@@ -152,7 +152,7 @@ function release_module() {
     -DprocessParent=true \
     -Dincludes='org.revapi:*'
   version=$(xpath -q -e "/project/version/text()" pom.xml)
-  mvn process-resources # reset the version in antora.yml back to master
+  mvn process-resources # reset the version in antora.yml back to main
   git add -A
   git commit -m "Setting $module to version $version"
   #now we need to install so that the subsequent builds pick up our new version
@@ -202,7 +202,6 @@ function publish_site() {
   current_branch=$(git rev-parse --abbrev-ref HEAD)
 
   cwd=$(pwd)
-  echo "I'm here: ${cwd}"
 
   to_release=$(determine_releases $@)
   cd revapi-site/src/site/modules/news/pages/news
@@ -230,7 +229,7 @@ $to_release
     # if the module has a site
     if [ 1 = $(eval "echo \$SITE_$dep") ]; then
       m="$(to_module "$dep")"
-      cd "../$m"
+      cd "${cwd}/$m"
       # check that all releases have their mvn sites present in the checkout
       releases=$(git tag | grep ${m}_v)
       for r in $releases; do
@@ -246,11 +245,48 @@ $to_release
           cp -R target/site/* $dir
         fi
       done
-      # and copy the attachments of the latest version of the module to the "master" version of it
-      latestTag=$(git tag -l --sort=creatordate "${m}_v*" | head -1)
+
+      # and copy the latest version of the module to the "main" version of it
+      allTags=$(git tag -l "${m}_v*")
+      latestTag=$(git tag -l --sort=creatordate "${m}_v*" | tail -1)
       latestVer=$(echo $latestTag | sed 's/^.*_v//')
-      rm -Rf "../revapi-site-assembly/build/site/$m/_attachments"
-      cp -r "../revapi-site-assembly/build/site/$m/$latestVer/_attachments" "../revapi-site-assembly/build/site/$m"
+
+      cd "../revapi-site-assembly/build/site/$m"
+
+      # first delete anything that doesn't belong in the module directory - e.g. only leave the version dirs
+      for f in $(ls); do
+        keep=0
+        name=$(basename $f)
+        for tag in $allTags; do
+          tagDir=$(echo $tag | sed 's/^.*_v//')
+          if [ $name = $tagDir ]; then
+            keep=1
+            break
+          fi
+        done
+
+        if [ $keep -eq 0 ]; then
+          rm -Rf $f
+        fi
+      done
+
+      # now create redirect pages to all pages in the latest released version
+      # this will give us "stable" urls to be referenced from the outside
+      for page in $(find "$latestVer" -type f -name '*.html' -not -path '*/_attachments/*'); do
+        pageName=$(basename $page)
+        pageDir=$(dirname $page)
+        dir=$(realpath $pageDir --relative-to=$latestVer)
+        mkdir -p $dir
+        echo "
+          <!DOCTYPE html>
+          <meta charset=\"utf-8\">
+          <script>location=\"$page\"</script>
+          <meta http-equiv=\"refresh\" content=\"0; url=$page\">
+          <meta name=\"robots\" content=\"noindex\">
+          <title>Redirect Notice</title>
+          <h1>Redirect Notice</h1>
+          <p>The page you requested has been relocated <a href=\"$page\">here</a>.</p>" > "$dir/$pageName"
+      done
     fi
   done
 

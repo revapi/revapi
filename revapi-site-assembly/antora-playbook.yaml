@@ -4,61 +4,48 @@ site:
   start_page: revapi-site::index.adoc
   robots: allow
 content:
-  edit_url: 'https://github.com/revapi/revapi/edit/master/{path}'
+  edit_url: 'https://github.com/revapi/revapi/edit/main/{path}'
   sources:
     - url: ../
-      branches: master
+      branches: main
       start_path: revapi-site/src/site
     - url: ../
-      branches: master
       tags: revapi_v*
       start_path: revapi/src/site
     - url: ../
-      branches: master
       tags: revapi-basic-features_v*
       start_path: revapi-basic-features/src/site
     - url: ../
-      branches: master
       tags: revapi-maven-plugin_v*
       start_path: revapi-maven-plugin/src/site
     - url: ../
-      branches: master
       tags: revapi-ant-task_v*
       start_path: revapi-ant-task/src/site
     - url: ../
-      branches: master
       tags: revapi-java_v*
       start_path: revapi-java/src/site
     - url: ../
-      branches: master
       tags: revapi-java-spi_v*
       start_path: revapi-java-spi/src/site
     - url: ../
-      branches: master
       tags: revapi-reporter-file-base_v*
       start_path: revapi-reporter-file-base/src/site
     - url: ../
-      branches: master
       tags: revapi-reporter-json_v*
       start_path: revapi-reporter-json/src/site
     - url: ../
-      branches: master
       tags: revapi-reporter-text_v*
       start_path: revapi-reporter-text/src/site
     - url: ../
-      branches: master
       tags: revapi-jackson_v*
       start_path: revapi-jackson/src/site
     - url: ../
-      branches: master
       tags: revapi-json_v*
       start_path: revapi-json/src/site
     - url: ../
-      branches: master
       tags: revapi-yaml_v*
       start_path: revapi-yaml/src/site
     - url: ../
-      branches: master
       tags: revapi-standalone_v*
       start_path: revapi-standalone/src/site
 ui:
@@ -75,7 +62,7 @@ asciidoc:
     news-feed-id: https://revapi.org
     news-feed-max-items: 10
     scm-url: https://github.com/revapi/revapi
-    scm-files: https://github.com/revapi/revapi/tree/master
+    scm-files: https://github.com/revapi/revapi/tree/main
   extensions:
     - asciidoctor-kroki
     - ./extensions/news

@@ -17,6 +17,6 @@
 
 name: revapi-site
 title: Revapi Site
-version: master
+version: main
 nav:
   - modules/ROOT/nav.adoc

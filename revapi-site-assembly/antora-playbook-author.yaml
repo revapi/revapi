@@ -74,7 +74,7 @@ asciidoc:
     news-feed-id: https://revapi.org
     news-feed-max-items: 10
     scm-url: https://github.com/revapi/revapi
-    scm-files: https://github.com/revapi/revapi/tree/master
+    scm-files: https://github.com/revapi/revapi/tree/main
   extensions:
   - asciidoctor-kroki
   - ./extensions/news
