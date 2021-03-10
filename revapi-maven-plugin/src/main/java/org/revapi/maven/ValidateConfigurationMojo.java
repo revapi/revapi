@@ -32,6 +32,7 @@ import org.revapi.configuration.ValidationResult;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
  */
 @Mojo(name = "validate-configuration", defaultPhase = LifecyclePhase.VALIDATE, threadSafe = true)
@@ -46,13 +47,9 @@ public class ValidateConfigurationMojo extends AbstractRevapiMojo {
             if (analyzer != null) {
                 ValidationResult res = analyzer.validateConfiguration();
                 if (!res.isSuccessful()) {
-                    String errors = res.getErrors() == null
-                            ? ""
-                            : Stream.of(res.getErrors()).map(e -> e.message + " @ " + e.dataPath)
-                            .collect(Collectors.joining(", ", "Errors: ", ""));
-                    String missingSchemas = res.getMissingSchemas() == null
-                            ? ""
-                            : Stream.of(res.getMissingSchemas())
+                    String errors = res.getErrors() == null ? "" : Stream.of(res.getErrors())
+                            .map(e -> e.message + " @ " + e.dataPath).collect(Collectors.joining(", ", "Errors: ", ""));
+                    String missingSchemas = res.getMissingSchemas() == null ? "" : Stream.of(res.getMissingSchemas())
                             .collect(Collectors.joining(", ", "Missing schemas: ", ""));
                     throw new MojoExecutionException(
                             "Failed to validate configuration. " + errors + " " + missingSchemas);

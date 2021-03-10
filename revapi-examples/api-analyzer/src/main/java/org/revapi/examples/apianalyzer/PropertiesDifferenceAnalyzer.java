@@ -26,10 +26,10 @@ import org.revapi.Report;
 import org.revapi.base.BaseDifferenceAnalyzer;
 
 /**
- * Revapi uses difference analyzers to check whether two elements, one coming from the old API and the other from
- * the new API are considered different or not. Revapi does a parallel depth-first traversal of the element trees
- * (created by the archive analyzers) and can detect add, removed or changed elements. The job of the difference
- * analyzer is to produce a report detailing the differences that quantify the change on the elements.
+ * Revapi uses difference analyzers to check whether two elements, one coming from the old API and the other from the
+ * new API are considered different or not. Revapi does a parallel depth-first traversal of the element trees (created
+ * by the archive analyzers) and can detect add, removed or changed elements. The job of the difference analyzer is to
+ * produce a report detailing the differences that quantify the change on the elements.
  */
 public class PropertiesDifferenceAnalyzer extends BaseDifferenceAnalyzer<PropertyElement> {
 
@@ -44,23 +44,17 @@ public class PropertiesDifferenceAnalyzer extends BaseDifferenceAnalyzer<Propert
         Report.Builder bld = Report.builder().withOld(oldProp).withNew(newProp);
 
         if (oldProp == null) {
-            bld.addProblem()
-                    .withCode("property.added")
+            bld.addProblem().withCode("property.added")
                     .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.NON_BREAKING)
-                    .withName("Property Added")
-                    .done();
+                    .withName("Property Added").done();
         } else if (newProp == null) {
-            bld.addProblem()
-                    .withCode("property.removed")
+            bld.addProblem().withCode("property.removed")
                     .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.BREAKING)
-                    .withName("Property Removed")
-                    .done();
-        } else if (!Objects.equals(oldProp.getValue(), newProp.getValue())){
-            bld.addProblem()
-                    .withCode("property.valueChanged")
+                    .withName("Property Removed").done();
+        } else if (!Objects.equals(oldProp.getValue(), newProp.getValue())) {
+            bld.addProblem().withCode("property.valueChanged")
                     .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.POTENTIALLY_BREAKING)
-                    .withName("Property Value Changed")
-                    .done();
+                    .withName("Property Value Changed").done();
         }
 
         return bld.build();

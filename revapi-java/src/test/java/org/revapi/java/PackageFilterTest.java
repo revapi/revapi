@@ -25,67 +25,50 @@ import org.junit.Test;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.7.0
  */
 public class PackageFilterTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testExclude() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"type packagefilter.a.a.a.* {}\"}]}}}}",
-                Stream.of(
-                            "class packagefilter.b.a.A",
-                            "method void packagefilter.b.a.A::<init>()",
-                            "class packagefilter.b.b.B",
-                            "method void packagefilter.b.b.B::<init>()",
-                            "class packagefilter.a.b.B",
-                            "method void packagefilter.a.b.B::<init>()"
-                    ).collect(toSet()));
+        testWith(
+                "{\"revapi\": {\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"type packagefilter.a.a.a.* {}\"}]}}}}",
+                Stream.of("class packagefilter.b.a.A", "method void packagefilter.b.a.A::<init>()",
+                        "class packagefilter.b.b.B", "method void packagefilter.b.b.B::<init>()",
+                        "class packagefilter.a.b.B", "method void packagefilter.a.b.B::<init>()").collect(toSet()));
 
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"java\", \"match\": \"type packagefilter.a.a.a.* {}\"}]}}}}",
-                Stream.of(
-                            "class packagefilter.a.a.a.A",
-                            "method void packagefilter.a.a.a.A::<init>()"
-                    ).collect(toSet()));
+        testWith(
+                "{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"java\", \"match\": \"type packagefilter.a.a.a.* {}\"}]}}}}",
+                Stream.of("class packagefilter.a.a.a.A", "method void packagefilter.a.a.a.A::<init>()")
+                        .collect(toSet()));
     }
 
     @Test
     public void testDeprecatedExclude() throws Exception {
         testWith("{\"revapi\": {\"java\": {\"filter\": {\"packages\": {\"exclude\": [\"packagefilter.a.a.a\"]}}}}}",
-                Stream.of(
-                        "class packagefilter.b.a.A",
-                        "method void packagefilter.b.a.A::<init>()",
-                        "class packagefilter.b.b.B",
-                        "method void packagefilter.b.b.B::<init>()",
-                        "class packagefilter.a.b.B",
-                        "method void packagefilter.a.b.B::<init>()"
-                ).collect(toSet()));
+                Stream.of("class packagefilter.b.a.A", "method void packagefilter.b.a.A::<init>()",
+                        "class packagefilter.b.b.B", "method void packagefilter.b.b.B::<init>()",
+                        "class packagefilter.a.b.B", "method void packagefilter.a.b.B::<init>()").collect(toSet()));
 
         testWith("{\"revapi\": {\"java\": {\"filter\": {\"packages\": {\"include\": [\"packagefilter.a.a.a\"]}}}}}",
-                Stream.of(
-                        "class packagefilter.a.a.a.A",
-                        "method void packagefilter.a.a.a.A::<init>()"
-                ).collect(toSet()));
+                Stream.of("class packagefilter.a.a.a.A", "method void packagefilter.a.a.a.A::<init>()")
+                        .collect(toSet()));
     }
 
     @Test
     public void testInclude() throws Exception {
-        testWith("{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"java\", \"match\": \"type packagefilter./a|b/.**.a.* {}\"}]}}}}",
-                Stream.of(
-                            "class packagefilter.a.a.a.A",
-                            "method void packagefilter.a.a.a.A::<init>()",
-                            "class packagefilter.b.a.A",
-                            "method void packagefilter.b.a.A::<init>()"
-                    ).collect(toSet()));
+        testWith(
+                "{\"revapi\": {\"filter\": {\"elements\": {\"include\": [{\"matcher\": \"java\", \"match\": \"type packagefilter./a|b/.**.a.* {}\"}]}}}}",
+                Stream.of("class packagefilter.a.a.a.A", "method void packagefilter.a.a.a.A::<init>()",
+                        "class packagefilter.b.a.A", "method void packagefilter.b.a.A::<init>()").collect(toSet()));
     }
 
     @Test
     public void testDeprecatedInclude() throws Exception {
-        testWith("{\"revapi\": {\"java\": {\"filter\": {\"packages\": {\"regex\": true, \"include\": [\"packagefilter\\\\.[ab](\\\\..*)?\\\\.a\"]}}}}}",
-                Stream.of(
-                        "class packagefilter.a.a.a.A",
-                        "method void packagefilter.a.a.a.A::<init>()",
-                        "class packagefilter.b.a.A",
-                        "method void packagefilter.b.a.A::<init>()"
-                ).collect(toSet()));
+        testWith(
+                "{\"revapi\": {\"java\": {\"filter\": {\"packages\": {\"regex\": true, \"include\": [\"packagefilter\\\\.[ab](\\\\..*)?\\\\.a\"]}}}}}",
+                Stream.of("class packagefilter.a.a.a.A", "method void packagefilter.a.a.a.A::<init>()",
+                        "class packagefilter.b.a.A", "method void packagefilter.b.a.A::<init>()").collect(toSet()));
     }
 
     private void testWith(String configJSON, Set<String> expectedResults) throws Exception {

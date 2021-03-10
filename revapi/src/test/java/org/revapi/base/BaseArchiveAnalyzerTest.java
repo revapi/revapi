@@ -40,20 +40,16 @@ import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
 
 class BaseArchiveAnalyzerTest {
-    TestArchiveAnalyzer analyzer = new TestArchiveAnalyzer(null, null)
-            .withRoots("a", "b", "c")
-            .withChildren("a", "aa", "ab", "ac")
-            .withChildren("b", "ba", "bb", "bc")
+    TestArchiveAnalyzer analyzer = new TestArchiveAnalyzer(null, null).withRoots("a", "b", "c")
+            .withChildren("a", "aa", "ab", "ac").withChildren("b", "ba", "bb", "bc")
             .withChildren("c", "ca", "cb", "cc");
-
 
     @Test
     void appliesFilteringOnRoots() {
         TreeFilter<TestElement> filter = new IndependentTreeFilter<TestElement>() {
             @Override
             protected FilterStartResult doStart(TestElement element) {
-                return element.getFullHumanReadableString().equals("c")
-                        ? doesntMatch()
+                return element.getFullHumanReadableString().equals("c") ? doesntMatch()
                         : FilterStartResult.matchAndDescend();
             }
         };
@@ -70,8 +66,7 @@ class BaseArchiveAnalyzerTest {
         TreeFilter<TestElement> filter = new IndependentTreeFilter<TestElement>() {
             @Override
             protected FilterStartResult doStart(TestElement element) {
-                return element.getFullHumanReadableString().equals("cc")
-                        ? doesntMatch()
+                return element.getFullHumanReadableString().equals("cc") ? doesntMatch()
                         : FilterStartResult.matchAndDescend();
             }
         };

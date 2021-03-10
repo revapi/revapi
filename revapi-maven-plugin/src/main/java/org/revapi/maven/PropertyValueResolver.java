@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,8 +42,8 @@ import org.codehaus.plexus.interpolation.PropertiesBasedValueSource;
 import org.codehaus.plexus.interpolation.ValueSource;
 
 /**
- * This serves no other purpose but to make available the standard value sources for interpolating the properties
- * in the Revapi configuration files.
+ * This serves no other purpose but to make available the standard value sources for interpolating the properties in the
+ * Revapi configuration files.
  */
 public final class PropertyValueResolver {
     private static final List<String> PROJECT_PREFIXES = asList("project.", "pom.");
@@ -112,7 +112,6 @@ public final class PropertyValueResolver {
         }, singletonList("maven."), true);
         valueSources.add(buildTimeStampValueSource);
 
-
         valueSources.add(new MapBasedValueSource(System.getProperties()));
 
         valueSources.add(new MapBasedValueSource(modelProperties));
@@ -120,7 +119,8 @@ public final class PropertyValueResolver {
         try {
             valueSources.add(new EnvarBasedValueSource(false));
         } catch (IOException e) {
-            throw new IllegalStateException("Could not construct environment variable value source for property interpolation.");
+            throw new IllegalStateException(
+                    "Could not construct environment variable value source for property interpolation.");
         }
 
     }
@@ -210,7 +210,8 @@ public final class PropertyValueResolver {
                         state = DEFAULT;
                         continue;
                     } else {
-                        throw new IllegalStateException("Failed to resolve expression: "+ expr.substring(start - 2, i + 1));
+                        throw new IllegalStateException(
+                                "Failed to resolve expression: " + expr.substring(start - 2, i + 1));
                     }
                 }
                 default: {
@@ -221,7 +222,7 @@ public final class PropertyValueResolver {
             }
             case RESOLVED: {
                 if (ch == '{') {
-                    nest ++;
+                    nest++;
                 } else if (ch == '}') {
                     if (nest > 0) {
                         nest--;
@@ -233,10 +234,10 @@ public final class PropertyValueResolver {
             }
             case DEFAULT: {
                 if (ch == '{') {
-                    nest ++;
+                    nest++;
                 } else if (ch == '}') {
                     if (nest > 0) {
-                        nest --;
+                        nest--;
                     } else {
                         state = INITIAL;
                         builder.append(expr, start, i);
@@ -245,7 +246,7 @@ public final class PropertyValueResolver {
                 continue;
             }
             default:
-                throw new IllegalStateException("Unexpected char seen: "+ch);
+                throw new IllegalStateException("Unexpected char seen: " + ch);
             }
         }
         switch (state) {
@@ -259,17 +260,14 @@ public final class PropertyValueResolver {
         }
         case GOT_OPEN_BRACE: {
             // We had a reference that was not resolved, throw ISE
-            throw new IllegalStateException("Incomplete expression: "+builder.toString());
+            throw new IllegalStateException("Incomplete expression: " + builder.toString());
         }
         }
         return builder.toString();
     }
 
     private @Nullable String findValue(String name) {
-        return valueSources.stream()
-                .map(s -> s.getValue(name))
-                .filter(Objects::nonNull)
-                .map(Object::toString)
+        return valueSources.stream().map(s -> s.getValue(name)).filter(Objects::nonNull).map(Object::toString)
                 .findFirst().orElse(null);
     }
 }

@@ -26,7 +26,9 @@ import org.revapi.configuration.Configurable;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
+ * 
  * @deprecated use {@link org.revapi.base.BaseConfigurable} instead
  */
 @Deprecated

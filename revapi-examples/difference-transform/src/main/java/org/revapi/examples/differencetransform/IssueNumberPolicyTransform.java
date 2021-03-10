@@ -28,20 +28,20 @@ import org.revapi.TransformationResult;
 import org.revapi.base.BaseDifferenceTransform;
 
 /**
- * Once the API trees of the old and new APIs are established, they compared using
- * a {@link org.revapi.DifferenceAnalyzer}. The difference analyzer is obtained from the {@link org.revapi.ApiAnalyzer}.
+ * Once the API trees of the old and new APIs are established, they compared using a
+ * {@link org.revapi.DifferenceAnalyzer}. The difference analyzer is obtained from the {@link org.revapi.ApiAnalyzer}.
  *
  * This difference analyzer produces an initial set of differences between elements that are specific to the type of API
  * the API analyzer checks.
  *
  * Each difference report from the initial set is processed by all transforms. Each transform is given a chance to
- * transform the differences from the original report and their intended changes are gathered. After the "round",
- * the changes are applied to the set of differences for the element pair and all the transforms can again react on
- * the new set of differences. This repeats until no further changes are made to the set by the transforms.
+ * transform the differences from the original report and their intended changes are gathered. After the "round", the
+ * changes are applied to the set of differences for the element pair and all the transforms can again react on the new
+ * set of differences. This repeats until no further changes are made to the set by the transforms.
  *
  * You can spot in the explanation above that there is a good chance for an infinite loop if two or more transformers
- * form a "cycle", meaning that a difference that produced by one transformer is changed again into the original by
- * a second transformer, which again is transformed by the first transformer, etc.
+ * form a "cycle", meaning that a difference that produced by one transformer is changed again into the original by a
+ * second transformer, which again is transformed by the first transformer, etc.
  *
  * Revapi guards against this simply by doing at most 1{nbsp}000{nbsp}000 such iterations and then throwing an error.
  *
@@ -63,7 +63,7 @@ public class IssueNumberPolicyTransform<E extends Element<E>> extends BaseDiffer
     public Pattern[] getDifferenceCodePatterns() {
         // we want to react on all kinds of differences. A type of difference is identified by its "code" and we want
         // to match them all.
-        return new Pattern[]{ Pattern.compile(".*") };
+        return new Pattern[] { Pattern.compile(".*") };
     }
 
     @Override

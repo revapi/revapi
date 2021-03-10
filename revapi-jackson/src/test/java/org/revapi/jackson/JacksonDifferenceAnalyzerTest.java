@@ -133,7 +133,8 @@ class JacksonDifferenceAnalyzerTest {
         API api = API.of(ar).build();
 
         TestElement oldEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.arrayNode().add(1), "here");
-        TestElement newEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.arrayNode().add(0).add(1), "here");
+        TestElement newEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.arrayNode().add(0).add(1),
+                "here");
 
         TestDifferenceAnalyzer analyzer = new TestDifferenceAnalyzer();
 
@@ -150,8 +151,10 @@ class JacksonDifferenceAnalyzerTest {
         Archive ar = Mockito.mock(Archive.class);
         API api = API.of(ar).build();
 
-        TestElement oldEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.objectNode().put("a", 1), "here");
-        TestElement newEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.objectNode().put("b", 2), "here");
+        TestElement oldEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.objectNode().put("a", 1),
+                "here");
+        TestElement newEl = new TestElement(api, ar, "file.js", JsonNodeFactory.instance.objectNode().put("b", 2),
+                "here");
 
         TestDifferenceAnalyzer analyzer = new TestDifferenceAnalyzer();
 
@@ -164,8 +167,7 @@ class JacksonDifferenceAnalyzerTest {
     }
 
     public static final class TestElement extends JacksonElement<TestElement> {
-        public TestElement(API api, Archive archive, String filePath,
-                TreeNode node, String key) {
+        public TestElement(API api, Archive archive, String filePath, TreeNode node, String key) {
             super(api, archive, filePath, node, key);
         }
 

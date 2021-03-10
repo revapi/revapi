@@ -85,7 +85,8 @@ public abstract class AbstractSuggestionsBuilder implements BuildTimeReporter.Su
                 appendDifferenceField(sb, "justification", "ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE");
 
                 if (context.isAttachmentsReported() && hasOptionalAttachments) {
-                    startOptionalAttachmentsInComment(sb, "\n  Additionally, the following attachments can be used to further identify the difference:\n\n");
+                    startOptionalAttachmentsInComment(sb,
+                            "\n  Additionally, the following attachments can be used to further identify the difference:\n\n");
                     for (Map.Entry<String, String> e : d.attachments.entrySet()) {
                         if (!d.isIdentifyingAttachment(e.getKey())) {
                             appendDifferenceField(sb, e.getKey(), e.getValue());

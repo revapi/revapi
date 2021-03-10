@@ -74,12 +74,10 @@ public abstract class MatchingProgress<E extends Element<E>> implements Differen
     }
 
     public void endElements(@Nullable E oldElement, @Nullable E newElement) {
-        Ternary oldMatch = oldElement == null
-                ? (oldFilter == null ? Ternary.TRUE : Ternary.FALSE)
+        Ternary oldMatch = oldElement == null ? (oldFilter == null ? Ternary.TRUE : Ternary.FALSE)
                 : (oldFilter == null ? Ternary.TRUE : oldFilter.finish(oldElement).getMatch());
 
-        Ternary newMatch = newElement == null
-                ? (newFilter == null ? Ternary.TRUE : Ternary.FALSE)
+        Ternary newMatch = newElement == null ? (newFilter == null ? Ternary.TRUE : Ternary.FALSE)
                 : (newFilter == null ? Ternary.TRUE : newFilter.finish(newElement).getMatch());
 
         if (oldMatch.toBoolean(false) && newMatch.toBoolean(false)) {
@@ -112,7 +110,7 @@ public abstract class MatchingProgress<E extends Element<E>> implements Differen
         if (newFilter != null) {
             for (Map.Entry<E, FilterFinishResult> e : newFilter.finish().entrySet()) {
                 if (!e.getValue().getMatch().toBoolean(false)) {
-                    for(Set<E> news : decided.values()) {
+                    for (Set<E> news : decided.values()) {
                         news.remove(e.getKey());
                     }
                 }
@@ -123,12 +121,10 @@ public abstract class MatchingProgress<E extends Element<E>> implements Differen
     }
 
     public boolean matches(Difference difference, Element<?> oldElement, Element<?> newElement) {
-        //transforms are called after the complete element forests are constructed and analyzed, so we don't
-        //expect any UNDECIDED matches from the matchers. If there is one, just consider it a false.
+        // transforms are called after the complete element forests are constructed and analyzed, so we don't
+        // expect any UNDECIDED matches from the matchers. If there is one, just consider it a false.
 
-        boolean codeMatch = regex
-                ? codeRegex.matcher(difference.code).matches()
-                : code.equals(difference.code);
+        boolean codeMatch = regex ? codeRegex.matcher(difference.code).matches() : code.equals(difference.code);
 
         if (!codeMatch) {
             return false;
@@ -154,13 +150,13 @@ public abstract class MatchingProgress<E extends Element<E>> implements Differen
         }
 
         if (regex) {
-            //regexes empty | attachments empty | allMatched
-            //            0 |                 0 | each regex matches
-            //            0 |                 1 | false
-            //            1 |                 0 | true
-            //            1 |                 1 | true
+            // regexes empty | attachments empty | allMatched
+            // 0 | 0 | each regex matches
+            // 0 | 1 | false
+            // 1 | 0 | true
+            // 1 | 1 | true
             boolean allMatched = attachmentRegexes.isEmpty() || !difference.attachments.isEmpty();
-            for (Map.Entry<String, String> e: difference.attachments.entrySet()) {
+            for (Map.Entry<String, String> e : difference.attachments.entrySet()) {
                 String key = e.getKey();
                 String val = e.getValue();
 

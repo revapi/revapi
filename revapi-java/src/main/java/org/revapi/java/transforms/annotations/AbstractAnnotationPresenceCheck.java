@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<JavaModelElement> {
@@ -46,11 +47,11 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
     private final Pattern[] codes;
 
     protected AbstractAnnotationPresenceCheck(String annotationQualifiedName, Code annotationCheckCode,
-        Code transformedCode) {
+            Code transformedCode) {
         this.annotationQualifiedName = annotationQualifiedName;
         this.transformedCode = transformedCode;
         String regex = "^" + Pattern.quote(annotationCheckCode.code()) + "$";
-        codes = new Pattern[]{Pattern.compile(regex)};
+        codes = new Pattern[] { Pattern.compile(regex) };
     }
 
     @Nonnull
@@ -78,9 +79,9 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
 
     @Override
     public TransformationResult tryTransform(@Nullable final JavaModelElement oldElement,
-        @Nullable final JavaModelElement newElement, @Nonnull final Difference difference) {
-        //we're checking for change of presence of an annotation on an element. Thus both the old and new version
-        //of the element must be non-null.
+            @Nullable final JavaModelElement newElement, @Nonnull final Difference difference) {
+        // we're checking for change of presence of an annotation on an element. Thus both the old and new version
+        // of the element must be non-null.
         if (oldElement == null || newElement == null) {
             return TransformationResult.keep();
         }
@@ -93,31 +94,29 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
         Difference transformed = oldElement.getDeclaringElement().accept(new ElementPairVisitor<Difference>() {
             @Override
             protected Difference unmatchedAction(@Nonnull javax.lang.model.element.Element element,
-                                                 @Nullable javax.lang.model.element.Element otherElement) {
+                    @Nullable javax.lang.model.element.Element otherElement) {
                 return difference;
             }
 
             @Override
-            protected Difference visitType(@Nonnull TypeElement oldElement,
-                                           @Nonnull TypeElement newElement) {
+            protected Difference visitType(@Nonnull TypeElement oldElement, @Nonnull TypeElement newElement) {
                 return common();
             }
 
             @Override
-            protected Difference visitPackage(@Nonnull PackageElement element,
-                                              @Nonnull PackageElement otherElement) {
+            protected Difference visitPackage(@Nonnull PackageElement element, @Nonnull PackageElement otherElement) {
                 return common();
             }
 
             @Override
             protected Difference visitVariable(@Nonnull VariableElement element,
-                                               @Nonnull VariableElement otherElement) {
+                    @Nonnull VariableElement otherElement) {
                 return common();
             }
 
             @Override
             protected Difference visitExecutable(@Nonnull ExecutableElement element,
-                                                 @Nonnull ExecutableElement otherElement) {
+                    @Nonnull ExecutableElement otherElement) {
                 return common();
             }
 

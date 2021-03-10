@@ -98,7 +98,8 @@ class ZipArchiveAnalyzerTest {
         assertArrayEquals(UNCOMPRESSED_DATA, forest.getRoots().first().data);
     }
 
-    private static final class DummyZipArchiveAnalyzer extends ZipArchiveAnalyzer<BaseElementForest<DataElement>, DataElement> {
+    private static final class DummyZipArchiveAnalyzer
+            extends ZipArchiveAnalyzer<BaseElementForest<DataElement>, DataElement> {
         public DummyZipArchiveAnalyzer(API api, List<Pattern> matchPatterns) {
             super(null, api, matchPatterns);
         }
@@ -109,8 +110,8 @@ class ZipArchiveAnalyzerTest {
         }
 
         @Override
-        protected Set<DataElement> createElements(Archive a, @Nullable ZipEntry entry,
-                InputStream data) throws IOException {
+        protected Set<DataElement> createElements(Archive a, @Nullable ZipEntry entry, InputStream data)
+                throws IOException {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             int c;
             while ((c = data.read()) >= 0) {

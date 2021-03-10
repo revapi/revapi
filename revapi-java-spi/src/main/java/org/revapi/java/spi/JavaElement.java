@@ -22,6 +22,7 @@ import org.revapi.Element;
  * Base interface that all Revapi elements modelling the Java AST satisfy.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface JavaElement extends Element<JavaElement> {

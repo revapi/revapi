@@ -43,7 +43,6 @@ class ReportComparatorTest {
         }
     }
 
-
     private static class El2 extends El1 {
     }
 }

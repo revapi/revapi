@@ -46,40 +46,47 @@ import org.revapi.configuration.JSONUtil;
 /**
  * This class represents the configuration of the Revapi analysis pipeline. This is different from the configuration of
  * the individual extensions (which are part of the pipeline) as it provides the configuration of the pipeline itself.
- * Namely, this class defines all the possible extensions that can be used during the analysis as well as
- * the configuration of the "shape" of the pipeline - as of now only the transformation blocks can be defined.
+ * Namely, this class defines all the possible extensions that can be used during the analysis as well as the
+ * configuration of the "shape" of the pipeline - as of now only the transformation blocks can be defined.
  *
- * <p>The analysis can be influenced by defining "transformation blocks". By default, each
- * {@link DifferenceTransform} can transform a difference into another one. Each such newly created difference is then
- * again examined by all difference transforms to see if it is also can be transformed again. This is sometimes not what
- * the user intends with the configuration, because it might be useful to "group" certain transformations into "blocks"
- * that happen "atomically" without the constituent transforms in the block influencing each others results.
+ * <p>
+ * The analysis can be influenced by defining "transformation blocks". By default, each {@link DifferenceTransform} can
+ * transform a difference into another one. Each such newly created difference is then again examined by all difference
+ * transforms to see if it is also can be transformed again. This is sometimes not what the user intends with the
+ * configuration, because it might be useful to "group" certain transformations into "blocks" that happen "atomically"
+ * without the constituent transforms in the block influencing each others results.
  *
- * <p>E.g., consider the following scenario:
- * <p>There is a "reclassify" transform that is configured to "tune down" severity of certain differences. At the same
+ * <p>
+ * E.g., consider the following scenario:
+ * <p>
+ * There is a "reclassify" transform that is configured to "tune down" severity of certain differences. At the same
  * time, there is another transformation, say a "policy transformation" that considers any potentially breaking change
  * as breaking - the goal of the policy is to have a "clean" set of changes without any potentially breaking change in
  * the release.
  *
- * <p>Without a transformation block, these two transformations cannot coexist together without causing an "infinite
- * loop" (Revapi will interrupt the difference transformations after a certain number attempts).
+ * <p>
+ * Without a transformation block, these two transformations cannot coexist together without causing an "infinite loop"
+ * (Revapi will interrupt the difference transformations after a certain number attempts).
  *
- * <p>In the outlined scenario, the intention of the user is to have the "reclassify" transform make some differences
+ * <p>
+ * In the outlined scenario, the intention of the user is to have the "reclassify" transform make some differences
  * admissible for the release and the "policy" transform to make all other differences breaking. The problem with this
  * is that, as described above, Revapi cannot guess this intention and just blindly applies all transforms on each and
  * every difference found. This makes it impossible for the "policy" transform to "not see" the admissible differences
  * that the "reclassify" transform tunes down.
  *
- * <p>Enter transformation blocks. Transformation blocks enable certain transformations to be applied in the defined
- * order while considering the result of such series of transformations as potential input for other transformations
- * outside of the block. This enables the user to say "first reclassify then apply policy", resulting her original
- * intention being clear to Revapi.
+ * <p>
+ * Enter transformation blocks. Transformation blocks enable certain transformations to be applied in the defined order
+ * while considering the result of such series of transformations as potential input for other transformations outside
+ * of the block. This enables the user to say "first reclassify then apply policy", resulting her original intention
+ * being clear to Revapi.
  *
- * <p>As explained in the {@link AnalysisContext}, each transformation extension can be configured multiple times using
- * different IDs. An ID is optional if there is only a single configuration of a single type of
- * transformation. When trying to group the transformations into blocks, Revapi first tries to find a transformation
- * with given ID and if it finds none, it tries to match the provided string with the name of the extension (internally
- * called the extension ID).
+ * <p>
+ * As explained in the {@link AnalysisContext}, each transformation extension can be configured multiple times using
+ * different IDs. An ID is optional if there is only a single configuration of a single type of transformation. When
+ * trying to group the transformations into blocks, Revapi first tries to find a transformation with given ID and if it
+ * finds none, it tries to match the provided string with the name of the extension (internally called the extension
+ * ID).
  */
 public final class PipelineConfiguration {
     private final Set<Class<? extends ApiAnalyzer<?>>> apiAnalyzerTypes;
@@ -113,15 +120,21 @@ public final class PipelineConfiguration {
      * Parses the configuration node and provides a pipeline configuration without any extensions marked for loading.
      * The configuration node is supposed to conform to the pipeline configuration JSON schema.
      *
-     * <p>The caller is supposed to use the methods from the builder to add/find extension classes that will be used in
-     * the analysis.
+     * <p>
+     * The caller is supposed to use the methods from the builder to add/find extension classes that will be used in the
+     * analysis.
      *
-     * <p>Note that the returned pipeline configuration might not contain all the extensions available in
-     * the classloader depending on the include/exclude filters in the configuration.
+     * <p>
+     * Note that the returned pipeline configuration might not contain all the extensions available in the classloader
+     * depending on the include/exclude filters in the configuration.
      *
-     * @param json the configuration node
+     * @param json
+     *            the configuration node
+     * 
      * @return a pipeline configuration parsed from the configuration
+     * 
      * @see Builder#build()
+     * 
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
@@ -133,14 +146,19 @@ public final class PipelineConfiguration {
      * Parses the configuration node and provides a pipeline configuration without any extensions marked for loading.
      * The configuration node is supposed to conform to the pipeline configuration JSON schema.
      *
-     * <p>The caller is supposed to use the methods from the builder to add/find extension classes that will be used in
-     * the analysis.
+     * <p>
+     * The caller is supposed to use the methods from the builder to add/find extension classes that will be used in the
+     * analysis.
      *
-     * <p>Note that the returned pipeline configuration might not contain all the extensions available in
-     * the classloader depending on the include/exclude filters in the configuration.
+     * <p>
+     * Note that the returned pipeline configuration might not contain all the extensions available in the classloader
+     * depending on the include/exclude filters in the configuration.
      *
-     * @param json the configuration node
+     * @param json
+     *            the configuration node
+     * 
      * @return a pipeline configuration parsed from the configuration
+     * 
      * @see Builder#build()
      */
     public static PipelineConfiguration.Builder parse(JsonNode json) {
@@ -157,8 +175,7 @@ public final class PipelineConfiguration {
         JsonNode criticalities = json.path("criticalities");
         JsonNode severityMapping = json.path("severityMapping");
 
-        return builder()
-                .withTransformationBlocks(json.path("transformBlocks"))
+        return builder().withTransformationBlocks(json.path("transformBlocks"))
                 .withAnalyzerExtensionIdsInclude(asStringList(analyzerIncludeNode))
                 .withAnalyzerExtensionIdsExclude(asStringList(analyzerExcludeNode))
                 .withFilterExtensionIdsInclude(asStringList(filterIncludeNode))
@@ -178,55 +195,65 @@ public final class PipelineConfiguration {
      * Similar to {@link #parse(ModelNode)} but the extensions to use are provided by the caller straight away instead
      * of letting the caller use the builder to finish up the configuration.
      *
-     * <p>Note that the returned pipeline configuration might not contain all the extensions available in
-     * the classloader depending on the include/exclude filters in the configuration.
+     * <p>
+     * Note that the returned pipeline configuration might not contain all the extensions available in the classloader
+     * depending on the include/exclude filters in the configuration.
      *
-     * @param json       the configuration node
-     * @param analyzers  the set of analyzers to choose from
-     * @param filters    the set of filters to choose from
-     * @param transforms the set of transforms to choose from
-     * @param reporters  the set of reporters to choose from
+     * @param json
+     *            the configuration node
+     * @param analyzers
+     *            the set of analyzers to choose from
+     * @param filters
+     *            the set of filters to choose from
+     * @param transforms
+     *            the set of transforms to choose from
+     * @param reporters
+     *            the set of reporters to choose from
+     * 
      * @return pipeline configuration corresponding to the provided configuration node
+     * 
      * @see Builder#build()
+     * 
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
     public static PipelineConfiguration parse(ModelNode json, Collection<Class<? extends ApiAnalyzer>> analyzers,
             Collection<Class<? extends TreeFilterProvider>> filters,
             Collection<Class<? extends DifferenceTransform>> transforms,
-            Collection<Class<? extends Reporter>> reporters,
-            Collection<Class<? extends ElementMatcher>> matchers) {
+            Collection<Class<? extends Reporter>> reporters, Collection<Class<? extends ElementMatcher>> matchers) {
         return parse(JSONUtil.convert(json), analyzers, filters, transforms, reporters, matchers);
     }
 
     /**
-     * Similar to {@link #parse(JsonNode)} but the extensions to use are provided by the caller straight away instead
-     * of letting the caller use the builder to finish up the configuration.
+     * Similar to {@link #parse(JsonNode)} but the extensions to use are provided by the caller straight away instead of
+     * letting the caller use the builder to finish up the configuration.
      *
-     * <p>Note that the returned pipeline configuration might not contain all the extensions available in
-     * the classloader depending on the include/exclude filters in the configuration.
+     * <p>
+     * Note that the returned pipeline configuration might not contain all the extensions available in the classloader
+     * depending on the include/exclude filters in the configuration.
      *
-     * @param json       the configuration node
-     * @param analyzers  the set of analyzers to choose from
-     * @param filters    the set of filters to choose from
-     * @param transforms the set of transforms to choose from
-     * @param reporters  the set of reporters to choose from
+     * @param json
+     *            the configuration node
+     * @param analyzers
+     *            the set of analyzers to choose from
+     * @param filters
+     *            the set of filters to choose from
+     * @param transforms
+     *            the set of transforms to choose from
+     * @param reporters
+     *            the set of reporters to choose from
+     * 
      * @return pipeline configuration corresponding to the provided configuration node
+     * 
      * @see Builder#build()
      */
     public static PipelineConfiguration parse(JsonNode json, Collection<Class<? extends ApiAnalyzer>> analyzers,
             Collection<Class<? extends TreeFilterProvider>> filters,
             Collection<Class<? extends DifferenceTransform>> transforms,
-            Collection<Class<? extends Reporter>> reporters,
-            Collection<Class<? extends ElementMatcher>> matchers) {
+            Collection<Class<? extends Reporter>> reporters, Collection<Class<? extends ElementMatcher>> matchers) {
 
-        return parse(json)
-                .withAnalyzers(analyzers)
-                .withFilters(filters)
-                .withTransforms(transforms)
-                .withReporters(reporters)
-                .withMatchers(matchers)
-                .build();
+        return parse(json).withAnalyzers(analyzers).withFilters(filters).withTransforms(transforms)
+                .withReporters(reporters).withMatchers(matchers).build();
     }
 
     private static List<String> asStringList(JsonNode listNode) {
@@ -243,8 +270,7 @@ public final class PipelineConfiguration {
         }
 
         return StreamSupport.stream(node.spliterator(), false)
-                .map(n -> new Criticality(n.path("name").asText(), n.path("level").asInt()))
-                .collect(toSet());
+                .map(n -> new Criticality(n.path("name").asText(), n.path("level").asInt())).collect(toSet());
     }
 
     private static Map<DifferenceSeverity, String> asSeverityMapping(JsonNode node) {
@@ -253,21 +279,19 @@ public final class PipelineConfiguration {
         }
 
         return StreamSupport.stream(node.spliterator(), false)
-                .collect(Collectors.toMap(
-                        n -> DifferenceSeverity.fromCamelCase(n.path("severity").asText()),
+                .collect(Collectors.toMap(n -> DifferenceSeverity.fromCamelCase(n.path("severity").asText()),
                         n -> n.path("criticality").asText()));
     }
 
     public PipelineConfiguration(Set<Class<? extends ApiAnalyzer<?>>> apiAnalyzerTypes,
             Set<Class<? extends Reporter>> reporterTypes, Set<Class<? extends DifferenceTransform<?>>> transformTypes,
             Set<Class<? extends TreeFilterProvider>> treeFilterTypes, Set<Class<? extends ElementMatcher>> matcherTypes,
-            Set<List<String>> transformationBlocks,
-            List<String> includedAnalyzerExtensionIds, List<String> excludedAnalyzerExtensionIds,
-            List<String> includedReporterExtensionIds, List<String> excludedReporterExtensionIds,
-            List<String> includedTransformExtensionIds, List<String> excludedTransformExtensionIds,
-            List<String> includedFilterExtensionIds, List<String> excludedFilterExtensionIds,
-            List<String> includedMatcherExtensionIds, List<String> excludedMatcherExtensionIds,
-            Set<Criticality> criticalities,
+            Set<List<String>> transformationBlocks, List<String> includedAnalyzerExtensionIds,
+            List<String> excludedAnalyzerExtensionIds, List<String> includedReporterExtensionIds,
+            List<String> excludedReporterExtensionIds, List<String> includedTransformExtensionIds,
+            List<String> excludedTransformExtensionIds, List<String> includedFilterExtensionIds,
+            List<String> excludedFilterExtensionIds, List<String> includedMatcherExtensionIds,
+            List<String> excludedMatcherExtensionIds, Set<Criticality> criticalities,
             Map<DifferenceSeverity, Criticality> severityMapping) {
         this.apiAnalyzerTypes = apiAnalyzerTypes;
         this.reporterTypes = reporterTypes;
@@ -510,8 +534,8 @@ public final class PipelineConfiguration {
         }
 
         public Builder withAllExtensionsFrom(ClassLoader cl) {
-            return withAnalyzersFrom(cl).withFiltersFrom(cl).withReportersFrom(cl)
-                    .withTransformsFrom(cl).withMatchersFrom(cl);
+            return withAnalyzersFrom(cl).withFiltersFrom(cl).withReportersFrom(cl).withTransformsFrom(cl)
+                    .withMatchersFrom(cl);
         }
 
         public Builder withTransformationBlocks(Set<List<String>> transformationBlocks) {
@@ -692,7 +716,8 @@ public final class PipelineConfiguration {
             transformationBlocks = new HashSet<>();
 
             for (JsonNode block : configuration) {
-                List<String> ids = StreamSupport.stream(block.spliterator(), false).map(JsonNode::asText).collect(toList());
+                List<String> ids = StreamSupport.stream(block.spliterator(), false).map(JsonNode::asText)
+                        .collect(toList());
                 transformationBlocks.add(ids);
             }
 
@@ -761,33 +786,53 @@ public final class PipelineConfiguration {
             this.severityMapping.put(severity, criticalityName);
             return this;
         }
+
         /**
          * Returns a new {@link PipelineConfiguration} instance. The builder is reusable after this call and the
          * returned instance is independent of it.
          *
          * @return a new Revapi pipeline configuration
-         * @throws IllegalStateException if there are no api analyzers or no reporters added.
+         * 
+         * @throws IllegalStateException
+         *             if there are no api analyzers or no reporters added.
          */
         public PipelineConfiguration build() throws IllegalStateException {
-            Set<Class<? extends ApiAnalyzer>> analyzers = this.analyzers == null ? emptySet() : new HashSet<>(this.analyzers);
-            Set<Class<? extends Reporter>> reporters = this.reporters == null ? emptySet() : new HashSet<>(this.reporters);
-            Set<Class<? extends DifferenceTransform>> transforms = this.transforms == null ? emptySet() : new HashSet<>(this.transforms);
-            Set<Class<? extends TreeFilterProvider>> filters = this.filters == null ? emptySet() : new HashSet<>(this.filters);
-            Set<Class<? extends ElementMatcher>> matchers = this.matchers == null ? emptySet() : new HashSet<>(this.matchers);
-            Set<List<String>> transformationBlocks = this.transformationBlocks == null ? emptySet() : new HashSet<>(this.transformationBlocks);
-            List<String> includedAnalyzerExtensionIds = this.includedAnalyzerExtensionIds == null ? emptyList() : new ArrayList<>(this.includedAnalyzerExtensionIds);
-            List<String> excludedAnalyzerExtensionIds = this.excludedAnalyzerExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedAnalyzerExtensionIds);
-            List<String> includedReporterExtensionIds = this.includedReporterExtensionIds == null ? emptyList() : new ArrayList<>(this.includedReporterExtensionIds);
-            List<String> excludedReporterExtensionIds = this.excludedReporterExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedReporterExtensionIds);
-            List<String> includedTransformExtensionIds = this.includedTransformExtensionIds == null ? emptyList() : new ArrayList<>(this.includedTransformExtensionIds);
-            List<String> excludedTransformExtensionIds = this.excludedTransformExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedTransformExtensionIds);
-            List<String> includedFilterExtensionIds = this.includedFilterExtensionIds == null ? emptyList() : new ArrayList<>(this.includedFilterExtensionIds);
-            List<String> excludedFilterExtensionIds = this.excludedFilterExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedFilterExtensionIds);
-            List<String> includedMatcherExtensionIds = this.includedMatcherExtensionIds == null ? emptyList() : new ArrayList<>(this.includedMatcherExtensionIds);
-            List<String> excludedMatcherExtensionIds = this.excludedMatcherExtensionIds == null ? emptyList() : new ArrayList<>(this.excludedMatcherExtensionIds);
+            Set<Class<? extends ApiAnalyzer>> analyzers = this.analyzers == null ? emptySet()
+                    : new HashSet<>(this.analyzers);
+            Set<Class<? extends Reporter>> reporters = this.reporters == null ? emptySet()
+                    : new HashSet<>(this.reporters);
+            Set<Class<? extends DifferenceTransform>> transforms = this.transforms == null ? emptySet()
+                    : new HashSet<>(this.transforms);
+            Set<Class<? extends TreeFilterProvider>> filters = this.filters == null ? emptySet()
+                    : new HashSet<>(this.filters);
+            Set<Class<? extends ElementMatcher>> matchers = this.matchers == null ? emptySet()
+                    : new HashSet<>(this.matchers);
+            Set<List<String>> transformationBlocks = this.transformationBlocks == null ? emptySet()
+                    : new HashSet<>(this.transformationBlocks);
+            List<String> includedAnalyzerExtensionIds = this.includedAnalyzerExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.includedAnalyzerExtensionIds);
+            List<String> excludedAnalyzerExtensionIds = this.excludedAnalyzerExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.excludedAnalyzerExtensionIds);
+            List<String> includedReporterExtensionIds = this.includedReporterExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.includedReporterExtensionIds);
+            List<String> excludedReporterExtensionIds = this.excludedReporterExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.excludedReporterExtensionIds);
+            List<String> includedTransformExtensionIds = this.includedTransformExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.includedTransformExtensionIds);
+            List<String> excludedTransformExtensionIds = this.excludedTransformExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.excludedTransformExtensionIds);
+            List<String> includedFilterExtensionIds = this.includedFilterExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.includedFilterExtensionIds);
+            List<String> excludedFilterExtensionIds = this.excludedFilterExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.excludedFilterExtensionIds);
+            List<String> includedMatcherExtensionIds = this.includedMatcherExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.includedMatcherExtensionIds);
+            List<String> excludedMatcherExtensionIds = this.excludedMatcherExtensionIds == null ? emptyList()
+                    : new ArrayList<>(this.excludedMatcherExtensionIds);
 
             boolean defaultCriticalities = criticalities == null;
-            Set<Criticality> criticalities = this.criticalities == null ? Criticality.defaultCriticalities() : new HashSet<>(this.criticalities);
+            Set<Criticality> criticalities = this.criticalities == null ? Criticality.defaultCriticalities()
+                    : new HashSet<>(this.criticalities);
 
             Map<DifferenceSeverity, Criticality> sm;
             if (severityMapping == null) {
@@ -799,7 +844,8 @@ public final class PipelineConfiguration {
                     Map<String, Criticality> cByName = criticalities.stream()
                             .collect(toMap(Criticality::getName, identity()));
 
-                    for (Map.Entry<DifferenceSeverity, Criticality> e : Criticality.defaultSeverityMapping().entrySet()) {
+                    for (Map.Entry<DifferenceSeverity, Criticality> e : Criticality.defaultSeverityMapping()
+                            .entrySet()) {
                         // we might have redefined the criticalities with the same name, so let's use what's actually
                         // configured
                         Criticality realC = cByName.get(e.getValue().getName());
@@ -823,16 +869,15 @@ public final class PipelineConfiguration {
             Set<DifferenceSeverity> expectedMappings = EnumSet.allOf(DifferenceSeverity.class);
             expectedMappings.removeAll(sm.keySet());
             if (!expectedMappings.isEmpty()) {
-                throw new IllegalArgumentException("The severity-to-criticality mapping is incomplete." +
-                        " Missing mapping for: " + expectedMappings);
+                throw new IllegalArgumentException("The severity-to-criticality mapping is incomplete."
+                        + " Missing mapping for: " + expectedMappings);
             }
 
             return new PipelineConfiguration((Set) analyzers, reporters, (Set) transforms, (Set) filters,
-                    (Set) matchers, transformationBlocks,
-                    includedAnalyzerExtensionIds, excludedAnalyzerExtensionIds, includedReporterExtensionIds,
-                    excludedReporterExtensionIds, includedTransformExtensionIds, excludedTransformExtensionIds,
-                    includedFilterExtensionIds, excludedFilterExtensionIds, includedMatcherExtensionIds,
-                    excludedMatcherExtensionIds, criticalities, sm);
+                    (Set) matchers, transformationBlocks, includedAnalyzerExtensionIds, excludedAnalyzerExtensionIds,
+                    includedReporterExtensionIds, excludedReporterExtensionIds, includedTransformExtensionIds,
+                    excludedTransformExtensionIds, includedFilterExtensionIds, excludedFilterExtensionIds,
+                    includedMatcherExtensionIds, excludedMatcherExtensionIds, criticalities, sm);
         }
     }
 }

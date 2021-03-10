@@ -30,10 +30,11 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
-public final class MethodParameterElement extends JavaElementBase<VariableElement, TypeMirror> implements
-    JavaMethodParameterElement {
+public final class MethodParameterElement extends JavaElementBase<VariableElement, TypeMirror>
+        implements JavaMethodParameterElement {
 
     private final int index;
 
@@ -43,7 +44,7 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
             index = ((ExecutableElement) element.getEnclosingElement()).getParameters().indexOf(element);
         } else {
             throw new IllegalArgumentException(
-                "MethodParameterElement cannot be constructed using a VariableElement not representing a method parameter.");
+                    "MethodParameterElement cannot be constructed using a VariableElement not representing a method parameter.");
         }
     }
 
@@ -54,7 +55,8 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
         return (JavaMethodElement) super.getParent();
     }
 
-    @Override public int getIndex() {
+    @Override
+    public int getIndex() {
         return index;
     }
 

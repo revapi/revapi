@@ -206,7 +206,8 @@ public class DifferencesTransform<E extends Element<E>> extends AbstractDifferen
         @Override
         protected <E extends Element<E>> MatchingProgress<E> createMatchingProgress(@Nullable TreeFilter<E> oldFilter,
                 @Nullable TreeFilter<E> newFilter) {
-            return new MatchingProgress<E>(regex, code, codeRegex, oldFilter, newFilter, attachments, attachmentRegexes) {
+            return new MatchingProgress<E>(regex, code, codeRegex, oldFilter, newFilter, attachments,
+                    attachmentRegexes) {
                 @Nullable
                 @Override
                 public Difference transformMatching(Difference difference, Element<?> oldElement,
@@ -216,7 +217,8 @@ public class DifferencesTransform<E extends Element<E>> extends AbstractDifferen
                     }
 
                     // avoid creating a copy when no updates would be made...
-                    if (justification == null && classification.isEmpty() && newAttachments.isEmpty() && criticality == null) {
+                    if (justification == null && classification.isEmpty() && newAttachments.isEmpty()
+                            && criticality == null) {
                         return difference;
                     }
 

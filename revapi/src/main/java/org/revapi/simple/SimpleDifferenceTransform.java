@@ -27,18 +27,22 @@ import org.revapi.Element;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
+ * 
  * @deprecated use {@link org.revapi.base.BaseDifferenceTransform} instead
  */
 @Deprecated
-public abstract class SimpleDifferenceTransform<T extends Element<T>> extends SimpleConfigurable implements DifferenceTransform<T> {
+public abstract class SimpleDifferenceTransform<T extends Element<T>> extends SimpleConfigurable
+        implements DifferenceTransform<T> {
     @Override
     public @Nonnull Pattern[] getDifferenceCodePatterns() {
         return new Pattern[0];
     }
 
     @Override
-    public @Nullable Difference transform(@Nullable T oldElement, @Nullable T newElement, @Nonnull Difference difference) {
+    public @Nullable Difference transform(@Nullable T oldElement, @Nullable T newElement,
+            @Nonnull Difference difference) {
         return difference;
     }
 }

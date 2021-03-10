@@ -31,6 +31,7 @@ import org.revapi.base.BaseElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.9.0
  */
 public class BuildTimeReporterTest {
@@ -42,30 +43,20 @@ public class BuildTimeReporterTest {
         API oldApi = API.builder().build();
         API newApi = API.builder().build();
 
-        AnalysisContext ctx = AnalysisContext.builder()
-                .withOldAPI(oldApi)
-                .withNewAPI(newApi)
+        AnalysisContext ctx = AnalysisContext.builder().withOldAPI(oldApi).withNewAPI(newApi)
                 .withData(BuildTimeReporter.BREAKING_CRITICALITY_KEY, Criticality.ALLOWED)
-                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
-                .build();
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder()).build();
 
         reporter.initialize(ctx);
 
         DummyElement oldEl = new DummyElement(oldApi);
         DummyElement newEl = new DummyElement(newApi);
 
-        Report report = Report.builder()
-                .withNew(newEl)
-                .withOld(oldEl)
-                .addProblem()
-                /**/.withCode("diffs\\myDiff")
+        Report report = Report.builder().withNew(newEl).withOld(oldEl).addProblem()/**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                /**/.addAttachment("shouldBeEscaped", "{\"a\", \"b\"}")
-                /**/.withCriticality(Criticality.ERROR)
-                /**/.withIdentifyingAttachments(Collections.singletonList("shouldBeEscaped"))
-                .done()
-                .build();
+                /**/.addAttachment("shouldBeEscaped", "{\"a\", \"b\"}")/**/.withCriticality(Criticality.ERROR)
+                /**/.withIdentifyingAttachments(Collections.singletonList("shouldBeEscaped")).done().build();
 
         reporter.report(report);
 
@@ -91,28 +82,19 @@ public class BuildTimeReporterTest {
         API oldApi = API.builder().build();
         API newApi = API.builder().build();
 
-        AnalysisContext ctx = AnalysisContext.builder()
-                .withOldAPI(oldApi)
-                .withNewAPI(newApi)
+        AnalysisContext ctx = AnalysisContext.builder().withOldAPI(oldApi).withNewAPI(newApi)
                 .withData(BuildTimeReporter.BREAKING_CRITICALITY_KEY, Criticality.ALLOWED)
-                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
-                .build();
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder()).build();
 
         reporter.initialize(ctx);
 
         DummyElement oldEl = new DummyElement(oldApi);
         DummyElement newEl = new DummyElement(newApi);
 
-        Report report = Report.builder()
-                .withNew(newEl)
-                .withOld(oldEl)
-                .addProblem()
-                /**/.withCode("diffs\\myDiff")
+        Report report = Report.builder().withNew(newEl).withOld(oldEl).addProblem()/**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                /**/.withCriticality(Criticality.ERROR)
-                /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")
-                .done()
+                /**/.withCriticality(Criticality.ERROR)/**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}").done()
                 .build();
 
         reporter.report(report);
@@ -135,29 +117,20 @@ public class BuildTimeReporterTest {
         API oldApi = API.builder().build();
         API newApi = API.builder().build();
 
-        AnalysisContext ctx = AnalysisContext.builder()
-                .withOldAPI(oldApi)
-                .withNewAPI(newApi)
+        AnalysisContext ctx = AnalysisContext.builder().withOldAPI(oldApi).withNewAPI(newApi)
                 .withData(BuildTimeReporter.BREAKING_CRITICALITY_KEY, Criticality.ALLOWED)
                 .withData(BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, false)
-                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
-                .build();
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder()).build();
 
         reporter.initialize(ctx);
 
         DummyElement oldEl = new DummyElement(oldApi);
         DummyElement newEl = new DummyElement(newApi);
 
-        Report report = Report.builder()
-                .withNew(newEl)
-                .withOld(oldEl)
-                .addProblem()
-                /**/.withCode("diffs\\myDiff")
+        Report report = Report.builder().withNew(newEl).withOld(oldEl).addProblem()/**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")
-                /**/.withCriticality(Criticality.ERROR)
-                .done()
+                /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")/**/.withCriticality(Criticality.ERROR).done()
                 .build();
 
         reporter.report(report);

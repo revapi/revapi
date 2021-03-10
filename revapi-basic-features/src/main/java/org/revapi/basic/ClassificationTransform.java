@@ -31,8 +31,11 @@ import org.slf4j.LoggerFactory;
  * A generic difference transform that can change the classification of a difference. This can be used in situations
  * where one wants to consider certain differences differently than the defining extension declared them.
  *
- * <p>The transform can be configured like so:
- * <pre><code>
+ * <p>
+ * The transform can be configured like so:
+ * 
+ * <pre>
+ * <code>
  * {
  *  "revapi" : {
  *      "reclassify" : [
@@ -50,19 +53,24 @@ import org.slf4j.LoggerFactory;
  *      ]
  *  }
  * }
- * </code></pre>
+ * </code>
+ * </pre>
  *
- * <p>The {@code code} is mandatory (obviously). The {@code old} and {@code new} properties are optional and the rule will
+ * <p>
+ * The {@code code} is mandatory (obviously). The {@code old} and {@code new} properties are optional and the rule will
  * match when all the specified properties of it match. If regex attribute is "true" (defaults to "false"), all the
  * code, old and new are understood as regexes (java regexes, not javascript ones).
  *
- * <p>The {@code NEW_COMPATIBILITY_TYPE} corresponds to one of the names of the {@link org.revapi.CompatibilityType}
- * enum and the {@code NEW_SEVERITY} corresponds to one of the names of the {@link org.revapi.DifferenceSeverity}
- * enum. The reclassified difference inherits its classification (i.e. the compatibility type + severity pairs) and
- * only redefines the ones explicitly defined in the configuration.
+ * <p>
+ * The {@code NEW_COMPATIBILITY_TYPE} corresponds to one of the names of the {@link org.revapi.CompatibilityType} enum
+ * and the {@code NEW_SEVERITY} corresponds to one of the names of the {@link org.revapi.DifferenceSeverity} enum. The
+ * reclassified difference inherits its classification (i.e. the compatibility type + severity pairs) and only redefines
+ * the ones explicitly defined in the configuration.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
+ * 
  * @deprecated This is superseded by {@link DifferencesTransform}
  */
 @Deprecated
@@ -85,7 +93,8 @@ public class ClassificationTransform extends DifferencesTransform {
     protected JsonNode getRecipesConfigurationAndInitialize() {
         JsonNode ret = analysisContext.getConfigurationNode();
         if (!ret.isNull()) {
-            LOG.warn("The `revapi.reclassify` extension is deprecated. Consider using the `revapi.differences` instead.");
+            LOG.warn(
+                    "The `revapi.reclassify` extension is deprecated. Consider using the `revapi.differences` instead.");
         }
 
         return ret;

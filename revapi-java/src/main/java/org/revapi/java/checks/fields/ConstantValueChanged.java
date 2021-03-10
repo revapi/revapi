@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class ConstantValueChanged extends CheckBase {
@@ -59,10 +60,9 @@ public final class ConstantValueChanged extends CheckBase {
             return null;
         }
 
-        return Collections.singletonList(
-            createDifference(Code.FIELD_CONSTANT_VALUE_CHANGED, Code.attachmentsFor(fields.oldElement, fields.newElement,
-                "oldValue", Objects.toString(fields.oldElement.getDeclaringElement().getConstantValue()),
-                "newValue", Objects.toString(fields.newElement.getDeclaringElement().getConstantValue())))
-        );
+        return Collections.singletonList(createDifference(Code.FIELD_CONSTANT_VALUE_CHANGED,
+                Code.attachmentsFor(fields.oldElement, fields.newElement, "oldValue",
+                        Objects.toString(fields.oldElement.getDeclaringElement().getConstantValue()), "newValue",
+                        Objects.toString(fields.newElement.getDeclaringElement().getConstantValue()))));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,18 +56,19 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public abstract class AbstractJavaElementAnalyzerTest {
 
     protected boolean containsDifference(List<Report> problems, String oldElement, String newElement,
-        String differenceCode) {
+            String differenceCode) {
         for (Report r : problems) {
-            boolean oldTypeMatches = oldElement == null ? r.getOldElement() == null :
-                r.getOldElement() != null && oldElement.equals(r.getOldElement().getFullHumanReadableString());
+            boolean oldTypeMatches = oldElement == null ? r.getOldElement() == null
+                    : r.getOldElement() != null && oldElement.equals(r.getOldElement().getFullHumanReadableString());
 
-            boolean newTypeMatches = newElement == null ? r.getNewElement() == null :
-                r.getNewElement() != null && newElement.equals(r.getNewElement().getFullHumanReadableString());
+            boolean newTypeMatches = newElement == null ? r.getNewElement() == null
+                    : r.getNewElement() != null && newElement.equals(r.getNewElement().getFullHumanReadableString());
 
             boolean problemMatches = false;
 
@@ -142,15 +143,14 @@ public abstract class AbstractJavaElementAnalyzerTest {
                 }
                 problemCounters.put(d.code, cnt);
 
-                String oldE = report.getOldElement() == null
-                        ? "<none>"
+                String oldE = report.getOldElement() == null ? "<none>"
                         : report.getOldElement().getFullHumanReadableString();
 
-                String newE = report.getNewElement() == null
-                        ? "<none>"
+                String newE = report.getNewElement() == null ? "<none>"
                         : report.getNewElement().getFullHumanReadableString();
 
-                LOG.info("[" + d.code + "] old: " + oldE + ", new: " + newE + ", " + d.classification + ", " + d.description);
+                LOG.info("[" + d.code + "] old: " + oldE + ", new: " + newE + ", " + d.classification + ", "
+                        + d.description);
             }
         }
 
@@ -191,7 +191,7 @@ public abstract class AbstractJavaElementAnalyzerTest {
     @SuppressWarnings("ConstantConditions")
     protected ArchiveAndCompilationPath createCompiledJar(String jarName, String... sourceFiles) throws Exception {
         File targetPath = Files.createTempDirectory("element-analyzer-test-" + jarName + ".jar-").toAbsolutePath()
-            .toFile();
+                .toFile();
 
         List<String> options = Arrays.asList("-d", targetPath.getAbsolutePath());
         List<JavaFileObject> sources = new ArrayList<>();
@@ -213,36 +213,36 @@ public abstract class AbstractJavaElementAnalyzerTest {
 
     protected Revapi createRevapi(Class<? extends Reporter> reporterType) {
         return Revapi.builder().withAnalyzers(JavaApiAnalyzer.class).withReporters(reporterType)
-            .withTransformsFromThreadContextClassLoader().withFiltersFromThreadContextClassLoader()
+                .withTransformsFromThreadContextClassLoader().withFiltersFromThreadContextClassLoader()
                 .withMatchersFromThreadContextClassLoader().build();
     }
 
-    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String v1Source, String v2Source) throws Exception {
+    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String v1Source, String v2Source)
+            throws Exception {
         return runAnalysis(reporterType, null, v1Source, v2Source);
     }
 
-    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String configJSON, String v1Source, String v2Source)
-            throws Exception {
-        String[] v1 = v1Source == null ? new String[0] : new String[]{v1Source};
-        String[] v2 = v2Source == null ? new String[0] : new String[]{v2Source};
+    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String configJSON, String v1Source,
+            String v2Source) throws Exception {
+        String[] v1 = v1Source == null ? new String[0] : new String[] { v1Source };
+        String[] v2 = v2Source == null ? new String[0] : new String[] { v2Source };
         return runAnalysis(reporterType, configJSON, v1, v2);
     }
 
-    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String[] v1Source, String[] v2Source) throws Exception {
+    protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String[] v1Source, String[] v2Source)
+            throws Exception {
         return runAnalysis(reporterType, null, v1Source, v2Source);
     }
 
     protected <R extends Reporter> R runAnalysis(Class<R> reporterType, String configurationJSON, String[] v1Source,
-                                                 String[] v2Source) throws Exception {
+            String[] v2Source) throws Exception {
         boolean doV1 = v1Source != null && v1Source.length > 0;
         boolean doV2 = v2Source != null && v2Source.length > 0;
 
-        ArchiveAndCompilationPath v1Archive = doV1
-                ? createCompiledJar("v1", v1Source)
+        ArchiveAndCompilationPath v1Archive = doV1 ? createCompiledJar("v1", v1Source)
                 : new ArchiveAndCompilationPath(null, null);
 
-        ArchiveAndCompilationPath v2Archive = doV2
-                ? createCompiledJar("v2", v2Source)
+        ArchiveAndCompilationPath v2Archive = doV2 ? createCompiledJar("v2", v2Source)
                 : new ArchiveAndCompilationPath(null, null);
 
         Revapi revapi = createRevapi(reporterType);

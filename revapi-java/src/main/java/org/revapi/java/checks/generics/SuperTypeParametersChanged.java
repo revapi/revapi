@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class SuperTypeParametersChanged extends CheckBase {
@@ -51,14 +52,14 @@ public class SuperTypeParametersChanged extends CheckBase {
         assert oldType != null;
         assert newType != null;
 
-        List<? extends TypeMirror> oldSuperTypes = getOldTypeEnvironment().getTypeUtils().directSupertypes(
-            oldType.getModelRepresentation());
+        List<? extends TypeMirror> oldSuperTypes = getOldTypeEnvironment().getTypeUtils()
+                .directSupertypes(oldType.getModelRepresentation());
 
-        List<? extends TypeMirror> newSuperTypes = getNewTypeEnvironment().getTypeUtils().directSupertypes(
-            newType.getModelRepresentation());
+        List<? extends TypeMirror> newSuperTypes = getNewTypeEnvironment().getTypeUtils()
+                .directSupertypes(newType.getModelRepresentation());
 
         if (oldSuperTypes.size() != newSuperTypes.size()) {
-            //super types changed, handled elsewhere
+            // super types changed, handled elsewhere
             return;
         }
 
@@ -74,7 +75,7 @@ public class SuperTypeParametersChanged extends CheckBase {
         }
 
         if (!erasedOld.keySet().equals(erasedNew.keySet())) {
-            //super types changed, handled elsewhere
+            // super types changed, handled elsewhere
             return;
         }
 
@@ -111,10 +112,8 @@ public class SuperTypeParametersChanged extends CheckBase {
         for (Map.Entry<TypeMirror, TypeMirror> e : changed.entrySet()) {
             String oldS = Util.toHumanReadableString(e.getKey());
             String newS = Util.toHumanReadableString(e.getValue());
-            ret.add(createDifference(Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED,
-                    Code.attachmentsFor(types.oldElement, types.newElement,
-                            "oldSuperType", oldS,
-                            "newSuperType", newS)));
+            ret.add(createDifference(Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED, Code
+                    .attachmentsFor(types.oldElement, types.newElement, "oldSuperType", oldS, "newSuperType", newS)));
         }
 
         return ret;

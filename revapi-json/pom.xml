@@ -17,26 +17,21 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
+        <artifactId>revapi-build</artifactId>
         <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build/pom.xml</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
     <artifactId>revapi-json</artifactId>
-    <name>JSON Analyzer</name>
     <version>0.3.0-SNAPSHOT</version>
-
+    <name>JSON Analyzer</name>
     <properties>
         <automatic.module.name>org.revapi.json</automatic.module.name>
         <version.com.fasterxml.jackson>2.12.0</version.com.fasterxml.jackson>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
@@ -44,7 +39,6 @@
             <version>0.3.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -58,9 +52,7 @@
                                     <ignore>true</ignore>
                                     <code>java.class.externalClassExposedInAPI</code>
                                     <new>class org.revapi.jackson.JacksonElement&lt;E extends org.revapi.jackson.JacksonElement&lt;E&gt;&gt;</new>
-                                    <justification>
-                                        This is most probably a false positive.
-                                    </justification>
+                                    <justification>This is most probably a false positive.</justification>
                                     <!-- This is the cause and the method in question uses E instead of the direct JacksonElement
                                     with E being set to JsonElement. So this is reported incorrectly.
                                     method void org.revapi.jackson.JacksonDifferenceAnalyzer<E extends org.revapi.jackson.JacksonElement<E>>::beginAnalysis(E, E) @ org.revapi.json.JsonDifferenceAnalyzer

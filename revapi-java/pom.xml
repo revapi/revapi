@@ -18,123 +18,56 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
+        <artifactId>revapi-build</artifactId>
         <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
-    <name>Java Analyzer</name>
-    <description>
-        Revapi extension to check API of java classes in jar archives.
-    </description>
-    <url>https://revapi.org</url>
-
     <artifactId>revapi-java</artifactId>
     <version>0.24.0-SNAPSHOT</version>
-
+    <name>Java Analyzer</name>
+    <description>Revapi extension to check API of java classes in jar archives.</description>
+    <url>https://revapi.org</url>
+    <scm>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/revapi/revapi</url>
+    </scm>
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>https://revapi.org</url>
+        </site>
+    </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.java</automatic.module.name>
         <version.org.revapi.classif>0.1.0</version.org.revapi.classif>
     </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.jboss.shrinkwrap</groupId>
                 <artifactId>shrinkwrap-bom</artifactId>
                 <version>1.0.1</version>
-                <scope>import</scope>
                 <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <dependencies>
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi</artifactId>
-            <version>0.14.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-java-spi</artifactId>
-            <version>0.23.0-SNAPSHOT</version>
-        </dependency>
-
         <dependency>
             <groupId>org.revapi.classif</groupId>
             <artifactId>classif</artifactId>
             <version>${version.org.revapi.classif}</version>
         </dependency>
-
         <dependency>
             <groupId>org.revapi.classif</groupId>
             <artifactId>classif-dsl</artifactId>
             <version>${version.org.revapi.classif}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>pl.pragmatists</groupId>
-            <artifactId>JUnitParams</artifactId>
-            <version>1.1.0</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.shrinkwrap</groupId>
-            <artifactId>shrinkwrap-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.shrinkwrap</groupId>
-            <artifactId>shrinkwrap-impl-base</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.revapi.testjars</groupId>
-            <artifactId>testjars-junit4</artifactId>
-            <version>0.1.0</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-basic-features</artifactId>
-            <version>0.12.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-core</artifactId>
-            <version>1.25</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- used in benchmarks -->
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -142,21 +75,85 @@
             <version>30.1-jre</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.25</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>pl.pragmatists</groupId>
+            <artifactId>JUnitParams</artifactId>
+            <version>1.1.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi</artifactId>
+            <version>0.14.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-basic-features</artifactId>
+            <version>0.12.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-java-spi</artifactId>
+            <version>0.23.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-impl-base</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi.testjars</groupId>
+            <artifactId>testjars-junit4</artifactId>
+            <version>0.1.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
-    <distributionManagement>
-        <site>
-            <id>site</id>
-            <url>https://revapi.org</url>
-        </site>
-    </distributionManagement>
-
     <build>
         <plugins>
             <plugin>
+                <groupId>pw.krejci</groupId>
+                <artifactId>jmh-maven-plugin</artifactId>
+                <version>0.2.2</version>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <excludes combine.children="append">
+                        <exclude>comparisons/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>copy-filtered-resources</id>
@@ -207,27 +204,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <excludes combine.children="append">
-                        <exclude>comparisons/**</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>pw.krejci</groupId>
-                <artifactId>jmh-maven-plugin</artifactId>
-                <version>0.2.2</version>
-            </plugin>
         </plugins>
     </build>
-
-    <scm>
-        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
-        <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
-    </scm>
 </project>

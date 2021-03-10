@@ -34,6 +34,7 @@ import org.revapi.query.Filter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class JavaElementForest extends BaseElementForest<JavaElement> {

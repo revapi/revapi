@@ -23,7 +23,8 @@ import org.revapi.Element;
 /**
  * A convenience base class for API analyzers.
  *
- * @param <E> the parent type of all elements produced by this API analyzer
+ * @param <E>
+ *            the parent type of all elements produced by this API analyzer
  */
 public abstract class BaseApiAnalyzer<E extends Element<E>> extends BaseConfigurable implements ApiAnalyzer<E> {
     @Override

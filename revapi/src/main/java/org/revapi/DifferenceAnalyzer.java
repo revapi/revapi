@@ -19,10 +19,11 @@ package org.revapi;
 import javax.annotation.Nullable;
 
 /**
- * An element analyzer is basically a visitor over matching elements of some language between
- * the two API versions being compared.
+ * An element analyzer is basically a visitor over matching elements of some language between the two API versions being
+ * compared.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface DifferenceAnalyzer<E extends Element<E>> extends AutoCloseable {
@@ -35,11 +36,13 @@ public interface DifferenceAnalyzer<E extends Element<E>> extends AutoCloseable 
 
     /**
      * Called when the analysis of the two corresponding elements begins. If those elements contain children, all the
-     * children will be analyzed before the {@link #endAnalysis(Element, Element)} method will be called for these
-     * two elements.
+     * children will be analyzed before the {@link #endAnalysis(Element, Element)} method will be called for these two
+     * elements.
      *
-     * @param oldElement the element from the old archives
-     * @param newElement the element from the new archives
+     * @param oldElement
+     *            the element from the old archives
+     * @param newElement
+     *            the element from the new archives
      */
     void beginAnalysis(@Nullable E oldElement, @Nullable E newElement);
 
@@ -51,8 +54,11 @@ public interface DifferenceAnalyzer<E extends Element<E>> extends AutoCloseable 
      * Note that this decision is made on the "filtered" trees. I.e. if the filters filter out children of an element,
      * the analyzer cannot override that decision and try to include such elements in the analysis again.
      *
-     * @param oldElement the element from the old archives
-     * @param newElement the element from the new archives
+     * @param oldElement
+     *            the element from the old archives
+     * @param newElement
+     *            the element from the new archives
+     * 
      * @return true when the analysis should also include the children of the provided elements, false otherwise.
      */
     boolean isDescendRequired(@Nullable E oldElement, @Nullable E newElement);
@@ -60,8 +66,10 @@ public interface DifferenceAnalyzer<E extends Element<E>> extends AutoCloseable 
     /**
      * Called when the analysis of the two elements ends (i.e. all the children have been visited).
      *
-     * @param oldElement the element from the old archives
-     * @param newElement the element from the new archives
+     * @param oldElement
+     *            the element from the old archives
+     * @param newElement
+     *            the element from the new archives
      *
      * @return a report detailing the difference found between these two elements
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class CompilationFuture implements Future<Void> {
@@ -47,8 +48,8 @@ public final class CompilationFuture implements Future<Void> {
 
     @Override
     public boolean isDone() {
-        return valve.getCompilationResult().isDone() ||
-            valve.getEnvironment().getCompilationProgressLatch().getCount() == 0;
+        return valve.getCompilationResult().isDone()
+                || valve.getEnvironment().getCompilationProgressLatch().getCount() == 0;
     }
 
     @Override
@@ -56,41 +57,38 @@ public final class CompilationFuture implements Future<Void> {
         valve.getEnvironment().getCompilationProgressLatch().await();
 
         if (valve.getCompilationResult().isDone()) {
-            //if at this point the compilation is done, we know there was a problem.
-            //The compilation should NOT be done at this moment, because it should be waiting for the releasing of the
-            //compilation environment...
+            // if at this point the compilation is done, we know there was a problem.
+            // The compilation should NOT be done at this moment, because it should be waiting for the releasing of the
+            // compilation environment...
             valve.getCompilationResult().get();
             return null;
         }
 
         if (output.getBuffer().length() > 0) {
-            throw new ExecutionException(
-                new Exception("Compilation failed while analyzing " + valve.getEnvironment().getApi() + ":\n" +
-                    output.toString()));
+            throw new ExecutionException(new Exception("Compilation failed while analyzing "
+                    + valve.getEnvironment().getApi() + ":\n" + output.toString()));
         }
         return null;
     }
 
     @Override
-    public Void get(long timeout, TimeUnit unit)
-        throws InterruptedException, ExecutionException, TimeoutException {
+    public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 
         if (!valve.getEnvironment().getCompilationProgressLatch().await(timeout, unit)) {
             throw new TimeoutException();
         }
 
         if (valve.getCompilationResult().isDone()) {
-            //if at this point the compilation is done, we know there was a problem.
-            //The compilation should NOT be done at this moment, because it should be waiting for the releasing of the
-            //compilation environment...
+            // if at this point the compilation is done, we know there was a problem.
+            // The compilation should NOT be done at this moment, because it should be waiting for the releasing of the
+            // compilation environment...
             valve.getCompilationResult().get();
             return null;
         }
 
         if (output.getBuffer().length() > 0) {
-            throw new ExecutionException(
-                new Exception("Compilation failed while analyzing " + valve.getEnvironment().getApi() + ":\n" +
-                    output.toString()));
+            throw new ExecutionException(new Exception("Compilation failed while analyzing "
+                    + valve.getEnvironment().getApi() + ":\n" + output.toString()));
         }
 
         return null;

@@ -29,6 +29,7 @@ import org.revapi.java.spi.JavaElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class JavaElementFactory {
@@ -37,14 +38,16 @@ public final class JavaElementFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static JavaElementBase<?, ?> elementFor(Element modelElement, TypeMirror modelType, ProbingEnvironment env, Archive archive) {
+    public static JavaElementBase<?, ?> elementFor(Element modelElement, TypeMirror modelType, ProbingEnvironment env,
+            Archive archive) {
         if (modelElement instanceof javax.lang.model.element.TypeElement) {
-            return new TypeElement(env, archive, (javax.lang.model.element.TypeElement) modelElement, (DeclaredType) modelType);
-        } else if (modelElement instanceof VariableElement &&
-            modelElement.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
+            return new TypeElement(env, archive, (javax.lang.model.element.TypeElement) modelElement,
+                    (DeclaredType) modelType);
+        } else if (modelElement instanceof VariableElement
+                && modelElement.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
             return new FieldElement(env, archive, (VariableElement) modelElement, modelType);
-        } else if (modelElement instanceof VariableElement &&
-            modelElement.getEnclosingElement() instanceof ExecutableElement) {
+        } else if (modelElement instanceof VariableElement
+                && modelElement.getEnclosingElement() instanceof ExecutableElement) {
             return new MethodParameterElement(env, archive, (VariableElement) modelElement, modelType);
         } else if (modelElement instanceof ExecutableElement) {
             return new MethodElement(env, archive, (ExecutableElement) modelElement, (ExecutableType) modelType);
@@ -52,7 +55,7 @@ public final class JavaElementFactory {
             throw new IllegalArgumentException("Unsupported model element: " + modelElement.getClass());
         }
 
-        //TODO I could see use for PackageElement, because packages can have annotations on them
+        // TODO I could see use for PackageElement, because packages can have annotations on them
     }
 
     public static int compareByType(JavaElement a, JavaElement b) {

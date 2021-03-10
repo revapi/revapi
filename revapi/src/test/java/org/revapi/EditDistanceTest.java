@@ -70,5 +70,6 @@ public class EditDistanceTest {
         assertEquals(3, order.get(2).right);
 
         assertEquals(4, order.get(3).left);
-        assertEquals(5, order.get(3).right);    }
+        assertEquals(5, order.get(3).right);
+    }
 }

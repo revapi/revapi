@@ -37,10 +37,11 @@ import org.revapi.TreeFilter;
 import org.revapi.configuration.JSONUtil;
 
 /**
- * A helper class to {@link org.revapi.basic.AbstractDifferenceReferringTransform} that defines the match of
- * a configuration element and a difference.
+ * A helper class to {@link org.revapi.basic.AbstractDifferenceReferringTransform} that defines the match of a
+ * configuration element and a difference.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public abstract class DifferenceMatchRecipe {
@@ -82,7 +83,8 @@ public abstract class DifferenceMatchRecipe {
     }
 
     @Nullable
-    public <E extends Element<E>> MatchingProgress<E> startWithAnalyzers(ArchiveAnalyzer<E> oldAnalyzer, ArchiveAnalyzer<E> newAnalyzer) {
+    public <E extends Element<E>> MatchingProgress<E> startWithAnalyzers(ArchiveAnalyzer<E> oldAnalyzer,
+            ArchiveAnalyzer<E> newAnalyzer) {
         TreeFilter<E> oldFilter = oldRecipe == null ? null : oldRecipe.filterFor(oldAnalyzer);
         TreeFilter<E> newFilter = newRecipe == null ? null : newRecipe.filterFor(newAnalyzer);
         return createMatchingProgress(oldFilter, newFilter);
@@ -111,7 +113,8 @@ public abstract class DifferenceMatchRecipe {
                 throw new IllegalArgumentException("Matcher called '" + matcherId + "' not found.");
             }
 
-            return matcher.compile(recipe).orElseThrow(() -> new IllegalArgumentException("Failed to compile the match recipe."));
+            return matcher.compile(recipe)
+                    .orElseThrow(() -> new IllegalArgumentException("Failed to compile the match recipe."));
         }
     }
 

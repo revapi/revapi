@@ -27,6 +27,7 @@ import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class FieldElement extends JavaElementBase<VariableElement, TypeMirror> implements JavaFieldElement {
@@ -40,7 +41,9 @@ public final class FieldElement extends JavaElementBase<VariableElement, TypeMir
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Nonnull @Override public JavaTypeElement getParent() {
+    @Nonnull
+    @Override
+    public JavaTypeElement getParent() {
         return (JavaTypeElement) super.getParent();
     }
 

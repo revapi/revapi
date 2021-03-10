@@ -37,7 +37,8 @@ class PropertyFileArchiveAnalyzerTest {
 
     @Test
     void loadsPropertyFile() {
-        API api = API.of(new InputStreamArchive("ar", () -> new ByteArrayInputStream("a=b\nc=d".getBytes(UTF_8)))).build();
+        API api = API.of(new InputStreamArchive("ar", () -> new ByteArrayInputStream("a=b\nc=d".getBytes(UTF_8))))
+                .build();
 
         PropertyFileArchiveAnalyzer analyzer = new PropertyFileArchiveAnalyzer(api, null);
         BaseElementForest<PropertyElement> forest = analyzer.analyze(TreeFilter.matchAndDescend());

@@ -29,9 +29,9 @@ import org.revapi.Reporter;
 
 /**
  * {@link Reporter}s are used to convey the results of the API analysis to the outside world. They receive the
- * {@link Report}s which contain the list of differences for some element pair. The element pair can have either
- * the elements missing which means that they are absent in either old or new API. If the archive analyzer considers
- * the element somehow corresponding to each other, they become the element pair.
+ * {@link Report}s which contain the list of differences for some element pair. The element pair can have either the
+ * elements missing which means that they are absent in either old or new API. If the archive analyzer considers the
+ * element somehow corresponding to each other, they become the element pair.
  * <p>
  * Let's try to implement a simple reporter. Our {@code BeepingReporter} will make the computer beep whenever it
  * encounters an element pair with a difference with severity bigger than a configured minimum.
@@ -60,7 +60,7 @@ public class BeepingReporter implements Reporter {
     @Override
     public void report(Report report) {
         DifferenceSeverity maxSeverity = report.getDifferences().stream()
-                //get all the severities
+                // get all the severities
                 .flatMap(d -> d.classification.values().stream())
                 // find the maximum severity
                 .reduce(EQUIVALENT, (a, b) -> a.compareTo(b) > 0 ? a : b);

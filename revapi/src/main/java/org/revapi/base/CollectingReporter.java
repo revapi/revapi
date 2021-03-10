@@ -24,8 +24,7 @@ import javax.annotation.Nonnull;
 import org.revapi.Report;
 
 /**
- * This is a simple helper class that can be used by the users to collect all the
- * reports from Revapi.
+ * This is a simple helper class that can be used by the users to collect all the reports from Revapi.
  *
  * The extension ID is {@code test.collecting-reporter}.
  */

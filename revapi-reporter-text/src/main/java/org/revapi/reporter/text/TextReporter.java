@@ -41,6 +41,7 @@ import org.revapi.reporter.file.AbstractFileReporter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class TextReporter extends AbstractFileReporter {
@@ -81,8 +82,7 @@ public class TextReporter extends AbstractFileReporter {
 
         template = null;
         try {
-            template = templatePath == null
-                    ? freeMarker.getTemplate("default-template-with-improbable-name.ftl")
+            template = templatePath == null ? freeMarker.getTemplate("default-template-with-improbable-name.ftl")
                     : freeMarker.getTemplate(templatePath);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to initialize the freemarker template.", e);
@@ -90,15 +90,15 @@ public class TextReporter extends AbstractFileReporter {
     }
 
     /**
-     * Creates a new FreeMarker configuration.
-     * By default, it is configured as follows:
+     * Creates a new FreeMarker configuration. By default, it is configured as follows:
      * <ul>
      * <li>compatibility level is set to 2.3.23
      * <li>the object wrapper is configured to expose fields
      * <li>API builtins are enabled
-     * <li>there are 2 template loaders - 1 for loading templates from /META-INF using a classloader and a second
-     *     one to load templates from files.
+     * <li>there are 2 template loaders - 1 for loading templates from /META-INF using a classloader and a second one to
+     * load templates from files.
      * </ul>
+     * 
      * @return
      */
     protected Configuration createFreeMarkerConfiguration() {
@@ -109,9 +109,8 @@ public class TextReporter extends AbstractFileReporter {
 
         freeMarker.setObjectWrapper(bld.build());
         freeMarker.setAPIBuiltinEnabled(true);
-        freeMarker.setTemplateLoader(new MultiTemplateLoader(
-                new TemplateLoader[]{new ClassTemplateLoader(getClass(), "/META-INF"),
-                        new NaiveFileTemplateLoader()}));
+        freeMarker.setTemplateLoader(new MultiTemplateLoader(new TemplateLoader[] {
+                new ClassTemplateLoader(getClass(), "/META-INF"), new NaiveFileTemplateLoader() }));
 
         return freeMarker;
     }

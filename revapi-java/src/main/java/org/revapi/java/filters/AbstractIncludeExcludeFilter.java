@@ -44,7 +44,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.7.0
+ * 
  * @deprecated use the generic revapi filter + java matchers to achieve the same as is done here
  */
 @Deprecated
@@ -89,7 +91,6 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
         return new InputStreamReader(getClass().getResourceAsStream(schemaPath), StandardCharsets.UTF_8);
     }
 
-
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
         JsonNode root = analysisContext.getConfigurationNode();
@@ -122,8 +123,8 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
         doNothing = includeTest == null && excludeTest == null;
 
         if (!doNothing) {
-            LOG.warn("Filtering using the revapi.java.filter.annotated has been deprecated in favor of revapi.filter" +
-                    " in combination with the java matchers.");
+            LOG.warn("Filtering using the revapi.java.filter.annotated has been deprecated in favor of revapi.filter"
+                    + " in combination with the java matchers.");
         }
     }
 
@@ -150,7 +151,6 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
         }
     }
 
-
     @Override
     public boolean applies(@Nullable Element<?> element) {
         return decide(element);
@@ -163,7 +163,7 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
 
     @SuppressWarnings("ConstantConditions")
     private boolean decide(@Nullable Object element) {
-        //we don't exclude anything that we don't handle...
+        // we don't exclude anything that we don't handle...
         if (doNothing || !(element instanceof JavaElement)) {
             return true;
         }
@@ -175,17 +175,16 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
 
         JavaElement el = (JavaElement) element;
 
-        //exploit the fact that parent elements are always filtered before the children
+        // exploit the fact that parent elements are always filtered before the children
         Element parent = el.getParent();
-        InclusionState parentInclusionState = parent == null ? InclusionState.UNDECIDED
-                : elementResults.get(parent);
+        InclusionState parentInclusionState = parent == null ? InclusionState.UNDECIDED : elementResults.get(parent);
 
-        //if we have no record of the parent inclusion, then this is a top-level class. Assume it wants to be included.
+        // if we have no record of the parent inclusion, then this is a top-level class. Assume it wants to be included.
         if (parentInclusionState == null) {
             parentInclusionState = InclusionState.UNDECIDED;
         }
 
-        //this is a java element, but not a model-based element - i.e. this is an annotation.
+        // this is a java element, but not a model-based element - i.e. this is an annotation.
         if (!(element instanceof JavaModelElement)) {
             return decideAnnotation((JavaAnnotationElement) element, parentInclusionState);
         }
@@ -194,14 +193,14 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
 
         Stream<String> tested = getTestedElementRepresentations(javaElement);
 
-        //let's first assume we're going to inherit the parent's inclusion state
+        // let's first assume we're going to inherit the parent's inclusion state
         ret = parentInclusionState;
 
-        //now see if we need to change that assumption
+        // now see if we need to change that assumption
         switch (parentInclusionState) {
         case INCLUDED:
-            //the parent was explicitly included in the results. We therefore only need to check if the annotations
-            //on this element should be excluded
+            // the parent was explicitly included in the results. We therefore only need to check if the annotations
+            // on this element should be excluded
             if (excludeTest != null) {
                 if (tested.anyMatch(s -> excludeTest.test(s))) {
                     ret = InclusionState.EXCLUDED;
@@ -212,10 +211,10 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
             if (!canBeReIncluded(javaElement)) {
                 break;
             }
-            //the child element can be re-included, so the full suite of tests need to be run.
-            //i.e. this fall-through is intentional.
+            // the child element can be re-included, so the full suite of tests need to be run.
+            // i.e. this fall-through is intentional.
         case UNDECIDED:
-            //ok, the parent is undecided. This means we have to do the full checks on this element.
+            // ok, the parent is undecided. This means we have to do the full checks on this element.
             List<String> testedList = null;
             if (includeTest != null && excludeTest != null) {
                 testedList = tested.collect(toList());
@@ -223,11 +222,9 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
             }
 
             if (includeTest != null) {
-                //ok, there is an include test but the parent is undecided. This means that the parent actually
-                //didn't match the include test. Let's check with this element.
-                ret = tested.anyMatch(s -> includeTest.test(s))
-                        ? InclusionState.INCLUDED
-                        : InclusionState.EXCLUDED;
+                // ok, there is an include test but the parent is undecided. This means that the parent actually
+                // didn't match the include test. Let's check with this element.
+                ret = tested.anyMatch(s -> includeTest.test(s)) ? InclusionState.INCLUDED : InclusionState.EXCLUDED;
             }
 
             if (excludeTest != null) {
@@ -235,8 +232,8 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
                     tested = testedList.stream();
                 }
 
-                //there is an exclude test but the parent is undecided. This means that the exclude check didn't
-                //match the parent. Let's check again with this element.
+                // there is an exclude test but the parent is undecided. This means that the exclude check didn't
+                // match the parent. Let's check again with this element.
 
                 if (tested.anyMatch(s -> excludeTest.test(s))) {
                     ret = InclusionState.EXCLUDED;
@@ -250,8 +247,8 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
     }
 
     boolean decideAnnotation(JavaAnnotationElement annotation, InclusionState parentInclusionState) {
-        //annotations cannot be annotated but it would also be awkward to check a method and NOT its annotations...
-        //therefore we just include the annotations based on the inclusion state of the annotated element.
+        // annotations cannot be annotated but it would also be awkward to check a method and NOT its annotations...
+        // therefore we just include the annotations based on the inclusion state of the annotated element.
         return parentInclusionState.toBoolean();
     }
 
@@ -274,7 +271,6 @@ abstract class AbstractIncludeExcludeFilter implements ElementFilter {
          * There was no precise decision possible on the element
          */
         UNDECIDED;
-
 
         boolean toBoolean() {
             switch (this) {

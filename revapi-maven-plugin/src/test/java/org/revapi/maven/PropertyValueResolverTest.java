@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,14 +48,14 @@ public class PropertyValueResolverTest {
     @Test(expected = IllegalStateException.class)
     public void testUnresolvedReference() {
         String value = resolver.resolve("${no-such-system-property}");
-        fail("Did not fail with ISE: "+value);
+        fail("Did not fail with ISE: " + value);
     }
 
     @Test(expected = IllegalStateException.class)
     public void testIncompleteReference() {
         mapping.put("test.property1", "test.property1.value");
         String value = resolver.resolve("${test.property1");
-        fail("Did not fail with ISE: "+value);
+        fail("Did not fail with ISE: " + value);
     }
 
     @Test
@@ -68,7 +68,7 @@ public class PropertyValueResolverTest {
     public void testIncompleteReferenceFollowingSuccessfulResolve() {
         mapping.put("test.property1", "test.property1.value");
         String value = resolver.resolve("${test.property1} ${test.property1");
-        fail("Did not fail with ISE: "+value);
+        fail("Did not fail with ISE: " + value);
     }
 
     @Test
@@ -104,7 +104,7 @@ public class PropertyValueResolverTest {
     @Test
     public void testRecursiveExpression() {
         mapping.put("var", "${var:val}");
-        String value =  resolver.resolve("${var:val}");
+        String value = resolver.resolve("${var:val}");
         assertEquals("val", value);
     }
 }

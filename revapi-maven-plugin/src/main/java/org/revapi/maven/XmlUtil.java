@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import org.codehaus.plexus.configuration.PlexusConfiguration;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.9.0
  */
 final class XmlUtil {
@@ -63,7 +64,7 @@ final class XmlUtil {
                 }
 
                 if (nonWhitespaceIdx == -1) {
-                    //empty line...
+                    // empty line...
                     continue;
                 }
 
@@ -78,10 +79,9 @@ final class XmlUtil {
             }
         }
 
-        //indentation size of 2 by default, otherwise what's in the file
+        // indentation size of 2 by default, otherwise what's in the file
         return indentHist.isEmpty() ? 2 : indentHist.entrySet().stream()
-                .reduce(new SimpleEntry<>(0, 1), (a, b) -> a.getValue() > b.getValue() ? a : b)
-                .getKey();
+                .reduce(new SimpleEntry<>(0, 1), (a, b) -> a.getValue() > b.getValue() ? a : b).getKey();
     }
 
     static void toIndentedString(PlexusConfiguration xml, int indentationSize, int currentDepth, Writer wrt)

@@ -19,8 +19,8 @@ package org.revapi;
 import java.util.function.Supplier;
 
 /**
- * Ternary logic using the Kleene algebra. The {@link #UNDECIDED} value means just that - it doesn't mean "both true
- * and false".
+ * Ternary logic using the Kleene algebra. The {@link #UNDECIDED} value means just that - it doesn't mean "both true and
+ * false".
  */
 public enum Ternary {
     TRUE, FALSE, UNDECIDED;
@@ -30,7 +30,9 @@ public enum Ternary {
     }
 
     /**
-     * @param undecidedValue the boolean value to convert the {@link #UNDECIDED} value to.
+     * @param undecidedValue
+     *            the boolean value to convert the {@link #UNDECIDED} value to.
+     * 
      * @return the value as a boolean
      */
     public boolean toBoolean(boolean undecidedValue) {
@@ -120,7 +122,7 @@ public enum Ternary {
     }
 
     public Ternary implies(Ternary other) {
-        switch(this) {
+        switch (this) {
         case TRUE:
             return other;
         case FALSE:
@@ -133,7 +135,7 @@ public enum Ternary {
     }
 
     public Ternary implies(Supplier<Ternary> other) {
-        switch(this) {
+        switch (this) {
         case TRUE:
             return other.get();
         case FALSE:

@@ -38,7 +38,9 @@ import org.revapi.query.Filter;
  * A simple element forest of {@link org.revapi.simple.SimpleElement}s.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
+ * 
  * @deprecated use {@link org.revapi.base.BaseElementForest} instead
  */
 @Deprecated
@@ -71,7 +73,7 @@ public class SimpleElementForest implements ElementForest {
     }
 
     public <T extends Element> void search(@Nonnull List<T> results, @Nonnull Class<T> resultType,
-        @Nonnull SortedSet<? extends Element> currentLevel, boolean recurse, @Nullable Filter<? super T> filter) {
+            @Nonnull SortedSet<? extends Element> currentLevel, boolean recurse, @Nullable Filter<? super T> filter) {
 
         for (Element e : currentLevel) {
             if (resultType.isAssignableFrom(e.getClass())) {
@@ -100,7 +102,7 @@ public class SimpleElementForest implements ElementForest {
         search(results, resultType, currentLevel, recurse, filter, true);
     }
 
-    @SuppressWarnings({"SuspiciousMethodCalls"})
+    @SuppressWarnings({ "SuspiciousMethodCalls" })
     private <T extends Element> void search(List<T> results, Class<T> resultType,
             SortedSet<? extends Element> currentLevel, boolean recurse, TreeFilter filter, boolean topLevel) {
         for (Element e : currentLevel) {
@@ -109,7 +111,7 @@ public class SimpleElementForest implements ElementForest {
                 res = FilterStartResult.matchAndDescend();
             } else {
                 res = filter.start(e);
-                }
+            }
 
             boolean added = res.getMatch().toBoolean(true);
 

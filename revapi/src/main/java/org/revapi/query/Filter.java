@@ -24,9 +24,11 @@ import javax.annotation.Nullable;
  * A basic filter designed to work with element {@link org.revapi.ElementForest forests}.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
+ * 
  * @deprecated Filtering turned out to be not that usable and will be removed. This class has been superseded by the
- * {@link org.revapi.TreeFilter}.
+ *             {@link org.revapi.TreeFilter}.
  */
 @Deprecated
 public interface Filter<T> {
@@ -63,20 +65,23 @@ public interface Filter<T> {
     /**
      * If an element in a forest is of compatible type, does the filter apply to it?
      *
-     * @param element the element in the forest
+     * @param element
+     *            the element in the forest
      *
      * @return true if the filter applies, false otherwise
      */
     boolean applies(@Nullable T element);
 
     /**
-     * Should the forest traversal descend into the provided element? It is not guaranteed that the element is
-     * of the type required by this parameter, but its children might be.
+     * Should the forest traversal descend into the provided element? It is not guaranteed that the element is of the
+     * type required by this parameter, but its children might be.
      *
-     * <p>Therefore the filter is given a chance to influence the decision even for elements of types that it is not
+     * <p>
+     * Therefore the filter is given a chance to influence the decision even for elements of types that it is not
      * declared to filter.
      *
-     * @param element the element to be descended into
+     * @param element
+     *            the element to be descended into
      *
      * @return true if forest traversal should descend into the element, false otherwise
      */

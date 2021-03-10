@@ -44,6 +44,7 @@ import org.revapi.java.spi.UseSite;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
@@ -60,8 +61,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
      * @deprecated only to support the obsolete package and class filtering
      */
     @Deprecated
-    private final @Nullable
-    TreeFilter<JavaElement> implicitFilter;
+    private final @Nullable TreeFilter<JavaElement> implicitFilter;
 
     public JavaArchiveAnalyzer(JavaApiAnalyzer apiAnalyzer, API api, Iterable<JarExtractor> jarExtractors,
             ExecutorService compilationExecutor, AnalysisConfiguration.MissingClassReporting missingClassReporting,
@@ -93,20 +93,16 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
             Timing.LOG.debug("Starting analysis of " + api);
         }
 
-        TreeFilter<JavaElement> finalFilter = implicitFilter == null
-                ? filter
+        TreeFilter<JavaElement> finalFilter = implicitFilter == null ? filter
                 : TreeFilter.intersection(filter, implicitFilter);
 
         StringWriter output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, jarExtractors, api.getArchives(),
-                api.getSupplementaryArchives(),
-                finalFilter);
+                api.getSupplementaryArchives(), finalFilter);
         try {
-            compilationValve = compiler
-                    .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations);
+            compilationValve = compiler.compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations);
 
-            probingEnvironment.getTree()
-                    .setCompilationFuture(new CompilationFuture(compilationValve, output));
+            probingEnvironment.getTree().setCompilationFuture(new CompilationFuture(compilationValve, output));
 
             if (Timing.LOG.isDebugEnabled()) {
                 Timing.LOG.debug("Preliminary API tree produced for " + api);
@@ -186,7 +182,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
                     e.getValue().entrySet().removeIf(e2 -> {
                         JavaTypeElement usedType = e2.getKey();
                         usedType.getUseSites().removeIf(us -> {
-                            //noinspection SuspiciousMethodCalls
+                            // noinspection SuspiciousMethodCalls
                             return us.getUseType() == useType && e2.getValue().contains(us.getSite());
                         });
 

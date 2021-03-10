@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class ParameterTypeChanged extends CheckBase {
@@ -44,17 +45,16 @@ public final class ParameterTypeChanged extends CheckBase {
 
     @Override
     protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
-        skip = oldMethod == null || newMethod == null ||
-                oldMethod.getModelRepresentation().getParameterTypes().size() !=
-                        newMethod.getModelRepresentation().getParameterTypes().size();
+        skip = oldMethod == null || newMethod == null || oldMethod.getModelRepresentation().getParameterTypes()
+                .size() != newMethod.getModelRepresentation().getParameterTypes().size();
     }
 
     @Override
     protected void doVisitMethodParameter(@Nullable JavaMethodParameterElement oldParameter,
-        @Nullable JavaMethodParameterElement newParameter) {
+            @Nullable JavaMethodParameterElement newParameter) {
 
         if (skip || oldParameter == null || newParameter == null) {
-            //will be handled by nof parameters changed...
+            // will be handled by nof parameters changed...
             return;
         }
 
@@ -89,14 +89,10 @@ public final class ParameterTypeChanged extends CheckBase {
 
         if (!oldErasedType.equals(newErasedType)) {
             return Collections.singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_CHANGED,
-                    Code.attachmentsFor(params.oldElement, params.newElement,
-                            "oldType", oldType,
-                            "newType", newType)));
+                    Code.attachmentsFor(params.oldElement, params.newElement, "oldType", oldType, "newType", newType)));
         } else {
             return Collections.singletonList(createDifference(Code.METHOD_PARAMETER_TYPE_PARAMETER_CHANGED,
-                    Code.attachmentsFor(params.oldElement, params.newElement,
-                            "oldType", oldType,
-                            "newType", newType)));
+                    Code.attachmentsFor(params.oldElement, params.newElement, "oldType", oldType, "newType", newType)));
         }
     }
 }

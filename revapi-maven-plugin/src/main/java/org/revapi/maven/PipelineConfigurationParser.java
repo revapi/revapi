@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +55,8 @@ final class PipelineConfigurationParser {
 
     }
 
-    private static PipelineConfiguration.Builder parsePipelineConfigurationXML(PlexusConfiguration pipelineConfiguration) {
+    private static PipelineConfiguration.Builder parsePipelineConfigurationXML(
+            PlexusConfiguration pipelineConfiguration) {
         PipelineConfiguration.Builder bld = PipelineConfiguration.builder();
 
         if (pipelineConfiguration == null) {
@@ -78,8 +79,8 @@ final class PipelineConfigurationParser {
                 break;
             case "transformBlocks":
                 for (PlexusConfiguration b : c.getChildren()) {
-                    List<String> blockIds = Stream.of(b.getChildren())
-                            .map(PlexusConfiguration::getValue).collect(toList());
+                    List<String> blockIds = Stream.of(b.getChildren()).map(PlexusConfiguration::getValue)
+                            .collect(toList());
                     bld.addTransformationBlock(blockIds);
                 }
                 break;
@@ -96,8 +97,8 @@ final class PipelineConfigurationParser {
                     String criticalityName = m.getValue();
                     DifferenceSeverity severity = DifferenceSeverity.fromCamelCase(severityName);
                     if (severity == null) {
-                        throw new IllegalArgumentException("Unknown severity encountered while processing the" +
-                                " severityMapping: " + severityName);
+                        throw new IllegalArgumentException("Unknown severity encountered while processing the"
+                                + " severityMapping: " + severityName);
                     }
 
                     bld.addUntypedSeverityMapping(severity, criticalityName);

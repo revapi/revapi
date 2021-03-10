@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Added extends CheckBase {
@@ -96,10 +97,10 @@ public final class Added extends CheckBase {
                 difference = createDifference(Code.METHOD_DEFAULT_METHOD_ADDED_TO_INTERFACE,
                         Code.attachmentsFor(methods.oldElement, methods.newElement));
             } else if (method.getModifiers().contains(Modifier.STATIC)) {
-                //statics on interface can only be called using the interface they are declared on, even if a method
-                //with a same signature was declared on some of the super types in the old version, the users would
-                //not have been able to call those methods using the current type. So we don't need to specialize here
-                //based on the presence of a previously inherited method.
+                // statics on interface can only be called using the interface they are declared on, even if a method
+                // with a same signature was declared on some of the super types in the old version, the users would
+                // not have been able to call those methods using the current type. So we don't need to specialize here
+                // based on the presence of a previously inherited method.
                 difference = createDifference(Code.METHOD_STATIC_METHOD_ADDED_TO_INTERFACE,
                         Code.attachmentsFor(methods.oldElement, methods.newElement));
             } else {
@@ -109,11 +110,11 @@ public final class Added extends CheckBase {
         } else if (method.getModifiers().contains(Modifier.ABSTRACT)) {
             difference = createDifference(Code.METHOD_ABSTRACT_METHOD_ADDED,
                     Code.attachmentsFor(methods.oldElement, methods.newElement));
-        } else if (method.getModifiers().contains(Modifier.FINAL) &&
-                !enclosingClass.getModifiers().contains(Modifier.FINAL)) {
+        } else if (method.getModifiers().contains(Modifier.FINAL)
+                && !enclosingClass.getModifiers().contains(Modifier.FINAL)) {
 
-             difference = createDifference(Code.METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS,
-                     Code.attachmentsFor(methods.oldElement, methods.newElement));
+            difference = createDifference(Code.METHOD_FINAL_METHOD_ADDED_TO_NON_FINAL_CLASS,
+                    Code.attachmentsFor(methods.oldElement, methods.newElement));
         } else {
             difference = createDifference(Code.METHOD_ADDED,
                     Code.attachmentsFor(methods.oldElement, methods.newElement));

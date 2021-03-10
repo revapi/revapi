@@ -30,6 +30,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class AnnotationElement extends AbstractJavaElement implements JavaAnnotationElement {
@@ -43,7 +44,9 @@ public final class AnnotationElement extends AbstractJavaElement implements Java
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Nonnull @Override public JavaModelElement getParent() {
+    @Nonnull
+    @Override
+    public JavaModelElement getParent() {
         return (JavaModelElement) super.getParent();
     }
 

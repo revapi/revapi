@@ -51,13 +51,15 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
             dbld.withDescription("The node was removed.");
             path = oldElement.getPath();
             file = oldElement.getFilePath();
-        } else if ((oldElement.getNode().isValueNode() || newElement.getNode().isValueNode()) && !oldElement.equals(newElement)) {
+        } else if ((oldElement.getNode().isValueNode() || newElement.getNode().isValueNode())
+                && !oldElement.equals(newElement)) {
             // we're only reporting changes on value nodes
             dbld = bld.addProblem();
             addChanged(dbld);
             path = newElement.getPath();
             file = newElement.getFilePath();
-            dbld.withDescription("The value changed from `" + oldElement.getValueString() + "` to `" + newElement.getValueString() + "`.");
+            dbld.withDescription("The value changed from `" + oldElement.getValueString() + "` to `"
+                    + newElement.getValueString() + "`.");
             dbld.addAttachment("oldValue", oldElement.getValueString());
             dbld.addAttachment("newValue", newElement.getValueString());
         }
@@ -73,21 +75,18 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
     }
 
     protected void addRemoved(Difference.InReportBuilder bld) {
-        bld.withCode(valueRemovedCode())
-                .withName("value removed")
-                .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.BREAKING);
+        bld.withCode(valueRemovedCode()).withName("value removed").addClassification(CompatibilityType.SEMANTIC,
+                DifferenceSeverity.BREAKING);
     }
 
     protected void addAdded(Difference.InReportBuilder bld) {
-        bld.withCode(valueAddedCode())
-                .withName("value added")
-                .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.POTENTIALLY_BREAKING);
+        bld.withCode(valueAddedCode()).withName("value added").addClassification(CompatibilityType.SEMANTIC,
+                DifferenceSeverity.POTENTIALLY_BREAKING);
     }
 
     protected void addChanged(Difference.InReportBuilder bld) {
-        bld.withCode(valueChangedCode())
-                .withName("value changed")
-                .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.POTENTIALLY_BREAKING);
+        bld.withCode(valueChangedCode()).withName("value changed").addClassification(CompatibilityType.SEMANTIC,
+                DifferenceSeverity.POTENTIALLY_BREAKING);
     }
 
     protected abstract String valueRemovedCode();

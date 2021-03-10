@@ -34,14 +34,16 @@ import org.revapi.query.FilteringIterator;
 /**
  * A representation of some "unit" understood by an API analyzer. Typically an abstract syntax tree of a language.
  *
- * @param <E> the common super type of all elements in the forest
+ * @param <E>
+ *            the common super type of all elements in the forest
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface ElementForest<E extends Element<E>> {
     static <E extends Element<E>> void walk(ElementForest<E> forest, Visitor<E> visitor) {
-        for(E r : forest.getRoots()) {
+        for (E r : forest.getRoots()) {
             walk(r, visitor);
         }
         visitor.finishWalk();
@@ -92,15 +94,21 @@ public interface ElementForest<E extends Element<E>> {
      * Searches through the forest for elements of given type, potentially further filtering.
      * <p>
      * If the {@code searchRoot} is not null, this is technically equivalent to calling the
-     * {@link Element#searchChildren(java.lang.Class, boolean, org.revapi.query.Filter)} on the
-     * {@code searchRoot}.
+     * {@link Element#searchChildren(java.lang.Class, boolean, org.revapi.query.Filter)} on the {@code searchRoot}.
      *
-     * @param <T>        the type of the elements to look for
-     * @param resultType the type of the elements to be contained in the results
-     * @param recurse    false to only search direct children, true for searching recursively
-     * @param filter     the optional filter
-     * @param searchRoot optional element from which to conduct the search
+     * @param <T>
+     *            the type of the elements to look for
+     * @param resultType
+     *            the type of the elements to be contained in the results
+     * @param recurse
+     *            false to only search direct children, true for searching recursively
+     * @param filter
+     *            the optional filter
+     * @param searchRoot
+     *            optional element from which to conduct the search
+     * 
      * @return a list of elements of given type (or any subtype) from the forest, filtered by the filter if provided
+     * 
      * @deprecated in favor of more versatile {@link #stream(Class, boolean, Element)}
      */
     @Deprecated
@@ -127,54 +135,63 @@ public interface ElementForest<E extends Element<E>> {
 
         SortedSet<? extends Element> set = searchRoot == null ? getRoots() : searchRoot.getChildren();
 
-        return recurse ? new DFSFilteringIterator<>(set.iterator(), resultType, filter) :
-                new FilteringIterator<>(set.iterator(), resultType, filter);
+        return recurse ? new DFSFilteringIterator<>(set.iterator(), resultType, filter)
+                : new FilteringIterator<>(set.iterator(), resultType, filter);
     }
 
     @Nonnull
     default <T extends Element<E>> Stream<T> stream(@Nonnull Class<T> resultType, boolean recurse,
             @Nullable Element<E> searchRoot) {
         return stream(resultType, recurse, TreeFilter.matchAndDescend(), searchRoot);
-//        SortedSet<? extends Element<E>> start = searchRoot == null ? getRoots() : searchRoot.getChildren();
-//
-//        Stream<T> stream = start.stream()
-//                .filter(Objects::nonNull)
-//                .filter(e -> resultType.isAssignableFrom(e.getClass()))
-//                .map(resultType::cast);
-//
-//        if (recurse) {
-//            stream = stream.flatMap(e -> Stream.concat(Stream.of(e), e.stream(resultType, true)));
-//        }
-//
-//        return stream;
+        // SortedSet<? extends Element<E>> start = searchRoot == null ? getRoots() : searchRoot.getChildren();
+        //
+        // Stream<T> stream = start.stream()
+        // .filter(Objects::nonNull)
+        // .filter(e -> resultType.isAssignableFrom(e.getClass()))
+        // .map(resultType::cast);
+        //
+        // if (recurse) {
+        // stream = stream.flatMap(e -> Stream.concat(Stream.of(e), e.stream(resultType, true)));
+        // }
+        //
+        // return stream;
     }
 
     /**
      * Walks through the forest and returns a stream of elements that match the provided filter.
      *
-     * @param resultType the expected type of results
-     * @param recurse whether to recursively descend into children. If false, only the direct children of the
-     *                {@literal root} are searched.
-     * @param filter the filter to use when looking for matching children
-     * @param root the search root. If null, the whole element forest is searched
-     * @param <T> the expected type of results
+     * @param resultType
+     *            the expected type of results
+     * @param recurse
+     *            whether to recursively descend into children. If false, only the direct children of the
+     *            {@literal root} are searched.
+     * @param filter
+     *            the filter to use when looking for matching children
+     * @param root
+     *            the search root. If null, the whole element forest is searched
+     * @param <T>
+     *            the expected type of results
+     * 
      * @return the stream of the matching elements
      */
-    <T extends Element<E>> Stream<T> stream(Class<T> resultType, boolean recurse, TreeFilter<E> filter, @Nullable Element<E> root);
+    <T extends Element<E>> Stream<T> stream(Class<T> resultType, boolean recurse, TreeFilter<E> filter,
+            @Nullable Element<E> root);
 
     /**
-     * A visitor of the element forest. Passed to the {@link #walk(Element, Visitor)}  so that the callers can easily
+     * A visitor of the element forest. Passed to the {@link #walk(Element, Visitor)} so that the callers can easily
      * walk the forest.
      */
     interface Visitor<E extends Element<E>> {
         /**
          * Called when the provided element is first visited.
+         * 
          * @param element
          */
         void startWalk(E element);
 
         /**
          * Called when all the children of the element were also visited.
+         * 
          * @param element
          */
         void finishWalk(E element);

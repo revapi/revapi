@@ -63,6 +63,7 @@ import org.slf4j.LoggerFactory;
  * can run analyses on APIs with different configurations using the {@link #analyze(AnalysisContext)} method.
  *
  * @author Lukas Krejci
+ * 
  * @since 1.0
  */
 public final class Revapi {
@@ -77,8 +78,11 @@ public final class Revapi {
     /**
      * Use the {@link #builder()} instead.
      *
-     * @param pipelineConfiguration the configuration of the analysis pipeline
-     * @throws java.lang.IllegalArgumentException if any of the parameters is null
+     * @param pipelineConfiguration
+     *            the configuration of the analysis pipeline
+     * 
+     * @throws java.lang.IllegalArgumentException
+     *             if any of the parameters is null
      */
     public Revapi(PipelineConfiguration pipelineConfiguration) {
         this.pipelineConfiguration = pipelineConfiguration;
@@ -93,7 +97,9 @@ public final class Revapi {
     /**
      * Validates the configuration of the analysis context.
      *
-     * @param analysisContext the analysis context
+     * @param analysisContext
+     *            the analysis context
+     * 
      * @return the validation result
      */
     public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
@@ -120,9 +126,12 @@ public final class Revapi {
      * This instantiates the individual extensions and assigns the configurations to each one of them. The caller of
      * this method gains insight on what extensions with what configurations would be executed by the analysis.
      *
-     * <p>Note that the extensions are instantiated but NOT initialized after this call.
+     * <p>
+     * Note that the extensions are instantiated but NOT initialized after this call.
      *
-     * @param analysisContext the analysis context containing the "global" configuration of all extensions
+     * @param analysisContext
+     *            the analysis context containing the "global" configuration of all extensions
+     * 
      * @return the instantiated extensions and their individual configurations
      */
     public AnalysisResult.Extensions prepareAnalysis(AnalysisContext analysisContext) {
@@ -135,16 +144,16 @@ public final class Revapi {
         Map<ExtensionInstance<ApiAnalyzer<?>>, AnalysisContext> analyzers = splitByConfiguration(analysisContext,
                 pipelineConfiguration.getApiAnalyzerTypes(), pipelineConfiguration.getIncludedAnalyzerExtensionIds(),
                 pipelineConfiguration.getExcludedAnalyzerExtensionIds());
-        Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> transforms = splitByConfiguration(analysisContext,
-                pipelineConfiguration.getTransformTypes(), pipelineConfiguration.getIncludedTransformExtensionIds(),
+        Map<ExtensionInstance<DifferenceTransform<?>>, AnalysisContext> transforms = splitByConfiguration(
+                analysisContext, pipelineConfiguration.getTransformTypes(),
+                pipelineConfiguration.getIncludedTransformExtensionIds(),
                 pipelineConfiguration.getExcludedTransformExtensionIds());
         Map<ExtensionInstance<ElementMatcher>, AnalysisContext> matchers = splitByConfiguration(analysisContext,
                 pipelineConfiguration.getMatcherTypes(), pipelineConfiguration.getIncludedMatcherExtensionIds(),
                 pipelineConfiguration.getExcludedMatcherExtensionIds());
 
-        BiFunction<Object, AnalysisContext, AnalysisContext> addMatchers =
-                (__, ctx) -> ctx.copyWithMatchers(matchers.keySet().stream().map(ExtensionInstance::getInstance)
-                        .collect(toSet()));
+        BiFunction<Object, AnalysisContext, AnalysisContext> addMatchers = (__, ctx) -> ctx
+                .copyWithMatchers(matchers.keySet().stream().map(ExtensionInstance::getInstance).collect(toSet()));
 
         filters.replaceAll(addMatchers);
         reporters.replaceAll(addMatchers);
@@ -161,7 +170,9 @@ public final class Revapi {
      * Make sure to call the {@link AnalysisResult#close()} method (or perform the analysis in try-with-resources
      * block).
      *
-     * @param analysisContext describes the analysis to be performed
+     * @param analysisContext
+     *            describes the analysis to be performed
+     * 
      * @return a result object that has to be closed for the analysis to conclude
      */
     @SuppressWarnings("unchecked")
@@ -171,12 +182,11 @@ public final class Revapi {
         AnalysisResult.Extensions extensions = prepareAnalysis(analysisContext);
 
         if (extensions.getAnalyzers().isEmpty()) {
-            throw new IllegalArgumentException("At least one analyzer needs to be present. Make sure there is at" +
-                    " least one on the classpath and that the extension filters do not exclude all of them.");
+            throw new IllegalArgumentException("At least one analyzer needs to be present. Make sure there is at"
+                    + " least one on the classpath and that the extension filters do not exclude all of them.");
         }
 
-        extensions.stream()
-                .map(e -> (Map.Entry<ExtensionInstance<Configurable>, AnalysisContext>) (Map.Entry) e)
+        extensions.stream().map(e -> (Map.Entry<ExtensionInstance<Configurable>, AnalysisContext>) (Map.Entry) e)
                 .forEach(e -> {
                     ExtensionInstance<Configurable> i = e.getKey();
 
@@ -184,8 +194,8 @@ public final class Revapi {
                         i.getInstance().initialize(e.getValue());
                     } catch (Exception ex) {
                         throw new IllegalStateException("Extension " + i.getInstance().getExtensionId()
-                                + (i.getId() == null ? "" : "(id=" + i.getId() + ")")
-                                + " failed to initialize: " + ex.getMessage(), ex);
+                                + (i.getId() == null ? "" : "(id=" + i.getId() + ")") + " failed to initialize: "
+                                + ex.getMessage(), ex);
                     }
                 });
 
@@ -209,9 +219,9 @@ public final class Revapi {
         return new AnalysisResult(error, extensions);
     }
 
-    private <T extends Configurable> Map<ExtensionInstance<T>, AnalysisContext>
-    splitByConfiguration(AnalysisContext fullConfig, Set<Class<? extends T>> configurables,
-            List<String> extensionIdIncludes, List<String> extensionIdExcludes) {
+    private <T extends Configurable> Map<ExtensionInstance<T>, AnalysisContext> splitByConfiguration(
+            AnalysisContext fullConfig, Set<Class<? extends T>> configurables, List<String> extensionIdIncludes,
+            List<String> extensionIdExcludes) {
 
         Map<ExtensionInstance<T>, AnalysisContext> map = new HashMap<>();
         for (Class<? extends T> cc : configurables) {
@@ -259,7 +269,8 @@ public final class Revapi {
             }
 
             if (!configured) {
-                map.put(new ExtensionInstance<>(c, null), fullConfig.copyWithConfiguration(JsonNodeFactory.instance.nullNode()));
+                map.put(new ExtensionInstance<>(c, null),
+                        fullConfig.copyWithConfiguration(JsonNodeFactory.instance.nullNode()));
             }
         }
 
@@ -281,7 +292,7 @@ public final class Revapi {
         return validationResult;
     }
 
-    private <E extends Element<E>>void analyzeWith(ApiAnalyzer<E> apiAnalyzer, AnalysisProgress config)
+    private <E extends Element<E>> void analyzeWith(ApiAnalyzer<E> apiAnalyzer, AnalysisProgress config)
             throws Exception {
 
         API oldApi = config.oldApi;
@@ -304,7 +315,8 @@ public final class Revapi {
 
         TIMING_LOG.debug("API trees obtained");
 
-        try (DifferenceAnalyzer<E> elementDifferenceAnalyzer = apiAnalyzer.getDifferenceAnalyzer(oldAnalyzer, newAnalyzer)) {
+        try (DifferenceAnalyzer<E> elementDifferenceAnalyzer = apiAnalyzer.getDifferenceAnalyzer(oldAnalyzer,
+                newAnalyzer)) {
             TIMING_LOG.debug("Obtaining API roots");
             SortedSet<E> as = oldTree.getRoots();
             SortedSet<E> bs = newTree.getRoots();
@@ -318,20 +330,16 @@ public final class Revapi {
             TIMING_LOG.debug("Opening difference analyzer");
             elementDifferenceAnalyzer.open();
 
-            Map<DifferenceTransform<?>, Optional<DifferenceTransform.TraversalTracker<E>>> allTransforms =
-                    config.extensions.getTransforms().keySet().stream()
-                            .map(ExtensionInstance::getInstance)
-                            .collect(toMap(
-                                    i -> (DifferenceTransform<?>) i,
-                                    i -> i.startTraversal(apiAnalyzer, oldAnalyzer, newAnalyzer)));
+            Map<DifferenceTransform<?>, Optional<DifferenceTransform.TraversalTracker<E>>> allTransforms = config.extensions
+                    .getTransforms().keySet().stream().map(ExtensionInstance::getInstance)
+                    .collect(toMap(i -> (DifferenceTransform<?>) i,
+                            i -> i.startTraversal(apiAnalyzer, oldAnalyzer, newAnalyzer)));
 
             List<DifferenceTransform.TraversalTracker<E>> activeTransforms = allTransforms.values().stream()
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .collect(toList());
+                    .filter(Optional::isPresent).map(Optional::get).collect(toList());
 
-            analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs,
-                    activeTransforms, config);
+            analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs, activeTransforms,
+                    config);
 
             allTransforms.values().forEach(tr -> tr.ifPresent(DifferenceTransform.TraversalTracker::endTraversal));
 
@@ -350,14 +358,14 @@ public final class Revapi {
                         Difference orig = it.next();
                         if (orig.criticality == null) {
                             DifferenceSeverity maxSeverity = orig.classification.values().stream()
-                                    .max(comparingInt(Enum::ordinal))
-                                    .orElse(DifferenceSeverity.EQUIVALENT);
+                                    .max(comparingInt(Enum::ordinal)).orElse(DifferenceSeverity.EQUIVALENT);
 
-                            // all extensions share the criticality mapping and we're guaranteed to have at least 1 api analyzer
+                            // all extensions share the criticality mapping and we're guaranteed to have at least 1 api
+                            // analyzer
                             AnalysisContext ctx = config.extensions.getFirstConfigurationOrNull(ApiAnalyzer.class);
                             if (ctx == null) {
-                                throw new IllegalStateException("There should be at least 1 API analyzer during the analysis" +
-                                        "progress.");
+                                throw new IllegalStateException(
+                                        "There should be at least 1 API analyzer during the analysis" + "progress.");
                             }
 
                             Difference.Builder d = Difference.copy(orig)
@@ -384,7 +392,8 @@ public final class Revapi {
         TIMING_LOG.debug("Difference analyzer closed");
     }
 
-    private <E extends Element<E>> ElementForest<E> analyzeAndPrune(ArchiveAnalyzer<E> analyzer, TreeFilterProvider filter) {
+    private <E extends Element<E>> ElementForest<E> analyzeAndPrune(ArchiveAnalyzer<E> analyzer,
+            TreeFilterProvider filter) {
         TreeFilter<E> tf = filter.filterFor(analyzer).orElseGet(TreeFilter::matchAndDescend);
         ElementForest<E> forest = analyzer.analyze(tf);
         analyzer.prune(forest);
@@ -392,8 +401,8 @@ public final class Revapi {
         return forest;
     }
 
-    private <E extends Element<E>> void analyze(CorrespondenceComparatorDeducer<E> deducer, DifferenceAnalyzer<E> elementDifferenceAnalyzer,
-            SortedSet<E> as, SortedSet<E> bs,
+    private <E extends Element<E>> void analyze(CorrespondenceComparatorDeducer<E> deducer,
+            DifferenceAnalyzer<E> elementDifferenceAnalyzer, SortedSet<E> as, SortedSet<E> bs,
             Collection<DifferenceTransform.TraversalTracker<E>> activeTransforms, AnalysisProgress progress) {
 
         List<E> sortedAs = new ArrayList<>(as);
@@ -418,7 +427,7 @@ public final class Revapi {
             Stats.of("analysisBegins").start();
 
             List<DifferenceTransform.TraversalTracker<E>> childTransforms = activeTransforms.stream()
-                    .filter(t -> (a != null && b != null) | t.startElements(a, b)) //intentional non-short-circuit "or"
+                    .filter(t -> (a != null && b != null) | t.startElements(a, b)) // intentional non-short-circuit "or"
                     .collect(toList());
 
             elementDifferenceAnalyzer.beginAnalysis(a, b);
@@ -428,15 +437,13 @@ public final class Revapi {
 
             boolean shouldDescend = a != null && b != null;
             if (!shouldDescend) {
-                shouldDescend = !childTransforms.isEmpty() || elementDifferenceAnalyzer. isDescendRequired(a, b);
+                shouldDescend = !childTransforms.isEmpty() || elementDifferenceAnalyzer.isDescendRequired(a, b);
             }
 
             if (shouldDescend) {
                 LOG.trace("Descending into {}, {} pair.", a, b);
-                analyze(deducer, elementDifferenceAnalyzer,
-                        a == null ? emptySortedSet() : a.getChildren(),
-                        b == null ? emptySortedSet() : b.getChildren(),
-                        childTransforms, progress);
+                analyze(deducer, elementDifferenceAnalyzer, a == null ? emptySortedSet() : a.getChildren(),
+                        b == null ? emptySortedSet() : b.getChildren(), childTransforms, progress);
             } else {
                 LOG.trace("Filters disallowed descending into {} and {}.", a, b);
             }
@@ -485,7 +492,8 @@ public final class Revapi {
     private <T> T instantiate(Class<? extends T> type) {
         try {
             return type.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException
+                | InvocationTargetException e) {
             throw new IllegalStateException("Failed to instantiate extension: " + type, e);
         }
     }
@@ -495,8 +503,7 @@ public final class Revapi {
             @Override
             public <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
                 List<TreeFilter<E>> applicables = extensions.getFilters().keySet().stream()
-                        .map(f -> f.getInstance().filterFor(archiveAnalyzer).orElse(null))
-                        .filter(Objects::nonNull)
+                        .map(f -> f.getInstance().filterFor(archiveAnalyzer).orElse(null)).filter(Objects::nonNull)
                         .collect(toList());
 
                 return Optional.of(TreeFilter.intersection(applicables));
@@ -576,7 +583,7 @@ public final class Revapi {
             listChanged = false;
 
             ListIterator<Difference> it = report.getDifferences().listIterator();
-            List<Difference> transformed = new ArrayList<>(1); //this will hopefully be the max of transforms
+            List<Difference> transformed = new ArrayList<>(1); // this will hopefully be the max of transforms
             while (it.hasNext()) {
                 Difference d = it.next();
                 transformed.clear();
@@ -592,7 +599,8 @@ public final class Revapi {
                         ListIterator<Difference> blockResultsIt = blockResults.listIterator();
 
                         // it is the responsibility of the transform to declare the proper type.
-                        // it will get a ClassCastException if it fails to declare a type that is common to all differences
+                        // it will get a ClassCastException if it fails to declare a type that is common to all
+                        // differences
                         // it can handle
                         @SuppressWarnings("rawtypes")
                         DifferenceTransform transform = t;
@@ -601,13 +609,13 @@ public final class Revapi {
                             Difference currentDiff = blockResultsIt.next();
                             TransformationResult res;
                             try {
-                                //noinspection unchecked
+                                // noinspection unchecked
                                 res = transform.tryTransform(oldElement, newElement, currentDiff);
                             } catch (Exception e) {
                                 res = TransformationResult.keep();
-                                LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an" +
-                                        " exception while processing difference " + currentDiff + " on old element " +
-                                        report.getOldElement() + " and new element " + report.getNewElement(), e);
+                                LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an"
+                                        + " exception while processing difference " + currentDiff + " on old element "
+                                        + report.getOldElement() + " and new element " + report.getNewElement(), e);
                             }
 
                             switch (res.getResolution()) {
@@ -653,15 +661,15 @@ public final class Revapi {
 
                 if (!undecided && differenceChanged) {
                     listChanged = true;
-                    //we need to remove the element in either case
+                    // we need to remove the element in either case
                     it.remove();
                     if (!transformed.isEmpty()) {
-                        //if it was not removed, but transformed, let's add the transformed difference in the place of
-                        //our currently removed element
+                        // if it was not removed, but transformed, let's add the transformed difference in the place of
+                        // our currently removed element
                         for (Difference td : transformed) {
-                            //this adds the new element *before* the currently pointed to index...
+                            // this adds the new element *before* the currently pointed to index...
                             it.add(td);
-                            //we want to check the newly added difference, so we need the iterator to point at it...
+                            // we want to check the newly added difference, so we need the iterator to point at it...
                             it.previous();
                         }
                     }
@@ -670,14 +678,15 @@ public final class Revapi {
                 iteration++;
 
                 if (iteration % 1000 == 0) {
-                    LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration +
-                            " times. Maybe we're in an infinite loop with differences transforming back and forth?");
+                    LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration
+                            + " times. Maybe we're in an infinite loop with differences transforming back and forth?");
                 }
 
                 if (iteration == MAX_TRANSFORMATION_ITERATIONS) {
-                    throw new IllegalStateException("Transformation failed to settle in " + MAX_TRANSFORMATION_ITERATIONS +
-                            " iterations. This is most probably an error in difference transform configuration that" +
-                            " cycles between two or more changes back and forth.");
+                    throw new IllegalStateException("Transformation failed to settle in "
+                            + MAX_TRANSFORMATION_ITERATIONS
+                            + " iterations. This is most probably an error in difference transform configuration that"
+                            + " cycles between two or more changes back and forth.");
                 }
             }
         } while (listChanged);
@@ -797,7 +806,7 @@ public final class Revapi {
         }
 
         @Nonnull
-        @SuppressWarnings({"unchecked", "RedundantCast"})
+        @SuppressWarnings({ "unchecked", "RedundantCast" })
         public Builder withFiltersFromThreadContextClassLoader() {
             pb.withFiltersFromThreadContextClassLoader();
             return this;
@@ -871,7 +880,9 @@ public final class Revapi {
 
         /**
          * @return a new Revapi instance
-         * @throws IllegalStateException if there are no api analyzers or no reporters added.
+         * 
+         * @throws IllegalStateException
+         *             if there are no api analyzers or no reporters added.
          */
         @Nonnull
         public Revapi build() throws IllegalStateException {
@@ -886,8 +897,8 @@ public final class Revapi {
         final API newApi;
         final List<Report> reports;
 
-        AnalysisProgress(AnalysisResult.Extensions extensions, PipelineConfiguration configuration,
-                API oldApi, API newApi) {
+        AnalysisProgress(AnalysisResult.Extensions extensions, PipelineConfiguration configuration, API oldApi,
+                API newApi) {
             this.extensions = extensions;
             this.oldApi = oldApi;
             this.newApi = newApi;
@@ -895,8 +906,8 @@ public final class Revapi {
             this.reports = new ArrayList<>();
         }
 
-        private static Set<List<DifferenceTransform<?>>>
-        groupTransformsToBlocks(AnalysisResult.Extensions extensions, PipelineConfiguration configuration) {
+        private static Set<List<DifferenceTransform<?>>> groupTransformsToBlocks(AnalysisResult.Extensions extensions,
+                PipelineConfiguration configuration) {
             Set<List<DifferenceTransform<?>>> ret = new HashSet<>();
 
             Map<String, List<DifferenceTransform<?>>> transformsById = new HashMap<>();
@@ -924,9 +935,9 @@ public final class Revapi {
                         throw new IllegalArgumentException("There is no transform with extension id or explicit id '"
                                 + id + "'. Please fix the pipeline configuration.");
                     } else if (candidates.size() > 1) {
-                        throw new IllegalArgumentException("There is more than 1 transform with extension id or" +
-                                " explicit id '" + id + "'. Please fix the pipeline configuration and use unique ids" +
-                                " for extension configurations.");
+                        throw new IllegalArgumentException("There is more than 1 transform with extension id or"
+                                + " explicit id '" + id + "'. Please fix the pipeline configuration and use unique ids"
+                                + " for extension configurations.");
                     } else {
                         DifferenceTransform<?> t = candidates.get(0);
                         ts.add(t);

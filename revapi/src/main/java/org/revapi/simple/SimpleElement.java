@@ -37,7 +37,9 @@ import org.revapi.query.FilteringIterator;
  * A simple implementation of the {@link org.revapi.Element} interface intended to be extended.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
+ * 
  * @deprecated use {@link org.revapi.base.BaseElement} instead
  */
 @Deprecated
@@ -128,7 +130,7 @@ public abstract class SimpleElement implements Element, Cloneable {
         @Nonnull
         @Override
         public <T> T[] toArray(@Nonnull T[] a) {
-            //noinspection SuspiciousToArrayCall
+            // noinspection SuspiciousToArrayCall
             return set.toArray(a);
         }
 
@@ -241,6 +243,7 @@ public abstract class SimpleElement implements Element, Cloneable {
 
     /**
      * Returns a shallow copy of this element. In particular, its parent and children will be cleared.
+     * 
      * @return a copy of this element
      */
     @Override
@@ -257,9 +260,8 @@ public abstract class SimpleElement implements Element, Cloneable {
     }
 
     /**
-     * This default implementation uses the {@link #newChildrenInstance()} to initialize the children set and wraps
-     * it in a private set implementation that automagically changes the parent of the elements based on the
-     * membership.
+     * This default implementation uses the {@link #newChildrenInstance()} to initialize the children set and wraps it
+     * in a private set implementation that automagically changes the parent of the elements based on the membership.
      *
      * @return children of this element
      */
@@ -296,7 +298,8 @@ public abstract class SimpleElement implements Element, Cloneable {
      * Sets the parent element. No other processing is automagically done (i.e. the parent's children set is <b>NOT</b>
      * updated by calling this method).
      *
-     * @param parent the new parent element
+     * @param parent
+     *            the new parent element
      */
     @Override
     public void setParent(@Nullable Element parent) {
@@ -305,16 +308,15 @@ public abstract class SimpleElement implements Element, Cloneable {
 
     @Override
     @Nonnull
-    public final List searchChildren(@Nonnull Class resultType, boolean recurse,
-        @Nullable Filter filter) {
+    public final List searchChildren(@Nonnull Class resultType, boolean recurse, @Nullable Filter filter) {
         List results = new ArrayList<>();
         searchChildren(results, resultType, recurse, filter);
         return results;
     }
 
     @Override
-    public final void searchChildren(@Nonnull List results, @Nonnull Class resultType,
-        boolean recurse, @Nullable Filter filter) {
+    public final void searchChildren(@Nonnull List results, @Nonnull Class resultType, boolean recurse,
+            @Nullable Filter filter) {
         for (Element e : getChildren()) {
             if (resultType.isAssignableFrom(e.getClass())) {
                 Object te = resultType.cast(e);
@@ -345,15 +347,14 @@ public abstract class SimpleElement implements Element, Cloneable {
     @Override
     @SuppressWarnings("unchecked")
     @Nonnull
-    public Iterator iterateOverChildren(@Nonnull Class resultType, boolean recurse,
-        @Nullable Filter filter) {
+    public Iterator iterateOverChildren(@Nonnull Class resultType, boolean recurse, @Nullable Filter filter) {
 
         if (children == null) {
             return new EmptyIterator<>();
         }
 
-        return recurse ? new DFSFilteringIterator<>(getChildren().iterator(), resultType, filter) :
-            new FilteringIterator<>(getChildren().iterator(), resultType, filter);
+        return recurse ? new DFSFilteringIterator<>(getChildren().iterator(), resultType, filter)
+                : new FilteringIterator<>(getChildren().iterator(), resultType, filter);
     }
 
     @Nonnull

@@ -24,6 +24,7 @@ import org.revapi.java.spi.JavaElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class MissingClassElement extends TypeElement {
@@ -35,11 +36,13 @@ public final class MissingClassElement extends TypeElement {
         element = new MissingTypeElement(canonicalName);
     }
 
-    @Override public javax.lang.model.element.TypeElement getDeclaringElement() {
+    @Override
+    public javax.lang.model.element.TypeElement getDeclaringElement() {
         return element;
     }
 
-    @Override public DeclaredType getModelRepresentation() {
+    @Override
+    public DeclaredType getModelRepresentation() {
         return (DeclaredType) element.asType();
     }
 

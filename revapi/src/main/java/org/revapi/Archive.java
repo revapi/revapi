@@ -23,6 +23,7 @@ import java.io.InputStream;
  * A simple abstraction of a file or archive. The archive merely has a name and can be opened as a stream.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface Archive {
@@ -31,8 +32,8 @@ public interface Archive {
     InputStream openStream() throws IOException;
 
     /**
-     * Extension of the archive interface that can also provide the version of the archive. This can be used by
-     * certain extensions like the {@code SemverIgnoreTransform}.
+     * Extension of the archive interface that can also provide the version of the archive. This can be used by certain
+     * extensions like the {@code SemverIgnoreTransform}.
      * <p>
      * Note that it is the responsibility of the caller of Revapi to provide archives which implement this interface.
      *

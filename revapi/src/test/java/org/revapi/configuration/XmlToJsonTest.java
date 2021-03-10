@@ -40,6 +40,7 @@ import org.xml.sax.SAXException;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.8.0
  */
 public class XmlToJsonTest {
@@ -164,8 +165,8 @@ public class XmlToJsonTest {
 
     @Test
     public void testObjectConversion() throws Exception {
-        XmlToJson<Node> converter = converter("ext", "{\"type\": \"object\", " +
-                "\"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"boolean\"}}}");
+        XmlToJson<Node> converter = converter("ext", "{\"type\": \"object\", "
+                + "\"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"boolean\"}}}");
         Node xml = xml("<config><ext><a>4</a><b>true</b></ext></config>");
 
         JsonNode config = converter.convertXml(xml).get(0).get("configuration");
@@ -177,9 +178,10 @@ public class XmlToJsonTest {
 
     @Test
     public void testObjectConversion_additionalProperties() throws Exception {
-        XmlToJson<Node> converter = converter("ext", "{\"type\": \"object\", " +
-                "\"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"boolean\"}}, " +
-                        "\"additionalProperties\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}");
+        XmlToJson<Node> converter = converter("ext",
+                "{\"type\": \"object\", "
+                        + "\"properties\": {\"a\": {\"type\": \"integer\"}, \"b\": {\"type\": \"boolean\"}}, "
+                        + "\"additionalProperties\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}");
         Node xml = xml("<config><ext><a>4</a><b>true</b><c/><d><x>x</x></d></ext></config>");
 
         JsonNode config = converter.convertXml(xml).get(0).get("configuration");
@@ -232,8 +234,9 @@ public class XmlToJsonTest {
 
     @Test
     public void testObjectConversion_with$refs() throws Exception {
-        XmlToJson<Node> converter = converter("ext", "{\"type\": \"object\", \"properties\": {\"a\": {\"$ref\": \"#/definitions/a\"}}, " +
-                "\"definitions\": {\"a\": {\"type\": \"boolean\"}}}");
+        XmlToJson<Node> converter = converter("ext",
+                "{\"type\": \"object\", \"properties\": {\"a\": {\"$ref\": \"#/definitions/a\"}}, "
+                        + "\"definitions\": {\"a\": {\"type\": \"boolean\"}}}");
         Node xml = xml("<config><ext><a>true</a></ext></config>");
 
         JsonNode config = converter.convertXml(xml).get(0).get("configuration");
@@ -244,7 +247,8 @@ public class XmlToJsonTest {
 
     @Test
     public void testOneOf() throws Exception {
-        XmlToJson<Node> converter = converter("ext", "{\"oneOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
+        XmlToJson<Node> converter = converter("ext",
+                "{\"oneOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
         Node xml1 = xml("<config><ext>1</ext></config>");
         Node xml2 = xml("<config><ext>true</ext></config>");
         Node xml3 = xml("<config><ext>asdf</ext></config>");
@@ -253,7 +257,7 @@ public class XmlToJsonTest {
             converter.convertXml(xml1).get(0).get("configuration");
             Assert.fail("Invalid config should not have been converted.");
         } catch (IllegalArgumentException __) {
-            //good
+            // good
         }
         JsonNode c2 = converter.convertXml(xml2).get(0).get("configuration");
 
@@ -261,7 +265,7 @@ public class XmlToJsonTest {
             converter.convertXml(xml3).get(0).get("configuration");
             Assert.fail("Invalid configuration should not have been converted.");
         } catch (IllegalArgumentException __) {
-            //good
+            // good
         }
 
         Assert.assertNotNull(c2);
@@ -271,22 +275,13 @@ public class XmlToJsonTest {
 
     @Test
     public void testOneOf_primitiveAndObject() throws Exception {
-        XmlToJson<Node> converter = converter("ext", "{\n" +
-                "\"oneOf\" : [\n" +
-                "    {\"type\" : \"string\"},\n" +
-                "    {\n" +
-                "          \"type\" : \"object\",\n" +
-                "          \"properties\" : {\n" +
-                "              \"matcher\" : {\"type\" : \"string\"},\n" +
-                "              \"match\" : {\"type\" : \"string\"}\n" +
-                "          },\n" +
-                "          \"additionalProperties\" : null\n" +
-                "      }\n" +
-                "  ],\n" +
-                "  \"type\" : null,\n" +
-                "  \"enum\" : null,\n" +
-                "  \"$ref\" : null\n" +
-                "}");
+        XmlToJson<Node> converter = converter("ext",
+                "{\n" + "\"oneOf\" : [\n" + "    {\"type\" : \"string\"},\n" + "    {\n"
+                        + "          \"type\" : \"object\",\n" + "          \"properties\" : {\n"
+                        + "              \"matcher\" : {\"type\" : \"string\"},\n"
+                        + "              \"match\" : {\"type\" : \"string\"}\n" + "          },\n"
+                        + "          \"additionalProperties\" : null\n" + "      }\n" + "  ],\n"
+                        + "  \"type\" : null,\n" + "  \"enum\" : null,\n" + "  \"$ref\" : null\n" + "}");
         Node xml1 = xml("<config><ext>class test.Dep</ext></config>");
         Node xml2 = xml("<config><ext><matcher>kachna</matcher><match>kachny</match></ext></config>");
 
@@ -305,7 +300,8 @@ public class XmlToJsonTest {
 
     @Test
     public void testAnyOf() throws Exception {
-        XmlToJson<Node> converter = converter("ext", "{\"anyOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
+        XmlToJson<Node> converter = converter("ext",
+                "{\"anyOf\": [{\"type\": \"integer\"}, {\"type\": \"number\"}, {\"type\": \"boolean\"}]}");
         Node xml1 = xml("<config><ext>1</ext></config>");
         Node xml2 = xml("<config><ext>true</ext></config>");
         Node xml3 = xml("<config><ext>asdf</ext></config>");
@@ -317,7 +313,7 @@ public class XmlToJsonTest {
             converter.convertXml(xml3).get(0).get("configuration");
             Assert.fail("Invalid configuration should not have been converted.");
         } catch (IllegalArgumentException __) {
-            //good
+            // good
         }
 
         Assert.assertNotNull(c1);
@@ -344,7 +340,8 @@ public class XmlToJsonTest {
 
     @Test
     public void testDeepReferences() throws Exception {
-        XmlToJson<Node> converter = converter("ext", "{\"definitions\": {\"blah\": {\"type\": \"boolean\"}}, \"oneOf\": [{\"type\": \"integer\"}, {\"$ref\": \"#/definitions/blah\"}]}");
+        XmlToJson<Node> converter = converter("ext",
+                "{\"definitions\": {\"blah\": {\"type\": \"boolean\"}}, \"oneOf\": [{\"type\": \"integer\"}, {\"$ref\": \"#/definitions/blah\"}]}");
         Node xml = xml("<config><ext>true</ext></config>");
 
         JsonNode c = converter.convertXml(xml).get(0).get("configuration");
@@ -372,35 +369,30 @@ public class XmlToJsonTest {
 
         List<Short> nonChildrenNodeTypes = Arrays.asList(Node.TEXT_NODE, Node.CDATA_SECTION_NODE, Node.COMMENT_NODE);
 
-        return XmlToJson.fromKnownSchemas(exts,
-                Node::getNodeName,
-                n -> {
-                    if (n.getChildNodes().getLength() == 1) {
-                        Node textOrSomething = n.getFirstChild();
-                        if (textOrSomething.getNodeType() == Node.TEXT_NODE ||
-                                textOrSomething.getNodeType() == Node.CDATA_SECTION_NODE) {
-                            return textOrSomething.getNodeValue();
-                        }
-                    }
+        return XmlToJson.fromKnownSchemas(exts, Node::getNodeName, n -> {
+            if (n.getChildNodes().getLength() == 1) {
+                Node textOrSomething = n.getFirstChild();
+                if (textOrSomething.getNodeType() == Node.TEXT_NODE
+                        || textOrSomething.getNodeType() == Node.CDATA_SECTION_NODE) {
+                    return textOrSomething.getNodeValue();
+                }
+            }
 
-                    return null;
-                },
-                (n, name) -> {
-                    NamedNodeMap attrs = n.getAttributes();
-                    if (attrs == null) {
-                        return null;
-                    }
+            return null;
+        }, (n, name) -> {
+            NamedNodeMap attrs = n.getAttributes();
+            if (attrs == null) {
+                return null;
+            }
 
-                    Node attr = attrs.getNamedItem(name);
-                    if (attr == null) {
-                        return null;
-                    }
+            Node attr = attrs.getNamedItem(name);
+            if (attr == null) {
+                return null;
+            }
 
-                    return attr.getNodeValue();
-                },
-                n -> new NodeListList(n.getChildNodes()).stream()
-                        .filter(x -> !nonChildrenNodeTypes.contains(x.getNodeType()))
-                        .collect(Collectors.toList()));
+            return attr.getNodeValue();
+        }, n -> new NodeListList(n.getChildNodes()).stream()
+                .filter(x -> !nonChildrenNodeTypes.contains(x.getNodeType())).collect(Collectors.toList()));
     }
 
     private static final class NodeListList extends AbstractList<Node> {
@@ -411,11 +403,13 @@ public class XmlToJsonTest {
             this.list = list;
         }
 
-        @Override public Node get(int index) {
+        @Override
+        public Node get(int index) {
             return list.item(index);
         }
 
-        @Override public int size() {
+        @Override
+        public int size() {
             return list.getLength();
         }
     }

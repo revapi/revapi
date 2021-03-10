@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,9 +31,11 @@ import org.revapi.Element;
  * filter.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
+ * 
  * @deprecated This always had very limited utility and {@link Element#stream(Class, boolean)} seems to be a more usable
- * alternative.
+ *             alternative.
  */
 @Deprecated
 public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
@@ -46,14 +48,16 @@ public class DFSFilteringIterator<E extends Element> implements Iterator<E> {
     /**
      * Constructor.
      *
-     * @param rootIterator the iterator over the root elements of the forest
-     * @param resultClass  the class of the elements to look for in the forest. All the returned elements will be
-     *                     assignable to this class.
-     * @param filter       optional filter that further filters out unwanted elements.
+     * @param rootIterator
+     *            the iterator over the root elements of the forest
+     * @param resultClass
+     *            the class of the elements to look for in the forest. All the returned elements will be assignable to
+     *            this class.
+     * @param filter
+     *            optional filter that further filters out unwanted elements.
      */
     public DFSFilteringIterator(@Nonnull Iterator<? extends Element> rootIterator,
-        @Nonnull Class<? extends E> resultClass,
-        @Nullable Filter<? super E> filter) {
+            @Nonnull Class<? extends E> resultClass, @Nullable Filter<? super E> filter) {
         dfsStack.push(rootIterator);
         this.resultClass = resultClass;
         this.filter = filter;

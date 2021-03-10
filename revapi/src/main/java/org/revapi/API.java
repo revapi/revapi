@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
  * Represents a set of archives that define an API.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class API {
@@ -94,14 +95,15 @@ public final class API {
     private final Iterable<? extends Archive> supplementaryArchives;
 
     /**
-     * @param archives the archives
-     * @param supplementaryArchives the supplementary archives
+     * @param archives
+     *            the archives
+     * @param supplementaryArchives
+     *            the supplementary archives
      *
      * @see #getArchives()
      * @see #getSupplementaryArchives()
      */
-    public API(Iterable<? extends Archive> archives,
-        @Nullable Iterable<? extends Archive> supplementaryArchives) {
+    public API(Iterable<? extends Archive> archives, @Nullable Iterable<? extends Archive> supplementaryArchives) {
         this.archives = archives;
         this.supplementaryArchives = supplementaryArchives;
     }
@@ -126,10 +128,9 @@ public final class API {
     }
 
     /**
-     * The set of archives that somehow supplement the main ones (for example they contain
-     * definitions used in the main archives). In Java, supplementary archives would be
-     * the JARs that need to be on the compilation classpath. Can be null if no such
-     * archives are needed.
+     * The set of archives that somehow supplement the main ones (for example they contain definitions used in the main
+     * archives). In Java, supplementary archives would be the JARs that need to be on the compilation classpath. Can be
+     * null if no such archives are needed.
      *
      * @return the set of supplementary archives
      */
@@ -140,7 +141,10 @@ public final class API {
 
     /**
      * Returns the role of the archive in the API.
-     * @param archive the archive to check
+     * 
+     * @param archive
+     *            the archive to check
+     * 
      * @return the role of the archive in the API
      */
     public Archive.Role getArchiveRole(Archive archive) {

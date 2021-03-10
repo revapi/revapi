@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@ import org.revapi.Reporter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.2
  */
 public final class AntReporter implements Reporter {
@@ -77,7 +78,7 @@ public final class AntReporter implements Reporter {
             StringBuilder message = new StringBuilder();
 
             message.append(element.getFullHumanReadableString()).append(": ").append(difference.code).append(": ")
-                .append(difference.description).append(" [");
+                    .append(difference.description).append(" [");
 
             for (Map.Entry<CompatibilityType, DifferenceSeverity> e : difference.classification.entrySet()) {
                 message.append(e.getKey()).append(": ").append(e.getValue()).append(", ");
@@ -93,7 +94,9 @@ public final class AntReporter implements Reporter {
     public void close() throws Exception {
     }
 
-    @Nullable @Override public String getExtensionId() {
+    @Nullable
+    @Override
+    public String getExtensionId() {
         return "revapi.ant.internal.reporter";
     }
 

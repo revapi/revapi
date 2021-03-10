@@ -35,9 +35,9 @@ public final class FilterFinishResult {
     private final boolean inherited;
 
     /**
-     * Similar to {@link FilterStartResult#defaultResult()}, this returns a finish result that is undecided about
-     * the match and is marked as inherited. This means that if there are any other results that need to be combined
-     * with this one, those results will take precedence.
+     * Similar to {@link FilterStartResult#defaultResult()}, this returns a finish result that is undecided about the
+     * match and is marked as inherited. This means that if there are any other results that need to be combined with
+     * this one, those results will take precedence.
      */
     public static FilterFinishResult defaultResult() {
         return from(UNDECIDED, true);
@@ -58,9 +58,12 @@ public final class FilterFinishResult {
     }
 
     /**
-     * The return filter finish result will have the result of the match and will not be inherited, meaning that it
-     * was intended directly for the elements the filter was processed upon.
-     * @param match the result of the filter
+     * The return filter finish result will have the result of the match and will not be inherited, meaning that it was
+     * intended directly for the elements the filter was processed upon.
+     * 
+     * @param match
+     *            the result of the filter
+     * 
      * @return the filter finish result
      */
     public static FilterFinishResult direct(Ternary match) {
@@ -70,7 +73,9 @@ public final class FilterFinishResult {
     /**
      * Produces a filter finish result that indicates it was inherited from the provided result.
      *
-     * @param parent the result to inherit from
+     * @param parent
+     *            the result to inherit from
+     * 
      * @return an inherited filter finish result
      */
     public static FilterFinishResult inherit(FilterFinishResult parent) {
@@ -79,8 +84,12 @@ public final class FilterFinishResult {
 
     /**
      * A factory method for filter finish results.
-     * @param match the result of the filtering
-     * @param inherited whether the finish result is inherited or explicit
+     * 
+     * @param match
+     *            the result of the filtering
+     * @param inherited
+     *            whether the finish result is inherited or explicit
+     * 
      * @return the filter finish result
      */
     public static FilterFinishResult from(Ternary match, boolean inherited) {
@@ -98,7 +107,10 @@ public final class FilterFinishResult {
 
     /**
      * Converts the provided start result into a finish result.
-     * @param startResult the start result to convert
+     * 
+     * @param startResult
+     *            the start result to convert
+     * 
      * @return the converted finish result
      */
     public static FilterFinishResult from(FilterStartResult startResult) {
@@ -118,8 +130,8 @@ public final class FilterFinishResult {
     }
 
     /**
-     * Tells whether the result is implicitly inherited from some parent element or if it was explicitly evaluated
-     * on some element.
+     * Tells whether the result is implicitly inherited from some parent element or if it was explicitly evaluated on
+     * some element.
      */
     public boolean isInherited() {
         return inherited;
@@ -233,9 +245,6 @@ public final class FilterFinishResult {
 
     @Override
     public String toString() {
-        return "FilterEndResult{" +
-                "match=" + match +
-                ", inherited=" + inherited +
-                '}';
+        return "FilterEndResult{" + "match=" + match + ", inherited=" + inherited + '}';
     }
 }

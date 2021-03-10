@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,13 +24,13 @@ import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class VisibilityReduced extends VisibilityChanged {
     public VisibilityReduced() {
         super(Code.CLASS_VISIBILITY_REDUCED, false);
     }
-
 
     @Override
     public EnumSet<Type> getInterest() {

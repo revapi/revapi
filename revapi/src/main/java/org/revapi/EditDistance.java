@@ -25,8 +25,9 @@ import java.util.function.BiPredicate;
 
 /**
  * A helper class for {@link CorrespondenceComparatorDeducer#editDistance(BiPredicate)}.
- * <p>Strongly inspired by
- * <a href="https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm">the wikipedia entry on the subject</a>.
+ * <p>
+ * Strongly inspired by <a href="https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm">the wikipedia entry on
+ * the subject</a>.
  */
 final class EditDistance {
 

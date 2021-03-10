@@ -38,19 +38,20 @@ import org.revapi.base.BaseReporter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.3.3
  */
 public class AnalysisTest {
 
     @Test
     public void testTransformCycleDetection() throws Exception {
-        Revapi r = Revapi.builder().withAnalyzers(DummyAnalyzer.class)
-                .withTransforms(CloningDifferenceTransform.class).withReporters(DummyReporter.class).build();
+        Revapi r = Revapi.builder().withAnalyzers(DummyAnalyzer.class).withTransforms(CloningDifferenceTransform.class)
+                .withReporters(DummyReporter.class).build();
 
         AnalysisContext ctx = AnalysisContext.builder(r).withNewAPI(API.of().build()).withOldAPI(API.of().build())
                 .build();
 
-        //should not throw exception
+        // should not throw exception
         try (AnalysisResult res = r.analyze(ctx)) {
             Assert.assertTrue(res.isSuccess());
         }
@@ -65,7 +66,7 @@ public class AnalysisTest {
         AnalysisContext ctx = AnalysisContext.builder(r).withNewAPI(API.of().build()).withOldAPI(API.of().build())
                 .build();
 
-        //should throw exception
+        // should throw exception
         try (AnalysisResult res = r.analyze(ctx)) {
             Assert.assertFalse(res.isSuccess());
         }
@@ -86,12 +87,13 @@ public class AnalysisTest {
 
         @Override
         public @Nonnull Pattern[] getDifferenceCodePatterns() {
-            return new Pattern[]{Pattern.compile("code")};
+            return new Pattern[] { Pattern.compile("code") };
         }
 
         @Override
-        public @Nullable Difference transform(@Nullable DummyElement oldElement, @Nullable DummyElement newElement, @Nonnull Difference d) {
-            if ( d.classification.get( CompatibilityType.BINARY ) != null ) {
+        public @Nullable Difference transform(@Nullable DummyElement oldElement, @Nullable DummyElement newElement,
+                @Nonnull Difference d) {
+            if (d.classification.get(CompatibilityType.BINARY) != null) {
                 return d;
             }
             return null;
@@ -120,11 +122,12 @@ public class AnalysisTest {
 
         @Override
         public @Nonnull Pattern[] getDifferenceCodePatterns() {
-            return new Pattern[]{Pattern.compile("code")};
+            return new Pattern[] { Pattern.compile("code") };
         }
 
         @Override
-        public @Nullable Difference transform(@Nullable DummyElement oldElement, @Nullable DummyElement newElement, @Nonnull Difference d) {
+        public @Nullable Difference transform(@Nullable DummyElement oldElement, @Nullable DummyElement newElement,
+                @Nonnull Difference d) {
             return Difference.builder().withCode(d.code).withName(d.name).withDescription(d.description)
                     .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).build();
         }
@@ -152,11 +155,12 @@ public class AnalysisTest {
 
         @Override
         public @Nonnull Pattern[] getDifferenceCodePatterns() {
-            return new Pattern[]{Pattern.compile("code")};
+            return new Pattern[] { Pattern.compile("code") };
         }
 
         @Override
-        public @Nullable Difference transform(@Nullable DummyElement oldElement, @Nullable DummyElement newElement, @Nonnull Difference d) {
+        public @Nullable Difference transform(@Nullable DummyElement oldElement, @Nullable DummyElement newElement,
+                @Nonnull Difference d) {
             return Difference.builder().withCode(d.code).withName(d.name).withDescription(d.description)
                     .addClassifications(d.classification).build();
         }
@@ -195,8 +199,8 @@ public class AnalysisTest {
 
     public static final class DummyAnalyzer extends BaseApiAnalyzer<DummyElement> {
 
-        private final BiFunction<DummyElement, DummyElement, Report> differenceAnalyzer = (o, n) ->
-                Report.builder().withNew(n).withOld(o).addProblem().withCode("code").done().build();;
+        private final BiFunction<DummyElement, DummyElement, Report> differenceAnalyzer = (o, n) -> Report.builder()
+                .withNew(n).withOld(o).addProblem().withCode("code").done().build();;
 
         @Override
         public @Nonnull ArchiveAnalyzer<DummyElement> getArchiveAnalyzer(@Nonnull API api) {
@@ -205,7 +209,7 @@ public class AnalysisTest {
 
         @Override
         public DummyDifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer<DummyElement> oldArchive,
-                                                                 @Nonnull ArchiveAnalyzer<DummyElement> newArchive) {
+                @Nonnull ArchiveAnalyzer<DummyElement> newArchive) {
             return new DummyDifferenceAnalyzer(differenceAnalyzer);
         }
 

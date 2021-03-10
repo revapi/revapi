@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.revapi.maven;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.6.0
  */
 final class Props {
@@ -32,6 +33,7 @@ final class Props {
         static final String NAME = "";
         static final String DEFAULT_VALUE = "";
     }
+
     static final class analysisConfigurationFiles {
         static final String NAME = PREFIX + "analysisConfigurationFiles";
         static final String DEFAULT_VALUE = "";

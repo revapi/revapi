@@ -31,9 +31,9 @@ import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 
 /**
- * A tree filter that uses a combination of an include and exclude filters to arrive at the filtering decisions.
- * If there is no include filter defined, everything is included. If there is an exclude filter defined, it excludes
- * from the included elements.
+ * A tree filter that uses a combination of an include and exclude filters to arrive at the filtering decisions. If
+ * there is no include filter defined, everything is included. If there is an exclude filter defined, it excludes from
+ * the included elements.
  *
  * @param <E>
  */
@@ -46,8 +46,10 @@ public class IncludeExcludeTreeFilter<E extends Element<E>> extends BaseTreeFilt
     /**
      * A lack of any include or exclude filter needs to be expressed as a null value.
      *
-     * @param include the include filter or null if there is no include filter
-     * @param exclude the exclude filter or null if there is no exclude filter
+     * @param include
+     *            the include filter or null if there is no include filter
+     * @param exclude
+     *            the exclude filter or null if there is no exclude filter
      */
     public IncludeExcludeTreeFilter(@Nullable TreeFilter<E> include, @Nullable TreeFilter<E> exclude) {
         this.include = include;
@@ -95,12 +97,12 @@ public class IncludeExcludeTreeFilter<E extends Element<E>> extends BaseTreeFilt
         // TODO we can't remove the result from the progress because revapi-java does out-of-order filtering of methods
         // revapi-java needs to be fixed because that breaks the contract of the TreeFilter... But let's just not at
         // this moment, because there are big changes planeed for revapi-java anyway.
-//        if ((inclusion == null || inclusion.getMatch() != Ternary.UNDECIDED) &&
-//                (exclusion == null || exclusion.getMatch() != Ternary.UNDECIDED)) {
-//            currentResult = progress.remove(element);
-//        } else {
-//            currentResult = progress.get(element);
-//        }
+        // if ((inclusion == null || inclusion.getMatch() != Ternary.UNDECIDED) &&
+        // (exclusion == null || exclusion.getMatch() != Ternary.UNDECIDED)) {
+        // currentResult = progress.remove(element);
+        // } else {
+        // currentResult = progress.get(element);
+        // }
         currentResult = progress.get(element);
 
         if (currentResult == null) {

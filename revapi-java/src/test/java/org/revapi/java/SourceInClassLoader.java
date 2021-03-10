@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ import javax.tools.SimpleJavaFileObject;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1.0
  */
 class SourceInClassLoader extends SimpleJavaFileObject {
@@ -47,9 +48,9 @@ class SourceInClassLoader extends SimpleJavaFileObject {
         StringBuilder bld = new StringBuilder();
 
         Reader rdr = openReader(ignoreEncodingErrors);
-        char[] buffer = new char[512]; //our source files are small
+        char[] buffer = new char[512]; // our source files are small
 
-        for (int cnt; (cnt = rdr.read(buffer)) != -1; ) {
+        for (int cnt; (cnt = rdr.read(buffer)) != -1;) {
             bld.append(buffer, 0, cnt);
         }
 

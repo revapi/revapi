@@ -34,9 +34,9 @@ import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.Util;
 
 /**
- * This is a solution to the removal of package and class filtering directly in the classpath scanner.
- * We need something that people will be able to use until this functionality is removed for good and only the variant
- * with revapi.filter and the java matcher are available.
+ * This is a solution to the removal of package and class filtering directly in the classpath scanner. We need something
+ * that people will be able to use until this functionality is removed for good and only the variant with revapi.filter
+ * and the java matcher are available.
  *
  * @deprecated This is deprecated because it is a temporary measure
  */
@@ -51,7 +51,8 @@ public class ClassFilter extends OverridableIncludeExcludeTreeFilter<JavaElement
     }
 
     // package private so that we can reuse this in the PackageFilter
-    static @Nullable TreeFilter<JavaElement> asFilter(Pattern[] patterns, Function<Pattern, TreeFilter<JavaElement>> toFilter) {
+    static @Nullable TreeFilter<JavaElement> asFilter(Pattern[] patterns,
+            Function<Pattern, TreeFilter<JavaElement>> toFilter) {
         if (patterns == null || patterns.length == 0) {
             return null;
         }
@@ -73,7 +74,6 @@ public class ClassFilter extends OverridableIncludeExcludeTreeFilter<JavaElement
             }
         };
     }
-
 
     private static JavaTypeElement findType(JavaElement el) {
         while (el != null && !(el instanceof JavaTypeElement)) {

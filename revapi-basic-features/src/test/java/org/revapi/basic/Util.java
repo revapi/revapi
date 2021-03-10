@@ -53,6 +53,7 @@ import org.revapi.TreeFilterProvider;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.6.0
  */
 final class Util {
@@ -66,8 +67,9 @@ final class Util {
         return dummyRevapi(extensionType).prepareAnalysis(fullCtx).getFirstConfigurationOrNull(extensionType);
     }
 
-    static AnalysisContext setAnalysisContextFullConfig(AnalysisContext.Builder bld, Class<?> extensionType, String fullConfig) {
-        AnalysisContext fullCtx =bld.withConfigurationFromJSON(fullConfig).build();
+    static AnalysisContext setAnalysisContextFullConfig(AnalysisContext.Builder bld, Class<?> extensionType,
+            String fullConfig) {
+        AnalysisContext fullCtx = bld.withConfigurationFromJSON(fullConfig).build();
         return dummyRevapi(extensionType).prepareAnalysis(fullCtx).getFirstConfigurationOrNull(extensionType);
     }
 
@@ -100,11 +102,11 @@ final class Util {
             transform.endTraversal(otr.orElse(null));
         }
     }
+
     private static Revapi dummyRevapi(Class<?> extensionType) {
         Set<Class<? extends ApiAnalyzer>> analyzers = setOrEmpty(ApiAnalyzer.class, extensionType);
         Set<Class<? extends TreeFilterProvider>> filters = setOrEmpty(TreeFilterProvider.class, extensionType);
-        Set<Class<? extends DifferenceTransform>> transforms
-                = setOrEmpty(DifferenceTransform.class, extensionType);
+        Set<Class<? extends DifferenceTransform>> transforms = setOrEmpty(DifferenceTransform.class, extensionType);
         Set<Class<? extends Reporter>> reporters = setOrEmpty(Reporter.class, extensionType);
         Set<Class<? extends ElementMatcher>> matchers = setOrEmpty(ElementMatcher.class, extensionType);
 

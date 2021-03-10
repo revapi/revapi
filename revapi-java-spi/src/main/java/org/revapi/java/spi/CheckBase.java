@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,16 +32,18 @@ import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 
 /**
- * A basic implementation of the {@link Check} interface. This class easies the matching of the {@code visit*()}
- * methods and their corresponding {@link #visitEnd()} by keeping track of the "depth" individual calls (see the
- * recursive
+ * A basic implementation of the {@link Check} interface. This class easies the matching of the {@code visit*()} methods
+ * and their corresponding {@link #visitEnd()} by keeping track of the "depth" individual calls (see the recursive
  * nature of the {@link org.revapi.java.spi.Check call order}).
  *
- * <p>This class also contains a couple of utility methods for checking the accessibility of elements, etc.
+ * <p>
+ * This class also contains a couple of utility methods for checking the accessibility of elements, etc.
  *
  * @author Lukas Krejci
+ * 
  * @see #pushActive(JavaElement, JavaElement, Object...)
  * @see #popIfActive()
+ * 
  * @since 0.1
  */
 public abstract class CheckBase implements Check {
@@ -60,8 +62,11 @@ public abstract class CheckBase implements Check {
      * Checks whether both provided elements are (package) private. If one of them is null, the fact cannot be
      * determined and therefore this method would return false.
      *
-     * @param a first element
-     * @param b second element
+     * @param a
+     *            first element
+     * @param b
+     *            second element
+     * 
      * @return true if both elements are not null and are private or package private
      */
     public boolean isBothPrivate(@Nullable JavaModelElement a, @Nullable JavaModelElement b) {
@@ -76,8 +81,11 @@ public abstract class CheckBase implements Check {
      * Checks whether both provided elements are public or protected. If one at least one of them is null, the method
      * returns false, because the accessibility cannot be truthfully detected in that case.
      *
-     * @param a first element
-     * @param b second element
+     * @param a
+     *            first element
+     * @param b
+     *            second element
+     * 
      * @return true if both elements are not null and accessible (i.e. public or protected)
      */
     public boolean isBothAccessible(@Nullable JavaModelElement a, @Nullable JavaModelElement b) {
@@ -93,7 +101,9 @@ public abstract class CheckBase implements Check {
      * Additionally, if the provided element is a type, it must be in API or, if it is not a type, its nearest enclosing
      * type must be in API.
      *
-     * @param e the element to check
+     * @param e
+     *            the element to check
+     * 
      * @return true if the provided element is accessible and in API, false otherwise.
      */
     public boolean isAccessible(@Nonnull JavaModelElement e) {
@@ -129,7 +139,8 @@ public abstract class CheckBase implements Check {
      * The element is deemed missing if its type kind ({@link javax.lang.model.type.TypeMirror#getKind()}) is
      * {@link TypeKind#ERROR}.
      *
-     * @param e the element
+     * @param e
+     *            the element
      *
      * @return true if the element is missing, false otherwise
      */
@@ -138,10 +149,11 @@ public abstract class CheckBase implements Check {
     }
 
     /**
-     * Represents the elements that have been {@link #pushActive(JavaElement, JavaElement, Object...) pushed} onto
-     * the active elements stack.
+     * Represents the elements that have been {@link #pushActive(JavaElement, JavaElement, Object...) pushed} onto the
+     * active elements stack.
      *
-     * @param <T> the type of elements
+     * @param <T>
+     *            the type of elements
      */
     protected static class ActiveElements<T extends JavaElement> {
         public final T oldElement;
@@ -173,9 +185,8 @@ public abstract class CheckBase implements Check {
 
     @Nonnull
     protected Difference createDifferenceWithExplicitParams(@Nonnull Code code,
-                                                            LinkedHashMap<String, String> attachments,
-                                                            String... params) {
-            return code.createDifference(getAnalysisContext().getLocale(), attachments, params);
+            LinkedHashMap<String, String> attachments, String... params) {
+        return code.createDifference(getAnalysisContext().getLocale(), attachments, params);
     }
 
     @Nonnull
@@ -231,10 +242,10 @@ public abstract class CheckBase implements Check {
         try {
             return doEnd();
         } finally {
-            //defensive pop if the doEnd "forgets" to do it.
-            //this is to prevent accidental retrieval of wrong data in the case the last active element was pushed
-            //by a "sibling" call which forgot to pop it. The current visit* + end combo would think it was active
-            //even if the visit call didn't push anything to the stack.
+            // defensive pop if the doEnd "forgets" to do it.
+            // this is to prevent accidental retrieval of wrong data in the case the last active element was pushed
+            // by a "sibling" call which forgot to pop it. The current visit* + end combo would think it was active
+            // even if the visit call didn't push anything to the stack.
             popIfActive();
             depth--;
         }
@@ -246,8 +257,7 @@ public abstract class CheckBase implements Check {
     }
 
     /**
-     * Please override the
-     * {@link #doVisitClass(JavaTypeElement, JavaTypeElement)}
+     * Please override the {@link #doVisitClass(JavaTypeElement, JavaTypeElement)}
      *
      * @see Check#visitClass(JavaTypeElement, JavaTypeElement)
      */
@@ -261,9 +271,7 @@ public abstract class CheckBase implements Check {
     }
 
     /**
-     * Please override the
-     * {@link #doVisitMethod(JavaMethodElement, JavaMethodElement)}
-     * instead.
+     * Please override the {@link #doVisitMethod(JavaMethodElement, JavaMethodElement)} instead.
      *
      * @see Check#visitMethod(JavaMethodElement, JavaMethodElement)
      */
@@ -278,20 +286,18 @@ public abstract class CheckBase implements Check {
 
     @Override
     public final void visitMethodParameter(@Nullable JavaMethodParameterElement oldParameter,
-        @Nullable JavaMethodParameterElement newParameter) {
+            @Nullable JavaMethodParameterElement newParameter) {
         depth++;
         doVisitMethodParameter(oldParameter, newParameter);
     }
 
     @SuppressWarnings("UnusedParameters")
     protected void doVisitMethodParameter(@Nullable JavaMethodParameterElement oldParameter,
-        @Nullable JavaMethodParameterElement newParameter) {
+            @Nullable JavaMethodParameterElement newParameter) {
     }
 
     /**
-     * Please override the
-     * {@link #doVisitField(JavaFieldElement, JavaFieldElement)}
-     * instead.
+     * Please override the {@link #doVisitField(JavaFieldElement, JavaFieldElement)} instead.
      *
      * @see Check#visitField(JavaFieldElement, JavaFieldElement)
      */
@@ -305,16 +311,14 @@ public abstract class CheckBase implements Check {
     }
 
     /**
-     * Please override the
-     * {@link #doVisitAnnotation(JavaAnnotationElement, JavaAnnotationElement)}
-     * instead.
+     * Please override the {@link #doVisitAnnotation(JavaAnnotationElement, JavaAnnotationElement)} instead.
      *
      * @see Check#visitAnnotation(JavaAnnotationElement, JavaAnnotationElement)
      */
     @Nullable
     @Override
     public final List<Difference> visitAnnotation(@Nullable JavaAnnotationElement oldAnnotation,
-        @Nullable JavaAnnotationElement newAnnotation) {
+            @Nullable JavaAnnotationElement newAnnotation) {
         depth++;
         List<Difference> ret = doVisitAnnotation(oldAnnotation, newAnnotation);
         depth--;
@@ -323,25 +327,29 @@ public abstract class CheckBase implements Check {
 
     @Nullable
     protected List<Difference> doVisitAnnotation(@Nullable JavaAnnotationElement oldAnnotation,
-        @Nullable JavaAnnotationElement newAnnotation) {
+            @Nullable JavaAnnotationElement newAnnotation) {
         return null;
     }
 
     /**
-     * If called in one of the {@code doVisit*()} methods, this method will push the elements along with some
-     * contextual
+     * If called in one of the {@code doVisit*()} methods, this method will push the elements along with some contextual
      * data onto an internal stack.
      *
-     * <p>You can then retrieve the contents on the top of the stack in your {@link #doEnd()} override by calling the
+     * <p>
+     * You can then retrieve the contents on the top of the stack in your {@link #doEnd()} override by calling the
      * {@link #popIfActive()} method.
      *
-     * @param oldElement the old API element
-     * @param newElement the new API element
-     * @param context    optional contextual data
-     * @param <T>        the type of the elements
+     * @param oldElement
+     *            the old API element
+     * @param newElement
+     *            the new API element
+     * @param context
+     *            optional contextual data
+     * @param <T>
+     *            the type of the elements
      */
     protected final <T extends JavaElement> void pushActive(@Nullable T oldElement, @Nullable T newElement,
-        Object... context) {
+            Object... context) {
         ActiveElements<T> r = new ActiveElements<>(depth, oldElement, newElement, activations.peek(), context);
         activations.push(r);
     }
@@ -350,23 +358,25 @@ public abstract class CheckBase implements Check {
      * Pops the top of the stack of active elements if the current position in the call stack corresponds to the one
      * that pushed the active elements.
      *
-     * <p>This method does not do any type checks, so take care to retrieve the elements with the same types used to push
+     * <p>
+     * This method does not do any type checks, so take care to retrieve the elements with the same types used to push
      * to them onto the stack.
      *
-     * @param <T> the type of the elements
+     * @param <T>
+     *            the type of the elements
      *
      * @return the active elements or null if the current call stack did not push any active elements onto the stack
      */
     @Nullable
     @SuppressWarnings("unchecked")
     protected <T extends JavaElement> ActiveElements<T> popIfActive() {
-        return (ActiveElements<T>) (!activations.isEmpty() && activations.peek().depth == depth ? activations.pop() :
-            null);
+        return (ActiveElements<T>) (!activations.isEmpty() && activations.peek().depth == depth ? activations.pop()
+                : null);
     }
 
     /**
      * @return the last activation. This can be called at any point and can refer to any of the enclosing elements of
-     * the currently processed element pair, depending on how this check activated them.
+     *         the currently processed element pair, depending on how this check activated them.
      */
     @Nullable
     protected ActiveElements<?> peekLastActive() {

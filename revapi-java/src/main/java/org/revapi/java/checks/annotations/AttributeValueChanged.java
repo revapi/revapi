@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,12 +33,12 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class AttributeValueChanged extends CheckBase {
     @Override
-    protected List<Difference> doVisitAnnotation(JavaAnnotationElement oldElement,
-        JavaAnnotationElement newElement) {
+    protected List<Difference> doVisitAnnotation(JavaAnnotationElement oldElement, JavaAnnotationElement newElement) {
 
         if (oldElement == null || newElement == null || !isAccessible(newElement.getParent())) {
             return null;
@@ -50,55 +50,47 @@ public final class AttributeValueChanged extends CheckBase {
         List<Difference> result = new ArrayList<>();
 
         Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> oldAttrs = Util
-            .keyAnnotationAttributesByName(oldAnnotation.getElementValues());
+                .keyAnnotationAttributesByName(oldAnnotation.getElementValues());
         Map<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> newAttrs = Util
-            .keyAnnotationAttributesByName(newAnnotation.getElementValues());
+                .keyAnnotationAttributesByName(newAnnotation.getElementValues());
 
         for (Map.Entry<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> oldE : oldAttrs
-            .entrySet()) {
+                .entrySet()) {
 
             String name = oldE.getKey();
             Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> oldValue = oldE.getValue();
             Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> newValue = newAttrs.get(name);
 
             if (newValue == null) {
-                result.add(
-                    createDifference(Code.ANNOTATION_ATTRIBUTE_REMOVED, Code.attachmentsFor(oldElement.getParent(),
-                            newElement.getParent(),
-                            "annotationType", Util.toHumanReadableString(newElement.getAnnotation().getAnnotationType()),
-                            "annotation", Util.toHumanReadableString(newElement.getAnnotation()),
-                            "attribute", name,
-                            "value", Util.toHumanReadableString(oldValue.getValue())))
-                );
+                result.add(createDifference(Code.ANNOTATION_ATTRIBUTE_REMOVED,
+                        Code.attachmentsFor(oldElement.getParent(), newElement.getParent(), "annotationType",
+                                Util.toHumanReadableString(newElement.getAnnotation().getAnnotationType()),
+                                "annotation", Util.toHumanReadableString(newElement.getAnnotation()), "attribute", name,
+                                "value", Util.toHumanReadableString(oldValue.getValue()))));
             } else if (!Util.isEqual(oldValue.getValue(), newValue.getValue())) {
                 result.add(createDifference(Code.ANNOTATION_ATTRIBUTE_VALUE_CHANGED,
-                        Code.attachmentsFor(oldElement.getParent(), newElement.getParent(),
-                                "annotationType", Util.toHumanReadableString(newElement.getAnnotation().getAnnotationType()),
-                                "annotation", Util.toHumanReadableString(newElement.getAnnotation()),
-                                "attribute", name,
-                                "oldValue", Util.toHumanReadableString(oldValue.getValue()),
-                                "newValue", Util.toHumanReadableString(newValue.getValue()))
-                ));
+                        Code.attachmentsFor(oldElement.getParent(), newElement.getParent(), "annotationType",
+                                Util.toHumanReadableString(newElement.getAnnotation().getAnnotationType()),
+                                "annotation", Util.toHumanReadableString(newElement.getAnnotation()), "attribute", name,
+                                "oldValue", Util.toHumanReadableString(oldValue.getValue()), "newValue",
+                                Util.toHumanReadableString(newValue.getValue()))));
             }
 
             newAttrs.remove(name);
         }
 
         for (Map.Entry<String, Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> newE : newAttrs
-            .entrySet()) {
+                .entrySet()) {
             String name = newE.getKey();
             Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> newValue = newE.getValue();
             Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> oldValue = oldAttrs.get(name);
 
             if (oldValue == null) {
-                result.add(
-                    createDifference(Code.ANNOTATION_ATTRIBUTE_ADDED, Code.attachmentsFor(oldElement.getParent(),
-                            newElement.getParent(),
-                            "annotationType", Util.toHumanReadableString(newElement.getAnnotation().getAnnotationType()),
-                            "annotation", Util.toHumanReadableString(newElement.getAnnotation()),
-                            "attribute", name,
-                            "value", Util.toHumanReadableString(newValue.getValue())))
-                );
+                result.add(createDifference(Code.ANNOTATION_ATTRIBUTE_ADDED,
+                        Code.attachmentsFor(oldElement.getParent(), newElement.getParent(), "annotationType",
+                                Util.toHumanReadableString(newElement.getAnnotation().getAnnotationType()),
+                                "annotation", Util.toHumanReadableString(newElement.getAnnotation()), "attribute", name,
+                                "value", Util.toHumanReadableString(newValue.getValue()))));
             }
         }
 

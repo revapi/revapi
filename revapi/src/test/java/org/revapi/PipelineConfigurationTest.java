@@ -39,82 +39,57 @@ public class PipelineConfigurationTest {
     private final ByteBuddy byteBuddy = new ByteBuddy();
 
     @SuppressWarnings("unchecked")
-    private final Class<? extends ApiAnalyzer<?>> analyzerType = (Class) byteBuddy
-            .subclass(Object.class)
-            .name("test.extensions.Analyzer")
-            .implement(ApiAnalyzer.class)
-            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("a"))
-            .make().load(getClass().getClassLoader())
-            .getLoaded();
+    private final Class<? extends ApiAnalyzer<?>> analyzerType = (Class) byteBuddy.subclass(Object.class)
+            .name("test.extensions.Analyzer").implement(ApiAnalyzer.class)
+            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("a")).make()
+            .load(getClass().getClassLoader()).getLoaded();
 
     @SuppressWarnings("unchecked")
-    private final Class<? extends Reporter> reporterType = (Class) byteBuddy
-            .subclass(Object.class)
-            .name("test.extensions.Reporter")
-            .implement(Reporter.class)
-            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("r"))
-            .make().load(getClass().getClassLoader())
-            .getLoaded();
+    private final Class<? extends Reporter> reporterType = (Class) byteBuddy.subclass(Object.class)
+            .name("test.extensions.Reporter").implement(Reporter.class).method(ElementMatchers.named("getExtensionId"))
+            .intercept(FixedValue.value("r")).make().load(getClass().getClassLoader()).getLoaded();
 
     @SuppressWarnings("unchecked")
-    private final Class<? extends ElementFilter> filter1Type = (Class) byteBuddy
-            .subclass(Object.class)
-            .name("test.extensions.Filter1")
-            .implement(ElementFilter.class)
-            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("f1"))
-            .make().load(getClass().getClassLoader())
-            .getLoaded();
+    private final Class<? extends ElementFilter> filter1Type = (Class) byteBuddy.subclass(Object.class)
+            .name("test.extensions.Filter1").implement(ElementFilter.class)
+            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("f1")).make()
+            .load(getClass().getClassLoader()).getLoaded();
 
     @SuppressWarnings("unchecked")
-    private final Class<? extends ElementFilter> filter2Type = (Class) byteBuddy
-            .subclass(Object.class)
-            .name("test.extensions.Filter2")
-            .implement(ElementFilter.class)
-            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("f2"))
-            .make().load(getClass().getClassLoader())
-            .getLoaded();
+    private final Class<? extends ElementFilter> filter2Type = (Class) byteBuddy.subclass(Object.class)
+            .name("test.extensions.Filter2").implement(ElementFilter.class)
+            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("f2")).make()
+            .load(getClass().getClassLoader()).getLoaded();
 
     @SuppressWarnings("unchecked")
-    private final Class<? extends ElementFilter> filter3Type = (Class) byteBuddy
-            .subclass(Object.class)
-            .name("test.extensions.Filter3")
-            .implement(ElementFilter.class)
-            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("f3"))
-            .make().load(getClass().getClassLoader())
-            .getLoaded();
+    private final Class<? extends ElementFilter> filter3Type = (Class) byteBuddy.subclass(Object.class)
+            .name("test.extensions.Filter3").implement(ElementFilter.class)
+            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("f3")).make()
+            .load(getClass().getClassLoader()).getLoaded();
 
     @SuppressWarnings("unchecked")
-    private final Class<? extends DifferenceTransform<?>> transform1Type = (Class) byteBuddy
-            .subclass(Object.class)
-            .name("test.extensions.Transform1")
-            .implement(DifferenceTransform.class)
-            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("t1"))
-            .make().load(getClass().getClassLoader())
-            .getLoaded();
+    private final Class<? extends DifferenceTransform<?>> transform1Type = (Class) byteBuddy.subclass(Object.class)
+            .name("test.extensions.Transform1").implement(DifferenceTransform.class)
+            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("t1")).make()
+            .load(getClass().getClassLoader()).getLoaded();
 
     @SuppressWarnings("unchecked")
-    private final Class<? extends DifferenceTransform<?>> transform2Type = (Class) byteBuddy
-            .subclass(Object.class)
-            .name("test.extensions.Transform2")
-            .implement(DifferenceTransform.class)
-            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("t2"))
-            .make().load(getClass().getClassLoader())
-            .getLoaded();
+    private final Class<? extends DifferenceTransform<?>> transform2Type = (Class) byteBuddy.subclass(Object.class)
+            .name("test.extensions.Transform2").implement(DifferenceTransform.class)
+            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("t2")).make()
+            .load(getClass().getClassLoader()).getLoaded();
 
     @SuppressWarnings("unchecked")
-    private final Class<? extends DifferenceTransform<?>> transform3Type = (Class) byteBuddy
-            .subclass(Object.class)
-            .name("test.extensions.Transform3")
-            .implement(DifferenceTransform.class)
-            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("t3"))
-            .make().load(getClass().getClassLoader())
-            .getLoaded();
+    private final Class<? extends DifferenceTransform<?>> transform3Type = (Class) byteBuddy.subclass(Object.class)
+            .name("test.extensions.Transform3").implement(DifferenceTransform.class)
+            .method(ElementMatchers.named("getExtensionId")).intercept(FixedValue.value("t3")).make()
+            .load(getClass().getClassLoader()).getLoaded();
 
     @Test
     public void testEmptyConfigIncludesAllExtensions() {
         PipelineConfiguration cfg = PipelineConfiguration.parse(ModelNode.fromJSONString("{}"), singleton(analyzerType),
-                asList(filter1Type, filter2Type, filter3Type),
-                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType), emptySet());
+                asList(filter1Type, filter2Type, filter3Type), asList(transform1Type, transform2Type, transform3Type),
+                singleton(reporterType), emptySet());
 
         Revapi revapi = new Revapi(cfg);
 
@@ -122,7 +97,8 @@ public class PipelineConfigurationTest {
 
         assertContainsExactlyInstances(fromExtension(exts.getAnalyzers()), analyzerType);
         assertContainsExactlyInstances(fromExtension(exts.getFilters()), filter1Type, filter2Type, filter3Type);
-        assertContainsExactlyInstances(fromExtension(exts.getTransforms()), transform1Type, transform2Type, transform3Type);
+        assertContainsExactlyInstances(fromExtension(exts.getTransforms()), transform1Type, transform2Type,
+                transform3Type);
         assertContainsExactlyInstances(fromExtension(exts.getReporters()), reporterType);
         assertTrue(cfg.getTransformationBlocks().isEmpty());
     }
@@ -130,10 +106,9 @@ public class PipelineConfigurationTest {
     @Test
     public void testOnlyExplicitlyIncludedExtensionsAreConfigured() {
         PipelineConfiguration cfg = PipelineConfiguration.parse(
-                ModelNode.fromJSONString("{\"filters\": {\"include\": [\"f1\"]}}"),
-                singleton(analyzerType),
-                asList(filter1Type, filter2Type, filter3Type),
-                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType), emptySet());
+                ModelNode.fromJSONString("{\"filters\": {\"include\": [\"f1\"]}}"), singleton(analyzerType),
+                asList(filter1Type, filter2Type, filter3Type), asList(transform1Type, transform2Type, transform3Type),
+                singleton(reporterType), emptySet());
 
         Revapi revapi = new Revapi(cfg);
 
@@ -141,7 +116,8 @@ public class PipelineConfigurationTest {
 
         assertContainsExactlyInstances(fromExtension(exts.getAnalyzers()), analyzerType);
         assertContainsExactlyInstances(fromExtension(exts.getFilters()), filter1Type);
-        assertContainsExactlyInstances(fromExtension(exts.getTransforms()), transform1Type, transform2Type, transform3Type);
+        assertContainsExactlyInstances(fromExtension(exts.getTransforms()), transform1Type, transform2Type,
+                transform3Type);
         assertContainsExactlyInstances(fromExtension(exts.getReporters()), reporterType);
         assertTrue(cfg.getTransformationBlocks().isEmpty());
     }
@@ -149,10 +125,9 @@ public class PipelineConfigurationTest {
     @Test
     public void testExplicitlyExcludedExtensionsNotConfigured() {
         PipelineConfiguration cfg = PipelineConfiguration.parse(
-                ModelNode.fromJSONString("{\"filters\": {\"exclude\": [\"f1\"]}}"),
-                singleton(analyzerType),
-                asList(filter1Type, filter2Type, filter3Type),
-                asList(transform1Type, transform2Type, transform3Type), singleton(reporterType), emptySet());
+                ModelNode.fromJSONString("{\"filters\": {\"exclude\": [\"f1\"]}}"), singleton(analyzerType),
+                asList(filter1Type, filter2Type, filter3Type), asList(transform1Type, transform2Type, transform3Type),
+                singleton(reporterType), emptySet());
 
         Revapi revapi = new Revapi(cfg);
 
@@ -160,7 +135,8 @@ public class PipelineConfigurationTest {
 
         assertContainsExactlyInstances(fromExtension(exts.getAnalyzers()), analyzerType);
         assertContainsExactlyInstances(fromExtension(exts.getFilters()), filter2Type, filter3Type);
-        assertContainsExactlyInstances(fromExtension(exts.getTransforms()), transform1Type, transform2Type, transform3Type);
+        assertContainsExactlyInstances(fromExtension(exts.getTransforms()), transform1Type, transform2Type,
+                transform3Type);
         assertContainsExactlyInstances(fromExtension(exts.getReporters()), reporterType);
         assertTrue(cfg.getTransformationBlocks().isEmpty());
     }
@@ -169,8 +145,7 @@ public class PipelineConfigurationTest {
     public void testExcludeRemovesFromInclude() {
         PipelineConfiguration cfg = PipelineConfiguration.parse(
                 ModelNode.fromJSONString("{\"transforms\": {\"include\": [\"t1\", \"t2\"], \"exclude\": [\"t1\"]}}"),
-                singleton(analyzerType),
-                asList(filter1Type, filter2Type, filter3Type),
+                singleton(analyzerType), asList(filter1Type, filter2Type, filter3Type),
                 asList(transform1Type, transform2Type, transform3Type), singleton(reporterType), emptySet());
 
         Revapi revapi = new Revapi(cfg);

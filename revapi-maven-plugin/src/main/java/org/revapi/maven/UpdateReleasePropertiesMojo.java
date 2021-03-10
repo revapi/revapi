@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ import org.apache.maven.project.MavenProject;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
  */
 @Mojo(name = "update-release-properties", requiresDirectInvocation = true)
@@ -46,13 +47,15 @@ public class UpdateReleasePropertiesMojo extends AbstractVersionModifyingMojo {
     @Parameter(name = "releaseVersionSuffix", property = "revapi.releaseVersionSuffix")
     private String releaseVersionSuffix;
 
-    @Override public void execute() throws MojoExecutionException, MojoFailureException {
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
         setPreserveSuffix(false);
         setReplacementSuffix(releaseVersionSuffix);
         super.execute();
     }
 
-    @Override void updateProjectVersion(MavenProject project, Version version) throws MojoExecutionException {
+    @Override
+    void updateProjectVersion(MavenProject project, Version version) throws MojoExecutionException {
         File rpf = getReleasePropertiesFile();
         Properties ps = readProperties(rpf);
 
@@ -82,8 +85,9 @@ public class UpdateReleasePropertiesMojo extends AbstractVersionModifyingMojo {
         }
     }
 
-    @Override void updateProjectParentVersion(MavenProject project, Version version) throws MojoExecutionException {
-        //we don't do this here
+    @Override
+    void updateProjectParentVersion(MavenProject project, Version version) throws MojoExecutionException {
+        // we don't do this here
     }
 
     private File getReleasePropertiesFile() {

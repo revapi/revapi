@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,38 +61,37 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class InheritanceChainChanged extends CheckBase {
 
-    private static final TypeVisitor<Boolean, Void> IS_MISSING_VISITOR =
-            new SimpleTypeVisitor8<Boolean, Void>(false) {
-                @Override
-                public Boolean visitError(ErrorType t, Void __) {
-                    return true;
-                }
+    private static final TypeVisitor<Boolean, Void> IS_MISSING_VISITOR = new SimpleTypeVisitor8<Boolean, Void>(false) {
+        @Override
+        public Boolean visitError(ErrorType t, Void __) {
+            return true;
+        }
 
-                @Override
-                public Boolean visitDeclared(DeclaredType t, Void aVoid) {
-                    return t.asElement().asType().getKind() == TypeKind.ERROR;
-                }
-            };
+        @Override
+        public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+            return t.asElement().asType().getKind() == TypeKind.ERROR;
+        }
+    };
 
-    private static final ElementVisitor<Boolean, Void> IS_THROWABLE_ELEMENT =
-            new SimpleElementVisitor8<Boolean, Void>(false) {
-                @Override
-                public Boolean visitType(TypeElement e, Void aVoid) {
-                    return e.getQualifiedName().contentEquals("java.lang.Throwable");
-                }
-            };
+    private static final ElementVisitor<Boolean, Void> IS_THROWABLE_ELEMENT = new SimpleElementVisitor8<Boolean, Void>(
+            false) {
+        @Override
+        public Boolean visitType(TypeElement e, Void aVoid) {
+            return e.getQualifiedName().contentEquals("java.lang.Throwable");
+        }
+    };
 
-    private static final TypeVisitor<Boolean, Void> IS_THROWABLE =
-            new SimpleTypeVisitor8<Boolean, Void>(false) {
-                @Override
-                public Boolean visitDeclared(DeclaredType t, Void aVoid) {
-                    return t.asElement().accept(IS_THROWABLE_ELEMENT, null);
-                }
-            };
+    private static final TypeVisitor<Boolean, Void> IS_THROWABLE = new SimpleTypeVisitor8<Boolean, Void>(false) {
+        @Override
+        public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+            return t.asElement().accept(IS_THROWABLE_ELEMENT, null);
+        }
+    };
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -140,15 +139,15 @@ public final class InheritanceChainChanged extends CheckBase {
                 }
             }
 
-            //this will give us the equivalent of removed/added superclasses but ordered by the inheritance chain
-            //not by name
+            // this will give us the equivalent of removed/added superclasses but ordered by the inheritance chain
+            // not by name
             removedSuperClasses = retainInCopy(oldSuperClasses, removedSuperClasses);
             addedSuperClasses = retainInCopy(newSuperClasses, addedSuperClasses);
 
             Iterator<TypeMirror> removedIt = removedSuperClasses.iterator();
             Iterator<TypeMirror> addedIt = addedSuperClasses.iterator();
 
-            //always report the most concrete classes
+            // always report the most concrete classes
             if (removedIt.hasNext()) {
                 removedIt.next();
             }
@@ -157,8 +156,9 @@ public final class InheritanceChainChanged extends CheckBase {
                 addedIt.next();
             }
 
-            //ok, now we only have super types left of the most concrete removed/added super class.
-            //we are only going to report those that changed their inheritance hierarchy in the other version of the API.
+            // ok, now we only have super types left of the most concrete removed/added super class.
+            // we are only going to report those that changed their inheritance hierarchy in the other version of the
+            // API.
             removeClassesWithEquivalentSuperClassChain(removedIt, getOldTypeEnvironment(), getNewTypeEnvironment());
             removeClassesWithEquivalentSuperClassChain(addedIt, getNewTypeEnvironment(), getOldTypeEnvironment());
 
@@ -174,7 +174,8 @@ public final class InheritanceChainChanged extends CheckBase {
                         ? Code.CLASS_FINAL_CLASS_INHERITS_FROM_NEW_CLASS
                         : Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS;
 
-                ret.add(createDifference(code, Code.attachmentsFor(types.oldElement, types.newElement, "superClass", str)));
+                ret.add(createDifference(code,
+                        Code.attachmentsFor(types.oldElement, types.newElement, "superClass", str)));
             }
 
             if (containsThrowable(oldSuperClasses) && containsThrowable(newSuperClasses)) {
@@ -204,10 +205,10 @@ public final class InheritanceChainChanged extends CheckBase {
         TypeElement oldType = oldEl.getDeclaringElement();
         TypeElement newType = newEl.getDeclaringElement();
 
-        List<TypeMirror> oldSuperTypes = Util
-                .getAllSuperClasses(getOldTypeEnvironment().getTypeUtils(), oldType.asType());
-        List<TypeMirror> newSuperTypes = Util
-                .getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(), newType.asType());
+        List<TypeMirror> oldSuperTypes = Util.getAllSuperClasses(getOldTypeEnvironment().getTypeUtils(),
+                oldType.asType());
+        List<TypeMirror> newSuperTypes = Util.getAllSuperClasses(getNewTypeEnvironment().getTypeUtils(),
+                newType.asType());
 
         if (oldSuperTypes.size() != newSuperTypes.size()) {
             pushActive(oldEl, newEl, oldSuperTypes, newSuperTypes);
@@ -216,8 +217,8 @@ public final class InheritanceChainChanged extends CheckBase {
             Types newTypes = getNewTypeEnvironment().getTypeUtils();
 
             for (int i = 0; i < oldSuperTypes.size(); ++i) {
-                //need to erase them all so that we get only true type changes. formal type parameter changes
-                //are captured by SuperTypeParametersChanged check
+                // need to erase them all so that we get only true type changes. formal type parameter changes
+                // are captured by SuperTypeParametersChanged check
                 TypeMirror oldSuperClass = oldTypes.erasure(oldSuperTypes.get(i));
                 TypeMirror newSuperClass = newTypes.erasure(newSuperTypes.get(i));
 
@@ -243,8 +244,7 @@ public final class InheritanceChainChanged extends CheckBase {
         for (TypeMirror sc : superClassesOfType) {
             String typeName = Util.toHumanReadableString(sc);
 
-            if ("java.lang.RuntimeException".equals(typeName)
-                || "java.lang.Error".equals(typeName)) {
+            if ("java.lang.RuntimeException".equals(typeName) || "java.lang.Error".equals(typeName)) {
                 return true;
             }
         }
@@ -298,12 +298,12 @@ public final class InheritanceChainChanged extends CheckBase {
 
     private void reportMissingSuperTypes(List<Difference> diffs, List<TypeMirror> superTypes, Code code,
             ActiveElements<?> activeElements) {
-        for(TypeMirror t : superTypes) {
+        for (TypeMirror t : superTypes) {
             if (isMissing(t)) {
                 String type = Util.toHumanReadableString(t);
-                diffs.add(createDifferenceWithExplicitParams(code, Code.attachmentsFor(
-                        activeElements.oldElement, activeElements.newElement,
-                        "superClass", type), type));
+                diffs.add(createDifferenceWithExplicitParams(code,
+                        Code.attachmentsFor(activeElements.oldElement, activeElements.newElement, "superClass", type),
+                        type));
             }
         }
     }

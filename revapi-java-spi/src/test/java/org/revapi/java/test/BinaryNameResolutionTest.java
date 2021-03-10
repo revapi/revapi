@@ -65,7 +65,6 @@ public class BinaryNameResolutionTest {
         doTest(binaryName, "pkg.My.$Nested.Class");
     }
 
-
     @Test
     public void testLeadingDollar() {
         String name = "$LeadingZero.$Test.Like.Serious.$Class";

@@ -27,7 +27,8 @@ import org.revapi.TreeFilter;
 /**
  * A convenience base class for tree filters. This base class doesn't match any elements ever.
  *
- * @param <E> the parent type of all elements produced by an API analyzer
+ * @param <E>
+ *            the parent type of all elements produced by an API analyzer
  */
 public class BaseTreeFilter<E extends Element<E>> implements TreeFilter<E> {
     @Override

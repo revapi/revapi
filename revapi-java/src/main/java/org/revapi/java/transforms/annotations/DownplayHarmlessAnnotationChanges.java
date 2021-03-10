@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,26 +39,33 @@ import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.12.0
  */
 public final class DownplayHarmlessAnnotationChanges implements DifferenceTransform<JavaModelElement> {
     private boolean skip = false;
 
-    private static final Set<String> HARMLESS_ANNOTATIONS = new HashSet<>(Arrays.asList(
-            "java.lang.FunctionalInterface", //having this is purely informational
-            "java.lang.annotation.Documented", //this doesn't affect the runtime at any rate
+    private static final Set<String> HARMLESS_ANNOTATIONS = new HashSet<>(Arrays.asList("java.lang.FunctionalInterface", // having
+                                                                                                                         // this
+                                                                                                                         // is
+                                                                                                                         // purely
+                                                                                                                         // informational
+            "java.lang.annotation.Documented", // this doesn't affect the runtime at any rate
             "jdk.internal.HotSpotIntrinsicCandidate" //
     ));
 
-    @Nonnull @Override public Pattern[] getDifferenceCodePatterns() {
-        return new Pattern[] {exact("java.annotation.added"), exact("java.annotation.removed"),
+    @Nonnull
+    @Override
+    public Pattern[] getDifferenceCodePatterns() {
+        return new Pattern[] { exact("java.annotation.added"), exact("java.annotation.removed"),
                 exact("java.annotation.attributeValueChanged"), exact("java.annotation.attributeAdded"),
-                exact("java.annotation.attributeRemoved")};
+                exact("java.annotation.attributeRemoved") };
     }
 
-    @Nullable @Override
+    @Nullable
+    @Override
     public Difference transform(@Nullable JavaModelElement oldElement, @Nullable JavaModelElement newElement,
-                                @Nonnull Difference difference) {
+            @Nonnull Difference difference) {
         if (skip) {
             return difference;
         }
@@ -76,20 +83,25 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
         }
     }
 
-    @Override public void close() throws Exception {
+    @Override
+    public void close() throws Exception {
     }
 
-    @Nullable @Override public String getExtensionId() {
+    @Nullable
+    @Override
+    public String getExtensionId() {
         return "revapi.java.downplayHarmlessAnnotationChanges";
     }
 
-    @Nullable @Override public Reader getJSONSchema() {
+    @Nullable
+    @Override
+    public Reader getJSONSchema() {
         return new StringReader("{\"type\": \"boolean\"}");
     }
 
-    @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
-        JsonNode conf = analysisContext.getConfigurationNode()
-                .path("downplayHarmlessAnnotationChanges");
+    @Override
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        JsonNode conf = analysisContext.getConfigurationNode().path("downplayHarmlessAnnotationChanges");
 
         skip = !conf.asBoolean(true);
     }
@@ -98,7 +110,8 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
         return Pattern.compile("^" + Pattern.quote(string) + "$");
     }
 
-    private static Map<CompatibilityType, DifferenceSeverity> reclassify(Map<CompatibilityType, DifferenceSeverity> orig) {
+    private static Map<CompatibilityType, DifferenceSeverity> reclassify(
+            Map<CompatibilityType, DifferenceSeverity> orig) {
         return orig.keySet().stream()
                 .collect(Collectors.toMap(Function.identity(), v -> DifferenceSeverity.EQUIVALENT));
     }

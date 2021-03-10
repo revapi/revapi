@@ -23,8 +23,8 @@ import org.revapi.Archive;
 import org.revapi.base.BaseElement;
 
 /**
- * This class represents a property as a Revapi element. On top of the key-value pair of the property itself,
- * it references the API and archive (i.e. the property file) it comes from.
+ * This class represents a property as a Revapi element. On top of the key-value pair of the property itself, it
+ * references the API and archive (i.e. the property file) it comes from.
  */
 public class PropertyElement extends BaseElement<PropertyElement> {
     private final String key;
@@ -62,8 +62,7 @@ public class PropertyElement extends BaseElement<PropertyElement> {
         }
 
         PropertyElement that = (PropertyElement) o;
-        return key.equals(that.key) &&
-                Objects.equals(value, that.value);
+        return key.equals(that.key) && Objects.equals(value, that.value);
     }
 
     @Override

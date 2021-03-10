@@ -24,6 +24,7 @@ import org.revapi.base.IndependentTreeFilter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
  *
  * @deprecated use {@link IndependentTreeFilter} or some other {@link org.revapi.TreeFilter} instead

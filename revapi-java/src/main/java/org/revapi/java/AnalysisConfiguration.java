@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class AnalysisConfiguration {
@@ -48,8 +49,7 @@ public final class AnalysisConfiguration {
     private final TreeFilter<JavaElement> filter;
 
     AnalysisConfiguration(MissingClassReporting missingClassReporting, Set<String> useReportingCodes,
-                                 boolean ignoreMissingAnnotations, boolean matchOverloads,
-            @Nullable TreeFilter<JavaElement> filter) {
+            boolean ignoreMissingAnnotations, boolean matchOverloads, @Nullable TreeFilter<JavaElement> filter) {
         this.missingClassReporting = missingClassReporting;
         this.useReportingCodes = useReportingCodes;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
@@ -79,8 +79,8 @@ public final class AnalysisConfiguration {
 
         if (!(classInclusionFilters.isEmpty() && classExclusionFilters.isEmpty() && packageInclusionFilters.isEmpty()
                 && packageExclusionFilters.isEmpty())) {
-            LOG.warn("Filtering using the revapi.java.filter.(classes|packages) has been deprecated in favor of" +
-                    " revapi.filter in combination with the java matcher.");
+            LOG.warn("Filtering using the revapi.java.filter.(classes|packages) has been deprecated in favor of"
+                    + " revapi.filter in combination with the java matcher.");
 
             if (!classInclusionFilters.isEmpty() || !classExclusionFilters.isEmpty()) {
                 includeFilter = new ClassFilter(classInclusionFilters.toArray(new Pattern[0]),
@@ -98,7 +98,8 @@ public final class AnalysisConfiguration {
             }
         }
 
-        return new AnalysisConfiguration(reporting, useReportingCodes, ignoreMissingAnnotations, matchOverloads, includeFilter);
+        return new AnalysisConfiguration(reporting, useReportingCodes, ignoreMissingAnnotations, matchOverloads,
+                includeFilter);
     }
 
     public MissingClassReporting getMissingClassReporting() {
@@ -141,8 +142,8 @@ public final class AnalysisConfiguration {
             case "error":
                 return MissingClassReporting.ERROR;
             default:
-                throw new IllegalArgumentException("Unsupported value of revapi.java.missing-classes.behavior: '" +
-                        config.asText() + "'. Only 'report', 'ignore' and 'error' are recognized.");
+                throw new IllegalArgumentException("Unsupported value of revapi.java.missing-classes.behavior: '"
+                        + config.asText() + "'. Only 'report', 'ignore' and 'error' are recognized.");
             }
         }
 
@@ -185,15 +186,13 @@ public final class AnalysisConfiguration {
 
         boolean isRegex = regexNode.asBoolean(false);
 
-        return StreamSupport.stream(filterNode.spliterator(), false)
-                .map(filter -> {
-                    if (isRegex) {
-                        return Pattern.compile(filter.asText());
-                    } else {
-                        return Pattern.compile(Pattern.quote(filter.asText()));
-                    }
-                })
-                .collect(Collectors.toSet());
+        return StreamSupport.stream(filterNode.spliterator(), false).map(filter -> {
+            if (isRegex) {
+                return Pattern.compile(filter.asText());
+            } else {
+                return Pattern.compile(Pattern.quote(filter.asText()));
+            }
+        }).collect(Collectors.toSet());
     }
 
     public enum MissingClassReporting {

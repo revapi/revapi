@@ -29,7 +29,8 @@ class OverridableIncludeExcludeTreeFilterTest {
 
     @Test
     void testIncludeFromExclude() {
-        IncludeExcludeTreeFilter<IncludeExcludeTreeFilterTest.DummyElement> filter = new IncludeExcludeTreeFilter<>(match("b"), match("a"));
+        IncludeExcludeTreeFilter<IncludeExcludeTreeFilterTest.DummyElement> filter = new IncludeExcludeTreeFilter<>(
+                match("b"), match("a"));
         IncludeExcludeTreeFilterTest.DummyElement a = new IncludeExcludeTreeFilterTest.DummyElement("a");
         IncludeExcludeTreeFilterTest.DummyElement b = new IncludeExcludeTreeFilterTest.DummyElement("b");
         a.getChildren().add(b);

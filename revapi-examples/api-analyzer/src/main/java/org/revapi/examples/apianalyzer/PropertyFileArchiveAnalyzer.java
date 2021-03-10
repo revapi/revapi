@@ -31,11 +31,12 @@ import org.revapi.base.BaseArchiveAnalyzer;
 import org.revapi.base.BaseElementForest;
 
 /**
- * An archive analyzer is created by the API analyzer for a given API. It is responsible for turning the archives of
- * the API into a tree of API elements. This usually means that one also needs to create dedicated types of elements for
+ * An archive analyzer is created by the API analyzer for a given API. It is responsible for turning the archives of the
+ * API into a tree of API elements. This usually means that one also needs to create dedicated types of elements for
  * given API analyzer.
  */
-public class PropertyFileArchiveAnalyzer extends BaseArchiveAnalyzer<BaseElementForest<PropertyElement>, PropertyElement> {
+public class PropertyFileArchiveAnalyzer
+        extends BaseArchiveAnalyzer<BaseElementForest<PropertyElement>, PropertyElement> {
     public PropertyFileArchiveAnalyzer(API api, PropertiesAnalyzer analyzer) {
         super(analyzer, api);
     }
@@ -49,25 +50,24 @@ public class PropertyFileArchiveAnalyzer extends BaseArchiveAnalyzer<BaseElement
 
     @Override
     protected Stream<PropertyElement> discoverRoots(@Nullable Object context) {
-        return StreamSupport.stream(getApi().getArchives().spliterator(), false)
-                .flatMap(archive -> {
-                    try (InputStream is = archive.openStream()) {
-                        Properties props = new Properties();
-                        props.load(is);
-                        List<PropertyElement> elements = new ArrayList<>(props.size());
-                        for (String name : props.stringPropertyNames()) {
-                            // the properties don't have any hierarchy in our simple example, so we put everything in as
-                            // roots
-                            PropertyElement pe = new PropertyElement(getApi(), archive, name, props.getProperty(name));
-                            elements.add(pe);
-                        }
+        return StreamSupport.stream(getApi().getArchives().spliterator(), false).flatMap(archive -> {
+            try (InputStream is = archive.openStream()) {
+                Properties props = new Properties();
+                props.load(is);
+                List<PropertyElement> elements = new ArrayList<>(props.size());
+                for (String name : props.stringPropertyNames()) {
+                    // the properties don't have any hierarchy in our simple example, so we put everything in as
+                    // roots
+                    PropertyElement pe = new PropertyElement(getApi(), archive, name, props.getProperty(name));
+                    elements.add(pe);
+                }
 
-                        return elements.stream();
-                    } catch (IOException e) {
-                        throw new IllegalArgumentException("Failed to read archive " + archive.getName()
-                                + " as properties file.", e);
-                    }
-                });
+                return elements.stream();
+            } catch (IOException e) {
+                throw new IllegalArgumentException(
+                        "Failed to read archive " + archive.getName() + " as properties file.", e);
+            }
+        });
     }
 
     @Override

@@ -26,10 +26,10 @@ import javax.annotation.Nonnull;
 import org.revapi.Archive;
 
 /**
- * A simple implementation of the {@link Archive} interface providing a file as a Revapi
- * archive.
+ * A simple implementation of the {@link Archive} interface providing a file as a Revapi archive.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.4.1
  */
 public class FileArchive implements Archive {

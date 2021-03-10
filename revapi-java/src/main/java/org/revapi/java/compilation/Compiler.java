@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Compiler {
@@ -66,10 +67,9 @@ public final class Compiler {
     private final TreeFilter<JavaElement> filter;
     private final Iterable<JarExtractor> jarExtractors;
 
-    public Compiler(ExecutorService executor, Writer reportingOutput,
-            Iterable<JarExtractor> jarExtractors,
-            Iterable<? extends Archive> classPath,
-            Iterable<? extends Archive> additionalClassPath, TreeFilter<JavaElement> filter) {
+    public Compiler(ExecutorService executor, Writer reportingOutput, Iterable<JarExtractor> jarExtractors,
+            Iterable<? extends Archive> classPath, Iterable<? extends Archive> additionalClassPath,
+            TreeFilter<JavaElement> filter) {
         this.jarExtractors = jarExtractors;
 
         compiler = ToolProvider.getSystemJavaCompiler();
@@ -86,8 +86,7 @@ public final class Compiler {
 
     public CompilationValve compile(final ProbingEnvironment environment,
             final AnalysisConfiguration.MissingClassReporting missingClassReporting,
-            final boolean ignoreMissingAnnotations)
-            throws Exception {
+            final boolean ignoreMissingAnnotations) throws Exception {
 
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
 
@@ -104,27 +103,22 @@ public final class Compiler {
         int prefixLength = (int) Math.log10(nofArchives) + 1;
 
         IdentityHashMap<Archive, File> classPathFiles = copyArchives(classPath, lib, 0, prefixLength);
-        IdentityHashMap<Archive, File> additionClassPathFiles = copyArchives(additionalClassPath, lib, classPathSize, prefixLength);
+        IdentityHashMap<Archive, File> additionClassPathFiles = copyArchives(additionalClassPath, lib, classPathSize,
+                prefixLength);
 
-        List<String> options = Arrays.asList(
-            "-d", sourceDir.toString(),
-            "-cp", composeClassPath(lib)
-        );
+        List<String> options = Arrays.asList("-d", sourceDir.toString(), "-cp", composeClassPath(lib));
 
-        List<JavaFileObject> sources = Arrays.<JavaFileObject>asList(
-            new MarkerAnnotationObject(),
-            new ArchiveProbeObject()
-        );
+        List<JavaFileObject> sources = Arrays.<JavaFileObject> asList(new MarkerAnnotationObject(),
+                new ArchiveProbeObject());
 
-        //the locale and charset are actually not important, because the only sources we're providing
-        //are not file-based. The rest of the stuff the compiler will be touching is already compiled
-        //and therefore not affected by the charset.
-        StandardJavaFileManager fileManager = compiler
-                .getStandardFileManager(null, Locale.getDefault(), Charset.forName("UTF-8"));
+        // the locale and charset are actually not important, because the only sources we're providing
+        // are not file-based. The rest of the stuff the compiler will be touching is already compiled
+        // and therefore not affected by the charset.
+        StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, Locale.getDefault(),
+                Charset.forName("UTF-8"));
 
-        final JavaCompiler.CompilationTask task = compiler
-            .getTask(output, fileManager, null, options, Collections.singletonList(ArchiveProbeObject.CLASS_NAME),
-                sources);
+        final JavaCompiler.CompilationTask task = compiler.getTask(output, fileManager, null, options,
+                Collections.singletonList(ArchiveProbeObject.CLASS_NAME), sources);
 
         ProbingAnnotationProcessor processor = new ProbingAnnotationProcessor(environment);
 
@@ -146,7 +140,6 @@ public final class Compiler {
                 Timing.LOG.debug("Crawl finished for " + environment.getApi());
             }
         });
-
 
         return new CompilationValve(future, targetPath, environment, fileManager);
     }
@@ -178,8 +171,8 @@ public final class Compiler {
         return bld.toString();
     }
 
-    private IdentityHashMap<Archive, File>
-    copyArchives(Iterable<? extends Archive> archives, File parentDir, int startIdx, int prefixLength) {
+    private IdentityHashMap<Archive, File> copyArchives(Iterable<? extends Archive> archives, File parentDir,
+            int startIdx, int prefixLength) {
         IdentityHashMap<Archive, File> ret = new IdentityHashMap<>();
         if (archives == null) {
             return ret;
@@ -192,9 +185,8 @@ public final class Compiler {
             ret.put(a, f);
 
             if (f.exists()) {
-                LOG.warn(
-                    "File " + f.getAbsolutePath() + " with the data of archive '" + a.getName() + "' already exists." +
-                            " Assume it already contains the bits we need.");
+                LOG.warn("File " + f.getAbsolutePath() + " with the data of archive '" + a.getName()
+                        + "' already exists." + " Assume it already contains the bits we need.");
                 continue;
             }
 
@@ -204,7 +196,7 @@ public final class Compiler {
                 Files.copy(data, target);
             } catch (IOException e) {
                 throw new IllegalStateException(
-                    "Failed to copy class path element: " + a.getName() + " to " + f.getAbsolutePath(), e);
+                        "Failed to copy class path element: " + a.getName() + " to " + f.getAbsolutePath(), e);
             }
         }
 

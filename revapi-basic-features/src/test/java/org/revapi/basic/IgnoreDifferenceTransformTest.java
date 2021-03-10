@@ -28,6 +28,7 @@ import org.revapi.base.BaseElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class IgnoreDifferenceTransformTest {

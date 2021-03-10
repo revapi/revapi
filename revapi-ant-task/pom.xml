@@ -17,55 +17,64 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
         <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
-    <name>Ant Task</name>
-    <description>
-        Ant integration for Revapi.
-    </description>
-    <url>https://revapi.org</url>
-
     <artifactId>revapi-ant-task</artifactId>
     <version>0.12.0-SNAPSHOT</version>
-
+    <name>Ant Task</name>
+    <description>Ant integration for Revapi.</description>
+    <url>https://revapi.org</url>
+    <scm>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/revapi/revapi</url>
+    </scm>
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>https://revapi.org</url>
+        </site>
+    </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.ant</automatic.module.name>
     </properties>
-
     <dependencies>
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi</artifactId>
-            <version>0.14.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi-basic-features</artifactId>
-            <version>0.12.0-SNAPSHOT</version>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>
             <version>1.8.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi</artifactId>
+            <version>0.14.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-basic-features</artifactId>
+            <version>0.12.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
                     <artifactSet>
                         <excludes>
@@ -74,13 +83,6 @@
                     </artifactSet>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                 </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.revapi</groupId>
@@ -103,7 +105,6 @@
             </plugin>
         </plugins>
     </build>
-
     <reporting>
         <plugins>
             <plugin>
@@ -127,17 +128,4 @@
             </plugin>
         </plugins>
     </reporting>
-    <distributionManagement>
-        <site>
-            <id>site</id>
-            <url>https://revapi.org</url>
-        </site>
-    </distributionManagement>
-
-    <scm>
-        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
-        <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
-    </scm>
 </project>

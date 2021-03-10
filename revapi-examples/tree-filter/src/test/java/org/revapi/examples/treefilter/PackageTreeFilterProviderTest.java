@@ -43,7 +43,8 @@ class PackageTreeFilterProviderTest {
     @Test
     @SuppressWarnings("unchecked")
     void testAcceptsElementsFromPackage() throws Exception {
-        filter.initialize(AnalysisContext.builder().build().copyWithConfiguration(new ObjectMapper().readTree("\"com.acme\"")));
+        filter.initialize(
+                AnalysisContext.builder().build().copyWithConfiguration(new ObjectMapper().readTree("\"com.acme\"")));
 
         ArchiveAnalyzer<JavaElement> archiveAnalyzer = mock(ArchiveAnalyzer.class);
         ApiAnalyzer<JavaElement> apiAnalyzer = mock(ApiAnalyzer.class);
@@ -70,7 +71,8 @@ class PackageTreeFilterProviderTest {
     @Test
     @SuppressWarnings("unchecked")
     void testDoesntAcceptElementsFromOtherPackage() throws Exception {
-        filter.initialize(AnalysisContext.builder().build().copyWithConfiguration(new ObjectMapper().readTree("\"com.acme\"")));
+        filter.initialize(
+                AnalysisContext.builder().build().copyWithConfiguration(new ObjectMapper().readTree("\"com.acme\"")));
 
         ArchiveAnalyzer<JavaElement> archiveAnalyzer = mock(ArchiveAnalyzer.class);
         ApiAnalyzer<JavaElement> apiAnalyzer = mock(ApiAnalyzer.class);

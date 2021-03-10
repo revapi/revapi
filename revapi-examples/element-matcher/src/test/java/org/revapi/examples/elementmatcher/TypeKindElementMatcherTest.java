@@ -62,7 +62,7 @@ class TypeKindElementMatcherTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"class", "interface", "@interface", "enum"})
+    @ValueSource(strings = { "class", "interface", "@interface", "enum" })
     void shouldSupportAllTypeKinds(String typeKind) {
         assertTrue(matcher.compile(typeKind).isPresent());
     }
@@ -111,8 +111,7 @@ class TypeKindElementMatcherTest {
             return type;
         };
 
-        return Stream.of(
-                arguments("class", typeOfKind.apply(ElementKind.CLASS)),
+        return Stream.of(arguments("class", typeOfKind.apply(ElementKind.CLASS)),
                 arguments("interface", typeOfKind.apply(ElementKind.INTERFACE)),
                 arguments("@interface", typeOfKind.apply(ElementKind.ANNOTATION_TYPE)),
                 arguments("enum", typeOfKind.apply(ElementKind.ENUM)));

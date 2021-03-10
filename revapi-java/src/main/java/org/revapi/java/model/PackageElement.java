@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,12 +26,12 @@ import org.revapi.java.compilation.ProbingEnvironment;
  * TODO incorporate this into ClassTreeInitializer, Util.* and, element analyzer, etc.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class PackageElement extends JavaElementBase<javax.lang.model.element.PackageElement, TypeMirror> {
 
-    public PackageElement(ProbingEnvironment env,
-        Archive archive, javax.lang.model.element.PackageElement element) {
+    public PackageElement(ProbingEnvironment env, Archive archive, javax.lang.model.element.PackageElement element) {
         super(env, archive, element, element.asType());
     }
 
@@ -43,6 +43,6 @@ public class PackageElement extends JavaElementBase<javax.lang.model.element.Pac
 
     @Override
     protected String createComparableSignature() {
-        return "";  //TODO implement
+        return ""; // TODO implement
     }
 }

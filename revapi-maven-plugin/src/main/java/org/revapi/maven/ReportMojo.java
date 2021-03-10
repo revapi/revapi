@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,15 +46,15 @@ import org.revapi.Element;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
-@Mojo(name = "report", defaultPhase = LifecyclePhase.SITE,
-        requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Mojo(name = "report", defaultPhase = LifecyclePhase.SITE, requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class ReportMojo extends AbstractMavenReport {
     /**
      * The JSON or XML configuration of the extensions pipeline. This enables the users easily specify which extensions
-     * should be included/excluded in the Revapi analysis pipeline and also to define transformation blocks - a way
-     * of grouping transforms together to enable more fine grained control over how differences are transformed.
+     * should be included/excluded in the Revapi analysis pipeline and also to define transformation blocks - a way of
+     * grouping transforms together to enable more fine grained control over how differences are transformed.
      *
      * @since 0.11.0
      */
@@ -62,24 +62,28 @@ public class ReportMojo extends AbstractMavenReport {
     protected PlexusConfiguration pipelineConfiguration;
 
     /**
-     * The JSON or XML configuration of various analysis options. The available options depend on what
-     * analyzers are present on the plugin classpath through the {@code &lt;dependencies&gt;}.
-     * Consult <a href="examples/configuration.html">configuration documentation</a> for more details.
+     * The JSON or XML configuration of various analysis options. The available options depend on what analyzers are
+     * present on the plugin classpath through the {@code &lt;dependencies&gt;}. Consult
+     * <a href="examples/configuration.html">configuration documentation</a> for more details.
      *
-     * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
+     * <p>
+     * These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
     @Parameter(property = Props.analysisConfiguration.NAME, defaultValue = Props.analysisConfiguration.DEFAULT_VALUE)
     protected PlexusConfiguration analysisConfiguration;
 
     /**
-     * The list of files containing the configuration of various analysis options.
-     * The available options depend on what analyzers are present on the plugins classpath through the
-     * {@code &lt;dependencies&gt;}.
+     * The list of files containing the configuration of various analysis options. The available options depend on what
+     * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
      *
-     * <p>The {@code analysisConfiguration} can override the settings present in the files.
+     * <p>
+     * The {@code analysisConfiguration} can override the settings present in the files.
      *
-     * <p>The list is either a list of strings or has the following form:
-     * <pre><code>
+     * <p>
+     * The list is either a list of strings or has the following form:
+     * 
+     * <pre>
+     * <code>
      *    &lt;analysisConfigurationFiles&gt;
      *        &lt;configurationFile&gt;
      *            &lt;path&gt;path/to/the/file/relative/to/project/base/dir&lt;/path&gt;
@@ -92,23 +96,27 @@ public class ReportMojo extends AbstractMavenReport {
      *        &lt;/configurationFile&gt;
      *        ...
      *    &lt;/analysisConfigurationFiles&gt;
-     * </code></pre>
+     * </code>
+     * </pre>
      *
      * where
      * <ul>
-     *     <li>{@code path} is the path on the filesystem,</li>
-     *     <li>{@code resource} is the path to the resource file in one of the artifacts the plugin depends on</li>
-     *     <li>{@code roots} is optional and specifies the subtrees of the JSON/XML config that should be used for
-     *     configuration. If not specified, the whole file is taken into account.</li>
+     * <li>{@code path} is the path on the filesystem,</li>
+     * <li>{@code resource} is the path to the resource file in one of the artifacts the plugin depends on</li>
+     * <li>{@code roots} is optional and specifies the subtrees of the JSON/XML config that should be used for
+     * configuration. If not specified, the whole file is taken into account.</li>
      * </ul>
      * Either {@code path} or {@code resource} has to be specified but not both. The {@code configuration/root1} and
      * {@code configuration/root2} are paths to the roots of the configuration inside that JSON/XML config file. This
-     * might be used in cases where multiple configurations are stored within a single file and you want to use
-     * a particular one.
+     * might be used in cases where multiple configurations are stored within a single file and you want to use a
+     * particular one.
      *
-     * <p>An example of this might be a config file which contains API changes to be ignored in all past versions of a
+     * <p>
+     * An example of this might be a config file which contains API changes to be ignored in all past versions of a
      * library. The classes to be ignored are specified in a configuration that is specific for each version:
-     * <pre><code>
+     * 
+     * <pre>
+     * <code>
      *     {
      *         "0.1.0" : [
      *             {
@@ -127,7 +135,8 @@ public class ReportMojo extends AbstractMavenReport {
      *             ...
      *         ]
      *     }
-     * </code></pre>
+     * </code>
+     * </pre>
      */
     @Parameter(property = Props.analysisConfigurationFiles.NAME, defaultValue = Props.analysisConfigurationFiles.DEFAULT_VALUE)
     protected Object[] analysisConfigurationFiles;
@@ -136,14 +145,15 @@ public class ReportMojo extends AbstractMavenReport {
      * Set to false if you want to tolerate files referenced in the {@code analysisConfigurationFiles} missing on the
      * filesystem and therefore not contributing to the analysis configuration.
      *
-     * <p>The default is {@code true}, which means that a missing analysis configuration file will fail the build.
+     * <p>
+     * The default is {@code true}, which means that a missing analysis configuration file will fail the build.
      */
     @Parameter(property = Props.failOnMissingConfigurationFiles.NAME, defaultValue = Props.failOnMissingConfigurationFiles.DEFAULT_VALUE)
     protected boolean failOnMissingConfigurationFiles;
 
     /**
-     * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
-     * current project.
+     * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the current
+     * project.
      * <p/>
      * If the this property is null, the {@link #oldVersion} property is checked for a value of the old version of the
      * artifact being built.
@@ -178,8 +188,8 @@ public class ReportMojo extends AbstractMavenReport {
     protected String newVersion;
 
     /**
-     * Problems with this or higher severity will be included in the report.
-     * Possible values: equivalent, nonBreaking, potentiallyBreaking, breaking.
+     * Problems with this or higher severity will be included in the report. Possible values: equivalent, nonBreaking,
+     * potentiallyBreaking, breaking.
      *
      * @deprecated use {@link #reportCriticality} instead
      */
@@ -188,9 +198,9 @@ public class ReportMojo extends AbstractMavenReport {
     protected FailSeverity reportSeverity;
 
     /**
-     * The minimum criticality of the differences that should be included in the report. This has to be one of
-     * the criticalities configured in the pipeline configuration (if the pipeline configuration doesn't define any,
-     * the following are  the default ones: {@code allowed}, {@code documented}, {@code highlight}, {@code error}).
+     * The minimum criticality of the differences that should be included in the report. This has to be one of the
+     * criticalities configured in the pipeline configuration (if the pipeline configuration doesn't define any, the
+     * following are the default ones: {@code allowed}, {@code documented}, {@code highlight}, {@code error}).
      *
      * If not defined, the value is derived from {@link #reportSeverity} using the severity-to-criticality mapping
      * (which is again configured in the pipeline configuration. If not defined in the pipeline configuration
@@ -206,13 +216,12 @@ public class ReportMojo extends AbstractMavenReport {
     @Parameter(property = Props.skip.NAME, defaultValue = Props.skip.DEFAULT_VALUE)
     protected boolean skip;
 
-    @Parameter(property = "revapi.outputDirectory", defaultValue = "${project.reporting.outputDirectory}",
-        required = true, readonly = true)
+    @Parameter(property = "revapi.outputDirectory", defaultValue = "${project.reporting.outputDirectory}", required = true, readonly = true)
     protected String outputDirectory;
 
     /**
-     * Whether to include the dependencies in the API checks. This is the default thing to do because your API might
-     * be exposing classes from the dependencies and thus classes from your dependencies could become part of your API.
+     * Whether to include the dependencies in the API checks. This is the default thing to do because your API might be
+     * exposing classes from the dependencies and thus classes from your dependencies could become part of your API.
      * <p>
      * However, setting this to false might be useful in situations where you have checked your dependencies in another
      * module and don't want do that again. In that case, you might want to configure Revapi to ignore missing classes
@@ -223,31 +232,33 @@ public class ReportMojo extends AbstractMavenReport {
     protected boolean checkDependencies;
 
     /**
-     * When establishing the API classes, Revapi by default also looks through the {@code provided} dependencies.
-     * The reason for this is that even though such dependencies do not appear in the transitive dependency set
-     * established by maven, they need to be present both on the compilation and runtime classpath of the module.
-     * Therefore, the classes in the module are free to expose classes from a provided dependency as API elements.
+     * When establishing the API classes, Revapi by default also looks through the {@code provided} dependencies. The
+     * reason for this is that even though such dependencies do not appear in the transitive dependency set established
+     * by maven, they need to be present both on the compilation and runtime classpath of the module. Therefore, the
+     * classes in the module are free to expose classes from a provided dependency as API elements.
      *
-     * <p>In rare circumstances this is not a desired behavior though. It is undesired if for example the classes from
-     * the provided dependency are used only for establishing desired build order or when they are used in some
-     * non-standard scenarios during the build and actually not needed at runtime.
+     * <p>
+     * In rare circumstances this is not a desired behavior though. It is undesired if for example the classes from the
+     * provided dependency are used only for establishing desired build order or when they are used in some non-standard
+     * scenarios during the build and actually not needed at runtime.
      *
-     * <p>Note that this property only influences the resolution of provided dependencies of the main artifacts, not
-     * the transitively reachable provided dependencies. For those, use the {@link #resolveTransitiveProvidedDependencies}
+     * <p>
+     * Note that this property only influences the resolution of provided dependencies of the main artifacts, not the
+     * transitively reachable provided dependencies. For those, use the {@link #resolveTransitiveProvidedDependencies}
      * parameter.
      */
     @Parameter(property = Props.resolveProvidedDependencies.NAME, defaultValue = Props.resolveProvidedDependencies.DEFAULT_VALUE)
     protected boolean resolveProvidedDependencies;
 
     /**
-     * In addition to {@link #resolveProvidedDependencies} this property further controls how provided dependencies
-     * are resolved. Using this property you can control how the indirect, transitively reachable, provided dependencies
-     * are treated. The default is to not consider them, which is almost always the right thing to do. It might be
-     * necessary to set this property to {@code true} in the rare circumstances where the API of the main artifacts
-     * includes types from such transitively included provided dependencies. Such occurrence will manifest itself by
-     * Revapi considering such types as missing (which is by default reported as a potentially breaking change). When
-     * you then resolve the transitive provided dependencies (by setting this parameter to true), Revapi will be able to
-     * find such types and do a proper analysis of them.
+     * In addition to {@link #resolveProvidedDependencies} this property further controls how provided dependencies are
+     * resolved. Using this property you can control how the indirect, transitively reachable, provided dependencies are
+     * treated. The default is to not consider them, which is almost always the right thing to do. It might be necessary
+     * to set this property to {@code true} in the rare circumstances where the API of the main artifacts includes types
+     * from such transitively included provided dependencies. Such occurrence will manifest itself by Revapi considering
+     * such types as missing (which is by default reported as a potentially breaking change). When you then resolve the
+     * transitive provided dependencies (by setting this parameter to true), Revapi will be able to find such types and
+     * do a proper analysis of them.
      */
     @Parameter(property = Props.resolveTransitiveProvidedDependencies.NAME, defaultValue = Props.resolveTransitiveProvidedDependencies.DEFAULT_VALUE)
     protected boolean resolveTransitiveProvidedDependencies;
@@ -261,8 +272,8 @@ public class ReportMojo extends AbstractMavenReport {
      * versionFormat will make sure that a newest version conforming to the version format is used instead of the one
      * resolved by Maven by default.
      * <p>
-     * This parameter is a regular expression pattern that the version string needs to match in order to be considered
-     * a {@code RELEASE}.
+     * This parameter is a regular expression pattern that the version string needs to match in order to be considered a
+     * {@code RELEASE}.
      */
     @Parameter(property = Props.versionFormat.NAME, defaultValue = Props.versionFormat.DEFAULT_VALUE)
     protected String versionFormat;
@@ -312,8 +323,8 @@ public class ReportMojo extends AbstractMavenReport {
     protected String disallowedExtensions;
 
     /**
-     * If set to true, the Maven properties will be expanded in the configuration before it is supplied to Revapi.
-     * I.e. any {@code ${var}} appearing in the configuration <b>values</b> will be replaced with the value of the
+     * If set to true, the Maven properties will be expanded in the configuration before it is supplied to Revapi. I.e.
+     * any {@code ${var}} appearing in the configuration <b>values</b> will be replaced with the value of the
      * {@code var} property as known to Maven. If the property is not defined, the expansion doesn't take place.
      *
      * @since 0.11.6
@@ -335,7 +346,8 @@ public class ReportMojo extends AbstractMavenReport {
         return project;
     }
 
-    @Override public boolean canGenerateReport() {
+    @Override
+    public boolean canGenerateReport() {
         return project.getArtifact().getArtifactHandler().isAddedToClasspath();
     }
 
@@ -348,8 +360,8 @@ public class ReportMojo extends AbstractMavenReport {
         }
 
         if (oldAPI == null || newAPI == null) {
-            getLog().warn("Could not determine the artifacts to compare. If you're comparing the" +
-                    " currently built version, have you run the package goal?");
+            getLog().warn("Could not determine the artifacts to compare. If you're comparing the"
+                    + " currently built version, have you run the package goal?");
             return;
         }
 
@@ -357,8 +369,8 @@ public class ReportMojo extends AbstractMavenReport {
             Sink sink = getSink();
             ResourceBundle bundle = getBundle(locale);
 
-            ReportTimeReporter reporter =
-                    analysisResult.getExtensions().getFirstExtension(ReportTimeReporter.class, null);
+            ReportTimeReporter reporter = analysisResult.getExtensions().getFirstExtension(ReportTimeReporter.class,
+                    null);
 
             startReport(sink, bundle);
             reportBody(reporter, oldAPI, newAPI, sink, bundle);
@@ -417,8 +429,8 @@ public class ReportMojo extends AbstractMavenReport {
         ensureAnalyzed(locale);
 
         if (oldAPI == null || newAPI == null) {
-            getLog().debug("Was unable to determine the old and new artifacts to compare while determining" +
-                    " the report description.");
+            getLog().debug("Was unable to determine the old and new artifacts to compare while determining"
+                    + " the report description.");
             return null;
         } else {
             return getDescription(getBundle(locale), oldAPI, newAPI);
@@ -448,20 +460,12 @@ public class ReportMojo extends AbstractMavenReport {
                 .withDisallowedExtensions(this.disallowedExtensions)
                 .withFailOnMissingConfigurationFiles(this.failOnMissingConfigurationFiles)
                 .withFailOnUnresolvedArtifacts(this.failOnUnresolvedArtifacts)
-                .withFailOnUnresolvedDependencies(this.failOnUnresolvedDependencies)
-                .withLocale(locale)
-                .withLog(getLog())
-                .withNewVersion(this.newVersion)
-                .withOldVersion(this.oldVersion)
-                .withProject(this.project)
-                .withReporter(generateSiteReport ? ReportTimeReporter.class : null)
-                .withRepositorySystem(this.repositorySystem)
-                .withRepositorySystemSession(this.repositorySystemSession)
-                .withSkip(this.skip)
-                .withVersionFormat(this.versionFormat)
-                .withContextData(contextData)
-                .withExpandProperties(expandProperties)
-                .build();
+                .withFailOnUnresolvedDependencies(this.failOnUnresolvedDependencies).withLocale(locale)
+                .withLog(getLog()).withNewVersion(this.newVersion).withOldVersion(this.oldVersion)
+                .withProject(this.project).withReporter(generateSiteReport ? ReportTimeReporter.class : null)
+                .withRepositorySystem(this.repositorySystem).withRepositorySystemSession(this.repositorySystemSession)
+                .withSkip(this.skip).withVersionFormat(this.versionFormat).withContextData(contextData)
+                .withExpandProperties(expandProperties).build();
 
         if (res.skip) {
             this.skip = true;
@@ -515,9 +519,8 @@ public class ReportMojo extends AbstractMavenReport {
         return bld.toString();
     }
 
-    private void reportDifferences(
-        EnumMap<CompatibilityType, List<ReportTimeReporter.DifferenceReport>> diffsPerType, Sink sink,
-        ResourceBundle bundle, String typeKey) {
+    private void reportDifferences(EnumMap<CompatibilityType, List<ReportTimeReporter.DifferenceReport>> diffsPerType,
+            Sink sink, ResourceBundle bundle, String typeKey) {
 
         if (diffsPerType == null || diffsPerType.isEmpty()) {
             return;
@@ -529,19 +532,19 @@ public class ReportMojo extends AbstractMavenReport {
         sink.sectionTitle2_();
 
         reportDifferences(diffsPerType.get(CompatibilityType.BINARY), sink, bundle,
-            "report.revapi.compatibilityType.binary");
+                "report.revapi.compatibilityType.binary");
         reportDifferences(diffsPerType.get(CompatibilityType.SOURCE), sink, bundle,
-            "report.revapi.compatibilityType.source");
+                "report.revapi.compatibilityType.source");
         reportDifferences(diffsPerType.get(CompatibilityType.SEMANTIC), sink, bundle,
-            "report.revapi.compatibilityType.semantic");
+                "report.revapi.compatibilityType.semantic");
         reportDifferences(diffsPerType.get(CompatibilityType.OTHER), sink, bundle,
-            "report.revapi.compatibilityType.other");
+                "report.revapi.compatibilityType.other");
 
         sink.section2_();
     }
 
     private void reportDifferences(List<ReportTimeReporter.DifferenceReport> diffs, Sink sink, ResourceBundle bundle,
-        String typeKey) {
+            String typeKey) {
 
         if (diffs == null || diffs.isEmpty()) {
             return;
@@ -595,8 +598,8 @@ public class ReportMojo extends AbstractMavenReport {
         });
 
         for (ReportTimeReporter.DifferenceReport d : diffs) {
-            String element = d.oldElement == null ? (d.newElement.getFullHumanReadableString()) :
-                d.oldElement.getFullHumanReadableString();
+            String element = d.oldElement == null ? (d.newElement.getFullHumanReadableString())
+                    : d.oldElement.getFullHumanReadableString();
 
             sink.tableRow();
 

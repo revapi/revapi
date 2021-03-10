@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,12 +46,12 @@ public class StringRepresentationTest {
         Element cls = env.elements().getTypeElement("ToStrings");
         List<ExecutableElement> methods = ElementFilter.methodsIn(cls.getEnclosedElements());
         ExecutableElement method = methods.stream()
-                .filter(m -> m.getSimpleName().contentEquals("methodWithTypeParamsInMethodParams"))
-                .findAny().get();
+                .filter(m -> m.getSimpleName().contentEquals("methodWithTypeParamsInMethodParams")).findAny().get();
         VariableElement secondParam = method.getParameters().get(1);
 
         String humanReadable = Util.toHumanReadableString(secondParam);
-        assertEquals("void ToStrings::methodWithTypeParamsInMethodParams(int, ===java.util.function.Function<java.lang.String, ?>===, java.util.HashMap<?, ?>)",
+        assertEquals(
+                "void ToStrings::methodWithTypeParamsInMethodParams(int, ===java.util.function.Function<java.lang.String, ?>===, java.util.HashMap<?, ?>)",
                 humanReadable);
     }
 
@@ -62,8 +62,8 @@ public class StringRepresentationTest {
 
         TypeElement Generic = env.elements().getTypeElement("ToStrings.Generic");
         List<ExecutableElement> methodsInGeneric = ElementFilter.methodsIn(Generic.getEnclosedElements());
-        ExecutableElement m1 = methodsInGeneric.stream()
-                .filter(m -> m.getSimpleName().contentEquals("m1")).findFirst().get();
+        ExecutableElement m1 = methodsInGeneric.stream().filter(m -> m.getSimpleName().contentEquals("m1")).findFirst()
+                .get();
 
         String expected;
 
@@ -85,18 +85,10 @@ public class StringRepresentationTest {
         TypeElement Enums = env.elements().getTypeElement("ToStrings.Enums");
         Element Enum = ((DeclaredType) Enums.getSuperclass()).asElement();
         List<ExecutableElement> methods = ElementFilter.methodsIn(Enum.getEnclosedElements());
-        Element ordinal = methods.stream()
-                .filter(m -> m.getSimpleName().contentEquals("ordinal"))
-                .findFirst()
+        Element ordinal = methods.stream().filter(m -> m.getSimpleName().contentEquals("ordinal")).findFirst().get();
+        Element compareTo = methods.stream().filter(m -> m.getSimpleName().contentEquals("compareTo")).findFirst()
                 .get();
-        Element compareTo = methods.stream()
-                .filter(m -> m.getSimpleName().contentEquals("compareTo"))
-                .findFirst()
-                .get();
-        Element valueOf = methods.stream()
-                .filter(m -> m.getSimpleName().contentEquals("valueOf"))
-                .findFirst()
-                .get();
+        Element valueOf = methods.stream().filter(m -> m.getSimpleName().contentEquals("valueOf")).findFirst().get();
 
         String repr = Util.toHumanReadableString(Enums);
         assertEquals("ToStrings.Enums", repr);
@@ -114,7 +106,9 @@ public class StringRepresentationTest {
         assertEquals("int java.lang.Enum<E extends java.lang.Enum<E>>::compareTo(E)", repr);
 
         repr = Util.toHumanReadableString(valueOf);
-        assertEquals("<T extends java.lang.Enum<T>> T java.lang.Enum<E extends java.lang.Enum<E>>::valueOf(java.lang.Class<T>, java.lang.String)", repr);
+        assertEquals(
+                "<T extends java.lang.Enum<T>> T java.lang.Enum<E extends java.lang.Enum<E>>::valueOf(java.lang.Class<T>, java.lang.String)",
+                repr);
     }
 
     @Test
@@ -145,12 +139,12 @@ public class StringRepresentationTest {
         TypeElement Inner = env.elements().getTypeElement("ToStrings.Generic.Inner");
         List<ExecutableElement> methodsInGeneric = ElementFilter.methodsIn(Generic.getEnclosedElements());
         List<ExecutableElement> methodsInInner = ElementFilter.methodsIn(Inner.getEnclosedElements());
-        ExecutableElement gm1 = methodsInGeneric.stream()
-                .filter(m -> m.getSimpleName().contentEquals("m1")).findFirst().get();
-        ExecutableElement gm2 = methodsInGeneric.stream()
-                .filter(m -> m.getSimpleName().contentEquals("m2")).findFirst().get();
-        ExecutableElement im1 = methodsInInner.stream()
-                .filter(m -> m.getSimpleName().contentEquals("m1")).findFirst().get();
+        ExecutableElement gm1 = methodsInGeneric.stream().filter(m -> m.getSimpleName().contentEquals("m1")).findFirst()
+                .get();
+        ExecutableElement gm2 = methodsInGeneric.stream().filter(m -> m.getSimpleName().contentEquals("m2")).findFirst()
+                .get();
+        ExecutableElement im1 = methodsInInner.stream().filter(m -> m.getSimpleName().contentEquals("m1")).findFirst()
+                .get();
 
         String expected;
 
@@ -183,8 +177,8 @@ public class StringRepresentationTest {
         TypeElement ToStrings = env.elements().getTypeElement("ToStrings");
         List<ExecutableElement> methods = ElementFilter.methodsIn(ToStrings.getEnclosedElements());
         ExecutableElement method = methods.stream()
-                .filter(m -> m.getSimpleName().contentEquals("methodWithGenericParameterInBound" +
-                        "")).findFirst().get();
+                .filter(m -> m.getSimpleName().contentEquals("methodWithGenericParameterInBound" + "")).findFirst()
+                .get();
 
         String expected;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@ import com.networknt.schema.ValidationMessage;
  * Represents the results of the the configuration validation.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class ValidationResult {
@@ -101,9 +102,9 @@ public final class ValidationResult {
     }
 
     static ValidationResult fromValidationMessages(Set<ValidationMessage> validationMessages) {
-        return new ValidationResult(null, validationMessages.stream()
-                .map(vm -> new ValidationResult.Error(0, vm.getMessage(), vm.getPath()))
-                .toArray(ValidationResult.Error[]::new));
+        return new ValidationResult(null,
+                validationMessages.stream().map(vm -> new ValidationResult.Error(0, vm.getMessage(), vm.getPath()))
+                        .toArray(ValidationResult.Error[]::new));
     }
 
     public ValidationResult merge(ValidationResult other) {
@@ -125,8 +126,8 @@ public final class ValidationResult {
             newMissingSchemas.addAll(Arrays.asList(other.missingSchemas));
         }
 
-        String[] retMissingSchemas =
-                newMissingSchemas == null ? null : newMissingSchemas.toArray(new String[newMissingSchemas.size()]);
+        String[] retMissingSchemas = newMissingSchemas == null ? null
+                : newMissingSchemas.toArray(new String[newMissingSchemas.size()]);
 
         HashSet<Error> newErrors = errors == null ? null : new HashSet<>(Arrays.asList(errors));
 
@@ -160,8 +161,7 @@ public final class ValidationResult {
     }
 
     public boolean isSuccessful() {
-        return (missingSchemas == null || missingSchemas.length == 0)
-                && (errors == null || errors.length == 0);
+        return (missingSchemas == null || missingSchemas.length == 0) && (errors == null || errors.length == 0);
     }
 
     public ConfigurationException asException() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import org.revapi.java.spi.UseSite;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.11.0
  */
 public class ClassPathUseSite {
@@ -35,7 +36,8 @@ public class ClassPathUseSite {
         this.indexInParent = indexInParent;
     }
 
-    @Override public boolean equals(Object o) {
+    @Override
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -54,7 +56,8 @@ public class ClassPathUseSite {
 
     }
 
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
         int result = useType.hashCode();
         result = 31 * result + site.hashCode();
         return result;

@@ -24,11 +24,12 @@ import java.util.function.BiPredicate;
 /**
  * A correspondence comparator deducer produces a comparator that is used to compare elements from 2 collections.
  *
- * <p>This is important in situations where the choice of the API comparison "partner" element cannot be determined
- * without knowing its "neighborhood" in both element forests. A concrete example of this is comparison of overloaded
- * methods.
+ * <p>
+ * This is important in situations where the choice of the API comparison "partner" element cannot be determined without
+ * knowing its "neighborhood" in both element forests. A concrete example of this is comparison of overloaded methods.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
  */
 public interface CorrespondenceComparatorDeducer<E extends Element<E>> {
@@ -45,17 +46,21 @@ public interface CorrespondenceComparatorDeducer<E extends Element<E>> {
     }
 
     /**
-     * This correspondence deducer is a good match for situations where the ordering of the children of some element
-     * is not semantic but rather positional, e.g. method parameters or elements of an array. The deducer will then
-     * return a comparator that will make Revapi produce the minimal set of changes necessary to transform the old into
-     * the new.
+     * This correspondence deducer is a good match for situations where the ordering of the children of some element is
+     * not semantic but rather positional, e.g. method parameters or elements of an array. The deducer will then return
+     * a comparator that will make Revapi produce the minimal set of changes necessary to transform the old into the
+     * new.
      *
-     * @param equality a function to determine the element equality
+     * @param equality
+     *            a function to determine the element equality
      *
-     * @param <E> the base type of the elements
+     * @param <E>
+     *            the base type of the elements
+     * 
      * @return a correspondence comparator deducer that will produce a diff-like ordering of the elements
      */
-    static <E extends Element<E>> CorrespondenceComparatorDeducer<E> editDistance(BiPredicate<? super E, ? super E> equality) {
+    static <E extends Element<E>> CorrespondenceComparatorDeducer<E> editDistance(
+            BiPredicate<? super E, ? super E> equality) {
         return (as, bs) -> {
             if (as.isEmpty() || bs.isEmpty()) {
                 return Comparator.naturalOrder();
@@ -82,14 +87,16 @@ public interface CorrespondenceComparatorDeducer<E extends Element<E>> {
      * Deduces the correspondence comparator and sorts the provided lists so that the comparator, when used to compare
      * the elements for the two lists mutually is consistent.
      *
-     * <p> The collections will contain elements of different types (which is consistent with how {@link ElementForest}
+     * <p>
+     * The collections will contain elements of different types (which is consistent with how {@link ElementForest}
      * stores the children) and it is assumed that the sorter is able to pick and choose which types of elements it is
      * able to sort. The collections will be sorted according the natural order of the elements when entering this
      * method.
      *
-     * @param first the first collection of elements
-     * @param second the second collection of elements
+     * @param first
+     *            the first collection of elements
+     * @param second
+     *            the second collection of elements
      */
     Comparator<? super E> sortAndGetCorrespondenceComparator(List<E> first, List<E> second);
 }
-

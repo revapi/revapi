@@ -41,7 +41,8 @@ import org.revapi.Archive;
 import org.revapi.base.BaseElementForest;
 import org.revapi.base.ZipArchiveAnalyzer;
 
-public abstract class JacksonArchiveAnalyzer<E extends JacksonElement<E>> extends ZipArchiveAnalyzer<BaseElementForest<E>, E> {
+public abstract class JacksonArchiveAnalyzer<E extends JacksonElement<E>>
+        extends ZipArchiveAnalyzer<BaseElementForest<E>, E> {
     private final ObjectMapper objectMapper;
     private final Charset charset;
 
@@ -88,7 +89,8 @@ public abstract class JacksonArchiveAnalyzer<E extends JacksonElement<E>> extend
                 add(el.getArchive(), el.filePath, el.getChildren(), tree.get(idx), idx);
             }
         } else if (tree.isObject()) {
-            tree.fieldNames().forEachRemaining(f -> add(el.getArchive(), el.filePath, el.getChildren(), tree.get(f), f));
+            tree.fieldNames()
+                    .forEachRemaining(f -> add(el.getArchive(), el.filePath, el.getChildren(), tree.get(f), f));
         }
     }
 

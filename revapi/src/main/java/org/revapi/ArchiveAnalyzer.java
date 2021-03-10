@@ -17,10 +17,11 @@
 package org.revapi;
 
 /**
- * The instances of implementations of this interface are produced by the {@link org.revapi.ApiAnalyzer}s to
- * analyze the API archives and create an element tree that is then used for API comparison.
+ * The instances of implementations of this interface are produced by the {@link org.revapi.ApiAnalyzer}s to analyze the
+ * API archives and create an element tree that is then used for API comparison.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface ArchiveAnalyzer<E extends Element<E>> {
@@ -42,7 +43,9 @@ public interface ArchiveAnalyzer<E extends Element<E>> {
      * non-local relationships between elements. Once this method returns the preliminary forest, the callers should
      * also call the {@link #prune(ElementForest)} method to obtain a forest that is truly minimal.
      *
-     * @param filter the filter to use to filter out unwanted elements from the forest
+     * @param filter
+     *            the filter to use to filter out unwanted elements from the forest
+     * 
      * @return the preliminary element forest that should be {@link #prune(ElementForest) pruned} before analysis
      */
     ElementForest<E> analyze(TreeFilter<E> filter);
@@ -51,7 +54,8 @@ public interface ArchiveAnalyzer<E extends Element<E>> {
      * Once all the filtering on the element forest is done, the analyzer is allowed one final "pass" through the forest
      * to remove any elements that should not be there any longer.
      *
-     * @param forest the forest to prune
+     * @param forest
+     *            the forest to prune
      */
     void prune(ElementForest<E> forest);
 }

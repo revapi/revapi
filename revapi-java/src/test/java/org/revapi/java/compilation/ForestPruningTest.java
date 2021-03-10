@@ -71,7 +71,8 @@ public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
         environment = new ProbingEnvironment(fakeApi);
         HashMap<javax.lang.model.element.TypeElement, TypeElement> typeMap = new HashMap<>();
 
-        CompiledJar.Environment env = jar.from().classPathSources("/usesites/", "A.java", "B.java", "C.java", "E.java", "F.java").build().analyze();
+        CompiledJar.Environment env = jar.from()
+                .classPathSources("/usesites/", "A.java", "B.java", "C.java", "E.java", "F.java").build().analyze();
         environment.setProcessingEnvironment(env.processingEnvironment());
 
         forest = environment.getTree();
@@ -129,7 +130,7 @@ public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
         FFFctor = methodModel;
         FFF.getChildren().add(FFFctor);
 
-        //k now we have all the elements in our model, but we still need to add the use sites
+        // k now we have all the elements in our model, but we still need to add the use sites
         A.getUseSites().add(new UseSite(UseSite.Type.ANNOTATES, B));
         B.getUseSites().add(new UseSite(UseSite.Type.IS_IMPLEMENTED, C));
         B.getUseSites().add(new UseSite(UseSite.Type.PARAMETER_TYPE, Cm));
@@ -156,8 +157,8 @@ public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
         FFF.getUsedTypes().computeIfAbsent(UseSite.Type.CONTAINS, __ -> new HashMap<>())
                 .computeIfAbsent(F, __ -> new HashSet<>()).add(FFF);
 
-        //and one more thing - we declare E as coming from supplementary archives, so that it is automagically
-        //removed once it is not used anymore.
+        // and one more thing - we declare E as coming from supplementary archives, so that it is automagically
+        // removed once it is not used anymore.
         A.setInApi(true);
         B.setInApi(true);
         C.setInApi(true);
@@ -166,7 +167,7 @@ public class ForestPruningTest extends AbstractJavaElementAnalyzerTest {
         FFF.setInApi(true);
         FFF.setInApiThroughUse(true);
 
-        //setup the type map
+        // setup the type map
         typeMap.put(A.getDeclaringElement(), A);
         typeMap.put(B.getDeclaringElement(), B);
         typeMap.put(C.getDeclaringElement(), C);

@@ -56,6 +56,7 @@ import org.revapi.base.CollectingReporter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
  */
 abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
@@ -64,13 +65,13 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     protected MavenSession mavenSession;
 
     /**
-     * Set to true if all the projects in the current build should share a single version (the default is false).
-     * This is useful if your distribution consists of several modules that make up one logical unit that is always
-     * versioned the same.
+     * Set to true if all the projects in the current build should share a single version (the default is false). This
+     * is useful if your distribution consists of several modules that make up one logical unit that is always versioned
+     * the same.
      * <p>
-     * In this case all the projects in the current build are API-checked and the version is determined by the
-     * "biggest" API change found in all the projects. I.e. if just a single module breaks API then all of the
-     * modules will get the major version incremented.
+     * In this case all the projects in the current build are API-checked and the version is determined by the "biggest"
+     * API change found in all the projects. I.e. if just a single module breaks API then all of the modules will get
+     * the major version incremented.
      */
     @Parameter(property = Props.singleVersionForAllModules.NAME, defaultValue = Props.singleVersionForAllModules.DEFAULT_VALUE)
     private boolean singleVersionForAllModules;
@@ -87,9 +88,9 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     protected String disallowedExtensions;
 
     /**
-     * When the {@code pom.xml} of the updated project contains no version and the computed version is different
-     * from the inherited version, the goal fails by default so that it doesn't change the version inheritance used
-     * by the projects. If you want to set an explicit version to such projects, set this property to {@code true}.
+     * When the {@code pom.xml} of the updated project contains no version and the computed version is different from
+     * the inherited version, the goal fails by default so that it doesn't change the version inheritance used by the
+     * projects. If you want to set an explicit version to such projects, set this property to {@code true}.
      */
     @Parameter(property = Props.forceVersionUpdate.NAME, defaultValue = Props.forceVersionUpdate.DEFAULT_VALUE)
     private boolean forceVersionUpdate;
@@ -131,7 +132,7 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
             AnalyzerBuilder.Result bld = buildAnalyzer(project, PipelineConfiguration.builder(),
                     CollectingReporter.class, Collections.emptyMap());
 
-            Artifact newArtifact =  new DefaultArtifact(bld.newArtifacts[0]);
+            Artifact newArtifact = new DefaultArtifact(bld.newArtifacts[0]);
 
             analysisResults = new AnalysisResults(ApiChangeLevel.NO_CHANGE, newArtifact.getVersion());
         } else {
@@ -178,7 +179,7 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
                     projectChanges.put(projectGav, new AnalysisResults(changeLevel, baseVersion));
                 }
 
-                //establish the tree hierarchy of the projects
+                // establish the tree hierarchy of the projects
                 Set<MavenProject> roots = new HashSet<>();
                 Map<MavenProject, Set<MavenProject>> children = new HashMap<>();
                 Deque<MavenProject> unprocessed = new ArrayDeque<>(mavenSession.getProjects());
@@ -264,19 +265,19 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
 
             ap.selectXPath("/project/version");
             if (ap.evalXPath() != -1) {
-                //found the version
+                // found the version
                 int textPos = nav.getText();
                 mod.updateToken(textPos, version.toString());
             } else {
                 if (!forceVersionUpdate && !project.getParent().getVersion().equals(version.toString())) {
-                    throw new MojoExecutionException("Project " + project.getArtifactId() + " inherits the version" +
-                            " from the parent project (" + project.getParent().getVersion() + ") but should have a" +
-                            " different version according to the configured rules (" + version.toString() + "). If" +
-                            " you wish to insert an explicit version instead of inheriting it, set the " +
-                            Props.forceVersionUpdate.NAME + " property to true.");
+                    throw new MojoExecutionException("Project " + project.getArtifactId() + " inherits the version"
+                            + " from the parent project (" + project.getParent().getVersion() + ") but should have a"
+                            + " different version according to the configured rules (" + version.toString() + "). If"
+                            + " you wish to insert an explicit version instead of inheriting it, set the "
+                            + Props.forceVersionUpdate.NAME + " property to true.");
                 }
 
-                //place the version after the artifactId
+                // place the version after the artifactId
                 ap.selectXPath("/project/artifactId");
                 if (ap.evalXPath() == -1) {
                     throw new MojoExecutionException("Failed to find artifactId element in the pom.xml of project "
@@ -295,7 +296,8 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
             try (OutputStream out = new FileOutputStream(project.getFile())) {
                 mod.output(out);
             }
-        } catch (IOException | ModifyException | NavException | XPathParseException | XPathEvalException | TranscodeException e) {
+        } catch (IOException | ModifyException | NavException | XPathParseException | XPathEvalException
+                | TranscodeException e) {
             throw new MojoExecutionException("Failed to update the version of project " + project, e);
         }
     }
@@ -332,28 +334,28 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         boolean isDev = v.getMajor() == 0;
 
         switch (changeLevel) {
-            case NO_CHANGE:
-                break;
-            case NON_BREAKING_CHANGES:
-                if (isDev) {
-                    v.setPatch(v.getPatch() + 1);
-                } else {
-                    v.setMinor(v.getMinor() + 1);
-                    v.setPatch(0);
-                }
-                break;
-            case BREAKING_CHANGES:
-                if (isDev) {
-                    v.setMinor(v.getMinor() + 1);
-                    v.setPatch(0);
-                } else {
-                    v.setMajor(v.getMajor() + 1);
-                    v.setMinor(0);
-                    v.setPatch(0);
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unhandled API change level: " + changeLevel);
+        case NO_CHANGE:
+            break;
+        case NON_BREAKING_CHANGES:
+            if (isDev) {
+                v.setPatch(v.getPatch() + 1);
+            } else {
+                v.setMinor(v.getMinor() + 1);
+                v.setPatch(0);
+            }
+            break;
+        case BREAKING_CHANGES:
+            if (isDev) {
+                v.setMinor(v.getMinor() + 1);
+                v.setPatch(0);
+            } else {
+                v.setMajor(v.getMajor() + 1);
+                v.setMinor(0);
+                v.setPatch(0);
+            }
+            break;
+        default:
+            throw new IllegalArgumentException("Unhandled API change level: " + changeLevel);
         }
 
         if (replacementSuffix != null) {
@@ -390,8 +392,8 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
             try (AnalysisResult res = analyzer.analyze()) {
                 res.throwIfFailed();
 
-                ApiBreakageHintingReporter reporter =
-                        res.getExtensions().getFirstExtension(ApiBreakageHintingReporter.class, null);
+                ApiBreakageHintingReporter reporter = res.getExtensions()
+                        .getFirstExtension(ApiBreakageHintingReporter.class, null);
 
                 ApiChangeLevel level = reporter.getChangeLevel();
                 String baseVersion = old.getVersion();

@@ -29,14 +29,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A generic difference transform that can ignore differences based on the difference code ({@link
- * org.revapi.Difference#code}) and on the old or new elements' full human representations
+ * A generic difference transform that can ignore differences based on the difference code
+ * ({@link org.revapi.Difference#code}) and on the old or new elements' full human representations
  * ({@link org.revapi.Element#getFullHumanReadableString()}) or result of comparing using specified matcher.
  *
- * <p>See {@code META-INF/ignore-schema.json} for the JSON schema of the configuration.
+ * <p>
+ * See {@code META-INF/ignore-schema.json} for the JSON schema of the configuration.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
+ * 
  * @deprecated This is superseded by {@link DifferencesTransform}
  */
 @Deprecated

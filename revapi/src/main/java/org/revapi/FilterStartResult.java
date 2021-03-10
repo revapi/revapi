@@ -21,8 +21,8 @@ import static org.revapi.Ternary.TRUE;
 import static org.revapi.Ternary.UNDECIDED;
 
 /**
- * The result of the element filtering in {@link TreeFilter}. The result tells the analysis whether to let
- * the element pass or not to the next stage but also whether to descend to its children or not.
+ * The result of the element filtering in {@link TreeFilter}. The result tells the analysis whether to let the element
+ * pass or not to the next stage but also whether to descend to its children or not.
  */
 public final class FilterStartResult {
     private static final FilterStartResult FALSE_FALSE_FALSE = new FilterStartResult(FALSE, FALSE, false);
@@ -41,7 +41,8 @@ public final class FilterStartResult {
     private static final FilterStartResult UNDECIDED_FALSE_TRUE = new FilterStartResult(UNDECIDED, FALSE, true);
     private static final FilterStartResult UNDECIDED_TRUE_FALSE = new FilterStartResult(UNDECIDED, TRUE, false);
     private static final FilterStartResult UNDECIDED_TRUE_TRUE = new FilterStartResult(UNDECIDED, TRUE, true);
-    private static final FilterStartResult UNDECIDED_UNDECIDED_FALSE = new FilterStartResult(UNDECIDED, UNDECIDED, false);
+    private static final FilterStartResult UNDECIDED_UNDECIDED_FALSE = new FilterStartResult(UNDECIDED, UNDECIDED,
+            false);
     private static final FilterStartResult UNDECIDED_UNDECIDED_TRUE = new FilterStartResult(UNDECIDED, UNDECIDED, true);
 
     private final Ternary match;
@@ -53,17 +54,18 @@ public final class FilterStartResult {
      * influence the "decision" of other filters but if it is the only one present, it gives the consumers of the result
      * the chance to make a decision whether to make the elements pass or not.
      *
-     * <p>This should be used by the tree filters in cases where they don't have anything to "say" about filtering (due
-     * to lack of configuration or something similar).
+     * <p>
+     * This should be used by the tree filters in cases where they don't have anything to "say" about filtering (due to
+     * lack of configuration or something similar).
      */
     public static FilterStartResult defaultResult() {
         return from(UNDECIDED, UNDECIDED, true);
     }
 
     /**
-     * The result will match any element and will always descend to any element's children. This SHOULD NOT be used
-     * as a default value of the filter result. Instead, it is meant for situations where one wants to retrieve all
-     * elements in the tree using {@link ElementForest#stream(Class, boolean, TreeFilter, Element)} or similar methods.
+     * The result will match any element and will always descend to any element's children. This SHOULD NOT be used as a
+     * default value of the filter result. Instead, it is meant for situations where one wants to retrieve all elements
+     * in the tree using {@link ElementForest#stream(Class, boolean, TreeFilter, Element)} or similar methods.
      */
     public static FilterStartResult matchAndDescend() {
         return TRUE_TRUE_FALSE;
@@ -90,7 +92,7 @@ public final class FilterStartResult {
             case TRUE:
                 return inherited ? TRUE_TRUE_TRUE : TRUE_TRUE_FALSE;
             case UNDECIDED:
-                return inherited ? TRUE_UNDECIDED_TRUE: TRUE_UNDECIDED_FALSE;
+                return inherited ? TRUE_UNDECIDED_TRUE : TRUE_UNDECIDED_FALSE;
             }
             break;
         case FALSE:
@@ -100,7 +102,7 @@ public final class FilterStartResult {
             case TRUE:
                 return inherited ? FALSE_TRUE_TRUE : FALSE_TRUE_FALSE;
             case UNDECIDED:
-                return inherited ? FALSE_UNDECIDED_TRUE: FALSE_UNDECIDED_FALSE;
+                return inherited ? FALSE_UNDECIDED_TRUE : FALSE_UNDECIDED_FALSE;
             }
             break;
         case UNDECIDED:
@@ -110,7 +112,7 @@ public final class FilterStartResult {
             case TRUE:
                 return inherited ? UNDECIDED_TRUE_TRUE : UNDECIDED_TRUE_FALSE;
             case UNDECIDED:
-                return inherited ? UNDECIDED_UNDECIDED_TRUE: UNDECIDED_UNDECIDED_FALSE;
+                return inherited ? UNDECIDED_UNDECIDED_TRUE : UNDECIDED_UNDECIDED_FALSE;
             }
             break;
         }
@@ -140,8 +142,8 @@ public final class FilterStartResult {
     }
 
     /**
-     * Tells whether the result is implicitly inherited from some parent element or if it was explicitly evaluated
-     * on some element.
+     * Tells whether the result is implicitly inherited from some parent element or if it was explicitly evaluated on
+     * some element.
      */
     public boolean isInherited() {
         return inherited;
@@ -260,11 +262,7 @@ public final class FilterStartResult {
 
     @Override
     public String toString() {
-        return "FilterStartResult{" +
-                "match=" + match +
-                ", descend=" + descend +
-                ", inherited=" + inherited +
-                '}';
+        return "FilterStartResult{" + "match=" + match + ", descend=" + descend + ", inherited=" + inherited + '}';
     }
 
     private Ternary combineDescend(FilterStartResult other) {

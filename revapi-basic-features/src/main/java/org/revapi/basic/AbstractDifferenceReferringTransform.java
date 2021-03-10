@@ -37,6 +37,7 @@ import org.revapi.TransformationResult;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public abstract class AbstractDifferenceReferringTransform<E extends Element<E>> implements DifferenceTransform<E> {
@@ -51,7 +52,9 @@ public abstract class AbstractDifferenceReferringTransform<E extends Element<E>>
         this.extensionId = extensionId;
     }
 
-    @Nullable @Override public String getExtensionId() {
+    @Nullable
+    @Override
+    public String getExtensionId() {
         return extensionId;
     }
 
@@ -86,17 +89,15 @@ public abstract class AbstractDifferenceReferringTransform<E extends Element<E>>
 
         for (JsonNode config : myNode) {
             DifferenceMatchRecipe recipe = newRecipe(config);
-            codes.add(
-                recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code) + "$") :
-                    recipe.codeRegex);
+            codes.add(recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code) + "$")
+                    : recipe.codeRegex);
             configuredRecipes.add(recipe);
         }
         this.codes = codes.toArray(new Pattern[0]);
     }
 
     @Override
-    public TransformationResult tryTransform(@Nullable E oldElement, @Nullable E newElement,
-            Difference difference) {
+    public TransformationResult tryTransform(@Nullable E oldElement, @Nullable E newElement, Difference difference) {
 
         if (activeRecipes == null) {
             return TransformationResult.keep();
@@ -119,17 +120,16 @@ public abstract class AbstractDifferenceReferringTransform<E extends Element<E>>
     }
 
     @Override
-    public <X extends Element<X>> Optional<TraversalTracker<X>> startTraversal(ApiAnalyzer<X> apiAnalyzer, ArchiveAnalyzer<X> oldArchiveAnalyzer,
-            ArchiveAnalyzer<X> newArchiveAnalyzer) {
+    public <X extends Element<X>> Optional<TraversalTracker<X>> startTraversal(ApiAnalyzer<X> apiAnalyzer,
+            ArchiveAnalyzer<X> oldArchiveAnalyzer, ArchiveAnalyzer<X> newArchiveAnalyzer) {
         if (configuredRecipes == null) {
             return Optional.empty();
         }
 
         List<MatchingProgress<X>> recipes = configuredRecipes.stream()
-                .map(r -> r.startWithAnalyzers(oldArchiveAnalyzer, newArchiveAnalyzer))
-                .collect(Collectors.toList());
+                .map(r -> r.startWithAnalyzers(oldArchiveAnalyzer, newArchiveAnalyzer)).collect(Collectors.toList());
 
-        //noinspection unchecked,rawtypes,rawtypes
+        // noinspection unchecked,rawtypes,rawtypes
         activeRecipes = (Collection<MatchingProgress<?>>) (Collection) recipes;
 
         return Optional.of(new TraversalTracker<X>() {

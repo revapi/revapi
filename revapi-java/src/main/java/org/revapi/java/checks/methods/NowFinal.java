@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@ import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class NowFinal extends ModifierChanged {
@@ -47,23 +48,24 @@ public final class NowFinal extends ModifierChanged {
         doVisit(oldMethod, newMethod);
     }
 
-    @Override protected List<Difference> doEnd() {
+    @Override
+    protected List<Difference> doEnd() {
         ActiveElements<JavaMethodElement> elements = popIfActive();
         if (elements == null) {
             return null;
         }
 
-        //noinspection ConstantConditions
+        // noinspection ConstantConditions
         if (elements.newElement.getParent().getDeclaringElement().getModifiers().contains(Modifier.FINAL)) {
             return Collections.singletonList(createDifference(Code.METHOD_NOW_FINAL_IN_FINAL_CLASS,
-                    Code.attachmentsFor(elements.oldElement, elements.newElement,
-                            "oldModifiers", stringify(elements.oldElement.getDeclaringElement().getModifiers()),
-                            "newModifiers", stringify(elements.newElement.getDeclaringElement().getModifiers()))));
+                    Code.attachmentsFor(elements.oldElement, elements.newElement, "oldModifiers",
+                            stringify(elements.oldElement.getDeclaringElement().getModifiers()), "newModifiers",
+                            stringify(elements.newElement.getDeclaringElement().getModifiers()))));
         } else {
             return Collections.singletonList(createDifference(Code.METHOD_NOW_FINAL,
-                    Code.attachmentsFor(elements.oldElement, elements.newElement,
-                            "oldModifiers", stringify(elements.oldElement.getDeclaringElement().getModifiers()),
-                            "newModifiers", stringify(elements.newElement.getDeclaringElement().getModifiers()))));
+                    Code.attachmentsFor(elements.oldElement, elements.newElement, "oldModifiers",
+                            stringify(elements.oldElement.getDeclaringElement().getModifiers()), "newModifiers",
+                            stringify(elements.newElement.getDeclaringElement().getModifiers()))));
         }
     }
 }

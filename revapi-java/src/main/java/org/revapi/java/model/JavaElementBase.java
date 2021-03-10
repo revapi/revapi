@@ -35,6 +35,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public abstract class JavaElementBase<E extends Element, T extends TypeMirror> extends AbstractJavaElement
@@ -143,8 +144,8 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
             return true;
         }
 
-        return obj instanceof JavaElementBase &&
-                getFullHumanReadableString().equals(((JavaElementBase<?, ?>) obj).getFullHumanReadableString());
+        return obj instanceof JavaElementBase
+                && getFullHumanReadableString().equals(((JavaElementBase<?, ?>) obj).getFullHumanReadableString());
     }
 
     @Override
@@ -162,7 +163,9 @@ public abstract class JavaElementBase<E extends Element, T extends TypeMirror> e
      * Clones this element and tries to add it under the new parent. If the parent already contains an element
      * equivalent to this one, the returned optional is empty, otherwise it contains the clone.
      *
-     * @param newParent the parent to add the clone to
+     * @param newParent
+     *            the parent to add the clone to
+     * 
      * @return optional with the clone or an empty optional if the new parent already contains an equivalent element
      */
     public Optional<JavaElementBase<E, T>> cloneUnder(JavaElementBase<?, ?> newParent) {

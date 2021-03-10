@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,45 +23,44 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Criticality represents the assigned importance of a {@link Difference}. While difference has its classifications
- * and severities, criticality expresses how that classification is perceived in the concrete case of the difference.
+ * Criticality represents the assigned importance of a {@link Difference}. While difference has its classifications and
+ * severities, criticality expresses how that classification is perceived in the concrete case of the difference.
  *
  * An API author might consider it OK to have breaking changes in certain part of API, yet wants to highlight to the
- * users in reports that those are indeed breaking. It would not have therefore been enough to just reclassify
- * the difference as non-breaking.
+ * users in reports that those are indeed breaking. It would not have therefore been enough to just reclassify the
+ * difference as non-breaking.
  *
  * There are a couple of predefined criticalities that are always present in the analysis and are ready to use:
  *
  * <ol>
- *     <li> {@link Criticality#ALLOWED}
- *     <li> {@link Criticality#DOCUMENTED}
- *     <li> {@link Criticality#HIGHLIGHT}
- *     <li> {@link Criticality#ERROR}
+ * <li>{@link Criticality#ALLOWED}
+ * <li>{@link Criticality#DOCUMENTED}
+ * <li>{@link Criticality#HIGHLIGHT}
+ * <li>{@link Criticality#ERROR}
  * </ol>
  */
 public final class Criticality implements Comparable<Criticality> {
     /**
-     * Differences with this criticality are allowed and considered OK. 
-     * The {@link #getLevel() level} of this criticality is 1000.
+     * Differences with this criticality are allowed and considered OK. The {@link #getLevel() level} of this
+     * criticality is 1000.
      */
     public static final Criticality ALLOWED = new Criticality("allowed", 1000);
 
     /**
-     * Differences with this criticality are necessary in the project and are documented.
-     * The {@link #getLevel() level} of this criticality is 2000.
+     * Differences with this criticality are necessary in the project and are documented. The {@link #getLevel() level}
+     * of this criticality is 2000.
      */
     public static final Criticality DOCUMENTED = new Criticality("documented", 2000);
 
     /**
      * Differences with this criticality are necessary in the project, are documented and are very important/severe so
-     * should be highlighted in the reports.
-     * The {@link #getLevel() level} of this criticality is 3000.
+     * should be highlighted in the reports. The {@link #getLevel() level} of this criticality is 3000.
      */
     public static final Criticality HIGHLIGHT = new Criticality("highlight", 3000);
 
     /**
-     * Differences with this criticality are not allowed and should be dealt with in the checked codebase.
-     * The {@link #getLevel() level} of this criticality is the maximum integer value. There can be no criticality more
+     * Differences with this criticality are not allowed and should be dealt with in the checked codebase. The
+     * {@link #getLevel() level} of this criticality is the maximum integer value. There can be no criticality more
      * severe than this.
      */
     public static final Criticality ERROR = new Criticality("error", Integer.MAX_VALUE);
@@ -72,8 +71,10 @@ public final class Criticality implements Comparable<Criticality> {
     /**
      * Creates a new criticality instance.
      *
-     * @param name the human readable name of the criticality
-     * @param level how critical it is. A non-negative integer
+     * @param name
+     *            the human readable name of the criticality
+     * @param level
+     *            how critical it is. A non-negative integer
      */
     public Criticality(String name, int level) {
         this.name = name;
@@ -124,8 +125,7 @@ public final class Criticality implements Comparable<Criticality> {
             return false;
         }
         Criticality that = (Criticality) o;
-        return level == that.level &&
-                name.equals(that.name);
+        return level == that.level && name.equals(that.name);
     }
 
     @Override
@@ -135,10 +135,7 @@ public final class Criticality implements Comparable<Criticality> {
 
     @Override
     public String toString() {
-        return "Criticality[" +
-                "name='" + name + '\'' +
-                ", level=" + level +
-                ']';
+        return "Criticality[" + "name='" + name + '\'' + ", level=" + level + ']';
     }
 
     @Override

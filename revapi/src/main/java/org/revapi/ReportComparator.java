@@ -30,11 +30,12 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
- * While {@link org.revapi.Element elements} of a single API analyzer are by definition mutually comparable,
- * the same doesn't apply for reports. Reports are collected across multiple api analyzers and therefore 2 reports,
- * coming from 2 different api analyzers can contain elements that are not mutually comparable.
+ * While {@link org.revapi.Element elements} of a single API analyzer are by definition mutually comparable, the same
+ * doesn't apply for reports. Reports are collected across multiple api analyzers and therefore 2 reports, coming from 2
+ * different api analyzers can contain elements that are not mutually comparable.
  *
- * <p>This comparator tries to overcome that and offer a way of ordering all the reports in some predictable order.
+ * <p>
+ * This comparator tries to overcome that and offer a way of ordering all the reports in some predictable order.
  */
 public class ReportComparator implements Comparator<Report> {
 
@@ -49,7 +50,7 @@ public class ReportComparator implements Comparator<Report> {
         this.comparisonStrategy = comparisonStrategy;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public int compare(Report o1, Report o2) {
         Element el1 = getElement(o1);
@@ -88,16 +89,21 @@ public class ReportComparator implements Comparator<Report> {
 
     @SuppressWarnings("unchecked")
     protected <E extends Element<E>> Comparator<E> getComparatorFor(E element) {
-        return (Comparator<E>) perTypeComparators.getOrDefault(getBaseType(element.getClass()), Comparator.naturalOrder());
+        return (Comparator<E>) perTypeComparators.getOrDefault(getBaseType(element.getClass()),
+                Comparator.naturalOrder());
     }
 
     /**
      * Compares the two elements based on the comparison strategy. It uses the comparator returned from
      * {@link #getComparatorFor(Element)} for direct comparisons of any two elements.
      *
-     * @param e1 the first element
-     * @param e2 the second element
-     * @param <E> the base type of the elements
+     * @param e1
+     *            the first element
+     * @param e2
+     *            the second element
+     * @param <E>
+     *            the base type of the elements
+     * 
      * @return the result of the comparison
      */
     protected <E extends Element<E>> int compare(E e1, E e2) {
@@ -136,7 +142,9 @@ public class ReportComparator implements Comparator<Report> {
      * The elements are always derived from some base type, all subclasses of which must be mutually comparable. This
      * method finds such base type.
      *
-     * @param elementClass the type of some element
+     * @param elementClass
+     *            the type of some element
+     * 
      * @return the base type for comparison
      */
     protected static Class<?> getBaseType(Class<?> elementClass) {
@@ -183,9 +191,13 @@ public class ReportComparator implements Comparator<Report> {
          * with the elements with the same base type will be compared using the provided comparator instead of their
          * natural order.
          *
-         * @param elementBaseType the base type of an element
-         * @param comparator the comparator to use
-         * @param <E> the base type of elements
+         * @param elementBaseType
+         *            the base type of an element
+         * @param comparator
+         *            the comparator to use
+         * @param <E>
+         *            the base type of elements
+         * 
          * @return this instance
          */
         public <E extends Element<E>> Builder comparingElements(Class<E> elementBaseType, Comparator<E> comparator) {
@@ -194,11 +206,13 @@ public class ReportComparator implements Comparator<Report> {
         }
 
         /**
-         * This sets up the comparator to order the reports of 2 different element types according to the position
-         * of the element base types in the provided array. If no explicit order can be found for 2 element types,
-         * they are by default ordered using their class names.
+         * This sets up the comparator to order the reports of 2 different element types according to the position of
+         * the element base types in the provided array. If no explicit order can be found for 2 element types, they are
+         * by default ordered using their class names.
          *
-         * @param elementBaseTypes the list of element base types
+         * @param elementBaseTypes
+         *            the list of element base types
+         * 
          * @return this instance
          */
         public Builder withExplicitOrder(Class<?>... elementBaseTypes) {

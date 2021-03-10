@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
  * Represents the differences between comparable elements from old and new API.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Report {
@@ -67,8 +68,7 @@ public final class Report {
     private final Element<?> oldElement;
     private final Element<?> newElement;
 
-    public Report(Iterable<Difference> problems, @Nullable Element<?> oldElement,
-        @Nullable Element<?> newElement) {
+    public Report(Iterable<Difference> problems, @Nullable Element<?> oldElement, @Nullable Element<?> newElement) {
         this.differences = new ArrayList<>();
         for (Difference p : problems) {
             this.differences.add(p);

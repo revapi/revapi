@@ -26,8 +26,8 @@ import java.io.InputStream;
 import org.revapi.Archive;
 
 /**
- * Generally speaking, archives are objects supplied by the caller of Revapi that represent the "files" that contain
- * the API elements.
+ * Generally speaking, archives are objects supplied by the caller of Revapi that represent the "files" that contain the
+ * API elements.
  *
  * For Java, those would usually be the JAR files, for property files, those would probably be just the individual
  * files, etc.

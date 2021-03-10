@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ package org.revapi.configuration;
  * Thrown if an invalid configuration is detected.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class ConfigurationException extends RuntimeException {
@@ -39,7 +40,7 @@ public class ConfigurationException extends RuntimeException {
     }
 
     public ConfigurationException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
+            boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

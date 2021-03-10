@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
@@ -49,8 +50,9 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testClassAdded() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, new String[]{"v1/classes/ClassVisibilityReduced.java"},
-            new String[]{"v2/classes/ClassVisibilityReduced.java", "v2/classes/ClassAdded.java"});
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                new String[] { "v1/classes/ClassVisibilityReduced.java" },
+                new String[] { "v2/classes/ClassVisibilityReduced.java", "v2/classes/ClassAdded.java" });
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_ADDED.code()));
     }
@@ -58,8 +60,8 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testClassRemoved() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                new String[]{"v1/classes/ClassVisibilityReduced.java", "v2/classes/ClassAdded.java"},
-                new String[]{"v1/classes/ClassVisibilityReduced.java"});
+                new String[] { "v1/classes/ClassVisibilityReduced.java", "v2/classes/ClassAdded.java" },
+                new String[] { "v1/classes/ClassVisibilityReduced.java" });
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_REMOVED.code()));
     }
@@ -70,17 +72,16 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
                 "v1/classes/NewSuperTypes.java", "v2/classes/NewSuperTypes.java");
 
         Assert.assertEquals(3,
-            (int) reporter.getProblemCounters().get(Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS.code()));
-        Assert.assertEquals(1,
-            (int) reporter.getProblemCounters().get(Code.CLASS_NOW_CHECKED_EXCEPTION.code()));
+                (int) reporter.getProblemCounters().get(Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS.code()));
+        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_CHECKED_EXCEPTION.code()));
     }
 
     @Test
     public void testRemovedSuperTypes() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
                 "v2/classes/NewSuperTypes.java", "v1/classes/NewSuperTypes.java");
-        Assert
-            .assertEquals(3, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
+        Assert.assertEquals(3,
+                (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
     }
 
     @Test
@@ -89,25 +90,25 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
                 "v1/classes/ChangedSuperTypes.java", "v2/classes/ChangedSuperTypes.java");
 
-        Assert
-            .assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
         Assert.assertEquals(2,
-            (int) reporter.getProblemCounters().get(Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS.code()));
+                (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
+        Assert.assertEquals(2,
+                (int) reporter.getProblemCounters().get(Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_CHECKED_EXCEPTION.code()));
     }
 
     @Test
     public void testKindChanged() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                "v1/classes/KindChanged.java", "v2/classes/KindChanged.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "v1/classes/KindChanged.java",
+                "v2/classes/KindChanged.java");
 
         Assert.assertEquals(4, (int) reporter.getProblemCounters().get(Code.CLASS_KIND_CHANGED.code()));
         Assert.assertEquals(1,
-            (int) reporter.getProblemCounters().get(Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS.code()));
-        Assert
-            .assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
+                (int) reporter.getProblemCounters().get(Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS.code()));
+        Assert.assertEquals(1,
+                (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
         Assert.assertEquals(3,
-            (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE.code()));
+                (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_IMPLEMENTS_INTERFACE.code()));
     }
 
@@ -116,8 +117,8 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
                 "v1/classes/ImplementedInterfaces.java", "v2/classes/ImplementedInterfaces.java");
 
-        Assert
-            .assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE.code()));
+        Assert.assertEquals(1,
+                (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_IMPLEMENTS_INTERFACE.code()));
     }
 
@@ -126,57 +127,56 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
                 "v2/classes/ImplementedInterfaces.java", "v1/classes/ImplementedInterfaces.java");
 
-        Assert
-            .assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE.code()));
+        Assert.assertEquals(1,
+                (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_IMPLEMENTS_INTERFACE.code()));
     }
 
     @Test
     public void testFinalAdded() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                "v1/classes/Final.java", "v2/classes/Final.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "v1/classes/Final.java",
+                "v2/classes/Final.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_FINAL.code()));
     }
 
     @Test
     public void testFinalRemoved() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                "v2/classes/Final.java", "v1/classes/Final.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "v2/classes/Final.java",
+                "v1/classes/Final.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_FINAL.code()));
     }
 
-
     @Test
     public void testAbstractAdded() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                "v1/classes/Abstract.java", "v2/classes/Abstract.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "v1/classes/Abstract.java",
+                "v2/classes/Abstract.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_ABSTRACT.code()));
     }
 
     @Test
     public void testAbstractRemoved() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                "v2/classes/Abstract.java", "v1/classes/Abstract.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "v2/classes/Abstract.java",
+                "v1/classes/Abstract.java");
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_ABSTRACT.code()));
     }
 
     @Test
     public void testFormalTypeParametersChanged() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                "v1/classes/TypeParams.java", "v2/classes/TypeParams.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "v1/classes/TypeParams.java",
+                "v2/classes/TypeParams.java");
 
         Assert.assertEquals(2,
-            (int) reporter.getProblemCounters().get(Code.GENERICS_FORMAL_TYPE_PARAMETER_CHANGED.code()));
-        Assert
-            .assertEquals(1, (int) reporter.getProblemCounters().get(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED.code()));
-        Assert.assertEquals(1, (int) reporter.getProblemCounters().get(
-            Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED.code()));
+                (int) reporter.getProblemCounters().get(Code.GENERICS_FORMAL_TYPE_PARAMETER_CHANGED.code()));
         Assert.assertEquals(1,
-            (int) reporter.getProblemCounters().get(Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED.code()));
+                (int) reporter.getProblemCounters().get(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED.code()));
+        Assert.assertEquals(1,
+                (int) reporter.getProblemCounters().get(Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED.code()));
+        Assert.assertEquals(1,
+                (int) reporter.getProblemCounters().get(Code.CLASS_SUPER_TYPE_TYPE_PARAMETERS_CHANGED.code()));
     }
 
     @Test
@@ -189,21 +189,17 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testUnmatchedNonPublicMembersReported() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                null, "misc/NonPublicDescendsDownChildren.java");
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, null,
+                "misc/NonPublicDescendsDownChildren.java");
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
     }
 
     @Test
     public void testMatchingNonPublicMembersNotReportedIfConfigured() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "[{" +
-                        "\"extension\": \"revapi.java\"," +
-                        "\"configuration\": {" +
-                        "\"checks\": {" +
-                        "\"nonPublicPartOfAPI\": {" +
-                        "\"reportUnchanged\": false" +
-                        "}}}}]",
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "[{" + "\"extension\": \"revapi.java\"," + "\"configuration\": {" + "\"checks\": {"
+                        + "\"nonPublicPartOfAPI\": {" + "\"reportUnchanged\": false" + "}}}}]",
                 "misc/NonPublicDescendsDownChildren.java", "misc/NonPublicDescendsDownChildren.java");
 
         Assert.assertNull(reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
@@ -211,11 +207,8 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testMatchingNonPublicMembersReportedIfConfigured() throws Exception {
-        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class, "[{" +
-                        "\"extension\": \"revapi.java\"," +
-                        "\"configuration\": {" +
-                        "\"reportUnchanged\": true" +
-                        "}}]",
+        ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
+                "[{" + "\"extension\": \"revapi.java\"," + "\"configuration\": {" + "\"reportUnchanged\": true" + "}}]",
                 null, "misc/NonPublicDescendsDownChildren.java");
 
         Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
@@ -226,14 +219,15 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
                 "v1/classes/Serialization.java", "v2/classes/Serialization.java");
 
-        Assert.assertEquals(2, (int) reporter.getProblemCounters().get(Code.CLASS_DEFAULT_SERIALIZATION_CHANGED.code()));
+        Assert.assertEquals(2,
+                (int) reporter.getProblemCounters().get(Code.CLASS_DEFAULT_SERIALIZATION_CHANGED.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.FIELD_SERIAL_VERSION_UID_CHANGED.code()));
     }
 
     @Test
     public void testExceptionKindChanges() throws Exception {
-        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
-                "v1/classes/Exceptions.java", "v2/classes/Exceptions.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class, "v1/classes/Exceptions.java",
+                "v2/classes/Exceptions.java");
 
         List<Report> reports = reporter.getReports();
 

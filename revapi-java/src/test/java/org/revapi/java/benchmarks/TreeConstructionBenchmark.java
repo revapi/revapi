@@ -42,7 +42,8 @@ public class TreeConstructionBenchmark {
     @Setup
     public void prepareAnalyzer() throws IOException {
         Properties jarLocations = new Properties();
-        jarLocations.load(TreeConstructionBenchmark.class.getResourceAsStream("/benchmarks/tree-construction-archives.properties"));
+        jarLocations.load(TreeConstructionBenchmark.class
+                .getResourceAsStream("/benchmarks/tree-construction-archives.properties"));
 
         API.Builder apiBld = API.builder();
 

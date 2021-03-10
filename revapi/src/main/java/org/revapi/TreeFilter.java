@@ -64,11 +64,17 @@ public interface TreeFilter<E extends Element<E>> {
 
     /**
      * Merges the filters together using the provided functions to combine the individual results.
-     * @param mergeStarts the function to combine two filter start results
-     * @param mergeFinishes the function to combine two filter finish results
-     * @param defaultStartResult the default start result in case there are no filters in the provided list
-     * @param defaultFinishResult the default finish result in case there are no filters in the provided list
-     * @param fs the list of filters to merge
+     * 
+     * @param mergeStarts
+     *            the function to combine two filter start results
+     * @param mergeFinishes
+     *            the function to combine two filter finish results
+     * @param defaultStartResult
+     *            the default start result in case there are no filters in the provided list
+     * @param defaultFinishResult
+     *            the default finish result in case there are no filters in the provided list
+     * @param fs
+     *            the list of filters to merge
      */
     static <E extends Element<E>> TreeFilter<E> merge(BinaryOperator<FilterStartResult> mergeStarts,
             BinaryOperator<FilterFinishResult> mergeFinishes, FilterStartResult defaultStartResult,
@@ -76,23 +82,20 @@ public interface TreeFilter<E extends Element<E>> {
         return new TreeFilter<E>() {
             @Override
             public FilterStartResult start(E element) {
-                return fs.stream().map(f -> f.start(element)).reduce(mergeStarts)
-                        .orElse(defaultStartResult);
+                return fs.stream().map(f -> f.start(element)).reduce(mergeStarts).orElse(defaultStartResult);
             }
 
             @Override
             public FilterFinishResult finish(E element) {
-                return fs.stream().map(f -> f.finish(element)).reduce(mergeFinishes)
-                        .orElse(defaultFinishResult);
+                return fs.stream().map(f -> f.finish(element)).reduce(mergeFinishes).orElse(defaultFinishResult);
             }
 
             @Override
             public Map<E, FilterFinishResult> finish() {
-                return fs.stream().map(TreeFilter::finish)
-                        .reduce(new HashMap<>(), (ret, res) -> {
-                            ret.putAll(res);
-                            return ret;
-                        });
+                return fs.stream().map(TreeFilter::finish).reduce(new HashMap<>(), (ret, res) -> {
+                    ret.putAll(res);
+                    return ret;
+                });
             }
         };
     }
@@ -130,34 +133,38 @@ public interface TreeFilter<E extends Element<E>> {
     }
 
     /**
-     * This method is called when an element is about to be filtered. After this call all the children will be
-     * processed (if the result instructs the caller to do so). Only after that, the {@link #finish(Element)} will
-     * be called with the same element as this method.
+     * This method is called when an element is about to be filtered. After this call all the children will be processed
+     * (if the result instructs the caller to do so). Only after that, the {@link #finish(Element)} will be called with
+     * the same element as this method.
      *
-     * @param element the element to start filtering
+     * @param element
+     *            the element to start filtering
+     * 
      * @return a filter result informing the caller what was the result of filtering and whether to descend to children
-     * or not
+     *         or not
      */
     FilterStartResult start(E element);
 
     /**
-     * This method is called after the filtering has {@link #start(Element) started} and all children have
-     * been processed by this filter.
+     * This method is called after the filtering has {@link #start(Element) started} and all children have been
+     * processed by this filter.
      * <p>
-     * Note that the result can still be {@link Ternary#UNDECIDED}. It is expected that such elements
-     * will in the end be resolved with the {@link #finish()} method.
+     * Note that the result can still be {@link Ternary#UNDECIDED}. It is expected that such elements will in the end be
+     * resolved with the {@link #finish()} method.
      *
-     * @param element the element for which the filtering has finished
+     * @param element
+     *            the element for which the filtering has finished
+     * 
      * @return the result of filtering
      */
     FilterFinishResult finish(E element);
 
     /**
-     * Called after all elements have been processed to see if any of them have changed in their filtering
-     * result (which could be the case if there are dependencies between elements other than that of parent-child).
+     * Called after all elements have been processed to see if any of them have changed in their filtering result (which
+     * could be the case if there are dependencies between elements other than that of parent-child).
      * <p>
-     * Note that the result can remain {@link Ternary#UNDECIDED}. It is upon the caller to then decide what to do
-     * with such elements.
+     * Note that the result can remain {@link Ternary#UNDECIDED}. It is upon the caller to then decide what to do with
+     * such elements.
      *
      * @return the final results for elements that were previously undecided if their filtering status changed
      */

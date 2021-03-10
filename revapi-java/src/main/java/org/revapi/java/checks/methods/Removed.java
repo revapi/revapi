@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Removed extends CheckBase {
@@ -53,7 +54,7 @@ public final class Removed extends CheckBase {
             return null;
         }
 
-        return Collections.singletonList(createDifference(Code.METHOD_REMOVED,
-                Code.attachmentsFor(methods.oldElement, methods.newElement)));
+        return Collections.singletonList(
+                createDifference(Code.METHOD_REMOVED, Code.attachmentsFor(methods.oldElement, methods.newElement)));
     }
 }

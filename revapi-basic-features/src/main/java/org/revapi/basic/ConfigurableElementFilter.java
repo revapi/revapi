@@ -46,16 +46,18 @@ import org.revapi.TreeFilterProvider;
 import org.revapi.base.OverridableIncludeExcludeTreeFilter;
 
 /**
- * An element filter that can filter out elements based on matching their full human readable representations.
- * Archive filter can filter out elements that belong to specified archives.
+ * An element filter that can filter out elements based on matching their full human readable representations. Archive
+ * filter can filter out elements that belong to specified archives.
  *
- * <p>If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
- * elements matching it are included. Out of the included elements, some may be further excluded by the exclude
- * filters.
+ * <p>
+ * If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
+ * elements matching it are included. Out of the included elements, some may be further excluded by the exclude filters.
  *
- * <p>See {@code META-INF/filter-schema.json} for the schema of the configuration.
+ * <p>
+ * See {@code META-INF/filter-schema.json} for the schema of the configuration.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class ConfigurableElementFilter implements TreeFilterProvider {
@@ -97,24 +99,18 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
             readSimpleFilter(archives, archiveIncludes, archiveExcludes);
         }
 
-        doNothing = elementIncludeRecipes.isEmpty() && archiveIncludes.isEmpty()
-                && elementExcludeRecipes.isEmpty() && archiveExcludes.isEmpty();
+        doNothing = elementIncludeRecipes.isEmpty() && archiveIncludes.isEmpty() && elementExcludeRecipes.isEmpty()
+                && archiveExcludes.isEmpty();
     }
 
     @Override
-    public  <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
-        @Nullable TreeFilter<E> excludes = elementExcludeRecipes.isEmpty()
-                ? null
-                : TreeFilter.union(elementExcludeRecipes.stream()
-                .map(r -> r.filterFor(archiveAnalyzer))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
-        @Nullable TreeFilter<E> includes = elementIncludeRecipes.isEmpty()
-                ? null
-                : TreeFilter.union(elementIncludeRecipes.stream()
-                .map(r -> r.filterFor(archiveAnalyzer))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+    public <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
+        @Nullable
+        TreeFilter<E> excludes = elementExcludeRecipes.isEmpty() ? null : TreeFilter.union(elementExcludeRecipes
+                .stream().map(r -> r.filterFor(archiveAnalyzer)).filter(Objects::nonNull).collect(Collectors.toList()));
+        @Nullable
+        TreeFilter<E> includes = elementIncludeRecipes.isEmpty() ? null : TreeFilter.union(elementIncludeRecipes
+                .stream().map(r -> r.filterFor(archiveAnalyzer)).filter(Objects::nonNull).collect(Collectors.toList()));
 
         return Optional.of(new OverridableIncludeExcludeTreeFilter<E>(includes, excludes) {
             final Set<Archive> excludedArchives = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -218,11 +214,12 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
         }
 
         if (matcher == null) {
-            throw new IllegalStateException("Element matcher with id '" + filterDefinition.path("matcher").asText(null)
-                    + "' was not found.");
+            throw new IllegalStateException(
+                    "Element matcher with id '" + filterDefinition.path("matcher").asText(null) + "' was not found.");
         }
 
-        return matcher.compile(recipe).orElseThrow(() -> new IllegalArgumentException("Failed to compile the match recipe."));
+        return matcher.compile(recipe)
+                .orElseThrow(() -> new IllegalArgumentException("Failed to compile the match recipe."));
     }
 
     private static boolean isIncluded(String representation, List<Pattern> includePatterns,

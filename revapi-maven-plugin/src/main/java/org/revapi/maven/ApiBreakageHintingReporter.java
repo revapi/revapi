@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,12 +29,12 @@ import org.revapi.Reporter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
  */
 public final class ApiBreakageHintingReporter implements Reporter {
 
     private ApiChangeLevel changeLevel = ApiChangeLevel.NO_CHANGE;
-
 
     @Override
     public void report(@Nonnull Report report) {
@@ -42,8 +42,7 @@ public final class ApiBreakageHintingReporter implements Reporter {
             return;
         }
 
-        LOOP:
-        for (Difference diff : report.getDifferences()) {
+        LOOP: for (Difference diff : report.getDifferences()) {
             for (DifferenceSeverity s : diff.classification.values()) {
                 boolean breaking = s == DifferenceSeverity.BREAKING;
                 if (breaking) {

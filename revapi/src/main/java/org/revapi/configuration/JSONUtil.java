@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,10 +48,11 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import org.jboss.dmr.ModelNode;
 
 /**
- * A utility class for JSON files. The JSON specification doesn't allow comments but the extension's
- * configuration is likely to contain comments so that users can "annotate" what individual configuration items mean.
+ * A utility class for JSON files. The JSON specification doesn't allow comments but the extension's configuration is
+ * likely to contain comments so that users can "annotate" what individual configuration items mean.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class JSONUtil {
@@ -61,7 +62,6 @@ public final class JSONUtil {
     private enum State {
         NORMAL, FIRST_SLASH, SINGLE_LINE, MULTI_LINE, STAR_IN_MULTI_LINE, IN_STRING, ESCAPE_IN_STRING
     }
-
 
     private JSONUtil() {
 
@@ -166,9 +166,13 @@ public final class JSONUtil {
     }
 
     /**
-     * @param json the JSON-encoded data
-     * @param charset the charset of the data
+     * @param json
+     *            the JSON-encoded data
+     * @param charset
+     *            the charset of the data
+     * 
      * @return an input stream that strips comments from json data provided as an input stream.
+     * 
      * @deprecated This ignores the charset and uses UTf-8. Use {@link #stripComments(InputStream)} instead.
      */
     @Deprecated
@@ -180,7 +184,9 @@ public final class JSONUtil {
     /**
      * Strips comments from the json in the inputstream. Assumes UTF-8 encoding.
      *
-     * @param json the JSON-encoded data
+     * @param json
+     *            the JSON-encoded data
+     * 
      * @return a reader that strips comments from json data provided as an input stream.
      */
     public static Reader stripComments(InputStream json) {
@@ -188,7 +194,9 @@ public final class JSONUtil {
     }
 
     /**
-     * @param json the JSON-encoded data
+     * @param json
+     *            the JSON-encoded data
+     * 
      * @return a String with comments stripped from the provided json data.
      */
     public static String stripComments(String json) {
@@ -206,13 +214,15 @@ public final class JSONUtil {
                 return bld.toString();
             }
         } catch (IOException e) {
-            //doesn't happen with strings
+            // doesn't happen with strings
             throw new AssertionError("IOException in StringReader? I thought that was impossible!", e);
         }
     }
 
     /**
-     * @param json the JSON-encoded data
+     * @param json
+     *            the JSON-encoded data
+     * 
      * @return a reader that strips comments from json data provided as a reader.
      */
     public static Reader stripComments(final Reader json) {
@@ -235,7 +245,7 @@ public final class JSONUtil {
                             break;
                         case '"':
                             state = State.IN_STRING;
-                            //intentional fallthrough
+                            // intentional fallthrough
                         default:
                             if (lastChar != -1) {
                                 lastChar = -1;
@@ -268,7 +278,8 @@ public final class JSONUtil {
                             lastChar = -1;
                             cont = false;
                             break;
-                        default: break;
+                        default:
+                            break;
                         }
                         break;
                     case MULTI_LINE:
@@ -312,14 +323,16 @@ public final class JSONUtil {
                         int ci = json.read();
 
                         if (ci == -1) {
-                            //the end of input.. emit something if we're in an emittable state..
+                            // the end of input.. emit something if we're in an emittable state..
                             lastChar = -1;
 
                             switch (state) {
-                                case SINGLE_LINE: case MULTI_LINE: case STAR_IN_MULTI_LINE:
-                                    return -1;
-                                default:
-                                    return emit;
+                            case SINGLE_LINE:
+                            case MULTI_LINE:
+                            case STAR_IN_MULTI_LINE:
+                                return -1;
+                            default:
+                                return emit;
                             }
                         }
 
@@ -355,10 +368,12 @@ public final class JSONUtil {
     /**
      * Converts the provided javascript object to JSON string.
      *
-     * <p>If the object is a Map instance, it is stringified as key-value pairs, if it is a list, it is stringified as
-     * a list, otherwise the object is merely converted to string using the {@code toString()} method.
+     * <p>
+     * If the object is a Map instance, it is stringified as key-value pairs, if it is a list, it is stringified as a
+     * list, otherwise the object is merely converted to string using the {@code toString()} method.
      *
-     * @param object the object to stringify.
+     * @param object
+     *            the object to stringify.
      *
      * @return the object as a JSON string
      */
@@ -376,7 +391,7 @@ public final class JSONUtil {
             for (Map.Entry<?, ?> e : ((Map<?, ?>) object).entrySet()) {
                 String key = e.getKey().toString();
                 try {
-                    //noinspection ResultOfMethodCallIgnored
+                    // noinspection ResultOfMethodCallIgnored
                     int idx = Integer.parseInt(key);
                     if (!ret.has(0)) {
                         boolean isMap = false;

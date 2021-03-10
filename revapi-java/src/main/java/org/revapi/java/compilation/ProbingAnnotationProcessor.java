@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 final class ProbingAnnotationProcessor extends AbstractProcessor {
@@ -65,12 +66,13 @@ final class ProbingAnnotationProcessor extends AbstractProcessor {
         return false;
     }
 
-    @Override public Set<String> getSupportedAnnotationTypes() {
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
         return Collections.singleton(MarkerAnnotationObject.CLASS_NAME);
     }
 
-    public <T> Future<T> submitWithCompilationAwareness(ExecutorService executor, final Callable<T> compilation, final Runnable postCompilePayload)
-            throws Exception {
+    public <T> Future<T> submitWithCompilationAwareness(ExecutorService executor, final Callable<T> compilation,
+            final Runnable postCompilePayload) throws Exception {
 
         return executor.submit(new Callable<T>() {
             @Override

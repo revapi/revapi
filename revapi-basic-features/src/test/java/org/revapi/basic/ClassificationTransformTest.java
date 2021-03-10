@@ -37,6 +37,7 @@ import org.revapi.base.BaseElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class ClassificationTransformTest {
@@ -110,9 +111,9 @@ public class ClassificationTransformTest {
         DummyElement oldE = new DummyElement("old");
         DummyElement newE = new DummyElement("new");
 
-        Difference difference = Difference.builder().withCode("code").addClassification(
-                CompatibilityType.BINARY, DifferenceSeverity.NON_BREAKING).addClassification(CompatibilityType.SOURCE,
-                DifferenceSeverity.POTENTIALLY_BREAKING).build();
+        Difference difference = Difference.builder().withCode("code")
+                .addClassification(CompatibilityType.BINARY, DifferenceSeverity.NON_BREAKING)
+                .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.POTENTIALLY_BREAKING).build();
 
         AnalysisContext config = getAnalysisContextFromFullConfig(ClassificationTransform.class, fullConfig);
         if (matcher != null) {
@@ -125,5 +126,5 @@ public class ClassificationTransformTest {
             test.accept(difference);
         }
     }
-    //TODO add schema tests
+    // TODO add schema tests
 }

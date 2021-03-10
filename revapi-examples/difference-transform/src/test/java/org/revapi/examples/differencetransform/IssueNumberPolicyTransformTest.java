@@ -38,9 +38,8 @@ class IssueNumberPolicyTransformTest {
 
     @Test
     void testDifferenceWithIssueNumberSucceeds() {
-        TransformationResult res = transform.tryTransform(null, null, Difference.builder()
-                .addAttachment("issue-no", "teh-issue")
-                .build());
+        TransformationResult res = transform.tryTransform(null, null,
+                Difference.builder().addAttachment("issue-no", "teh-issue").build());
         assertSame(TransformationResult.Resolution.KEEP, res.getResolution());
     }
 }

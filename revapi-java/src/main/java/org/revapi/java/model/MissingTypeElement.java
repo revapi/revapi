@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ import javax.lang.model.type.TypeVisitor;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class MissingTypeElement implements javax.lang.model.element.TypeElement {
@@ -198,8 +199,7 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
     @Override
     public Name getSimpleName() {
         int dotIdx = qualifiedName.lastIndexOf('.');
-        return dotIdx == -1 ? new NameImpl(qualifiedName) :
-            new NameImpl(qualifiedName.substring(dotIdx + 1));
+        return dotIdx == -1 ? new NameImpl(qualifiedName) : new NameImpl(qualifiedName.substring(dotIdx + 1));
     }
 
     @Override
@@ -219,7 +219,7 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
 
     @Override
     public Element getEnclosingElement() {
-        //this does not follow the spec, but let's hope that won't be a problem...
+        // this does not follow the spec, but let's hope that won't be a problem...
         return null;
     }
 

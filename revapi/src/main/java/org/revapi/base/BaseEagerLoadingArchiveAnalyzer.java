@@ -32,10 +32,11 @@ import org.revapi.TreeFilter;
 /**
  * A base class for archive analyzers that need to load all the elements in an archive eagerly.
  *
- * @param <E> the parent type of all elements produced by the API analyzer
+ * @param <E>
+ *            the parent type of all elements produced by the API analyzer
  */
 public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementForest<E>, E extends BaseElement<E>>
-    extends BaseArchiveAnalyzer<F, E> {
+        extends BaseArchiveAnalyzer<F, E> {
 
     private final boolean processSupplementaryArchives;
 
@@ -47,8 +48,8 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
     /**
      * {@inheritDoc}
      *
-     * This implementation eagerly analyzes all the archives and remembers the results so that the final tree can
-     * be computed.
+     * This implementation eagerly analyzes all the archives and remembers the results so that the final tree can be
+     * computed.
      *
      * @return a context object with the results of the analysis
      */
@@ -74,8 +75,12 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
     /**
      * {@inheritDoc}
      *
-     * <p>This method assumes the context is a {@link FullForestContext} and uses it to return the recorded roots.
-     * @param context the full forest context
+     * <p>
+     * This method assumes the context is a {@link FullForestContext} and uses it to return the recorded roots.
+     * 
+     * @param context
+     *            the full forest context
+     * 
      * @return the recorded roots
      */
     @Override
@@ -88,9 +93,13 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
     /**
      * {@inheritDoc}
      *
-     * <p>This method assumes the context is a {@link FullForestContext} and uses it to return the recorded children
-     * of the provided element.
-     * @param context the full forest context
+     * <p>
+     * This method assumes the context is a {@link FullForestContext} and uses it to return the recorded children of the
+     * provided element.
+     * 
+     * @param context
+     *            the full forest context
+     * 
      * @return the recorded children of the element
      */
     @Override
@@ -104,7 +113,9 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
      * Scans the archive and returns the elements within. Each of the returned elements is supposed to have a fully
      * realized hierarchy of children.
      *
-     * @param archive the archive to analyze
+     * @param archive
+     *            the archive to analyze
+     * 
      * @return a set of root elements found in the archive (with children initialized, too)
      */
     protected abstract Set<E> createElements(Archive archive);
@@ -121,10 +132,12 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
         public Set<E> roots = new HashSet<>();
 
         /**
-         * This method remembers the children of all the elements in the provided set (recursively) and clears out
-         * the children of each of the elements. This is so that we don't end up with elements that don't match the
-         * filter in the final results.
-         * @param elements the elements to remember
+         * This method remembers the children of all the elements in the provided set (recursively) and clears out the
+         * children of each of the elements. This is so that we don't end up with elements that don't match the filter
+         * in the final results.
+         * 
+         * @param elements
+         *            the elements to remember
          */
         public void remember(Set<E> elements) {
             for (E e : elements) {

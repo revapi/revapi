@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.3.0
  */
 public class ExceptionsThrownChanged extends CheckBase {
@@ -71,13 +72,14 @@ public class ExceptionsThrownChanged extends CheckBase {
         List<? extends TypeMirror> oldExceptions = oldMethod.getModelRepresentation().getThrownTypes();
         List<? extends TypeMirror> newExceptions = newMethod.getModelRepresentation().getThrownTypes();
 
-        Set<String> oldExceptionClassNames = oldExceptions.isEmpty() ? Collections.emptySet() : oldExceptions.stream()
-            .map(Util::toUniqueString).collect(Collectors.toSet());
+        Set<String> oldExceptionClassNames = oldExceptions.isEmpty() ? Collections.emptySet()
+                : oldExceptions.stream().map(Util::toUniqueString).collect(Collectors.toSet());
 
-        Set<String> newExceptionClassNames = newExceptions.isEmpty() ? Collections.emptySet() : newExceptions.stream()
-            .map(Util::toUniqueString).collect(Collectors.toSet());
+        Set<String> newExceptionClassNames = newExceptions.isEmpty() ? Collections.emptySet()
+                : newExceptions.stream().map(Util::toUniqueString).collect(Collectors.toSet());
 
-        if (!(oldExceptions.isEmpty() && newExceptions.isEmpty()) && !oldExceptionClassNames.equals(newExceptionClassNames)) {
+        if (!(oldExceptions.isEmpty() && newExceptions.isEmpty())
+                && !oldExceptionClassNames.equals(newExceptionClassNames)) {
             pushActive(oldMethod, newMethod);
         }
     }
@@ -90,16 +92,17 @@ public class ExceptionsThrownChanged extends CheckBase {
             return null;
         }
 
-        List<? extends TypeMirror> oldExceptions = new ArrayList<>(methods.oldElement.getModelRepresentation().getThrownTypes());
-        List<? extends TypeMirror> newExceptions = new ArrayList<>(methods.newElement.getModelRepresentation().getThrownTypes());
+        List<? extends TypeMirror> oldExceptions = new ArrayList<>(
+                methods.oldElement.getModelRepresentation().getThrownTypes());
+        List<? extends TypeMirror> newExceptions = new ArrayList<>(
+                methods.newElement.getModelRepresentation().getThrownTypes());
 
         Comparator<TypeMirror> byClassName = Comparator.comparing(Util::toUniqueString);
 
         Collections.sort(oldExceptions, byClassName);
         Collections.sort(newExceptions, byClassName);
 
-        CoIterator<TypeMirror> it = new CoIterator<>(oldExceptions.iterator(), newExceptions.iterator(),
-            byClassName);
+        CoIterator<TypeMirror> it = new CoIterator<>(oldExceptions.iterator(), newExceptions.iterator(), byClassName);
 
         List<String> removedRuntimeExceptions = new ArrayList<>();
         List<String> addedRuntimeExceptions = new ArrayList<>();
@@ -113,7 +116,7 @@ public class ExceptionsThrownChanged extends CheckBase {
             TypeMirror newType = it.getRight();
 
             if (oldType != null && newType != null) {
-                //they match, so move on, nothing to report here
+                // they match, so move on, nothing to report here
                 continue;
             }
 
@@ -144,42 +147,30 @@ public class ExceptionsThrownChanged extends CheckBase {
         List<Difference> ret = new ArrayList<>();
 
         if (!removedRuntimeExceptions.isEmpty()) {
-            removedRuntimeExceptions.forEach(ex ->
-                    ret.add(createDifference(Code.METHOD_RUNTIME_EXCEPTION_REMOVED,
-                            Code.attachmentsFor(methods.oldElement, methods.newElement,
-                                    "exception", ex)))
-            );
+            removedRuntimeExceptions.forEach(ex -> ret.add(createDifference(Code.METHOD_RUNTIME_EXCEPTION_REMOVED,
+                    Code.attachmentsFor(methods.oldElement, methods.newElement, "exception", ex))));
         }
 
         if (!addedRuntimeExceptions.isEmpty()) {
-            addedRuntimeExceptions.forEach(ex ->
-                    ret.add(createDifference(Code.METHOD_RUNTIME_EXCEPTION_ADDED,
-                            Code.attachmentsFor(methods.oldElement, methods.newElement,
-                                    "exception", ex)))
-            );
+            addedRuntimeExceptions.forEach(ex -> ret.add(createDifference(Code.METHOD_RUNTIME_EXCEPTION_ADDED,
+                    Code.attachmentsFor(methods.oldElement, methods.newElement, "exception", ex))));
         }
 
         if (!addedCheckedExceptions.isEmpty()) {
-            addedCheckedExceptions.forEach(ex ->
-                ret.add(createDifference(Code.METHOD_CHECKED_EXCEPTION_ADDED,
-                        Code.attachmentsFor(methods.oldElement, methods.newElement,
-                                "exception", ex)))
-            );
+            addedCheckedExceptions.forEach(ex -> ret.add(createDifference(Code.METHOD_CHECKED_EXCEPTION_ADDED,
+                    Code.attachmentsFor(methods.oldElement, methods.newElement, "exception", ex))));
         }
 
         if (!removedCheckedExceptions.isEmpty()) {
-            removedCheckedExceptions.forEach(ex ->
-                ret.add(createDifference(Code.METHOD_CHECKED_EXCEPTION_REMOVED,
-                        Code.attachmentsFor(methods.oldElement, methods.newElement,
-                                "exception", ex)))
-            );
+            removedCheckedExceptions.forEach(ex -> ret.add(createDifference(Code.METHOD_CHECKED_EXCEPTION_REMOVED,
+                    Code.attachmentsFor(methods.oldElement, methods.newElement, "exception", ex))));
         }
 
         return ret;
     }
 
     private boolean isRuntimeException(TypeElement exception) {
-        //noinspection LoopStatementThatDoesntLoop
+        // noinspection LoopStatementThatDoesntLoop
         while (exception != null) {
             Name fqn = exception.getQualifiedName();
 

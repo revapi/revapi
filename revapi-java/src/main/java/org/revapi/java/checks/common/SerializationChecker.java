@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -199,8 +199,7 @@ public class SerializationChecker extends CheckBase {
 
                 if (oldUid != newUid) {
                     diffs = singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_CHANGED,
-                            attachmentsFor(els.oldElement, els.newElement,
-                                    "oldSerialVersionUID", Long.toString(oldUid),
+                            attachmentsFor(els.oldElement, els.newElement, "oldSerialVersionUID", Long.toString(oldUid),
                                     "newSerialVersionUID", Long.toString(newUid))));
                 }
             } else {
@@ -213,12 +212,10 @@ public class SerializationChecker extends CheckBase {
                 @SuppressWarnings("ConstantConditions")
                 TypeElement newType = ((JavaTypeElement) els.newElement.getParent()).getDeclaringElement();
 
-                long computedOldSUID = strict
-                        ? computeSerialVersionUID(oldType, getOldTypeEnvironment())
+                long computedOldSUID = strict ? computeSerialVersionUID(oldType, getOldTypeEnvironment())
                         : computeStructuralId(oldType, getOldTypeEnvironment());
 
-                long computedNewSUID = strict
-                        ? computeSerialVersionUID(newType, getNewTypeEnvironment())
+                long computedNewSUID = strict ? computeSerialVersionUID(newType, getNewTypeEnvironment())
                         : computeStructuralId(newType, getNewTypeEnvironment());
 
                 long actualOldSUID = oldSerialVersionUid;
@@ -240,13 +237,13 @@ public class SerializationChecker extends CheckBase {
                 }
 
                 if (reportUnchanged) {
-                    diffs = singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED,
-                            Code.attachmentsFor(els.oldElement, els.newElement, "serialVersionUID",
-                                    Long.toString(actualOldSUID))));
+                    diffs = singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_UNCHANGED, Code.attachmentsFor(
+                            els.oldElement, els.newElement, "serialVersionUID", Long.toString(actualOldSUID))));
                 } else {
                     diffs = singletonList(createDifference(Code.FIELD_SERIAL_VERSION_UID_CHANGED,
                             Code.attachmentsFor(els.oldElement, els.newElement, "oldSerialVersionUID",
-                                    Long.toString(actualOldSUID), "newSerialVersionUID", Long.toString(actualNewSUID))));
+                                    Long.toString(actualOldSUID), "newSerialVersionUID",
+                                    Long.toString(actualNewSUID))));
                 }
 
             }
@@ -259,23 +256,21 @@ public class SerializationChecker extends CheckBase {
             @SuppressWarnings("ConstantConditions")
             TypeElement newType = ((JavaTypeElement) els.newElement).getDeclaringElement();
 
-            long oldUid = oldSerialVersionUid == null
-                    ? computeSerialVersionUID(oldType, getOldTypeEnvironment())
+            long oldUid = oldSerialVersionUid == null ? computeSerialVersionUID(oldType, getOldTypeEnvironment())
                     : oldSerialVersionUid;
 
             long newUid = computeSerialVersionUID(newType, getNewTypeEnvironment());
 
             if (oldUid != newUid) {
                 diffs = singletonList(createDifference(Code.CLASS_DEFAULT_SERIALIZATION_CHANGED,
-                        attachmentsFor(els.oldElement, els.newElement,
-                                "oldSerialVersionUID", Long.toString(oldUid),
+                        attachmentsFor(els.oldElement, els.newElement, "oldSerialVersionUID", Long.toString(oldUid),
                                 "newSerialVersionUID", Long.toString(newUid))));
             }
         }
 
         return diffs;
     }
-    
+
     private boolean isSerializable(JavaTypeElement type) {
         TypeElement t = type.getDeclaringElement();
 
@@ -283,7 +278,8 @@ public class SerializationChecker extends CheckBase {
     }
 
     private boolean isSerialVersionUid(JavaFieldElement field, TypeEnvironment env, PrimitiveType longType) {
-        if (field == null || !field.getDeclaringElement().getSimpleName().contentEquals(SERIAL_VERSION_UID_FIELD_NAME)) {
+        if (field == null
+                || !field.getDeclaringElement().getSimpleName().contentEquals(SERIAL_VERSION_UID_FIELD_NAME)) {
             return false;
         }
 
@@ -312,21 +308,15 @@ public class SerializationChecker extends CheckBase {
 
         Comparator<Element> bySimpleName = Comparator.comparing(e -> e.getSimpleName().toString());
 
-        List<TypeMirror> fields = ElementFilter.fieldsIn(type.getEnclosedElements()).stream()
-                .filter(serializableFields)
-                .sorted(bySimpleName)
-                .map(Element::asType)
-                .collect(Collectors.toList());
+        List<TypeMirror> fields = ElementFilter.fieldsIn(type.getEnclosedElements()).stream().filter(serializableFields)
+                .sorted(bySimpleName).map(Element::asType).collect(Collectors.toList());
 
         Types types = environment.getTypeUtils();
 
-        for (TypeMirror st: Util.getAllSuperClasses(types, type.asType())) {
+        for (TypeMirror st : Util.getAllSuperClasses(types, type.asType())) {
             Element ste = types.asElement(st);
-            ElementFilter.fieldsIn(ste.getEnclosedElements()).stream()
-                    .filter(serializableFields)
-                    .sorted(bySimpleName)
-                    .map(e -> types.asMemberOf((DeclaredType) st, e))
-                    .forEach(fields::add);
+            ElementFilter.fieldsIn(ste.getEnclosedElements()).stream().filter(serializableFields).sorted(bySimpleName)
+                    .map(e -> types.asMemberOf((DeclaredType) st, e)).forEach(fields::add);
         }
 
         String data = fields.stream().map(Util::toUniqueString).collect(Collectors.joining());
@@ -342,8 +332,8 @@ public class SerializationChecker extends CheckBase {
             }
             return hash;
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
-            throw new IllegalStateException("Could not compute structural ID of a type "
-                    + type.getQualifiedName().toString(), e);
+            throw new IllegalStateException(
+                    "Could not compute structural ID of a type " + type.getQualifiedName().toString(), e);
         }
     }
 
@@ -357,10 +347,10 @@ public class SerializationChecker extends CheckBase {
         if (!environment.getTypeUtils().isAssignable(type.asType(), javaIoSerializable.asType())) {
             return 0L;
         }
-//        if (!Serializable.class.isAssignableFrom(cl) || Proxy.isProxyClass(cl))
-//        {
-//            return 0L;
-//        }
+        // if (!Serializable.class.isAssignableFrom(cl) || Proxy.isProxyClass(cl))
+        // {
+        // return 0L;
+        // }
 
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -372,13 +362,13 @@ public class SerializationChecker extends CheckBase {
             if (type.getKind() == ElementKind.INTERFACE) {
                 classMods |= java.lang.reflect.Modifier.INTERFACE;
             }
-//            int classMods = cl.getModifiers() &
-//                (java.lang.reflect.Modifier.PUBLIC | java.lang.reflect.Modifier.FINAL |
-//                    java.lang.reflect.Modifier.INTERFACE | java.lang.reflect.Modifier.ABSTRACT);
+            // int classMods = cl.getModifiers() &
+            // (java.lang.reflect.Modifier.PUBLIC | java.lang.reflect.Modifier.FINAL |
+            // java.lang.reflect.Modifier.INTERFACE | java.lang.reflect.Modifier.ABSTRACT);
 
             /*
-             * compensate for javac bug in which ABSTRACT bit was set for an
-             * interface only if the interface declared methods
+             * compensate for javac bug in which ABSTRACT bit was set for an interface only if the interface declared
+             * methods
              */
             if (type.getKind() == ElementKind.INTERFACE) {
                 if (ElementFilter.methodsIn(type.getEnclosedElements()).size() > 0) {
@@ -387,20 +377,19 @@ public class SerializationChecker extends CheckBase {
                     classMods &= ~java.lang.reflect.Modifier.ABSTRACT;
                 }
             }
-//            Method[] methods = cl.getDeclaredMethods();
-//            if ((classMods & Modifier.INTERFACE) != 0) {
-//                classMods = (methods.length > 0) ?
-//                    (classMods | Modifier.ABSTRACT) :
-//                    (classMods & ~Modifier.ABSTRACT);
-//            }
+            // Method[] methods = cl.getDeclaredMethods();
+            // if ((classMods & Modifier.INTERFACE) != 0) {
+            // classMods = (methods.length > 0) ?
+            // (classMods | Modifier.ABSTRACT) :
+            // (classMods & ~Modifier.ABSTRACT);
+            // }
 
             dout.writeInt(classMods);
 
             if (!(type.asType() instanceof javax.lang.model.type.ArrayType)) {
-//            if (!cl.isArray()) {
+                // if (!cl.isArray()) {
                 /*
-                 * compensate for change in 1.2FCS in which
-                 * Class.getInterfaces() was modified to return Cloneable and
+                 * compensate for change in 1.2FCS in which Class.getInterfaces() was modified to return Cloneable and
                  * Serializable for array classes.
                  */
                 List<? extends TypeMirror> interfaces = type.getInterfaces();
@@ -409,11 +398,11 @@ public class SerializationChecker extends CheckBase {
                     ifaceNames[i] = ((TypeElement) ((DeclaredType) interfaces.get(i)).asElement()).getQualifiedName()
                             .toString();
                 }
-//                Class[] interfaces = cl.getInterfaces();
-//                String[] ifaceNames = new String[interfaces.length];
-//                for (int i = 0; i < interfaces.length; i++) {
-//                    ifaceNames[i] = interfaces[i].getName();
-//                }
+                // Class[] interfaces = cl.getInterfaces();
+                // String[] ifaceNames = new String[interfaces.length];
+                // for (int i = 0; i < interfaces.length; i++) {
+                // ifaceNames[i] = interfaces[i].getName();
+                // }
                 Arrays.sort(ifaceNames);
                 for (int i = 0; i < ifaceNames.length; i++) {
                     dout.writeUTF(ifaceNames[i]);
@@ -425,11 +414,11 @@ public class SerializationChecker extends CheckBase {
             for (int i = 0; i < fields.size(); i++) {
                 fieldSigs[i] = new MemberSignature(fields.get(i));
             }
-//            Field[] fields = cl.getDeclaredFields();
-//            MemberSignature[] fieldSigs = new MemberSignature[fields.length];
-//            for (int i = 0; i < fields.length; i++) {
-//                fieldSigs[i] = new MemberSignature(fields[i]);
-//            }
+            // Field[] fields = cl.getDeclaredFields();
+            // MemberSignature[] fieldSigs = new MemberSignature[fields.length];
+            // for (int i = 0; i < fields.length; i++) {
+            // fieldSigs[i] = new MemberSignature(fields[i]);
+            // }
 
             Arrays.sort(fieldSigs, new Comparator<MemberSignature>() {
                 public int compare(MemberSignature o1, MemberSignature o2) {
@@ -442,13 +431,13 @@ public class SerializationChecker extends CheckBase {
                 MemberSignature sig = fieldSigs[i];
                 int mods = asReflectiveModifiers(sig.member, Modifier.PUBLIC, Modifier.PRIVATE, Modifier.PROTECTED,
                         Modifier.STATIC, Modifier.FINAL, Modifier.VOLATILE, Modifier.TRANSIENT);
-//                int mods = sig.member.getModifiers() &
-//                    (Modifier.PUBLIC | Modifier.PRIVATE | Modifier.PROTECTED |
-//                        Modifier.STATIC | Modifier.FINAL | Modifier.VOLATILE |
-//                        Modifier.TRANSIENT);
+                // int mods = sig.member.getModifiers() &
+                // (Modifier.PUBLIC | Modifier.PRIVATE | Modifier.PROTECTED |
+                // Modifier.STATIC | Modifier.FINAL | Modifier.VOLATILE |
+                // Modifier.TRANSIENT);
 
-                if (((mods & java.lang.reflect.Modifier.PRIVATE) == 0) ||
-                        ((mods & (java.lang.reflect.Modifier.STATIC | java.lang.reflect.Modifier.TRANSIENT)) == 0)) {
+                if (((mods & java.lang.reflect.Modifier.PRIVATE) == 0)
+                        || ((mods & (java.lang.reflect.Modifier.STATIC | java.lang.reflect.Modifier.TRANSIENT)) == 0)) {
                     dout.writeUTF(sig.name);
                     dout.writeInt(mods);
                     dout.writeUTF(sig.signature);
@@ -467,11 +456,11 @@ public class SerializationChecker extends CheckBase {
                 dout.writeInt(java.lang.reflect.Modifier.STATIC);
                 dout.writeUTF("()V");
             }
-//            if (hasStaticInitializer(cl)) {
-//                dout.writeUTF("<clinit>");
-//                dout.writeInt(Modifier.STATIC);
-//                dout.writeUTF("()V");
-//            }
+            // if (hasStaticInitializer(cl)) {
+            // dout.writeUTF("<clinit>");
+            // dout.writeInt(Modifier.STATIC);
+            // dout.writeUTF("()V");
+            // }
 
             List<ExecutableElement> ctors = ElementFilter.constructorsIn(type.getEnclosedElements());
             MemberSignature[] consSigs = new MemberSignature[ctors.size()];
@@ -479,11 +468,11 @@ public class SerializationChecker extends CheckBase {
             for (ExecutableElement ctor : ctors) {
                 consSigs[i++] = new MemberSignature(ctor);
             }
-//            Constructor[] cons = cl.getDeclaredConstructors();
-//            MemberSignature[] consSigs = new MemberSignature[cons.length];
-//            for (int i = 0; i < cons.length; i++) {
-//                consSigs[i] = new MemberSignature(cons[i]);
-//            }
+            // Constructor[] cons = cl.getDeclaredConstructors();
+            // MemberSignature[] consSigs = new MemberSignature[cons.length];
+            // for (int i = 0; i < cons.length; i++) {
+            // consSigs[i] = new MemberSignature(cons[i]);
+            // }
 
             Arrays.sort(consSigs, new Comparator<MemberSignature>() {
                 public int compare(MemberSignature o1, MemberSignature o2) {
@@ -492,13 +481,13 @@ public class SerializationChecker extends CheckBase {
                     return sig1.compareTo(sig2);
                 }
             });
-//            Arrays.sort(consSigs, new Comparator() {
-//                public int compare(Object o1, Object o2) {
-//                    String sig1 = ((MemberSignature) o1).signature;
-//                    String sig2 = ((MemberSignature) o2).signature;
-//                    return sig1.compareTo(sig2);
-//                }
-//            });
+            // Arrays.sort(consSigs, new Comparator() {
+            // public int compare(Object o1, Object o2) {
+            // String sig1 = ((MemberSignature) o1).signature;
+            // String sig2 = ((MemberSignature) o2).signature;
+            // return sig1.compareTo(sig2);
+            // }
+            // });
 
             for (MemberSignature sig : consSigs) {
                 int mods = asReflectiveModifiers(sig.member, Modifier.PUBLIC, Modifier.PRIVATE, Modifier.PROTECTED,
@@ -510,19 +499,19 @@ public class SerializationChecker extends CheckBase {
                     dout.writeUTF(sig.signature.replace('/', '.'));
                 }
             }
-//            for (int i = 0; i < consSigs.length; i++) {
-//                MemberSignature sig = consSigs[i];
-//                int mods = sig.member.getModifiers() &
-//                    (Modifier.PUBLIC | Modifier.PRIVATE | Modifier.PROTECTED |
-//                        Modifier.STATIC | Modifier.FINAL |
-//                        Modifier.SYNCHRONIZED | Modifier.NATIVE |
-//                        Modifier.ABSTRACT | Modifier.STRICT);
-//                if ((mods & Modifier.PRIVATE) == 0) {
-//                    dout.writeUTF("<init>");
-//                    dout.writeInt(mods);
-//                    dout.writeUTF(sig.signature.replace('/', '.'));
-//                }
-//            }
+            // for (int i = 0; i < consSigs.length; i++) {
+            // MemberSignature sig = consSigs[i];
+            // int mods = sig.member.getModifiers() &
+            // (Modifier.PUBLIC | Modifier.PRIVATE | Modifier.PROTECTED |
+            // Modifier.STATIC | Modifier.FINAL |
+            // Modifier.SYNCHRONIZED | Modifier.NATIVE |
+            // Modifier.ABSTRACT | Modifier.STRICT);
+            // if ((mods & Modifier.PRIVATE) == 0) {
+            // dout.writeUTF("<init>");
+            // dout.writeInt(mods);
+            // dout.writeUTF(sig.signature.replace('/', '.'));
+            // }
+            // }
 
             List<ExecutableElement> methods = ElementFilter.methodsIn(type.getEnclosedElements());
             MemberSignature[] methSigs = new MemberSignature[methods.size()];
@@ -530,10 +519,10 @@ public class SerializationChecker extends CheckBase {
             for (ExecutableElement m : methods) {
                 methSigs[i++] = new MemberSignature(m);
             }
-//            MemberSignature[] methSigs = new MemberSignature[methods.length];
-//            for (int i = 0; i < methods.length; i++) {
-//                methSigs[i] = new MemberSignature(methods[i]);
-//            }
+            // MemberSignature[] methSigs = new MemberSignature[methods.length];
+            // for (int i = 0; i < methods.length; i++) {
+            // methSigs[i] = new MemberSignature(methods[i]);
+            // }
 
             Arrays.sort(methSigs, new Comparator<MemberSignature>() {
                 public int compare(MemberSignature ms1, MemberSignature ms2) {
@@ -544,17 +533,17 @@ public class SerializationChecker extends CheckBase {
                     return comp;
                 }
             });
-//            Arrays.sort(methSigs, new Comparator() {
-//                public int compare(Object o1, Object o2) {
-//                    MemberSignature ms1 = (MemberSignature) o1;
-//                    MemberSignature ms2 = (MemberSignature) o2;
-//                    int comp = ms1.name.compareTo(ms2.name);
-//                    if (comp == 0) {
-//                        comp = ms1.signature.compareTo(ms2.signature);
-//                    }
-//                    return comp;
-//                }
-//            });
+            // Arrays.sort(methSigs, new Comparator() {
+            // public int compare(Object o1, Object o2) {
+            // MemberSignature ms1 = (MemberSignature) o1;
+            // MemberSignature ms2 = (MemberSignature) o2;
+            // int comp = ms1.name.compareTo(ms2.name);
+            // if (comp == 0) {
+            // comp = ms1.signature.compareTo(ms2.signature);
+            // }
+            // return comp;
+            // }
+            // });
 
             for (MemberSignature sig : methSigs) {
                 int mods = asReflectiveModifiers(sig.member, Modifier.PUBLIC, Modifier.PRIVATE, Modifier.PROTECTED,
@@ -566,20 +555,20 @@ public class SerializationChecker extends CheckBase {
                     dout.writeUTF(sig.signature.replace('/', '.'));
                 }
             }
-//            for (int i = 0; i < methSigs.length; i++) {
-//                MemberSignature sig = methSigs[i];
-//                int mods = sig.member.getModifiers() &
-//                    (Modifier.PUBLIC | Modifier.PRIVATE | Modifier.PROTECTED |
-//                        Modifier.STATIC | Modifier.FINAL |
-//                        Modifier.SYNCHRONIZED | Modifier.NATIVE |
-//                        Modifier.ABSTRACT | Modifier.STRICT);
-//                if ((mods & Modifier.PRIVATE) == 0) {
-//                    dout.writeUTF(sig.name);
-//                    dout.writeInt(mods);
-//                    dout.writeUTF(sig.signature.replace('/', '.'));
-//                }
-//            }
-//
+            // for (int i = 0; i < methSigs.length; i++) {
+            // MemberSignature sig = methSigs[i];
+            // int mods = sig.member.getModifiers() &
+            // (Modifier.PUBLIC | Modifier.PRIVATE | Modifier.PROTECTED |
+            // Modifier.STATIC | Modifier.FINAL |
+            // Modifier.SYNCHRONIZED | Modifier.NATIVE |
+            // Modifier.ABSTRACT | Modifier.STRICT);
+            // if ((mods & Modifier.PRIVATE) == 0) {
+            // dout.writeUTF(sig.name);
+            // dout.writeInt(mods);
+            // dout.writeUTF(sig.signature.replace('/', '.'));
+            // }
+            // }
+            //
             dout.flush();
 
             MessageDigest md = MessageDigest.getInstance("SHA");
@@ -594,12 +583,12 @@ public class SerializationChecker extends CheckBase {
                     "Could not compute default serialization UID for class: " + type.getQualifiedName().toString(), ex);
         }
     }
-    
+
     /**
      * Adapted from {@link java.io.ObjectStreamClass.MemberSignature}
      *
-     * <p>Class for computing and caching field/constructor/method signatures
-     * during serialVersionUID calculation.
+     * <p>
+     * Class for computing and caching field/constructor/method signatures during serialVersionUID calculation.
      */
     private static final class MemberSignature {
 
@@ -625,41 +614,41 @@ public class SerializationChecker extends CheckBase {
         for (Modifier m : applicableModifiers) {
             if (el.getModifiers().contains(m)) {
                 switch (m) {
-                    case ABSTRACT:
-                        mods |= java.lang.reflect.Modifier.ABSTRACT;
-                        break;
-                    case FINAL:
-                        mods |= java.lang.reflect.Modifier.FINAL;
-                        break;
-                    case NATIVE:
-                        mods |= java.lang.reflect.Modifier.NATIVE;
-                        break;
-                    case PRIVATE:
-                        mods |= java.lang.reflect.Modifier.PRIVATE;
-                        break;
-                    case PROTECTED:
-                        mods |= java.lang.reflect.Modifier.PROTECTED;
-                        break;
-                    case PUBLIC:
-                        mods |= java.lang.reflect.Modifier.PUBLIC;
-                        break;
-                    case STATIC:
-                        mods |= java.lang.reflect.Modifier.STATIC;
-                        break;
-                    case STRICTFP:
-                        mods |= java.lang.reflect.Modifier.STRICT;
-                        break;
-                    case SYNCHRONIZED:
-                        mods |= java.lang.reflect.Modifier.SYNCHRONIZED;
-                        break;
-                    case TRANSIENT:
-                        mods |= java.lang.reflect.Modifier.TRANSIENT;
-                        break;
-                    case VOLATILE:
-                        mods |= java.lang.reflect.Modifier.VOLATILE;
-                        break;
-                    default:
-                        break;
+                case ABSTRACT:
+                    mods |= java.lang.reflect.Modifier.ABSTRACT;
+                    break;
+                case FINAL:
+                    mods |= java.lang.reflect.Modifier.FINAL;
+                    break;
+                case NATIVE:
+                    mods |= java.lang.reflect.Modifier.NATIVE;
+                    break;
+                case PRIVATE:
+                    mods |= java.lang.reflect.Modifier.PRIVATE;
+                    break;
+                case PROTECTED:
+                    mods |= java.lang.reflect.Modifier.PROTECTED;
+                    break;
+                case PUBLIC:
+                    mods |= java.lang.reflect.Modifier.PUBLIC;
+                    break;
+                case STATIC:
+                    mods |= java.lang.reflect.Modifier.STATIC;
+                    break;
+                case STRICTFP:
+                    mods |= java.lang.reflect.Modifier.STRICT;
+                    break;
+                case SYNCHRONIZED:
+                    mods |= java.lang.reflect.Modifier.SYNCHRONIZED;
+                    break;
+                case TRANSIENT:
+                    mods |= java.lang.reflect.Modifier.TRANSIENT;
+                    break;
+                case VOLATILE:
+                    mods |= java.lang.reflect.Modifier.VOLATILE;
+                    break;
+                default:
+                    break;
                 }
             }
         }
@@ -670,7 +659,8 @@ public class SerializationChecker extends CheckBase {
     /**
      * Adapted from {@link java.io.ObjectStreamClass}
      *
-     * <p>Returns JVM type signature for given class.
+     * <p>
+     * Returns JVM type signature for given class.
      */
     private static String getSignature(TypeMirror type) {
         StringBuilder sbuf = new StringBuilder();
@@ -683,32 +673,32 @@ public class SerializationChecker extends CheckBase {
             @Override
             public Void visitPrimitive(PrimitiveType t, StringBuilder stringBuilder) {
                 switch (t.getKind()) {
-                    case BOOLEAN:
-                        stringBuilder.append("Z");
-                        break;
-                    case BYTE:
-                        stringBuilder.append("B");
-                        break;
-                    case CHAR:
-                        stringBuilder.append("C");
-                        break;
-                    case DOUBLE:
-                        stringBuilder.append("D");
-                        break;
-                    case FLOAT:
-                        stringBuilder.append("F");
-                        break;
-                    case INT:
-                        stringBuilder.append("I");
-                        break;
-                    case LONG:
-                        stringBuilder.append("J");
-                        break;
-                    case SHORT:
-                        stringBuilder.append("S");
-                        break;
-                    default:
-                        break;
+                case BOOLEAN:
+                    stringBuilder.append("Z");
+                    break;
+                case BYTE:
+                    stringBuilder.append("B");
+                    break;
+                case CHAR:
+                    stringBuilder.append("C");
+                    break;
+                case DOUBLE:
+                    stringBuilder.append("D");
+                    break;
+                case FLOAT:
+                    stringBuilder.append("F");
+                    break;
+                case INT:
+                    stringBuilder.append("I");
+                    break;
+                case LONG:
+                    stringBuilder.append("J");
+                    break;
+                case SHORT:
+                    stringBuilder.append("S");
+                    break;
+                default:
+                    break;
                 }
 
                 return null;

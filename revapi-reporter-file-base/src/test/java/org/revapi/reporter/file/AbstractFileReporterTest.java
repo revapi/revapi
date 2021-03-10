@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,8 +88,8 @@ public class AbstractFileReporterTest {
             buf.append("\"keepEmptyFile\": \"").append("false").append("\"");
             buf.append("}");
 
-            reporter.initialize(AnalysisContext.builder()
-                    .build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
+            reporter.initialize(
+                    AnalysisContext.builder().build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
             reporter.report(Report.builder().build());
 
         } finally {
@@ -137,6 +137,7 @@ public class AbstractFileReporterTest {
             Files.delete(file.getParent().getParent());
         }
     }
+
     @Test
     public void testNestedNonExistingRelativeFileAsOutput() throws Exception {
         Path file = Paths.get("subdir" + new Random().nextInt() + File.separatorChar + "output.file");
@@ -162,8 +163,7 @@ public class AbstractFileReporterTest {
             sb.append("\"output\": \"").append(output).append("\"");
         }
         sb.append("}");
-        return AnalysisContext.builder()
-                .build().copyWithConfiguration(JSONUtil.parse(sb.toString()));
+        return AnalysisContext.builder().build().copyWithConfiguration(JSONUtil.parse(sb.toString()));
     }
 
     static final class Reporter extends AbstractFileReporter {

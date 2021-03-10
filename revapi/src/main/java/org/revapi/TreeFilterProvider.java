@@ -21,18 +21,19 @@ import java.util.Optional;
 import org.revapi.configuration.Configurable;
 
 /**
- * Forest filter helps the {@link ArchiveAnalyzer} filter the resulting element forest while it is being
- * created.
+ * Forest filter helps the {@link ArchiveAnalyzer} filter the resulting element forest while it is being created.
  * <p>
- * It is guaranteed that the elements will be called in an hierarchical order, e.g. parents will be filtered
- * before their children.
+ * It is guaranteed that the elements will be called in an hierarchical order, e.g. parents will be filtered before
+ * their children.
  */
 public interface TreeFilterProvider extends Configurable, AutoCloseable {
     /**
      * Creates a new filter specifically for use with the provided analyzer. Can return null if this forest filter
      * cannot understand elements provided by the analyzer.
      *
-     * @param archiveAnalyzer the archive analyzer to produce a new filter for
+     * @param archiveAnalyzer
+     *            the archive analyzer to produce a new filter for
+     * 
      * @return a new filter for given analyzer or empty if this forest filter is not compatible with the analyzer
      */
     <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer);

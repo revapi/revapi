@@ -39,6 +39,7 @@ import org.revapi.Revapi;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class ConfigurationValidatorTest {
@@ -71,12 +72,8 @@ public class ConfigurationValidatorTest {
 
     @Test
     public void testValidSchema() throws Exception {
-        final String schema = "{" +
-            "\"properties\" : {" +
-            "   \"id\" : {" +
-            "      \"type\" : \"integer\"" +
-            "   }" +
-            "}}";
+        final String schema = "{" + "\"properties\" : {" + "   \"id\" : {" + "      \"type\" : \"integer\"" + "   }"
+                + "}}";
 
         String object = "[{\"extension\": \"my-config\", \"configuration\" : {\"id\" : 3}}]";
 
@@ -87,12 +84,8 @@ public class ConfigurationValidatorTest {
 
     @Test
     public void testSingleFailure() throws Exception {
-        final String schema = "{" +
-            "\"properties\" : {" +
-            "   \"id\" : {" +
-            "      \"type\" : \"integer\"" +
-            "   }" +
-            "}}";
+        final String schema = "{" + "\"properties\" : {" + "   \"id\" : {" + "      \"type\" : \"integer\"" + "   }"
+                + "}}";
 
         String object = "[{\"extension\": \"my-config\", \"configuration\" : {\"id\" : \"3\"}}]";
 
@@ -104,15 +97,8 @@ public class ConfigurationValidatorTest {
 
     @Test
     public void testMultipleFailures() throws Exception {
-        final String schema = "{" +
-            "\"properties\" : {" +
-            "   \"id\" : {" +
-            "      \"type\" : \"integer\"" +
-            "   }," +
-            "   \"kachna\" : {" +
-            "       \"type\" : \"string\"" +
-            "   }" +
-            "}}";
+        final String schema = "{" + "\"properties\" : {" + "   \"id\" : {" + "      \"type\" : \"integer\"" + "   },"
+                + "   \"kachna\" : {" + "       \"type\" : \"string\"" + "   }" + "}}";
 
         String object = "[{\"extension\": \"my-config\", \"configuration\" : {\"id\" : \"3\", \"kachna\" : 42}}]";
 
@@ -124,21 +110,12 @@ public class ConfigurationValidatorTest {
 
     @Test
     public void testMultipleConfigs() throws Exception {
-        String schema = "{" +
-                "\"properties\" : {" +
-                "   \"id\" : {" +
-                "      \"type\" : \"integer\"" +
-                "   }," +
-                "   \"kachna\" : {" +
-                "       \"type\" : \"string\"" +
-                "   }" +
-                "}}";
+        String schema = "{" + "\"properties\" : {" + "   \"id\" : {" + "      \"type\" : \"integer\"" + "   },"
+                + "   \"kachna\" : {" + "       \"type\" : \"string\"" + "   }" + "}}";
 
-        String config = "[" +
-                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}}," +
-                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}}," +
-                "{\"extension\": \"other-config\", \"configuration\": 1}" +
-                "]";
+        String config = "[" + "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}},"
+                + "{\"extension\": \"my-config\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}},"
+                + "{\"extension\": \"other-config\", \"configuration\": 1}" + "]";
 
         ValidationResult result = test(config, "my-config", schema);
 
@@ -147,11 +124,9 @@ public class ConfigurationValidatorTest {
 
     @Test
     public void testRevapiValidation() throws Exception {
-        String config = "[" +
-                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}}," +
-                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}}," +
-                "{\"extension\": \"other-config\", \"configuration\": 1}" +
-                "]";
+        String config = "[" + "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}},"
+                + "{\"extension\": \"my-config\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}},"
+                + "{\"extension\": \"other-config\", \"configuration\": 1}" + "]";
 
         Revapi revapi = Revapi.builder().withFilters(TestFilter.class).withReporters(TestReporter.class)
                 .withAnalyzers(DummyApiAnalyzer.class).build();
@@ -168,48 +143,44 @@ public class ConfigurationValidatorTest {
 
     @Test
     public void testRevapiValidation_mergeWithoutIds() throws Exception {
-        //partial config of the extension
-        String config1 = "[" +
-                "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3}}" +
-                "]";
+        // partial config of the extension
+        String config1 = "[" + "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3}}" + "]";
 
-        //complete the config of the extension and add another config for another extension
-        String config2 = "[" +
-                "{\"extension\": \"my-config\", \"configuration\": {\"kachna\": \"no duck\"}}," +
-                "{\"extension\": \"other-config\", \"configuration\": 1}" +
-                "]";
+        // complete the config of the extension and add another config for another extension
+        String config2 = "[" + "{\"extension\": \"my-config\", \"configuration\": {\"kachna\": \"no duck\"}},"
+                + "{\"extension\": \"other-config\", \"configuration\": 1}" + "]";
 
         Revapi revapi = Revapi.builder().withFilters(TestFilter.class).withReporters(TestReporter.class)
                 .withAnalyzers(DummyApiAnalyzer.class).build();
 
-        AnalysisContext ctx = AnalysisContext.builder(revapi)
-                .withConfigurationFromJSON(config1).mergeConfigurationFromJSON(config2).build();
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withConfigurationFromJSON(config1)
+                .mergeConfigurationFromJSON(config2).build();
 
         ValidationResult res = revapi.validateConfiguration(ctx);
 
         Assert.assertFalse(res.isSuccessful());
         Assert.assertNotNull(res.getErrors());
-        //we merged "my-config" from the second config into the first, so that should be ok. Only other-config should error out.
+        // we merged "my-config" from the second config into the first, so that should be ok. Only other-config should
+        // error out.
         Assert.assertEquals(1, res.getErrors().length);
         Assert.assertEquals("$[1].configuration", res.getErrors()[0].dataPath);
     }
 
     @Test
     public void testRevapiValidation_mergeWithIds() throws Exception {
-        String config1 = "[" +
-                "{\"extension\": \"my-config\", \"id\": \"c1\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}}" +
-                "]";
+        String config1 = "["
+                + "{\"extension\": \"my-config\", \"id\": \"c1\", \"configuration\": {\"id\": 3, \"kachna\": \"duck\"}}"
+                + "]";
 
-        String config2 = "[" +
-                "{\"extension\": \"my-config\", \"id\": \"c2\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}}," +
-                "{\"extension\": \"other-config\", \"configuration\": 1}" +
-                "]";
+        String config2 = "["
+                + "{\"extension\": \"my-config\", \"id\": \"c2\", \"configuration\": {\"id\": 4, \"kachna\": \"no duck\"}},"
+                + "{\"extension\": \"other-config\", \"configuration\": 1}" + "]";
 
         Revapi revapi = Revapi.builder().withFilters(TestFilter.class).withReporters(TestReporter.class)
                 .withAnalyzers(DummyApiAnalyzer.class).build();
 
-        AnalysisContext ctx = AnalysisContext.builder(revapi)
-                .withConfigurationFromJSON(config1).mergeConfigurationFromJSON(config2).build();
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withConfigurationFromJSON(config1)
+                .mergeConfigurationFromJSON(config2).build();
 
         ValidationResult res = revapi.validateConfiguration(ctx);
 
@@ -220,85 +191,104 @@ public class ConfigurationValidatorTest {
     }
 
     public static final class TestFilter implements ElementFilter {
-        private static final String SCHEMA = "{" +
-                "\"properties\" : {" +
-                "   \"id\" : {" +
-                "      \"type\" : \"integer\"" +
-                "   }," +
-                "   \"kachna\" : {" +
-                "       \"type\" : \"string\"" +
-                "   }" +
-                "}}";
+        private static final String SCHEMA = "{" + "\"properties\" : {" + "   \"id\" : {"
+                + "      \"type\" : \"integer\"" + "   }," + "   \"kachna\" : {" + "       \"type\" : \"string\""
+                + "   }" + "}}";
 
-        @Override public String getExtensionId() {
+        @Override
+        public String getExtensionId() {
             return "my-config";
         }
 
-        @Override public Reader getJSONSchema() {
+        @Override
+        public Reader getJSONSchema() {
             return new StringReader(SCHEMA);
         }
 
-        @Override public void close() throws Exception {
+        @Override
+        public void close() throws Exception {
         }
 
-        @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
+        @Override
+        public void initialize(@Nonnull AnalysisContext analysisContext) {
         }
 
-        @Override public boolean applies(@Nullable Element<?> element) {
+        @Override
+        public boolean applies(@Nullable Element<?> element) {
             return false;
         }
 
-        @Override public boolean shouldDescendInto(@Nullable Object element) {
+        @Override
+        public boolean shouldDescendInto(@Nullable Object element) {
             return false;
         }
     }
 
     public static final class TestReporter implements Reporter {
-        @Override public void report(@Nonnull Report report) {
+        @Override
+        public void report(@Nonnull Report report) {
         }
 
-        @Override public void close() throws Exception {
+        @Override
+        public void close() throws Exception {
         }
 
-        @Nullable @Override public String getExtensionId() {
+        @Nullable
+        @Override
+        public String getExtensionId() {
             return "other-config";
         }
 
-        @Nullable @Override public Reader getJSONSchema() {
+        @Nullable
+        @Override
+        public Reader getJSONSchema() {
             return new StringReader("{\"type\": \"string\"}");
         }
 
-        @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
+        @Override
+        public void initialize(@Nonnull AnalysisContext analysisContext) {
         }
     }
 
     public static final class DummyApiAnalyzer implements ApiAnalyzer {
 
-        @Nullable @Override public String getExtensionId() {
+        @Nullable
+        @Override
+        public String getExtensionId() {
             return null;
         }
 
-        @Nullable @Override public Reader getJSONSchema() {
+        @Nullable
+        @Override
+        public Reader getJSONSchema() {
             return null;
         }
 
-        @Nonnull @Override public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
+        @Nonnull
+        @Override
+        public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
             return null;
         }
 
-        @Nonnull @Override public DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
-                                                                           @Nonnull ArchiveAnalyzer newArchive) {
+        @Nonnull
+        @Override
+        public DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
+                @Nonnull ArchiveAnalyzer newArchive) {
             return null;
         }
 
-        @Nonnull @Override public CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
+        @Nonnull
+        @Override
+        public CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
             return null;
         }
 
-        @Override public void close() throws Exception {
+        @Override
+        public void close() throws Exception {
         }
 
-        @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
+        @Override
+        public void initialize(@Nonnull AnalysisContext analysisContext) {
         }
     }
 }

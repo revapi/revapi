@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,13 +38,14 @@ import org.revapi.Reporter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.3.11
  */
 abstract class AbstractRevapiMojo extends AbstractMojo {
     /**
      * The JSON or XML configuration of the extensions pipeline. This enables the users easily specify which extensions
-     * should be included/excluded in the Revapi analysis pipeline and also to define transformation blocks - a way
-     * of grouping transforms together to enable more fine grained control over how differences are transformed.
+     * should be included/excluded in the Revapi analysis pipeline and also to define transformation blocks - a way of
+     * grouping transforms together to enable more fine grained control over how differences are transformed.
      *
      * @since 0.11.0
      */
@@ -52,11 +53,12 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected PlexusConfiguration pipelineConfiguration;
 
     /**
-     * The JSON or XML configuration of various analysis options. The available options depend on what
-     * analyzers are present on the plugin classpath through the {@code &lt;dependencies&gt;}.
-     * Consult <a href="examples/configuration.html">configuration documentation</a> for more details.
+     * The JSON or XML configuration of various analysis options. The available options depend on what analyzers are
+     * present on the plugin classpath through the {@code &lt;dependencies&gt;}. Consult
+     * <a href="examples/configuration.html">configuration documentation</a> for more details.
      *
-     * <p>These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
+     * <p>
+     * These settings take precedence over the configuration loaded from {@code analysisConfigurationFiles}.
      */
     @Parameter(property = Props.analysisConfiguration.NAME, defaultValue = Props.analysisConfiguration.DEFAULT_VALUE)
     protected PlexusConfiguration analysisConfiguration;
@@ -65,20 +67,24 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * Set to false if you want to tolerate files referenced in the {@code analysisConfigurationFiles} missing on the
      * filesystem and therefore not contributing to the analysis configuration.
      *
-     * <p>The default is {@code true}, which means that a missing analysis configuration file will fail the build.
+     * <p>
+     * The default is {@code true}, which means that a missing analysis configuration file will fail the build.
      */
     @Parameter(property = Props.failOnMissingConfigurationFiles.NAME, defaultValue = Props.failOnMissingConfigurationFiles.DEFAULT_VALUE)
     protected boolean failOnMissingConfigurationFiles;
 
     /**
-     * The list of files containing the configuration of various analysis options.
-     * The available options depend on what analyzers are present on the plugins classpath through the
-     * {@code &lt;dependencies&gt;}.
+     * The list of files containing the configuration of various analysis options. The available options depend on what
+     * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
      *
-     * <p>The {@code analysisConfiguration} can override the settings present in the files.
+     * <p>
+     * The {@code analysisConfiguration} can override the settings present in the files.
      *
-     * <p>The list is either a list of strings or has the following form:
-     * <pre><code>
+     * <p>
+     * The list is either a list of strings or has the following form:
+     * 
+     * <pre>
+     * <code>
      *    &lt;analysisConfigurationFiles&gt;
      *        &lt;configurationFile&gt;
      *            &lt;path&gt;path/to/the/file/relative/to/project/base/dir&lt;/path&gt;
@@ -91,23 +97,27 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      *        &lt;/configurationFile&gt;
      *        ...
      *    &lt;/analysisConfigurationFiles&gt;
-     * </code></pre>
+     * </code>
+     * </pre>
      *
      * where
      * <ul>
-     *     <li>{@code path} is the path on the filesystem,</li>
-     *     <li>{@code resource} is the path to the resource file in one of the artifacts the plugin depends on</li>
-     *     <li>{@code roots} is optional and specifies the subtrees of the JSON/XML config that should be used for
-     *     configuration. If not specified, the whole file is taken into account.</li>
+     * <li>{@code path} is the path on the filesystem,</li>
+     * <li>{@code resource} is the path to the resource file in one of the artifacts the plugin depends on</li>
+     * <li>{@code roots} is optional and specifies the subtrees of the JSON/XML config that should be used for
+     * configuration. If not specified, the whole file is taken into account.</li>
      * </ul>
      * Either {@code path} or {@code resource} has to be specified but not both. The {@code configuration/root1} and
      * {@code configuration/root2} are paths to the roots of the configuration inside that JSON/XML config file. This
-     * might be used in cases where multiple configurations are stored within a single file and you want to use
-     * a particular one.
+     * might be used in cases where multiple configurations are stored within a single file and you want to use a
+     * particular one.
      *
-     * <p>An example of this might be a config file which contains API changes to be ignored in all past versions of a
+     * <p>
+     * An example of this might be a config file which contains API changes to be ignored in all past versions of a
      * library. The classes to be ignored are specified in a configuration that is specific for each version:
-     * <pre><code>
+     * 
+     * <pre>
+     * <code>
      *     {
      *         "0.1.0" : [
      *             {
@@ -126,14 +136,15 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      *             ...
      *         ]
      *     }
-     * </code></pre>
+     * </code>
+     * </pre>
      */
     @Parameter(property = Props.analysisConfigurationFiles.NAME, defaultValue = Props.analysisConfigurationFiles.DEFAULT_VALUE)
     protected Object[] analysisConfigurationFiles;
 
     /**
-     * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the
-     * current project.
+     * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the current
+     * project.
      * <p/>
      * If the this property is null, the {@link #oldVersion} property is checked for a value of the old version of the
      * artifact being built.
@@ -153,8 +164,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * the version of the new artifact.
      * <p/>
      * If you specify "LATEST", the old version will be resolved to the newest version available remotely, including
-     * snapshots (if found in one of the repositories active in the build). The version of the compared artifact will
-     * be either older or equal to the version of the new artifact in this case to account for comparing a locally built
+     * snapshots (if found in one of the repositories active in the build). The version of the compared artifact will be
+     * either older or equal to the version of the new artifact in this case to account for comparing a locally built
      * snapshot against the latest published snapshot.
      */
     @Parameter(property = Props.oldVersion.NAME, defaultValue = Props.oldVersion.DEFAULT_VALUE)
@@ -181,8 +192,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean skip;
 
     /**
-     * The severity of found problems at which to break the build. Defaults to potentiallyBreaking.
-     * Possible values: equivalent, nonBreaking, potentiallyBreaking, breaking.
+     * The severity of found problems at which to break the build. Defaults to potentiallyBreaking. Possible values:
+     * equivalent, nonBreaking, potentiallyBreaking, breaking.
      *
      * @deprecated use the new {@link #failCriticality}
      */
@@ -191,14 +202,15 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected FailSeverity failSeverity;
 
     /**
-     * The minimum criticality of the found differences at which to fail the build. This has to be one of
-     * the criticalities configured in the pipeline configuration (if the pipeline configuration doesn't define any,
-     * the following are the default ones: {@code allowed}, {@code documented}, {@code highlight}, {@code error}).
+     * The minimum criticality of the found differences at which to fail the build. This has to be one of the
+     * criticalities configured in the pipeline configuration (if the pipeline configuration doesn't define any, the
+     * following are the default ones: {@code allowed}, {@code documented}, {@code highlight}, {@code error}).
      *
-     * If not defined, the value is derived from {@link #failSeverity} using the severity-to-criticality mapping
-     * (which is again configured in the pipeline configuration. If not defined in the pipeline configuration
-     * explicitly, the default mapping is the following: {@code EQUIVALENT} = {@code allowed}, {@code NON_BREAKING} =
+     * If not defined, the value is derived from {@link #failSeverity} using the severity-to-criticality mapping (which
+     * is again configured in the pipeline configuration. If not defined in the pipeline configuration explicitly, the
+     * default mapping is the following: {@code EQUIVALENT} = {@code allowed}, {@code NON_BREAKING} =
      * {@code documented}, {@code POTENTIALLY_BREAKING} = {@code error}, {@code BREAKING} = error.
+     * 
      * @since 0.12.0
      */
     @Parameter(property = Props.failCriticality.NAME)
@@ -221,8 +233,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean alwaysCheckForReleaseVersion;
 
     /**
-     * If true (the default), the maven plugin will fail the build when it finds API problems (e.g. problems with
-     * with the criticality at least equal to {@link #failCriticality}).
+     * If true (the default), the maven plugin will fail the build when it finds API problems (e.g. problems with with
+     * the criticality at least equal to {@link #failCriticality}).
      */
     @Parameter(property = Props.failBuildOnProblemsFound.NAME, defaultValue = Props.failBuildOnProblemsFound.DEFAULT_VALUE)
     protected boolean failBuildOnProblemsFound;
@@ -241,8 +253,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean failOnUnresolvedDependencies;
 
     /**
-     * Whether to include the dependencies in the API checks. This is the default thing to do because your API might
-     * be exposing classes from the dependencies and thus classes from your dependencies could become part of your API.
+     * Whether to include the dependencies in the API checks. This is the default thing to do because your API might be
+     * exposing classes from the dependencies and thus classes from your dependencies could become part of your API.
      * <p>
      * However, setting this to false might be useful in situations where you have checked your dependencies in another
      * module and don't want do that again. In that case, you might want to configure Revapi to ignore missing classes
@@ -253,31 +265,33 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected boolean checkDependencies;
 
     /**
-     * When establishing the API classes, Revapi by default also looks through the {@code provided} dependencies.
-     * The reason for this is that even though such dependencies do not appear in the transitive dependency set
-     * established by maven, they need to be present both on the compilation and runtime classpath of the module.
-     * Therefore, the classes in the module are free to expose classes from a provided dependency as API elements.
+     * When establishing the API classes, Revapi by default also looks through the {@code provided} dependencies. The
+     * reason for this is that even though such dependencies do not appear in the transitive dependency set established
+     * by maven, they need to be present both on the compilation and runtime classpath of the module. Therefore, the
+     * classes in the module are free to expose classes from a provided dependency as API elements.
      *
-     * <p>In rare circumstances this is not a desired behavior though. It is undesired if for example the classes from
-     * the provided dependency are used only for establishing desired build order or when they are used in some
-     * non-standard scenarios during the build and actually not needed at runtime.
+     * <p>
+     * In rare circumstances this is not a desired behavior though. It is undesired if for example the classes from the
+     * provided dependency are used only for establishing desired build order or when they are used in some non-standard
+     * scenarios during the build and actually not needed at runtime.
      *
-     * <p>Note that this property only influences the resolution of provided dependencies of the main artifacts, not
-     * the transitively reachable provided dependencies. For those, use the {@link #resolveTransitiveProvidedDependencies}
+     * <p>
+     * Note that this property only influences the resolution of provided dependencies of the main artifacts, not the
+     * transitively reachable provided dependencies. For those, use the {@link #resolveTransitiveProvidedDependencies}
      * parameter.
      */
     @Parameter(property = Props.resolveProvidedDependencies.NAME, defaultValue = Props.resolveProvidedDependencies.DEFAULT_VALUE)
     protected boolean resolveProvidedDependencies;
 
     /**
-     * In addition to {@link #resolveProvidedDependencies} this property further controls how provided dependencies
-     * are resolved. Using this property you can control how the indirect, transitively reachable, provided dependencies
-     * are treated. The default is to not consider them, which is almost always the right thing to do. It might be
-     * necessary to set this property to {@code true} in the rare circumstances where the API of the main artifacts
-     * includes types from such transitively included provided dependencies. Such occurrence will manifest itself by
-     * Revapi considering such types as missing (which is by default reported as a potentially breaking change). When
-     * you then resolve the transitive provided dependencies (by setting this parameter to true), Revapi will be able to
-     * find such types and do a proper analysis of them.
+     * In addition to {@link #resolveProvidedDependencies} this property further controls how provided dependencies are
+     * resolved. Using this property you can control how the indirect, transitively reachable, provided dependencies are
+     * treated. The default is to not consider them, which is almost always the right thing to do. It might be necessary
+     * to set this property to {@code true} in the rare circumstances where the API of the main artifacts includes types
+     * from such transitively included provided dependencies. Such occurrence will manifest itself by Revapi considering
+     * such types as missing (which is by default reported as a potentially breaking change). When you then resolve the
+     * transitive provided dependencies (by setting this parameter to true), Revapi will be able to find such types and
+     * do a proper analysis of them.
      */
     @Parameter(property = Props.resolveTransitiveProvidedDependencies.NAME, defaultValue = Props.resolveTransitiveProvidedDependencies.DEFAULT_VALUE)
     protected boolean resolveTransitiveProvidedDependencies;
@@ -291,8 +305,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * versionFormat will make sure that a newest version conforming to the version format is used instead of the one
      * resolved by Maven by default.
      * <p>
-     * This parameter is a regular expression pattern that the version string needs to match in order to be considered
-     * a {@code RELEASE}.
+     * This parameter is a regular expression pattern that the version string needs to match in order to be considered a
+     * {@code RELEASE}.
      */
     @Parameter(property = Props.versionFormat.NAME, defaultValue = Props.versionFormat.DEFAULT_VALUE)
     protected String versionFormat;
@@ -311,8 +325,8 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected String disallowedExtensions;
 
     /**
-     * If set to true, the Maven properties will be expanded in the configuration before it is supplied to Revapi.
-     * I.e. any {@code ${var}} appearing in the configuration <b>values</b> will be replaced with the value of the
+     * If set to true, the Maven properties will be expanded in the configuration before it is supplied to Revapi. I.e.
+     * any {@code ${var}} appearing in the configuration <b>values</b> will be replaced with the value of the
      * {@code var} property as known to Maven. If the property is not defined, the expansion doesn't take place.
      *
      * @since 0.11.6
@@ -323,12 +337,10 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     static Criticality determineCriticality(PipelineConfiguration configuration, String propertyValue,
             String propertyName, DifferenceSeverity fallBackSeverity) throws MojoExecutionException {
         if (propertyValue != null) {
-            return configuration.getCriticalities().stream()
-                    .filter(c -> propertyValue.equals(c.getName()))
-                    .findFirst()
-                    .orElseThrow(() -> new MojoExecutionException("'" + propertyName + "' is not a valid" +
-                            " criticality. Please use one of the values defined in the pipeline configuration for" +
-                            " the " + propertyName + "."));
+            return configuration.getCriticalities().stream().filter(c -> propertyValue.equals(c.getName())).findFirst()
+                    .orElseThrow(() -> new MojoExecutionException("'" + propertyName + "' is not a valid"
+                            + " criticality. Please use one of the values defined in the pipeline configuration for"
+                            + " the " + propertyName + "."));
         } else {
             return configuration.getSeverityMapping().get(fallBackSeverity);
         }
@@ -350,7 +362,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         if (analyzer != null) {
             return analyzer.analyze();
         } else {
-            //a null analyzer means the current module doesn't have a jar output
+            // a null analyzer means the current module doesn't have a jar output
             return AnalysisResult.fakeSuccess();
         }
     }
@@ -391,26 +403,34 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     }
 
     AnalyzerBuilder.Result buildAnalyzer(MavenProject project, PipelineConfiguration.Builder pipelineConfiguration,
-            Class<? extends Reporter> reporter, Map<String, Object> contextData, Map<String, Object> propertyOverrides) {
+            Class<? extends Reporter> reporter, Map<String, Object> contextData,
+            Map<String, Object> propertyOverrides) {
         return AnalyzerBuilder.forGavs(this.oldArtifacts, this.newArtifacts)
-                .withAlwaysCheckForReleasedVersion(overrideOrDefault("alwaysCheckForReleaseVersion", this.alwaysCheckForReleaseVersion, propertyOverrides))
+                .withAlwaysCheckForReleasedVersion(overrideOrDefault("alwaysCheckForReleaseVersion",
+                        this.alwaysCheckForReleaseVersion, propertyOverrides))
                 .withPipelineConfiguration(pipelineConfiguration)
-                .withAnalysisConfiguration(overrideOrDefault("analysisConfiguration", this.analysisConfiguration, propertyOverrides))
-                .withAnalysisConfigurationFiles(overrideOrDefault("analysisConfigurationFiles", this.analysisConfigurationFiles, propertyOverrides))
-                .withCheckDependencies(overrideOrDefault("checkDependencies", this.checkDependencies, propertyOverrides))
-                .withResolveProvidedDependencies(overrideOrDefault("resolveProvidedDependencies", this.resolveProvidedDependencies, propertyOverrides))
-                .withResolveTransitiveProvidedDependencies(overrideOrDefault("resolveTransitiveProvidedDependencies", this.resolveTransitiveProvidedDependencies, propertyOverrides))
-                .withDisallowedExtensions(overrideOrDefault("disallowedExtensions", this.disallowedExtensions, propertyOverrides))
-                .withFailOnMissingConfigurationFiles(overrideOrDefault("failOnMissingConfigurationFiles", this.failOnMissingConfigurationFiles, propertyOverrides))
-                .withFailOnUnresolvedArtifacts(overrideOrDefault("failOnUnresolvedArtifacts", this.failOnUnresolvedArtifacts, propertyOverrides))
-                .withFailOnUnresolvedDependencies(overrideOrDefault("failOnUnresolvedDependencies", this.failOnUnresolvedDependencies, propertyOverrides))
-                .withLocale(Locale.getDefault())
-                .withLog(getLog())
+                .withAnalysisConfiguration(
+                        overrideOrDefault("analysisConfiguration", this.analysisConfiguration, propertyOverrides))
+                .withAnalysisConfigurationFiles(overrideOrDefault("analysisConfigurationFiles",
+                        this.analysisConfigurationFiles, propertyOverrides))
+                .withCheckDependencies(
+                        overrideOrDefault("checkDependencies", this.checkDependencies, propertyOverrides))
+                .withResolveProvidedDependencies(overrideOrDefault("resolveProvidedDependencies",
+                        this.resolveProvidedDependencies, propertyOverrides))
+                .withResolveTransitiveProvidedDependencies(overrideOrDefault("resolveTransitiveProvidedDependencies",
+                        this.resolveTransitiveProvidedDependencies, propertyOverrides))
+                .withDisallowedExtensions(
+                        overrideOrDefault("disallowedExtensions", this.disallowedExtensions, propertyOverrides))
+                .withFailOnMissingConfigurationFiles(overrideOrDefault("failOnMissingConfigurationFiles",
+                        this.failOnMissingConfigurationFiles, propertyOverrides))
+                .withFailOnUnresolvedArtifacts(overrideOrDefault("failOnUnresolvedArtifacts",
+                        this.failOnUnresolvedArtifacts, propertyOverrides))
+                .withFailOnUnresolvedDependencies(overrideOrDefault("failOnUnresolvedDependencies",
+                        this.failOnUnresolvedDependencies, propertyOverrides))
+                .withLocale(Locale.getDefault()).withLog(getLog())
                 .withNewVersion(overrideOrDefault("newVersion", this.newVersion, propertyOverrides))
                 .withOldVersion(overrideOrDefault("oldVersion", this.oldVersion, propertyOverrides))
-                .withProject(project)
-                .withReporter(reporter)
-                .withRepositorySystem(this.repositorySystem)
+                .withProject(project).withReporter(reporter).withRepositorySystem(this.repositorySystem)
                 .withRepositorySystemSession(this.repositorySystemSession)
                 .withSkip(overrideOrDefault("skip", this.skip, propertyOverrides))
                 .withVersionFormat(overrideOrDefault("versionFormat", this.versionFormat, propertyOverrides))
@@ -434,37 +454,37 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      */
     protected boolean initializeComparisonArtifacts() {
         if (newArtifacts != null && newArtifacts.length == 1 && "BUILD".equals(newArtifacts[0])) {
-            getLog().warn("\"BUILD\" coordinates are deprecated. Just leave \"newArtifacts\" undefined and specify" +
-                    " \"${project.version}\" as the value for \"newVersion\" (which is the default, so you don't" +
-                    " actually have to do that either).");
+            getLog().warn("\"BUILD\" coordinates are deprecated. Just leave \"newArtifacts\" undefined and specify"
+                    + " \"${project.version}\" as the value for \"newVersion\" (which is the default, so you don't"
+                    + " actually have to do that either).");
             oldArtifacts = null;
         }
 
         if (oldArtifacts == null || oldArtifacts.length == 0) {
-            //non-intuitively, we need to initialize the artifacts even if we will not proceed with the analysis itself
-            //that's because we need know the versions when figuring out the version modifications -
-            //see AbstractVersionModifyingMojo
-            oldArtifacts = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, oldVersion)};
+            // non-intuitively, we need to initialize the artifacts even if we will not proceed with the analysis itself
+            // that's because we need know the versions when figuring out the version modifications -
+            // see AbstractVersionModifyingMojo
+            oldArtifacts = new String[] { Analyzer.getProjectArtifactCoordinates(project, oldVersion) };
 
-            //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
-            //analyze there
-            //only do it here, because oldArtifacts might point to another artifact.
-            //if we end up here in this branch, we know we'll be comparing the current artifact with something.
+            // bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we
+            // can
+            // analyze there
+            // only do it here, because oldArtifacts might point to another artifact.
+            // if we end up here in this branch, we know we'll be comparing the current artifact with something.
             if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
                 return false;
             }
         }
 
         if (newArtifacts == null || newArtifacts.length == 0) {
-            newArtifacts = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, newVersion)};
+            newArtifacts = new String[] { Analyzer.getProjectArtifactCoordinates(project, newVersion) };
 
-            //bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we can
-            //analyze there
-            //again, do this check only here, because oldArtifact might point elsewhere. But if we end up here, it
-            //means that oldArtifacts would be compared against the current artifact (in some version). Comparing
-            //against a POM artifact is always no-op.
+            // bail out quickly for POM artifacts (or any other packaging without a file result) - there's nothing we
+            // can
+            // analyze there
+            // again, do this check only here, because oldArtifact might point elsewhere. But if we end up here, it
+            // means that oldArtifacts would be compared against the current artifact (in some version). Comparing
+            // against a POM artifact is always no-op.
             if (!project.getArtifact().getArtifactHandler().isAddedToClasspath()) {
                 return false;
             }
@@ -482,7 +502,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
 
         boolean isKey = true;
         String key = null;
-        for(Object kv : contextDataKeyValues) {
+        for (Object kv : contextDataKeyValues) {
             if (isKey) {
                 if (!(kv instanceof String)) {
                     throw new IllegalArgumentException("Found non-string key.");

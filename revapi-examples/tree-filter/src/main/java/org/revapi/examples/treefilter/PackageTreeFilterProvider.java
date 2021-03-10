@@ -34,9 +34,9 @@ import org.revapi.base.IndependentTreeFilter;
 import org.revapi.java.spi.JavaTypeElement;
 
 /**
- * Tree filters are used to leave out certain parts of the API trees from the analysis. The actual interface that
- * the extensions need to implement is called {@link TreeFilterProvider} because {@link TreeFilter}s as such are also
- * used as the "machinery" provided by the {@link org.revapi.ElementMatcher}s.
+ * Tree filters are used to leave out certain parts of the API trees from the analysis. The actual interface that the
+ * extensions need to implement is called {@link TreeFilterProvider} because {@link TreeFilter}s as such are also used
+ * as the "machinery" provided by the {@link org.revapi.ElementMatcher}s.
  *
  * A tree filter is meant to provide API tree traversal guidance to the callers. The {@link TreeFilter} gives a pretty
  * clear picture how that works.

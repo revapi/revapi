@@ -33,7 +33,8 @@ import org.revapi.TreeFilter;
 /**
  * A convenience base class for element forest implementations.
  *
- * @param <E> the base type of all the elements produced by some API analyzer
+ * @param <E>
+ *            the base type of all the elements produced by some API analyzer
  */
 public class BaseElementForest<E extends Element<E>> implements ElementForest<E> {
     private final API api;
@@ -57,20 +58,21 @@ public class BaseElementForest<E extends Element<E>> implements ElementForest<E>
         return roots;
     }
 
-    public <T extends Element<E>> Stream<T> stream(Class<T> resultType, boolean recurse, TreeFilter<E> filter, Element<E> root) {
+    public <T extends Element<E>> Stream<T> stream(Class<T> resultType, boolean recurse, TreeFilter<E> filter,
+            Element<E> root) {
         List<T> results = new ArrayList<>();
         search(results, resultType, root == null ? getRoots() : root.getChildren(), recurse, filter);
         return results.stream();
     }
 
-    protected <T extends Element<E>> void search(List<T> results, Class<T> resultType,
-            SortedSet<E> siblings, boolean recurse, TreeFilter<E> filter) {
+    protected <T extends Element<E>> void search(List<T> results, Class<T> resultType, SortedSet<E> siblings,
+            boolean recurse, TreeFilter<E> filter) {
         search(results, resultType, siblings, recurse, filter, true);
     }
 
-    @SuppressWarnings({"SuspiciousMethodCalls"})
-    private <T extends Element<E>> void search(List<T> results, Class<T> resultType,
-            SortedSet<E> siblings, boolean recurse, TreeFilter<E> filter, boolean topLevel) {
+    @SuppressWarnings({ "SuspiciousMethodCalls" })
+    private <T extends Element<E>> void search(List<T> results, Class<T> resultType, SortedSet<E> siblings,
+            boolean recurse, TreeFilter<E> filter, boolean topLevel) {
         for (E e : siblings) {
             FilterStartResult res;
             if (filter == null) {

@@ -36,12 +36,14 @@ import org.slf4j.LoggerFactory;
 /**
  * This is a base class for archive analyzers that need to search for files in a zipped archive.
  *
- * <p>This implementation is only useful for API analyzers that process the files in the ZIP archives one-by-one in
- * some manner. E.g. they might be looking for some concrete files in the zip or can compose the API from looking at
- * the individual files. For analyzers that need to process the files as a whole, this might not be the ideal superclass
- * to inherit from.
+ * <p>
+ * This implementation is only useful for API analyzers that process the files in the ZIP archives one-by-one in some
+ * manner. E.g. they might be looking for some concrete files in the zip or can compose the API from looking at the
+ * individual files. For analyzers that need to process the files as a whole, this might not be the ideal superclass to
+ * inherit from.
  *
- * <p>This implementation ignores the {@link API#getSupplementaryArchives() supplementary archives} of the API.
+ * <p>
+ * This implementation ignores the {@link API#getSupplementaryArchives() supplementary archives} of the API.
  */
 public abstract class ZipArchiveAnalyzer<F extends BaseElementForest<E>, E extends BaseElement<E>>
         extends BaseEagerLoadingArchiveAnalyzer<F, E> {
@@ -52,9 +54,12 @@ public abstract class ZipArchiveAnalyzer<F extends BaseElementForest<E>, E exten
 
     /**
      *
-     * @param apiAnalyzer the api analyzer for which this archive analyzer is created
-     * @param api the API this analyzer analyzes
-     * @param matchPatterns the match patterns for files looked for in the zip file
+     * @param apiAnalyzer
+     *            the api analyzer for which this archive analyzer is created
+     * @param api
+     *            the API this analyzer analyzes
+     * @param matchPatterns
+     *            the match patterns for files looked for in the zip file
      */
     public ZipArchiveAnalyzer(ApiAnalyzer<E> apiAnalyzer, API api, List<Pattern> matchPatterns) {
         super(apiAnalyzer, api, false);
@@ -75,7 +80,8 @@ public abstract class ZipArchiveAnalyzer<F extends BaseElementForest<E>, E exten
         } catch (IOException e) {
             // let's just not try to open the archive again while we have it still open... If I remember correctly,
             // Windows might have trouble conforming...
-            LOG.debug("Failed to read archive '" + archive + "' as a ZIP archive. Retrying as an uncompressed stream.", e);
+            LOG.debug("Failed to read archive '" + archive + "' as a ZIP archive. Retrying as an uncompressed stream.",
+                    e);
             all.clear();
         }
 
@@ -93,13 +99,17 @@ public abstract class ZipArchiveAnalyzer<F extends BaseElementForest<E>, E exten
     }
 
     /**
-     * Creates elements out of the provided data. These element don't have to be placed in any kind of hierarchy -
-     * that will be done automatically in {@link ZipArchiveAnalyzer} base implementation. If the returned elements
-     * contain any sub-elements, they need to be added as children though.
+     * Creates elements out of the provided data. These element don't have to be placed in any kind of hierarchy - that
+     * will be done automatically in {@link ZipArchiveAnalyzer} base implementation. If the returned elements contain
+     * any sub-elements, they need to be added as children though.
      *
-     * @param a the archive containing the entry
-     * @param entry the zip file entry, can be null if parsing data of the whole file (in case it is not a ZIP file)
-     * @param data the data of the entry
+     * @param a
+     *            the archive containing the entry
+     * @param entry
+     *            the zip file entry, can be null if parsing data of the whole file (in case it is not a ZIP file)
+     * @param data
+     *            the data of the entry
+     * 
      * @return the parsed elements
      */
     protected abstract Set<E> createElements(Archive a, @Nullable ZipEntry entry, InputStream data) throws IOException;

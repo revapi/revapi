@@ -18,107 +18,84 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
         <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
-    <name>CLI</name>
-    <description>
-        Revapi CLI
-    </description>
-    <url>https://revapi.org</url>
-
     <artifactId>revapi-standalone</artifactId>
     <version>0.11.0-SNAPSHOT</version>
-
+    <name>CLI</name>
+    <description>Revapi CLI</description>
+    <url>https://revapi.org</url>
+    <scm>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/revapi/revapi</url>
+    </scm>
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>https://revapi.org</url>
+        </site>
+    </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
         <version.org.revapi.revapi>0.13.2</version.org.revapi.revapi>
     </properties>
-
     <dependencies>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>gnu.getopt</groupId>
+            <artifactId>java-getopt</artifactId>
+            <version>1.0.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.modules</groupId>
+            <artifactId>jboss-modules</artifactId>
+            <version>1.6.1.Final</version>
+        </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-	        <version>${version.org.revapi.revapi}</version>
+            <version>${version.org.revapi.revapi}</version>
         </dependency>
-
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
             <version>0.12.0-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
             <version>0.10.4-SNAPSHOT</version>
         </dependency>
-
-        <dependency>
-            <groupId>gnu.getopt</groupId>
-            <artifactId>java-getopt</artifactId>
-            <version>1.0.13</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.modules</groupId>
-            <artifactId>jboss-modules</artifactId>
-            <version>1.6.1.Final</version>
-        </dependency>
-
-        <dependency>
-            <groupId>pw.krejci</groupId>
-            <artifactId>maven-repo-jboss-modules</artifactId>
-            <version>0.2.0</version>
-        </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
             <version>1.7.5</version>
         </dependency>
-
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
+            <groupId>pw.krejci</groupId>
+            <artifactId>maven-repo-jboss-modules</artifactId>
+            <version>0.2.0</version>
         </dependency>
     </dependencies>
-
     <build>
         <resources>
             <resource>
-                <directory>${project.basedir}/src/main/resources</directory>
                 <filtering>true</filtering>
+                <directory>${project.basedir}/src/main/resources</directory>
             </resource>
         </resources>
-
         <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/main/assembly/distrib.xml</descriptor>
-                    </descriptors>
-                    <finalName>revapi-${project.version}</finalName>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>assemble</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -128,20 +105,25 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>assemble</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/distrib.xml</descriptor>
+                    </descriptors>
+                    <finalName>revapi-${project.version}</finalName>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
-
-    <distributionManagement>
-        <site>
-            <id>site</id>
-            <url>https://revapi.org</url>
-        </site>
-    </distributionManagement>
-
-    <scm>
-        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
-        <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
-    </scm>
 </project>

@@ -43,19 +43,24 @@ class JacksonArchiveAnalyzerTest {
     @Test
     void testReadsDataFromFile() {
         API api = API.of(
-                new InputStreamArchive("emptyObject", () -> new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8))),
-                new InputStreamArchive("emptyArray", () -> new ByteArrayInputStream("[]".getBytes(StandardCharsets.UTF_8))),
+                new InputStreamArchive("emptyObject",
+                        () -> new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8))),
+                new InputStreamArchive("emptyArray",
+                        () -> new ByteArrayInputStream("[]".getBytes(StandardCharsets.UTF_8))),
                 new InputStreamArchive("number", () -> new ByteArrayInputStream("42".getBytes(StandardCharsets.UTF_8))),
-                new InputStreamArchive("string", () -> new ByteArrayInputStream("\"42\"".getBytes(StandardCharsets.UTF_8))),
+                new InputStreamArchive("string",
+                        () -> new ByteArrayInputStream("\"42\"".getBytes(StandardCharsets.UTF_8))),
                 new InputStreamArchive("bool", () -> new ByteArrayInputStream("true".getBytes(StandardCharsets.UTF_8))),
                 new InputStreamArchive("null", () -> new ByteArrayInputStream("null".getBytes(StandardCharsets.UTF_8))),
-                new InputStreamArchive("object", () -> new ByteArrayInputStream("{\"a\": \"b\"}".getBytes(StandardCharsets.UTF_8))),
-                new InputStreamArchive("array", () -> new ByteArrayInputStream("[1, 2]".getBytes(StandardCharsets.UTF_8)))
-        ).build();
+                new InputStreamArchive("object",
+                        () -> new ByteArrayInputStream("{\"a\": \"b\"}".getBytes(StandardCharsets.UTF_8))),
+                new InputStreamArchive("array",
+                        () -> new ByteArrayInputStream("[1, 2]".getBytes(StandardCharsets.UTF_8))))
+                .build();
 
-        @SuppressWarnings("unchecked") TestAnalyzer analyzer =
-                new TestAnalyzer(mock(JacksonApiAnalyzer.class), api, null, new ObjectMapper(),
-                        StandardCharsets.UTF_8);
+        @SuppressWarnings("unchecked")
+        TestAnalyzer analyzer = new TestAnalyzer(mock(JacksonApiAnalyzer.class), api, null, new ObjectMapper(),
+                StandardCharsets.UTF_8);
 
         BaseElementForest<TestElement> forest = analyzer.analyze(TreeFilter.matchAndDescend());
 
@@ -90,9 +95,9 @@ class JacksonArchiveAnalyzerTest {
         API api = API.of(new InputStreamArchive("data.zip", () -> new ByteArrayInputStream(zippedData.toByteArray())))
                 .build();
 
-        @SuppressWarnings("unchecked") TestAnalyzer analyzer =
-                new TestAnalyzer(mock(JacksonApiAnalyzer.class), api, Pattern.compile(".*"), new ObjectMapper(),
-                        StandardCharsets.UTF_8);
+        @SuppressWarnings("unchecked")
+        TestAnalyzer analyzer = new TestAnalyzer(mock(JacksonApiAnalyzer.class), api, Pattern.compile(".*"),
+                new ObjectMapper(), StandardCharsets.UTF_8);
 
         BaseElementForest<TestElement> forest = analyzer.analyze(TreeFilter.matchAndDescend());
 

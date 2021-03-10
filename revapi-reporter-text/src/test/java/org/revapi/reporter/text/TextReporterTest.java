@@ -41,6 +41,7 @@ import org.revapi.base.FileArchive;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.5.0
  */
 public class TextReporterTest {
@@ -53,8 +54,7 @@ public class TextReporterTest {
 
         AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
-                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build())
-                .build();
+                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
         AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(TextReporter.class);
         assertNotNull(reporterCtx);
@@ -70,21 +70,10 @@ public class TextReporterTest {
 
         reporter.close();
 
-        String expected = "Analysis results\n" +
-                "----------------\n" +
-                "\n" +
-                "Old API: old-dummy.archive\n" +
-                "New API: new-dummy.archive\n" +
-                "old: old1\n" +
-                "new: new1\n" +
-                "code1: descr1\n" +
-                "SOURCE: BREAKING\n" +
-                "\n" +
-                "old: old2\n" +
-                "new: new2\n" +
-                "code2\n" +
-                "justified\n" +
-                "BINARY: BREAKING\n\n";
+        String expected = "Analysis results\n" + "----------------\n" + "\n" + "Old API: old-dummy.archive\n"
+                + "New API: new-dummy.archive\n" + "old: old1\n" + "new: new1\n" + "code1: descr1\n"
+                + "SOURCE: BREAKING\n" + "\n" + "old: old2\n" + "new: new2\n" + "code2\n" + "justified\n"
+                + "BINARY: BREAKING\n\n";
 
         assertEquals(expected, out.toString());
     }
@@ -100,8 +89,9 @@ public class TextReporterTest {
 
             Revapi r = new Revapi(PipelineConfiguration.builder().withReporters(TextReporter.class).build());
 
-            AnalysisContext ctx = AnalysisContext.builder(r).withConfigurationFromJSON(
-                    "{\"revapi\": {\"reporter\": {\"text\": {\"template\": \"" + tempFile.toString() + "\"}}}}")
+            AnalysisContext ctx = AnalysisContext.builder(r)
+                    .withConfigurationFromJSON(
+                            "{\"revapi\": {\"reporter\": {\"text\": {\"template\": \"" + tempFile.toString() + "\"}}}}")
                     .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
                     .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
@@ -131,9 +121,8 @@ public class TextReporterTest {
         List<Report> ret = new ArrayList<>();
 
         Report report = Report.builder().withOld(new DummyElement("old2")).withNew(new DummyElement("new2"))
-                .addProblem().withCode("code2").withName("name2")
-                .withJustification("justified").addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                .done().build();
+                .addProblem().withCode("code2").withName("name2").withJustification("justified")
+                .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).done().build();
 
         ret.add(report);
 

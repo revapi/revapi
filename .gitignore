@@ -6,6 +6,7 @@ target/
 pom.xml.releaseBackup
 release.properties
 pom.xml.versionsBackup
+pom.xml.bak
 
 # IDE files
 .project

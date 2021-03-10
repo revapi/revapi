@@ -35,11 +35,13 @@ import org.revapi.query.Filter;
  * A base class for API elements. It is not mandatory to inherit from this class but it provides a good base
  * implementation for most of the cases.
  *
- * <p>The type parameter, {@code <E>}, denotes the parent type of all elements produced by a certain
+ * <p>
+ * The type parameter, {@code <E>}, denotes the parent type of all elements produced by a certain
  * {@link org.revapi.ApiAnalyzer}. All these types are assumed to be mutually comparable (and therefore implement
  * {@link Comparable Comparable&lt;E&gt;}).
  *
- * @param <E> the parent type of all elements in the API
+ * @param <E>
+ *            the parent type of all elements in the API
  */
 public abstract class BaseElement<E extends Element<E>> implements Element<E>, Cloneable {
     private final API api;
@@ -61,8 +63,8 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
     }
 
     /**
-     * Casts "this" to {@code E}. This is unsafe from the language perspective but we suppose {@code E} is the base
-     * type of all elements of given API analyzer, so this should always be safe.
+     * Casts "this" to {@code E}. This is unsafe from the language perspective but we suppose {@code E} is the base type
+     * of all elements of given API analyzer, so this should always be safe.
      *
      * @return this instance as the base element type
      */
@@ -103,7 +105,8 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
      * Sets the parent element. No other processing is automagically done (i.e. the parent's children set is <b>NOT</b>
      * updated by calling this method).
      *
-     * @param parent the new parent element
+     * @param parent
+     *            the new parent element
      */
     @Override
     public void setParent(@Nullable E parent) {
@@ -121,6 +124,7 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
 
     /**
      * Returns a shallow copy of this element. In particular, its parent and children will be cleared.
+     * 
      * @return a copy of this element
      */
     @Override
@@ -235,7 +239,7 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
         @Nonnull
         @Override
         public <T> T[] toArray(@Nonnull T[] a) {
-            //noinspection SuspiciousToArrayCall
+            // noinspection SuspiciousToArrayCall
             return set.toArray(a);
         }
 

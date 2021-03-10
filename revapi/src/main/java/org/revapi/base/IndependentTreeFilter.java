@@ -25,13 +25,14 @@ import org.revapi.FilterStartResult;
 import org.revapi.TreeFilter;
 
 /**
- * A simple implementation of the {@link TreeFilter} interface that simply repeats the result provided from
- * the {@link #start(Element)} method in its {@link #finish(Element)} method.
+ * A simple implementation of the {@link TreeFilter} interface that simply repeats the result provided from the
+ * {@link #start(Element)} method in its {@link #finish(Element)} method.
  * <p>
  * This is what filters that do not depend on any other element usually need.
  */
 public abstract class IndependentTreeFilter<E extends Element<E>> extends BaseTreeFilter<E> {
     private final IdentityHashMap<E, FilterFinishResult> cache = new IdentityHashMap<>();
+
     @Override
     public final FilterStartResult start(E element) {
         FilterStartResult ret = doStart(element);

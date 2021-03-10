@@ -28,8 +28,8 @@ import org.revapi.Archive;
 import org.revapi.jackson.JacksonArchiveAnalyzer;
 
 public class JsonArchiveAnalyzer extends JacksonArchiveAnalyzer<JsonElement> {
-    public JsonArchiveAnalyzer(JsonApiAnalyzer apiAnalyzer, API api, @Nullable Pattern pathMatcher, ObjectMapper objectMapper,
-            Charset charset) {
+    public JsonArchiveAnalyzer(JsonApiAnalyzer apiAnalyzer, API api, @Nullable Pattern pathMatcher,
+            ObjectMapper objectMapper, Charset charset) {
         super(apiAnalyzer, api, pathMatcher, objectMapper, charset);
     }
 

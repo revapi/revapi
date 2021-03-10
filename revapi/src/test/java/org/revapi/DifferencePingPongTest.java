@@ -33,16 +33,12 @@ public class DifferencePingPongTest {
 
     @Test
     public void testOrderApplied() throws Exception {
-        Revapi revapi = Revapi.builder()
-                .withAnalyzers(DummyAnalyzer.class)
-                .withTransforms(MakeBreaking.class, MakeNonBreaking.class)
-                .withReporters(DummyReporter.class)
-                .addTransformationBlock(Arrays.asList("b", "nb"))
-                .build();
+        Revapi revapi = Revapi.builder().withAnalyzers(DummyAnalyzer.class)
+                .withTransforms(MakeBreaking.class, MakeNonBreaking.class).withReporters(DummyReporter.class)
+                .addTransformationBlock(Arrays.asList("b", "nb")).build();
 
-        try (AnalysisResult res = revapi.analyze(AnalysisContext.builder()
-                .withOldAPI(API.builder().build()).withNewAPI(API.builder().build())
-                .build())) {
+        try (AnalysisResult res = revapi.analyze(AnalysisContext.builder().withOldAPI(API.builder().build())
+                .withNewAPI(API.builder().build()).build())) {
 
             res.throwIfFailed();
         }
@@ -63,6 +59,7 @@ public class DifferencePingPongTest {
     public static class TransformOther implements DifferenceTransform {
         private final DifferenceSeverity targetSeverity;
         private final String extensionId;
+
         public TransformOther(DifferenceSeverity targetSeverity, String extensionId) {
             this.targetSeverity = targetSeverity;
             this.extensionId = extensionId;
@@ -71,20 +68,16 @@ public class DifferencePingPongTest {
         @Nonnull
         @Override
         public Pattern[] getDifferenceCodePatterns() {
-            return new Pattern[]{Pattern.compile("code")};
+            return new Pattern[] { Pattern.compile("code") };
         }
 
         @Nullable
         @Override
         public Difference transform(@Nullable Element oldElement, @Nullable Element newElement,
                 @Nonnull Difference difference) {
-            return Difference.builder()
-                    .withCode(difference.code)
-                    .withName(difference.name)
-                    .withDescription(difference.description)
-                    .addClassifications(difference.classification)
-                    .addClassification(CompatibilityType.OTHER, targetSeverity)
-                    .addAttachments(difference.attachments)
+            return Difference.builder().withCode(difference.code).withName(difference.name)
+                    .withDescription(difference.description).addClassifications(difference.classification)
+                    .addClassification(CompatibilityType.OTHER, targetSeverity).addAttachments(difference.attachments)
                     .withIdentifyingAttachments(difference.attachments.keySet().stream()
                             .filter(difference::isIdentifyingAttachment).collect(Collectors.toList()))
                     .build();
@@ -149,8 +142,7 @@ public class DifferencePingPongTest {
                 public ElementForest<DummyElement> analyze(TreeFilter<DummyElement> filter) {
                     BaseElementForest<DummyElement> ret = new BaseElementForest<>(api);
 
-                    Archive archive = api.getArchives().iterator().hasNext()
-                            ? api.getArchives().iterator().next()
+                    Archive archive = api.getArchives().iterator().hasNext() ? api.getArchives().iterator().next()
                             : null;
 
                     Set<DummyElement> roots = ret.getRoots();
@@ -188,15 +180,9 @@ public class DifferencePingPongTest {
 
                 @Override
                 public Report endAnalysis(@Nullable DummyElement oldElement, @Nullable DummyElement newElement) {
-                    return Report.builder()
-                            .withOld(oldElement)
-                            .withNew(newElement)
-                            .addProblem()
-                            .withCode("code")
+                    return Report.builder().withOld(oldElement).withNew(newElement).addProblem().withCode("code")
                             .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING)
-                            .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                            .done()
-                            .build();
+                            .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).done().build();
                 }
 
                 @Override

@@ -30,9 +30,9 @@ import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
 
 /**
- * This is a solution to the removal of package and class filtering directly in the classpath scanner.
- * We need something that people will be able to use until this functionality is removed for good and only the variant
- * with revapi.filter and the java matcher are available.
+ * This is a solution to the removal of package and class filtering directly in the classpath scanner. We need something
+ * that people will be able to use until this functionality is removed for good and only the variant with revapi.filter
+ * and the java matcher are available.
  *
  * @deprecated This is deprecated because it is a temporary measure
  */
@@ -63,7 +63,6 @@ public class PackageFilter extends OverridableIncludeExcludeTreeFilter<JavaEleme
         };
     }
 
-
     private static String findPackage(JavaElement el) {
         while (el != null && !(el instanceof JavaTypeElement)) {
             el = el.getParent();
@@ -71,8 +70,7 @@ public class PackageFilter extends OverridableIncludeExcludeTreeFilter<JavaEleme
 
         TypeElement type = el == null ? null : ((JavaTypeElement) el).getDeclaringElement();
 
-        return el == null
-                ? null
+        return el == null ? null
                 : el.getTypeEnvironment().getElementUtils().getPackageOf(type).getQualifiedName().toString();
     }
 }

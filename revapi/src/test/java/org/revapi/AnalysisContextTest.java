@@ -31,6 +31,7 @@ import org.revapi.configuration.JSONUtil;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.8.0
  */
 public class AnalysisContextTest {
@@ -64,118 +65,103 @@ public class AnalysisContextTest {
 
     @Test
     public void testConfigurationHandling_mergeNewStyle() throws Exception {
-        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}," +
-                " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
+        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"},"
+                + " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
         Dummy.extensionId = "ext";
         JsonNode cfg1 = JSONUtil.parse("[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}}]");
         JsonNode cfg2 = JSONUtil.parse("[{\"extension\": \"ext\", \"configuration\": {\"b\": [\"y\"]}}]");
-        JsonNode newCfg = JSONUtil.parse(
-                "[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}]");
+        JsonNode newCfg = JSONUtil
+                .parse("[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}]");
 
         Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
-        AnalysisContext ctx = AnalysisContext.builder(revapi)
-                .withConfiguration(cfg1)
-                .mergeConfiguration(cfg2)
-                .build();
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withConfiguration(cfg1).mergeConfiguration(cfg2).build();
 
         Assert.assertEquals(newCfg, ctx.getConfigurationNode());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConfigurationHandling_mergeNewStyle_singleMasterWithMultipleIdlessMergers() throws Exception {
-        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}," +
-                " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
+        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"},"
+                + " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
         Dummy.extensionId = "ext";
         JsonNode cfg1 = JSONUtil.parse("[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}}]");
-        JsonNode cfg2 = JSONUtil.parse("[{\"extension\": \"ext\", \"configuration\": {\"b\": [\"y\"]}}," +
-                "{\"extension\": \"ext\", \"configuration\": {\"b\": [\"z\"]}}]");
+        JsonNode cfg2 = JSONUtil.parse("[{\"extension\": \"ext\", \"configuration\": {\"b\": [\"y\"]}},"
+                + "{\"extension\": \"ext\", \"configuration\": {\"b\": [\"z\"]}}]");
 
         Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
-        AnalysisContext.builder(revapi)
-                .withConfiguration(cfg1)
-                .mergeConfiguration(cfg2)
-                .build();
+        AnalysisContext.builder(revapi).withConfiguration(cfg1).mergeConfiguration(cfg2).build();
     }
 
     @Test
     public void testConfigurationHandling_mergeNewStyle_withIds() throws Exception {
-        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}," +
-                " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
+        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"},"
+                + " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
         Dummy.extensionId = "ext";
-        JsonNode cfg1 = JSONUtil.parse("[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}}]");
-        JsonNode cfg2 = JSONUtil.parse("[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"b\": [\"y\"]}}," +
-                "{\"extension\": \"ext\", \"id\": \"b\", \"configuration\": {\"b\": [\"y\"]}}]");
-        JsonNode newCfg = JSONUtil.parse(
-                "[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}," +
-                        "{\"extension\": \"ext\", \"id\": \"b\", \"configuration\": {\"b\": [\"y\"]}}]");
+        JsonNode cfg1 = JSONUtil
+                .parse("[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}}]");
+        JsonNode cfg2 = JSONUtil.parse("[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"b\": [\"y\"]}},"
+                + "{\"extension\": \"ext\", \"id\": \"b\", \"configuration\": {\"b\": [\"y\"]}}]");
+        JsonNode newCfg = JSONUtil
+                .parse("[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}},"
+                        + "{\"extension\": \"ext\", \"id\": \"b\", \"configuration\": {\"b\": [\"y\"]}}]");
 
         Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
-        AnalysisContext ctx = AnalysisContext.builder(revapi)
-                .withConfiguration(cfg1)
-                .mergeConfiguration(cfg2)
-                .build();
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withConfiguration(cfg1).mergeConfiguration(cfg2).build();
 
         Assert.assertEquals(newCfg, ctx.getConfigurationNode());
     }
 
     @Test
     public void testConfigurationHandling_mergeOldStyle() throws Exception {
-        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}," +
-                " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
+        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"},"
+                + " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
         Dummy.extensionId = "ext";
         JsonNode cfg1 = JSONUtil.parse("[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}}]");
         JsonNode cfg2 = JSONUtil.parse("{\"ext\": {\"b\": [\"y\"]}}");
-        JsonNode newCfg = JSONUtil.parse(
-                "[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}]");
+        JsonNode newCfg = JSONUtil
+                .parse("[{\"extension\": \"ext\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}]");
 
         Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
-        AnalysisContext ctx = AnalysisContext.builder(revapi)
-                .withConfiguration(cfg1)
-                .mergeConfiguration(cfg2)
-                .build();
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withConfiguration(cfg1).mergeConfiguration(cfg2).build();
 
         Assert.assertEquals(newCfg, ctx.getConfigurationNode());
     }
 
     @Test
     public void testConfigurationHandling_mergeOldStyle_withSingleId() throws Exception {
-        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}," +
-                " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
+        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"},"
+                + " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
         Dummy.extensionId = "ext";
-        JsonNode cfg1 = JSONUtil.parse("[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}}]");
+        JsonNode cfg1 = JSONUtil
+                .parse("[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}}]");
         JsonNode cfg2 = JSONUtil.parse("{\"ext\": {\"b\": [\"y\"]}}");
         JsonNode newCfg = JSONUtil.parse(
                 "[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\", \"y\"]}}]");
 
         Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
-        AnalysisContext ctx = AnalysisContext.builder(revapi)
-                .withConfiguration(cfg1)
-                .mergeConfiguration(cfg2)
-                .build();
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withConfiguration(cfg1).mergeConfiguration(cfg2).build();
 
         Assert.assertEquals(newCfg, ctx.getConfigurationNode());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConfigurationHandling_mergeOldStyle_withMultipleIds() throws Exception {
-        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"}," +
-                " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
+        Dummy.schema = "{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"integer\"},"
+                + " \"b\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}";
         Dummy.extensionId = "ext";
-        JsonNode cfg1 = JSONUtil.parse("[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}}," +
-                "{\"extension\": \"ext\", \"id\": \"b\", \"configuration\": {\"b\": [\"y\"]}}]");
+        JsonNode cfg1 = JSONUtil
+                .parse("[{\"extension\": \"ext\", \"id\": \"a\", \"configuration\": {\"a\": 1, \"b\": [\"x\"]}},"
+                        + "{\"extension\": \"ext\", \"id\": \"b\", \"configuration\": {\"b\": [\"y\"]}}]");
         JsonNode cfg2 = JSONUtil.parse("{\"ext\": {\"b\": [\"y\"]}}");
 
         Revapi revapi = Revapi.builder().withAnalyzers(Dummy.class).withReporters(TestReporter.class).build();
 
-        AnalysisContext ctx = AnalysisContext.builder(revapi)
-                .withConfiguration(cfg1)
-                .mergeConfiguration(cfg2)
-                .build();
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withConfiguration(cfg1).mergeConfiguration(cfg2).build();
 
         Assert.assertEquals(new ModelNode(), ctx.getConfigurationNode());
     }
@@ -195,30 +181,42 @@ public class AnalysisContextTest {
         static String extensionId;
         static String schema;
 
-        @Override public void close() throws Exception {
+        @Override
+        public void close() throws Exception {
         }
 
-        @Nullable @Override public String getExtensionId() {
+        @Nullable
+        @Override
+        public String getExtensionId() {
             return extensionId;
         }
 
-        @Nullable @Override public Reader getJSONSchema() {
+        @Nullable
+        @Override
+        public Reader getJSONSchema() {
             return new StringReader(schema);
         }
 
-        @Override public void initialize(@Nonnull AnalysisContext analysisContext) {
+        @Override
+        public void initialize(@Nonnull AnalysisContext analysisContext) {
         }
 
-        @Nonnull @Override public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
+        @Nonnull
+        @Override
+        public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
             return null;
         }
 
-        @Nonnull @Override public DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
-                                                                           @Nonnull ArchiveAnalyzer newArchive) {
+        @Nonnull
+        @Override
+        public DifferenceAnalyzer getDifferenceAnalyzer(@Nonnull ArchiveAnalyzer oldArchive,
+                @Nonnull ArchiveAnalyzer newArchive) {
             return null;
         }
 
-        @Nonnull @Override public CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
+        @Nonnull
+        @Override
+        public CorrespondenceComparatorDeducer getCorrespondenceDeducer() {
             return null;
         }
     }

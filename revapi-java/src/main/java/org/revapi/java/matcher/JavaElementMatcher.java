@@ -102,8 +102,8 @@ public final class JavaElementMatcher implements ElementMatcher {
 
                         @Override
                         public Map<JavaElement, FilterFinishResult> finish() {
-                            return progress.finish().entrySet().stream()
-                                    .collect(Collectors.toMap(Map.Entry::getKey, e -> FilterFinishResult.direct(convert(e.getValue()))));
+                            return progress.finish().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                                    e -> FilterFinishResult.direct(convert(e.getValue()))));
                         }
                     };
 
@@ -139,19 +139,20 @@ public final class JavaElementMatcher implements ElementMatcher {
     }
 
     private static FilterStartResult convert(WalkInstruction instruction) {
-        return FilterStartResult.direct(convert(instruction.getTestResult()), Ternary.fromBoolean(instruction.isDescend()));
+        return FilterStartResult.direct(convert(instruction.getTestResult()),
+                Ternary.fromBoolean(instruction.isDescend()));
     }
 
     private static Ternary convert(TestResult result) {
         switch (result) {
-            case DEFERRED:
-                return Ternary.UNDECIDED;
-            case PASSED:
-                return Ternary.TRUE;
-            case NOT_PASSED:
-                return Ternary.FALSE;
-            default:
-                throw new IllegalArgumentException(result + " not handled.");
+        case DEFERRED:
+            return Ternary.UNDECIDED;
+        case PASSED:
+            return Ternary.TRUE;
+        case NOT_PASSED:
+            return Ternary.FALSE;
+        default:
+            throw new IllegalArgumentException(result + " not handled.");
         }
     }
 
@@ -206,11 +207,8 @@ public final class JavaElementMatcher implements ElementMatcher {
 
                 Map<UseSite.Type, Map<JavaTypeElement, Set<JavaModelElement>>> usedTypes = type.getUsedTypes();
 
-                return usedTypes.values().stream()
-                        .flatMap(m -> m.entrySet().stream())
-                        .filter(e -> e.getValue().contains(user))
-                        .map(Map.Entry::getKey)
-                        .collect(toSet());
+                return usedTypes.values().stream().flatMap(m -> m.entrySet().stream())
+                        .filter(e -> e.getValue().contains(user)).map(Map.Entry::getKey).collect(toSet());
             } else {
                 return emptySet();
             }
@@ -221,9 +219,7 @@ public final class JavaElementMatcher implements ElementMatcher {
             if (!env.isScanningComplete()) {
                 return null;
             } else if (element instanceof JavaTypeElement) {
-                return ((JavaTypeElement) element).getUseSites().stream()
-                        .map(UseSite::getSite)
-                        .collect(toSet());
+                return ((JavaTypeElement) element).getUseSites().stream().map(UseSite::getSite).collect(toSet());
             } else {
                 return emptySet();
             }

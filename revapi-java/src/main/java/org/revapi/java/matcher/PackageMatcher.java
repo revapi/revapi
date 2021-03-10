@@ -38,8 +38,7 @@ public class PackageMatcher extends BaseElementMatcher {
     public Optional<CompiledRecipe> compile(String recipe) {
         return Optional.of(new CompiledRecipe() {
             final Pattern pattern = recipe.length() > 1 && recipe.startsWith("/") && recipe.endsWith("/")
-                    ? Pattern.compile(recipe.substring(1, recipe.length() - 1))
-                    : null;
+                    ? Pattern.compile(recipe.substring(1, recipe.length() - 1)) : null;
 
             @SuppressWarnings("unchecked")
             @Nullable

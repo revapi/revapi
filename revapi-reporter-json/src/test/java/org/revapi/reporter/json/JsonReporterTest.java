@@ -55,8 +55,8 @@ public class JsonReporterTest {
             buf.append("\"keepEmptyFile\": \"").append("false").append("\"");
             buf.append("}");
 
-            reporter.initialize(AnalysisContext.builder()
-                    .build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
+            reporter.initialize(
+                    AnalysisContext.builder().build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
             reporter.report(Report.builder().build());
 
         } finally {
@@ -72,8 +72,7 @@ public class JsonReporterTest {
 
         AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
-                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build())
-                .build();
+                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
         AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JsonReporter.class);
 
@@ -128,8 +127,7 @@ public class JsonReporterTest {
 
         AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
-                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build())
-                .build();
+                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
         AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JsonReporter.class);
 
@@ -155,8 +153,7 @@ public class JsonReporterTest {
 
         AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
-                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build())
-                .build();
+                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
         AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JsonReporter.class);
 
@@ -179,15 +176,15 @@ public class JsonReporterTest {
 
         Report report = Report.builder().withOld(new DummyElement("old2")).withNew(new DummyElement("new2"))
                 .addProblem().withCode("code2").withDescription("descr2").withName("name2")
-                .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                .addAttachment("at2", "at2val").done().build();
+                .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).addAttachment("at2", "at2val")
+                .done().build();
 
         ret.add(report);
 
         report = Report.builder().withOld(new DummyElement("old1")).withNew(new DummyElement("new1")).addProblem()
                 .withCode("code1").withDescription("descr1").withName("name1")
-                .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING)
-                .addAttachment("at1", "at1val").done().build();
+                .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING).addAttachment("at1", "at1val")
+                .done().build();
 
         ret.add(report);
 

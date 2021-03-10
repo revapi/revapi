@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,10 +55,12 @@ import org.slf4j.LoggerFactory;
  * If the provided archive is a ZIP file (which also means a JAR file) and it contains entries in the WEB-INF/classes
  * directory then only those entries are considered for API analysis.
  *
- * <p>Can be configured using {@code include} and {@code exclude} lists of regexes on archive names so that user can
- * switch this extractor off if need be.
+ * <p>
+ * Can be configured using {@code include} and {@code exclude} lists of regexes on archive names so that user can switch
+ * this extractor off if need be.
  *
- * <p><b>Extension ID:</b> {@code war}
+ * <p>
+ * <b>Extension ID:</b> {@code war}
  */
 public class WarJarExtractor implements JarExtractor {
     private static final Logger LOG = LoggerFactory.getLogger(WarJarExtractor.class);
@@ -137,7 +139,7 @@ public class WarJarExtractor implements JarExtractor {
             }
         }
 
-        return  -1;
+        return -1;
     }
 
     private void cleanPath(Path path) {
@@ -175,7 +177,7 @@ public class WarJarExtractor implements JarExtractor {
 
         if (scan.isArray()) {
             this.scan = new HashMap<>(scan.size(), 1f);
-            for(JsonNode record : scan) {
+            for (JsonNode record : scan) {
                 JsonNode archiveNode = record.path("archive");
                 JsonNode prefixesNode = record.path("prefixes");
 
@@ -188,10 +190,8 @@ public class WarJarExtractor implements JarExtractor {
                 }
 
                 Pattern archive = Pattern.compile(archiveNode.asText());
-                Set<String> prefixes = StreamSupport.stream(prefixesNode.spliterator(), false)
-                        .map(JsonNode::asText)
-                        .map(v -> v.endsWith("/") ? v : (v + "/"))
-                        .collect(toSet());
+                Set<String> prefixes = StreamSupport.stream(prefixesNode.spliterator(), false).map(JsonNode::asText)
+                        .map(v -> v.endsWith("/") ? v : (v + "/")).collect(toSet());
 
                 this.scan.put(archive, prefixes);
             }

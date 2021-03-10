@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
@@ -39,8 +40,8 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testAnnotationAdded() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                new String[]{"v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java"},
-                new String[]{"v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java"});
+                new String[] { "v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java" },
+                new String[] { "v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java" });
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_ADDED.code()));
     }
@@ -48,8 +49,8 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testAnnotationRemoved() throws Exception {
         ProblemOccurrenceReporter reporter = runAnalysis(ProblemOccurrenceReporter.class,
-                new String[]{"v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java"},
-                new String[]{"v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java"});
+                new String[] { "v2/annotations/Added.java", "v2/annotations/InheritedAnnotation.java" },
+                new String[] { "v1/annotations/Added.java", "v1/annotations/InheritedAnnotation.java" });
 
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.ANNOTATION_REMOVED.code()));
     }
@@ -112,24 +113,21 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testDownplayedJREAnnotations() throws Exception {
-        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
-                "v1/annotations/Downplayed.java", "v2/annotations/Downplayed.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class, "v1/annotations/Downplayed.java",
+                "v2/annotations/Downplayed.java");
         List<Report> reports = reporter.getReports();
 
         Assert.assertEquals(2, reports.size());
-        Assert.assertTrue(reports.stream()
-                .flatMap(r -> r.getDifferences().stream())
-                .flatMap(d -> d.classification.values().stream())
-                .allMatch(ds -> ds == DifferenceSeverity.EQUIVALENT));
-        Assert.assertArrayEquals(new String[]{"java.annotation.added"}, reports.stream()
-                .flatMap(r -> r.getDifferences().stream())
-                .map(d -> d.code).distinct().toArray(String[]::new));
+        Assert.assertTrue(reports.stream().flatMap(r -> r.getDifferences().stream())
+                .flatMap(d -> d.classification.values().stream()).allMatch(ds -> ds == DifferenceSeverity.EQUIVALENT));
+        Assert.assertArrayEquals(new String[] { "java.annotation.added" }, reports.stream()
+                .flatMap(r -> r.getDifferences().stream()).map(d -> d.code).distinct().toArray(String[]::new));
     }
 
     @Test
     public void testAnnotationsCapturedOnAllLocations() throws Exception {
-        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
-                "v1/annotations/Elements.java", "v2/annotations/Elements.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class, "v1/annotations/Elements.java",
+                "v2/annotations/Elements.java");
         List<Report> reports = reporter.getReports();
 
         Function<Class<?>, Stream<Difference>> diffsOn = cls -> reports.stream()
@@ -140,33 +138,30 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(4, reports.size());
 
         Assert.assertEquals(2L, diffsOn.apply(MethodParameterElement.class).count());
-        Assert.assertTrue(diffsOn.apply(MethodParameterElement.class)
-                .allMatch(d -> d.code.equals(Code.ANNOTATION_ADDED.code())));
+        Assert.assertTrue(
+                diffsOn.apply(MethodParameterElement.class).allMatch(d -> d.code.equals(Code.ANNOTATION_ADDED.code())));
 
         Assert.assertEquals(1L, diffsOn.apply(TypeElement.class).count());
-        Assert.assertTrue(diffsOn.apply(TypeElement.class)
-                .allMatch(d -> d.code.equals(Code.ANNOTATION_ADDED.code())));
+        Assert.assertTrue(diffsOn.apply(TypeElement.class).allMatch(d -> d.code.equals(Code.ANNOTATION_ADDED.code())));
 
         Assert.assertEquals(1L, diffsOn.apply(MethodElement.class).count());
-        Assert.assertTrue(diffsOn.apply(MethodElement.class)
-                .allMatch(d -> d.code.equals(Code.ANNOTATION_ADDED.code())));
+        Assert.assertTrue(
+                diffsOn.apply(MethodElement.class).allMatch(d -> d.code.equals(Code.ANNOTATION_ADDED.code())));
 
-        //the annotations are present on the type uses in the test class, too, but Revapi currently doesn't handle
-        //those...
+        // the annotations are present on the type uses in the test class, too, but Revapi currently doesn't handle
+        // those...
     }
 
     @Test
     public void testAttachmentsOfTheAnnotatedElementPresent() throws Exception {
-        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
-                "v1/annotations/AttachmentsPresence.java", "v2/annotations/AttachmentsPresence.java");
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class, "v1/annotations/AttachmentsPresence.java",
+                "v2/annotations/AttachmentsPresence.java");
         List<Report> reports = reporter.getReports();
 
         Assert.assertTrue(reports.stream().flatMap(r -> r.getDifferences().stream()).map(d -> d.attachments)
-                .allMatch(ats ->
-                        !"annotation".equals(ats.get("elementKind"))
-                        && ats.containsKey("package")
+                .allMatch(ats -> !"annotation".equals(ats.get("elementKind")) && ats.containsKey("package")
                         && ats.containsKey("classSimpleName")));
     }
 
-    //TODO also check for situation where the annotation used is not on the classpath - wonder how that behaves
+    // TODO also check for situation where the annotation used is not on the classpath - wonder how that behaves
 }

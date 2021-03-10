@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,6 +38,7 @@ import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
@@ -50,40 +51,38 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
     private List<Path> compilationPaths;
 
     private void compileJars() throws Exception {
-        //compile all the classes we need in 1 go
-        ArchiveAndCompilationPath compRes1 = createCompiledJar("tmp1",
-            "v1/supplementary/a/A.java",
-            "v1/supplementary/b/B.java", "v1/supplementary/a/C.java");
+        // compile all the classes we need in 1 go
+        ArchiveAndCompilationPath compRes1 = createCompiledJar("tmp1", "v1/supplementary/a/A.java",
+                "v1/supplementary/b/B.java", "v1/supplementary/a/C.java");
 
-        //now, create 2 jars out of them. Class A will be our "api" jar and the rest of the classes will form the
-        //supplementary jar that needs to be present as a runtime dep of the API but isn't itself considered an API of
-        //of its own.
-        //We then check that types from such supplementary jar that the API jar "leaks" by exposing them as types
-        //in public/protected fields/methods/method params are then considered the part of the API during api checks.
+        // now, create 2 jars out of them. Class A will be our "api" jar and the rest of the classes will form the
+        // supplementary jar that needs to be present as a runtime dep of the API but isn't itself considered an API of
+        // of its own.
+        // We then check that types from such supplementary jar that the API jar "leaks" by exposing them as types
+        // in public/protected fields/methods/method params are then considered the part of the API during api checks.
 
         apiV1 = ShrinkWrap.create(JavaArchive.class, "apiV1.jar")
-            .addAsResource(compRes1.compilationPath.resolve("A.class").toFile(), "A.class");
-//        supV1 = ShrinkWrap.create(JavaArchive.class, "supV1.jar")
-//            .addAsResource(compRes1.compilationPath.resolve("B.class").toFile(), "B.class")
-//            .addAsResource(compRes1.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
-//            .addAsResource(compRes1.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
-//            .addAsResource(compRes1.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
-//            .addAsResource(compRes1.compilationPath.resolve("C.class").toFile(), "C.class");
+                .addAsResource(compRes1.compilationPath.resolve("A.class").toFile(), "A.class");
+        // supV1 = ShrinkWrap.create(JavaArchive.class, "supV1.jar")
+        // .addAsResource(compRes1.compilationPath.resolve("B.class").toFile(), "B.class")
+        // .addAsResource(compRes1.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
+        // .addAsResource(compRes1.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
+        // .addAsResource(compRes1.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
+        // .addAsResource(compRes1.compilationPath.resolve("C.class").toFile(), "C.class");
 
-        //now do the same for v2
+        // now do the same for v2
         AbstractJavaElementAnalyzerTest.ArchiveAndCompilationPath compRes2 = createCompiledJar("tmp2",
-            "v2/supplementary/a/A.java",
-            "v2/supplementary/b/B.java", "v2/supplementary/a/C.java");
+                "v2/supplementary/a/A.java", "v2/supplementary/b/B.java", "v2/supplementary/a/C.java");
 
         apiV2 = ShrinkWrap.create(JavaArchive.class, "apiV2.jar")
-            .addAsResource(compRes2.compilationPath.resolve("A.class").toFile(), "A.class");
-//        supV2 = ShrinkWrap.create(JavaArchive.class, "supV2.jar")
-//            .addAsResource(compRes2.compilationPath.resolve("B.class").toFile(), "B.class")
-//            .addAsResource(compRes2.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
-//            .addAsResource(compRes2.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
-//            .addAsResource(compRes2.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
-//            .addAsResource(compRes2.compilationPath.resolve("B$T$1$Private.class").toFile(), "B$T$1$Private.class")
-//            .addAsResource(compRes2.compilationPath.resolve("C.class").toFile(), "C.class");
+                .addAsResource(compRes2.compilationPath.resolve("A.class").toFile(), "A.class");
+        // supV2 = ShrinkWrap.create(JavaArchive.class, "supV2.jar")
+        // .addAsResource(compRes2.compilationPath.resolve("B.class").toFile(), "B.class")
+        // .addAsResource(compRes2.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
+        // .addAsResource(compRes2.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
+        // .addAsResource(compRes2.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
+        // .addAsResource(compRes2.compilationPath.resolve("B$T$1$Private.class").toFile(), "B$T$1$Private.class")
+        // .addAsResource(compRes2.compilationPath.resolve("C.class").toFile(), "C.class");
 
         compilationPaths = Arrays.asList(compRes1.compilationPath, compRes2.compilationPath);
     }
@@ -108,27 +107,23 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testErrorsOutOnMissingClasses() throws Exception {
         try {
-            revapi.analyze(
-                AnalysisContext.builder()
-                    .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
+            revapi.analyze(AnalysisContext.builder().withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
                     .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
                     .withConfigurationFromJSON("{\"revapi\" : { \"java\" : { \"missing-classes\" : \"error\" }}}")
-                    .build()
-            );
+                    .build());
 
             Assert.fail();
         } catch (RuntimeException e) {
-            //expected
+            // expected
         }
     }
 
     @Test
     public void testReportsMissingClasses() throws Exception {
-        AnalysisContext ctx = AnalysisContext.builder(revapi)
-                .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
-                .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
-                .withConfigurationFromJSON(
-                        "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }}}}").build();
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
+                .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build()).withConfigurationFromJSON(
+                        "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }}}}")
+                .build();
 
         revapi.validateConfiguration(ctx);
         List<Report> allReports = revapi.analyze(ctx).getExtensions().getFirstExtension(CollectingReporter.class, null)
@@ -136,13 +131,11 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(3, allReports.size());
         Assert.assertTrue(containsDifference(allReports, "missing-class B.T$2", "missing-class B.T$2",
-            Code.MISSING_IN_NEW_API.code()));
+                Code.MISSING_IN_NEW_API.code()));
         Assert.assertTrue(containsDifference(allReports, "missing-class B.T$2", "missing-class B.T$2",
-            Code.MISSING_IN_OLD_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "missing-class B.T$3",
-            Code.MISSING_IN_NEW_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "field A.f3",
-            Code.FIELD_ADDED.code()));
+                Code.MISSING_IN_OLD_API.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "missing-class B.T$3", Code.MISSING_IN_NEW_API.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
 
         boolean containsMissingOld = false;
         boolean containsMissingNew = false;
@@ -163,18 +156,16 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
     @Test
     public void testIgnoresMissingClasses() throws Exception {
-        AnalysisResult res = revapi.analyze(
-            AnalysisContext.builder(revapi)
-                .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
-                .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
-                .withConfigurationFromJSON(
-                    "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"ignore\" }}}}").build()
-        );
+        AnalysisResult res = revapi
+                .analyze(AnalysisContext.builder(revapi).withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
+                        .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
+                        .withConfigurationFromJSON(
+                                "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"ignore\" }}}}")
+                        .build());
 
         res.throwIfFailed();
 
-        List<Report> allReports =
-                res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
+        List<Report> allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
 
         Assert.assertEquals(1, allReports.size());
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
@@ -185,11 +176,9 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         ArchiveAndCompilationPath v1 = null, v2 = null;
 
         try {
-            v1 = createCompiledJar("superType1",
-                    "v1/supplementary/superType/A.java",
+            v1 = createCompiledJar("superType1", "v1/supplementary/superType/A.java",
                     "v1/supplementary/superType/B.java");
-            v2 = createCompiledJar("superType2",
-                    "v2/supplementary/superType/A.java",
+            v2 = createCompiledJar("superType2", "v2/supplementary/superType/A.java",
                     "v2/supplementary/superType/B.java");
 
             JavaArchive a1 = ShrinkWrap.create(JavaArchive.class, "superTypeV1.jar")
@@ -201,12 +190,8 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
             API oldApi = API.of(new ShrinkwrapArchive(a1)).build();
             API newApi = API.of(new ShrinkwrapArchive(a2)).build();
 
-            AnalysisResult res = revapi.analyze(
-                    AnalysisContext.builder()
-                            .withOldAPI(oldApi)
-                            .withNewAPI(newApi)
-                            .build()
-            );
+            AnalysisResult res = revapi
+                    .analyze(AnalysisContext.builder().withOldAPI(oldApi).withNewAPI(newApi).build());
 
             List<Report> allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null)
                     .getReports();
@@ -215,15 +200,9 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
             Assert.assertTrue(containsDifference(allReports, "class B", "class B", Code.MISSING_NEW_SUPERTYPE.code()));
             Assert.assertTrue(containsDifference(allReports, "class A", null, Code.CLASS_REMOVED.code()));
 
-            res = revapi.analyze(
-                    AnalysisContext.builder()
-                            .withOldAPI(newApi)
-                            .withNewAPI(oldApi)
-                            .build()
-            );
+            res = revapi.analyze(AnalysisContext.builder().withOldAPI(newApi).withNewAPI(oldApi).build());
 
-            allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null)
-                    .getReports();
+            allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
 
             Assert.assertEquals(2, allReports.size());
             Assert.assertTrue(containsDifference(allReports, "class B", "class B", Code.MISSING_OLD_SUPERTYPE.code()));

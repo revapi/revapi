@@ -50,6 +50,7 @@ import org.revapi.java.spi.UseSite;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
@@ -63,12 +64,11 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testSimple() throws Exception {
         ArchiveAndCompilationPath archive = createCompiledJar("test.jar", "misc/A.java", "misc/B.java", "misc/C.java",
-            "misc/D.java", "misc/I.java");
+                "misc/D.java", "misc/I.java");
 
-        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
-                Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null
-        );
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
+                new API(Arrays.asList(new ShrinkwrapArchive(archive.archive)), null), emptyList(),
+                Executors.newSingleThreadExecutor(), null, false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -83,22 +83,23 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testWithSupplementary() throws Exception {
         ArchiveAndCompilationPath compRes = createCompiledJar("a.jar", "v1/supplementary/a/A.java",
-            "v1/supplementary/b/B.java", "v1/supplementary/a/C.java");
+                "v1/supplementary/b/B.java", "v1/supplementary/a/C.java");
 
         JavaArchive api = ShrinkWrap.create(JavaArchive.class, "api.jar")
-            .addAsResource(compRes.compilationPath.resolve("A.class").toFile(), "A.class");
+                .addAsResource(compRes.compilationPath.resolve("A.class").toFile(), "A.class");
         JavaArchive sup = ShrinkWrap.create(JavaArchive.class, "sup.jar")
-            .addAsResource(compRes.compilationPath.resolve("B.class").toFile(), "B.class")
-            .addAsResource(compRes.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
-            .addAsResource(compRes.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
-            .addAsResource(compRes.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
-            .addAsResource(compRes.compilationPath.resolve("C.class").toFile(), "C.class")
-            .addAsResource(compRes.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(), "B$UsedByIgnoredClass.class")
-            .addAsResource(compRes.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class");
+                .addAsResource(compRes.compilationPath.resolve("B.class").toFile(), "B.class")
+                .addAsResource(compRes.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
+                .addAsResource(compRes.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
+                .addAsResource(compRes.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
+                .addAsResource(compRes.compilationPath.resolve("C.class").toFile(), "C.class")
+                .addAsResource(compRes.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(),
+                        "B$UsedByIgnoredClass.class")
+                .addAsResource(compRes.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class");
 
-        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(Arrays.asList(new ShrinkwrapArchive(api)),
-                Arrays.asList(new ShrinkwrapArchive(sup))), emptyList(), Executors.newSingleThreadExecutor(), null,
-                false, null);
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
+                new API(Arrays.asList(new ShrinkwrapArchive(api)), Arrays.asList(new ShrinkwrapArchive(sup))),
+                emptyList(), Executors.newSingleThreadExecutor(), null, false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -128,10 +129,9 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
     public void testPreventRecursionWhenConstructingInheritedMembers() throws Exception {
         ArchiveAndCompilationPath archive = createCompiledJar("a.jar", "misc/MemberInheritsOwner.java");
 
-        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
-                Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null
-        );
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
+                new API(Arrays.asList(new ShrinkwrapArchive(archive.archive)), null), emptyList(),
+                Executors.newSingleThreadExecutor(), null, false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -140,21 +140,23 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
             Assert.assertEquals(1, forest.getRoots().size());
 
-            Predicate<JavaElement> findMethod =
-                    c -> "method void MemberInheritsOwner::method()".equals(c.getFullHumanReadableString());
-            Predicate<JavaElement> findMember1 =
-                    c -> "interface MemberInheritsOwner.Member1".equals(c.getFullHumanReadableString());
-            Predicate<JavaElement> findMember2 =
-                    c -> "interface MemberInheritsOwner.Member2".equals(c.getFullHumanReadableString());
+            Predicate<JavaElement> findMethod = c -> "method void MemberInheritsOwner::method()"
+                    .equals(c.getFullHumanReadableString());
+            Predicate<JavaElement> findMember1 = c -> "interface MemberInheritsOwner.Member1"
+                    .equals(c.getFullHumanReadableString());
+            Predicate<JavaElement> findMember2 = c -> "interface MemberInheritsOwner.Member2"
+                    .equals(c.getFullHumanReadableString());
 
             JavaElement root = forest.getRoots().first();
-            Assert.assertEquals(3 + 11, root.getChildren().size()); //11 is the number of methods on java.lang.Object
+            Assert.assertEquals(3 + 11, root.getChildren().size()); // 11 is the number of methods on java.lang.Object
             Assert.assertTrue(root.getChildren().stream().anyMatch(findMethod));
             Assert.assertTrue(root.getChildren().stream().anyMatch(findMember1));
             Assert.assertTrue(root.getChildren().stream().anyMatch(findMember2));
 
-            Assert.assertEquals(1 + 11, root.getChildren().stream().filter(findMember1).findFirst().get().getChildren().size());
-            Assert.assertEquals(1 + 11, root.getChildren().stream().filter(findMember2).findFirst().get().getChildren().size());
+            Assert.assertEquals(1 + 11,
+                    root.getChildren().stream().filter(findMember1).findFirst().get().getChildren().size());
+            Assert.assertEquals(1 + 11,
+                    root.getChildren().stream().filter(findMember2).findFirst().get().getChildren().size());
 
         } finally {
             deleteDir(archive.compilationPath);
@@ -171,17 +173,24 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 .addAsResource(compRes.compilationPath.resolve("Generics.class").toFile(), "Generics.class");
         JavaArchive sup = ShrinkWrap.create(JavaArchive.class, "sup.jar")
                 .addAsResource(compRes.compilationPath.resolve("GenericsParams.class").toFile(), "GenericsParams.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeParam.class").toFile(), "GenericsParams$TypeParam.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$ExtendsBound.class").toFile(), "GenericsParams$ExtendsBound.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$SuperBound.class").toFile(), "GenericsParams$SuperBound.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVar.class").toFile(), "GenericsParams$TypeVar.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVarIface.class").toFile(), "GenericsParams$TypeVarIface.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVarImpl.class").toFile(), "GenericsParams$TypeVarImpl.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$Unused.class").toFile(), "GenericsParams$Unused.class");
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeParam.class").toFile(),
+                        "GenericsParams$TypeParam.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$ExtendsBound.class").toFile(),
+                        "GenericsParams$ExtendsBound.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$SuperBound.class").toFile(),
+                        "GenericsParams$SuperBound.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVar.class").toFile(),
+                        "GenericsParams$TypeVar.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVarIface.class").toFile(),
+                        "GenericsParams$TypeVarIface.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVarImpl.class").toFile(),
+                        "GenericsParams$TypeVarImpl.class")
+                .addAsResource(compRes.compilationPath.resolve("GenericsParams$Unused.class").toFile(),
+                        "GenericsParams$Unused.class");
 
-        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(Arrays.asList(new ShrinkwrapArchive(api)),
-                Arrays.asList(new ShrinkwrapArchive(sup))), emptyList(), Executors.newSingleThreadExecutor(), null,
-                false, null);
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
+                new API(Arrays.asList(new ShrinkwrapArchive(api)), Arrays.asList(new ShrinkwrapArchive(sup))),
+                emptyList(), Executors.newSingleThreadExecutor(), null, false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -190,7 +199,8 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             Set<TypeElement> roots = forest.getRoots().stream().map(n -> n.as(TypeElement.class)).collect(toSet());
 
             Assert.assertEquals(7, roots.size());
-            Assert.assertTrue(roots.stream().anyMatch(hasName("class Generics<T extends GenericsParams.TypeVar & GenericsParams.TypeVarIface, U extends Generics<GenericsParams.TypeVarImpl, ?>>")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName(
+                    "class Generics<T extends GenericsParams.TypeVar & GenericsParams.TypeVarIface, U extends Generics<GenericsParams.TypeVarImpl, ?>>")));
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.ExtendsBound")));
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.SuperBound")));
             Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeParam")));
@@ -208,9 +218,9 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
     public void testInheritedMembersResetArchiveToThatOfInheritingClass() throws Exception {
         ArchiveAndCompilationPath archive = createCompiledJar("c.jar", "misc/C.java");
 
-        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
-                Arrays.asList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null);
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
+                new API(Arrays.asList(new ShrinkwrapArchive(archive.archive)), null), emptyList(),
+                Executors.newSingleThreadExecutor(), null, false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -221,8 +231,8 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
             JavaTypeElement C = forest.getRoots().first().as(JavaTypeElement.class);
 
-            Assert.assertTrue(C.getChildren().stream().allMatch(e -> Objects.equals(((JavaElement) e).getArchive(),
-                    C.getArchive())));
+            Assert.assertTrue(C.getChildren().stream()
+                    .allMatch(e -> Objects.equals(((JavaElement) e).getArchive(), C.getArchive())));
         } finally {
             deleteDir(archive.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();
@@ -234,9 +244,9 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
     public void testInterfaceOverloadingObjectMethodUsesItsDeclaration() throws Exception {
         ArchiveAndCompilationPath archive = createCompiledJar("i.jar", "misc/InterfaceOverloadingObjectMethods.java");
 
-        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
-                singletonList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null);
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
+                new API(singletonList(new ShrinkwrapArchive(archive.archive)), null), emptyList(),
+                Executors.newSingleThreadExecutor(), null, false, null);
 
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
@@ -247,10 +257,8 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
             JavaTypeElement I = forest.getRoots().first().as(JavaTypeElement.class);
 
-            Function<String, MethodElement> byName = name -> I.getChildren().stream()
-                    .map(e -> (MethodElement) e)
-                    .filter(m -> m.getDeclaringElement().getSimpleName().contentEquals(name))
-                    .findFirst().get();
+            Function<String, MethodElement> byName = name -> I.getChildren().stream().map(e -> (MethodElement) e)
+                    .filter(m -> m.getDeclaringElement().getSimpleName().contentEquals(name)).findFirst().get();
 
             MethodElement hashCode = byName.apply("hashCode");
             MethodElement toString = byName.apply("toString");
@@ -277,9 +285,9 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
     public void testAnnotatedMethodParametersCorrectlyReportedAsUseSites() throws Exception {
         ArchiveAndCompilationPath archive = createCompiledJar("i.jar", "misc/AnnotatedMethodParameter.java");
 
-        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer, new API(
-                singletonList(new ShrinkwrapArchive(archive.archive)),
-                null), emptyList(), Executors.newSingleThreadExecutor(), null, false, null);
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
+                new API(singletonList(new ShrinkwrapArchive(archive.archive)), null), emptyList(),
+                Executors.newSingleThreadExecutor(), null, false, null);
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
             analyzer.prune(forest);
@@ -294,8 +302,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             MethodParameterElement param = (MethodParameterElement) method.getChildren().first();
 
             JavaTypeElement anno = clazz.stream(JavaTypeElement.class, false)
-                    .filter(t -> t.getDeclaringElement().getSimpleName().contentEquals("Anno"))
-                    .findFirst().get();
+                    .filter(t -> t.getDeclaringElement().getSimpleName().contentEquals("Anno")).findFirst().get();
 
             Set<UseSite> useSites = anno.getUseSites();
 

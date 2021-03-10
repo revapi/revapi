@@ -32,6 +32,7 @@ import org.revapi.base.BaseElement;
 
 /**
  * A base class for elements based on Jackson.
+ * 
  * @param <E>
  */
 public class JacksonElement<E extends JacksonElement<E>> extends BaseElement<E> {
@@ -86,7 +87,7 @@ public class JacksonElement<E extends JacksonElement<E>> extends BaseElement<E> 
             }
 
             StringBuilder sb = new StringBuilder();
-            for(int i = path.size() - 1; i >= 0; --i) {
+            for (int i = path.size() - 1; i >= 0; --i) {
                 sb.append('/').append(path.get(i));
             }
 
@@ -183,7 +184,7 @@ public class JacksonElement<E extends JacksonElement<E>> extends BaseElement<E> 
         } else if (indexInParent >= 0) {
             return Integer.toString(indexInParent);
         } else {
-            return  "";
+            return "";
         }
     }
 }

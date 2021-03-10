@@ -17,36 +17,30 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>revapi-build</artifactId>
         <groupId>org.revapi</groupId>
+        <artifactId>revapi-build</artifactId>
         <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
     <groupId>org.revapi.examples</groupId>
     <artifactId>revapi-examples-parent</artifactId>
     <version>0</version>
-    <name>Examples</name>
     <packaging>pom</packaging>
-
+    <name>Examples</name>
+    <modules>
+        <module>api-analyzer</module>
+        <module>archive</module>
+        <module>difference-transform</module>
+        <module>element-matcher</module>
+        <module>reporter</module>
+        <module>tree-filter</module>
+    </modules>
     <properties>
         <version.org.junit>5.7.0</version.org.junit>
     </properties>
-
-    <modules>
-        <module>archive</module>
-        <module>tree-filter</module>
-        <module>reporter</module>
-        <module>element-matcher</module>
-        <module>difference-transform</module>
-        <module>api-analyzer</module>
-    </modules>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -58,7 +52,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -66,7 +59,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>

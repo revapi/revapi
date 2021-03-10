@@ -37,7 +37,8 @@ import org.revapi.TreeFilter;
  * elements ({@link #preAnalyze()}, {@link #discoverRoots(Object)}, {@link #discoverElements(Object, Element)} and
  * {@link #postAnalyze(Object)}).
  *
- * @param <E> the parent type of all elements produced by the API analyzer
+ * @param <E>
+ *            the parent type of all elements produced by the API analyzer
  *
  * @see BaseEagerLoadingArchiveAnalyzer
  * @see ZipArchiveAnalyzer
@@ -87,7 +88,7 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
         } finally {
             postAnalyze(context);
         }
-   }
+    }
 
     @Override
     public void prune(ElementForest<E> forest) {
@@ -115,7 +116,8 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
      * Called as the last thing in {@link #analyze(TreeFilter)}. Can be used by the subclasses to clean up after the
      * analysis.
      *
-     * @param context the context object created in the {@link #preAnalyze()}
+     * @param context
+     *            the context object created in the {@link #preAnalyze()}
      *
      * @see #preAnalyze()
      */
@@ -123,12 +125,14 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
     }
 
     /**
-     * Discovers all the root elements in the relevant archives of the API. What is a relevant archive is
-     * determined by the implementor.
+     * Discovers all the root elements in the relevant archives of the API. What is a relevant archive is determined by
+     * the implementor.
      *
      * This is called after {@link #preAnalyze()} and before all {@link #discoverElements(Object, Element)} calls.
      *
-     * @param context the optional context obtained from the {@link #preAnalyze()} method
+     * @param context
+     *            the optional context obtained from the {@link #preAnalyze()} method
+     * 
      * @return a stream of elements
      */
     protected abstract Stream<E> discoverRoots(@Nullable Object context);
@@ -136,7 +140,9 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
     /**
      * Discovers new elements under the given parent element.
      *
-     * @param parent the parent to discover children of
+     * @param parent
+     *            the parent to discover children of
+     * 
      * @return a stream of elements
      */
     protected abstract Stream<E> discoverElements(@Nullable Object context, E parent);
@@ -145,11 +151,15 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
      * Adds an element to the set of its potential siblings. This assumes the siblings are part of a
      * {@link BaseElementForest} and therefore automatically update the parent-child relationships.
      *
-     * <p>This method can be used to establish the right hierarchy of elements in the element forest.
+     * <p>
+     * This method can be used to establish the right hierarchy of elements in the element forest.
      *
-     * @param filter the filter that the element needs to match to be added to the siblings
-     * @param siblings the set of siblings
-     * @param element the element to potentially add to siblings
+     * @param filter
+     *            the filter that the element needs to match to be added to the siblings
+     * @param siblings
+     *            the set of siblings
+     * @param element
+     *            the element to potentially add to siblings
      */
     protected final void addTo(@Nullable Object context, TreeFilter<E> filter, SortedSet<E> siblings, E element) {
         FilterStartResult startRes = filter.start(element);

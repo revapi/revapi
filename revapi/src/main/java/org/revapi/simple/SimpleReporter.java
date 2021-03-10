@@ -23,7 +23,9 @@ import org.revapi.Reporter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
+ * 
  * @deprecated use {@link org.revapi.base.BaseReporter} instead
  */
 @Deprecated

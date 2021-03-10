@@ -42,9 +42,11 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
-public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement, DeclaredType> implements JavaTypeElement {
+public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement, DeclaredType>
+        implements JavaTypeElement {
     private final String binaryName;
     private final String canonicalName;
     private Set<UseSite> useSites;
@@ -55,12 +57,15 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     private Map<UseSite.Type, Map<TypeElement, Set<UseSitePath>>> rawUsedTypes;
 
     /**
-     * This is a helper constructor used only in {@link MissingClassElement}. Inheritors using this constructor need
-     * to make sure that they also override any and all methods that require a non-null element.
+     * This is a helper constructor used only in {@link MissingClassElement}. Inheritors using this constructor need to
+     * make sure that they also override any and all methods that require a non-null element.
      *
-     * @param env           probing environment
-     * @param binaryName    the binary name of the class
-     * @param canonicalName the canonical name of the class
+     * @param env
+     *            probing environment
+     * @param binaryName
+     *            the binary name of the class
+     * @param canonicalName
+     *            the canonical name of the class
      */
     TypeElement(ProbingEnvironment env, Archive archive, String binaryName, String canonicalName) {
         super(env, archive, null, null);
@@ -69,12 +74,14 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     }
 
     /**
-     * This constructor is used under "normal working conditions" when the probing environment already has
-     * the compilation infrastructure available (which is assumed since otherwise it would not be possible to obtain
+     * This constructor is used under "normal working conditions" when the probing environment already has the
+     * compilation infrastructure available (which is assumed since otherwise it would not be possible to obtain
      * instances of the javax.lang.model.element.TypeElement interface).
      *
-     * @param env     the probing environment
-     * @param element the model element to be represented
+     * @param env
+     *            the probing environment
+     * @param element
+     *            the model element to be represented
      */
     public TypeElement(ProbingEnvironment env, Archive archive, javax.lang.model.element.TypeElement element,
             DeclaredType type) {
@@ -144,8 +151,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
     }
 
     /**
-     * This provides the types used by this type. The keys are the types of use, values are maps from the used type
-     * to the set of concrete users of the type (the users represent some child of this element).
+     * This provides the types used by this type. The keys are the types of use, values are maps from the used type to
+     * the set of concrete users of the type (the users represent some child of this element).
      *
      * @return the types used by this type
      */
@@ -161,9 +168,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                             int index = -1;
                             if (path.useSite instanceof VariableElement
                                     && path.useSite.getEnclosingElement() instanceof ExecutableElement) {
-                                //find the index of the method parameter
-                                index = ((ExecutableElement) path.useSite.getEnclosingElement())
-                                        .getParameters()
+                                // find the index of the method parameter
+                                index = ((ExecutableElement) path.useSite.getEnclosingElement()).getParameters()
                                         .indexOf(path.useSite);
                             }
 
@@ -220,7 +226,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
     @Override
     protected String createComparableSignature() {
-        //this isn't used, because compareTo is implemented differently
+        // this isn't used, because compareTo is implemented differently
         return null;
     }
 
@@ -234,14 +240,14 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
             @Override
             public JavaModelElement visitVariable(VariableElement e, Void ignored) {
                 if (e.getEnclosingElement() instanceof javax.lang.model.element.TypeElement) {
-                    //this is a field
+                    // this is a field
                     TypeElement type = findModelType(e.getEnclosingElement());
                     if (type == null) {
                         return null;
                     }
                     return type.lookupChildElement(FieldElement.class, FieldElement.createComparableSignature(e));
                 } else if (e.getEnclosingElement() instanceof javax.lang.model.element.ExecutableElement) {
-                    //this is a method parameter
+                    // this is a method parameter
                     Element methodEl = e.getEnclosingElement();
                     TypeElement type = findModelType(methodEl.getEnclosingElement());
                     if (type == null) {
@@ -250,11 +256,9 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
                     MethodElement method = type.lookupChildElement(MethodElement.class,
                             MethodElement.createComparableSignature((ExecutableElement) methodEl, methodEl.asType()));
-                    //now look for the parameter
-                    return method == null
-                            ? null
-                            : method.stream(MethodParameterElement.class, false).skip(indexInParent).findFirst()
-                            .orElse(null);
+                    // now look for the parameter
+                    return method == null ? null : method.stream(MethodParameterElement.class, false)
+                            .skip(indexInParent).findFirst().orElse(null);
                 } else {
                     return null;
                 }
@@ -271,7 +275,8 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
                 if (type == null) {
                     return null;
                 }
-                return type.lookupChildElement(MethodElement.class, MethodElement.createComparableSignature(e, e.asType()));
+                return type.lookupChildElement(MethodElement.class,
+                        MethodElement.createComparableSignature(e, e.asType()));
             }
 
             private TypeElement findModelType(Element enclosingElement) {

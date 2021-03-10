@@ -19,20 +19,16 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
         <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
-
-    <name>Code Coverage Of Revapi Codebase</name>
-
     <artifactId>coverage</artifactId>
     <version>0</version>
     <packaging>pom</packaging>
-
+    <name>Code Coverage Of Revapi Codebase</name>
     <dependencies>
         <dependency>
             <groupId>org.revapi</groupId>
@@ -41,18 +37,13 @@
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi-basic-features</artifactId>
-            <version>0.10.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.revapi</groupId>
             <artifactId>revapi-ant-task</artifactId>
             <version>0.10.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi-java-spi</artifactId>
-            <version>0.21.2-SNAPSHOT</version>
+            <artifactId>revapi-basic-features</artifactId>
+            <version>0.10.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
@@ -61,8 +52,19 @@
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi-reporter-text</artifactId>
-            <version>0.12.2-SNAPSHOT</version>
+            <artifactId>revapi-java-spi</artifactId>
+            <version>0.21.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-maven-plugin</artifactId>
+            <version>0.12.3-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-collections</artifactId>
+                    <groupId>commons-collections</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
@@ -71,17 +73,10 @@
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi-maven-plugin</artifactId>
-            <version>0.12.3-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-collections</groupId>
-                    <artifactId>commons-collections</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>revapi-reporter-text</artifactId>
+            <version>0.12.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -98,7 +93,6 @@
             </plugin>
         </plugins>
     </build>
-
     <profiles>
         <profile>
             <id>version-snapshots</id>
@@ -125,4 +119,3 @@
         </profile>
     </profiles>
 </project>
-

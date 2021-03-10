@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,7 @@ import org.revapi.configuration.ConfigurationValidator;
  * Converts JSON representation into a XML.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.9.0
  */
 final class SchemaDrivenJSONToXmlConverter {
@@ -51,10 +52,15 @@ final class SchemaDrivenJSONToXmlConverter {
      * Beware that {@link PlexusConfiguration} does NOT do any escaping of the values. Use
      * {@link XmlUtil#toIndentedString(PlexusConfiguration, int, int, Writer)} to correctly serialize the configuration.
      * 
-     * @param extensionSchemas the known extension schemas
-     * @param jsonConfig the json configuration to convert
+     * @param extensionSchemas
+     *            the known extension schemas
+     * @param jsonConfig
+     *            the json configuration to convert
+     * 
      * @return the {@link PlexusConfiguration} instance
-     * @throws IOException on error
+     * 
+     * @throws IOException
+     *             on error
      */
     static PlexusConfiguration convertToXml(Map<String, JsonNode> extensionSchemas, JsonNode jsonConfig)
             throws IOException {
@@ -65,7 +71,7 @@ final class SchemaDrivenJSONToXmlConverter {
         }
     }
 
-    //visibility increased for testing
+    // visibility increased for testing
     static PlexusConfiguration convert(JsonNode configuration, JsonNode jsonSchema, String extensionId, String id) {
         ConversionContext ctx = new ConversionContext();
         ctx.currentSchema = jsonSchema;
@@ -79,7 +85,8 @@ final class SchemaDrivenJSONToXmlConverter {
         JsonNode type = ctx.currentSchema.path("type");
         if (type.isMissingNode()) {
             if (!ctx.currentSchema.path("enum").isMissingNode()) {
-                boolean containsUnsupportedTypes = StreamSupport.stream(ctx.currentSchema.path("enum").spliterator(), false)
+                boolean containsUnsupportedTypes = StreamSupport
+                        .stream(ctx.currentSchema.path("enum").spliterator(), false)
                         .anyMatch(JsonNode::isContainerNode);
 
                 if (containsUnsupportedTypes) {
@@ -130,28 +137,27 @@ final class SchemaDrivenJSONToXmlConverter {
         }
 
         if (!type.isTextual()) {
-            throw new IllegalArgumentException(
-                    "JSON schema allows for multiple possible types. " +
-                            "This is not supported by the XML-to-JSON conversion yet.");
+            throw new IllegalArgumentException("JSON schema allows for multiple possible types. "
+                    + "This is not supported by the XML-to-JSON conversion yet.");
         }
 
         String valueType = type.asText();
 
         switch (valueType) {
-            case "boolean":
-                return convertSimple(ctx.tagName, ctx.id, configuration.asText());
-            case "integer":
-                return convertSimple(ctx.tagName, ctx.id, configuration.asText());
-            case "number":
-                return convertSimple(ctx.tagName, ctx.id, configuration.asText());
-            case "string":
-                return convertSimple(ctx.tagName, ctx.id, configuration.asText());
-            case "array":
-                return convertArray(configuration, ctx);
-            case "object":
-                return convertObject(configuration, ctx);
-            default:
-                throw new IllegalArgumentException("Unsupported json value type: " + valueType);
+        case "boolean":
+            return convertSimple(ctx.tagName, ctx.id, configuration.asText());
+        case "integer":
+            return convertSimple(ctx.tagName, ctx.id, configuration.asText());
+        case "number":
+            return convertSimple(ctx.tagName, ctx.id, configuration.asText());
+        case "string":
+            return convertSimple(ctx.tagName, ctx.id, configuration.asText());
+        case "array":
+            return convertArray(configuration, ctx);
+        case "object":
+            return convertObject(configuration, ctx);
+        default:
+            throw new IllegalArgumentException("Unsupported json value type: " + valueType);
         }
     }
 
@@ -172,8 +178,8 @@ final class SchemaDrivenJSONToXmlConverter {
             JsonNode childSchema = propertySchemas.path(key);
             if (childSchema.isMissingNode()) {
                 if (additionalPropSchemas.isBoolean()) {
-                    throw new IllegalArgumentException("Cannot determine the format for the '" + key +
-                            "' JSON value during the JSON-to-XML conversion.");
+                    throw new IllegalArgumentException("Cannot determine the format for the '" + key
+                            + "' JSON value during the JSON-to-XML conversion.");
                 }
                 childSchema = additionalPropSchemas;
             }
@@ -183,13 +189,13 @@ final class SchemaDrivenJSONToXmlConverter {
             ctx.id = null;
 
             if (childSchema.isMissingNode()) {
-                //check if this is an ignorable path
+                // check if this is an ignorable path
                 if (ctx.ignorablePaths.contains(ctx.getCurrentPathString())) {
                     ctx.currentPath.pop();
                     return;
                 }
-                throw new IllegalArgumentException("Could not determine the format for the '" + key +
-                        "' JSON value during the JSON-to-XML conversion.");
+                throw new IllegalArgumentException("Could not determine the format for the '" + key
+                        + "' JSON value during the JSON-to-XML conversion.");
             }
 
             PlexusConfiguration xmlChild = convert(childConfig, ctx);
@@ -233,7 +239,7 @@ final class SchemaDrivenJSONToXmlConverter {
     }
 
     private static PlexusConfiguration convertOldStyleConfigToXml(Map<String, JsonNode> extensionSchemas,
-                                                                  JsonNode jsonConfig) {
+            JsonNode jsonConfig) {
         PlexusConfiguration xmlConfig = new XmlPlexusConfiguration("analysisConfiguration");
 
         extensionCheck: for (Map.Entry<String, JsonNode> e : extensionSchemas.entrySet()) {
@@ -257,8 +263,7 @@ final class SchemaDrivenJSONToXmlConverter {
             ctx.pushTag(extensionId);
             ctx.id = null;
             ctx.ignorablePaths = extensionSchemas.keySet().stream()
-                    .filter(id -> !extensionId.equals(id) && id.startsWith(extensionId))
-                    .collect(Collectors.toList());
+                    .filter(id -> !extensionId.equals(id) && id.startsWith(extensionId)).collect(Collectors.toList());
             PlexusConfiguration extXml = convert(config, ctx);
             ctx.currentPath.pop();
             xmlConfig.addChild(extXml);
@@ -267,8 +272,8 @@ final class SchemaDrivenJSONToXmlConverter {
         return xmlConfig;
     }
 
-    private static PlexusConfiguration
-    convertNewStyleConfigToXml(Map<String, JsonNode> extensionSchemas, JsonNode jsonConfig) throws IOException {
+    private static PlexusConfiguration convertNewStyleConfigToXml(Map<String, JsonNode> extensionSchemas,
+            JsonNode jsonConfig) throws IOException {
         PlexusConfiguration xmlConfig = new XmlPlexusConfiguration("analysisConfiguration");
 
         for (JsonNode extConfig : jsonConfig) {
@@ -286,7 +291,7 @@ final class SchemaDrivenJSONToXmlConverter {
             ctx.currentSchema = schema;
             ctx.pushTag(extensionId);
             ctx.id = id;
-            //we don't assign the ignorable paths, because this must not be tracked in a new-style configuration
+            // we don't assign the ignorable paths, because this must not be tracked in a new-style configuration
             PlexusConfiguration extXml = convert(configuration, ctx);
             ctx.currentPath.pop();
             xmlConfig.addChild(extXml);

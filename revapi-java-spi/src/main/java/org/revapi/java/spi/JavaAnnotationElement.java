@@ -22,6 +22,7 @@ import javax.lang.model.element.AnnotationMirror;
  * Elements in the element forest that correspond to a Java annotation will implement this interface.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface JavaAnnotationElement extends JavaElement {

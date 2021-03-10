@@ -41,46 +41,46 @@ class BaseEagerLoadingArchiveAnalyzerTest {
     TestAnalyzer analyzer;
     {
         PrecreatedArchive archive = new PrecreatedArchive("archive",
-                setOf(
-                        new TestElement("a", 0, setOf(
-                                new TestElement("aa", 0),
-                                new TestElement("ab", 1))),
-                        new TestElement("b", 1, setOf(
-                                new TestElement("ba", 0, setOf(
-                                        new TestElement("baa", 0)
-                                )),
-                                new TestElement("bb", 1),
-                                new TestElement("bc", 2)
-                        ))));
+                setOf(new TestElement("a", 0, setOf(new TestElement("aa", 0), new TestElement("ab", 1))),
+                        new TestElement("b", 1, setOf(new TestElement("ba", 0, setOf(new TestElement("baa", 0))),
+                                new TestElement("bb", 1), new TestElement("bc", 2)))));
         API api = API.of(archive).build();
 
         analyzer = new TestAnalyzer(null, api);
     }
+
     @Test
     void createsHierarchy() {
         ElementForest<TestElement> forest = analyzer.analyze(TreeFilter.matchAndDescend());
 
         assertEquals(2, forest.getRoots().size());
 
-        TestElement a = forest.getRoots().stream().filter(e -> e.getFullHumanReadableString().equals("a")).findFirst().orElse(null);
-        TestElement b = forest.getRoots().stream().filter(e -> e.getFullHumanReadableString().equals("b")).findFirst().orElse(null);
+        TestElement a = forest.getRoots().stream().filter(e -> e.getFullHumanReadableString().equals("a")).findFirst()
+                .orElse(null);
+        TestElement b = forest.getRoots().stream().filter(e -> e.getFullHumanReadableString().equals("b")).findFirst()
+                .orElse(null);
 
         assertNotNull(a);
         assertNotNull(b);
         assertEquals(2, a.getChildren().size());
         assertEquals(3, b.getChildren().size());
 
-        TestElement aa = a.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("aa")).findFirst().orElse(null);
-        TestElement ab = a.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("ab")).findFirst().orElse(null);
+        TestElement aa = a.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("aa")).findFirst()
+                .orElse(null);
+        TestElement ab = a.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("ab")).findFirst()
+                .orElse(null);
 
         assertNotNull(aa);
         assertNotNull(ab);
         assertEquals(0, aa.getChildren().size());
         assertEquals(0, ab.getChildren().size());
 
-        TestElement ba = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("ba")).findFirst().orElse(null);
-        TestElement bb = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("bb")).findFirst().orElse(null);
-        TestElement bc = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("bc")).findFirst().orElse(null);
+        TestElement ba = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("ba")).findFirst()
+                .orElse(null);
+        TestElement bb = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("bb")).findFirst()
+                .orElse(null);
+        TestElement bc = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("bc")).findFirst()
+                .orElse(null);
 
         assertNotNull(ba);
         assertNotNull(bb);
@@ -97,27 +97,33 @@ class BaseEagerLoadingArchiveAnalyzerTest {
         ElementForest<TestElement> forest = analyzer.analyze(new IndependentTreeFilter<TestElement>() {
             @Override
             protected FilterStartResult doStart(TestElement element) {
-                return FilterStartResult.direct(Ternary.fromBoolean(!"ab".equals(element.name) && !"ba".equals(element.name)), Ternary.TRUE);
+                return FilterStartResult.direct(
+                        Ternary.fromBoolean(!"ab".equals(element.name) && !"ba".equals(element.name)), Ternary.TRUE);
             }
         });
 
         assertEquals(2, forest.getRoots().size());
 
-        TestElement a = forest.getRoots().stream().filter(e -> e.getFullHumanReadableString().equals("a")).findFirst().orElse(null);
-        TestElement b = forest.getRoots().stream().filter(e -> e.getFullHumanReadableString().equals("b")).findFirst().orElse(null);
+        TestElement a = forest.getRoots().stream().filter(e -> e.getFullHumanReadableString().equals("a")).findFirst()
+                .orElse(null);
+        TestElement b = forest.getRoots().stream().filter(e -> e.getFullHumanReadableString().equals("b")).findFirst()
+                .orElse(null);
 
         assertNotNull(a);
         assertNotNull(b);
         assertEquals(1, a.getChildren().size());
         assertEquals(2, b.getChildren().size());
 
-        TestElement aa = a.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("aa")).findFirst().orElse(null);
+        TestElement aa = a.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("aa")).findFirst()
+                .orElse(null);
 
         assertNotNull(aa);
         assertEquals(0, aa.getChildren().size());
 
-        TestElement bb = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("bb")).findFirst().orElse(null);
-        TestElement bc = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("bc")).findFirst().orElse(null);
+        TestElement bb = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("bb")).findFirst()
+                .orElse(null);
+        TestElement bc = b.getChildren().stream().filter(e -> e.getFullHumanReadableString().equals("bc")).findFirst()
+                .orElse(null);
 
         assertNotNull(bb);
         assertNotNull(bc);
@@ -166,8 +172,7 @@ class BaseEagerLoadingArchiveAnalyzerTest {
         private final String name;
         private final Set<TestElement> roots;
 
-        public PrecreatedArchive(String name,
-                Set<TestElement> roots) {
+        public PrecreatedArchive(String name, Set<TestElement> roots) {
             this.name = name;
             this.roots = roots;
         }
@@ -187,10 +192,10 @@ class BaseEagerLoadingArchiveAnalyzerTest {
         }
     }
 
-    public static final class TestAnalyzer extends BaseEagerLoadingArchiveAnalyzer<BaseElementForest<TestElement>, TestElement> {
+    public static final class TestAnalyzer
+            extends BaseEagerLoadingArchiveAnalyzer<BaseElementForest<TestElement>, TestElement> {
 
-        public TestAnalyzer(
-                ApiAnalyzer<TestElement> apiAnalyzer, API api) {
+        public TestAnalyzer(ApiAnalyzer<TestElement> apiAnalyzer, API api) {
             super(apiAnalyzer, api, false);
         }
 

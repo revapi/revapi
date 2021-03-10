@@ -66,6 +66,7 @@ import pw.krejci.modules.maven.ProjectModule;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Main {
@@ -82,8 +83,8 @@ public final class Main {
             pad += " ";
         }
 
-        System.out.println(progName +
-                " [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]* [-s <FILE>[,<FILE>]*] [-t <FILE>[,<FILE>]*] [-D<CONFIG_OPTION>=<VALUE>]* [-c <FILE>[,<FILE>]*] [-r <DIR>]");
+        System.out.println(progName
+                + " [-u|-h] -e <GAV>[,<GAV>]* -o <FILE>[,<FILE>]* -n <FILE>[,<FILE>]* [-s <FILE>[,<FILE>]*] [-t <FILE>[,<FILE>]*] [-D<CONFIG_OPTION>=<VALUE>]* [-c <FILE>[,<FILE>]*] [-r <DIR>]");
         System.out.println();
         System.out.println(pad + " -u");
         System.out.println(pad + " -h");
@@ -112,28 +113,27 @@ public final class Main {
         System.out.println(pad + " --new-supplementary=<FILE>[,<FILE>]*");
         System.out.println(pad + "    Comma-separated list of files that supplement the new version of API");
         System.out.println(pad + " -D");
-        System.out
-                .println(pad + "    A key-value pair representing a single configuration option of revapi or one of " +
-                        "the loaded extensions");
+        System.out.println(pad + "    A key-value pair representing a single configuration option of revapi or one of "
+                + "the loaded extensions");
         System.out.println(pad + " -c");
         System.out.println(pad + " --config-files=<FILE>[,<FILE>]*");
         System.out.println(pad + "    Comma-separated list of configuration files in JSON format.");
         System.out.println(pad + " -d");
         System.out.println(pad + " --cache-dir=<DIR>");
-        System.out.println(pad + "    The location of local cache of extensions to use to locate artifacts. " +
-                "Defaults to 'extensions' directory under revapi installation dir.");
+        System.out.println(pad + "    The location of local cache of extensions to use to locate artifacts. "
+                + "Defaults to 'extensions' directory under revapi installation dir.");
         System.out.println(pad + " -r");
         System.out.println(pad + " --remote-repositories=<URL>[,<URL>]*");
-        System.out.println(pad + "    The url of the remote Maven repository to use for artifact resolution. " +
-                "Defaults to Maven Central (http://repo.maven.apache.org/maven2/).");
+        System.out.println(pad + "    The url of the remote Maven repository to use for artifact resolution. "
+                + "Defaults to Maven Central (http://repo.maven.apache.org/maven2/).");
         System.out.println();
-        System.out.println("You can specify the old API either using -o and -s where you specify the filesystem paths" +
-                " to the archives and supplementary archives respectively or you can use -a to specify the GAVs of the" +
-                " old API archives and the supplementary archives (i.e. their transitive dependencies) will be determined" +
-                " automatically using Maven. But you cannot do both obviously.");
+        System.out.println("You can specify the old API either using -o and -s where you specify the filesystem paths"
+                + " to the archives and supplementary archives respectively or you can use -a to specify the GAVs of the"
+                + " old API archives and the supplementary archives (i.e. their transitive dependencies) will be determined"
+                + " automatically using Maven. But you cannot do both obviously.");
         System.out.println();
-        System.out.println("Of course you can do the same for the new version of the API by using -n and -t for file" +
-                " paths or -b for GAVs.");
+        System.out.println("Of course you can do the same for the new version of the API by using -n and -t for file"
+                + " paths or -b for GAVs.");
     }
 
     @SuppressWarnings("unchecked")
@@ -180,69 +180,67 @@ public final class Main {
         int c;
         while ((c = opts.getopt()) != -1) {
             switch (c) {
-                case 'u':
-                case 'h':
-                    usage(scriptFileName);
-                    System.exit(0);
-                case 'e':
-                    extensionGAVs = opts.getOptarg().split(",");
-                    break;
-                case 'o':
-                    oldArchivePaths = opts.getOptarg().split(",");
-                    break;
-                case 'n':
-                    newArchivePaths = opts.getOptarg().split(",");
-                    break;
-                case 's':
-                    oldSupplementaryArchivePaths = opts.getOptarg().split(",");
-                    break;
-                case 't':
-                    newSupplementaryArchivePaths = opts.getOptarg().split(",");
-                    break;
-                case 'c':
-                    configFiles = opts.getOptarg().split(",");
-                    break;
-                case 'D':
-                    String[] keyValue = opts.getOptarg().split("=");
-                    additionalConfigOptions.put(keyValue[0], keyValue.length > 1 ? keyValue[1] : null);
-                    break;
-                case 'd':
-                    cacheDir = new File(opts.getOptarg());
-                    break;
-                case 'a':
-                    oldGavs = opts.getOptarg().split(",");
-                    break;
-                case 'b':
-                    newGavs = opts.getOptarg().split(",");
-                    break;
-                case 'r':
-                    remoteRepositoryUrls = opts.getOptarg().split(",");
-                    break;
-                case ':':
-                    System.err.println("Argument required for option " +
-                            (char) opts.getOptopt());
-                    break;
-                case '?':
-                    System.err.println("The option '" + (char) opts.getOptopt() +
-                            "' is not valid");
-                    System.exit(1);
-                    break;
-                default:
-                    System.err.println("getopt() returned " + c);
-                    System.exit(1);
-                    break;
+            case 'u':
+            case 'h':
+                usage(scriptFileName);
+                System.exit(0);
+            case 'e':
+                extensionGAVs = opts.getOptarg().split(",");
+                break;
+            case 'o':
+                oldArchivePaths = opts.getOptarg().split(",");
+                break;
+            case 'n':
+                newArchivePaths = opts.getOptarg().split(",");
+                break;
+            case 's':
+                oldSupplementaryArchivePaths = opts.getOptarg().split(",");
+                break;
+            case 't':
+                newSupplementaryArchivePaths = opts.getOptarg().split(",");
+                break;
+            case 'c':
+                configFiles = opts.getOptarg().split(",");
+                break;
+            case 'D':
+                String[] keyValue = opts.getOptarg().split("=");
+                additionalConfigOptions.put(keyValue[0], keyValue.length > 1 ? keyValue[1] : null);
+                break;
+            case 'd':
+                cacheDir = new File(opts.getOptarg());
+                break;
+            case 'a':
+                oldGavs = opts.getOptarg().split(",");
+                break;
+            case 'b':
+                newGavs = opts.getOptarg().split(",");
+                break;
+            case 'r':
+                remoteRepositoryUrls = opts.getOptarg().split(",");
+                break;
+            case ':':
+                System.err.println("Argument required for option " + (char) opts.getOptopt());
+                break;
+            case '?':
+                System.err.println("The option '" + (char) opts.getOptopt() + "' is not valid");
+                System.exit(1);
+                break;
+            default:
+                System.err.println("getopt() returned " + c);
+                System.exit(1);
+                break;
             }
         }
 
-        if (extensionGAVs == null || (oldArchivePaths == null && oldGavs == null) ||
-                (newArchivePaths == null && newGavs == null)) {
+        if (extensionGAVs == null || (oldArchivePaths == null && oldGavs == null)
+                || (newArchivePaths == null && newGavs == null)) {
 
             usage(scriptFileName);
             System.exit(1);
         }
 
         final List<RemoteRepository> remoteRepositories = Collections.unmodifiableList(
-            remoteRepositories(remoteRepositoryUrls == null ? new String[0] : remoteRepositoryUrls));
+                remoteRepositories(remoteRepositoryUrls == null ? new String[0] : remoteRepositoryUrls));
 
         List<FileArchive> oldArchives = null;
         List<FileArchive> newArchives = null;
@@ -252,29 +250,30 @@ public final class Main {
         LOG.info("Downloading checked archives");
 
         if (oldArchivePaths == null) {
-            ArchivesAndSupplementaryArchives res = convertGavs(oldGavs, "Old API Maven artifact", cacheDir, remoteRepositories);
+            ArchivesAndSupplementaryArchives res = convertGavs(oldGavs, "Old API Maven artifact", cacheDir,
+                    remoteRepositories);
             oldArchives = res.archives;
             oldSupplementaryArchives = res.supplementaryArchives;
         } else {
             oldArchives = convertPaths(oldArchivePaths, "Old API files");
-            oldSupplementaryArchives = oldSupplementaryArchivePaths == null ? emptyList() :
-                    convertPaths(oldSupplementaryArchivePaths, "Old API supplementary files");
+            oldSupplementaryArchives = oldSupplementaryArchivePaths == null ? emptyList()
+                    : convertPaths(oldSupplementaryArchivePaths, "Old API supplementary files");
         }
 
         if (newArchivePaths == null) {
-            ArchivesAndSupplementaryArchives res = convertGavs(newGavs, "New API Maven artifact", cacheDir, remoteRepositories);
+            ArchivesAndSupplementaryArchives res = convertGavs(newGavs, "New API Maven artifact", cacheDir,
+                    remoteRepositories);
             newArchives = res.archives;
             newSupplementaryArchives = res.supplementaryArchives;
         } else {
             newArchives = convertPaths(newArchivePaths, "New API files");
-            newSupplementaryArchives = newSupplementaryArchivePaths == null ? emptyList() :
-                    convertPaths(newSupplementaryArchivePaths, "New API supplementary files");
+            newSupplementaryArchives = newSupplementaryArchivePaths == null ? emptyList()
+                    : convertPaths(newSupplementaryArchivePaths, "New API supplementary files");
         }
 
         try {
-            run(cacheDir, extensionGAVs, oldArchives, oldSupplementaryArchives, newArchives,
-                    newSupplementaryArchives, configFiles, additionalConfigOptions,
-                    remoteRepositories);
+            run(cacheDir, extensionGAVs, oldArchives, oldSupplementaryArchives, newArchives, newSupplementaryArchives,
+                    configFiles, additionalConfigOptions, remoteRepositories);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -286,8 +285,7 @@ public final class Main {
     private static void run(File cacheDir, String[] extensionGAVs, List<FileArchive> oldArchives,
             List<FileArchive> oldSupplementaryArchives, List<FileArchive> newArchives,
             List<FileArchive> newSupplementaryArchives, String[] configFiles, Map<String, String> additionalConfig,
-            List<RemoteRepository> remoteRepositories)
-            throws Exception {
+            List<RemoteRepository> remoteRepositories) throws Exception {
 
         ProjectModule.Builder bld = ProjectModule.build();
         bld.localRepository(cacheDir);
@@ -301,12 +299,10 @@ public final class Main {
 
         Properties libraryVersionsProps = new Properties();
         libraryVersionsProps.load(Main.class.getResourceAsStream("/library.versions"));
-        Set<Artifact> globalArtifacts = libraryVersionsProps.stringPropertyNames().stream()
-                .map(p -> {
-                    String gav = p + ':' + libraryVersionsProps.get(p);
-                    return new DefaultArtifact(gav);
-                })
-                .collect(toSet());
+        Set<Artifact> globalArtifacts = libraryVersionsProps.stringPropertyNames().stream().map(p -> {
+            String gav = p + ':' + libraryVersionsProps.get(p);
+            return new DefaultArtifact(gav);
+        }).collect(toSet());
 
         bld.moduleSpecController(new ModuleSpecController() {
             private boolean override;
@@ -325,9 +321,9 @@ public final class Main {
                 for (Artifact ga : globalArtifacts) {
                     if (ga.getGroupId().equals(a.getGroupId()) && ga.getArtifactId().equals(a.getArtifactId())
                             && !ga.getVersion().equals(a.getVersion())) {
-                        LOG.warn("Detected version conflict in dependencies of extension " + currentModuleName +
-                                ". The extension depends on " + a + " while the CLI has " + ga + " on global" +
-                                " classpath. This will likely cause problems.");
+                        LOG.warn("Detected version conflict in dependencies of extension " + currentModuleName
+                                + ". The extension depends on " + a + " while the CLI has " + ga + " on global"
+                                + " classpath. This will likely cause problems.");
                     }
                 }
 
@@ -338,8 +334,8 @@ public final class Main {
             @Override
             public void modify(ModuleSpec.Builder bld) {
                 if (override) {
-                    Set<String> revapiPaths = new HashSet<>(asList("org/revapi", "org/revapi/configuration",
-                            "org/revapi/query", "org/revapi/simple"));
+                    Set<String> revapiPaths = new HashSet<>(
+                            asList("org/revapi", "org/revapi/configuration", "org/revapi/query", "org/revapi/simple"));
 
                     bld.addDependency(DependencySpec.createSystemDependencySpec(revapiPaths));
                     override = false;
@@ -356,8 +352,7 @@ public final class Main {
 
         Module project = bld.create();
 
-        Revapi revapi = new Revapi(PipelineConfiguration.builder()
-                .withAllExtensionsFrom(project.getClassLoader())
+        Revapi revapi = new Revapi(PipelineConfiguration.builder().withAllExtensionsFrom(project.getClassLoader())
                 .withAllExtensionsFromThreadContextClassLoader().build());
 
         AnalysisContext.Builder ctxBld = AnalysisContext.builder(revapi)
@@ -442,8 +437,7 @@ public final class Main {
                 archives.add(new FileArchive(resolver.resolveArtifact(gav).getFile()));
                 ArtifactResolver.CollectionResult res = resolver.collectTransitiveDeps(gav);
 
-                res.getResolvedArtifacts().
-                        forEach(a -> supplementaryArchives.add(new FileArchive(a.getFile())));
+                res.getResolvedArtifacts().forEach(a -> supplementaryArchives.add(new FileArchive(a.getFile())));
                 if (!res.getFailures().isEmpty()) {
                     LOG.warn("Failed to resolve some transitive dependencies: " + res.getFailures().toString());
                 }
@@ -460,19 +454,23 @@ public final class Main {
 
         for (int i = 0; i < customRepositoryUrls.length; i++) {
             String repositoryId = "custom-remote-repository-" + i;
-            remoteRepositories.add(new RemoteRepository.Builder(repositoryId, "default", customRepositoryUrls[i]).build());
+            remoteRepositories
+                    .add(new RemoteRepository.Builder(repositoryId, "default", customRepositoryUrls[i]).build());
         }
 
         if (remoteRepositories.isEmpty()) {
-            remoteRepositories.add(new RemoteRepository.Builder("maven-central", "default", "https://repo.maven.apache.org/maven2/").build());
+            remoteRepositories.add(
+                    new RemoteRepository.Builder("maven-central", "default", "https://repo.maven.apache.org/maven2/")
+                            .build());
         }
 
         File localMaven = new File(new File(System.getProperties().getProperty("user.home"), ".m2"), "repository");
 
         RemoteRepository mavenCache = new RemoteRepository.Builder("~/.m2/repository", "default",
                 localMaven.toURI().toString())
-                .setPolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_NEVER,
-                        RepositoryPolicy.CHECKSUM_POLICY_IGNORE)).build();
+                        .setPolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_NEVER,
+                                RepositoryPolicy.CHECKSUM_POLICY_IGNORE))
+                        .build();
 
         remoteRepositories.add(mavenCache);
 
@@ -494,8 +492,7 @@ public final class Main {
         final List<FileArchive> archives;
         final List<FileArchive> supplementaryArchives;
 
-        public ArchivesAndSupplementaryArchives(List<FileArchive> archives,
-                List<FileArchive> supplementaryArchives) {
+        public ArchivesAndSupplementaryArchives(List<FileArchive> archives, List<FileArchive> supplementaryArchives) {
             this.archives = archives;
             this.supplementaryArchives = supplementaryArchives;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,7 @@ import org.revapi.Revapi;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.2
  */
 @SuppressWarnings("UnusedDeclaration")
@@ -97,7 +98,7 @@ public final class RevapiTask extends Task {
         log("Old API: " + context.getOldApi().toString());
         log("New API: " + context.getNewApi().toString());
 
-        try(AnalysisResult res = revapi.analyze(context)) {
+        try (AnalysisResult res = revapi.analyze(context)) {
             res.throwIfFailed();
 
             AntReporter reporter = res.getExtensions().getFirstExtension(AntReporter.class, null);
@@ -137,7 +138,7 @@ public final class RevapiTask extends Task {
             revapiBuilder.withAllExtensionsFrom(getClass().getClassLoader());
         }
 
-        //always add the Ant reporter, so that we get stuff in the Ant log
+        // always add the Ant reporter, so that we get stuff in the Ant log
         revapiBuilder.withReporters(AntReporter.class);
 
         return new Revapi(revapiBuilder.build());
@@ -145,13 +146,13 @@ public final class RevapiTask extends Task {
 
     private AnalysisContext initAnalysisContext(Revapi revapi) {
         API oldApi = API.of(FileArchive.from(oldArchives))
-            .addSupportArchives(FileArchive.from(oldSupplementaryArchives)).build();
+                .addSupportArchives(FileArchive.from(oldSupplementaryArchives)).build();
 
         API newApi = API.of(FileArchive.from(newArchives))
-            .addSupportArchives(FileArchive.from(newSupplementaryArchives)).build();
+                .addSupportArchives(FileArchive.from(newSupplementaryArchives)).build();
 
         AnalysisContext.Builder builder = AnalysisContext.builder(revapi).withOldAPI(oldApi).withNewAPI(newApi)
-            .withLocale(Locale.getDefault());
+                .withLocale(Locale.getDefault());
 
         if (configuration != null) {
             builder.withConfigurationFromJSON(configuration);

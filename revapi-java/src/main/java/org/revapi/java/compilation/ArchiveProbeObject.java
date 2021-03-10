@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@ import javax.tools.SimpleJavaFileObject;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 final class ArchiveProbeObject extends SimpleJavaFileObject {
@@ -45,7 +46,7 @@ final class ArchiveProbeObject extends SimpleJavaFileObject {
         try {
             return new URI(CLASS_NAME + ".java");
         } catch (URISyntaxException e) {
-            //doesn't happen
+            // doesn't happen
             throw new AssertionError("Could not create a URI for " + (CLASS_NAME + ".java"));
         }
     }
@@ -78,8 +79,8 @@ final class ArchiveProbeObject extends SimpleJavaFileObject {
             return;
         }
 
-        //notice that we don't actually need to generate any complicated code. Having the classes on the classpath
-        //is enough for them to be present in the model captured during the annotation processing.
+        // notice that we don't actually need to generate any complicated code. Having the classes on the classpath
+        // is enough for them to be present in the model captured during the annotation processing.
         source = "@" + MarkerAnnotationObject.CLASS_NAME + "\npublic class " + CLASS_NAME + "\n{}\n";
     }
 }

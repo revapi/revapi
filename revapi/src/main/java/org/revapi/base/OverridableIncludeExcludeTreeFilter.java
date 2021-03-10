@@ -24,9 +24,9 @@ import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 
 /**
- * This is similar to the {@link IncludeExcludeTreeFilter} but adds support for the "include inside exclude", e.g.
- * to match the some children of an element that is itself excluded. This comes at a cost of always needing to descend
- * into the children even if the exclude filter says it is not necessary.
+ * This is similar to the {@link IncludeExcludeTreeFilter} but adds support for the "include inside exclude", e.g. to
+ * match the some children of an element that is itself excluded. This comes at a cost of always needing to descend into
+ * the children even if the exclude filter says it is not necessary.
  *
  * @param <E>
  */
@@ -35,8 +35,7 @@ public class OverridableIncludeExcludeTreeFilter<E extends Element<E>> extends I
         super(include, exclude);
     }
 
-    protected @Nullable
-    FilterStartResult processIncludeStart(@Nullable FilterStartResult result) {
+    protected @Nullable FilterStartResult processIncludeStart(@Nullable FilterStartResult result) {
         if (result != null && result.getDescend() == Ternary.FALSE) {
             result = result.withDescend(Ternary.UNDECIDED);
         }

@@ -22,9 +22,11 @@ import org.revapi.Element;
 /**
  * A convenience base class for difference transforms
  *
- * @param <E> the parent type of all elements produced by some API analyzer
+ * @param <E>
+ *            the parent type of all elements produced by some API analyzer
  */
-public abstract class BaseDifferenceTransform<E extends Element<E>> extends BaseConfigurable implements DifferenceTransform<E> {
+public abstract class BaseDifferenceTransform<E extends Element<E>> extends BaseConfigurable
+        implements DifferenceTransform<E> {
     @Override
     public void close() throws Exception {
 
