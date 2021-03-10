@@ -40,7 +40,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <self-api-check.maven-version>0.13.2</self-api-check.maven-version>
+        <self-api-check.maven-version>0.13.3</self-api-check.maven-version>
         <self-api-check.java-extension-version>0.23.2</self-api-check.java-extension-version>
 
         <version.maven-assembly-plugin>2.5.5</version.maven-assembly-plugin>
