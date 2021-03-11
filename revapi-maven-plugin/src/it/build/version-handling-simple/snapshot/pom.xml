@@ -17,21 +17,12 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project>
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>version.handling.multimodule</groupId>
-  <artifactId>top</artifactId>
-  <packaging>pom</packaging>
-  <version>1.0.1-SNAPSHOT</version>
-
-  <modules>
-    <module>a</module>
-    <module>b</module>
-    <module>c</module>
-  </modules>
+  <groupId>version.handling.group</groupId>
+  <artifactId>version.handling.artifact</artifactId>
+  <version>2-SNAPSHOT</version>
 
   <build>
     <plugins>
@@ -47,12 +38,18 @@
           </dependency>
         </dependencies>
         <configuration>
-          <singleVersionForAllModules>true</singleVersionForAllModules>
+          <!-- this is to test that enabling semver-ignore extension doesn't mess with the update versions -->
+          <analysisConfiguration>
+            <revapi.semver.ignore>
+              <enabled>true</enabled>
+            </revapi.semver.ignore>
+          </analysisConfiguration>
         </configuration>
         <executions>
           <execution>
             <id>update-versions</id>
             <goals><goal>update-versions</goal></goals>
+            <phase>verify</phase>
           </execution>
         </executions>
       </plugin>

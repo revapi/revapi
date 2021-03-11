@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,7 @@ File v2bPom = new File(v2bDir, "pom.xml");
 File v2cDir = new File(topDir, "c");
 File v2cPom = new File(v2cDir, "pom.xml");
 
-checkVersion(topPom, "top", "2.0.0");
-checkVersion(v2aPom, "v2a", "2.0.0", "2.0.0");
-checkVersion(v2bPom, "v2b", "2.0.0", "2.0.0");
-checkVersion(v2cPom, "v2c", "2.0.0", "2.0.0");
+checkVersion(topPom, "top", "2.0.0-SNAPSHOT");
+checkVersion(v2aPom, "v2a", "2.0.0-SNAPSHOT", "2.0.0-SNAPSHOT");
+checkVersion(v2bPom, "v2b", "2.0.0-SNAPSHOT", "2.0.0-SNAPSHOT");
+checkVersion(v2cPom, "v2c", "2.0.0-SNAPSHOT", "2.0.0-SNAPSHOT");

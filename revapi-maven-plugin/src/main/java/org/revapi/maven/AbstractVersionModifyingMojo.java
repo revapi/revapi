@@ -56,7 +56,7 @@ import org.revapi.base.CollectingReporter;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.4.0
  */
 abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
@@ -154,7 +154,7 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
                 throw new MojoExecutionException("Failure while updating the changes tracking file.", e);
             }
         } else {
-            Version v = nextVersion(analysisResults.baseVersion, changeLevel);
+            Version v = nextVersion(analysisResults.baseVersion, project.getVersion(), changeLevel);
             updateProjectVersion(project, v);
         }
 
@@ -213,7 +213,7 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
                     it.remove();
 
                     AnalysisResults results = projectChanges.get(p.getArtifact().toString());
-                    Version v = nextVersion(results.baseVersion, results.apiChangeLevel);
+                    Version v = nextVersion(results.baseVersion, p.getVersion(), results.apiChangeLevel);
 
                     while (!tree.isEmpty()) {
                         MavenProject current = tree.pop();
@@ -328,30 +328,31 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         }
     }
 
-    private Version nextVersion(String baseVersion, ApiChangeLevel changeLevel) {
-        Version v = Version.parse(baseVersion);
+    private Version nextVersion(String determinedVersion, String currentVersion, ApiChangeLevel changeLevel) {
+        Version determined = Version.parse(determinedVersion);
+        Version current = Version.parse(currentVersion);
 
-        boolean isDev = v.getMajor() == 0;
+        boolean isDev = determined.getMajor() == 0;
 
         switch (changeLevel) {
         case NO_CHANGE:
             break;
         case NON_BREAKING_CHANGES:
             if (isDev) {
-                v.setPatch(v.getPatch() + 1);
+                determined.setPatch(determined.getPatch() + 1);
             } else {
-                v.setMinor(v.getMinor() + 1);
-                v.setPatch(0);
+                determined.setMinor(determined.getMinor() + 1);
+                determined.setPatch(0);
             }
             break;
         case BREAKING_CHANGES:
             if (isDev) {
-                v.setMinor(v.getMinor() + 1);
-                v.setPatch(0);
+                determined.setMinor(determined.getMinor() + 1);
+                determined.setPatch(0);
             } else {
-                v.setMajor(v.getMajor() + 1);
-                v.setMinor(0);
-                v.setPatch(0);
+                determined.setMajor(determined.getMajor() + 1);
+                determined.setMinor(0);
+                determined.setPatch(0);
             }
             break;
         default:
@@ -361,14 +362,14 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         if (replacementSuffix != null) {
             String sep = replacementSuffix.substring(0, 1);
             String suffix = replacementSuffix.substring(1);
-            v.setSuffixSeparator(sep);
-            v.setSuffix(suffix);
-        } else if (!preserveSuffix) {
-            v.setSuffix(null);
-            v.setSuffixSeparator(null);
+            determined.setSuffixSeparator(sep);
+            determined.setSuffix(suffix);
+        } else {
+            determined.setSuffixSeparator(preserveSuffix ? current.getSuffixSeparator() : null);
+            determined.setSuffix(preserveSuffix ? current.getSuffix() : null);
         }
 
-        return v;
+        return determined;
     }
 
     private AnalysisResults analyzeProject(MavenProject project) throws MojoExecutionException {
