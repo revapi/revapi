@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +51,13 @@ File v2Pom = file("target/it/build/version-handling-simple/v2/pom.xml")
 checkVersion(v2Pom, "v2", "1.1.0")
 
 File v3Pom = file("target/it/build/version-handling-simple/v3/artifact/pom.xml")
+File snapshotPom = file("target/it/build/version-handling-simple/snapshot/pom.xml")
+
 
 //1.0.2 is the version of the parent we're referencing in the pom
 //1.1.0 here, too, because we run just update-versions on the v2 artifact. I.e. what we find in the repo is still
 //1.0.1, not the version that update-versions changed the pom to.
 checkVersion(v3Pom, "v3", "1.0.2", "1.1.0")
+
+//for the snapshot artifact, we should keep the -SNAPSHOT in.
+checkVersion(snapshotPom, "snapshot", "1.0.2-SNAPSHOT")
