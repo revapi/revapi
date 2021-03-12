@@ -61,7 +61,6 @@
         <version.org.junit>5.7.0</version.org.junit>
         <version.org.mockito>3.2.4</version.org.mockito>
         <version.org.slf4j>1.7.5</version.org.slf4j>
-        <version.pw.krejci.multi-release-jar-maven-plugin>0.1.5</version.pw.krejci.multi-release-jar-maven-plugin>
         <version.revapi-build-support>5</version.revapi-build-support>
     </properties>
     <dependencyManagement>
@@ -113,13 +112,6 @@
         </dependency>
     </dependencies>
     <build>
-        <extensions>
-            <extension>
-                <groupId>pw.krejci</groupId>
-                <artifactId>multi-release-jar-maven-plugin</artifactId>
-                <version>${version.pw.krejci.multi-release-jar-maven-plugin}</version>
-            </extension>
-        </extensions>
         <plugins>
             <plugin>
                 <groupId>net.revelc.code.formatter</groupId>
@@ -332,14 +324,6 @@
                     <reuseForks>true</reuseForks>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>pw.krejci</groupId>
-                <artifactId>multi-release-jar-maven-plugin</artifactId>
-                <version>${version.pw.krejci.multi-release-jar-maven-plugin}</version>
-                <configuration>
-                    <mainModuleInfo>9</mainModuleInfo>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
     <reporting>
@@ -402,7 +386,7 @@
     </reporting>
     <profiles>
         <profile>
-            <id>java9</id>
+            <id>set-compiler-release</id>
             <activation>
                 <jdk>[9,]</jdk>
             </activation>
@@ -425,6 +409,66 @@
                                 <id>java-version-check</id>
                                 <configuration>
                                     <skip>true</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>compile-java9</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>java9</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <configuration>
+                                    <release>9</release>
+                                    <compileSourceRoots>
+                                        <compileSourceRoot>${project.basedir}/src/main/java-mr/9</compileSourceRoot>
+                                    </compileSourceRoots>
+                                    <multiReleaseOutput>true</multiReleaseOutput>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>compile-java11</id>
+            <activation>
+                <jdk>[11,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>java11</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <configuration>
+                                    <release>11</release>
+                                    <compileSourceRoots>
+                                        <compileSourceRoot>${project.basedir}/src/main/java-mr/11</compileSourceRoot>
+                                    </compileSourceRoots>
+                                    <multiReleaseOutput>true</multiReleaseOutput>
                                 </configuration>
                             </execution>
                         </executions>
@@ -492,15 +536,18 @@
                                             <regex>true</regex>
                                             <code>java.class.externalClassExposedInAPI</code>
                                             <newArchive>org\.revapi:revapi:.*</newArchive>
-                                            <justification>Revapi sub-modules implement the Revapi API which makes them expose
-                                                Revapi-specific classes usually. In our case this is generally OK because
+                                            <justification>Revapi sub-modules implement the Revapi API which makes them
+                                                expose
+                                                Revapi-specific classes usually. In our case this is generally OK
+                                                because
                                                 the modules are just Revapi extensions which are supposed to do that.</justification>
                                         </item>
                                         <item>
                                             <regex>true</regex>
                                             <code>java.class.externalClassExposedInAPI</code>
                                             <newArchive>org\.jboss:jboss-dmr:.*</newArchive>
-                                            <justification>Revapi sub-modules implement the Revapi API which makes them expose
+                                            <justification>Revapi sub-modules implement the Revapi API which makes them
+                                                expose
                                                 Jboss DMR (which is part of our API). In our case this is generally OK
                                                 because the modules are just Revapi extensions which are supposed to do
                                                 that.</justification>
@@ -509,13 +556,15 @@
                                             <regex>true</regex>
                                             <code>java.class.nonPublicPartOfAPI</code>
                                             <newArchive>com\.fasterxml\.jackson\.core:.*:.*</newArchive>
-                                            <justification>Revapi uses Jackson for representing the JSON configuration.</justification>
+                                            <justification>Revapi uses Jackson for representing the JSON
+                                                configuration.</justification>
                                         </item>
                                         <item>
                                             <regex>true</regex>
                                             <code>java.class.externalClassExposedInAPI</code>
                                             <newArchive>com\.fasterxml\.jackson\.core:.*.*</newArchive>
-                                            <justification>Revapi uses Jackson for representing the JSON configuration.</justification>
+                                            <justification>Revapi uses Jackson for representing the JSON
+                                                configuration.</justification>
                                         </item>
                                     </differences>
                                 </revapi.differences>

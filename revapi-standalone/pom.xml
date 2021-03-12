@@ -48,10 +48,6 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
             <groupId>gnu.getopt</groupId>
             <artifactId>java-getopt</artifactId>
             <version>1.0.13</version>
@@ -60,6 +56,20 @@
             <groupId>org.jboss.modules</groupId>
             <artifactId>jboss-modules</artifactId>
             <version>1.6.1.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pw.krejci</groupId>
+            <artifactId>maven-repo-jboss-modules</artifactId>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
@@ -76,16 +86,6 @@
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
             <version>0.10.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.5</version>
-        </dependency>
-        <dependency>
-            <groupId>pw.krejci</groupId>
-            <artifactId>maven-repo-jboss-modules</artifactId>
-            <version>0.2.0</version>
         </dependency>
     </dependencies>
     <build>

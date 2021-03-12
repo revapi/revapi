@@ -273,14 +273,14 @@
         <profile>
             <id>fast</id>
             <properties>
-                <jacoco.skip>true</jacoco.skip>
-                <enforcer.skip>true</enforcer.skip>
                 <checkstyle.skip>true</checkstyle.skip>
+                <enforcer.skip>true</enforcer.skip>
+                <formatter.skip>true</formatter.skip>
+                <jacoco.skip>true</jacoco.skip>
                 <license.skip>true</license.skip>
                 <revapi.skip>true</revapi.skip>
                 <skipTests>true</skipTests>
                 <sort.skip>true</sort.skip>
-                <formatter.skip>true</formatter.skip>
             </properties>
         </profile>
         <profile>
