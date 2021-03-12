@@ -145,7 +145,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the current
      * project.
-     * <p/>
+     * <p>
      * If the this property is null, the {@link #oldVersion} property is checked for a value of the old version of the
      * artifact being built.
      *
@@ -157,12 +157,12 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     /**
      * If you don't want to compare a different artifact than the one being built, specifying the just the old version
      * is simpler way of specifying the old artifact.
-     * <p/>
+     * <p>
      * The default value is "RELEASE" meaning that the old version is the last released version of the artifact being
      * built (either remote or found locally (to account for artifacts installed into the local repo that are not
      * available in some public remote repository)). The version of the compared artifact will be strictly older than
      * the version of the new artifact.
-     * <p/>
+     * <p>
      * If you specify "LATEST", the old version will be resolved to the newest version available remotely, including
      * snapshots (if found in one of the repositories active in the build). The version of the compared artifact will be
      * either older or equal to the version of the new artifact in this case to account for comparing a locally built

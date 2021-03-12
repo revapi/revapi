@@ -338,7 +338,7 @@ public class SerializationChecker extends CheckBase {
     }
 
     /**
-     * Adapted from {@link java.io.ObjectStreamClass#computeDefaultSUID(java.lang.Class)} method.
+     * Adapted from {@code java.io.ObjectStreamClass#computeDefaultSUID(java.lang.Class)} method.
      */
     public static long computeSerialVersionUID(TypeElement type, TypeEnvironment environment) {
 

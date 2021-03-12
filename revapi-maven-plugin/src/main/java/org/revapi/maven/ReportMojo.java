@@ -154,7 +154,7 @@ public class ReportMojo extends AbstractMavenReport {
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the current
      * project.
-     * <p/>
+     * <p>
      * If the this property is null, the {@link #oldVersion} property is checked for a value of the old version of the
      * artifact being built.
      *
@@ -166,7 +166,7 @@ public class ReportMojo extends AbstractMavenReport {
     /**
      * If you don't want to compare a different artifact than the one being built, specifying the just the old version
      * is simpler way of specifying the old artifact.
-     * <p/>
+     * <p>
      * The default value is "RELEASE" meaning that the old version is the last released version of the artifact being
      * built.
      */
