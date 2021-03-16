@@ -191,4 +191,9 @@ final class Props {
     static final class reportCriticality {
         static final String NAME = PREFIX + "minimumCriticality";
     }
+
+    static final class preserveNewerVersion {
+        static final String NAME = PREFIX + "preserveNewerVersion";
+        static final String DEFAULT_VALUE = "true";
+    }
 }

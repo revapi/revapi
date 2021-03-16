@@ -50,6 +50,9 @@
             <id>update-versions</id>
             <goals><goal>update-versions</goal></goals>
             <phase>verify</phase>
+            <configuration>
+              <preserveNewerVersion>false</preserveNewerVersion>
+            </configuration>
           </execution>
         </executions>
       </plugin>
