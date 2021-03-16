@@ -1,0 +1,89 @@
+= Matching Elements
+
+Some extensions (prominently xref:differences.adoc[`revapi.differences`] and xref:filter.adoc[`revapi.filter`])
+need to be able to match the concrete (pairs of) elements they should apply to.
+
+There are two (and a half) ways of doing that. The first is to use the unique textual representation that each element
+in Revapi is required to have and match that (either exactly or using a regular expression). The second one is to use
+a specialized matcher that is able to provide a DSL one can use to express more complex requirements on the match that
+would otherwise be impossible with the textual representation matching (usually due to insufficient amount of contextual
+information available in the textual representation).
+
+In the following examples, let's try to match a method in the `com.acme.Acme` class called `baseMethod` that was
+inherited from the class `com.acme.Base`, returns `void` and has an `int` and `float` parameters. The unique
+textual representation of this method is this:
+
+```
+method void com.acme.Base::baseMethod(int, fload) @ com.acme.Acme
+```
+
+== Matching Textual Representation
+
+This textual representation can either be matched as a simple string or using a regular expression. E.g. in
+`revapi.filter` one could use:
+
+```xml
+<revapi.filter>
+    <elements>
+        <exclude>
+            <item>method void com\.acme\.Base::baseMethod\(int, fload\) @ com\.acme\.Acme</item>
+        </exclude>
+    </elements>
+</revapi.filter>
+```
+
+== Matching Using a Matcher
+
+An element matcher is a special kind of Revapi extension that is able to provide other extension with "element matching
+services". A prominent element matcher in Revapi is the `java` element matcher that is able to do complex matching
+of java elements (see xref:revapi-java::element-matching.adoc[] for more info).
+
+To match our method exactly, one could use this java matcher expression (again using `revapi.filter` as an example):
+
+```xml
+<revapi.filter>
+    <elements>
+        <exclude>
+            <item>
+                <matcher>java</matcher>
+                <match>
+                    class com.acme.Acme {
+                        void com.acme.Base::^baseMethod(int, fload)
+                    }
+                </match>
+            </item>
+        </exclude>
+    </elements>
+</revapi.filter>
+```
+
+That is not much better than matching using the textual representation (one could argue it's actually worse).
+
+The real power of complex element matching becomes apparent when more complex expressions are required. Imagine for
+example that we want to ignore changes in constant values of fields in all classes marked with a `@com.acme.Beta`
+annotation.
+
+That is clearly not possible using just the textual representation of the field because we have no way of expressing
+the requirement on the containing class having to be annotated with a certain annotation just from the textual
+representation of the field.
+
+It is possible to express such a requirement using the java matcher though:
+
+```xml
+<revapi.differences>
+    <ignore>true</ignore>
+    <differences>
+        <item>
+            <code>java.field.constantValueChanged</code>
+            <new>
+                <matcher>java</matcher>
+                <match>
+                    @com.acme.Beta
+                    type * {
+                        public|protected static final ^*;
+                    }
+                </match>
+            </new>
+        </item>
+    </differences>
+```

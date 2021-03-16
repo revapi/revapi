@@ -1,0 +1,16 @@
+= Release Notes
+:page-publish_date: 2021-01-12
+:page-layout: news-article
+
+As it usually happens with big .0 releases, not everything was in the best shape.
+
+All the components are now re-released with a bunch of fixes and usability improvements.
+
+Please head over to the xref:revapi-site:ROOT:downloads.adoc[] to check out the latest versions.
+
+The fixes present in this release are:
+
+* `revapi-java` had a quite bad bug that made ANY element matching a filter a part of the API.
+* analyzers can now use a generic feature for detecting the minimum set of "edits" to bring a list of elements from the old API to the new one. This is now used for method parameters in `revapi-java` and for 
+detecting the changes in array contents in `revapi-json` and `revapi-yaml`.
+* `revapi-jackson`, `revapi-json` and `revapi-yaml` have seen some usability improvements.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,10 +37,10 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class FormalTypeParametersChanged extends CheckBase {
-
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -119,8 +119,7 @@ public final class FormalTypeParametersChanged extends CheckBase {
         @SuppressWarnings("unchecked")
         List<TypeParameterElement> removed = (List<TypeParameterElement>) els.context[1];
         @SuppressWarnings("unchecked")
-        Map<TypeParameterElement, TypeParameterElement> changed =
-            (Map<TypeParameterElement, TypeParameterElement>) els.context[2];
+        Map<TypeParameterElement, TypeParameterElement> changed = (Map<TypeParameterElement, TypeParameterElement>) els.context[2];
 
         Parameterizable oldT = (Parameterizable) els.oldElement.getDeclaringElement();
 
@@ -131,28 +130,22 @@ public final class FormalTypeParametersChanged extends CheckBase {
         }
 
         for (TypeParameterElement e : added) {
-            diffs.add(
-                createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED,
-                        Code.attachmentsFor(els.oldElement, els.newElement,
-                                "typeParameter", Util.toHumanReadableString(e)),
-                        Util.toHumanReadableString(e))
-            );
+            diffs.add(createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_ADDED,
+                    Code.attachmentsFor(els.oldElement, els.newElement, "typeParameter", Util.toHumanReadableString(e)),
+                    Util.toHumanReadableString(e)));
         }
 
         for (TypeParameterElement e : removed) {
             diffs.add(createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_REMOVED,
-                    Code.attachmentsFor(els.oldElement, els.newElement,
-                            "typeParameter", Util.toHumanReadableString(e)),
+                    Code.attachmentsFor(els.oldElement, els.newElement, "typeParameter", Util.toHumanReadableString(e)),
                     Util.toHumanReadableString(e)));
         }
 
         for (Map.Entry<TypeParameterElement, TypeParameterElement> e : changed.entrySet()) {
             String oldP = Util.toHumanReadableString(e.getKey());
             String newP = Util.toHumanReadableString(e.getValue());
-            diffs.add(createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_CHANGED,
-                    Code.attachmentsFor(els.oldElement, els.newElement,
-                            "oldTypeParameter", oldP,
-                            "newTypeParameter", newP),
+            diffs.add(createDifferenceWithExplicitParams(Code.GENERICS_FORMAL_TYPE_PARAMETER_CHANGED, Code
+                    .attachmentsFor(els.oldElement, els.newElement, "oldTypeParameter", oldP, "newTypeParameter", newP),
                     oldP, newP));
         }
 

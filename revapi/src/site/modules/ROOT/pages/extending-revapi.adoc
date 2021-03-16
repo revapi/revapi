@@ -1,0 +1,589 @@
+= Extending Revapi
+
+== Extension points
+
+The xref:architecture.adoc[architecture overviews] sports a simple xref:architecture.adoc#_architecture[diagram] that
+hints at several extension points available in Revapi. Each extension point is configurable and can provide a
+JSON schema for its configuration.
+
+=== Archives
+An link:{attachmentsdir}/apidocs/org/revapi/Archive.html[`Archive`] is a very simple abstraction over a file that
+represents the archive containing some API elements (like Java's jar archive or a class file, an XML document,
+properties file, etc).
+
+An archive can also optionally be versioned - some extensions may take advantage of that. If you are able to provide
+a version of an archive, you should supply an implementation of the
+link:{attachmentsdir}/apidocs/org/revapi/Archive.Versioned.html[`Archive.Versioned`] interface instead of just a plain
+`Archive`.
+
+Revapi provides just a basic file-based link:{attachmentsdir}/apidocs/org/revapi/simple/FileArchive.html[implementation]
+of this interface, but it is trivial to implement one. For example the maven extension has its own implementation of the
+`Archive.Versioned` interface which is able to return the version of the underlying Maven artifact.
+
+NOTE: There is a link:{scm-files}/revapi-examples/archive[simple example] for writing custom archive implementations.
+
+=== API Analyzer
+An link:{attachmentsdir}/apidocs/org/revapi/ApiAnalyzer.html[API analyzer] is the main interface for implementing API
+checks for custom "language". It provides and configures the analyzers of the archives and API difference analyzers both
+detailed in the example project.
+
+NOTE: There is an link:{scm-files}/revapi-examples/api-analyzer[example] showing a custom api analyzer implementation.
+
+=== Archive Analyzer
+An link:{attachmentsdir}/apidocs/org/revapi/ArchiveAnalyzer.html[archive analyzer] is instantiated and configured by the
+API analyzer to analyze archives of a version of API. It represents the results of the analysis as an
+link:{attachmentsdir}/apidocs/org/revapi/ElementForest.html[element forest] (i.e. a set of element trees). The archive
+analyzers can take advantage of the <<Tree Filter, tree filters>> to leave out parts of the elements and save some
+processing power.
+
+NOTE: There is an link:{scm-files}/revapi-examples/api-analyzer[example] showing a custom archive analyzer implementation.
+
+=== Tree Filter
+An link:{attachmentsdir}/apidocs/org/revapi/TreeFilterProvider.html[tree filter] can filter out elements from
+the element forest before they are passed further down the API analysis pipeline. The same set of element filters is
+applied to both the old API and new API element forests.
+
+NOTE: There is an link:{scm-files}/revapi-examples/tree-filter[example] showing a custom tree filter implementation.
+
+=== Element Matcher
+An link:{attachmentsdir}/apidocs/org/revapi/ElementMatcher.html[element matcher] is a kind of "helper" extension that
+can be used by other extensions, like tree filters or difference transforms to identify the elements matching some
+user-defined criteria.
+
+NOTE: There is an link:{scm-files}/revapi-examples/element-matcher[example] showing a custom element matcher implementation.
+
+=== Difference Analyzer
+The magic happens in the link:{attachmentsdir}/apidocs/org/revapi/DifferenceAnalyzer.html[difference analyzers]. Revapi
+simultaneously traverses the two element forests discovering new or removed elements and matching the comparable
+elements in them (using a link:{attachmentsdir}/apidocs/org/revapi/CoIterator.html[co-iterator]). It then passes the
+matched pairs to the difference analyzer that performs the actual analysis of changes and provides the reports
+summarizing them.
+
+A report summarizes the differences found between 2 elements - one from the old API and the other from the new API
+(accounting for removals or additions by one of the pair being null).
+
+In addition to the two elements in comparison, the report also contains the list of the differences the analyzer found
+between the two.
+
+NOTE: There is an link:{scm-files}/revapi-examples/api-analyzer[example] showing a custom difference analyzer implementation.
+
+=== Difference Transform
+Once the differences are found they are supplied to the
+link:{attachmentsdir}/apidocs/org/revapi/DifferenceTransform.html[difference transforms]. These extensions can, as the
+name suggests, transform the found differences into different ones or altogether remove them from the results.
+
+NOTE: There is an link:{scm-files}/revapi-examples/difference-transform[example] showing a custom difference transform implementation.
+
+=== Reporter
+Finally, after the final set of differences is settled, it is passed to the
+link:{attachmentsdir}/apidocs/org/revapi/Reporter.html[reporters]. These are responsible to report the found
+differences to the caller somehow (standard output, database, xml files, whatever one imagines).
+
+NOTE: There is an link:{scm-files}/revapi-examples/reporter[example] showing how to write a custom reporter
+implementation.
+
+== Analysis Workflow
+
+The caller is first required to first supply the
+link:{attachmentsdir}/apidocs/org/revapi/PipelineConfiguration.html[pipeline configuration] to tell Revapi what
+extensions it will have available for analysis and other configuration.
+
+The analysis is then executed using an link:{attachmentsdir}/apidocs/org/revapi/AnalysisContext.html[analysis context].
+This context contains the two APIs that should be compared as well as the configuration of the extensions for that
+particular analysis.
+
+The following diagram provides a detailed picture of the analysis workflow. The objects marked by the circled `E`
+represent a collection of extension instances of respective kinds which can be supplied to Revapi. Each such extension
+can be configured by the user.
+
+[plantuml]
+....
+actor Caller as caller
+participant Revapi as revapi
+participant "API Analyzers" as analyzers << (E,white)>>
+participant "Tree Filters" as filters << (E,white)>>
+participant "Element Matchers" as matchers << (E,white)>>
+participant "Difference Transforms" as transforms << (E,white)>>
+participant "Reporters" as reporters << (E,white)>>
+
+caller -> revapi ++ : <init>(PipelineConfiguration)
+
+    caller -> revapi ++: analyze(AnalysisContext)
+
+        revapi -> revapi: adapt configuration
+        note right
+            User supplies an analysis context for all extensions.
+            This is adapted for each extension to contain just
+            its configuration and enriched for all available matchers
+            so that they're available for other extensions.
+        end note
+
+        revapi -> analyzers ++: old API
+            create ArchiveAnalyzer as archiveAnalyzer
+            analyzers -> archiveAnalyzer
+        return
+        revapi -> archiveAnalyzer ++: analyze
+        loop on elements in archives
+            archiveAnalyzer -> filters ++ : element
+                filters -> matchers ++: consult
+                    note over filters
+                        The filters are free to consult the available element matchers
+                        to help with determining if the element matches some user criteria
+                    end note
+                return
+            return traversal guidance
+        end
+        return old AST
+        destroy archiveAnalyzer
+
+        revapi -> analyzers ++: new API
+            create ArchiveAnalyzer as archiveAnalyzer
+            analyzers -> archiveAnalyzer
+        return
+        revapi -> archiveAnalyzer ++: analyze
+        loop on elements in archives
+            archiveAnalyzer -> filters ++ : element
+                filters -> matchers ++: consult
+                return
+            return traversal guidance
+        end
+        return new AST
+        destroy archiveAnalyzer
+
+        revapi -> analyzers ++: analyzer for ASTs
+            create DifferenceAnalyzer as diffAnalyzer
+            analyzers -> diffAnalyzer
+        return
+
+        loop recursively on each element pair
+            revapi -> transforms ++: element pair
+                note over transforms
+                    The transforms can "witness" the whole recursive traversal
+                    before they are asked for the transformations
+                end note
+            return ack
+            revapi -> diffAnalyzer ++: element pair
+                note over diffAnalyzer
+                    The difference analyzer returns a report
+                    of all differences found between the pair of elements
+                end note
+            return report
+        end
+        destroy diffAnalyzer
+
+        loop reports
+            loop differences
+                revapi -> transforms ++
+                    transforms -> matchers ++: consult
+                    return
+                return transformed difference
+            end
+            revapi -> reporters ++: transformed report
+                note over reporters
+                    The reporters process the report in any way they see fit.
+                end note
+            return
+        end loop
+    return analysis result
+....
+
+== API Traversal
+
+All the elements produced by a single API analyzer need to be mutually comparable. The element trees produced by the
+archive analyzers are sorted. Revapi takes the advantage of this fact when looking for the changed elements.
+
+The traversal is performed in the depth-first manner. Let's consider the below two API trees. Their names encode the
+position in the graph so that we can then illustrate the API traversal in text. `o_` and `n_` prefixes mean that
+the element comes from the old (`o_`) or new (`n_`) API. The letter following the prefix indicates the "name" and
+is used merely for identification purposes. Finally, the number following the name indicates the "order" of
+the element amongst all the elements with the same name in both APIs.
+
+These pairs are then supplied to the difference analyzers that produce the lists of found differences between these
+pairs.
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+
+The API traversal goes through both of the trees at the same time and produces pairs of elements where the first element
+comes from the old API and the second from the new API. Either of those elements can be null indicating that there is
+no adequate counterpart in the other API.
+
+So let's start the traversal...
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=lightgreen]
+n_a1 [fillcolor=lightblue]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(o_a1, n_a1)` _The elements `o_a1` and `n_a1` are considered equal (they have the same name and same "order"). When we
+have a match, we report them and dive into their children._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=lightgreen]
+n_b1 [fillcolor=lightblue]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(o_b1, n_b1)` _Here, we're in the same situation as before. The elements compare as equal and therefore we're diving
+a level further._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=lightgreen]
+n_c1 [fillcolor=lightblue]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(o_c1, n_c1)` _Again, the elements are matching and therefore they are both reported at the same time. There are no children to
+iterate so we're continuing to the siblings._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=darkgray]
+n_c1 [fillcolor=darkgray]
+o_c2 [fillcolor=lightgreen]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(o_c1, null)` _Here we see the first "odd" thing. Only `o_c2` is reported and no element from the new API. This is because we've found
+no matching element in the new API. `n_c4` is considered "greater"._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=darkgray]
+n_c1 [fillcolor=darkgray]
+o_c2 [fillcolor=darkgray]
+n_c4 [fillcolor=lightblue]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(null, n_c4)` _Here we see a similar situation only with the new API. We've already reported `o_c2` and there is no further element to
+report in the old API. But we need to report `n_c4` which is "greater" than all the elements in the old API. Therefore,
+we report it. We've depleted all siblings in both APIs so we continue in the upper level._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=darkgray]
+n_c1 [fillcolor=darkgray]
+o_c2 [fillcolor=darkgray]
+n_c4 [fillcolor=darkgray]
+o_b2 [fillcolor=lightgreen]
+n_b2 [fillcolor=lightblue]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(o_b2, n_b2)` _These two elements match and are therefore reported together. Let's dive into children._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=darkgray]
+n_c1 [fillcolor=darkgray]
+o_c2 [fillcolor=darkgray]
+n_c4 [fillcolor=darkgray]
+o_b2 [fillcolor=darkgray]
+n_b2 [fillcolor=darkgray]
+n_d1 [fillcolor=lightblue]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(null, n_d1)` _Here we see, that the element `n_d1` from the new API is considered "less" than all other siblings in
+the old API. Therefore, it is reported first and alone._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=darkgray]
+n_c1 [fillcolor=darkgray]
+o_c2 [fillcolor=darkgray]
+n_c4 [fillcolor=darkgray]
+o_b2 [fillcolor=darkgray]
+n_b2 [fillcolor=darkgray]
+n_d1 [fillcolor=darkgray]
+o_d2 [fillcolor=lightgreen]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(o_d2, null)` _The next in line for the combined sets of siblings is `o_d2`. It has no counterpart in the new API and
+therefore it is again reported alone._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=darkgray]
+n_c1 [fillcolor=darkgray]
+o_c2 [fillcolor=darkgray]
+n_c4 [fillcolor=darkgray]
+o_b2 [fillcolor=darkgray]
+n_b2 [fillcolor=darkgray]
+n_d1 [fillcolor=darkgray]
+o_d2 [fillcolor=darkgray]
+o_d3 [fillcolor=lightgreen]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(o_d3, null)` _The next in line is `o_d3`. It again doesn't have a matching counterpart in the new API and so is again
+reported alone._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=darkgray]
+n_c1 [fillcolor=darkgray]
+o_c2 [fillcolor=darkgray]
+n_c4 [fillcolor=darkgray]
+o_b2 [fillcolor=darkgray]
+n_b2 [fillcolor=darkgray]
+n_d1 [fillcolor=darkgray]
+o_d2 [fillcolor=darkgray]
+o_d3 [fillcolor=darkgray]
+o_d4 [fillcolor=lightgreen]
+n_d4 [fillcolor=lightblue]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(o_d4, n_d4)` _Now we arrive at elements that are considered equal in both APIs so they're reported together._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=darkgray]
+n_c1 [fillcolor=darkgray]
+o_c2 [fillcolor=darkgray]
+n_c4 [fillcolor=darkgray]
+o_b2 [fillcolor=darkgray]
+n_b2 [fillcolor=darkgray]
+n_d1 [fillcolor=darkgray]
+o_d2 [fillcolor=darkgray]
+o_d3 [fillcolor=darkgray]
+o_d4 [fillcolor=darkgray]
+n_d4 [fillcolor=darkgray]
+o_b3 [fillcolor=lightgreen]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(o_b3, null)` _In the previous step we finished visiting all the "d" siblings and therefore now we're on the "b" level.
+Here, the next in line is `o_b3` that has no matching counterpart in the new API._
+
+[graphviz]
+....
+digraph {
+node [style=filled,fillcolor=white];
+graph [bgcolor=white];
+
+o_a1 [fillcolor=darkgray]
+n_a1 [fillcolor=darkgray]
+o_b1 [fillcolor=darkgray]
+n_b1 [fillcolor=darkgray]
+o_c1 [fillcolor=darkgray]
+n_c1 [fillcolor=darkgray]
+o_c2 [fillcolor=darkgray]
+n_c4 [fillcolor=darkgray]
+o_b2 [fillcolor=darkgray]
+n_b2 [fillcolor=darkgray]
+n_d1 [fillcolor=darkgray]
+o_d2 [fillcolor=darkgray]
+o_d3 [fillcolor=darkgray]
+o_d4 [fillcolor=darkgray]
+n_d4 [fillcolor=darkgray]
+o_b3 [fillcolor=darkgray]
+n_b4 [fillcolor=lightblue]
+
+o_a1 -> { o_b1, o_b2, o_b3}
+o_b1 -> {o_c1, o_c2 }
+o_b2 -> {o_d2, o_d3, o_d4}
+
+n_a1 -> {n_b1, n_b2, n_b4}
+n_b1 -> {n_c1, n_c4}
+n_b2 -> {n_d1, n_d4}
+}
+....
+`(null, n_b4)` _And at last we've arrived at the last unreported element, `n_b4`. We've visited all the elements in both
+APIs._
+
+== Packaging Extensions
+
+Extensions should be packaged as ordinary jar files. Revapi is as of yet not fully modularized (it only defines
+the automatic module names) so it is recommended to place Revapi and all extensions on the classpath, not
+the modulepath.
+
+The convention for finding Revapi extensions is to find them using the service loader. Therefore, if you want your
+extension to be found by the `revapi-maven-plugin` for example, you need to make sure you place the appropriate
+service file in `META-INF/services` or your jar (and subsequently add that jar as a dependency of
+the revapi-maven-plugin).
+
+E.g., if you define a new difference transform in your extension, called `com.acme.AcmeDifferenceTransform`,you need to
+create a file called `org.revapi.DifferenceTransform` in the `META-INF/services` directory of you jar. Each line in that
+file should contain a fully qualified class name of an implementation of the difference transform.
+
+Take a look at the link:{scm-files}/revapi-examples/[example extensions] which define these service files.

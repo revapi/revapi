@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,8 @@
  */
 package org.revapi.reporter.file;
 
+import static org.revapi.ReportComparator.Strategy.HIERARCHICAL;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,9 +26,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
@@ -34,17 +34,17 @@ import javax.annotation.Nonnull;
 import org.revapi.AnalysisContext;
 import org.revapi.Criticality;
 import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
 import org.revapi.Report;
+import org.revapi.ReportComparator;
 import org.revapi.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class can be used as a base class for reporters that want to write the reports into the files. It provides
- * some basic features like difference filtering based on severity, the ability to specify the file to write to
- * (including "out" and "err" as special file names for standard output and standard error) and whether to
- * overwrite or append to an existing file.
+ * This class can be used as a base class for reporters that want to write the reports into the files. It provides some
+ * basic features like difference filtering based on severity, the ability to specify the file to write to (including
+ * "out" and "err" as special file names for standard output and standard error) and whether to overwrite or append to
+ * an existing file.
  */
 public abstract class AbstractFileReporter implements Reporter {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractFileReporter.class);
@@ -60,11 +60,11 @@ public abstract class AbstractFileReporter implements Reporter {
     protected AnalysisContext analysis;
     private boolean reportsInOutput = false;
 
-
     /**
      * For testing.
      *
-     * @param wrt the output writer
+     * @param wrt
+     *            the output writer
      */
     protected void setOutput(PrintWriter wrt) {
         this.output = wrt;
@@ -72,8 +72,8 @@ public abstract class AbstractFileReporter implements Reporter {
     }
 
     /**
-     * Subclasses should write the reports to the {@link #output} in this method. This method MUST NOT close the
-     * output though.
+     * Subclasses should write the reports to the {@link #output} in this method. This method MUST NOT close the output
+     * though.
      */
     protected abstract void flushReports() throws IOException;
 
@@ -98,8 +98,8 @@ public abstract class AbstractFileReporter implements Reporter {
         keepEmptyFile = append || analysis.getConfigurationNode().path("keepEmptyFile").asBoolean(true);
 
         if (minLevel == null && minCrit == null) {
-            LOG.warn("At least one of `minLevel` and `minCriticality` should to be defined. Defaulting to" +
-                    " the obsolete behavior of reporting all potentially breaking elements.");
+            LOG.warn("At least one of `minLevel` and `minCriticality` should to be defined. Defaulting to"
+                    + " the obsolete behavior of reporting all potentially breaking elements.");
             this.minLevel = DifferenceSeverity.POTENTIALLY_BREAKING;
         }
 
@@ -127,15 +127,13 @@ public abstract class AbstractFileReporter implements Reporter {
             file = new File(output);
             if (file.exists()) {
                 if (!file.isFile()) {
-                    LOG.warn(
-                            "The configured file, '" + file.getAbsolutePath() + "' is not a file." +
-                                    " Defaulting the output to standard output.");
+                    LOG.warn("The configured file, '" + file.getAbsolutePath() + "' is not a file."
+                            + " Defaulting the output to standard output.");
                     out = System.out;
                     break;
                 } else if (!file.canWrite()) {
-                    LOG.warn(
-                            "The configured file, '" + file.getAbsolutePath() + "' is not a writable." +
-                                    " Defaulting the output to standard output.");
+                    LOG.warn("The configured file, '" + file.getAbsolutePath() + "' is not a writable."
+                            + " Defaulting the output to standard output.");
                     out = System.out;
                     break;
                 }
@@ -143,8 +141,8 @@ public abstract class AbstractFileReporter implements Reporter {
                 File parent = file.getParentFile();
                 if (parent != null && !parent.exists()) {
                     if (!parent.mkdirs()) {
-                        LOG.warn("Failed to create directory structure to write to the configured output file '" +
-                                file.getAbsolutePath() + "'. Defaulting the output to standard output.");
+                        LOG.warn("Failed to create directory structure to write to the configured output file '"
+                                + file.getAbsolutePath() + "'. Defaulting the output to standard output.");
                         out = System.out;
                         break;
                     }
@@ -154,8 +152,8 @@ public abstract class AbstractFileReporter implements Reporter {
             try {
                 out = new FileOutputStream(output, append);
             } catch (FileNotFoundException e) {
-                LOG.warn("Failed to create the configured output file '" + file.getAbsolutePath() + "'." +
-                        " Defaulting the output to standard output.", e);
+                LOG.warn("Failed to create the configured output file '" + file.getAbsolutePath() + "'."
+                        + " Defaulting the output to standard output.", e);
                 out = System.out;
             }
         }
@@ -171,8 +169,11 @@ public abstract class AbstractFileReporter implements Reporter {
      * This method is called during the default {@link #initialize(AnalysisContext)} and the default implementation
      * creates a print writer writing in UTF-8.
      *
-     * @param stream the stream to convert to a print writer
-     * @param ctx the analysis context which is being used in {@link #initialize(AnalysisContext)}
+     * @param stream
+     *            the stream to convert to a print writer
+     * @param ctx
+     *            the analysis context which is being used in {@link #initialize(AnalysisContext)}
+     * 
      * @return a print writer to be used as output
      */
     protected PrintWriter createOutputWriter(OutputStream stream, AnalysisContext ctx) {
@@ -182,7 +183,9 @@ public abstract class AbstractFileReporter implements Reporter {
     /**
      * This is the default implementation of the report method that does the initial filtering based on the configured
      * minimum severity and then delegates to {@link #doReport(Report)} if the reporting should really be performed.
-     * @param report the report with the differences
+     * 
+     * @param report
+     *            the report with the differences
      */
     @Override
     public void report(@Nonnull Report report) {
@@ -214,15 +217,12 @@ public abstract class AbstractFileReporter implements Reporter {
     }
 
     private boolean isReportableBySeverity(Report report) {
-        return report.getDifferences().stream()
-                .flatMap(d -> d.classification.values().stream())
+        return report.getDifferences().stream().flatMap(d -> d.classification.values().stream())
                 .anyMatch(s -> s.compareTo(minLevel) >= 0);
     }
 
     private boolean isReportableByCriticality(Report report) {
-        return report.getDifferences().stream()
-                .map(d -> d.criticality)
-                .filter(Objects::nonNull)
+        return report.getDifferences().stream().map(d -> d.criticality).filter(Objects::nonNull)
                 .anyMatch(c -> c.getLevel() >= minCriticality.getLevel());
     }
 
@@ -248,34 +248,11 @@ public abstract class AbstractFileReporter implements Reporter {
     }
 
     /**
+     * @see ReportComparator
+     * 
      * @return a comparator that can be used to sort the reports in the order of the compared elements.
      */
     protected Comparator<Report> getReportsByElementOrderComparator() {
-        return (r1, r2) -> {
-            Element r1El = r1.getOldElement() == null ? r1.getNewElement() : r1.getOldElement();
-            Element r2El = r2.getOldElement() == null ? r2.getNewElement() : r2.getOldElement();
-
-            Deque<Element> r1Ancestry = new ArrayDeque<>();
-            Deque<Element> r2Ancestry = new ArrayDeque<>();
-
-            while (r1El != null) {
-                r1Ancestry.push(r1El);
-                r1El = r1El.getParent();
-            }
-
-            while (r2El != null) {
-                r2Ancestry.push(r2El);
-                r2El = r2El.getParent();
-            }
-
-            while (!r1Ancestry.isEmpty() && !r2Ancestry.isEmpty()) {
-                int order = r1Ancestry.pop().compareTo(r2Ancestry.pop());
-                if (order != 0) {
-                    return order;
-                }
-            }
-
-            return r1Ancestry.size() - r2Ancestry.size();
-        };
+        return new ReportComparator.Builder().withComparisonStrategy(HIERARCHICAL).build();
     }
 }

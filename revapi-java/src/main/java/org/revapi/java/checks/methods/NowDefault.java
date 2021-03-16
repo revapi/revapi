@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
  */
 public class NowDefault extends CheckBase {
@@ -53,7 +54,8 @@ public class NowDefault extends CheckBase {
         boolean onInterfaces = oldMethod.getParent().getDeclaringElement().getKind() == ElementKind.INTERFACE
                 && newMethod.getParent().getDeclaringElement().getKind() == ElementKind.INTERFACE;
 
-        if (onInterfaces && !oldMethod.getDeclaringElement().isDefault() && newMethod.getDeclaringElement().isDefault()) {
+        if (onInterfaces && !oldMethod.getDeclaringElement().isDefault()
+                && newMethod.getDeclaringElement().isDefault()) {
             pushActive(oldMethod, newMethod);
         }
     }
@@ -66,8 +68,8 @@ public class NowDefault extends CheckBase {
         }
 
         return Collections.singletonList(createDifference(Code.METHOD_NOW_DEFAULT,
-                Code.attachmentsFor(methods.oldElement, methods.newElement,
-                        "oldModifiers", stringify(methods.oldElement.getDeclaringElement().getModifiers()),
-                        "newModifiers", stringify(methods.newElement.getDeclaringElement().getModifiers()))));
+                Code.attachmentsFor(methods.oldElement, methods.newElement, "oldModifiers",
+                        stringify(methods.oldElement.getDeclaringElement().getModifiers()), "newModifiers",
+                        stringify(methods.newElement.getDeclaringElement().getModifiers()))));
     }
 }

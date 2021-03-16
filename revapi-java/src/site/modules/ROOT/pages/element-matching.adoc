@@ -1,0 +1,174 @@
+= Matching and Filtering Java Elements
+
+NOTE: Here we describe how the `java` element matcher can be used with
+xref:revapi-basic-features::differences.adoc[`revapi.differences`] and
+xref:revapi-basic-features::filter.adoc[`revapi.filter`]. For the documentation on how to use those, please refer to
+their respective docs. For detailed documentation on the syntax of the java matcher, please refer to the documentation
+of the https://github.com/revapi/classif[Classif library] that the java matcher is using.
+
+When it comes to filtering out unneeded parts of the archives (like `impl` packages for example) or to ignoring found
+differences on elements, one needs to somehow identify the matching elements.
+
+The simplest way of matching the elements is to use the default text or regex matchers that operate on the "human
+readable" textual representation of the elements, see for the xref:differences.adoc[list of the API differences] for
+a short discussion of the format used for representing the different kinds of Java elements.
+
+E.g. to ignore a newly added method to a certain interface, you can write:
+```json
+{
+    "extension": "revapi.differences",
+    "configuration": {
+        "ignore": true,
+        "differences": [
+            {
+                "code": "java.method.addedToInterface",
+                "new": "method void com.acme.Acme::newMethod()"
+            }
+        ]
+    }
+}
+```
+
+or equivalently in XML:
+```xml
+<revapi.differences>
+    <ignore>true</ignore>
+    <differences>
+        <item>
+            <code>java.method.addedToInterface</code>
+            <new>method void com.acme.Acme::newMethod()</new>
+        </item>
+    </differences>
+</revapi.differences>
+```
+
+This may not be enough in many circumstances tough, because the textual representation of the element doesn't capture its
+semantic relationships with other elements. You cannot therefore use it for ignoring elements annotated with certain
+annotation or for ignoring classes implementing certain interface for example.
+
+This is where xref:revapi::extending-revapi.adoc#_element_matcher[element matchers] can come to the rescue.
+
+== Java Element Matchers
+
+For java, there are currently two dedicated matchers.
+
+=== Package Matcher
+
+*Matcher Name*: `java-package`
+
+This is a simple matcher for situations where you need to filter by packages. It being simple, it is also faster than
+the generic java matcher.
+
+==== Examples
+
+To only include a single package in the API checks, you can use it like this:
+
+[source,xml]
+....
+<revapi.filter>
+    <elements>
+        <include>
+            <item>
+                <matcher>java-package</matcher>
+                <match>com.acme.api</match>
+            </item>
+        </include>
+    </elements>
+</revapi.filter>
+....
+
+This will only match the elements from that exact package.
+
+If you need to match more packages by a regular expression, you can enclose the `match` in slashes like so:
+
+[source,xml]
+....
+<revapi.filter>
+    <elements>
+        <include>
+            <item>
+                <matcher>java-package</matcher>
+                <match>/com\.acme\.api(\..*)?/</match>
+            </item>
+        </include>
+    </elements>
+</revapi.filter>
+....
+
+which would match `com.acme.api` and any subpackage.
+
+=== Generic Element Matcher
+
+*Matcher Name*: `java`
+
+This is a very powerful matcher to match any java element with complex relationships. It is implemented using
+the https://github.com/revapi/classif[Classif] library. Please consult the documentation of Classif to learn more
+about the syntax and the possibilities.
+
+==== Examples
+
+The example from the introduction can be rewritten using the java element matcher like this:
+
+```json
+{
+    "extension": "revapi.differences",
+    "configuration": {
+        "ignore": true,
+        "differences": [
+            {
+                "code": "java.method.addedToInterface",
+                "new": {
+                    "matcher": "java",
+                    "match": "interface com.acme.Acme { void ^newMethod(); }"
+                }
+            }
+        ]
+    }
+}
+```
+
+This is of course more verbose and possibly unnecessary in that concrete example.
+
+Now let's take a look at something that would not be possible using the simple matching on element names and difference
+match parameters (aka difference annotations).
+
+Let's say that for some reason our API needs to expose implementations of the `com.acme.Internal` interface and that
+those implementations should not be part of the API check, because they are not meant for user consumption (but for
+example just for inter-library communication of some sort). This is not possible using the simple approach because the
+list of implemented interfaces is not part of the description of an element. Therefore, we need to rely on the java
+matcher. We will use the xref:revapi-basic-features::filter.adoc[`revapi.filter` extension] to completely filter out
+such classes from the analysis so that we don't have to deal with any differences found in them.
+
+```xml
+<revapi.filter>
+    <elements>
+        <exclude>
+            <item>
+                <matcher>java</matcher>
+                <match>type ^* implements com.acme.Internal {}</match>
+            </item>
+        </exclude>
+    </elements>
+</revapi.filter>
+```
+
+Quite frequently, the some parts of the API are considered beta or unstable and marked as such using the annotations.
+To leave out such elements from analysis one can use a configuration similar to this:
+
+```xml
+<revapi.filter>
+    <elements>
+        <exclude>
+            <item>
+                <matcher>java</matcher>
+                <match>@org.apiguardian.api.API(status != org.apiguardian.api.API.Status.STABLE) ^*;</match>
+            </item>
+        </exclude>
+    </elements>
+</revapi.filter>
+```
+
+The example is using the `@API` annotation as found in the https://github.com/apiguardian-team/apiguardian project.
+The expression `@org.apiguardian.api.API(status != org.apiguardian.api.API.Status.STABLE) ^*;` is going to match any
+element that is annotated by the `@API` annotation whose `status` attribute is not `STABLE`. Because the expression is
+used in the ``exclude``s, all such elements will be excluded from the analysis.

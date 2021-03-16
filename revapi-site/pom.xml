@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2020 Lukas Krejci
+    Copyright 2014-2021 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,143 +17,90 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <parent>
-    <groupId>org.revapi</groupId>
-    <artifactId>revapi-build</artifactId>
-    <version>42-SNAPSHOT</version>
-    <relativePath>../revapi-build</relativePath>
-  </parent>
-  <modelVersion>4.0.0</modelVersion>
-
-  <name>Revapi Site</name>
-  <description>Full-featured API checker for Java and beyond.</description>
-  <url>https://revapi.org</url>
-
-  <artifactId>revapi-site</artifactId>
-  <version>0</version>
-  <packaging>pom</packaging>
-
-  <properties>
-    <revapi.skip>true</revapi.skip>
-    <asciidoctor-revealjs.version>1.1.3</asciidoctor-revealjs.version>
-  </properties>
-
-  <distributionManagement>
-    <site>
-      <id>site</id>
-      <url>https://revapi.org</url>
-    </site>
-  </distributionManagement>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-site-plugin</artifactId>
-        <configuration>
-          <outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-site-shared</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <phase>site</phase>
-            <configuration>
-              <outputDirectory>${project.build.directory}/site</outputDirectory>
-              <includeArtifactIds>revapi-site-shared</includeArtifactIds>
-              <includeGroupIds>org.revapi</includeGroupIds>
-              <includeClassifiers>resources</includeClassifiers>
-              <includeTypes>zip</includeTypes>
-              <excludeTransitive>true</excludeTransitive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <configuration>
-          <excludes combine.children="append">
-            <exclude>src/site/resources/.nojekyll</exclude>
-	    <exclude>src/site/resources/CNAME</exclude>
-	    <exclude>src/site/resources/slides/github.css</exclude>
-          </excludes>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>3.0.0</version>
-        <executions>
-          <execution>
-            <id>set-version-in-antora</id>
-            <configuration>
-              <skip>true</skip>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>com.googlecode.maven-download-plugin</groupId>
-        <artifactId>download-maven-plugin</artifactId>
-        <version>1.3.0</version>
-        <executions>
-          <execution>
-            <id>install-asciidoctor-revealjs</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>wget</goal>
-            </goals>
-            <configuration>
-              <url>https://github.com/asciidoctor/asciidoctor-reveal.js/archive/v${asciidoctor-revealjs.version}.zip</url>
-              <unpack>true</unpack>
-              <outputFileName>asciidoctor-reveal.js-${asciidoctor-revealjs.version}.zip</outputFileName>
-              <outputDirectory>${project.build.directory}</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.asciidoctor</groupId>
-        <artifactId>asciidoctor-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>generate-presentations</id>
-            <phase>site</phase>
-            <goals>
-              <goal>process-asciidoc</goal>
-            </goals>
-            <configuration>
-              <sourceDirectory>${project.basedir}/src/site/slides</sourceDirectory>
-              <outputDirectory>${project.reporting.outputDirectory}/slides</outputDirectory>
-              <backend>revealjs</backend>
-              <templateDir>${project.build.directory}/asciidoctor-reveal.js-${asciidoctor-revealjs.version}/templates</templateDir>
-              <attributes>
-                <revealjsdir>https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0</revealjsdir>
-                <imagesdir />
-              </attributes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
-  <scm>
-    <connection>scm:git:git://github.com/revapi/revapi.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
-    <url>https://github.com/revapi/revapi</url>
-    <tag>HEAD</tag>
-  </scm>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.revapi</groupId>
+        <artifactId>revapi-build</artifactId>
+        <version>43-SNAPSHOT</version>
+        <relativePath>../revapi-build</relativePath>
+    </parent>
+    <artifactId>revapi-site</artifactId>
+    <version>0</version>
+    <packaging>pom</packaging>
+    <name>Revapi Site</name>
+    <description>Full-featured API checker for Java and beyond.</description>
+    <url>https://revapi.org</url>
+    <scm>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/revapi/revapi</url>
+    </scm>
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>https://revapi.org</url>
+        </site>
+    </distributionManagement>
+    <properties>
+        <asciidoctor-revealjs.version>1.1.3</asciidoctor-revealjs.version>
+        <revapi.skip>true</revapi.skip>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <excludes combine.children="append">
+                        <exclude>src/site/resources/.nojekyll</exclude>
+                        <exclude>src/site/resources/CNAME</exclude>
+                        <exclude>src/site/resources/slides/github.css</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>set-version-in-antora</id>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-site-shared</id>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/site</outputDirectory>
+                            <includeArtifactIds>revapi-site-shared</includeArtifactIds>
+                            <includeGroupIds>org.revapi</includeGroupIds>
+                            <includeClassifiers>resources</includeClassifiers>
+                            <includeTypes>zip</includeTypes>
+                            <excludeTransitive>true</excludeTransitive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <configuration>
+                    <outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

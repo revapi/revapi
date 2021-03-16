@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,6 +61,7 @@ import org.revapi.maven.utils.ArtifactResolver;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Analyzer {
@@ -132,8 +133,10 @@ public final class Analyzer {
 
         DefaultRepositorySystemSession session = new DefaultRepositorySystemSession(repositorySystemSession);
 
-        session.setDependencySelector(getRevapiDependencySelector(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
-        session.setDependencyTraverser(getRevapiDependencyTraverser(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
+        session.setDependencySelector(
+                getRevapiDependencySelector(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
+        session.setDependencyTraverser(
+                getRevapiDependencyTraverser(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
 
         if (alwaysUpdate) {
             session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
@@ -164,11 +167,10 @@ public final class Analyzer {
         String version = versionOverride == null ? project.getVersion() : versionOverride;
 
         if (artifact.hasClassifier()) {
-            return project.getGroupId() + ":" + project.getArtifactId() + ":" + extension + ":" +
-                    artifact.getClassifier() + ":" + version;
+            return project.getGroupId() + ":" + project.getArtifactId() + ":" + extension + ":"
+                    + artifact.getClassifier() + ":" + version;
         } else {
-            return project.getGroupId() + ":" + project.getArtifactId() + ":" + extension + ":" +
-                    version;
+            return project.getGroupId() + ":" + project.getArtifactId() + ":" + extension + ":" + version;
         }
     }
 
@@ -188,20 +190,28 @@ public final class Analyzer {
      * for a RELEASE or LATEST, the gav is resolved such it a release not newer than the project version is found that
      * optionally corresponds to the provided version regex, if provided.
      *
-     * <p>If the gav exactly matches the current project, the file of the artifact is found on the filesystem in
-     * target directory and the resolver is ignored.
+     * <p>
+     * If the gav exactly matches the current project, the file of the artifact is found on the filesystem in target
+     * directory and the resolver is ignored.
      *
-     * @param project      the project to restrict by, if applicable
-     * @param gav          the gav to resolve
-     * @param versionRegex the optional regex the version must match to be considered.
-     * @param resolver     the version resolver to use
+     * @param project
+     *            the project to restrict by, if applicable
+     * @param gav
+     *            the gav to resolve
+     * @param versionRegex
+     *            the optional regex the version must match to be considered.
+     * @param resolver
+     *            the version resolver to use
+     * 
      * @return the resolved artifact matching the criteria.
-     * @throws VersionRangeResolutionException on error
-     * @throws ArtifactResolutionException     on error
+     * 
+     * @throws VersionRangeResolutionException
+     *             on error
+     * @throws ArtifactResolutionException
+     *             on error
      */
     static Artifact resolveConstrained(MavenProject project, String gav, Pattern versionRegex,
-            ArtifactResolver resolver)
-            throws VersionRangeResolutionException, ArtifactResolutionException {
+            ArtifactResolver resolver) throws VersionRangeResolutionException, ArtifactResolutionException {
         boolean latest = gav.endsWith(":LATEST");
         if (latest || gav.endsWith(":RELEASE")) {
             Artifact a = new DefaultArtifact(gav);
@@ -212,9 +222,8 @@ public final class Analyzer {
                 versionRegex = versionRegex == null ? ANY_NON_SNAPSHOT : versionRegex;
             }
 
-            String upTo = project.getGroupId().equals(a.getGroupId()) && project.getArtifactId().equals(a.getArtifactId())
-                    ? project.getVersion()
-                    : null;
+            String upTo = project.getGroupId().equals(a.getGroupId())
+                    && project.getArtifactId().equals(a.getArtifactId()) ? project.getVersion() : null;
 
             return resolver.resolveNewestMatching(gav, upTo, versionRegex, latest, latest);
         } else {
@@ -271,8 +280,8 @@ public final class Analyzer {
                 if (failOnMissingArchives) {
                     throw new IllegalStateException(message, e);
                 } else {
-                    log.warn(message + " The API analysis will proceed comparing the new archives against an empty" +
-                            " archive.");
+                    log.warn(message + " The API analysis will proceed comparing the new archives against an empty"
+                            + " archive.");
                 }
             }
 
@@ -295,12 +304,12 @@ public final class Analyzer {
                 }
             }
 
-            //now we need to be a little bit clever. When using RELEASE or LATEST as the version of the old artifact
-            //it might happen that it gets resolved to the same version as the new artifacts - this notoriously happens
-            //when releasing using the release plugin - you first build your artifacts, put them into the local repo
-            //and then do the site updates for the released version. When you do the site, maven will find the released
-            //version in the repo and resolve RELEASE to it. You compare it against what you just built, i.e. the same
-            //code, et voila, the site report doesn't ever contain any found differences...
+            // now we need to be a little bit clever. When using RELEASE or LATEST as the version of the old artifact
+            // it might happen that it gets resolved to the same version as the new artifacts - this notoriously happens
+            // when releasing using the release plugin - you first build your artifacts, put them into the local repo
+            // and then do the site updates for the released version. When you do the site, maven will find the released
+            // version in the repo and resolve RELEASE to it. You compare it against what you just built, i.e. the same
+            // code, et voila, the site report doesn't ever contain any found differences...
 
             Set<MavenArchive> oldTransitiveDeps = new HashSet<>();
             Set<MavenArchive> newTransitiveDeps = new HashSet<>();
@@ -358,8 +367,7 @@ public final class Analyzer {
     }
 
     private Set<MavenArchive> handleResolutionError(Exception e, String depDescription, Set<MavenArchive> toReturn) {
-        String message = "Failed to resolve dependencies of " + depDescription + " artifacts: " + e.getMessage() +
-                ".";
+        String message = "Failed to resolve dependencies of " + depDescription + " artifacts: " + e.getMessage() + ".";
         if (failOnMissingSupportArchives) {
             throw new IllegalArgumentException(message, e);
         } else {
@@ -368,7 +376,7 @@ public final class Analyzer {
             } else {
                 log.warn(message + ". The API analysis might produce unexpected results.");
             }
-            return toReturn == null ? Collections.<MavenArchive>emptySet() : toReturn;
+            return toReturn == null ? Collections.<MavenArchive> emptySet() : toReturn;
         }
     }
 
@@ -380,16 +388,16 @@ public final class Analyzer {
             return AnalysisResult.fakeSuccess();
         }
 
-        List<?> oldArchives = StreamSupport.stream(
-                (Spliterator<MavenArchive>) resolvedOldApi.getArchives().spliterator(), false)
+        List<?> oldArchives = StreamSupport
+                .stream((Spliterator<MavenArchive>) resolvedOldApi.getArchives().spliterator(), false)
                 .map(MavenArchive::getName).collect(toList());
 
-        List<?> newArchives = StreamSupport.stream(
-                (Spliterator<MavenArchive>) resolvedNewApi.getArchives().spliterator(), false)
+        List<?> newArchives = StreamSupport
+                .stream((Spliterator<MavenArchive>) resolvedNewApi.getArchives().spliterator(), false)
                 .map(MavenArchive::getName).collect(toList());
 
-        log.info("Comparing " + oldArchives + " against " + newArchives +
-                (resolveDependencies ? " (including their transitive dependencies)." : "."));
+        log.info("Comparing " + oldArchives + " against " + newArchives
+                + (resolveDependencies ? " (including their transitive dependencies)." : "."));
 
         try {
             buildRevapi();

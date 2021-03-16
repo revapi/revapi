@@ -1,0 +1,4 @@
+= Revapi Examples
+
+The sub-modules contain individual examples of different types of Revapi extensions. The examples are fully contained,
+tested, ready to use extensions. They might not be particularly useful though :)

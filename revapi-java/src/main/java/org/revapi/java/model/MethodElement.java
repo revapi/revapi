@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,13 +30,15 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
-public final class MethodElement extends JavaElementBase<ExecutableElement, ExecutableType> implements JavaMethodElement {
+public final class MethodElement extends JavaElementBase<ExecutableElement, ExecutableType>
+        implements JavaMethodElement {
 
     public static String createComparableSignature(ExecutableElement m, TypeMirror mType) {
-        //the choice of '#' for a separator between the name and signature is because it precedes both '(' and any
-        //legal character in a method name in the ASCII table
+        // the choice of '#' for a separator between the name and signature is because it precedes both '(' and any
+        // legal character in a method name in the ASCII table
         return m.getSimpleName() + "#" + Util.toUniqueString(mType);
     }
 
@@ -45,7 +47,9 @@ public final class MethodElement extends JavaElementBase<ExecutableElement, Exec
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Nonnull @Override public JavaTypeElement getParent() {
+    @Nonnull
+    @Override
+    public JavaTypeElement getParent() {
         return (JavaTypeElement) super.getParent();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,12 +21,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.revapi.API;
+import org.revapi.ApiAnalyzer;
 import org.revapi.ArchiveAnalyzer;
-import org.revapi.Element;
 import org.revapi.ElementForest;
 import org.revapi.TreeFilter;
 import org.revapi.java.compilation.CompilationFuture;
@@ -36,14 +38,17 @@ import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JarExtractor;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
-public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
+public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
+    private final JavaApiAnalyzer apiAnalyzer;
     private final API api;
     private final ExecutorService executor;
     private final ProbingEnvironment probingEnvironment;
@@ -52,34 +57,52 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     private final Iterable<JarExtractor> jarExtractors;
     private CompilationValve compilationValve;
 
-    public JavaArchiveAnalyzer(API api, Iterable<JarExtractor> jarExtractors,ExecutorService compilationExecutor,
-            AnalysisConfiguration.MissingClassReporting missingClassReporting,
-            boolean ignoreMissingAnnotations) {
+    /**
+     * @deprecated only to support the obsolete package and class filtering
+     */
+    @Deprecated
+    private final @Nullable TreeFilter<JavaElement> implicitFilter;
+
+    public JavaArchiveAnalyzer(JavaApiAnalyzer apiAnalyzer, API api, Iterable<JarExtractor> jarExtractors,
+            ExecutorService compilationExecutor, AnalysisConfiguration.MissingClassReporting missingClassReporting,
+            boolean ignoreMissingAnnotations, @Nullable TreeFilter<JavaElement> implicitFilter) {
+        this.apiAnalyzer = apiAnalyzer;
         this.api = api;
         this.jarExtractors = jarExtractors;
         this.executor = compilationExecutor;
         this.missingClassReporting = missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.probingEnvironment = new ProbingEnvironment(api);
+        this.implicitFilter = implicitFilter;
+    }
+
+    @Override
+    public ApiAnalyzer<JavaElement> getApiAnalyzer() {
+        return apiAnalyzer;
+    }
+
+    @Override
+    public API getApi() {
+        return api;
     }
 
     @Nonnull
     @Override
-    public JavaElementForest analyze(TreeFilter filter) {
+    public JavaElementForest analyze(TreeFilter<JavaElement> filter) {
         if (Timing.LOG.isDebugEnabled()) {
             Timing.LOG.debug("Starting analysis of " + api);
         }
 
+        TreeFilter<JavaElement> finalFilter = implicitFilter == null ? filter
+                : TreeFilter.intersection(filter, implicitFilter);
+
         StringWriter output = new StringWriter();
         Compiler compiler = new Compiler(executor, output, jarExtractors, api.getArchives(),
-                api.getSupplementaryArchives(),
-                filter);
+                api.getSupplementaryArchives(), finalFilter);
         try {
-            compilationValve = compiler
-                .compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations);
+            compilationValve = compiler.compile(probingEnvironment, missingClassReporting, ignoreMissingAnnotations);
 
-            probingEnvironment.getTree()
-                .setCompilationFuture(new CompilationFuture(compilationValve, output));
+            probingEnvironment.getTree().setCompilationFuture(new CompilationFuture(compilationValve, output));
 
             if (Timing.LOG.isDebugEnabled()) {
                 Timing.LOG.debug("Preliminary API tree produced for " + api);
@@ -91,7 +114,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
     }
 
     @Override
-    public void prune(ElementForest forest) {
+    public void prune(ElementForest<JavaElement> forest) {
         if (!(forest instanceof JavaElementForest)) {
             return;
         }
@@ -101,7 +124,7 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         Set<TypeElement> toRemove = new HashSet<>();
 
         do {
-            Iterator<TypeElement> it = forest.iterateOverElements(TypeElement.class, true, null, null);
+            Iterator<TypeElement> it = forest.stream(TypeElement.class, true, null).iterator();
 
             toRemove.clear();
 
@@ -135,18 +158,31 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
             changed = !toRemove.isEmpty();
 
             for (TypeElement t : toRemove) {
+                // the inner classes of the removed type might be used, so we can't just remove them from the tree
+                // classpath scanner just puts grandchild classes under a parent if the child is excluded from the tree
+                // so we'll do the same here... add all child types of the removed element to the children of the
+                // parent of the removed element
+                Consumer<JavaElement> readd;
                 if (t.getParent() == null) {
                     forest.getRoots().remove(t);
+                    readd = c -> {
+                        forest.getRoots().add(c);
+                        c.setParent(null);
+                    };
                 } else {
-                    t.getParent().getChildren().remove(t);
+                    JavaElement parent = t.getParent();
+                    parent.getChildren().remove(t);
+                    readd = c -> parent.getChildren().add(c);
                 }
+
+                t.getChildren().stream().filter(c -> c instanceof TypeElement).forEach(readd);
 
                 t.getUsedTypes().entrySet().removeIf(e -> {
                     UseSite.Type useType = e.getKey();
                     e.getValue().entrySet().removeIf(e2 -> {
                         JavaTypeElement usedType = e2.getKey();
                         usedType.getUseSites().removeIf(us -> {
-                            //noinspection SuspiciousMethodCalls
+                            // noinspection SuspiciousMethodCalls
                             return us.getUseType() == useType && e2.getValue().contains(us.getSite());
                         });
 
@@ -167,8 +203,8 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer {
         return compilationValve;
     }
 
-    private static boolean isInForest(ElementForest forest, Element element) {
-        Element parent = element.getParent();
+    private static boolean isInForest(ElementForest<JavaElement> forest, JavaElement element) {
+        JavaElement parent = element.getParent();
         while (parent != null) {
             element = parent;
             parent = parent.getParent();

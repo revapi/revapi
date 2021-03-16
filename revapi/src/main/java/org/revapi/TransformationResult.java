@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,9 @@ public final class TransformationResult {
     }
 
     /**
-     * @param newDifferences the new set of differences to replace the old with
+     * @param newDifferences
+     *            the new set of differences to replace the old with
+     * 
      * @return result to replace the difference with new ones
      */
     public static TransformationResult replaceWith(Set<Difference> newDifferences) {
@@ -67,7 +69,9 @@ public final class TransformationResult {
     /**
      * Same as {@link #replaceWith(Set)} only for replacing with just a single difference.
      *
-     * @param newDifference the difference to transform the original difference to
+     * @param newDifference
+     *            the difference to transform the original difference to
+     * 
      * @return the transformation result
      */
     public static TransformationResult replaceWith(Difference newDifference) {
@@ -87,13 +91,14 @@ public final class TransformationResult {
     }
 
     /**
-     * The difference passed to
-     * the {@link DifferenceTransform#tryTransform(Element, Element, Difference)} method will be
-     * replaced by the differences returned from this method.
+     * The difference passed to the {@link DifferenceTransform#tryTransform(Element, Element, Difference)} method will
+     * be replaced by the differences returned from this method.
      *
-     * <p>{@code null} and an empty set are treated equivalently.
+     * <p>
+     * {@code null} and an empty set are treated equivalently.
      *
-     * <p>This method is only returns meaningful data when the resolution is {@link Resolution#REPLACE}.
+     * <p>
+     * This method is only returns meaningful data when the resolution is {@link Resolution#REPLACE}.
      */
     public @Nullable Set<Difference> getDifferences() {
         return differences;

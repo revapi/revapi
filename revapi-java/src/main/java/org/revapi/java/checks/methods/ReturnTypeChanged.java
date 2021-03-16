@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class ReturnTypeChanged extends CheckBase {
@@ -82,7 +83,7 @@ public final class ReturnTypeChanged extends CheckBase {
         Code code = null;
 
         if (!oldER.equals(newER)) {
-            //we need to check if the returned type changed covariantly or not.
+            // we need to check if the returned type changed covariantly or not.
             if (isPrimitiveOrVoid(erasedOldType) || isPrimitiveOrVoid(erasedNewType)) {
                 code = Code.METHOD_RETURN_TYPE_CHANGED;
             } else if (isCovariant(erasedOldType, erasedNewType)) {
@@ -100,20 +101,18 @@ public final class ReturnTypeChanged extends CheckBase {
         String newHR = Util.toHumanReadableString(newReturnType);
 
         return code == null ? null : Collections.singletonList(createDifference(code,
-                Code.attachmentsFor(methods.oldElement, methods.newElement,
-                        "oldType", oldHR,
-                        "newType", newHR)));
+                Code.attachmentsFor(methods.oldElement, methods.newElement, "oldType", oldHR, "newType", newHR)));
     }
 
     private static boolean isPrimitiveOrVoid(TypeMirror type) {
         TypeKind kind = type.getKind();
         switch (kind) {
-            case VOID:
-                return true;
-            case ARRAY:
-                return isPrimitiveOrVoid(((ArrayType) type).getComponentType());
-            default:
-                return kind.isPrimitive();
+        case VOID:
+            return true;
+        case ARRAY:
+            return isPrimitiveOrVoid(((ArrayType) type).getComponentType());
+        default:
+            return kind.isPrimitive();
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,45 +25,30 @@ import static org.revapi.basic.Util.getAnalysisContextFromFullConfig;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.revapi.API;
 import org.revapi.AnalysisContext;
-import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
 import org.revapi.ElementMatcher;
-import org.revapi.simple.SimpleElement;
+import org.revapi.base.BaseElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class ClassificationTransformTest {
 
-    private static class DummyElement extends SimpleElement {
+    private static class DummyElement extends BaseElement<DummyElement> {
 
         private final String name;
 
         public DummyElement(String name) {
+            super(null, null);
             this.name = name;
-        }
-
-        @Nonnull
-        @Override
-        @SuppressWarnings("ConstantConditions")
-        public API getApi() {
-            return null;
-        }
-
-        @Nullable
-        @Override
-        public Archive getArchive() {
-            return null;
         }
 
         @Nonnull
@@ -73,12 +58,8 @@ public class ClassificationTransformTest {
         }
 
         @Override
-        public int compareTo(@Nonnull Element o) {
-            if (!(o instanceof DummyElement)) {
-                return -1;
-            }
-
-            return name.compareTo(((DummyElement) o).name);
+        public int compareTo(@Nonnull DummyElement o) {
+            return name.compareTo(o.name);
         }
     }
 
@@ -114,7 +95,7 @@ public class ClassificationTransformTest {
 
     @Test
     public void testReclassifyByComplexElementMatch() throws Exception {
-        test("[{\"extension\": \"revapi.reclassify\", \"configuration\":[{\"code\":\"code\", \"new\": {\"matcher\": \"matcher.regex\", \"match\": \"n.*\"}, \"classify\": {\"BINARY\" : \"BREAKING\"}}]}]",
+        test("[{\"extension\": \"revapi.reclassify\", \"configuration\":[{\"code\":\"code\", \"new\": {\"matcher\": \"regex\", \"match\": \"n.*\"}, \"classify\": {\"BINARY\" : \"BREAKING\"}}]}]",
                 new RegexElementMatcher(), difference -> {
                     Assert.assertNotNull(difference);
                     Assert.assertEquals(BREAKING, difference.classification.get(CompatibilityType.BINARY));
@@ -130,9 +111,9 @@ public class ClassificationTransformTest {
         DummyElement oldE = new DummyElement("old");
         DummyElement newE = new DummyElement("new");
 
-        Difference difference = Difference.builder().withCode("code").addClassification(
-                CompatibilityType.BINARY, DifferenceSeverity.NON_BREAKING).addClassification(CompatibilityType.SOURCE,
-                DifferenceSeverity.POTENTIALLY_BREAKING).build();
+        Difference difference = Difference.builder().withCode("code")
+                .addClassification(CompatibilityType.BINARY, DifferenceSeverity.NON_BREAKING)
+                .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.POTENTIALLY_BREAKING).build();
 
         AnalysisContext config = getAnalysisContextFromFullConfig(ClassificationTransform.class, fullConfig);
         if (matcher != null) {
@@ -145,5 +126,5 @@ public class ClassificationTransformTest {
             test.accept(difference);
         }
     }
-    //TODO add schema tests
+    // TODO add schema tests
 }

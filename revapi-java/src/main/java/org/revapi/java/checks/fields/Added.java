@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Added extends CheckBase {
@@ -59,8 +60,8 @@ public final class Added extends CheckBase {
             return Collections.singletonList(createDifference(Code.FIELD_ADDED_STATIC_FIELD,
                     Code.attachmentsFor(fields.oldElement, fields.newElement)));
         } else {
-            return Collections.singletonList(createDifference(Code.FIELD_ADDED,
-                    Code.attachmentsFor(fields.oldElement, fields.newElement)));
+            return Collections.singletonList(
+                    createDifference(Code.FIELD_ADDED, Code.attachmentsFor(fields.oldElement, fields.newElement)));
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.revapi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,23 +27,24 @@ import javax.annotation.Nullable;
  * Represents the differences between comparable elements from old and new API.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Report {
 
     public static final class Builder {
-        private Element oldElement;
-        private Element newElement;
+        private Element<?> oldElement;
+        private Element<?> newElement;
         ArrayList<Difference> differences = new ArrayList<>();
 
         @Nonnull
-        public Builder withOld(@Nullable Element element) {
+        public Builder withOld(@Nullable Element<?> element) {
             oldElement = element;
             return this;
         }
 
         @Nonnull
-        public Builder withNew(@Nullable Element element) {
+        public Builder withNew(@Nullable Element<?> element) {
             newElement = element;
             return this;
         }
@@ -63,11 +65,10 @@ public final class Report {
     }
 
     private final List<Difference> differences;
-    private final Element oldElement;
-    private final Element newElement;
+    private final Element<?> oldElement;
+    private final Element<?> newElement;
 
-    public Report(@Nonnull Iterable<Difference> problems, @Nullable Element oldElement,
-        @Nullable Element newElement) {
+    public Report(Iterable<Difference> problems, @Nullable Element<?> oldElement, @Nullable Element<?> newElement) {
         this.differences = new ArrayList<>();
         for (Difference p : problems) {
             this.differences.add(p);
@@ -78,12 +79,12 @@ public final class Report {
     }
 
     @Nullable
-    public Element getNewElement() {
+    public Element<?> getNewElement() {
         return newElement;
     }
 
     @Nullable
-    public Element getOldElement() {
+    public Element<?> getOldElement() {
         return oldElement;
     }
 
@@ -103,11 +104,11 @@ public final class Report {
 
         Report that = (Report) o;
 
-        if (newElement != null ? !newElement.equals(that.newElement) : that.newElement != null) {
+        if (!Objects.equals(newElement, that.newElement)) {
             return false;
         }
 
-        if (oldElement != null ? !oldElement.equals(that.oldElement) : that.oldElement != null) {
+        if (!Objects.equals(oldElement, that.oldElement)) {
             return false;
         }
 
@@ -124,7 +125,7 @@ public final class Report {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("MatchReport[");
+        final StringBuilder sb = new StringBuilder("Report[");
         sb.append("oldElement=").append(oldElement == null ? "null" : oldElement.getFullHumanReadableString());
         sb.append(", newElement=").append(newElement == null ? "null" : newElement.getFullHumanReadableString());
         sb.append(", problems=").append(differences);

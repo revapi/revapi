@@ -2,5 +2,5 @@
 * xref:faq.adoc[FAQ]
 * xref:revapi::architecture.adoc[Architecture]
 * xref:revapi::configuration.adoc[Configuration]
-* xref:extensions.adoc[Extensions]
+* xref:revapi::extending-revapi.adoc[Extending Revapi]
 * xref:building.adoc[Building]

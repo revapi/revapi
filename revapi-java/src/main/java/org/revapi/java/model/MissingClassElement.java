@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,11 +19,12 @@ package org.revapi.java.model;
 import javax.annotation.Nonnull;
 import javax.lang.model.type.DeclaredType;
 
-import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class MissingClassElement extends TypeElement {
@@ -35,11 +36,13 @@ public final class MissingClassElement extends TypeElement {
         element = new MissingTypeElement(canonicalName);
     }
 
-    @Override public javax.lang.model.element.TypeElement getDeclaringElement() {
+    @Override
+    public javax.lang.model.element.TypeElement getDeclaringElement() {
         return element;
     }
 
-    @Override public DeclaredType getModelRepresentation() {
+    @Override
+    public DeclaredType getModelRepresentation() {
         return (DeclaredType) element.asType();
     }
 
@@ -50,7 +53,7 @@ public final class MissingClassElement extends TypeElement {
     }
 
     @Override
-    public int compareTo(@Nonnull Element o) {
+    public int compareTo(@Nonnull JavaElement o) {
         if (!(o instanceof MissingClassElement)) {
             return JavaElementFactory.compareByType(this, o);
         }

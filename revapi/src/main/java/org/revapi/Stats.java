@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
  * {@code close()} methods of the extensions are not taken into account.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.4.1
  */
 public final class Stats {
@@ -113,9 +114,9 @@ public final class Stats {
 
         @Override
         public String toString() {
-            return "{occurrences = " + occurrences + ", total = " + totalTime + "ms, average = " +
-                    String.format("%.2fms", ((double) totalTime) / occurrences) + ", worstTime = " + worstTime +
-                    "ms caused by " + offender + "}";
+            return "{occurrences = " + occurrences + ", total = " + totalTime + "ms, average = "
+                    + String.format("%.2fms", ((double) totalTime) / occurrences) + ", worstTime = " + worstTime
+                    + "ms caused by " + offender + "}";
         }
     }
 

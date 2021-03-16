@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class NoLongerImplementsInterface extends CheckBase {
@@ -76,9 +77,8 @@ public final class NoLongerImplementsInterface extends CheckBase {
 
         for (TypeMirror oldIface : oldInterfaces) {
             if (!Util.isSubtype(oldIface, newInterfaces, getOldTypeEnvironment().getTypeUtils())) {
-                result.add(createDifference(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE,
-                        Code.attachmentsFor(types.oldElement, types.newElement,
-                            "interface", Util.toHumanReadableString(oldIface))));
+                result.add(createDifference(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE, Code.attachmentsFor(
+                        types.oldElement, types.newElement, "interface", Util.toHumanReadableString(oldIface))));
             }
         }
 

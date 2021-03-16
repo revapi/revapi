@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class DefaultValueChanged extends CheckBase {
@@ -51,7 +52,8 @@ public final class DefaultValueChanged extends CheckBase {
         AnnotationValue newValue = methods.newElement.getDeclaringElement().getDefaultValue();
 
         String attribute = methods.oldElement.getDeclaringElement().getSimpleName().toString();
-        String annotationType = ((TypeElement) methods.oldElement.getDeclaringElement().getEnclosingElement()).getQualifiedName().toString();
+        String annotationType = ((TypeElement) methods.oldElement.getDeclaringElement().getEnclosingElement())
+                .getQualifiedName().toString();
         String ov = oldValue == null ? null : Util.toHumanReadableString(oldValue);
         String nv = newValue == null ? null : Util.toHumanReadableString(newValue);
 
@@ -59,17 +61,13 @@ public final class DefaultValueChanged extends CheckBase {
 
         if (ov == null) {
             difference = createDifference(Code.METHOD_DEFAULT_VALUE_ADDED,
-                    Code.attachmentsFor(methods.oldElement, methods.newElement,
-                            "value", nv));
+                    Code.attachmentsFor(methods.oldElement, methods.newElement, "value", nv));
         } else if (nv == null) {
             difference = createDifference(Code.METHOD_DEFAULT_VALUE_REMOVED,
-                    Code.attachmentsFor(methods.oldElement, methods.newElement,
-                            "value", ov));
+                    Code.attachmentsFor(methods.oldElement, methods.newElement, "value", ov));
         } else {
             difference = createDifferenceWithExplicitParams(Code.METHOD_DEFAULT_VALUE_CHANGED,
-                    Code.attachmentsFor(methods.oldElement, methods.newElement,
-                            "oldValue", ov,
-                            "newValue", nv),
+                    Code.attachmentsFor(methods.oldElement, methods.newElement, "oldValue", ov, "newValue", nv),
                     attribute, annotationType, ov, nv);
         }
 
@@ -85,9 +83,8 @@ public final class DefaultValueChanged extends CheckBase {
         AnnotationValue oldVal = oldMethod.getDeclaringElement().getDefaultValue();
         AnnotationValue newVal = newMethod.getDeclaringElement().getDefaultValue();
 
-        boolean equal =
-            oldVal != null && newVal != null && Util.isEqual(oldVal, newVal) || (oldVal == null && newVal == null);
-
+        boolean equal = oldVal != null && newVal != null && Util.isEqual(oldVal, newVal)
+                || (oldVal == null && newVal == null);
 
         if (!equal) {
             pushActive(oldMethod, newMethod);

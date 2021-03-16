@@ -1,0 +1,89 @@
+= JSON Analyzer
+
+The JSON analyzer is a very simple analyzer of JSON files based on the xref:revapi-jackson::index.adoc[].
+
+== Configuration
+
+This analyzer only provides the xref:revapi-jackson::index.adoc#_configuration[configuration properties] of the base
+jackson analyzer.
+
+=== Examples
+To analyze a file encoded in UTF-16, you can use the following configuration:
+
+[source,xml]
+....
+<revapi.json>
+    <charset>UTF-16</charset>
+</revapi.json>
+....
+
+To look for a specific file (META-INF/config.json) with in ZIPs that are provided as archives, you can do this:
+[source,xml]
+....
+<revapi.json>
+    <pathRegex>/META-INF/config\.json</pathRegex>
+</revapi.json>
+....
+
+== Detected differences
+
+There is not much this analyzer can detect in the JSON files - merely additions, removals and changes.
+
+=== JSON node added - `json.added`
+[cols="35s,<65d"]
+|=============
+| Binary severity   | NA
+| Source severity   | NA
+| Semantic severity | potentially breaking
+|=============
+
+This is reported on JSON nodes that have been added in the new version of the API (the file).
+Primitive values, object nodes, array nodes as well as individual elements within the objects
+or arrays are supported.
+
+[options=header]
+|====
+2+| Match parameters
+| `file` | the file (if within a ZIP archive) in which the difference has been found
+| `path` | the JSON path to the added element within the file
+|====
+
+=== JSON node removed - `json.removed`
+[cols="35s,<65d"]
+|=============
+| Binary severity   | NA
+| Source severity   | NA
+| Semantic severity | breaking
+|=============
+
+This is reported on JSON nodes that have been removed from the new version of the API (the file).
+Primitive values, object nodes, array nodes as well as individual elements within the objects
+or arrays are supported.
+
+[options=header]
+|====
+2+| Match parameters
+| `file` | the file (if within a ZIP archive) in which the difference has been found
+| `path` | the JSON path to the added element within the file
+|====
+
+=== JSON node changed - `json.changed`
+[cols="35s,<65d"]
+|=============
+| Binary severity   | NA
+| Source severity   | NA
+| Semantic severity | potentially breaking
+|=============
+
+This is reported on JSON nodes that have been changed in the new version of the API (the file).
+Primitive values, object nodes, array nodes as well as individual elements within the objects
+or arrays are supported.
+
+[options=header]
+|====
+2+| Match parameters
+| `file` | the file (if within a ZIP archive) in which the difference has been found
+| `path` | the JSON path to the added element within the file
+| `oldValue` | the value as it was present in the old version
+| `newValue` | the value as it is present in the new version
+|====

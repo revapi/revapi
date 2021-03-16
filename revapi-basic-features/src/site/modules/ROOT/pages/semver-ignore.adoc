@@ -32,7 +32,7 @@ rules of semantic versioning (http://semver.org).
       <major>breaking</major>
       <minor>nonBreaking</minor>
       <patch>equivalent</patch>
-    <versionIncreaseAllows>
+    </versionIncreaseAllows>
     <passThroughDifferences>
       <item>java.class.nonPublicPartOfAPI</item>
     </passThroughDifferences>

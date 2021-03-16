@@ -1,0 +1,40 @@
+{
+  "0.1.1": [
+    {
+      "extension": "revapi.differences",
+      "id": "api-changes",
+      "configuration": {
+        "differences": [
+          {
+            "code": "java.annotation.removed",
+            "annotation": "@javax.annotation.Nonnull",
+            "justification": "The convention in Revapi is that everything is non-null unless marked as @Nullable."
+          }
+        ]
+      }
+    }
+  ],
+  "0.1.2": [
+    {
+      "extension": "revapi.differences",
+      "id": "api-changes",
+      "configuration": {
+        "differences": [
+          {
+            "code": "java.annotation.added",
+            "annotation": "@javax.annotation.Nullable",
+            "new": "parameter void org.revapi.jackson.JacksonArchiveAnalyzer<E extends org.revapi.jackson.JacksonElement<E>>::<init>(org.revapi.jackson.JacksonApiAnalyzer<E>, org.revapi.API, ===java.util.regex.Pattern===, com.fasterxml.jackson.databind.ObjectMapper, java.nio.charset.Charset)",
+            "justification": "This parameter is indeed nullable, so adding the annotation. It posits no source or binary breakage, just adds clarity."
+          },
+          {
+            "code": "java.method.parameterTypeChanged",
+            "old": "parameter void org.revapi.base.BaseElement<E extends org.revapi.Element<E>>::setParent(===E===) @ org.revapi.jackson.JacksonElement<E extends org.revapi.jackson.JacksonElement<E>>",
+            "new": "parameter void org.revapi.jackson.JacksonElement<E extends org.revapi.jackson.JacksonElement<E>>::setParent(===E===)",
+            "parameterIndex": "0",
+            "justification": "This is a false positive (https://github.com/revapi/revapi/issues/222)."
+          }
+        ]
+      }
+    }
+  ]
+}

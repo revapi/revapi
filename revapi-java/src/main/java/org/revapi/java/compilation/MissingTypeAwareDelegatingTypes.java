@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,7 @@ import org.revapi.java.spi.IgnoreCompletionFailures;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 final class MissingTypeAwareDelegatingTypes implements Types {
@@ -181,17 +182,19 @@ final class MissingTypeAwareDelegatingTypes implements Types {
         return IgnoreCompletionFailures.in(types::asMemberOf, containing, element);
     }
 
-    private static <R, T extends TypeMirror> IgnoreCompletionFailures.Fn1<R, T> checkMissing(Function<T, R> fn, R returnValueOnMissing) {
+    private static <R, T extends TypeMirror> IgnoreCompletionFailures.Fn1<R, T> checkMissing(Function<T, R> fn,
+            R returnValueOnMissing) {
         return (t) -> {
-          if (isMissing(t)) {
-              return returnValueOnMissing;
-          } else {
-              return fn.apply(t);
-          }
+            if (isMissing(t)) {
+                return returnValueOnMissing;
+            } else {
+                return fn.apply(t);
+            }
         };
     }
 
-    private static <R, T1 extends TypeMirror, T2 extends TypeMirror> IgnoreCompletionFailures.Fn2<R, T1, T2> checkMissing(BiFunction<T1, T2, R> fn, R returnValueOnMissing) {
+    private static <R, T1 extends TypeMirror, T2 extends TypeMirror> IgnoreCompletionFailures.Fn2<R, T1, T2> checkMissing(
+            BiFunction<T1, T2, R> fn, R returnValueOnMissing) {
         return (t1, t2) -> {
             if (isMissing(t1) || isMissing(t2)) {
                 return returnValueOnMissing;

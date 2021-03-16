@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,7 @@ import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class AnnotationTypeAttributeAdded implements DifferenceTransform<JavaMethodElement> {
@@ -42,7 +43,7 @@ public final class AnnotationTypeAttributeAdded implements DifferenceTransform<J
     private final Pattern[] codes;
 
     public AnnotationTypeAttributeAdded() {
-        codes = new Pattern[]{Pattern.compile("^" + Pattern.quote(Code.METHOD_ABSTRACT_METHOD_ADDED.code()) + "$")};
+        codes = new Pattern[] { Pattern.compile("^" + Pattern.quote(Code.METHOD_ABSTRACT_METHOD_ADDED.code()) + "$") };
     }
 
     @Nonnull
@@ -71,7 +72,7 @@ public final class AnnotationTypeAttributeAdded implements DifferenceTransform<J
     @Nullable
     @Override
     public Difference transform(@Nullable JavaMethodElement oldElement, @Nullable JavaMethodElement newElement,
-        @Nonnull Difference difference) {
+            @Nonnull Difference difference) {
 
         @SuppressWarnings("ConstantConditions")
         ExecutableElement method = newElement.getDeclaringElement();
@@ -80,11 +81,11 @@ public final class AnnotationTypeAttributeAdded implements DifferenceTransform<J
             AnnotationValue defaultValue = method.getDefaultValue();
 
             if (defaultValue == null) {
-                return Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE
-                        .createDifference(locale, new LinkedHashMap<>(difference.attachments));
+                return Code.METHOD_ATTRIBUTE_WITH_NO_DEFAULT_ADDED_TO_ANNOTATION_TYPE.createDifference(locale,
+                        new LinkedHashMap<>(difference.attachments));
             } else {
-                return Code.METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE
-                        .createDifference(locale, new LinkedHashMap<>(difference.attachments));
+                return Code.METHOD_ATTRIBUTE_WITH_DEFAULT_ADDED_TO_ANNOTATION_TYPE.createDifference(locale,
+                        new LinkedHashMap<>(difference.attachments));
             }
         }
 

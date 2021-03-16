@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +19,11 @@ package org.revapi.java.spi;
 import javax.annotation.Nonnull;
 
 /**
- * A utility class to try to overcome the {@code CompletionFailure} exceptions thrown from the Java compiler.
- * Such exceptions "disappear" when the method is re-tried which this helper enables.
+ * A utility class to try to overcome the {@code CompletionFailure} exceptions thrown from the Java compiler. Such
+ * exceptions "disappear" when the method is re-tried which this helper enables.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class IgnoreCompletionFailures {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import javax.lang.model.type.DeclaredType;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class UseSite {
@@ -56,14 +57,12 @@ public final class UseSite {
         RETURN_TYPE,
 
         /**
-         * One of the parameters of the use site (method) has the type
-         * of the used class.
+         * One of the parameters of the use site (method) has the type of the used class.
          */
         PARAMETER_TYPE,
 
         /**
-         * The use site (method) throws exceptions of the type of the used
-         * class.
+         * The use site (method) throws exceptions of the type of the used class.
          */
         IS_THROWN,
 
@@ -73,21 +72,23 @@ public final class UseSite {
         CONTAINS,
 
         /**
-         * The used class is used as a type parameter or a bound of a type variable or wildcard on the use site
-         * (which can be a class, field, method or a method parameter).
+         * The used class is used as a type parameter or a bound of a type variable or wildcard on the use site (which
+         * can be a class, field, method or a method parameter).
          */
         TYPE_PARAMETER_OR_BOUND;
 
         /**
-         * @return true if this type of use makes the used type part of the API even if it wasn't originally part
-         * of it.
+         * @return true if this type of use makes the used type part of the API even if it wasn't originally part of it.
          */
         public boolean isMovingToApi() {
             switch (this) {
-                case ANNOTATES: case CONTAINS: case IS_INHERITED: case IS_IMPLEMENTED:
-                    return false;
-                default:
-                    return true;
+            case ANNOTATES:
+            case CONTAINS:
+            case IS_INHERITED:
+            case IS_IMPLEMENTED:
+                return false;
+            default:
+                return true;
             }
         }
     }
@@ -95,17 +96,22 @@ public final class UseSite {
     /**
      * A visitor of the use site.
      *
-     * @param <R> the type of the returned value
-     * @param <P> the type of the parameter passed to the visitor
+     * @param <R>
+     *            the type of the returned value
+     * @param <P>
+     *            the type of the parameter passed to the visitor
      */
     public interface Visitor<R, P> {
 
         /**
          * Visits the use site.
          *
-         * @param type      the type that is being used
-         * @param use       the site of the use of the type
-         * @param parameter the parameter passed by the caller
+         * @param type
+         *            the type that is being used
+         * @param use
+         *            the site of the use of the type
+         * @param parameter
+         *            the parameter passed by the caller
          *
          * @return non-null value indicates early exit before visiting all use sites.
          */
@@ -116,8 +122,11 @@ public final class UseSite {
          * Called when all uses have been visited.
          *
          *
-         * @param type type type that is being used
-         * @param parameter the parameter passed by the caller
+         * @param type
+         *            type type that is being used
+         * @param parameter
+         *            the parameter passed by the caller
+         * 
          * @return a return value
          */
         @Nullable

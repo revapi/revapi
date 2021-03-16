@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public abstract class ModifierChanged extends CheckBase {
@@ -64,48 +65,59 @@ public abstract class ModifierChanged extends CheckBase {
             return null;
         }
 
-        return Collections.singletonList(createDifference(code, Code.attachmentsFor(elements.oldElement, elements.newElement,
-                "oldModifiers", stringify(elements.oldElement.getDeclaringElement().getModifiers()),
-                "newModifiers", stringify(elements.newElement.getDeclaringElement().getModifiers()))));
+        return Collections.singletonList(createDifference(code,
+                Code.attachmentsFor(elements.oldElement, elements.newElement, "oldModifiers",
+                        stringify(elements.oldElement.getDeclaringElement().getModifiers()), "newModifiers",
+                        stringify(elements.newElement.getDeclaringElement().getModifiers()))));
     }
 
-    //ordered according to http://cr.openjdk.java.net/~alundblad/styleguide/index-v6.html
+    // ordered according to http://cr.openjdk.java.net/~alundblad/styleguide/index-v6.html
     public static String stringify(Set<Modifier> modifiers) {
-        return modifiers.stream()
-                .sorted(Comparator.comparingInt(ModifierChanged::score))
-                .map(m -> m.name().toLowerCase())
-                .collect(Collectors.joining(" "));
+        return modifiers.stream().sorted(Comparator.comparingInt(ModifierChanged::score))
+                .map(m -> m.name().toLowerCase()).collect(Collectors.joining(" "));
     }
 
     private static int score(Modifier mod) {
-        //public
-        //private
-        //protected
-        //abstract
-        //static
-        //final
-        //transient
-        //volatile
-        //default
-        //synchronized
-        //native
-        //strictfp
+        // public
+        // private
+        // protected
+        // abstract
+        // static
+        // final
+        // transient
+        // volatile
+        // default
+        // synchronized
+        // native
+        // strictfp
 
         switch (mod) {
-            case PUBLIC: return 0;
-            case PRIVATE: return 1;
-            case PROTECTED: return 2;
-            case ABSTRACT: return 3;
-            case STATIC: return 4;
-            case FINAL: return 5;
-            case TRANSIENT: return 6;
-            case VOLATILE: return 7;
-            case DEFAULT: return 8;
-            case SYNCHRONIZED: return 9;
-            case NATIVE: return 10;
-            case STRICTFP: return 11;
-            default:
-                return 12;
+        case PUBLIC:
+            return 0;
+        case PRIVATE:
+            return 1;
+        case PROTECTED:
+            return 2;
+        case ABSTRACT:
+            return 3;
+        case STATIC:
+            return 4;
+        case FINAL:
+            return 5;
+        case TRANSIENT:
+            return 6;
+        case VOLATILE:
+            return 7;
+        case DEFAULT:
+            return 8;
+        case SYNCHRONIZED:
+            return 9;
+        case NATIVE:
+            return 10;
+        case STRICTFP:
+            return 11;
+        default:
+            return 12;
         }
     }
 }

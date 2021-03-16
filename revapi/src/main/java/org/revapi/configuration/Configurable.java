@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,14 +27,15 @@ import org.revapi.AnalysisContext;
  * A thing that can be configured from a JSON file.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface Configurable {
 
     /**
      * The identifier of this configurable extension in the configuration file. This should be globally unique, but
-     * human readable, so a package name or something similar would be a good candidate. Core revapi extensions have
-     * the extension ids always starting with "revapi.".
+     * human readable, so a package name or something similar would be a good candidate. Core revapi extensions have the
+     * extension ids always starting with "revapi.".
      *
      * @return the unique identifier of this configurable extension
      */
@@ -45,17 +46,20 @@ public interface Configurable {
      *
      * @return a json schema to validate the configuration of this configurable against
      */
-    @Nullable Reader getJSONSchema();
+    @Nullable
+    Reader getJSONSchema();
 
     /**
      * The instance can configure itself for the upcoming analysis from the supplied analysis context.
      *
-     * <p>The configuration contained in the supplied analysis context is solely the one provided for this configurable
+     * <p>
+     * The configuration contained in the supplied analysis context is solely the one provided for this configurable
      * instance and conforms to its schema.
      *
      * Note that this method can be called multiple times, each time for a different analysis run.
      *
-     * @param analysisContext the context of the upcoming analysis
+     * @param analysisContext
+     *            the context of the upcoming analysis
      */
     void initialize(@Nonnull AnalysisContext analysisContext);
 }

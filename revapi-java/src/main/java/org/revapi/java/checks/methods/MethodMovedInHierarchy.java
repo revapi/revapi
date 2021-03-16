@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.11.0
  */
 public final class MethodMovedInHierarchy extends MovedInHierarchy {
@@ -33,7 +34,8 @@ public final class MethodMovedInHierarchy extends MovedInHierarchy {
         super(Code.METHOD_MOVED_TO_SUPERCLASS, Code.METHOD_INHERITED_METHOD_MOVED_TO_CLASS);
     }
 
-    @Override public EnumSet<Type> getInterest() {
+    @Override
+    public EnumSet<Type> getInterest() {
         return EnumSet.of(Type.METHOD);
     }
 

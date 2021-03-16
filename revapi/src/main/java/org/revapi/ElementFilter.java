@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,51 +16,44 @@
  */
 package org.revapi;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.Optional;
 
-import javax.annotation.Nullable;
-
+import org.revapi.base.IndependentTreeFilter;
 import org.revapi.configuration.Configurable;
 import org.revapi.query.Filter;
-import org.revapi.simple.RepeatingTreeFilter;
 
 /**
  * An element filter is a type of extension that can serve as an input filter on the element forest.
  *
- * <p>Once the {@link org.revapi.ElementForest} is produced by an {@link org.revapi.ArchiveAnalyzer}, the
- * registered element filters will be called to potentially leave out certain elements from the API analysis.
+ * <p>
+ * Once the {@link org.revapi.ElementForest} is produced by an {@link org.revapi.ArchiveAnalyzer}, the registered
+ * element filters will be called to potentially leave out certain elements from the API analysis.
  *
- * <p>An example of this might be leaving out certain packages from the analysis of java archives.
+ * <p>
+ * An example of this might be leaving out certain packages from the analysis of java archives.
  *
- * <p>The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
+ * <p>
+ * The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
  * resource acquisition in initialize, not during the construction of the object.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  *
  * @deprecated use {@link TreeFilterProvider} instead
  */
 @Deprecated
-public interface ElementFilter extends TreeFilterProvider, Filter<Element>, AutoCloseable, Configurable {
-    @Nullable
+public interface ElementFilter extends TreeFilterProvider, Filter<Element<?>>, AutoCloseable, Configurable {
     @Override
-    default TreeFilter filterFor(ArchiveAnalyzer archiveAnalyzer) {
-        return new RepeatingTreeFilter() {
+    default <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
+        return Optional.of(new IndependentTreeFilter<E>() {
             @Override
-            public FilterStartResult doStart(Element element) {
+            public FilterStartResult doStart(E element) {
                 boolean applies = applies(element);
                 boolean descends = shouldDescendInto(element);
 
-                FilterMatch res = FilterMatch.fromBoolean(applies);
-
-                return FilterStartResult.direct(res, descends);
+                return FilterStartResult.direct(Ternary.fromBoolean(applies), Ternary.fromBoolean(descends));
             }
-
-            @Override
-            public Map<Element, FilterFinishResult> finish() {
-                return Collections.emptyMap();
-            }
-        };
+        });
     }
 }

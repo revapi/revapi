@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import freemarker.cache.TemplateLoader;
  * {@link freemarker.cache.FileTemplateLoader} does.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.5.0
  */
 public class NaiveFileTemplateLoader implements TemplateLoader {
@@ -39,9 +40,9 @@ public class NaiveFileTemplateLoader implements TemplateLoader {
             return ret;
         }
 
-        //freemarker removes the leading / from the paths and cannot be told otherwise.
-        //We are not in a web environment and we actually do want to resolve the templates using absolute paths
-        //so let's just try and see if the template cannot be reached using an absolute path...
+        // freemarker removes the leading / from the paths and cannot be told otherwise.
+        // We are not in a web environment and we actually do want to resolve the templates using absolute paths
+        // so let's just try and see if the template cannot be reached using an absolute path...
         ret = new File("/" + name);
 
         return ret.exists() ? ret : null;

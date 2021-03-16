@@ -1,5 +1,7 @@
 = Class/Package Filtering
 
+WARNING: This describes functionality that is superseded by xref:element-matching.adoc[].
+
 Given Java's lacking modularity (prior to Java9), authors are often forced to make classes that are essentially an
 implementation detail of a library public. Such classes are often included in packages like `impl` or `internal` to
 hint at their non-public nature.

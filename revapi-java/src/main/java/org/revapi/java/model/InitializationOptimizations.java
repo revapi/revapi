@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,8 @@
  */
 package org.revapi.java.model;
 
+import org.revapi.base.BaseElement;
 import org.revapi.java.spi.JavaElement;
-import org.revapi.simple.SimpleElement;
 
 /**
  * This class contains an assortment of methods that enable various optimizations and speedups during the initial
@@ -32,14 +32,14 @@ public final class InitializationOptimizations {
 
     public static void initializeComparator(JavaElement el) {
         if (el instanceof JavaElementBase) {
-            ((JavaElementBase) el).getComparableSignature();
+            ((JavaElementBase<?, ?>) el).getComparableSignature();
         }
     }
 
     @SuppressWarnings("unchecked")
     public static <T extends JavaElement> T clone(T orig) {
-        if (orig instanceof SimpleElement) {
-            return (T) ((SimpleElement) orig).clone();
+        if (orig instanceof BaseElement) {
+            return (T) ((BaseElement) orig).clone();
         }
 
         return orig;

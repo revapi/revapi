@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,9 +52,7 @@ public class AnalysisConfigurationGathererTest {
         AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(analysisConfiguration, new Object[0],
                 false, false, new PropertyValueResolver(new Properties()), null, null);
 
-        Revapi revapi = Revapi.builder()
-                .withFilters(TestExtension.class)
-                .build();
+        Revapi revapi = Revapi.builder().withFilters(TestExtension.class).build();
         AnalysisContext.Builder ctxBld = AnalysisContext.builder();
 
         gatherer.gatherConfig(revapi, ctxBld);
@@ -76,9 +74,7 @@ public class AnalysisConfigurationGathererTest {
         AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(analysisConfiguration, new Object[0],
                 false, false, new PropertyValueResolver(new Properties()), null, null);
 
-        Revapi revapi = Revapi.builder()
-                .withFilters(TestExtension.class)
-                .build();
+        Revapi revapi = Revapi.builder().withFilters(TestExtension.class).build();
         AnalysisContext.Builder ctxBld = AnalysisContext.builder();
 
         gatherer.gatherConfig(revapi, ctxBld);
@@ -104,9 +100,7 @@ public class AnalysisConfigurationGathererTest {
                     new Object[] { f.getAbsolutePath() }, false, false, new PropertyValueResolver(new Properties()),
                     null, null);
 
-            Revapi revapi = Revapi.builder()
-                    .withFilters(TestExtension.class)
-                    .build();
+            Revapi revapi = Revapi.builder().withFilters(TestExtension.class).build();
             AnalysisContext.Builder ctxBld = AnalysisContext.builder();
 
             gatherer.gatherConfig(revapi, ctxBld);
@@ -119,7 +113,7 @@ public class AnalysisConfigurationGathererTest {
 
             assertEquals(expected, cfg);
         } finally {
-            //noinspection ResultOfMethodCallIgnored
+            // noinspection ResultOfMethodCallIgnored
             f.delete();
         }
     }
@@ -133,9 +127,7 @@ public class AnalysisConfigurationGathererTest {
                 new Object[] { configurationFile }, false, false, new PropertyValueResolver(new Properties()), null,
                 null);
 
-        Revapi revapi = Revapi.builder()
-                .withFilters(TestExtension.class)
-                .build();
+        Revapi revapi = Revapi.builder().withFilters(TestExtension.class).build();
         AnalysisContext.Builder ctxBld = AnalysisContext.builder();
 
         gatherer.gatherConfig(revapi, ctxBld);
@@ -157,12 +149,9 @@ public class AnalysisConfigurationGathererTest {
         Properties props = new Properties();
         props.put("prop", "yes");
         AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(null,
-                new Object[] { configurationFile }, false, true, new PropertyValueResolver(props),
-                null, null);
+                new Object[] { configurationFile }, false, true, new PropertyValueResolver(props), null, null);
 
-        Revapi revapi = Revapi.builder()
-                .withFilters(TestExtension.class)
-                .build();
+        Revapi revapi = Revapi.builder().withFilters(TestExtension.class).build();
         AnalysisContext.Builder ctxBld = AnalysisContext.builder();
 
         gatherer.gatherConfig(revapi, ctxBld);
@@ -184,12 +173,9 @@ public class AnalysisConfigurationGathererTest {
         Properties props = new Properties();
         props.put("prop", "yes");
         AnalysisConfigurationGatherer gatherer = new AnalysisConfigurationGatherer(null,
-                new Object[] { configurationFile }, false, true, new PropertyValueResolver(props),
-                null, null);
+                new Object[] { configurationFile }, false, true, new PropertyValueResolver(props), null, null);
 
-        Revapi revapi = Revapi.builder()
-                .withFilters(TestExtension.class)
-                .build();
+        Revapi revapi = Revapi.builder().withFilters(TestExtension.class).build();
         AnalysisContext.Builder ctxBld = AnalysisContext.builder();
 
         gatherer.gatherConfig(revapi, ctxBld);

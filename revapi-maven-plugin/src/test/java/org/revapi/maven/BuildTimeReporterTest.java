@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,24 +18,20 @@ package org.revapi.maven;
 
 import java.util.Collections;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import org.jboss.dmr.ModelNode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
-import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.Criticality;
 import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
 import org.revapi.Report;
-import org.revapi.simple.SimpleElement;
+import org.revapi.base.BaseElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.9.0
  */
 public class BuildTimeReporterTest {
@@ -47,63 +43,20 @@ public class BuildTimeReporterTest {
         API oldApi = API.builder().build();
         API newApi = API.builder().build();
 
-        AnalysisContext ctx = AnalysisContext.builder()
-                .withOldAPI(oldApi)
-                .withNewAPI(newApi)
+        AnalysisContext ctx = AnalysisContext.builder().withOldAPI(oldApi).withNewAPI(newApi)
                 .withData(BuildTimeReporter.BREAKING_CRITICALITY_KEY, Criticality.ALLOWED)
-                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
-                .build();
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder()).build();
 
         reporter.initialize(ctx);
 
-        Element oldEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return oldApi;
-            }
+        DummyElement oldEl = new DummyElement(oldApi);
+        DummyElement newEl = new DummyElement(newApi);
 
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "old element";
-            }
-        };
-
-        Element newEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return newApi;
-            }
-
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "new element";
-            }
-        };
-
-        Report report = Report.builder()
-                .withNew(newEl)
-                .withOld(oldEl)
-                .addProblem()
-                /**/.withCode("diffs\\myDiff")
+        Report report = Report.builder().withNew(newEl).withOld(oldEl).addProblem()/**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                /**/.addAttachment("shouldBeEscaped", "{\"a\", \"b\"}")
-                /**/.withCriticality(Criticality.ERROR)
-                /**/.withIdentifyingAttachments(Collections.singletonList("shouldBeEscaped"))
-                .done()
-                .build();
+                /**/.addAttachment("shouldBeEscaped", "{\"a\", \"b\"}")/**/.withCriticality(Criticality.ERROR)
+                /**/.withIdentifyingAttachments(Collections.singletonList("shouldBeEscaped")).done().build();
 
         reporter.report(report);
 
@@ -129,61 +82,19 @@ public class BuildTimeReporterTest {
         API oldApi = API.builder().build();
         API newApi = API.builder().build();
 
-        AnalysisContext ctx = AnalysisContext.builder()
-                .withOldAPI(oldApi)
-                .withNewAPI(newApi)
+        AnalysisContext ctx = AnalysisContext.builder().withOldAPI(oldApi).withNewAPI(newApi)
                 .withData(BuildTimeReporter.BREAKING_CRITICALITY_KEY, Criticality.ALLOWED)
-                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
-                .build();
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder()).build();
 
         reporter.initialize(ctx);
 
-        Element oldEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return oldApi;
-            }
+        DummyElement oldEl = new DummyElement(oldApi);
+        DummyElement newEl = new DummyElement(newApi);
 
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "old element";
-            }
-        };
-
-        Element newEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return newApi;
-            }
-
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "new element";
-            }
-        };
-
-        Report report = Report.builder()
-                .withNew(newEl)
-                .withOld(oldEl)
-                .addProblem()
-                /**/.withCode("diffs\\myDiff")
+        Report report = Report.builder().withNew(newEl).withOld(oldEl).addProblem()/**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                /**/.withCriticality(Criticality.ERROR)
-                /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")
-                .done()
+                /**/.withCriticality(Criticality.ERROR)/**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}").done()
                 .build();
 
         reporter.report(report);
@@ -206,62 +117,20 @@ public class BuildTimeReporterTest {
         API oldApi = API.builder().build();
         API newApi = API.builder().build();
 
-        AnalysisContext ctx = AnalysisContext.builder()
-                .withOldAPI(oldApi)
-                .withNewAPI(newApi)
+        AnalysisContext ctx = AnalysisContext.builder().withOldAPI(oldApi).withNewAPI(newApi)
                 .withData(BuildTimeReporter.BREAKING_CRITICALITY_KEY, Criticality.ALLOWED)
                 .withData(BuildTimeReporter.OUTPUT_NON_IDENTIFYING_ATTACHMENTS, false)
-                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder())
-                .build();
+                .withData(BuildTimeReporter.SUGGESTIONS_BUILDER_KEY, new JsonSuggestionsBuilder()).build();
 
         reporter.initialize(ctx);
 
-        Element oldEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return oldApi;
-            }
+        DummyElement oldEl = new DummyElement(oldApi);
+        DummyElement newEl = new DummyElement(newApi);
 
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "old element";
-            }
-        };
-
-        Element newEl = new SimpleElement() {
-            @Nonnull @Override public API getApi() {
-                return newApi;
-            }
-
-            @Nullable @Override public Archive getArchive() {
-                return null;
-            }
-
-            @Override public int compareTo(Element o) {
-                return 0;
-            }
-
-            @Override public String toString() {
-                return "new element";
-            }
-        };
-
-        Report report = Report.builder()
-                .withNew(newEl)
-                .withOld(oldEl)
-                .addProblem()
-                /**/.withCode("diffs\\myDiff")
+        Report report = Report.builder().withNew(newEl).withOld(oldEl).addProblem()/**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")
-                /**/.withCriticality(Criticality.ERROR)
-                .done()
+                /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")/**/.withCriticality(Criticality.ERROR).done()
                 .build();
 
         reporter.report(report);
@@ -276,5 +145,17 @@ public class BuildTimeReporterTest {
         Assert.assertEquals(-1, commentStart);
         Assert.assertEquals(-1, commentEnd);
         Assert.assertEquals(-1, nonIdentifyingIndex);
+    }
+
+    public static final class DummyElement extends BaseElement<DummyElement> {
+
+        public DummyElement(API api) {
+            super(api);
+        }
+
+        @Override
+        public int compareTo(DummyElement o) {
+            return 0;
+        }
     }
 }

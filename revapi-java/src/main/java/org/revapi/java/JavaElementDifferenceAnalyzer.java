@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,6 @@ import javax.lang.model.type.DeclaredType;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceAnalyzer;
-import org.revapi.Element;
 import org.revapi.Report;
 import org.revapi.Stats;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -65,9 +64,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
-public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
+public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<JavaElement> {
     private static final Logger LOG = LoggerFactory.getLogger(JavaElementDifferenceAnalyzer.class);
 
     private static final Map<Check.Type, Set<Check.Type>> POSSIBLE_CHILDREN_TYPES;
@@ -75,9 +75,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     static {
         Map<Check.Type, Set<Check.Type>> map = new EnumMap<>(Check.Type.class);
         map.put(Check.Type.ANNOTATION, emptySet());
-        map.put(Check.Type.CLASS,
-                EnumSet.of(Check.Type.CLASS, Check.Type.FIELD, Check.Type.METHOD, Check.Type.METHOD_PARAMETER,
-                        Check.Type.ANNOTATION));
+        map.put(Check.Type.CLASS, EnumSet.of(Check.Type.CLASS, Check.Type.FIELD, Check.Type.METHOD,
+                Check.Type.METHOD_PARAMETER, Check.Type.ANNOTATION));
         map.put(Check.Type.FIELD, singleton(Check.Type.ANNOTATION));
         map.put(Check.Type.METHOD, EnumSet.of(Check.Type.METHOD_PARAMETER, Check.Type.ANNOTATION));
         map.put(Check.Type.METHOD_PARAMETER, singleton(Check.Type.ANNOTATION));
@@ -100,14 +99,13 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     // descending on non-existing elements are used for both speed and correctness reasons. For it to work correctly
     // we need to track where did we enter this special mode.
     private boolean nonExistenceMode;
-    private Element nonExistenceOldRoot;
-    private Element nonExistenceNewRoot;
+    private JavaElement nonExistenceOldRoot;
+    private JavaElement nonExistenceNewRoot;
 
     private final Map<Check.Type, Set<Check>> descendingChecksByTypes;
 
     public JavaElementDifferenceAnalyzer(AnalysisContext analysisContext, ProbingEnvironment oldEnvironment,
-            ProbingEnvironment newEnvironment, Iterable<Check> checks,
-            AnalysisConfiguration analysisConfiguration) {
+            ProbingEnvironment newEnvironment, Iterable<Check> checks, AnalysisConfiguration analysisConfiguration) {
 
         this.descendingChecksByTypes = new HashMap<>();
 
@@ -127,12 +125,9 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         this.newEnvironment = newEnvironment;
 
         this.checksByInterest = new EnumMap<>(Check.Type.class);
-        checks.forEach(c ->
-                c.getInterest().forEach(i ->
-                        checksByInterest.computeIfAbsent(i, __ -> new ArrayList<>()).add(c)
-                ));
+        checks.forEach(
+                c -> c.getInterest().forEach(i -> checksByInterest.computeIfAbsent(i, __ -> new ArrayList<>()).add(c)));
     }
-
 
     @Override
     public void open() {
@@ -145,13 +140,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     @Override
-    public void beginAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
+    public void beginAnalysis(@Nullable JavaElement oldElement, @Nullable JavaElement newElement) {
         Timing.LOG.trace("Beginning analysis of {} and {}.", oldElement, newElement);
 
         Check.Type elementsType = getCheckType(oldElement, newElement);
         Collection<Check> possibleChecks = nonExistenceMode
-                ? descendingChecksByTypes.getOrDefault(elementsType, emptySet())
-                : checksByInterest.get(elementsType);
+                ? descendingChecksByTypes.getOrDefault(elementsType, emptySet()) : checksByInterest.get(elementsType);
 
         if (conforms(oldElement, newElement, TypeElement.class)) {
             checksStack.push(possibleChecks);
@@ -168,12 +162,11 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             if (lastAnnotationResults == null) {
                 lastAnnotationResults = new ArrayList<>(4);
             }
-            //DO NOT push the ANNOTATION type to the checkTypeStack nor push the applied checks to the checksStack.
-            //Annotations are handled differently and this would lead to the stack corruption and missed problems!!!
+            // DO NOT push the ANNOTATION type to the checkTypeStack nor push the applied checks to the checksStack.
+            // Annotations are handled differently and this would lead to the stack corruption and missed problems!!!
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
-                List<Difference> cps = c
-                    .visitAnnotation(oldElement == null ? null : (AnnotationElement) oldElement,
+                List<Difference> cps = c.visitAnnotation(oldElement == null ? null : (AnnotationElement) oldElement,
                         newElement == null ? null : (AnnotationElement) newElement);
                 if (cps != null) {
                     lastAnnotationResults.addAll(cps);
@@ -183,7 +176,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         } else if (conforms(oldElement, newElement, FieldElement.class)) {
             doRestrictedCheck((FieldElement) oldElement, (FieldElement) newElement, Check.Type.FIELD, possibleChecks);
         } else if (conforms(oldElement, newElement, MethodElement.class)) {
-            doRestrictedCheck((MethodElement) oldElement, (MethodElement) newElement, Check.Type.METHOD, possibleChecks);
+            doRestrictedCheck((MethodElement) oldElement, (MethodElement) newElement, Check.Type.METHOD,
+                    possibleChecks);
         } else if (conforms(oldElement, newElement, MethodParameterElement.class)) {
             doRestrictedCheck((MethodParameterElement) oldElement, (MethodParameterElement) newElement,
                     Check.Type.METHOD_PARAMETER, possibleChecks);
@@ -197,7 +191,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     @Override
-    public boolean isDescendRequired(@Nullable Element oldElement, @Nullable Element newElement) {
+    public boolean isDescendRequired(@Nullable JavaElement oldElement, @Nullable JavaElement newElement) {
         if (oldElement != null && newElement != null) {
             return true;
         }
@@ -217,32 +211,31 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             Collection<Check> possibleChecks) {
         lastAnnotationResults = null;
 
-        if (!(isCheckedElsewhere(oldElement, oldEnvironment)
-                && isCheckedElsewhere(newElement, newEnvironment))) {
+        if (!(isCheckedElsewhere(oldElement, oldEnvironment) && isCheckedElsewhere(newElement, newEnvironment))) {
             checksStack.push(possibleChecks);
             for (Check c : possibleChecks) {
                 Stats.of(c.getClass().getName()).start();
                 switch (interest) {
-                    case FIELD:
-                        c.visitField((FieldElement) oldElement, (FieldElement) newElement);
-                        break;
-                    case METHOD:
-                        c.visitMethod((MethodElement) oldElement, (MethodElement) newElement);
-                        break;
-                    case METHOD_PARAMETER:
-                        c.visitMethodParameter((MethodParameterElement) oldElement, (MethodParameterElement) newElement);
-                        break;
+                case FIELD:
+                    c.visitField((FieldElement) oldElement, (FieldElement) newElement);
+                    break;
+                case METHOD:
+                    c.visitMethod((MethodElement) oldElement, (MethodElement) newElement);
+                    break;
+                case METHOD_PARAMETER:
+                    c.visitMethodParameter((MethodParameterElement) oldElement, (MethodParameterElement) newElement);
+                    break;
                 }
                 Stats.of(c.getClass().getName()).end(oldElement, newElement);
             }
         } else {
-            //"ignore what's on the stack because no checks actually happened".
+            // "ignore what's on the stack because no checks actually happened".
             checksStack.push(emptyList());
         }
     }
 
     @Override
-    public Report endAnalysis(@Nullable Element oldElement, @Nullable Element newElement) {
+    public Report endAnalysis(@Nullable JavaElement oldElement, @Nullable JavaElement newElement) {
         if (oldElement == nonExistenceOldRoot && newElement == nonExistenceNewRoot) {
             nonExistenceMode = false;
             nonExistenceOldRoot = null;
@@ -250,7 +243,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         if (conforms(oldElement, newElement, AnnotationElement.class)) {
-            //the annotations are always reported at the parent element
+            // the annotations are always reported at the parent element
             return new Report(Collections.emptyList(), oldElement, newElement);
         }
 
@@ -300,8 +293,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                     atts.put("exampleUseChainInNewApi", newUseChain.toString());
                 }
 
-                d = Difference.builder().addAttachments(atts).addClassifications(d.classification)
-                    .withCode(d.code).withName(d.name).withDescription(d.description).build();
+                d = Difference.builder().addAttachments(atts).addClassifications(d.classification).withCode(d.code)
+                        .withName(d.name).withDescription(d.description).build();
             }
             it.set(d);
         }
@@ -316,7 +309,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         return ca && cb;
     }
 
-    private Check.Type getCheckType(Element a, Element b) {
+    private Check.Type getCheckType(JavaElement a, JavaElement b) {
         if (a != null) {
             return getCheckType(a);
         } else if (b != null) {
@@ -326,7 +319,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
     }
 
-    private Check.Type getCheckType(Element e) {
+    private Check.Type getCheckType(JavaElement e) {
         if (e instanceof TypeElement) {
             return Check.Type.CLASS;
         } else if (e instanceof AnnotationElement) {
@@ -345,35 +338,35 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     private void append(StringBuilder bld, TypeAndUseSite typeAndUseSite) {
         String message;
         switch (typeAndUseSite.useSite.getUseType()) {
-            case ANNOTATES:
-                message = "revapi.java.uses.annotates";
-                break;
-            case HAS_TYPE:
-                message = "revapi.java.uses.hasType";
-                break;
-            case IS_IMPLEMENTED:
-                message = "revapi.java.uses.isImplemented";
-                break;
-            case IS_INHERITED:
-                message = "revapi.java.uses.isInherited";
-                break;
-            case IS_THROWN:
-                message = "revapi.java.uses.isThrown";
-                break;
-            case PARAMETER_TYPE:
-                message = "revapi.java.uses.parameterType";
-                break;
-            case RETURN_TYPE:
-                message = "revapi.java.uses.returnType";
-                break;
-            case CONTAINS:
-                message = "revapi.java.uses.contains";
-                break;
-            case TYPE_PARAMETER_OR_BOUND:
-                message = "revapi.java.uses.typeParameterOrBound";
-                break;
-            default:
-                throw new AssertionError("Invalid use type: " + typeAndUseSite.useSite.getUseType());
+        case ANNOTATES:
+            message = "revapi.java.uses.annotates";
+            break;
+        case HAS_TYPE:
+            message = "revapi.java.uses.hasType";
+            break;
+        case IS_IMPLEMENTED:
+            message = "revapi.java.uses.isImplemented";
+            break;
+        case IS_INHERITED:
+            message = "revapi.java.uses.isInherited";
+            break;
+        case IS_THROWN:
+            message = "revapi.java.uses.isThrown";
+            break;
+        case PARAMETER_TYPE:
+            message = "revapi.java.uses.parameterType";
+            break;
+        case RETURN_TYPE:
+            message = "revapi.java.uses.returnType";
+            break;
+        case CONTAINS:
+            message = "revapi.java.uses.contains";
+            break;
+        case TYPE_PARAMETER_OR_BOUND:
+            message = "revapi.java.uses.typeParameterOrBound";
+            break;
+        default:
+            throw new AssertionError("Invalid use type: " + typeAndUseSite.useSite.getUseType());
         }
 
         message = messages.getString(message);
@@ -383,7 +376,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         bld.append(message);
     }
 
-    private void appendUses(ProbingEnvironment env, Element element, final StringBuilder bld) {
+    private void appendUses(ProbingEnvironment env, JavaElement element, final StringBuilder bld) {
         LOG.trace("Reporting uses of {}", element);
 
         if (element == null) {
@@ -411,10 +404,9 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         usedType.visitUseSites(new UseSite.Visitor<Object, Void>() {
             @Nullable
             @Override
-            public Object visit(@Nonnull DeclaredType type, @Nonnull UseSite use,
-                                @Nullable Void parameter) {
+            public Object visit(@Nonnull DeclaredType type, @Nonnull UseSite use, @Nullable Void parameter) {
                 if (appendUse(env, usedType, bld, type, use)) {
-                    return Boolean.TRUE; //just a non-null values
+                    return Boolean.TRUE; // just a non-null values
                 }
 
                 return null;
@@ -428,16 +420,14 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }, null);
     }
 
-
     private boolean appendUse(ProbingEnvironment env, JavaTypeElement usedType, StringBuilder bld, DeclaredType type,
-                              UseSite use) {
+            UseSite use) {
 
         if (!use.getUseType().isMovingToApi()) {
             return false;
         }
 
         List<TypeAndUseSite> chain = getExamplePathToApiArchive(env, usedType, type, use);
-        Iterator<TypeAndUseSite> chainIt = chain.iterator();
 
         if (chain.isEmpty()) {
             if (LOG.isDebugEnabled()) {
@@ -447,11 +437,10 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
             return false;
         }
 
-        TypeAndUseSite last = null;
-        if (chainIt.hasNext()) {
-            last = chainIt.next();
-            append(bld, last);
-        }
+        Iterator<TypeAndUseSite> chainIt = chain.iterator();
+
+        TypeAndUseSite last = chainIt.next();
+        append(bld, last);
 
         while (chainIt.hasNext()) {
             bld.append(" <- ");
@@ -460,7 +449,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         String message = MessageFormat.format(messages.getString("revapi.java.uses.partOfApi"),
-            last.useSite.getSite().getFullHumanReadableString());
+                last.useSite.getSite().getFullHumanReadableString());
 
         bld.append(" (").append(message).append(")");
 
@@ -468,7 +457,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     private List<TypeAndUseSite> getExamplePathToApiArchive(ProbingEnvironment env, JavaTypeElement usedType,
-                                                            DeclaredType type, UseSite bottomUse) {
+            DeclaredType type, UseSite bottomUse) {
 
         ArrayList<TypeAndUseSite> ret = new ArrayList<>();
 
@@ -478,8 +467,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     private boolean traverseToApi(ProbingEnvironment env, final JavaTypeElement usedType, final DeclaredType type,
-                                  final UseSite currentUse, final List<TypeAndUseSite> path, final
-                                  Set<javax.lang.model.element.TypeElement> visitedTypes) {
+            final UseSite currentUse, final List<TypeAndUseSite> path,
+            final Set<javax.lang.model.element.TypeElement> visitedTypes) {
 
         if (!currentUse.getUseType().isMovingToApi()) {
             return false;
@@ -491,8 +480,8 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
     }
 
     private boolean appendUseType(ProbingEnvironment env, JavaTypeElement ut, List<TypeAndUseSite> path,
-                               JavaTypeElement usedType, DeclaredType type, UseSite currentUse,
-                               Set<javax.lang.model.element.TypeElement> visitedTypes) {
+            JavaTypeElement usedType, DeclaredType type, UseSite currentUse,
+            Set<javax.lang.model.element.TypeElement> visitedTypes) {
 
         javax.lang.model.element.TypeElement useType = ut.getDeclaringElement();
 
@@ -503,7 +492,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         visitedTypes.add(useType);
 
         if (ut.isInAPI() && !ut.isInApiThroughUse() && !ut.equals(usedType)) {
-            //the class is in the primary API
+            // the class is in the primary API
             path.add(0, new TypeAndUseSite(type, currentUse));
             return true;
         } else {
@@ -511,7 +500,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
                 @Nullable
                 @Override
                 public Boolean visit(@Nonnull DeclaredType visitedType, @Nonnull UseSite use,
-                                     @Nullable Void parameter) {
+                        @Nullable Void parameter) {
                     if (traverseToApi(env, usedType, visitedType, use, path, visitedTypes)) {
                         path.add(0, new TypeAndUseSite(type, currentUse));
                         return true;
@@ -557,7 +546,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
     private JavaTypeElement findClassOf(JavaElement element) {
         while (element != null && !(element instanceof JavaTypeElement)) {
-            element = (JavaElement) element.getParent();
+            element = element.getParent();
         }
 
         return (JavaTypeElement) element;
@@ -577,7 +566,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
         }
 
         JavaModelElement dme = (JavaModelElement) declaredElement;
-        for (Element e : owningElement.getChildren()) {
+        for (JavaElement e : owningElement.getChildren()) {
             if (e instanceof JavaModelElement
                     && ((JavaModelElement) e).getDeclaringElement().equals(dme.getDeclaringElement())) {
                 return (JavaModelElement) e;
@@ -589,7 +578,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer {
 
     private boolean isCheckedElsewhere(JavaModelElement element, ProbingEnvironment env) {
         if (element == null) {
-            //the other element will not be null and therefore we will determine the fact with the other element...
+            // the other element will not be null and therefore we will determine the fact with the other element...
             return true;
         }
 

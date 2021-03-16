@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,24 +16,25 @@
  */
 package org.revapi;
 
-import javax.annotation.Nonnull;
-
 import org.revapi.configuration.Configurable;
 
 /**
- * A reporter is the final stage during the API change analysis. It somehow conveys the found difference reports to
- * some kind of output.
+ * A reporter is the final stage during the API change analysis. It somehow conveys the found difference reports to some
+ * kind of output.
  *
- * <p>Importantly, reporters are {@link org.revapi.configuration.Configurable} and can use the locale defined in the
+ * <p>
+ * Importantly, reporters are {@link org.revapi.configuration.Configurable} and can use the locale defined in the
  * analysis context of the configuration to produce the desired output.
  *
- * <p>The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
+ * <p>
+ * The {@link #close()} is not called if there is no prior call to {@link #initialize(AnalysisContext)}. Do all your
  * resource acquisition in initialize, not during the construction of the object.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface Reporter extends AutoCloseable, Configurable {
 
-    void report(@Nonnull Report report);
+    void report(Report report);
 }

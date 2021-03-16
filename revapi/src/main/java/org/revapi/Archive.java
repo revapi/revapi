@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,31 +19,28 @@ package org.revapi;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.annotation.Nonnull;
-
 /**
  * A simple abstraction of a file or archive. The archive merely has a name and can be opened as a stream.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface Archive {
-    @Nonnull
     String getName();
 
-    @Nonnull
     InputStream openStream() throws IOException;
 
     /**
-     * Extension of the archive interface that can also provide the version of the archive. This can be used by
-     * certain extensions like the {@code SemverIgnoreTransform}.
+     * Extension of the archive interface that can also provide the version of the archive. This can be used by certain
+     * extensions like the {@code SemverIgnoreTransform}.
      * <p>
      * Note that it is the responsibility of the caller of Revapi to provide archives which implement this interface.
      *
      * @since 0.4.1
      */
     interface Versioned extends Archive {
-        @Nonnull String getVersion();
+        String getVersion();
     }
 
     /**

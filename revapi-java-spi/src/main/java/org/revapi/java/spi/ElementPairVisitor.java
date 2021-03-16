@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,8 +29,11 @@ import javax.lang.model.util.SimpleElementVisitor7;
 /**
  * Can be used by various checks and problem transformations to work with two elements of the same type.
  * 
- * <p>Typical usage:
- * <pre><code>
+ * <p>
+ * Typical usage:
+ * 
+ * <pre>
+ * <code>
  *     javax.lang.model.element.Element e1 = ...;
  *     javax.lang.model.element.Element e2 = ...;
  * 
@@ -40,11 +43,13 @@ import javax.lang.model.util.SimpleElementVisitor7;
  *             ...
  *         }
  *     }, e2);
- * </code></pre>
+ * </code>
+ * </pre>
  *
  * @see org.revapi.java.spi.TypeMirrorPairVisitor
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class ElementPairVisitor<R> extends SimpleElementVisitor7<R, Element> {
@@ -60,8 +65,8 @@ public class ElementPairVisitor<R> extends SimpleElementVisitor7<R, Element> {
 
     @Override
     public final R visitPackage(@Nonnull PackageElement element, @Nullable Element otherElement) {
-        return otherElement instanceof PackageElement ? visitPackage(element, (PackageElement) otherElement) :
-            unmatchedAction(element, otherElement);
+        return otherElement instanceof PackageElement ? visitPackage(element, (PackageElement) otherElement)
+                : unmatchedAction(element, otherElement);
     }
 
     protected R visitPackage(@Nonnull PackageElement element, @Nonnull PackageElement otherElement) {
@@ -70,8 +75,8 @@ public class ElementPairVisitor<R> extends SimpleElementVisitor7<R, Element> {
 
     @Override
     public final R visitType(@Nonnull TypeElement element, @Nullable Element otherElement) {
-        return otherElement instanceof TypeElement ? visitType(element, (TypeElement) otherElement) :
-            unmatchedAction(element, otherElement);
+        return otherElement instanceof TypeElement ? visitType(element, (TypeElement) otherElement)
+                : unmatchedAction(element, otherElement);
     }
 
     protected R visitType(@Nonnull TypeElement element, @Nonnull TypeElement otherElement) {
@@ -80,8 +85,8 @@ public class ElementPairVisitor<R> extends SimpleElementVisitor7<R, Element> {
 
     @Override
     public final R visitVariable(@Nonnull VariableElement element, @Nullable Element otherElement) {
-        return otherElement instanceof VariableElement ? visitVariable(element, (VariableElement) otherElement) :
-            unmatchedAction(element, otherElement);
+        return otherElement instanceof VariableElement ? visitVariable(element, (VariableElement) otherElement)
+                : unmatchedAction(element, otherElement);
     }
 
     protected R visitVariable(@Nonnull VariableElement element, @Nonnull VariableElement otherElement) {
@@ -90,8 +95,8 @@ public class ElementPairVisitor<R> extends SimpleElementVisitor7<R, Element> {
 
     @Override
     public final R visitExecutable(@Nonnull ExecutableElement element, @Nullable Element otherElement) {
-        return otherElement instanceof ExecutableElement ? visitExecutable(element, (ExecutableElement) otherElement) :
-            unmatchedAction(element, otherElement);
+        return otherElement instanceof ExecutableElement ? visitExecutable(element, (ExecutableElement) otherElement)
+                : unmatchedAction(element, otherElement);
     }
 
     protected R visitExecutable(@Nonnull ExecutableElement element, @Nonnull ExecutableElement otherElement) {
@@ -100,9 +105,9 @@ public class ElementPairVisitor<R> extends SimpleElementVisitor7<R, Element> {
 
     @Override
     public final R visitTypeParameter(@Nonnull TypeParameterElement element, @Nullable Element otherElement) {
-        return otherElement instanceof TypeParameterElement ? visitTypeParameter(element,
-            (TypeParameterElement) otherElement) :
-            unmatchedAction(element, otherElement);
+        return otherElement instanceof TypeParameterElement
+                ? visitTypeParameter(element, (TypeParameterElement) otherElement)
+                : unmatchedAction(element, otherElement);
     }
 
     protected R visitTypeParameter(@Nonnull TypeParameterElement element, @Nonnull TypeParameterElement otherElement) {

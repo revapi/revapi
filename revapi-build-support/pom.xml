@@ -1,31 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>revapi-parent</artifactId>
         <groupId>org.revapi</groupId>
+        <artifactId>revapi-parent</artifactId>
         <version>14-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
     <artifactId>revapi-build-support</artifactId>
     <version>7-SNAPSHOT</version>
-    <url>https://revapi.org</url>
-
     <name>Revapi Build Support</name>
     <description>Support library for build. As of now it contains checkstyle definitions.</description>
-
+    <url>https://revapi.org</url>
+    <scm>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/revapi/revapi</url>
+    </scm>
     <distributionManagement>
         <site>
             <id>site</id>
             <url>https://revapi.org</url>
         </site>
     </distributionManagement>
-
-    <scm>
-        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
-        <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
-    </scm>
 </project>

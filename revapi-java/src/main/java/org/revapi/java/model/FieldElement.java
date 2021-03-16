@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class FieldElement extends JavaElementBase<VariableElement, TypeMirror> implements JavaFieldElement {
@@ -35,8 +36,14 @@ public final class FieldElement extends JavaElementBase<VariableElement, TypeMir
         super(env, archive, element, type);
     }
 
+    public static String createComparableSignature(VariableElement field) {
+        return field.getSimpleName().toString();
+    }
+
     @SuppressWarnings("ConstantConditions")
-    @Nonnull @Override public JavaTypeElement getParent() {
+    @Nonnull
+    @Override
+    public JavaTypeElement getParent() {
         return (JavaTypeElement) super.getParent();
     }
 
@@ -48,7 +55,7 @@ public final class FieldElement extends JavaElementBase<VariableElement, TypeMir
 
     @Override
     protected String createComparableSignature() {
-        return getDeclaringElement().getSimpleName().toString();
+        return createComparableSignature(getDeclaringElement());
     }
 
     @Override

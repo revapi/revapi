@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,6 +70,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.3.0
  */
 public class ArtifactResolver {
@@ -83,45 +84,50 @@ public class ArtifactResolver {
      * Constructs a dependency selector to be used on a repository session that will cause the maven resolution to
      * return artifacts using the rules fit for Revapi API checking.
      *
-     * @param resolveProvidedDependencies if true, the provided dependencies of the top-level artifacts are considered
-     *                                    when resolving the API (this should generally be true)
-     * @param resolveTransitiveProvidedDependencies if true, the transitive provided dependencies are considered
-     *                                              when resolving the API (this should generally be false)
+     * @param resolveProvidedDependencies
+     *            if true, the provided dependencies of the top-level artifacts are considered when resolving the API
+     *            (this should generally be true)
+     * @param resolveTransitiveProvidedDependencies
+     *            if true, the transitive provided dependencies are considered when resolving the API (this should
+     *            generally be false)
+     * 
      * @return a dependency selector for Maven's repository session
      */
-    public static DependencySelector getRevapiDependencySelector(boolean resolveProvidedDependencies, boolean resolveTransitiveProvidedDependencies) {
-        String[] topLevelScopes = resolveProvidedDependencies
-                ? new String[]{"compile", "provided"}
-                : new String[]{"compile"};
-        String[] transitiveScopes = resolveTransitiveProvidedDependencies
-                ? new String[]{"compile", "provided"}
-                : new String[]{"compile"};
+    public static DependencySelector getRevapiDependencySelector(boolean resolveProvidedDependencies,
+            boolean resolveTransitiveProvidedDependencies) {
+        String[] topLevelScopes = resolveProvidedDependencies ? new String[] { "compile", "provided" }
+                : new String[] { "compile" };
+        String[] transitiveScopes = resolveTransitiveProvidedDependencies ? new String[] { "compile", "provided" }
+                : new String[] { "compile" };
 
         // this is how the dependency selector is initiated in the DefaultRepositorySystemSession of Maven - the only
         // thing we're changing is that we're supplying a different implementation of the scope dependency selector
         // to handle our scope dependency requirements.
         return new AndDependencySelector(new ScopeDependencySelector(topLevelScopes, transitiveScopes),
-                    new OptionalDependencySelector(), new ExclusionDependencySelector());
+                new OptionalDependencySelector(), new ExclusionDependencySelector());
     }
 
     /**
      * Constructs a dependency traverser to be used on a repository session that will cause the maven resolution to
      * return artifacts using the rules fit for Revapi API checking.
      *
-     * @param resolveProvidedDependencies if true, the provided dependencies of the top-level artifacts are considered
-     *                                    when resolving the API (this should generally be true)
-     * @param resolveTransitiveProvidedDependencies if true, the transitive provided dependencies are considered
-     *                                              when resolving the API (this should generally be false)
+     * @param resolveProvidedDependencies
+     *            if true, the provided dependencies of the top-level artifacts are considered when resolving the API
+     *            (this should generally be true)
+     * @param resolveTransitiveProvidedDependencies
+     *            if true, the transitive provided dependencies are considered when resolving the API (this should
+     *            generally be false)
+     * 
      * @return a dependency selector for Maven's repository session
      */
-    public static DependencyTraverser getRevapiDependencyTraverser(boolean resolveProvidedDependencies, boolean resolveTransitiveProvidedDependencies) {
-        String[] topLevelScopes = resolveProvidedDependencies
-                ? new String[]{"compile", "provided"}
-                : new String[]{"compile"};
-        String[] transitiveScopes = resolveTransitiveProvidedDependencies
-                ? new String[]{"compile", "provided"}
-                : new String[]{"compile"};
-        return new AndDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes), new FatArtifactTraverser());
+    public static DependencyTraverser getRevapiDependencyTraverser(boolean resolveProvidedDependencies,
+            boolean resolveTransitiveProvidedDependencies) {
+        String[] topLevelScopes = resolveProvidedDependencies ? new String[] { "compile", "provided" }
+                : new String[] { "compile" };
+        String[] transitiveScopes = resolveTransitiveProvidedDependencies ? new String[] { "compile", "provided" }
+                : new String[] { "compile" };
+        return new AndDependencyTraverser(new ScopeDependencyTraverser(topLevelScopes, transitiveScopes),
+                new FatArtifactTraverser());
     }
 
     public ArtifactResolver(RepositorySystem repositorySystem, RepositorySystemSession session,
@@ -131,26 +137,30 @@ public class ArtifactResolver {
         this.repositories = repositories;
     }
 
-
     public Artifact resolveArtifact(String gav) throws ArtifactResolutionException {
         return resolveArtifact(new DefaultArtifact(gav), session);
     }
 
     /**
-     * Tries to find the newest version of the artifact that matches given regular expression.
-     * The found version will be older than the {@code upToVersion} or newest available if {@code upToVersion} is null.
+     * Tries to find the newest version of the artifact that matches given regular expression. The found version will be
+     * older than the {@code upToVersion} or newest available if {@code upToVersion} is null.
      *
-     * @param gav the coordinates of the artifact. The version part is ignored
-     * @param upToVersion the version up to which the versions will be matched
-     * @param versionMatcher the matcher to match the version
-     * @param remoteOnly true if only remotely available artifacts should be considered
-     * @param upToInclusive whether the {@code upToVersion} should be considered inclusive or exclusive
+     * @param gav
+     *            the coordinates of the artifact. The version part is ignored
+     * @param upToVersion
+     *            the version up to which the versions will be matched
+     * @param versionMatcher
+     *            the matcher to match the version
+     * @param remoteOnly
+     *            true if only remotely available artifacts should be considered
+     * @param upToInclusive
+     *            whether the {@code upToVersion} should be considered inclusive or exclusive
+     * 
      * @return the resolved artifact
      */
     public Artifact resolveNewestMatching(String gav, @Nullable String upToVersion, Pattern versionMatcher,
-                                          boolean remoteOnly, boolean upToInclusive)
+            boolean remoteOnly, boolean upToInclusive)
             throws VersionRangeResolutionException, ArtifactResolutionException {
-
 
         Artifact artifact = new DefaultArtifact(gav);
         artifact = artifact.setVersion(upToVersion == null ? "[,)" : "[," + upToVersion + (upToInclusive ? "]" : ")"));
@@ -163,7 +173,7 @@ public class ArtifactResolver {
         List<Version> versions = new ArrayList<>(result.getVersions());
         Collections.reverse(versions);
 
-        for(Version v : versions) {
+        for (Version v : versions) {
             if (versionMatcher.matcher(v.toString()).matches()) {
                 return resolveArtifact(artifact.setVersion(v.toString()), session);
             }
@@ -267,15 +277,15 @@ public class ArtifactResolver {
         }
     }
 
-    private Artifact resolveArtifact(Artifact artifact, RepositorySystemSession session) throws ArtifactResolutionException {
-        ArtifactRequest request = new ArtifactRequest().setArtifact(artifact)
-                .setRepositories(repositories);
+    private Artifact resolveArtifact(Artifact artifact, RepositorySystemSession session)
+            throws ArtifactResolutionException {
+        ArtifactRequest request = new ArtifactRequest().setArtifact(artifact).setRepositories(repositories);
 
         ArtifactResult result = repositorySystem.resolveArtifact(session, request);
 
         if (!result.isResolved() || result.isMissing()) {
-            throw new ArtifactResolutionException(Collections.singletonList(result), "The artifact was not" +
-                    " resolved or is missing: '" + artifact.toString() + "'.");
+            throw new ArtifactResolutionException(Collections.singletonList(result),
+                    "The artifact was not" + " resolved or is missing: '" + artifact.toString() + "'.");
         }
 
         return result.getArtifact();
@@ -283,38 +293,45 @@ public class ArtifactResolver {
 
     private RepositorySystemSession makeRemoteOnly(RepositorySystemSession session) {
         return new AbstractForwardingRepositorySystemSession() {
-            @Override protected RepositorySystemSession getSession() {
+            @Override
+            protected RepositorySystemSession getSession() {
                 return session;
             }
 
-            @Override public WorkspaceReader getWorkspaceReader() {
+            @Override
+            public WorkspaceReader getWorkspaceReader() {
                 return null;
             }
 
-            @Override public LocalRepositoryManager getLocalRepositoryManager() {
+            @Override
+            public LocalRepositoryManager getLocalRepositoryManager() {
                 LocalRepositoryManager wrapped = session.getLocalRepositoryManager();
                 return new LocalRepositoryManager() {
-                    @Override public LocalRepository getRepository() {
+                    @Override
+                    public LocalRepository getRepository() {
                         return wrapped.getRepository();
                     }
 
-                    @Override public String getPathForLocalArtifact(Artifact artifact) {
+                    @Override
+                    public String getPathForLocalArtifact(Artifact artifact) {
                         return wrapped.getPathForLocalArtifact(artifact);
                     }
 
-                    @Override public String getPathForRemoteArtifact(Artifact artifact, RemoteRepository repository,
-                                                                     String context) {
+                    @Override
+                    public String getPathForRemoteArtifact(Artifact artifact, RemoteRepository repository,
+                            String context) {
                         return wrapped.getPathForRemoteArtifact(artifact, repository, context);
                     }
 
-                    @Override public String getPathForLocalMetadata(Metadata metadata) {
+                    @Override
+                    public String getPathForLocalMetadata(Metadata metadata) {
                         return wrapped.getPathForLocalMetadata(metadata);
                     }
 
-                    @Override public String getPathForRemoteMetadata(Metadata metadata, RemoteRepository repository,
-                                                                     String context) {
-                        return wrapped.getPathForRemoteMetadata(metadata, repository,
-                                context);
+                    @Override
+                    public String getPathForRemoteMetadata(Metadata metadata, RemoteRepository repository,
+                            String context) {
+                        return wrapped.getPathForRemoteMetadata(metadata, repository, context);
                     }
 
                     @Override
@@ -322,15 +339,16 @@ public class ArtifactResolver {
                         return wrapped.find(session, request);
                     }
 
-                    @Override public void add(RepositorySystemSession session, LocalArtifactRegistration request) {
+                    @Override
+                    public void add(RepositorySystemSession session, LocalArtifactRegistration request) {
                         wrapped.add(session, request);
                     }
 
                     @Override
                     public LocalMetadataResult find(RepositorySystemSession session, LocalMetadataRequest request) {
                         if (request.getRepository() == null) {
-                            //local metadata request... the returned file must not be null but may not exist
-                            //we exploit that to not include the locally built results
+                            // local metadata request... the returned file must not be null but may not exist
+                            // we exploit that to not include the locally built results
                             LocalMetadataResult ret = new LocalMetadataResult(request);
                             ret.setFile(new File("<faked-to-force-remote-only-resolution-of-artifacts>"));
                             return ret;
@@ -339,7 +357,8 @@ public class ArtifactResolver {
                         }
                     }
 
-                    @Override public void add(RepositorySystemSession session, LocalMetadataRegistration request) {
+                    @Override
+                    public void add(RepositorySystemSession session, LocalMetadataRegistration request) {
                         wrapped.add(session, request);
                     }
                 };

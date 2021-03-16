@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,7 +85,8 @@ public class CheckSpecificConfigurationTest {
 
         try (Reader rdr = analyzer.getJSONSchema()) {
             ModelNode schema = ModelNode.fromJSONString(slurp(rdr));
-            Assert.assertTrue("boolean".equals(schema.get("properties", "checks", "properties", "testCheck", "type").asString()));
+            Assert.assertTrue(
+                    "boolean".equals(schema.get("properties", "checks", "properties", "testCheck", "type").asString()));
         }
     }
 
@@ -93,6 +94,7 @@ public class CheckSpecificConfigurationTest {
     public void testCheckConfigured() throws Exception {
         class FakeCheck extends CheckBase {
             Boolean testCheck = null;
+
             @Override
             public EnumSet<Type> getInterest() {
                 return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,11 +33,14 @@ import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleTypeVisitor7;
 
 /**
- * Similar to {@link org.revapi.java.spi.ElementPairVisitor} but provides a visitor to visit two type mirrors
- * of the same type.
+ * Similar to {@link org.revapi.java.spi.ElementPairVisitor} but provides a visitor to visit two type mirrors of the
+ * same type.
  * 
- * <p>Typical usage:
- * <pre><code>
+ * <p>
+ * Typical usage:
+ * 
+ * <pre>
+ * <code>
  *     javax.lang.model.type.TypeMirror t1 = ...;
  *     javax.lang.model.type.TypeMirror t2 = ...;
  * 
@@ -47,11 +50,13 @@ import javax.lang.model.util.SimpleTypeVisitor7;
  *             ...
  *         }
  *     }, t2);
- * </code></pre>
+ * </code>
+ * </pre>
  *
  * @see org.revapi.java.spi.ElementPairVisitor
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> {
@@ -67,8 +72,8 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitPrimitive(PrimitiveType type, TypeMirror otherType) {
-        return otherType instanceof PrimitiveType ? visitPrimitive(type, (PrimitiveType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof PrimitiveType ? visitPrimitive(type, (PrimitiveType) otherType)
+                : unmatchedAction(type, otherType);
     }
 
     protected R visitPrimitive(PrimitiveType type, PrimitiveType otherType) {
@@ -77,8 +82,7 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitNull(NullType type, TypeMirror otherType) {
-        return otherType instanceof NullType ? visitNull(type, (NullType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof NullType ? visitNull(type, (NullType) otherType) : unmatchedAction(type, otherType);
     }
 
     protected R visitNull(NullType type, NullType otherType) {
@@ -87,8 +91,8 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitArray(ArrayType type, TypeMirror otherType) {
-        return otherType instanceof ArrayType ? visitArray(type, (ArrayType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof ArrayType ? visitArray(type, (ArrayType) otherType)
+                : unmatchedAction(type, otherType);
     }
 
     protected R visitArray(ArrayType type, ArrayType otherType) {
@@ -97,8 +101,8 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitDeclared(DeclaredType type, TypeMirror otherType) {
-        return otherType instanceof DeclaredType ? visitDeclared(type, (DeclaredType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof DeclaredType ? visitDeclared(type, (DeclaredType) otherType)
+                : unmatchedAction(type, otherType);
     }
 
     protected R visitDeclared(DeclaredType type, DeclaredType otherType) {
@@ -107,8 +111,8 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitError(ErrorType type, TypeMirror otherType) {
-        return otherType instanceof ErrorType ? visitError(type, (ErrorType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof ErrorType ? visitError(type, (ErrorType) otherType)
+                : unmatchedAction(type, otherType);
     }
 
     protected R visitError(ErrorType type, ErrorType otherType) {
@@ -117,8 +121,8 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitTypeVariable(TypeVariable type, TypeMirror otherType) {
-        return otherType instanceof TypeVariable ? visitTypeVariable(type, (TypeVariable) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof TypeVariable ? visitTypeVariable(type, (TypeVariable) otherType)
+                : unmatchedAction(type, otherType);
     }
 
     protected R visitTypeVariable(TypeVariable type, TypeVariable otherType) {
@@ -127,8 +131,8 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitWildcard(WildcardType type, TypeMirror otherType) {
-        return otherType instanceof WildcardType ? visitWildcard(type, (WildcardType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof WildcardType ? visitWildcard(type, (WildcardType) otherType)
+                : unmatchedAction(type, otherType);
     }
 
     protected R visitWildcard(WildcardType type, WildcardType otherType) {
@@ -137,8 +141,8 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitExecutable(ExecutableType type, TypeMirror otherType) {
-        return otherType instanceof ExecutableType ? visitExecutable(type, (ExecutableType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof ExecutableType ? visitExecutable(type, (ExecutableType) otherType)
+                : unmatchedAction(type, otherType);
     }
 
     protected R visitExecutable(ExecutableType type, ExecutableType otherType) {
@@ -147,8 +151,7 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitNoType(NoType type, TypeMirror otherType) {
-        return otherType instanceof NoType ? visitNoType(type, (NoType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof NoType ? visitNoType(type, (NoType) otherType) : unmatchedAction(type, otherType);
     }
 
     protected R visitNoType(NoType type, NoType otherType) {
@@ -157,8 +160,8 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitIntersection(IntersectionType type, TypeMirror otherType) {
-        return otherType instanceof IntersectionType ? visitIntersection(type, (IntersectionType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof IntersectionType ? visitIntersection(type, (IntersectionType) otherType)
+                : unmatchedAction(type, otherType);
     }
 
     protected R visitIntersection(IntersectionType type, IntersectionType otherType) {
@@ -167,8 +170,8 @@ public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> 
 
     @Override
     public final R visitUnion(UnionType type, TypeMirror otherType) {
-        return otherType instanceof UnionType ? visitUnion(type, (UnionType) otherType) :
-            unmatchedAction(type, otherType);
+        return otherType instanceof UnionType ? visitUnion(type, (UnionType) otherType)
+                : unmatchedAction(type, otherType);
     }
 
     protected R visitUnion(UnionType type, UnionType otherType) {

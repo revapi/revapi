@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.11.0
  */
 public final class FieldMovedInHierarchy extends MovedInHierarchy {
@@ -33,11 +34,13 @@ public final class FieldMovedInHierarchy extends MovedInHierarchy {
         super(Code.FIELD_MOVED_TO_SUPER_CLASS, Code.FIELD_INHERITED_NOW_DECLARED);
     }
 
-    @Override public EnumSet<Type> getInterest() {
+    @Override
+    public EnumSet<Type> getInterest() {
         return EnumSet.of(Type.FIELD);
     }
 
-    @Override protected void doVisitField(@Nullable JavaFieldElement oldField, @Nullable JavaFieldElement newField) {
+    @Override
+    protected void doVisitField(@Nullable JavaFieldElement oldField, @Nullable JavaFieldElement newField) {
         doVisit(oldField, newField);
     }
 }

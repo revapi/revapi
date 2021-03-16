@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,10 +54,12 @@ import org.revapi.configuration.JSONUtil;
 /**
  * An analysis context is an aggregation of the APIs to check and configuration for the analysis.
  *
- * <p>The analysis context can also contain arbitrary data that can be then accessed by the extensions. This can be used
- * to pass runtime data to the extensions that cannot be captured by their configurations.
+ * <p>
+ * The analysis context can also contain arbitrary data that can be then accessed by the extensions. This can be used to
+ * pass runtime data to the extensions that cannot be captured by their configurations.
  *
- * <p>The configuration accepted by the builder is actually of 2 forms.
+ * <p>
+ * The configuration accepted by the builder is actually of 2 forms.
  * <ol>
  * <li>The "old style" configuration where each extension could be configured at most once
  * <li>The "new style" configuration that enables multiple configurations for each extension and is more easily
@@ -67,7 +68,9 @@ import org.revapi.configuration.JSONUtil;
  * <p>
  * In the old format, the configuration of an extension was nested inside objects corresponding to its exploded
  * extension id. E.g. if the extension had an id of "my.extension", the configuration would look like:
- * <pre><code>
+ * 
+ * <pre>
+ * <code>
  *     {
  *         "my": {
  *             "extension": {
@@ -75,17 +78,22 @@ import org.revapi.configuration.JSONUtil;
  *             }
  *         }
  *     }
- * </code></pre>
- * The original idea for doing things this way was that such configuration is easily mergeable
- * (e.g. when configuration is split across multiple files). There can be only one configuration for each extension and
- * each extension resides in a different "section" of the configuration. The nesting provides for a seemingly logical
- * structure of the configuration.
+ * </code>
+ * </pre>
+ * 
+ * The original idea for doing things this way was that such configuration is easily mergeable (e.g. when configuration
+ * is split across multiple files). There can be only one configuration for each extension and each extension resides in
+ * a different "section" of the configuration. The nesting provides for a seemingly logical structure of the
+ * configuration.
  *
- * <p>On the other hand the new configuration format is different. It stresses the possibility of having more than 1
+ * <p>
+ * On the other hand the new configuration format is different. It stresses the possibility of having more than 1
  * configuration for an extension and is more easily translatable into XML. On the other hand it is not that well nested
  * as the old configuration style so it might not look that well logically structured. The new configuration looks like
  * this:
- * <pre><code>
+ * 
+ * <pre>
+ * <code>
  *     [
  *         {
  *             "extension": "my.extension",
@@ -101,34 +109,43 @@ import org.revapi.configuration.JSONUtil;
  *             }
  *         }
  *     ]
- * </code></pre>
+ * </code>
+ * </pre>
+ * 
  * Notice that configurations for different extensions (as well as different configurations for the same extension) are
  * contained in a top level list. The configurations of different extensions are therefore no longer nested inside each
  * other, but are "laid out" sequentially.
  *
- * <p>Each such configuration can optionally be identified by an arbitrary ID which can be used during merging of
+ * <p>
+ * Each such configuration can optionally be identified by an arbitrary ID which can be used during merging of
  * configuration from multiple sources.
  *
- * <p><b>Merging Configurations</b>
+ * <p>
+ * <b>Merging Configurations</b>
  *
- * <p>As was the case with the old style configurations, the new style configurations can also be merged into each other
+ * <p>
+ * As was the case with the old style configurations, the new style configurations can also be merged into each other
  * enabling composition of the final analysis configuration from multiple sources. Because each extension can be
  * configured multiple times in the new style configuration, the identification of the configs to merge is slightly more
  * complicated than it used to.
  *
- * <p>As long as the "master" configuration and "mergee" configuration contain ids for each configuration of each
- * extension things are simple. Configurations for the same extension with the same ID are merged together, otherwise
- * their added to the list of all extension configurations.
+ * <p>
+ * As long as the "master" configuration and "mergee" configuration contain ids for each configuration of each extension
+ * things are simple. Configurations for the same extension with the same ID are merged together, otherwise their added
+ * to the list of all extension configurations.
  *
- * <p>Things get a little bit more complex when the configurations don't have an explicit ID. This use case is supported
+ * <p>
+ * Things get a little bit more complex when the configurations don't have an explicit ID. This use case is supported
  * for seamless conversion from old style configuration (where it didn't make sense to have any kind of configuration
  * ID) to new style configurations that we support now (after all there are quite some clients already having their
  * configurations set up and it would be bad to force them to rewrite them all).
  *
- * <p>Simply put, id-less configurations are mergeable as long as the master configuration contains only a single
+ * <p>
+ * Simply put, id-less configurations are mergeable as long as the master configuration contains only a single
  * configuration for given extension and there is just 1 id-less configuration for given extension in the "mergee".
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class AnalysisContext {
@@ -145,23 +162,29 @@ public final class AnalysisContext {
     /**
      * Constructor
      *
-     * @param locale        the locale the analysis reporters should use
-     * @param configuration configuration represented as DMR node
-     * @param oldApi        the old API
-     * @param newApi        the new API
-     * @param data          the data that should be attached to the analysis context
+     * @param locale
+     *            the locale the analysis reporters should use
+     * @param configuration
+     *            configuration represented as DMR node
+     * @param oldApi
+     *            the old API
+     * @param newApi
+     *            the new API
+     * @param data
+     *            the data that should be attached to the analysis context
+     * 
      * @deprecated use jackson-based methods
      */
     @Deprecated
-    private AnalysisContext(@Nonnull Locale locale, @Nullable ModelNode configuration, @Nonnull API oldApi,
-            @Nonnull API newApi, Collection<ElementMatcher> elementMatchers, @Nonnull Map<String, Object> data,
+    private AnalysisContext(Locale locale, @Nullable ModelNode configuration, API oldApi, API newApi,
+            Collection<ElementMatcher> elementMatchers, Map<String, Object> data,
             Collection<Criticality> knownCriticalities, Map<DifferenceSeverity, Criticality> defaultSeverityMapping) {
         this(locale, JSONUtil.convert(configuration), oldApi, newApi, elementMatchers, data, knownCriticalities,
                 defaultSeverityMapping);
     }
 
-    private AnalysisContext(@Nonnull Locale locale, @Nullable JsonNode configuration, @Nonnull API oldApi,
-            @Nonnull API newApi, Collection<ElementMatcher> elementMatchers, @Nonnull Map<String, Object> data,
+    private AnalysisContext(Locale locale, @Nullable JsonNode configuration, API oldApi, API newApi,
+            Collection<ElementMatcher> elementMatchers, Map<String, Object> data,
             Collection<Criticality> knownCriticalities, Map<DifferenceSeverity, Criticality> defaultSeverityMapping) {
         this.locale = locale;
         if (configuration == null) {
@@ -171,36 +194,39 @@ public final class AnalysisContext {
         }
         this.oldApi = oldApi;
         this.newApi = newApi;
-        this.matchers = elementMatchers == null
-                ? Collections.emptyMap()
-                : Collections.unmodifiableMap(elementMatchers.stream()
-                .collect(Collectors.toMap(Configurable::getExtensionId, Function.identity())));
+        this.matchers = elementMatchers == null ? Collections.emptyMap() : Collections.unmodifiableMap(
+                elementMatchers.stream().collect(Collectors.toMap(Configurable::getExtensionId, Function.identity())));
         this.data = data;
         this.criticalityByName = knownCriticalities.stream().collect(toMap(Criticality::getName, identity()));
         this.defaultSeverityMapping = defaultSeverityMapping;
     }
 
     /**
-     * Returns a new analysis context builder that extracts the information about the available extensions from
-     * the provided Revapi instance.
+     * Returns a new analysis context builder that extracts the information about the available extensions from the
+     * provided Revapi instance.
      *
-     * <p>The extensions have to be known so that both old and new style of configuration can be usefully worked with.
+     * <p>
+     * The extensions have to be known so that both old and new style of configuration can be usefully worked with.
      *
-     * @param revapi the revapi instance to read the available extensions from
+     * @param revapi
+     *            the revapi instance to read the available extensions from
+     * 
      * @return a new analysis context builder
      */
     public static Builder builder(Revapi revapi) {
         return builder(revapi.getPipelineConfiguration());
     }
 
-
     /**
-     * Returns a new analysis context builder that extracts the information about the available extensions from
-     * the provided pipeline configuration.
+     * Returns a new analysis context builder that extracts the information about the available extensions from the
+     * provided pipeline configuration.
      *
-     * <p>The extensions have to be known so that both old and new style of configuration can be usefully worked with.
+     * <p>
+     * The extensions have to be known so that both old and new style of configuration can be usefully worked with.
      *
-     * @param pipelineConfiguration the pipeline configuration to initialize from
+     * @param pipelineConfiguration
+     *            the pipeline configuration to initialize from
+     * 
      * @return a new analysis context builder
      */
     public static Builder builder(PipelineConfiguration pipelineConfiguration) {
@@ -217,10 +243,11 @@ public final class AnalysisContext {
     }
 
     /**
-     * This method can be used to instantiate a new analysis context builder without the need for prior instantiation
-     * of Revapi. Such builder is only able to process a new-style configuration though!
+     * This method can be used to instantiate a new analysis context builder without the need for prior instantiation of
+     * Revapi. Such builder is only able to process a new-style configuration though!
      *
-     * <p>This analysis context will also always uses the default criticalities and severity-to-criticality mapping.
+     * <p>
+     * This analysis context will also always uses the default criticalities and severity-to-criticality mapping.
      *
      * @return a new analysis context builder
      */
@@ -232,9 +259,12 @@ public final class AnalysisContext {
      * This is generally only useful for extensions that delegate some of their functionality to other "internal"
      * extensions of their own that they need to configure.
      *
-     * @param configuration the configuration to be supplied with the returned analysis context.
+     * @param configuration
+     *            the configuration to be supplied with the returned analysis context.
+     * 
      * @return an analysis context that is a clone of this instance but its configuration is replaced with the provided
-     * one.
+     *         one.
+     * 
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
@@ -247,9 +277,11 @@ public final class AnalysisContext {
      * This is generally only useful for extensions that delegate some of their functionality to other "internal"
      * extensions of their own that they need to configure.
      *
-     * @param configuration the configuration to be supplied with the returned analysis context.
+     * @param configuration
+     *            the configuration to be supplied with the returned analysis context.
+     * 
      * @return an analysis context that is a clone of this instance but its configuration is replaced with the provided
-     * one.
+     *         one.
      */
     public AnalysisContext copyWithConfiguration(JsonNode configuration) {
         return new AnalysisContext(this.locale, configuration, this.oldApi, this.newApi, this.matchers.values(),
@@ -257,10 +289,12 @@ public final class AnalysisContext {
     }
 
     /**
-     * A helper method to instantiate a new analysis context with the provided set of matchers.
-     * This is only meant to be used during analysis initialization.
+     * A helper method to instantiate a new analysis context with the provided set of matchers. This is only meant to be
+     * used during analysis initialization.
      *
-     * @param matchers the list of matchers to provide through this context
+     * @param matchers
+     *            the list of matchers to provide through this context
+     * 
      * @return a copy of this instance with the provided matchers replacing any existing in this instance
      */
     public AnalysisContext copyWithMatchers(Set<ElementMatcher> matchers) {
@@ -268,7 +302,6 @@ public final class AnalysisContext {
                 this.criticalityByName.values(), this.defaultSeverityMapping);
     }
 
-    @Nonnull
     public Locale getLocale() {
         return locale;
     }
@@ -277,30 +310,26 @@ public final class AnalysisContext {
      * @deprecated use {@link #getConfigurationNode()} instead
      */
     @Deprecated
-    @Nonnull
     public ModelNode getConfiguration() {
         return JSONUtil.convert(configuration);
     }
 
     /**
-     * Returns the configuration node. This is never null. If the configuration is not present
-     * a {@link com.fasterxml.jackson.databind.node.NullNode} is returned.
+     * Returns the configuration node. This is never null. If the configuration is not present a
+     * {@link com.fasterxml.jackson.databind.node.NullNode} is returned.
      */
     public JsonNode getConfigurationNode() {
         return configuration;
     }
 
-    @Nonnull
     public API getOldApi() {
         return oldApi;
     }
 
-    @Nonnull
     public API getNewApi() {
         return newApi;
     }
 
-    @Nonnull
     public Map<String, ElementMatcher> getMatchers() {
         return matchers;
     }
@@ -319,19 +348,17 @@ public final class AnalysisContext {
         return defaultSeverityMapping.get(severity);
     }
 
-    private static <T extends Configurable>
-    void addExtensionIds(Collection<Class<? extends T>> cs, List<String> extensionIds) {
-        cs.stream()
-                .map(AnalysisContext::instantiate)
-                .map(Configurable::getExtensionId)
-                .filter(Objects::nonNull)
+    private static <T extends Configurable> void addExtensionIds(Collection<Class<? extends T>> cs,
+            List<String> extensionIds) {
+        cs.stream().map(AnalysisContext::instantiate).map(Configurable::getExtensionId).filter(Objects::nonNull)
                 .forEach(extensionIds::add);
     }
 
     private static <T> T instantiate(Class<T> cls) {
         try {
             return cls.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException
+                | InvocationTargetException e) {
             throw new IllegalStateException("Class " + cls + " does not have a public no-arg constructor.", e);
         }
     }
@@ -396,10 +423,14 @@ public final class AnalysisContext {
         /**
          * Tries to merge the provided configuration into the already existing one.
          *
-         * <p>See the {@link AnalysisContext} documentation for detailed explanation of the merging logic.
+         * <p>
+         * See the {@link AnalysisContext} documentation for detailed explanation of the merging logic.
          *
-         * @param config the configuration to merge
+         * @param config
+         *            the configuration to merge
+         * 
          * @return this builder
+         * 
          * @deprecated use the Jackson-based variant
          */
         @Deprecated
@@ -414,9 +445,12 @@ public final class AnalysisContext {
         /**
          * Tries to merge the provided configuration into the already existing one.
          *
-         * <p>See the {@link AnalysisContext} documentation for detailed explanation of the merging logic.
+         * <p>
+         * See the {@link AnalysisContext} documentation for detailed explanation of the merging logic.
          *
-         * @param config the configuration to merge
+         * @param config
+         *            the configuration to merge
+         * 
          * @return this builder
          */
         public Builder mergeConfiguration(JsonNode config) {
@@ -455,8 +489,8 @@ public final class AnalysisContext {
         }
 
         public AnalysisContext build() {
-            return new AnalysisContext(locale, configuration, oldApi, newApi, Collections.emptySet(), data, knownCriticalities,
-                    defaultSeverityMapping);
+            return new AnalysisContext(locale, configuration, oldApi, newApi, Collections.emptySet(), data,
+                    knownCriticalities, defaultSeverityMapping);
         }
 
         private ArrayNode convertToNewStyle(JsonNode configuration) {
@@ -471,9 +505,9 @@ public final class AnalysisContext {
                         boolean added = idsByExtension.computeIfAbsent(extension, x -> new HashSet<>(2)).add(id);
                         if (!added) {
                             throw new IllegalArgumentException(
-                                    "A configuration cannot contain 2 extension configurations with the same id. " +
-                                            "At least 2 extension configurations of extension '" + extension +
-                                            "' have the id '" + id + "'.");
+                                    "A configuration cannot contain 2 extension configurations with the same id. "
+                                            + "At least 2 extension configurations of extension '" + extension
+                                            + "' have the id '" + id + "'.");
                         }
                     }
                 }
@@ -483,14 +517,13 @@ public final class AnalysisContext {
 
             if (knownExtensionIds == null) {
                 throw new IllegalArgumentException(
-                        "The analysis context builder wasn't supplied with the list of known extension ids," +
-                                " so it only can process new-style configurations.");
+                        "The analysis context builder wasn't supplied with the list of known extension ids,"
+                                + " so it only can process new-style configurations.");
             }
 
             ArrayNode newStyleConfig = JsonNodeFactory.instance.arrayNode();
 
-            extensionScan:
-            for (String extensionId : knownExtensionIds) {
+            extensionScan: for (String extensionId : knownExtensionIds) {
                 String[] explodedId = extensionId.split("\\.");
 
                 JsonNode extConfig = configuration;
@@ -546,30 +579,31 @@ public final class AnalysisContext {
             Map<String, List<ObjectNode>> idlessBByExtensionId = new HashMap<>(4);
             splitByExtensionAndId(b, bByExtensionAndId, idlessBByExtensionId);
 
-            //we cannot merge if:
-            //1) "a" contains 2 or more (idless or not) for an extension and b contains at least 1 idless for an extension
-            //2) "a" contains at least 1 for an extension and b contains 2 or more idless for an extension
+            // we cannot merge if:
+            // 1) "a" contains 2 or more (idless or not) for an extension and b contains at least 1 idless for an
+            // extension
+            // 2) "a" contains at least 1 for an extension and b contains 2 or more idless for an extension
             Stream.concat(aByExtensionAndId.keySet().stream(), idlessAByExtensionId.keySet().stream()).forEach(ext -> {
                 int aCnt = idlessAByExtensionId.getOrDefault(ext, emptyList()).size()
                         + aByExtensionAndId.getOrDefault(ext, emptyMap()).size();
 
                 int bCnt = idlessBByExtensionId.getOrDefault(ext, emptyList()).size();
 
-                //rule 1
+                // rule 1
                 if (aCnt > 1 && bCnt > 0) {
                     throw new IllegalArgumentException(
-                            "The configuration already contains more than 1 configuration for extension " +
-                                    ext + ". Cannot determine which one of them to merge" +
-                                    " the new configuration(s) (which don't have an explicit ID) into.");
+                            "The configuration already contains more than 1 configuration for extension " + ext
+                                    + ". Cannot determine which one of them to merge"
+                                    + " the new configuration(s) (which don't have an explicit ID) into.");
                 }
 
-                //rule 2
+                // rule 2
                 if (aCnt > 0 && bCnt > 1) {
                     throw new IllegalArgumentException(
-                            "The configuration already contains 1 or more configurations for extension " +
-                                    ext + ". At the same time, the configuration to merge already contains 2 or more" +
-                                    " configurations for the same extension without an explicit ID." +
-                                    " Cannot figure out how to merge these together.");
+                            "The configuration already contains 1 or more configurations for extension " + ext
+                                    + ". At the same time, the configuration to merge already contains 2 or more"
+                                    + " configurations for the same extension without an explicit ID."
+                                    + " Cannot figure out how to merge these together.");
                 }
             });
 
@@ -585,7 +619,8 @@ public final class AnalysisContext {
                             List<String> path = new ArrayList<>(4);
                             path.addAll(Arrays.asList("[" + bcIdx + "]", "configuration"));
                             ObjectNode o = idless.get(0);
-                            mergeNodes(bcExtension, null, path, o, "configuration", o.get("configuration"), bc.get("configuration"));
+                            mergeNodes(bcExtension, null, path, o, "configuration", o.get("configuration"),
+                                    bc.get("configuration"));
                         }
                     } else {
                         Map<String, ObjectNode> aExtensions = aByExtensionAndId.get(bcExtension);
@@ -598,7 +633,8 @@ public final class AnalysisContext {
                         path.addAll(Arrays.asList("[" + bcIdx + "]", "configuration"));
 
                         ObjectNode aConfig = aExtensions.values().iterator().next();
-                        mergeNodes(bcExtension, null, path, aConfig, "configuration", aConfig.get("configuration"), bc.get("configuration"));
+                        mergeNodes(bcExtension, null, path, aConfig, "configuration", aConfig.get("configuration"),
+                                bc.get("configuration"));
                     }
                 } else {
                     Map<String, ObjectNode> aExtensions = aByExtensionAndId.get(bcExtension);
@@ -655,9 +691,9 @@ public final class AnalysisContext {
             default:
                 if (a != null) {
                     String p = String.join("/", path);
-                    throw new IllegalArgumentException(
-                            "A conflict detected while merging configurations of extension '" + extension +
-                                    "' with id '" + id + "'. A value on path '" + p + "' would overwrite an already existing one.");
+                    throw new IllegalArgumentException("A conflict detected while merging configurations of extension '"
+                            + extension + "' with id '" + id + "'. A value on path '" + p
+                            + "' would overwrite an already existing one.");
                 } else {
                     aParent.set(parentKey, b);
                 }

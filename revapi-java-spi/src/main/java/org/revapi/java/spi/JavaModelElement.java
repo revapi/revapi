@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import javax.lang.model.type.TypeMirror;
  * implement this interface.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface JavaModelElement extends JavaElement {
@@ -51,14 +52,27 @@ public interface JavaModelElement extends JavaElement {
     Element getDeclaringElement();
 
     /**
-     * Each {@link JavaTypeElement} contains as its children not only the elements that are declared on the type
-     * but also elements that it inherits from its super types (with type parameters "instantiated" according to the
-     * actual type).
+     * Each {@link JavaTypeElement} contains as its children not only the elements that are declared on the type but
+     * also elements that it inherits from its super types (with type parameters "instantiated" according to the actual
+     * type).
      *
-     * <p>This flag indicates if this is a child of type that is directly declared on it ({@code false}) or if it is
-     * an instantiation of an inherited element ({@code true}).
+     * <p>
+     * This flag indicates if this is a child of type that is directly declared on it ({@code false}) or if it is an
+     * instantiation of an inherited element ({@code true}).
      *
      * @return false if the parent type declares this child element, true if it is inherited from a super type
      */
     boolean isInherited();
+
+    /**
+     * @return the closest parent that is a java type element.
+     */
+    default @Nullable JavaTypeElement getParentType() {
+        JavaElement parent = getParent();
+        while (parent != null && !(parent instanceof JavaTypeElement)) {
+            parent = parent.getParent();
+        }
+
+        return (JavaTypeElement) parent;
+    }
 }

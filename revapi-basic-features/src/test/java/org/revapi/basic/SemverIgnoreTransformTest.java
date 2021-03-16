@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,32 +33,28 @@ import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.DifferenceTransform;
-import org.revapi.Element;
+import org.revapi.base.BaseElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.5
  */
 public class SemverIgnoreTransformTest {
 
-    private static final Difference NON_BREAKING =
-            new Difference("nonBreaking", "nonBrekaing", "blah", CompatibilityType.OTHER,
-                    DifferenceSeverity.NON_BREAKING,
-                    Collections.emptyMap());
+    private static final Difference NON_BREAKING = new Difference("nonBreaking", "nonBrekaing", "blah",
+            CompatibilityType.OTHER, DifferenceSeverity.NON_BREAKING, Collections.emptyMap());
 
-    private static final Difference POTENTIALLY_BREAKING =
-            new Difference("potentiallyBreaking", "potentiallyBreaking", "blah", CompatibilityType.OTHER,
-                    DifferenceSeverity.POTENTIALLY_BREAKING,
-                    Collections.emptyMap());
+    private static final Difference POTENTIALLY_BREAKING = new Difference("potentiallyBreaking", "potentiallyBreaking",
+            "blah", CompatibilityType.OTHER, DifferenceSeverity.POTENTIALLY_BREAKING, Collections.emptyMap());
 
-    private static final Difference BREAKING =
-            new Difference("breaking", "breaking", "blah", CompatibilityType.OTHER,
-                    DifferenceSeverity.BREAKING,
-                    Collections.emptyMap());
+    private static final Difference BREAKING = new Difference("breaking", "breaking", "blah", CompatibilityType.OTHER,
+            DifferenceSeverity.BREAKING, Collections.emptyMap());
 
     @Test
     public void testDisabledByDefault() {
-        DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {}}]");
+        DifferenceTransform<DummyElement> tr = getTestTransform("0.0.0", "0.0.1",
+                "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {}}]");
         Assert.assertSame(NON_BREAKING, transformAndAssumeOne(tr, null, null, NON_BREAKING));
         Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
         Assert.assertSame(BREAKING, transformAndAssumeOne(tr, null, null, BREAKING));
@@ -68,7 +64,7 @@ public class SemverIgnoreTransformTest {
     public void testDefaultSeverities() {
         String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]";
 
-        DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", config);
+        DifferenceTransform<DummyElement> tr = getTestTransform("0.0.0", "0.0.1", config);
         Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
@@ -101,11 +97,10 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testSeverityOverrides() {
-        String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true," +
-                "\"versionIncreaseAllows\":{\"major\":\"potentiallyBreaking\",\"minor\":\"nonBreaking\",\"patch\": \"none\"}}}]";
+        String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true,"
+                + "\"versionIncreaseAllows\":{\"major\":\"potentiallyBreaking\",\"minor\":\"nonBreaking\",\"patch\": \"none\"}}}]";
 
-
-        DifferenceTransform<?> tr = getTestTransform("0.0.0", "0.0.1", config);
+        DifferenceTransform<DummyElement> tr = getTestTransform("0.0.0", "0.0.1", config);
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, NON_BREAKING)));
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING)));
         Assert.assertTrue(isBreaking(transformAndAssumeOne(tr, null, null, BREAKING)));
@@ -140,7 +135,7 @@ public class SemverIgnoreTransformTest {
     public void testPassthrough() {
         String config = "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true, \"passThroughDifferences\": [\"potentiallyBreaking\"]}}]";
 
-        DifferenceTransform<?> tr = getTestTransform("1.0.0", "2.0.0", config);
+        DifferenceTransform<DummyElement> tr = getTestTransform("1.0.0", "2.0.0", config);
 
         Assert.assertNull(transformAndAssumeOne(tr, null, null, NON_BREAKING));
         Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
@@ -149,7 +144,8 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testNoOldVersion() {
-        DifferenceTransform<?> tr = getTestTransform(null, "15", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
+        DifferenceTransform<DummyElement> tr = getTestTransform(null, "15",
+                "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
         Assert.assertSame(NON_BREAKING, transformAndAssumeOne(tr, null, null, NON_BREAKING));
         Assert.assertSame(POTENTIALLY_BREAKING, transformAndAssumeOne(tr, null, null, POTENTIALLY_BREAKING));
         Assert.assertSame(BREAKING, transformAndAssumeOne(tr, null, null, BREAKING));
@@ -157,7 +153,8 @@ public class SemverIgnoreTransformTest {
 
     @Test
     public void testAppliesNameAndDescriptionChangesOnlyOnce() {
-        DifferenceTransform<?> tr = getTestTransform("1.0.0", "1.0.1", "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
+        DifferenceTransform<DummyElement> tr = getTestTransform("1.0.0", "1.0.1",
+                "[{\"extension\": \"revapi.semver.ignore\", \"configuration\": {\"enabled\": true}}]");
 
         Difference transformed = tr.transform(null, null, POTENTIALLY_BREAKING);
         Assert.assertNotNull(transformed);
@@ -168,29 +165,37 @@ public class SemverIgnoreTransformTest {
     }
 
     private boolean isBreaking(Difference difference) {
-        return difference != null && difference.classification.values().stream().anyMatch(ds -> ds == DifferenceSeverity.BREAKING);
+        return difference != null
+                && difference.classification.values().stream().anyMatch(ds -> ds == DifferenceSeverity.BREAKING);
     }
 
-    private DifferenceTransform<Element> getTestTransform(String oldVersion, String newVersion,
-                                                          String configuration) {
+    private DifferenceTransform<DummyElement> getTestTransform(String oldVersion, String newVersion,
+            String configuration) {
 
-        API oldApi = oldVersion != null
-                ? API.of(new Ar(oldVersion)).build()
-                : API.of().build();
+        API oldApi = oldVersion != null ? API.of(new Ar(oldVersion)).build() : API.of().build();
 
-        API newApi = newVersion != null
-                ? API.of(new Ar(newVersion)).build()
-                : API.of().build();
+        API newApi = newVersion != null ? API.of(new Ar(newVersion)).build() : API.of().build();
 
-        AnalysisContext ctx = Util.setAnalysisContextFullConfig(AnalysisContext.builder()
-                .withOldAPI(oldApi)
-                .withNewAPI(newApi), SemverIgnoreTransform.class, configuration);
+        AnalysisContext ctx = Util.setAnalysisContextFullConfig(
+                AnalysisContext.builder().withOldAPI(oldApi).withNewAPI(newApi), SemverIgnoreTransform.class,
+                configuration);
 
-        SemverIgnoreTransform tr = new SemverIgnoreTransform();
+        SemverIgnoreTransform<DummyElement> tr = new SemverIgnoreTransform<>();
 
         tr.initialize(ctx);
 
         return tr;
+    }
+
+    private static final class DummyElement extends BaseElement<DummyElement> {
+        public DummyElement(API api) {
+            super(api);
+        }
+
+        @Override
+        public int compareTo(DummyElement o) {
+            return 0;
+        }
     }
 
     private static final class Ar implements Archive.Versioned {
@@ -201,15 +206,21 @@ public class SemverIgnoreTransformTest {
             this.version = version;
         }
 
-        @Nonnull @Override public String getVersion() {
+        @Nonnull
+        @Override
+        public String getVersion() {
             return version;
         }
 
-        @Nonnull @Override public String getName() {
+        @Nonnull
+        @Override
+        public String getName() {
             return null;
         }
 
-        @Nonnull @Override public InputStream openStream() throws IOException {
+        @Nonnull
+        @Override
+        public InputStream openStream() throws IOException {
             return null;
         }
     }

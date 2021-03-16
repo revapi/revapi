@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +21,12 @@ import java.util.regex.Pattern;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
  */
 final class Version implements Cloneable {
-    private static final Pattern SEMVER_PATTERN =
-            Pattern.compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*))?(\\.|-|\\+)?([0-9A-Za-z-.]*)?");
+    private static final Pattern SEMVER_PATTERN = Pattern
+            .compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*))?(\\.|-|\\+)?([0-9A-Za-z-.]*)?");
 
     private int major;
     private int minor;
@@ -36,8 +37,8 @@ final class Version implements Cloneable {
     static Version parse(String version) {
         Matcher m = SEMVER_PATTERN.matcher(version);
         if (!m.matches()) {
-            throw new IllegalArgumentException("Could not update the version string '" + version
-                    + ". It does not follow semver schema.");
+            throw new IllegalArgumentException(
+                    "Could not update the version string '" + version + ". It does not follow semver schema.");
         }
 
         int major = Integer.valueOf(m.group(1));
@@ -125,7 +126,8 @@ final class Version implements Cloneable {
                 + (suffix == null ? "" : suffix);
     }
 
-    @Override public Version clone() {
+    @Override
+    public Version clone() {
         try {
             return (Version) super.clone();
         } catch (CloneNotSupportedException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@ import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class AnnotationTypeAttributeRemoved implements DifferenceTransform<JavaModelElement> {
@@ -41,7 +42,7 @@ public class AnnotationTypeAttributeRemoved implements DifferenceTransform<JavaM
     private final Pattern[] codes;
 
     public AnnotationTypeAttributeRemoved() {
-        codes = new Pattern[]{Pattern.compile("^" + Pattern.quote(Code.METHOD_REMOVED.code()) + "$")};
+        codes = new Pattern[] { Pattern.compile("^" + Pattern.quote(Code.METHOD_REMOVED.code()) + "$") };
     }
 
     @Nonnull
@@ -70,7 +71,7 @@ public class AnnotationTypeAttributeRemoved implements DifferenceTransform<JavaM
     @Nullable
     @Override
     public Difference transform(@Nullable JavaModelElement oldElement, @Nullable JavaModelElement newElement,
-        @Nonnull Difference difference) {
+            @Nonnull Difference difference) {
 
         if (oldElement == null) {
             throw new IllegalStateException("Annotation type attribute detection called with one of the elements null."

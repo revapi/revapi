@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,25 +16,15 @@
  */
 package org.revapi.java.spi;
 
-import java.util.SortedSet;
-
-import javax.annotation.Nonnull;
-
 import org.revapi.Element;
 
 /**
- * Basic interface that all Revapi elements modelling the Java AST satisfy.
- * The methods on this interface are provided so that it is possible to write {@link
- * org.revapi.DifferenceTransform
- * problem transforms} without needing to somehow initialize the environment the java element is present in.
+ * Base interface that all Revapi elements modelling the Java AST satisfy.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
-public interface JavaElement extends Element {
-    @Nonnull
+public interface JavaElement extends Element<JavaElement> {
     TypeEnvironment getTypeEnvironment();
-
-    @Override
-    SortedSet<? extends JavaElement> getChildren();
 }

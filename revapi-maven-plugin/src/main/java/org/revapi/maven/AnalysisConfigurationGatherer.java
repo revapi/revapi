@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,8 +59,8 @@ final class AnalysisConfigurationGatherer {
 
     private final Log log;
 
-    AnalysisConfigurationGatherer(PlexusConfiguration analysisConfiguration,
-            Object[] analysisConfigurationFiles, boolean failOnMissingConfigurationFiles, boolean expandProperties,
+    AnalysisConfigurationGatherer(PlexusConfiguration analysisConfiguration, Object[] analysisConfigurationFiles,
+            boolean failOnMissingConfigurationFiles, boolean expandProperties,
             PropertyValueResolver propertyValueResolver, File relativePathBaseDir, Log log) {
         this.analysisConfiguration = analysisConfiguration;
         this.analysisConfigurationFiles = analysisConfigurationFiles;
@@ -90,8 +90,8 @@ final class AnalysisConfigurationGatherer {
                             "Either 'path' or 'resource' has to be specified in a configurationFile definition.");
                 } else if (path != null && resource != null) {
                     throw new MojoExecutionException(
-                            "Either 'path' or 'resource' has to be specified in a configurationFile definition but" +
-                                    " not both.");
+                            "Either 'path' or 'resource' has to be specified in a configurationFile definition but"
+                                    + " not both.");
                 }
 
                 String readErrorMessage = "Error while processing the configuration file on "
@@ -118,31 +118,29 @@ final class AnalysisConfigurationGatherer {
                     final File ff = f;
                     configFileContents = () -> {
                         try {
-                            return Collections.<InputStream>singletonList(new FileInputStream(ff)).iterator();
+                            return Collections.<InputStream> singletonList(new FileInputStream(ff)).iterator();
                         } catch (FileNotFoundException e) {
-                            throw new IllegalArgumentException("Failed to read the configuration file '"
-                                    + ff.getAbsolutePath() + "'.", e);
+                            throw new IllegalArgumentException(
+                                    "Failed to read the configuration file '" + ff.getAbsolutePath() + "'.", e);
                         }
                     };
                 } else {
-                     configFileContents =
-                            () -> {
-                                try {
-                                    return Collections.list(getClass().getClassLoader().getResources(resource))
-                                            .stream()
-                                            .map(url -> {
-                                                try {
-                                                    return url.openStream();
-                                                } catch (IOException e) {
-                                                    throw new IllegalArgumentException(
-                                                            "Failed to read the classpath resource '" + url + "'.");
-                                                }
-                                            }).iterator();
-                                } catch (IOException e) {
-                                    throw new IllegalArgumentException(
-                                            "Failed to locate classpath resources on path '" + resource + "'.");
-                                }
-                            };
+                    configFileContents = () -> {
+                        try {
+                            return Collections.list(getClass().getClassLoader().getResources(resource)).stream()
+                                    .map(url -> {
+                                        try {
+                                            return url.openStream();
+                                        } catch (IOException e) {
+                                            throw new IllegalArgumentException(
+                                                    "Failed to read the classpath resource '" + url + "'.");
+                                        }
+                                    }).iterator();
+                        } catch (IOException e) {
+                            throw new IllegalArgumentException(
+                                    "Failed to locate classpath resources on path '" + resource + "'.");
+                        }
+                    };
                 }
 
                 Iterator<InputStream> it = configFileContents.get();
@@ -196,8 +194,8 @@ final class AnalysisConfigurationGatherer {
         }
     }
 
-    private void mergeXmlConfigFile(Revapi revapi, AnalysisContext.Builder ctxBld, ConfigurationFile configFile, Reader rdr)
-            throws IOException, XmlPullParserException {
+    private void mergeXmlConfigFile(Revapi revapi, AnalysisContext.Builder ctxBld, ConfigurationFile configFile,
+            Reader rdr) throws IOException, XmlPullParserException {
         XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
                 PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
 
@@ -208,8 +206,7 @@ final class AnalysisConfigurationGatherer {
         if (roots == null) {
             ctxBld.mergeConfiguration(expandVariables(conv.convertXml(xml)));
         } else {
-            roots:
-            for (String r : roots) {
+            roots: for (String r : roots) {
                 PlexusConfiguration root = xml;
                 boolean first = true;
                 String[] rootPath = r.split("/");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,32 +17,45 @@
 package org.revapi;
 
 /**
- * The instances of implementations of this interface are produced by the {@link org.revapi.ApiAnalyzer}s to
- * analyze the API archives and create an element tree that is then used for API comparison.
+ * The instances of implementations of this interface are produced by the {@link org.revapi.ApiAnalyzer}s to analyze the
+ * API archives and create an element tree that is then used for API comparison.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
-public interface ArchiveAnalyzer {
+public interface ArchiveAnalyzer<E extends Element<E>> {
+
+    /**
+     * @return the {@link ApiAnalyzer} that created this instance
+     */
+    ApiAnalyzer<E> getApiAnalyzer();
+
+    /**
+     * @return the API that this analyzer analyzes
+     */
+    API getApi();
 
     /**
      * Analyzes the API archives and filters the forest using the provided filter.
      * <p>
-     * This produces a preliminary forest which can be too "wide" because of {@link FilterMatch#UNDECIDED} elements.
-     * Once the preliminary forest is obtained and filtered down, it can then be {@link #prune(ElementForest) pruned}
-     * by this analyzer to account for "non-local" effects removal of elements can have on it (like for example removal
-     * of elements that are no longer used by any other element in the forest, if the analyzer deems it necessary).
+     * This produces a preliminary forest which can be too "wide" because of {@link Ternary#UNDECIDED} elements or
+     * non-local relationships between elements. Once this method returns the preliminary forest, the callers should
+     * also call the {@link #prune(ElementForest)} method to obtain a forest that is truly minimal.
      *
-     * @param filter the filter to use to "prune" the forest
-     * @return the element forest ready for analysis
+     * @param filter
+     *            the filter to use to filter out unwanted elements from the forest
+     * 
+     * @return the preliminary element forest that should be {@link #prune(ElementForest) pruned} before analysis
      */
-    ElementForest analyze(TreeFilter filter);
+    ElementForest<E> analyze(TreeFilter<E> filter);
 
     /**
      * Once all the filtering on the element forest is done, the analyzer is allowed one final "pass" through the forest
      * to remove any elements that should not be there any longer.
      *
-     * @param forest the forest to prune
+     * @param forest
+     *            the forest to prune
      */
-    void prune(ElementForest forest);
+    void prune(ElementForest<E> forest);
 }

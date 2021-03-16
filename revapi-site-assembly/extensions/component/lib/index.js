@@ -16,7 +16,7 @@ function process(parent, target, attributes) {
             component = model.latest
         } else if (componentVersion == "latest") {
             if (model.versions.length > 1) {
-                if (model.versions[0].version == "master") {
+                if (model.versions[0].version == "main") {
                     component = model.versions[1]
                 } else {
                     component = model.versions[0]

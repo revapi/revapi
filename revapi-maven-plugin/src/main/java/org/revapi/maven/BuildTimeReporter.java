@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +44,7 @@ import org.revapi.Reporter;
  * build.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class BuildTimeReporter implements Reporter {
@@ -98,11 +99,15 @@ public final class BuildTimeReporter implements Reporter {
         return suggestionsBuilder.build(allProblems, new SuggestionBuilderContext());
     }
 
-    @Nullable @Override public String getExtensionId() {
+    @Nullable
+    @Override
+    public String getExtensionId() {
         return "revapi.maven.internal.buildTimeReporter";
     }
 
-    @Nullable @Override public Reader getJSONSchema() {
+    @Nullable
+    @Override
+    public Reader getJSONSchema() {
         return null;
     }
 
@@ -119,19 +124,18 @@ public final class BuildTimeReporter implements Reporter {
         }
         this.breakingCriticality = (Criticality) context.getData(BREAKING_CRITICALITY_KEY);
         if (breakingCriticality == null) {
-            throw new IllegalStateException("Max criticality must be provided in the context data of the" +
-                    " BuildTimeReporter. If you see this, you've come across a bug, please report it.");
+            throw new IllegalStateException("Max criticality must be provided in the context data of the"
+                    + " BuildTimeReporter. If you see this, you've come across a bug, please report it.");
         }
 
         Boolean outputNonIdentifyingAttachments = (Boolean) context.getData(OUTPUT_NON_IDENTIFYING_ATTACHMENTS);
-        this.outputNonIdentifyingAttachments = outputNonIdentifyingAttachments == null
-                ? true
+        this.outputNonIdentifyingAttachments = outputNonIdentifyingAttachments == null ? true
                 : outputNonIdentifyingAttachments;
         this.suggestionsBuilder = (SuggestionsBuilder) context.getData(SUGGESTIONS_BUILDER_KEY);
 
         if (suggestionsBuilder == null) {
-            throw new IllegalStateException("SuggestionBuilder instance must be provided in the context data of the" +
-                    " BuildTimeReporter. If you see this, you've come across a bug, please report it.");
+            throw new IllegalStateException("SuggestionBuilder instance must be provided in the context data of the"
+                    + " BuildTimeReporter. If you see this, you've come across a bug, please report it.");
         }
     }
 
@@ -143,7 +147,7 @@ public final class BuildTimeReporter implements Reporter {
         }
 
         if (element == null) {
-            //wat? At least one of old and new should always be non-null
+            // wat? At least one of old and new should always be non-null
             return;
         }
 
@@ -169,16 +173,16 @@ public final class BuildTimeReporter implements Reporter {
     }
 
     /**
-     * A suggestion builder is an object that the {@link BuildTimeReporter} uses to render suggestions for ignoring
-     * the found problems.
+     * A suggestion builder is an object that the {@link BuildTimeReporter} uses to render suggestions for ignoring the
+     * found problems.
      */
     public interface SuggestionsBuilder {
         String build(List<Report> reports, SuggestionBuilderContext context);
     }
 
     /**
-     * The context that can be used by the {@link SuggestionsBuilder} to get information about the differences
-     * and the configured output options.
+     * The context that can be used by the {@link SuggestionsBuilder} to get information about the differences and the
+     * configured output options.
      */
     public final class SuggestionBuilderContext {
         boolean isReportable(Difference difference) {

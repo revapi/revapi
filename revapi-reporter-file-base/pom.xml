@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2020 Lukas Krejci
+    Copyright 2014-2021 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,47 +18,39 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>42-SNAPSHOT</version>
+        <version>43-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
-    <name>File Reporter Base</name>
-    <description>
-        Base class for file-based reporters defining some common behavior so that it doesn't have to be reimplemented
-        all the time.
-    </description>
-    <url>https://revapi.org</url>
-
     <artifactId>revapi-reporter-file-base</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
-
-    <properties>
-        <automatic.module.name>org.revapi.reporter.file</automatic.module.name>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.revapi</groupId>
-            <artifactId>revapi</artifactId>
-            <version>0.13.0-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
-
+    <version>0.4.0-SNAPSHOT</version>
+    <name>File Reporter Base</name>
+    <description>Base class for file-based reporters defining some common behavior so that it doesn't have to be reimplemented
+        all the time.</description>
+    <url>https://revapi.org</url>
+    <scm>
+        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/revapi/revapi</url>
+    </scm>
     <distributionManagement>
         <site>
             <id>site</id>
             <url>https://revapi.org</url>
         </site>
     </distributionManagement>
-
-    <scm>
-        <connection>scm:git:git://github.com/revapi/revapi.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/revapi/revapi.git</developerConnection>
-        <url>https://github.com/revapi/revapi</url>
-        <tag>HEAD</tag>
-    </scm>
+    <properties>
+        <automatic.module.name>org.revapi.reporter.file</automatic.module.name>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi</artifactId>
+            <version>0.14.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

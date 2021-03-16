@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.11.0
  */
 public abstract class MovedInHierarchy extends CheckBase {
@@ -60,23 +61,23 @@ public abstract class MovedInHierarchy extends CheckBase {
         }
     }
 
-    @Nullable @Override protected List<Difference> doEnd() {
+    @Nullable
+    @Override
+    protected List<Difference> doEnd() {
         ActiveElements<JavaModelElement> els = popIfActive();
         if (els == null) {
             return null;
         }
 
-        String oldType =
-                Util.toHumanReadableString(els.oldElement.getDeclaringElement().getEnclosingElement().asType());
-        String newType =
-                Util.toHumanReadableString(els.newElement.getDeclaringElement().getEnclosingElement().asType());
+        String oldType = Util
+                .toHumanReadableString(els.oldElement.getDeclaringElement().getEnclosingElement().asType());
+        String newType = Util
+                .toHumanReadableString(els.newElement.getDeclaringElement().getEnclosingElement().asType());
 
-        //we know that oldEl.isInherited() != newEl.isInherited(), so it's enough to just check for the old
+        // we know that oldEl.isInherited() != newEl.isInherited(), so it's enough to just check for the old
         Code code = els.oldElement.isInherited() ? moveDown : moveUp;
 
         return Collections.singletonList(createDifference(code,
-                Code.attachmentsFor(els.oldElement, els.newElement,
-                        "oldClass", oldType,
-                        "newClass", newType)));
+                Code.attachmentsFor(els.oldElement, els.newElement, "oldClass", oldType, "newClass", newType)));
     }
 }

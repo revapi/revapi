@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ package org.revapi.maven;
  */
 public class XmlSuggestionsBuilder extends AbstractSuggestionsBuilder {
     @Override
-    protected void appendDifferenceField(StringBuilder sb, String key, String value) {
+    protected void appendDifferenceField(StringBuilder sb, String key, Object value) {
         sb.append("  <").append(key).append(">").append(escape(value)).append("</").append(key).append(">");
     }
 
@@ -42,7 +42,7 @@ public class XmlSuggestionsBuilder extends AbstractSuggestionsBuilder {
 
     @Override
     protected void endDifference(StringBuilder sb) {
-        sb.append("\n</item>");
+        sb.append("\n</item>\n");
     }
 
     @Override
@@ -60,7 +60,11 @@ public class XmlSuggestionsBuilder extends AbstractSuggestionsBuilder {
 
     }
 
-    private static String escape(String value) {
-        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    private static String escape(Object value) {
+        if (value == null) {
+            return "";
+        } else {
+            return value.toString().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+        }
     }
 }

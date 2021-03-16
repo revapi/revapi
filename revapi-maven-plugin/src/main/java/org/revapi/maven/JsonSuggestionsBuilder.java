@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,8 @@ package org.revapi.maven;
  */
 public class JsonSuggestionsBuilder extends AbstractSuggestionsBuilder {
     @Override
-    protected void appendDifferenceField(StringBuilder sb, String key, String value) {
-        sb.append("  \"").append(escape(key)).append("\": \"").append(escape(value)).append("\"");
+    protected void appendDifferenceField(StringBuilder sb, String key, Object value) {
+        sb.append("  \"").append(escape(key)).append("\": ").append(jsonValue(value));
     }
 
     @Override
@@ -56,6 +56,18 @@ public class JsonSuggestionsBuilder extends AbstractSuggestionsBuilder {
 
     @Override
     protected void epilogue(StringBuilder sb) {
+    }
+
+    private static String jsonValue(Object value) {
+        if (value == null) {
+            return "null";
+        } else if (value instanceof Boolean) {
+            return value.toString();
+        } else if (value instanceof Number) {
+            return value.toString();
+        } else {
+            return "\"" + escape(value) + "\"";
+        }
     }
 
     private static String escape(Object obj) {

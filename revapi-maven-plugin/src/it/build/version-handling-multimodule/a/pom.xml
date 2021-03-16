@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2017 Lukas Krejci
+    Copyright 2014-2021 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,10 @@
   <parent>
     <groupId>version.handling.multimodule</groupId>
     <artifactId>top</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
 
   <groupId>version.handling.multimodule</groupId>
   <artifactId>a</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.1-SNAPSHOT</version>
 </project>

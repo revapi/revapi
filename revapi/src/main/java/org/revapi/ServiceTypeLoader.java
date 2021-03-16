@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,11 +30,13 @@ import java.util.ServiceConfigurationError;
  * Because Revapi manages the lifecycle of instances of its extensions, it cannot unfortunately use the
  * {@link java.util.ServiceLoader} directly (before Java 9 which enhances it to support the use case Revapi needs).
  *
- * <p>This class is similar to {@link java.util.ServiceLoader} but instead of providing instances of the service
+ * <p>
+ * This class is similar to {@link java.util.ServiceLoader} but instead of providing instances of the service
  * implementations, it provides <b>types</b> of the service implementations. Users of this class are then responsible
  * for using these types anyway they want (instantiate them or whatever).
  *
  * @author Lukas Krejci
+ * 
  * @since 0.8.0
  */
 public final class ServiceTypeLoader<T> implements Iterable<Class<? extends T>> {
@@ -56,8 +58,11 @@ public final class ServiceTypeLoader<T> implements Iterable<Class<? extends T>> 
     /**
      * Locates the services in the context classloader of the current thread.
      *
-     * @param serviceType the type of the services to locate
-     * @param <X> the type of the service
+     * @param serviceType
+     *            the type of the services to locate
+     * @param <X>
+     *            the type of the service
+     * 
      * @return the service type loader
      */
     public static <X> ServiceTypeLoader<X> load(Class<X> serviceType) {
@@ -68,7 +73,8 @@ public final class ServiceTypeLoader<T> implements Iterable<Class<? extends T>> 
         cache = null;
     }
 
-    @Override public Iterator<Class<? extends T>> iterator() {
+    @Override
+    public Iterator<Class<? extends T>> iterator() {
         if (cache == null) {
             load();
         }
@@ -76,15 +82,15 @@ public final class ServiceTypeLoader<T> implements Iterable<Class<? extends T>> 
         return cache.iterator();
     }
 
-    @SuppressWarnings("unchecked") private void load() throws ServiceConfigurationError {
+    @SuppressWarnings("unchecked")
+    private void load() throws ServiceConfigurationError {
         cache = new ArrayList<>();
 
         String serviceFileLocation = PREFIX + serviceType.getName();
         Enumeration<URL> resources;
 
         try {
-            resources = classLoader == null
-                    ? ClassLoader.getSystemResources(serviceFileLocation)
+            resources = classLoader == null ? ClassLoader.getSystemResources(serviceFileLocation)
                     : classLoader.getResources(serviceFileLocation);
         } catch (IOException e) {
             throw new ServiceConfigurationError(serviceType.getName() + ": Failed to load service configuration file.");
@@ -120,9 +126,8 @@ public final class ServiceTypeLoader<T> implements Iterable<Class<? extends T>> 
                 throw new ServiceConfigurationError(
                         serviceType.getName() + ": " + resourceFile + ":" + lineNum + ": Class not found: " + line, e);
             } catch (ClassCastException e) {
-                throw new ServiceConfigurationError(
-                        serviceType.getName() + ": " + resourceFile + ":" + lineNum +
-                                ": Class doesn't implement service interface: " + line, e);
+                throw new ServiceConfigurationError(serviceType.getName() + ": " + resourceFile + ":" + lineNum
+                        + ": Class doesn't implement service interface: " + line, e);
             }
         }
     }

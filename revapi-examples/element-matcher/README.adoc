@@ -1,0 +1,44 @@
+= Element Matcher Example
+
+Element matchers are "helper" extensions that other extensions can use to match elements for their own purposes.
+
+In this example we define a `type-kind` element matcher that matches only java types of a configured kind - i.e.
+`class`, `interface`, `@interface` or `enum`.
+
+We could then use the `revapi.differences` difference transform extension together with our new element matcher and
+configure it to use our matcher:
+
+[source,xml]
+----
+<plugin>
+    <groupId>org.revapi</groupId>
+    <artifactId>revapi-maven-plugin</artifactId>
+    <version>...</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.revapi.examples</groupId>
+            <artifactId>element-matcher</artifactId>
+            <version>0</version>
+        </dependency>
+    </dependencies>
+    <configuration>
+        <analysisConfiguration>
+            <revapi.differences>
+                <ignore>true</ignore>
+                <differences>
+                    <item>
+                        <regex>true</regex>
+                        <code>.*</code>
+                        <old>
+                            <matcher>type-kind</matcher>
+                            <match>@interface</match>
+                        </old>
+                    </item>
+                </differences>
+            </revapi.differences>
+        </analysisConfiguration>
+    </configuration>
+</plugin>
+----
+
+This will ignore all differences that are found on java annotations.

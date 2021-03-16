@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
  * Represents a single difference between an old and new API element.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Difference {
@@ -153,14 +154,9 @@ public final class Difference {
     }
 
     public static Builder copy(Difference other) {
-        return builder()
-                .withCode(other.code)
-                .withDescription(other.description)
-                .withName(other.name)
-                .withJustification(other.justification)
-                .withCriticality(other.criticality)
-                .withIdentifyingAttachments(other.identifyingAttachments)
-                .addAttachments(other.attachments)
+        return builder().withCode(other.code).withDescription(other.description).withName(other.name)
+                .withJustification(other.justification).withCriticality(other.criticality)
+                .withIdentifyingAttachments(other.identifyingAttachments).addAttachments(other.attachments)
                 .addClassifications(other.classification);
     }
 
@@ -189,8 +185,8 @@ public final class Difference {
     private final List<String> identifyingAttachments;
 
     /**
-     * The justification for this difference. This is meant to be read from the user-supplied configuration, set by
-     * some difference transform and read by the reporters.
+     * The justification for this difference. This is meant to be read from the user-supplied configuration, set by some
+     * difference transform and read by the reporters.
      */
     public final String justification;
 
@@ -204,8 +200,8 @@ public final class Difference {
      */
     @Deprecated
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
-        @Nonnull CompatibilityType compatibility,
-        @Nonnull DifferenceSeverity severity, @Nonnull Map<String, String> attachments) {
+            @Nonnull CompatibilityType compatibility, @Nonnull DifferenceSeverity severity,
+            @Nonnull Map<String, String> attachments) {
         this(code, name, description, Collections.singletonMap(compatibility, severity), attachments);
     }
 
@@ -214,8 +210,8 @@ public final class Difference {
      */
     @Deprecated
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
-        @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
-                      @Nonnull Map<String, String> attachments) {
+            @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
+            @Nonnull Map<String, String> attachments) {
         this(code, name, description, classification, attachments, Collections.emptyList());
     }
 
@@ -228,7 +224,6 @@ public final class Difference {
             @Nonnull Map<String, String> attachments, @Nonnull List<String> identifyingAttachments) {
         this(code, name, description, null, null, classification, attachments, identifyingAttachments);
     }
-
 
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
             @Nullable String justification, @Nullable Criticality criticality,
@@ -258,12 +253,9 @@ public final class Difference {
             return false;
         }
         Difference that = (Difference) o;
-        return code.equals(that.code) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                classification.equals(that.classification) &&
-                attachments.equals(that.attachments) &&
-                Objects.equals(justification, that.justification);
+        return code.equals(that.code) && Objects.equals(name, that.name)
+                && Objects.equals(description, that.description) && classification.equals(that.classification)
+                && attachments.equals(that.attachments) && Objects.equals(justification, that.justification);
     }
 
     @Override

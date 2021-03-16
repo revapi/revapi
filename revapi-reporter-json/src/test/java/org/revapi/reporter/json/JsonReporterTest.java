@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,24 +28,19 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
-import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Report;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
+import org.revapi.base.BaseElement;
+import org.revapi.base.FileArchive;
 import org.revapi.configuration.JSONUtil;
-import org.revapi.simple.FileArchive;
-import org.revapi.simple.SimpleElement;
 
 public class JsonReporterTest {
 
@@ -60,8 +55,8 @@ public class JsonReporterTest {
             buf.append("\"keepEmptyFile\": \"").append("false").append("\"");
             buf.append("}");
 
-            reporter.initialize(AnalysisContext.builder()
-                    .build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
+            reporter.initialize(
+                    AnalysisContext.builder().build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
             reporter.report(Report.builder().build());
 
         } finally {
@@ -77,8 +72,7 @@ public class JsonReporterTest {
 
         AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
-                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build())
-                .build();
+                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
         AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JsonReporter.class);
 
@@ -133,8 +127,7 @@ public class JsonReporterTest {
 
         AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
-                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build())
-                .build();
+                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
         AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JsonReporter.class);
 
@@ -160,8 +153,7 @@ public class JsonReporterTest {
 
         AnalysisContext ctx = AnalysisContext.builder(r)
                 .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
-                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build())
-                .build();
+                .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
         AnalysisContext reporterCtx = r.prepareAnalysis(ctx).getFirstConfigurationOrNull(JsonReporter.class);
 
@@ -184,45 +176,33 @@ public class JsonReporterTest {
 
         Report report = Report.builder().withOld(new DummyElement("old2")).withNew(new DummyElement("new2"))
                 .addProblem().withCode("code2").withDescription("descr2").withName("name2")
-                .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
-                .addAttachment("at2", "at2val").done().build();
+                .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).addAttachment("at2", "at2val")
+                .done().build();
 
         ret.add(report);
 
         report = Report.builder().withOld(new DummyElement("old1")).withNew(new DummyElement("new1")).addProblem()
                 .withCode("code1").withDescription("descr1").withName("name1")
-                .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING)
-                .addAttachment("at1", "at1val").done().build();
+                .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING).addAttachment("at1", "at1val")
+                .done().build();
 
         ret.add(report);
 
         return ret;
     }
 
-    private static final class DummyElement extends SimpleElement {
+    private static final class DummyElement extends BaseElement<DummyElement> {
 
         private final String name;
 
         private DummyElement(String name) {
+            super(null, null);
             this.name = name;
         }
 
-        @SuppressWarnings("ConstantConditions")
-        @Nonnull
         @Override
-        public API getApi() {
-            return null;
-        }
-
-        @Nullable
-        @Override
-        public Archive getArchive() {
-            return null;
-        }
-
-        @Override
-        public int compareTo(Element o) {
-            return name.compareTo(((DummyElement) o).name);
+        public int compareTo(DummyElement o) {
+            return name.compareTo(o.name);
         }
 
         @Override

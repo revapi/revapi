@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ import org.junit.Test;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public class CoIteratorTest {
@@ -151,7 +152,7 @@ public class CoIteratorTest {
             coit.next();
             Assert.fail();
         } catch (NoSuchElementException e) {
-            //expected
+            // expected
         }
     }
 

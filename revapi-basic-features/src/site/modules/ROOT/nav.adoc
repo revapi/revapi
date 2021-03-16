@@ -3,4 +3,5 @@
 * xref:filter.adoc[Element Filter]
 * xref:ignore.adoc[Ignore Differences]
 * xref:semver-ignore.adoc[Version-based Ignore]
+* xref:element-matching.adoc[]
 * link:{attachmentsdir}/apidocs/index.html[Javadoc]

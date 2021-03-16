@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ximpleware.AutoPilot;
 import com.ximpleware.VTDGen;
@@ -51,22 +53,26 @@ import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
+import org.revapi.Report;
 import org.revapi.Revapi;
+import org.revapi.base.BaseReporter;
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.JSONUtil;
-import org.revapi.simple.SimpleReporter;
 
 /**
  * This is a helper goal to convert the old JSON Revapi configuration inside the POM files into the new XML based
  * format. You usually need to run this goal just once in each module.
  *
- * <p>Note that this does not touch the external configuration files. The old and new style configuration still works
+ * <p>
+ * Note that this does not touch the external configuration files. The old and new style configuration still works
  * together well, though.
  *
- * <p>Note that this goal <b>changes the contents of pom.xml</b> of the built modules. You are advised to check
- * the modifications for correctness and to update the formatting of the changed lines to your liking.
+ * <p>
+ * Note that this goal <b>changes the contents of pom.xml</b> of the built modules. You are advised to check the
+ * modifications for correctness and to update the formatting of the changed lines to your liking.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.9.0
  */
 @Mojo(name = "convert-config-to-xml", requiresDirectInvocation = true, defaultPhase = LifecyclePhase.VALIDATE)
@@ -82,18 +88,20 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
      * Whether to convert the contents of the external configuration files specified by the
      * {@code analysisConfigurationFiles} from JSON to XML.
      *
-     * <p>Note that external configuration files with custom root elements are not supported, because it would not be
-     * clear how to convert the rest of the file into XML.
+     * <p>
+     * Note that external configuration files with custom root elements are not supported, because it would not be clear
+     * how to convert the rest of the file into XML.
      *
-     * <p>Also note that the original file will be left intact by the conversion and a new file with the same name and
+     * <p>
+     * Also note that the original file will be left intact by the conversion and a new file with the same name and
      * ".xml" extension will be created in the same directory and the pom.xml will be updated to point to this new file.
      * You should delete the old file after making sure the conversion went fine.
      */
-    @Parameter(property = Props.convertAnalysisConfigurationFiles.NAME,
-            defaultValue = Props.convertAnalysisConfigurationFiles.DEFAULT_VALUE)
+    @Parameter(property = Props.convertAnalysisConfigurationFiles.NAME, defaultValue = Props.convertAnalysisConfigurationFiles.DEFAULT_VALUE)
     private boolean convertAnalysisConfigurationFiles;
 
-    @Override public void execute() throws MojoExecutionException, MojoFailureException {
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
             return;
         }
@@ -144,7 +152,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
     }
 
     private void updateAllConfigurationFiles(MavenProject project, Map<String, JsonNode> extensionSchemas,
-                                             int indentationSize) throws Exception {
+            int indentationSize) throws Exception {
         VTDGen gen = new VTDGen();
         gen.enableIgnoredWhiteSpace(true);
         gen.parseFile(project.getFile().getAbsolutePath(), true);
@@ -172,15 +180,15 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
             }
         };
 
-        update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']" +
-                "/configuration/analysisConfigurationFiles/*[not(self::configurationFile)]");
-        update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']" +
-                "/configuration/analysisConfigurationFiles/configurationFile[not(roots)]/path");
+        update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']"
+                + "/configuration/analysisConfigurationFiles/*[not(self::configurationFile)]");
+        update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']"
+                + "/configuration/analysisConfigurationFiles/configurationFile[not(roots)]/path");
 
-        update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']" +
-                "/executions/execution/configuration/analysisConfigurationFiles/*[not(self::configurationFile)]");
-        update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']" +
-                "/executions/execution/configuration/analysisConfigurationFiles/configurationFile[not(roots)]/path");
+        update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']"
+                + "/executions/execution/configuration/analysisConfigurationFiles/*[not(self::configurationFile)]");
+        update.accept("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']"
+                + "/executions/execution/configuration/analysisConfigurationFiles/configurationFile[not(roots)]/path");
 
         try (OutputStream out = new FileOutputStream(project.getFile())) {
             mod.output(out);
@@ -194,7 +202,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
         try (Reader rdr = new InputStreamReader(new FileInputStream(configFile), StandardCharsets.UTF_8)) {
             jsonConfig = JSONUtil.parse(rdr);
         } catch (IllegalArgumentException e) {
-            //k, probably XML already
+            // k, probably XML already
             return null;
         }
 
@@ -224,14 +232,14 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
         try {
             jsonConfig = JSONUtil.parse(JSONUtil.stripComments(xmlOrJson));
         } catch (IllegalArgumentException e) {
-            //ok, this already is XML
+            // ok, this already is XML
             return null;
         }
         return SchemaDrivenJSONToXmlConverter.convertToXml(extensionSchemas, jsonConfig);
     }
 
     private static void updateAllConfigurations(File pomXml, Map<String, JsonNode> extensionSchemas,
-                                                int indentationSize) throws Exception {
+            int indentationSize) throws Exception {
         VTDGen gen = new VTDGen();
         gen.enableIgnoredWhiteSpace(true);
         gen.parseFile(pomXml.getAbsolutePath(), true);
@@ -251,7 +259,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
             StringWriter pretty = new StringWriter();
             XmlUtil.toIndentedString(xml, indentationSize, nav.getTokenDepth(textPos), pretty);
 
-            //remove the first indentation, because text is already indented
+            // remove the first indentation, because text is already indented
             String prettyXml = pretty.toString().substring(indentationSize * nav.getTokenDepth(textPos));
 
             mod.insertAfterElement(prettyXml);
@@ -262,14 +270,16 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
 
         AutoPilot ap = new AutoPilot(nav);
 
-        ap.selectXPath("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']/configuration/analysisConfiguration");
+        ap.selectXPath(
+                "//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']/configuration/analysisConfiguration");
         while (ap.evalXPath() != -1) {
             update.call();
         }
 
         ap.resetXPath();
 
-        ap.selectXPath("//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']/executions/execution/configuration/analysisConfiguration");
+        ap.selectXPath(
+                "//plugin[groupId = 'org.revapi' and artifactId = 'revapi-maven-plugin']/executions/execution/configuration/analysisConfiguration");
         while (ap.evalXPath() != -1) {
             update.call();
         }
@@ -337,11 +347,15 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
         void accept(T value) throws Exception;
     }
 
-    public static final class SilentReporter extends SimpleReporter {
+    public static final class SilentReporter extends BaseReporter {
 
         @Override
         public String getExtensionId() {
             return "revapi.maven.internal.silentReporter";
+        }
+
+        @Override
+        public void report(@Nonnull Report report) {
         }
     }
 }

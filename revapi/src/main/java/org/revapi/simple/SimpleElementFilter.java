@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,21 +16,23 @@
  */
 package org.revapi.simple;
 
+import javax.annotation.Nullable;
+
 import org.revapi.Element;
 import org.revapi.ElementFilter;
-
-import javax.annotation.Nullable;
+import org.revapi.base.IndependentTreeFilter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
  *
- * @deprecated use {@link RepeatingTreeFilter} or some other {@link org.revapi.TreeFilter} instead
+ * @deprecated use {@link IndependentTreeFilter} or some other {@link org.revapi.TreeFilter} instead
  */
 @Deprecated
 public abstract class SimpleElementFilter extends SimpleConfigurable implements ElementFilter {
     @Override
-    public boolean applies(@Nullable Element element) {
+    public boolean applies(@Nullable Element<?> element) {
         return false;
     }
 

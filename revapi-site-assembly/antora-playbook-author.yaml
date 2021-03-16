@@ -46,6 +46,18 @@ content:
       start_path: revapi-reporter-text/src/site
     - url: ../
       branches: HEAD
+      tags: revapi-jackson_v*
+      start_path: revapi-jackson/src/site
+    - url: ../
+      branches: HEAD
+      tags: revapi-json_v*
+      start_path: revapi-json/src/site
+    - url: ../
+      branches: HEAD
+      tags: revapi-yaml_v*
+      start_path: revapi-yaml/src/site
+    - url: ../
+      branches: HEAD
       tags: revapi-standalone_v*
       start_path: revapi-standalone/src/site
 ui:
@@ -61,8 +73,10 @@ asciidoc:
     news-feed-description: Full-featured API checker for Java and beyond
     news-feed-id: https://revapi.org
     news-feed-max-items: 10
+    scm-url: https://github.com/revapi/revapi
+    scm-files: https://github.com/revapi/revapi/tree/main
   extensions:
-  - asciidoctor-plantuml
+  - asciidoctor-kroki
   - ./extensions/news
   - ./extensions/component
   - ./extensions/fref

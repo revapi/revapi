@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,16 +35,17 @@ import org.revapi.ApiAnalyzer;
 import org.revapi.DifferenceTransform;
 import org.revapi.ElementFilter;
 import org.revapi.ElementMatcher;
-import org.revapi.TreeFilterProvider;
 import org.revapi.PipelineConfiguration;
 import org.revapi.Reporter;
 import org.revapi.Revapi;
 import org.revapi.ServiceTypeLoader;
+import org.revapi.TreeFilterProvider;
 
 /**
  * Common {@link Analyzer} instantiation logic for mojos.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.8.0
  */
 class AnalyzerBuilder {
@@ -235,13 +236,11 @@ class AnalyzerBuilder {
             return null;
         }
 
-
-        final List<String> disallowedExtensions = this.disallowedExtensions == null
-                ? Collections.emptyList()
+        final List<String> disallowedExtensions = this.disallowedExtensions == null ? Collections.emptyList()
                 : Arrays.asList(this.disallowedExtensions.split("\\s*,\\s*"));
 
-        Consumer<PipelineConfiguration.Builder> pipelineModifier =
-                applyDisallowedExtensionsToPipeline(disallowedExtensions);
+        Consumer<PipelineConfiguration.Builder> pipelineModifier = applyDisallowedExtensionsToPipeline(
+                disallowedExtensions);
 
         return new Analyzer(pipelineConfiguration, analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
                 newArtifacts, oldGavs, newGavs, project, repositorySystem, repositorySystemSession, reporterType,
@@ -259,28 +258,26 @@ class AnalyzerBuilder {
 
     private void initializeComparisonGavs() {
         if (newGavs != null && newGavs.length == 1 && "BUILD".equals(newGavs[0])) {
-            log.warn("\"BUILD\" coordinates are deprecated. Just leave \"newArtifacts\" undefined and specify" +
-                    " \"${project.version}\" as the value for \"newVersion\" (which is the default, so you don't" +
-                    " actually have to do that either).");
+            log.warn("\"BUILD\" coordinates are deprecated. Just leave \"newArtifacts\" undefined and specify"
+                    + " \"${project.version}\" as the value for \"newVersion\" (which is the default, so you don't"
+                    + " actually have to do that either).");
             oldGavs = null;
         }
 
         if (oldGavs == null || oldGavs.length == 0) {
-            //non-intuitively, we need to initialize the artifacts even if we will not proceed with the analysis itself
-            //that's because we need know the versions when figuring out the version modifications -
-            //see AbstractVersionModifyingMojo
-            oldGavs = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, oldVersion)};
+            // non-intuitively, we need to initialize the artifacts even if we will not proceed with the analysis itself
+            // that's because we need know the versions when figuring out the version modifications -
+            // see AbstractVersionModifyingMojo
+            oldGavs = new String[] { Analyzer.getProjectArtifactCoordinates(project, oldVersion) };
         }
 
         if (newGavs == null || newGavs.length == 0) {
-            newGavs = new String[]{
-                    Analyzer.getProjectArtifactCoordinates(project, newVersion)};
+            newGavs = new String[] { Analyzer.getProjectArtifactCoordinates(project, newVersion) };
         }
-   }
+    }
 
-    private static Consumer<PipelineConfiguration.Builder>
-    applyDisallowedExtensionsToPipeline(List<String> disallowedExtensions) {
+    private static Consumer<PipelineConfiguration.Builder> applyDisallowedExtensionsToPipeline(
+            List<String> disallowedExtensions) {
         return (bld) -> {
             List<Class<? extends ApiAnalyzer>> analyzers = new ArrayList<>();
             List<Class<? extends TreeFilterProvider>> filters = new ArrayList<>();
@@ -298,18 +295,14 @@ class AnalyzerBuilder {
 
             filters.addAll(legacyFilters);
 
-            @SuppressWarnings("unchecked")
-            List<Class<? extends DifferenceTransform<?>>> castTransforms =
-                    (List<Class<? extends DifferenceTransform<?>>>) (List) transforms;
-
-            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(castTransforms).withReporters(reporters)
-                .withMatchers(matchers);
+            bld.withAnalyzers(analyzers).withFilters(filters).withTransforms(transforms).withReporters(reporters)
+                    .withMatchers(matchers);
         };
     }
 
     @SuppressWarnings("unchecked")
     private static <T> void addAllAllowed(List<Class<? extends T>> list, Iterable<Class<? extends T>> candidates,
-                                          List<String> disallowedClassNames) {
+            List<String> disallowedClassNames) {
         for (Class<? extends T> c : candidates) {
             if (c != null && !disallowedClassNames.contains(c.getName())) {
                 list.add(c);
@@ -323,6 +316,7 @@ class AnalyzerBuilder {
         String[] newArtifacts;
         Analyzer analyzer;
 
-        private Result() {}
+        private Result() {
+        }
     }
 }

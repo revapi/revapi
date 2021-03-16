@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,7 @@ import org.revapi.java.spi.IgnoreCompletionFailures;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 final class MissingTypeAwareDelegatingElements implements Elements {
@@ -56,7 +57,7 @@ final class MissingTypeAwareDelegatingElements implements Elements {
 
     @Override
     public Map<? extends ExecutableElement, ? extends AnnotationValue> getElementValuesWithDefaults(
-        AnnotationMirror a) {
+            AnnotationMirror a) {
 
         return IgnoreCompletionFailures.in(elements::getElementValuesWithDefaults, a);
     }
@@ -100,8 +101,7 @@ final class MissingTypeAwareDelegatingElements implements Elements {
     }
 
     @Override
-    public List<? extends Element> getAllMembers(
-        TypeElement type) {
+    public List<? extends Element> getAllMembers(TypeElement type) {
         if (MissingTypeElement.isMissing(type)) {
             return Collections.emptyList();
         }
@@ -110,8 +110,7 @@ final class MissingTypeAwareDelegatingElements implements Elements {
     }
 
     @Override
-    public List<? extends AnnotationMirror> getAllAnnotationMirrors(
-        Element e) {
+    public List<? extends AnnotationMirror> getAllAnnotationMirrors(Element e) {
         if (MissingTypeElement.isMissing(e)) {
             return Collections.emptyList();
         }

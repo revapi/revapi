@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,7 @@ import org.revapi.Reporter;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class ReportTimeReporter implements Reporter {
@@ -42,8 +43,8 @@ public final class ReportTimeReporter implements Reporter {
 
     private DifferenceSeverity minSeverity;
 
-    EnumMap<DifferenceSeverity, EnumMap<CompatibilityType, List<DifferenceReport>>> reportsBySeverity =
-        new EnumMap<>(DifferenceSeverity.class);
+    EnumMap<DifferenceSeverity, EnumMap<CompatibilityType, List<DifferenceReport>>> reportsBySeverity = new EnumMap<>(
+            DifferenceSeverity.class);
 
     @Override
     public void report(@Nonnull Report report) {

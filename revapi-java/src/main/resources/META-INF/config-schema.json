@@ -82,6 +82,11 @@
                     }
                 }
             }
+        },
+        "matchOverloads" : {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to try and heuristically match the changes overloaded methods. This can never be 100% precise because that would require guessing authors intentions. The heuristic is based number of parameters and the textual 'distance' of individual parameter types."
         }
     },
     "additionalProperties": true

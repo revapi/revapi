@@ -2,6 +2,9 @@
 
 *Extension*: `revapi.java.filter.annotated`
 
+WARNING: This extension is deprecated and will be removed in the future. Take a look at xref:element-matching.adoc[] for
+a more capable way of filtering elements.
+
 The annotated element filter is able to include or exclude java elements based on the presence of certain annotation
 on them. This also works for annotations with certain attributes having certain values, because the match is done on
 the "standard" annotation textual notation.

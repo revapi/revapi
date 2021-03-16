@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +19,12 @@ package org.revapi;
 /**
  * Enumerates the possible severities of differences found during the API analysis.
  *
- * <p>The difference doesn't have a single severity, rather it can have different severity for each
+ * <p>
+ * The difference doesn't have a single severity, rather it can have different severity for each
  * {@link org.revapi.CompatibilityType}.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public enum DifferenceSeverity {
@@ -48,10 +50,12 @@ public enum DifferenceSeverity {
     BREAKING;
 
     /**
-     * Returns the difference severity represented by the provided string in camel case. I.e. "nonBreaking" parses
-     * to {@link #NON_BREAKING}, etc.
+     * Returns the difference severity represented by the provided string in camel case. I.e. "nonBreaking" parses to
+     * {@link #NON_BREAKING}, etc.
      *
-     * @param camelCaseValue the value in camel case
+     * @param camelCaseValue
+     *            the value in camel case
+     * 
      * @return the corresponding difference severity instance
      */
     public static DifferenceSeverity fromCamelCase(String camelCaseValue) {

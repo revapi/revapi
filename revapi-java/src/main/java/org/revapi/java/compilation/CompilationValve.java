@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class CompilationValve {
@@ -72,10 +73,10 @@ public final class CompilationValve {
                 compilationResult.get();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                //but clean up below anyway before returning
+                // but clean up below anyway before returning
             } catch (ExecutionException e) {
                 throw new IllegalStateException("Exception thrown while waiting for compilation to end for clean up",
-                    e);
+                        e);
             }
         }
 

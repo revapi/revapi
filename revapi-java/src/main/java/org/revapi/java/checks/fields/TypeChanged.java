@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class TypeChanged extends CheckBase {
@@ -44,12 +45,9 @@ public final class TypeChanged extends CheckBase {
         }
 
         String oldType = Util.toUniqueString(
-                oldField.getTypeEnvironment().getTypeUtils().erasure(
-                        oldField.getModelRepresentation()));
+                oldField.getTypeEnvironment().getTypeUtils().erasure(oldField.getModelRepresentation()));
         String newType = Util.toUniqueString(
-                newField.getTypeEnvironment().getTypeUtils().erasure(
-                        newField.getModelRepresentation()));
-
+                newField.getTypeEnvironment().getTypeUtils().erasure(newField.getModelRepresentation()));
 
         if (!oldType.equals(newType)) {
             pushActive(oldField, newField);
@@ -66,11 +64,7 @@ public final class TypeChanged extends CheckBase {
         String oldType = Util.toHumanReadableString(fields.oldElement.getModelRepresentation());
         String newType = Util.toHumanReadableString(fields.newElement.getModelRepresentation());
 
-        return Collections.singletonList(
-            createDifference(Code.FIELD_TYPE_CHANGED,
-                    Code.attachmentsFor(fields.oldElement, fields.newElement,
-                            "oldType", oldType,
-                            "newType", newType))
-        );
+        return Collections.singletonList(createDifference(Code.FIELD_TYPE_CHANGED,
+                Code.attachmentsFor(fields.oldElement, fields.newElement, "oldType", oldType, "newType", newType)));
     }
 }

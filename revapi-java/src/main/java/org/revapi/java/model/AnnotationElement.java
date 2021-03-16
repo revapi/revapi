@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,22 +16,21 @@
  */
 package org.revapi.java.model;
 
-import java.util.SortedSet;
-
 import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.revapi.API;
 import org.revapi.Archive;
-import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.spi.JavaAnnotationElement;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.TypeEnvironment;
 import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class AnnotationElement extends AbstractJavaElement implements JavaAnnotationElement {
@@ -41,11 +40,13 @@ public final class AnnotationElement extends AbstractJavaElement implements Java
     public AnnotationElement(ProbingEnvironment environment, Archive archive, AnnotationMirror annotation) {
         super(environment);
         this.annotation = annotation;
-        this.archive = archive;
+        setArchive(archive);
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Nonnull @Override public JavaModelElement getParent() {
+    @Nonnull
+    @Override
+    public JavaModelElement getParent() {
         return (JavaModelElement) super.getParent();
     }
 
@@ -53,13 +54,6 @@ public final class AnnotationElement extends AbstractJavaElement implements Java
     @Override
     public API getApi() {
         return environment.getApi();
-    }
-
-    @Nonnull
-    @Override
-    @SuppressWarnings("unchecked")
-    public SortedSet<AnnotationElement> getChildren() {
-        return (SortedSet<AnnotationElement>) super.getChildren();
     }
 
     @Nonnull
@@ -75,7 +69,7 @@ public final class AnnotationElement extends AbstractJavaElement implements Java
     }
 
     @Override
-    public int compareTo(@Nonnull Element o) {
+    public int compareTo(@Nonnull JavaElement o) {
         if (!(o instanceof AnnotationElement)) {
             return JavaElementFactory.compareByType(this, o);
         }

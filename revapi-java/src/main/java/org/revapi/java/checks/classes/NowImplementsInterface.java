@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class NowImplementsInterface extends CheckBase {
@@ -45,8 +46,8 @@ public final class NowImplementsInterface extends CheckBase {
             return;
         }
 
-        //hmm, these might not be right I assume if the types are inner classes parameterized by the type parameters
-        //of the containing class
+        // hmm, these might not be right I assume if the types are inner classes parameterized by the type parameters
+        // of the containing class
         List<? extends TypeMirror> newInterfaces = newType.getDeclaringElement().getInterfaces();
         List<? extends TypeMirror> oldInterfaces = oldType.getDeclaringElement().getInterfaces();
 
@@ -72,11 +73,8 @@ public final class NowImplementsInterface extends CheckBase {
 
         for (TypeMirror newIface : newInterfaces) {
             if (!Util.isSubtype(newIface, oldInterfaces, getNewTypeEnvironment().getTypeUtils())) {
-                result.add(
-                    createDifference(Code.CLASS_NOW_IMPLEMENTS_INTERFACE,
-                            Code.attachmentsFor(types.oldElement, types.newElement,
-                                    "interface", Util.toHumanReadableString(newIface)))
-                );
+                result.add(createDifference(Code.CLASS_NOW_IMPLEMENTS_INTERFACE, Code.attachmentsFor(types.oldElement,
+                        types.newElement, "interface", Util.toHumanReadableString(newIface))));
             }
         }
 

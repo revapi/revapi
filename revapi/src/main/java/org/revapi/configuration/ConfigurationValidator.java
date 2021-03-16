@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ import org.jboss.dmr.ModelNode;
  * @see #validate(JsonNode, Configurable)
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class ConfigurationValidator {
@@ -44,28 +45,36 @@ public final class ConfigurationValidator {
     /**
      * Validates that the full configuration contains valid configuration for given configurable.
      *
-     * @param fullConfiguration the full configuration containing properties for all configurables
-     * @param configurable      the configurable to validate the configuration for
+     * @param fullConfiguration
+     *            the full configuration containing properties for all configurables
+     * @param configurable
+     *            the configurable to validate the configuration for
      *
      * @return the result of the validation.
      *
-     * @throws ConfigurationException if reading the JSON schemas of the configurable failed
+     * @throws ConfigurationException
+     *             if reading the JSON schemas of the configurable failed
+     * 
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
     public ValidationResult validate(@Nonnull ModelNode fullConfiguration, @Nonnull Configurable configurable)
-        throws ConfigurationException {
+            throws ConfigurationException {
         return validate(JSONUtil.convert(fullConfiguration), configurable);
     }
+
     /**
      * Validates that the full configuration contains valid configuration for given configurable.
      *
-     * @param fullConfiguration the full configuration containing properties for all configurables
-     * @param configurable      the configurable to validate the configuration for
+     * @param fullConfiguration
+     *            the full configuration containing properties for all configurables
+     * @param configurable
+     *            the configurable to validate the configuration for
      *
      * @return the result of the validation.
      *
-     * @throws ConfigurationException if reading the JSON schemas of the configurable failed
+     * @throws ConfigurationException
+     *             if reading the JSON schemas of the configurable failed
      */
     public ValidationResult validate(@Nullable JsonNode fullConfiguration, Configurable configurable)
             throws ConfigurationException {
@@ -86,13 +95,19 @@ public final class ConfigurationValidator {
 
     /**
      * Validates the provided configuration against the provided schema.
-     * @param extensionConfiguration the actual configuration of some extension (not wrapped in the identifying object
-     *                               as is the case with the full configuration provided to
-     *                               {@link #validate(ModelNode, Configurable)}.
-     * @param configurationSchema the schema to validate the configuration against
+     * 
+     * @param extensionConfiguration
+     *            the actual configuration of some extension (not wrapped in the identifying object as is the case with
+     *            the full configuration provided to {@link #validate(ModelNode, Configurable)}.
+     * @param configurationSchema
+     *            the schema to validate the configuration against
+     * 
      * @return the results of the validation
-     * @throws ConfigurationException if an error occurs during the processing of the data or schema as opposed to
-     * a simple validation failure which would be captured in the returned object
+     * 
+     * @throws ConfigurationException
+     *             if an error occurs during the processing of the data or schema as opposed to a simple validation
+     *             failure which would be captured in the returned object
+     * 
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
@@ -103,13 +118,18 @@ public final class ConfigurationValidator {
 
     /**
      * Validates the provided configuration against the provided schema.
-     * @param extensionConfiguration the actual configuration of some extension (not wrapped in the identifying object
-     *                               as is the case with the full configuration provided to
-     *                               {@link #validate(JsonNode, Configurable)}.
-     * @param configurationSchema the schema to validate the configuration against
+     * 
+     * @param extensionConfiguration
+     *            the actual configuration of some extension (not wrapped in the identifying object as is the case with
+     *            the full configuration provided to {@link #validate(JsonNode, Configurable)}.
+     * @param configurationSchema
+     *            the schema to validate the configuration against
+     * 
      * @return the results of the validation
-     * @throws ConfigurationException if an error occurs during the processing of the data or schema as opposed to
-     * a simple validation failure which would be captured in the returned object
+     * 
+     * @throws ConfigurationException
+     *             if an error occurs during the processing of the data or schema as opposed to a simple validation
+     *             failure which would be captured in the returned object
      */
     public ValidationResult validate(JsonNode extensionConfiguration, JsonNode configurationSchema)
             throws ConfigurationException {
@@ -161,8 +181,7 @@ public final class ConfigurationValidator {
         if (result.getErrors() != null) {
             for (int i = 0; i < result.getErrors().length; ++i) {
                 ValidationResult.Error e = result.getErrors()[i];
-                String path = e.dataPath == null
-                        ? ""
+                String path = e.dataPath == null ? ""
                         : (e.dataPath.startsWith("$") ? e.dataPath.substring(1) : e.dataPath);
 
                 path = "$[" + idx + "].configuration" + (path.isEmpty() ? "" : ("." + path));

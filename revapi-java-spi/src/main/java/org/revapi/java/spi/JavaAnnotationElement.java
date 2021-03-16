@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +16,13 @@
  */
 package org.revapi.java.spi;
 
-import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 
 /**
  * Elements in the element forest that correspond to a Java annotation will implement this interface.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface JavaAnnotationElement extends JavaElement {
@@ -30,10 +30,8 @@ public interface JavaAnnotationElement extends JavaElement {
     /**
      * @return the corresponding annotation mirror
      */
-    @Nonnull
     AnnotationMirror getAnnotation();
 
     @Override
-    @Nonnull
     JavaModelElement getParent();
 }

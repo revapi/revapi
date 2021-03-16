@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@ import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 1.0
  */
 public class EnumConstantsOrderChanged extends CheckBase {
@@ -64,8 +65,8 @@ public class EnumConstantsOrderChanged extends CheckBase {
 
         Predicate<VariableElement> isNotEnumConstant = v -> v.getKind() != ElementKind.ENUM_CONSTANT;
 
-        List<? extends VariableElement> fields = ElementFilter.fieldsIn(oldField.getDeclaringElement().
-                getEnclosingElement().getEnclosedElements());
+        List<? extends VariableElement> fields = ElementFilter
+                .fieldsIn(oldField.getDeclaringElement().getEnclosingElement().getEnclosedElements());
         fields.removeIf(isNotEnumConstant);
 
         int oldIdx = fields.indexOf(oldField.getDeclaringElement());
@@ -92,8 +93,6 @@ public class EnumConstantsOrderChanged extends CheckBase {
         String newIdx = fields.context[1].toString();
 
         return Collections.singletonList(createDifference(Code.FIELD_ENUM_CONSTANT_ORDER_CHANGED,
-                Code.attachmentsFor(fields.oldElement, fields.newElement,
-                        "oldOrdinal", oldIdx,
-                        "newOrdinal", newIdx)));
+                Code.attachmentsFor(fields.oldElement, fields.newElement, "oldOrdinal", oldIdx, "newOrdinal", newIdx)));
     }
 }

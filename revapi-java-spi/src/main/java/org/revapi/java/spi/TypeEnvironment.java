@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,10 +29,11 @@ import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 
 /**
- * This interface mimics (to an extent) the {@link javax.annotation.processing.ProcessingEnvironment} and
- * serves the same purpose. To give a context to the API checking classes.
+ * This interface mimics (to an extent) the {@link javax.annotation.processing.ProcessingEnvironment} and serves the
+ * same purpose. To give a context to the API checking classes.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public interface TypeEnvironment {
@@ -57,11 +58,14 @@ public interface TypeEnvironment {
      * Returns full Revapi representation of the provided java type. This sort of a reverse to
      * {@link JavaModelElement#getDeclaringElement()} on the type level.
      *
-     * <p>For elements that were not fully analyzed (for example the types included in the Java runtime)
-     * a stub implementation is returned that reflects the findings of the analysis but may not reflect
-     * the full state of the type (for example use sites not encountered during the analysis will be missing, etc.)
+     * <p>
+     * For elements that were not fully analyzed (for example the types included in the Java runtime) a stub
+     * implementation is returned that reflects the findings of the analysis but may not reflect the full state of the
+     * type (for example use sites not encountered during the analysis will be missing, etc.)
      *
-     * @param javaType the java type
+     * @param javaType
+     *            the java type
+     * 
      * @return revapi model element or null if it cannot be const
      */
     JavaTypeElement getModelElement(TypeElement javaType);
@@ -71,7 +75,8 @@ public interface TypeEnvironment {
      *
      * Returns null if the provided type mirror doesn't represent a declared type.
      *
-     * @param type the type mirror to try and find the model representation of
+     * @param type
+     *            the type mirror to try and find the model representation of
      *
      * @return the model representation of the type or null if it cannot be found or the type is not a declared type
      *

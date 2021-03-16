@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,11 +37,12 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import org.revapi.AnalysisContext;
+import org.revapi.ArchiveAnalyzer;
 import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterFinishResult;
-import org.revapi.FilterMatch;
 import org.revapi.FilterStartResult;
+import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 import org.revapi.classif.ModelInspector;
 import org.revapi.classif.StructuralMatcher;
@@ -52,6 +53,7 @@ import org.revapi.classif.progress.WalkInstruction;
 import org.revapi.java.JavaArchiveAnalyzer;
 import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
@@ -69,38 +71,49 @@ public final class JavaElementMatcher implements ElementMatcher {
         try {
             StructuralMatcher matcher = ClassifDSL.compile(recipe);
 
-            return Optional.of(archiveAnalyzer -> {
-                if (!(archiveAnalyzer instanceof JavaArchiveAnalyzer)) {
-                    return null;
+            CompiledRecipe ret = new CompiledRecipe() {
+                @SuppressWarnings("unchecked")
+                @Nullable
+                @Override
+                public <E extends Element<E>> TreeFilter<E> filterFor(ArchiveAnalyzer<E> archiveAnalyzer) {
+                    if (!(archiveAnalyzer instanceof JavaArchiveAnalyzer)) {
+                        return null;
+                    }
+
+                    MatchingProgress<JavaElement> progress = matcher
+                            .with(new ElementInspector((JavaArchiveAnalyzer) archiveAnalyzer));
+
+                    TreeFilter<JavaElement> ret = new TreeFilter<JavaElement>() {
+                        @Override
+                        public FilterStartResult start(JavaElement element) {
+                            if (!(element instanceof JavaModelElement)) {
+                                return FilterStartResult.doesntMatch();
+                            }
+                            return convert(progress.start(element));
+                        }
+
+                        @Override
+                        public FilterFinishResult finish(JavaElement element) {
+                            if (!(element instanceof JavaModelElement)) {
+                                return FilterFinishResult.doesntMatch();
+                            }
+                            return FilterFinishResult.direct(convert(progress.finish(element)));
+                        }
+
+                        @Override
+                        public Map<JavaElement, FilterFinishResult> finish() {
+                            return progress.finish().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                                    e -> FilterFinishResult.direct(convert(e.getValue()))));
+                        }
+                    };
+
+                    // this is a safe cast because we're checking that the provided analyzer is indeed a java archive
+                    // analyzer...
+                    return (TreeFilter<E>) ret;
                 }
+            };
 
-                MatchingProgress<Element> progress = matcher
-                        .with(new ElementInspector((JavaArchiveAnalyzer) archiveAnalyzer));
-
-                return new TreeFilter() {
-                    @Override
-                    public FilterStartResult start(Element element) {
-                        if (!(element instanceof JavaModelElement)) {
-                            return FilterStartResult.doesntMatch();
-                        }
-                        return convert(progress.start(element));
-                    }
-
-                    @Override
-                    public FilterFinishResult finish(Element element) {
-                        if (!(element instanceof JavaModelElement)) {
-                            return FilterFinishResult.doesntMatch();
-                        }
-                        return FilterFinishResult.direct(convert(progress.finish(element)));
-                    }
-
-                    @Override
-                    public Map<Element, FilterFinishResult> finish() {
-                        return progress.finish().entrySet().stream()
-                                .collect(Collectors.toMap(Map.Entry::getKey, e -> FilterFinishResult.direct(convert(e.getValue()))));
-                    }
-                };
-            });
+            return Optional.of(ret);
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
@@ -112,7 +125,7 @@ public final class JavaElementMatcher implements ElementMatcher {
 
     @Override
     public String getExtensionId() {
-        return "matcher.java";
+        return "java";
     }
 
     @Nullable
@@ -126,23 +139,24 @@ public final class JavaElementMatcher implements ElementMatcher {
     }
 
     private static FilterStartResult convert(WalkInstruction instruction) {
-        return FilterStartResult.direct(convert(instruction.getTestResult()), instruction.isDescend());
+        return FilterStartResult.direct(convert(instruction.getTestResult()),
+                Ternary.fromBoolean(instruction.isDescend()));
     }
 
-    private static FilterMatch convert(TestResult result) {
+    private static Ternary convert(TestResult result) {
         switch (result) {
-            case DEFERRED:
-                return FilterMatch.UNDECIDED;
-            case PASSED:
-                return FilterMatch.MATCHES;
-            case NOT_PASSED:
-                return FilterMatch.DOESNT_MATCH;
-            default:
-                throw new IllegalArgumentException(result + " not handled.");
+        case DEFERRED:
+            return Ternary.UNDECIDED;
+        case PASSED:
+            return Ternary.TRUE;
+        case NOT_PASSED:
+            return Ternary.FALSE;
+        default:
+            throw new IllegalArgumentException(result + " not handled.");
         }
     }
 
-    private static JavaModelElement toJava(Element element) {
+    private static JavaModelElement toJava(JavaElement element) {
         if (!(element instanceof JavaModelElement)) {
             throw new IllegalArgumentException("Only instances of JavaModelElement can be processed by matcher.java");
         }
@@ -150,7 +164,7 @@ public final class JavaElementMatcher implements ElementMatcher {
         return (JavaModelElement) element;
     }
 
-    private static final class ElementInspector implements ModelInspector<Element> {
+    private static final class ElementInspector implements ModelInspector<JavaElement> {
         private Elements elements;
         private Types types;
         private TypeElement javaLangObject;
@@ -166,17 +180,17 @@ public final class JavaElementMatcher implements ElementMatcher {
         }
 
         @Override
-        public javax.lang.model.element.Element toElement(Element element) {
+        public javax.lang.model.element.Element toElement(JavaElement element) {
             return toJava(element).getDeclaringElement();
         }
 
         @Override
-        public TypeMirror toMirror(Element element) {
+        public TypeMirror toMirror(JavaElement element) {
             return toJava(element).getModelRepresentation();
         }
 
         @Override
-        public Set<Element> getUses(Element element) {
+        public Set<JavaElement> getUses(JavaElement element) {
             if (!env.isScanningComplete()) {
                 return null;
             } else if (element instanceof JavaModelElement) {
@@ -193,31 +207,26 @@ public final class JavaElementMatcher implements ElementMatcher {
 
                 Map<UseSite.Type, Map<JavaTypeElement, Set<JavaModelElement>>> usedTypes = type.getUsedTypes();
 
-                return usedTypes.values().stream()
-                        .flatMap(m -> m.entrySet().stream())
-                        .filter(e -> e.getValue().contains(user))
-                        .map(Map.Entry::getKey)
-                        .collect(toSet());
+                return usedTypes.values().stream().flatMap(m -> m.entrySet().stream())
+                        .filter(e -> e.getValue().contains(user)).map(Map.Entry::getKey).collect(toSet());
             } else {
                 return emptySet();
             }
         }
 
         @Override
-        public Set<Element> getUseSites(Element element) {
+        public Set<JavaElement> getUseSites(JavaElement element) {
             if (!env.isScanningComplete()) {
                 return null;
             } else if (element instanceof JavaTypeElement) {
-                return ((JavaTypeElement) element).getUseSites().stream()
-                        .map(UseSite::getSite)
-                        .collect(toSet());
+                return ((JavaTypeElement) element).getUseSites().stream().map(UseSite::getSite).collect(toSet());
             } else {
                 return emptySet();
             }
         }
 
         @Override
-        public Element fromElement(javax.lang.model.element.Element element) {
+        public JavaElement fromElement(javax.lang.model.element.Element element) {
             if (!env.isScanningComplete()) {
                 return JavaElementFactory.elementFor(element, element.asType(), env, null);
             } else {

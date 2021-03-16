@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,17 @@ import javax.annotation.Nullable;
  * A decorator over the {@link java.util.Iterator} impls that can leave out the elements of incompatible types that
  * optionally don't conform to provided filter.
  *
- * <p>This implementation does NOT support null elements returned by the decorated iterator.
+ * <p>
+ * This implementation does NOT support null elements returned by the decorated iterator.
  *
  * @author Lukas Krejci
+ * 
  * @since 0.1
+ * 
+ * @deprecated Filtering turned out to be more complex than this. {@link Filter} has been superseded by
+ *             {@link org.revapi.TreeFilter}.
  */
+@Deprecated
 public class FilteringIterator<E> implements Iterator<E> {
     private final Class<E> resultType;
     private final Iterator<?> wrapped;
@@ -38,7 +44,7 @@ public class FilteringIterator<E> implements Iterator<E> {
     private E current;
 
     public FilteringIterator(@Nonnull Iterator<?> iterator, @Nonnull Class<E> resultType,
-        @Nullable Filter<? super E> filter) {
+            @Nullable Filter<? super E> filter) {
         this.wrapped = iterator;
         this.filter = filter;
         this.resultType = resultType;
@@ -67,9 +73,7 @@ public class FilteringIterator<E> implements Iterator<E> {
     }
 
     @Override
-    public
-    @Nonnull
-    E next() {
+    public @Nonnull E next() {
         if (current == null && !hasNext()) {
             throw new NoSuchElementException();
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public abstract class VisibilityChanged extends CheckBase {
@@ -44,7 +45,7 @@ public abstract class VisibilityChanged extends CheckBase {
         if (oldElement != null && newElement != null) {
             boolean oldAccessible = isAccessible(oldElement);
             boolean newAccessible = isAccessible(newElement);
-            //check if both are accessible or if they differ.. don't check if they're both private
+            // check if both are accessible or if they differ.. don't check if they're both private
             if (oldAccessible || newAccessible) {
                 pushActive(oldElement, newElement);
             }
@@ -58,7 +59,7 @@ public abstract class VisibilityChanged extends CheckBase {
             Modifier oldVisibility = getVisibility(elements.oldElement.getDeclaringElement());
             Modifier newVisibility = getVisibility(elements.newElement.getDeclaringElement());
 
-            //public == 0, private == 3
+            // public == 0, private == 3
             if (isProblem(getModifierRank(oldVisibility), getModifierRank(newVisibility))) {
                 return Collections.singletonList(report(elements, oldVisibility, newVisibility));
             }
@@ -68,8 +69,8 @@ public abstract class VisibilityChanged extends CheckBase {
     }
 
     private boolean isProblem(int oldVisibilityRank, int newVisibilityRank) {
-        return (reportIncrease && oldVisibilityRank > newVisibilityRank) ||
-            (!reportIncrease && oldVisibilityRank < newVisibilityRank);
+        return (reportIncrease && oldVisibilityRank > newVisibilityRank)
+                || (!reportIncrease && oldVisibilityRank < newVisibilityRank);
     }
 
     private Modifier getVisibility(Element t) {
@@ -84,7 +85,7 @@ public abstract class VisibilityChanged extends CheckBase {
 
     private int getModifierRank(Modifier modifier) {
         if (modifier == null) {
-            //package private
+            // package private
             return 2;
         }
 
@@ -101,9 +102,8 @@ public abstract class VisibilityChanged extends CheckBase {
     }
 
     private Difference report(ActiveElements<?> els, Modifier oldVisibility, Modifier newVisibility) {
-        return createDifference(code, Code.attachmentsFor(els.oldElement, els.newElement,
-                "oldVisibility", modifier(oldVisibility),
-                "newVisibility", modifier(newVisibility)));
+        return createDifference(code, Code.attachmentsFor(els.oldElement, els.newElement, "oldVisibility",
+                modifier(oldVisibility), "newVisibility", modifier(newVisibility)));
     }
 
     private String modifier(Modifier m) {

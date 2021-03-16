@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ import org.revapi.Report;
  */
 public abstract class AbstractSuggestionsBuilder implements BuildTimeReporter.SuggestionsBuilder {
 
-    protected abstract void appendDifferenceField(StringBuilder sb, String key, String value);
+    protected abstract void appendDifferenceField(StringBuilder sb, String key, Object value);
 
     protected abstract void appendDifferenceFieldSeparator(StringBuilder sb);
 
@@ -58,6 +58,8 @@ public abstract class AbstractSuggestionsBuilder implements BuildTimeReporter.Su
 
                 startDifference(sb);
 
+                appendDifferenceField(sb, "ignore", true);
+                appendDifferenceFieldSeparator(sb);
                 appendDifferenceField(sb, "code", d.code);
                 appendDifferenceFieldSeparator(sb);
 
@@ -83,7 +85,8 @@ public abstract class AbstractSuggestionsBuilder implements BuildTimeReporter.Su
                 appendDifferenceField(sb, "justification", "ADD YOUR EXPLANATION FOR THE NECESSITY OF THIS CHANGE");
 
                 if (context.isAttachmentsReported() && hasOptionalAttachments) {
-                    startOptionalAttachmentsInComment(sb, "\n  Additionally, the following attachments can be used to further identify the difference:\n\n");
+                    startOptionalAttachmentsInComment(sb,
+                            "\n  Additionally, the following attachments can be used to further identify the difference:\n\n");
                     for (Map.Entry<String, String> e : d.attachments.entrySet()) {
                         if (!d.isIdentifyingAttachment(e.getKey())) {
                             appendDifferenceField(sb, e.getKey(), e.getValue());

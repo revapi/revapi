@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,18 +22,19 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.revapi.Archive;
-import org.revapi.Element;
 import org.revapi.java.compilation.ProbingEnvironment;
+import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaMethodParameterElement;
 import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
-public final class MethodParameterElement extends JavaElementBase<VariableElement, TypeMirror> implements
-    JavaMethodParameterElement {
+public final class MethodParameterElement extends JavaElementBase<VariableElement, TypeMirror>
+        implements JavaMethodParameterElement {
 
     private final int index;
 
@@ -43,7 +44,7 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
             index = ((ExecutableElement) element.getEnclosingElement()).getParameters().indexOf(element);
         } else {
             throw new IllegalArgumentException(
-                "MethodParameterElement cannot be constructed using a VariableElement not representing a method parameter.");
+                    "MethodParameterElement cannot be constructed using a VariableElement not representing a method parameter.");
         }
     }
 
@@ -54,7 +55,8 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
         return (JavaMethodElement) super.getParent();
     }
 
-    @Override public int getIndex() {
+    @Override
+    public int getIndex() {
         return index;
     }
 
@@ -65,7 +67,7 @@ public final class MethodParameterElement extends JavaElementBase<VariableElemen
     }
 
     @Override
-    public int compareTo(@Nonnull Element o) {
+    public int compareTo(@Nonnull JavaElement o) {
         if (!(o.getClass().equals(MethodParameterElement.class))) {
             return JavaElementFactory.compareByType(this, o);
         }

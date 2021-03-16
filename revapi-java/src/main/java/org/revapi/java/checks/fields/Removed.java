@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class Removed extends CheckBase {
@@ -53,8 +54,7 @@ public final class Removed extends CheckBase {
 
         boolean isConstant = fields.oldElement.getDeclaringElement().getConstantValue() != null;
 
-        return Collections
-            .singletonList(createDifference(isConstant ? Code.FIELD_CONSTANT_REMOVED : Code.FIELD_REMOVED,
-                    Code.attachmentsFor(fields.oldElement, fields.newElement)));
+        return Collections.singletonList(createDifference(isConstant ? Code.FIELD_CONSTANT_REMOVED : Code.FIELD_REMOVED,
+                Code.attachmentsFor(fields.oldElement, fields.newElement)));
     }
 }

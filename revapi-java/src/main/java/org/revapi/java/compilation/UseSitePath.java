@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,8 @@
  */
 package org.revapi.java.compilation;
 
+import java.util.Objects;
+
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
@@ -26,5 +28,24 @@ public class UseSitePath {
     UseSitePath(TypeElement owner, Element useSite) {
         this.owner = owner;
         this.useSite = useSite;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        UseSitePath that = (UseSitePath) o;
+        return owner.equals(that.owner) && useSite.equals(that.useSite);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(owner, useSite);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,26 +16,33 @@
  */
 package org.revapi.simple;
 
+import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.regex.Pattern;
-
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.4.0
+ * 
+ * @deprecated use {@link org.revapi.base.BaseDifferenceTransform} instead
  */
-public abstract class SimpleDifferenceTransform<T extends Element> extends SimpleConfigurable implements DifferenceTransform<T> {
+@Deprecated
+public abstract class SimpleDifferenceTransform<T extends Element<T>> extends SimpleConfigurable
+        implements DifferenceTransform<T> {
     @Override
     public @Nonnull Pattern[] getDifferenceCodePatterns() {
         return new Pattern[0];
     }
 
     @Override
-    public @Nullable Difference transform(@Nullable T oldElement, @Nullable T newElement, @Nonnull Difference difference) {
+    public @Nullable Difference transform(@Nullable T oldElement, @Nullable T newElement,
+            @Nonnull Difference difference) {
         return difference;
     }
 }

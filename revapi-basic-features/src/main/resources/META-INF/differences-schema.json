@@ -17,6 +17,9 @@
     "criticality": {
       "$ref": "#/definitions/criticality"
     },
+    "matcher": {
+      "$ref": "#/definitions/matcher"
+    },
     "differences": {
       "type": "array",
       "items": {
@@ -30,10 +33,10 @@
             "type": "string"
           },
           "old": {
-            "type": "string"
+            "$ref": "#/definitions/elementMatch"
           },
           "new": {
-            "type": "string"
+            "$ref": "#/definitions/elementMatch"
           },
           "classify": {
             "$ref": "#/definitions/classify"
@@ -102,6 +105,27 @@
     },
     "criticality": {
       "type": "string"
+    },
+    "matcher": {
+      "type": "string"
+    },
+    "elementMatch": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "matcher": {
+              "$ref": "#/definitions/matcher"
+            },
+            "match": {
+              "type": "string"
+            }
+          }
+        }
+      ]
     }
   }
 }

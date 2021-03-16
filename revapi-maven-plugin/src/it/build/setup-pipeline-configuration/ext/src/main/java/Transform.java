@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import static java.util.Arrays.asList;
 
 import java.io.File;
@@ -31,7 +30,7 @@ import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
 
-public class Transform implements DifferenceTransform<Element> {
+public class Transform implements DifferenceTransform {
     @Nonnull
     @Override
     public Pattern[] getDifferenceCodePatterns() {

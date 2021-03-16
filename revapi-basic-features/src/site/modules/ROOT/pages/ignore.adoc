@@ -138,8 +138,8 @@ or equivalently in XML
 ```
 
 NOTE: Again, the `interface` attribute is defined by the
-link:../../revapi-java/differences.html#a_class_no_longer_implements_interface[the documentation] for the difference
-code.
+xref:revapi-java::differences.adoc#_class_no_longer_implements_interface__java_class_nolongerimplementsinterface[the documentation]
+for the difference code.
 
 In this example, the fact that the `my.great.app.AcmeClass` no longer implements the `my.great.app.Superfluous`
 interface will not be reported. Any other change on the class (including other interfaces that are no longer implemented

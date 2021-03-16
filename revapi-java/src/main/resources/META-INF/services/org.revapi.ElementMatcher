@@ -1,1 +1,2 @@
 org.revapi.java.matcher.JavaElementMatcher
+org.revapi.java.matcher.PackageMatcher

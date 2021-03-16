@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "pathRegex": {
+      "type": "string",
+      "default": "",
+      "description": "A regex for matching a concrete file within a zip archive. If left empty, the file is not considered a ZIP to look into but is considered a file to be analyzed itself."
+    },
+    "charset": {
+      "type": "string",
+      "default": "utf-8",
+      "description": "The charset of the file. Defaults to UTF-8."
+    }
+  }
+}

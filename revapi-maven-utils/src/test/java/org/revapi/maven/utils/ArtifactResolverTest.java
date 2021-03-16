@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,8 +71,10 @@ public class ArtifactResolverTest {
         LocalRepository localRepo = new LocalRepository(localRepoLocation);
         session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
-        session.setTransferListener(new AbstractTransferListener() {});
-        session.setRepositoryListener(new AbstractRepositoryListener() {});
+        session.setTransferListener(new AbstractTransferListener() {
+        });
+        session.setRepositoryListener(new AbstractRepositoryListener() {
+        });
 
         return session;
     }
@@ -86,12 +88,15 @@ public class ArtifactResolverTest {
         return new File(System.getProperty("repo.path"));
     }
 
-    private ArtifactResolver getResolver(boolean resolveProvidedDependencies, boolean resolveTransitiveProvidedDependencies) {
+    private ArtifactResolver getResolver(boolean resolveProvidedDependencies,
+            boolean resolveTransitiveProvidedDependencies) {
         RepositorySystem repositorySystem = newRepositorySystem();
         DefaultRepositorySystemSession session = newRepositorySystemSession(repositorySystem, localRepo());
 
-        session.setDependencySelector(getRevapiDependencySelector(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
-        session.setDependencyTraverser(getRevapiDependencyTraverser(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
+        session.setDependencySelector(
+                getRevapiDependencySelector(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
+        session.setDependencyTraverser(
+                getRevapiDependencyTraverser(resolveProvidedDependencies, resolveTransitiveProvidedDependencies));
 
         return new ArtifactResolver(repositorySystem, session, repos());
     }
@@ -123,7 +128,8 @@ public class ArtifactResolverTest {
         assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("compile"::equals).count());
         assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("deep-compile-compile"::equals).count());
         assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("provided"::equals).count());
-        assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("deep-provided-compile"::equals).count());
+        assertEquals(1,
+                artifacts.stream().map(Artifact::getArtifactId).filter("deep-provided-compile"::equals).count());
     }
 
     @Test
@@ -138,10 +144,13 @@ public class ArtifactResolverTest {
         assertEquals(6, artifacts.size());
         assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("compile"::equals).count());
         assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("deep-compile-compile"::equals).count());
-        assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("deep-compile-provided"::equals).count());
+        assertEquals(1,
+                artifacts.stream().map(Artifact::getArtifactId).filter("deep-compile-provided"::equals).count());
         assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("provided"::equals).count());
-        assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("deep-provided-compile"::equals).count());
-        assertEquals(1, artifacts.stream().map(Artifact::getArtifactId).filter("deep-provided-provided"::equals).count());
+        assertEquals(1,
+                artifacts.stream().map(Artifact::getArtifactId).filter("deep-provided-compile"::equals).count());
+        assertEquals(1,
+                artifacts.stream().map(Artifact::getArtifactId).filter("deep-provided-provided"::equals).count());
     }
 
     @Test

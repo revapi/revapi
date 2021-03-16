@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,7 @@ import org.revapi.java.spi.TypeEnvironment;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class ProbingEnvironment implements TypeEnvironment {
@@ -55,7 +56,7 @@ public final class ProbingEnvironment implements TypeEnvironment {
 
     public ProbingEnvironment(API api) {
         this.api = api;
-        this.tree = new JavaElementForest(api, this);
+        this.tree = new JavaElementForest(api);
     }
 
     public API getApi() {
@@ -90,8 +91,8 @@ public final class ProbingEnvironment implements TypeEnvironment {
     @Override
     public Elements getElementUtils() {
         if (processingEnvironment == null) {
-            throw new IllegalStateException("Types instance not yet available. It is too early to call this method." +
-                    " Wait until after the archives are visited and the API model constructed.");
+            throw new IllegalStateException("Types instance not yet available. It is too early to call this method."
+                    + " Wait until after the archives are visited and the API model constructed.");
         }
         return new MissingTypeAwareDelegatingElements(processingEnvironment.getElementUtils());
     }
@@ -101,8 +102,8 @@ public final class ProbingEnvironment implements TypeEnvironment {
     @SuppressWarnings("ConstantConditions")
     public Types getTypeUtils() {
         if (processingEnvironment == null) {
-            throw new IllegalStateException("Types instance not yet available. It is too early to call this method." +
-                    " Wait until after the archives are visited and the API model constructed.");
+            throw new IllegalStateException("Types instance not yet available. It is too early to call this method."
+                    + " Wait until after the archives are visited and the API model constructed.");
         }
         return new MissingTypeAwareDelegatingTypes(processingEnvironment.getTypeUtils());
     }

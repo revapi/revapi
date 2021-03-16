@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +42,16 @@ public class Analyzer implements ApiAnalyzer {
     @Override
     public ArchiveAnalyzer getArchiveAnalyzer(@Nonnull API api) {
         return new ArchiveAnalyzer() {
+            @Override
+            public API getApi() {
+                return api;
+            }
+
+            @Override
+            public Analyzer getApiAnalyzer() {
+                return Analyzer.this;
+            }
+
             @Override
             @Nonnull
             public ElementForest analyze(TreeFilter filter) {
