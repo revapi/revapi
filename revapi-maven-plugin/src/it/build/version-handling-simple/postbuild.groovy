@@ -59,5 +59,6 @@ File snapshotPom = file("target/it/build/version-handling-simple/snapshot/pom.xm
 //1.0.1, not the version that update-versions changed the pom to.
 checkVersion(v3Pom, "v3", "1.0.2", "1.1.0")
 
-//for the snapshot artifact, we should keep the -SNAPSHOT in.
-checkVersion(snapshotPom, "snapshot", "1.0.2-SNAPSHOT")
+//for the snapshot artifact, we should keep the -SNAPSHOT in and increase the version, because even though there's no
+//change, the snapshot should point to the next release
+checkVersion(snapshotPom, "snapshot", "1.0.3-SNAPSHOT")

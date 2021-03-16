@@ -94,6 +94,15 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     @Parameter(property = Props.forceVersionUpdate.NAME, defaultValue = Props.forceVersionUpdate.DEFAULT_VALUE)
     private boolean forceVersionUpdate;
 
+    /**
+     * If the module has a newer version than strictly required (given the amount of change since the last release and
+     * the semver rules), should the newer version be kept or reset to the lowest strictly required?
+     *
+     * @since 0.13.5
+     */
+    @Parameter(property = Props.preserveNewerVersion.NAME, defaultValue = Props.preserveNewerVersion.DEFAULT_VALUE)
+    private boolean preserveNewerVersion;
+
     private boolean preserveSuffix;
     private String replacementSuffix;
 
@@ -326,14 +335,17 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         }
     }
 
-    private Version nextVersion(String determinedVersion, String currentVersion, ApiChangeLevel changeLevel) {
-        Version determined = Version.parse(determinedVersion);
+    private Version nextVersion(String baseVersion, String currentVersion, ApiChangeLevel changeLevel) {
+        Version determined = Version.parse(baseVersion);
         Version current = Version.parse(currentVersion);
 
         boolean isDev = determined.getMajor() == 0;
 
         switch (changeLevel) {
             case NO_CHANGE:
+                if (preserveSuffix && "SNAPSHOT".equals(current.getSuffix())) {
+                    determined.setPatch(determined.getPatch() + 1);
+                }
                 break;
             case NON_BREAKING_CHANGES:
                 if (isDev) {
@@ -355,6 +367,20 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
                 break;
             default:
                 throw new IllegalArgumentException("Unhandled API change level: " + changeLevel);
+        }
+
+        if (preserveNewerVersion) {
+            if (current.getMajor() > determined.getMajor()) {
+                determined = current;
+            } else if (current.getMajor() == determined.getMajor()) {
+                if (current.getMinor() > determined.getMinor()) {
+                    determined = current;
+                } else if (current.getMinor() == determined.getMinor()) {
+                    if (current.getPatch() > determined.getPatch()) {
+                        determined = current;
+                    }
+                }
+            }
         }
 
         if (replacementSuffix != null) {

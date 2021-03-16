@@ -29,7 +29,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
         requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME)
 @Execute(phase = LifecyclePhase.PACKAGE)
 public class UpdateVersionsMojo extends AbstractVersionModifyingMojo {
-
     public UpdateVersionsMojo() {
         setPreserveSuffix(true);
         setReplacementSuffix(null);
