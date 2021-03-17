@@ -132,10 +132,11 @@ function release_module() {
   ensure_clean_workdir
   module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
   ups=$(upstream_deps "$module")
+  mvn versions:update-parent
   if contains "revapi_build" "$ups"; then
     mvn package revapi:update-versions -DskipTests
   fi
-  mvn versions:update-parent versions:force-releases -DprocessParent=true -Dincludes="org.revapi:*"
+  mvn versions:force-releases -DprocessParent=true -Dincludes="org.revapi:*"
   mvn versions:set -DremoveSnapshot=true
   mvn license:format verify -Pantora-release #antora-release makes sure we set the appropriate version in the antora.yml
   version=$(xpath -q -e "/project/version/text()" pom.xml)
