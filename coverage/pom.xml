@@ -102,7 +102,6 @@
                         <!-- we don't need the dependency version reset by the update-to-snapshots execution here -->
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>versions-maven-plugin</artifactId>
-                        <version>2.7</version>
                         <executions>
                             <execution>
                                 <id>update-to-snapshots</id>

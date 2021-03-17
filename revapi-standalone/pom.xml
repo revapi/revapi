@@ -44,7 +44,7 @@
     </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
-        <version.org.revapi.revapi>0.13.2</version.org.revapi.revapi>
+        <version.org.revapi.revapi>0.14.0-SNAPSHOT</version.org.revapi.revapi>
     </properties>
     <dependencies>
         <dependency>
@@ -126,4 +126,25 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>version-snapshots</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>versions-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>update-to-snapshots</id>
+                                <goals combine.children="append">
+                                    <goal>update-properties</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
