@@ -17,6 +17,6 @@
 
 name: revapi-maven-plugin
 title: Maven Plugin
-version: master
+version: 0.13.6
 nav:
   - modules/ROOT/nav.adoc
