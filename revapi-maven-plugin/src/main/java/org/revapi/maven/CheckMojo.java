@@ -87,11 +87,7 @@ public class CheckMojo extends AbstractRevapiMojo {
     private File ignoreSuggestionsFile;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        if (skip) {
-            return;
-        }
-
+    public void doExecute() throws MojoExecutionException, MojoFailureException {
         StringWriter wrt = new StringWriter();
         BuildTimeReporter reporter;
 

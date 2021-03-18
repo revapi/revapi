@@ -48,10 +48,10 @@ public class UpdateReleasePropertiesMojo extends AbstractVersionModifyingMojo {
     private String releaseVersionSuffix;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void doExecute() throws MojoExecutionException, MojoFailureException {
         setPreserveSuffix(false);
         setReplacementSuffix(releaseVersionSuffix);
-        super.execute();
+        super.doExecute();
     }
 
     @Override

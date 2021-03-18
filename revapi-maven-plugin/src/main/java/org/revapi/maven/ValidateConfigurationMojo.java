@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.revapi.Report;
@@ -39,7 +38,7 @@ import org.revapi.configuration.ValidationResult;
 public class ValidateConfigurationMojo extends AbstractRevapiMojo {
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void doExecute() throws MojoExecutionException {
         Analyzer analyzer = prepareAnalyzer(project, PipelineConfigurationParser.parse(pipelineConfiguration),
                 ValidateReporter.class, Collections.emptyMap());
 

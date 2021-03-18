@@ -387,6 +387,18 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
         }
     }
 
+    @Override
+    public final void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().info("Skipping execution");
+            return;
+        }
+
+        doExecute();
+    }
+
+    protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;
+
     protected Criticality determineMaximumCriticality(PipelineConfiguration pipelineConfiguration)
             throws MojoExecutionException {
         return determineCriticality(pipelineConfiguration, failCriticality, "maximumCriticality",

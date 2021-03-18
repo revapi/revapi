@@ -128,10 +128,7 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
     }
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        if (skip) {
-            return;
-        }
+    public void doExecute() throws MojoExecutionException, MojoFailureException {
         AnalysisResults analysisResults;
 
         if (!initializeComparisonArtifacts()) {

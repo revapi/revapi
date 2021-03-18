@@ -101,11 +101,7 @@ public class ConvertToXmlConfigMojo extends AbstractRevapiMojo {
     private boolean convertAnalysisConfigurationFiles;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        if (skip) {
-            return;
-        }
-
+    public void doExecute() throws MojoExecutionException, MojoFailureException {
         AnalyzerBuilder.Result res = buildAnalyzer(project, PipelineConfigurationParser.parse(pipelineConfiguration),
                 SilentReporter.class, Collections.emptyMap());
         if (res.skip) {

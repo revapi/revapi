@@ -397,6 +397,7 @@ public class ReportMojo extends AbstractMavenReport {
         ensureAnalyzed(locale);
 
         if (skip) {
+            getLog().info("Skipping execution");
             return;
         }
 

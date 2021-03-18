@@ -110,6 +110,7 @@ public class ReportAggregateMojo extends ReportMojo {
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
         if (skip) {
+            getLog().info("Skipping execution");
             return;
         }
 
