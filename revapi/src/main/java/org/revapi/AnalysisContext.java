@@ -665,6 +665,12 @@ public final class AnalysisContext {
                 aParent.remove(parentKey);
                 return;
             }
+
+            if (a != null && b.getNodeType() != a.getNodeType()) {
+                throw new IllegalArgumentException("Failed to merge configuration of extension " + extension
+                        + ". Some of its configuration elements have different node types than others.");
+            }
+
             switch (b.getNodeType()) {
             case ARRAY:
                 if (a == null) {
