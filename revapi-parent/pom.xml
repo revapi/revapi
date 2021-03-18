@@ -277,6 +277,7 @@
                 <checkstyle.skip>true</checkstyle.skip>
                 <enforcer.skip>true</enforcer.skip>
                 <formatter.skip>true</formatter.skip>
+                <impsort.skip>true</impsort.skip>
                 <jacoco.skip>true</jacoco.skip>
                 <license.skip>true</license.skip>
                 <revapi.skip>true</revapi.skip>
