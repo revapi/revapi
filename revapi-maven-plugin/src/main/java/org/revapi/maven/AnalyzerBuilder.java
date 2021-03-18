@@ -77,6 +77,8 @@ class AnalyzerBuilder {
     private String versionFormat;
     private Revapi revapi;
     private Map<String, Object> contextData = new HashMap<>(2);
+    private PromotedDependency[] oldPromotedDependencies;
+    private PromotedDependency[] newPromotedDependencies;
 
     static AnalyzerBuilder forGavs(String[] oldGavs, String[] newGavs) {
         return new AnalyzerBuilder(oldGavs, newGavs, null, null);
@@ -215,6 +217,16 @@ class AnalyzerBuilder {
         return this;
     }
 
+    AnalyzerBuilder withOldPromotedDependencies(PromotedDependency[] oldApiDependencies) {
+        this.oldPromotedDependencies = oldApiDependencies;
+        return this;
+    }
+
+    AnalyzerBuilder withNewPromotedDependencies(PromotedDependency[] newApiDependencies) {
+        this.newPromotedDependencies = newApiDependencies;
+        return this;
+    }
+
     public Result build() {
         Result res = new Result();
 
@@ -244,11 +256,11 @@ class AnalyzerBuilder {
                 applyDisallowedExtensionsToPipeline(disallowedExtensions);
 
         return new Analyzer(pipelineConfiguration, analysisConfiguration, analysisConfigurationFiles, oldArtifacts,
-                newArtifacts, oldGavs, newGavs, project, repositorySystem, repositorySystemSession, reporterType,
-                contextData, locale, log, failOnMissingConfigurationFiles, failOnUnresolvedArtifacts,
-                failOnUnresolvedDependencies, alwaysCheckForReleaseVersion, checkDependencies,
-                resolveProvidedDependencies, resolveTransitiveProvidedDependencies, expandProperties, versionFormat,
-                pipelineModifier, revapi);
+                newArtifacts, oldGavs, newGavs, oldPromotedDependencies, newPromotedDependencies, project,
+                repositorySystem, repositorySystemSession, reporterType, contextData, locale, log,
+                failOnMissingConfigurationFiles, failOnUnresolvedArtifacts, failOnUnresolvedDependencies,
+                alwaysCheckForReleaseVersion, checkDependencies, resolveProvidedDependencies,
+                resolveTransitiveProvidedDependencies, expandProperties, versionFormat, pipelineModifier, revapi);
     }
 
     private void initializeComparisonArtifacts() {

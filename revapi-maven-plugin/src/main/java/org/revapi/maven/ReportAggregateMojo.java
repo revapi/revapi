@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -281,7 +281,11 @@ public class ReportAggregateMojo extends ReportMojo {
                 .withRepositorySystemSession(repositorySystemSession)
                 .withSkip(skip)
                 .withExpandProperties(expandProperties)
-                .withVersionFormat(versionRegex);
+                .withVersionFormat(versionRegex)
+                .withNewPromotedDependencies(
+                        newPromotedDependencies == null ? promotedDependencies : newPromotedDependencies)
+                .withOldPromotedDependencies(
+                        oldPromotedDependencies == null ? promotedDependencies : oldPromotedDependencies);
 
         if (revapi == null) {
             bld = bld.withReporter(ReportTimeReporter.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 Lukas Krejci
+ * Copyright 2014-2021 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -77,6 +78,10 @@ public final class Analyzer {
 
     private final Artifact[] newArtifacts;
 
+    private final PromotedDependency[] oldPromotedDependencies;
+
+    private final PromotedDependency[] newPromotedDependencies;
+
     private final MavenProject project;
 
     private final RepositorySystem repositorySystem;
@@ -110,7 +115,8 @@ public final class Analyzer {
 
     Analyzer(PipelineConfiguration.Builder pipelineConfiguration, PlexusConfiguration analysisConfiguration,
             Object[] analysisConfigurationFiles, Artifact[] oldArtifacts, Artifact[] newArtifacts, String[] oldGavs,
-            String[] newGavs, MavenProject project, RepositorySystem repositorySystem,
+            String[] newGavs, PromotedDependency[] oldPromotedDependencies,
+            PromotedDependency[] newPromotedDependencies, MavenProject project, RepositorySystem repositorySystem,
             RepositorySystemSession repositorySystemSession, Class<? extends Reporter> reporterType,
             Map<String, Object> contextData, Locale locale, Log log, boolean failOnMissingConfigurationFiles,
             boolean failOnMissingArchives, boolean failOnMissingSupportArchives, boolean alwaysUpdate,
@@ -123,6 +129,8 @@ public final class Analyzer {
         this.newGavs = newGavs;
         this.oldArtifacts = oldArtifacts;
         this.newArtifacts = newArtifacts;
+        this.oldPromotedDependencies = oldPromotedDependencies;
+        this.newPromotedDependencies = newPromotedDependencies;
         this.project = project;
         this.repositorySystem = repositorySystem;
 
@@ -312,8 +320,31 @@ public final class Analyzer {
                 newTransitiveDeps.addAll(collectDeps("new", resolver, resolvedNew));
             }
 
+            promoteDependencies(oldArchives, oldTransitiveDeps, oldPromotedDependencies);
+            promoteDependencies(newArchives, newTransitiveDeps, newPromotedDependencies);
+
             resolvedOldApi = API.of(oldArchives).supportedBy(oldTransitiveDeps).build();
             resolvedNewApi = API.of(newArchives).supportedBy(newTransitiveDeps).build();
+        }
+    }
+
+    private void promoteDependencies(List<MavenArchive> archives, Set<MavenArchive> dependencies,
+            PromotedDependency[] blueprints) {
+        if (blueprints == null || blueprints.length == 0) {
+            return;
+        }
+        
+        Iterator<MavenArchive> it = dependencies.iterator();
+        while (it.hasNext()) {
+            MavenArchive ma = it.next();
+            DefaultArtifact dep = new DefaultArtifact(ma.getName());
+            for (PromotedDependency b : blueprints) {
+                if (b.matches(dep)) {
+                    archives.add(ma);
+                    it.remove();
+                    break;
+                }
+            }
         }
     }
 
