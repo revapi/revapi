@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ALL_MODULES=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi"
+ALL_MODULES=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi coverage"
 
 DEPS_revapi_parent=()
 DEPS_revapi_site=()
@@ -23,6 +23,7 @@ DEPS_revapi_standalone=("revapi_basic_features" "revapi_maven_utils")
 DEPS_revapi_jackson=("revapi")
 DEPS_revapi_json=("revapi_jackson")
 DEPS_revapi_yaml=("revapi_jackson")
+DEPS_coverage=("revapi_build")
 ORDER_revapi_parent=0
 ORDER_revapi_build_support=1
 ORDER_revapi_build=2
@@ -40,6 +41,7 @@ ORDER_revapi_standalone=5
 ORDER_revapi_jackson=4
 ORDER_revapi_json=5
 ORDER_revapi_yaml=5
+ORDER_coverage=3
 SITE_revapi_parent=0
 SITE_revapi_build_support=0
 SITE_revapi_build=0
@@ -131,6 +133,9 @@ function ensure_clean_workdir() {
 function release_module() {
   ensure_clean_workdir
   module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
+  if [ $module = "coverage" ]; then
+    return
+  fi
   ups=$(upstream_deps "$module")
   mvn versions:update-parent
   if contains "revapi_build" "$ups"; then
@@ -164,7 +169,11 @@ function update_module_version() {
   module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
   ups=$(upstream_deps "$module")
   if contains "revapi_build" "$ups"; then
-    mvn package revapi:update-versions -DskipTests
+    if [ $module != "coverage" ]; then
+      # we want to run license check and revapi
+      mvn package revapi:update-versions -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
+      -Djacoco.skip=true -Dsort.skip=true
+    fi
   fi
   cd ..
   mvn validate -Pversion-snapshots
@@ -313,6 +322,4 @@ function update_versions() {
     update_module_version "$m"
     cd "$CWD"
   done
-
-  echo to_update
 }
