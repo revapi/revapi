@@ -124,6 +124,18 @@
                     <finalName>revapi-${project.version}</finalName>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <configuration>
+                    <promotedDependencies>
+                        <dependency>
+                            <groupId>org.revapi</groupId>
+                            <artifactId>revapi</artifactId>
+                        </dependency>
+                    </promotedDependencies>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <profiles>
