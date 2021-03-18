@@ -64,7 +64,7 @@ import org.revapi.maven.utils.ArtifactResolver;
  * how to append to a report instead of overwriting it.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.5.0
  */
 @Mojo(name = "report-aggregate", aggregator = true, defaultPhase = SITE)
@@ -283,7 +283,11 @@ public class ReportAggregateMojo extends ReportMojo {
                 .withFailOnUnresolvedDependencies(this.failOnUnresolvedDependencies).withLocale(locale)
                 .withLog(getLog()).withProject(project).withRepositorySystem(repositorySystem)
                 .withRepositorySystemSession(repositorySystemSession).withSkip(skip)
-                .withExpandProperties(expandProperties).withVersionFormat(versionRegex);
+                .withExpandProperties(expandProperties).withVersionFormat(versionRegex)
+                .withNewPromotedDependencies(
+                        newPromotedDependencies == null ? promotedDependencies : newPromotedDependencies)
+                .withOldPromotedDependencies(
+                        oldPromotedDependencies == null ? promotedDependencies : oldPromotedDependencies);
 
         if (revapi == null) {
             bld = bld.withReporter(ReportTimeReporter.class);

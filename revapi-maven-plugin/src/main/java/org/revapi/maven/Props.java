@@ -196,4 +196,19 @@ final class Props {
         static final String NAME = PREFIX + "preserveNewerVersion";
         static final String DEFAULT_VALUE = "true";
     }
+
+    static final class promotedDependencies {
+        static final String NAME = "";
+        static final String DEFAULT_VALUE = "";
+    }
+
+    static final class oldPromotedDependencies {
+        static final String NAME = "";
+        static final String DEFAULT_VALUE = "";
+    }
+
+    static final class newPromotedDependencies {
+        static final String NAME = "";
+        static final String DEFAULT_VALUE = "";
+    }
 }

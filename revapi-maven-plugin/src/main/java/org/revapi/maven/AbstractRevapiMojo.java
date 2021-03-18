@@ -38,7 +38,7 @@ import org.revapi.Reporter;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.3.11
  */
 abstract class AbstractRevapiMojo extends AbstractMojo {
@@ -82,7 +82,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      *
      * <p>
      * The list is either a list of strings or has the following form:
-     * 
+     *
      * <pre>
      * <code>
      *    &lt;analysisConfigurationFiles&gt;
@@ -115,7 +115,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * <p>
      * An example of this might be a config file which contains API changes to be ignored in all past versions of a
      * library. The classes to be ignored are specified in a configuration that is specific for each version:
-     * 
+     *
      * <pre>
      * <code>
      *     {
@@ -141,6 +141,27 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      */
     @Parameter(property = Props.analysisConfigurationFiles.NAME, defaultValue = Props.analysisConfigurationFiles.DEFAULT_VALUE)
     protected Object[] analysisConfigurationFiles;
+
+    /**
+     * A list of dependencies of both the old and new artifact(s) that should be considered part of the old/new API.
+     * This is a convenience property if you just need to specify a set of dependencies to promote into the API and that
+     * set can be specified in a way common to both old and new APIs. If you need to specify different sets for the old
+     * and new, use {@link #oldPromotedDependencies} or {@link #newPromotedDependencies} respectively. If
+     * {@link #oldPromotedDependencies} or {@link #newPromotedDependencies} are specified, they override whatever is
+     * specified using this property.
+     * <p>
+     * The individual properties of the dependency (e.g. {@code groupId}, {@code artifactId}, {@code version},
+     * {@code type} or {@code classifier}) are matched exactly. If you enclose the value in forward slashes, they are
+     * matched as regular expressions instead.
+     * <p>
+     * E.g. {@code <groupId>com.acme</groupId>} will only match dependencies with that exact {@code groupId}, while
+     * <code>&lt;groupId&gt;/com\.acme(\..&#42;)?/&lt;/groupId&gt;</code> will match "com.acme" {@code groupId} or any
+     * "sub-groupId" thereof (e.g. "com.acme.utils", etc.) using a regular expression.
+     *
+     * @since 0.13.6
+     */
+    @Parameter(property = Props.promotedDependencies.NAME, defaultValue = Props.promotedDependencies.DEFAULT_VALUE)
+    protected PromotedDependency[] promotedDependencies;
 
     /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the current
@@ -172,6 +193,16 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
     protected String oldVersion;
 
     /**
+     * A list of dependencies of the old artifact(s) that should be considered part of the old API.
+     *
+     * @since 0.13.6
+     *
+     * @see #promotedDependencies
+     */
+    @Parameter(property = Props.oldPromotedDependencies.NAME, defaultValue = Props.oldPromotedDependencies.DEFAULT_VALUE)
+    protected PromotedDependency[] oldPromotedDependencies;
+
+    /**
      * The coordinates of the new artifacts. These are the full GAVs of the artifacts, which means that you can compare
      * different artifacts than the one being built. If you merely want to specify the artifact being built, use
      * {@link #newVersion} property instead.
@@ -184,6 +215,16 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      */
     @Parameter(property = Props.newVersion.NAME, defaultValue = Props.newVersion.DEFAULT_VALUE)
     protected String newVersion;
+
+    /**
+     * A list of dependencies of the new artifact(s) that should be considered part of the new API.
+     *
+     * @since 0.13.6
+     *
+     * @see #promotedDependencies
+     */
+    @Parameter(property = Props.newPromotedDependencies.NAME, defaultValue = Props.newPromotedDependencies.DEFAULT_VALUE)
+    protected PromotedDependency[] newPromotedDependencies;
 
     /**
      * Whether to skip the mojo execution.
@@ -210,7 +251,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
      * is again configured in the pipeline configuration. If not defined in the pipeline configuration explicitly, the
      * default mapping is the following: {@code EQUIVALENT} = {@code allowed}, {@code NON_BREAKING} =
      * {@code documented}, {@code POTENTIALLY_BREAKING} = {@code error}, {@code BREAKING} = error.
-     * 
+     *
      * @since 0.12.0
      */
     @Parameter(property = Props.failCriticality.NAME)
@@ -436,6 +477,10 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
                 .withVersionFormat(overrideOrDefault("versionFormat", this.versionFormat, propertyOverrides))
                 .withContextData(contextData)
                 .withExpandProperties(overrideOrDefault("expandProperties", expandProperties, propertyOverrides))
+                .withNewPromotedDependencies(
+                        newPromotedDependencies == null ? promotedDependencies : newPromotedDependencies)
+                .withOldPromotedDependencies(
+                        oldPromotedDependencies == null ? promotedDependencies : oldPromotedDependencies)
                 .build();
     }
 

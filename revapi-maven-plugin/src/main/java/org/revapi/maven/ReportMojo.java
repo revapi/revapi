@@ -46,7 +46,7 @@ import org.revapi.Element;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 @Mojo(name = "report", defaultPhase = LifecyclePhase.SITE, requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME)
@@ -81,7 +81,7 @@ public class ReportMojo extends AbstractMavenReport {
      *
      * <p>
      * The list is either a list of strings or has the following form:
-     * 
+     *
      * <pre>
      * <code>
      *    &lt;analysisConfigurationFiles&gt;
@@ -114,7 +114,7 @@ public class ReportMojo extends AbstractMavenReport {
      * <p>
      * An example of this might be a config file which contains API changes to be ignored in all past versions of a
      * library. The classes to be ignored are specified in a configuration that is specific for each version:
-     * 
+     *
      * <pre>
      * <code>
      *     {
@@ -152,6 +152,27 @@ public class ReportMojo extends AbstractMavenReport {
     protected boolean failOnMissingConfigurationFiles;
 
     /**
+     * A list of dependencies of both the old and new artifact(s) that should be considered part of the old/new API.
+     * This is a convenience property if you just need to specify a set of dependencies to promote into the API and that
+     * set can be specified in a way common to both old and new APIs. If you need to specify different sets for the old
+     * and new, use {@link #oldPromotedDependencies} or {@link #newPromotedDependencies} respectively. If
+     * {@link #oldPromotedDependencies} or {@link #newPromotedDependencies} are specified, they override whatever is
+     * specified using this property.
+     * <p>
+     * The individual properties of the dependency (e.g. {@code groupId}, {@code artifactId}, {@code version},
+     * {@code type} or {@code classifier}) are matched exactly. If you enclose the value in forward slashes, they are
+     * matched as regular expressions instead.
+     * <p>
+     * E.g. {@code <groupId>com.acme</groupId>} will only match dependencies with that exact {@code groupId}, while
+     * <code>&lt;groupId&gt;/com\.acme(\..&#42;)?/&lt;/groupId&gt;</code> will match "com.acme" {@code groupId} or any
+     * "sub-groupId" thereof (e.g. "com.acme.utils", etc.) using a regular expression.
+     *
+     * @since 0.13.6
+     */
+    @Parameter(property = Props.promotedDependencies.NAME, defaultValue = Props.promotedDependencies.DEFAULT_VALUE)
+    protected PromotedDependency[] promotedDependencies;
+
+    /**
      * The coordinates of the old artifacts. Defaults to single artifact with the latest released version of the current
      * project.
      * <p>
@@ -174,6 +195,16 @@ public class ReportMojo extends AbstractMavenReport {
     protected String oldVersion;
 
     /**
+     * A list of dependencies of the old artifact(s) that should be considered part of the old API.
+     *
+     * @since 0.13.6
+     *
+     * @see #promotedDependencies
+     */
+    @Parameter(property = Props.oldPromotedDependencies.NAME, defaultValue = Props.oldPromotedDependencies.DEFAULT_VALUE)
+    protected PromotedDependency[] oldPromotedDependencies;
+
+    /**
      * The coordinates of the new artifacts. These are the full GAVs of the artifacts, which means that you can compare
      * different artifacts than the one being built. If you merely want to specify the artifact being built, use
      * {@link #newVersion} property instead.
@@ -186,6 +217,16 @@ public class ReportMojo extends AbstractMavenReport {
      */
     @Parameter(property = Props.newVersion.NAME, defaultValue = Props.newVersion.DEFAULT_VALUE)
     protected String newVersion;
+
+    /**
+     * A list of dependencies of the new artifact(s) that should be considered part of the new API.
+     *
+     * @since 0.13.6
+     *
+     * @see #promotedDependencies
+     */
+    @Parameter(property = Props.newPromotedDependencies.NAME, defaultValue = Props.newPromotedDependencies.DEFAULT_VALUE)
+    protected PromotedDependency[] newPromotedDependencies;
 
     /**
      * Problems with this or higher severity will be included in the report. Possible values: equivalent, nonBreaking,
@@ -465,7 +506,11 @@ public class ReportMojo extends AbstractMavenReport {
                 .withProject(this.project).withReporter(generateSiteReport ? ReportTimeReporter.class : null)
                 .withRepositorySystem(this.repositorySystem).withRepositorySystemSession(this.repositorySystemSession)
                 .withSkip(this.skip).withVersionFormat(this.versionFormat).withContextData(contextData)
-                .withExpandProperties(expandProperties).build();
+                .withExpandProperties(expandProperties).withOldPromotedDependencies(
+                        oldPromotedDependencies == null ? promotedDependencies : oldPromotedDependencies)
+                .withNewPromotedDependencies(
+                        newPromotedDependencies == null ? promotedDependencies : newPromotedDependencies)
+                .build();
 
         if (res.skip) {
             this.skip = true;
