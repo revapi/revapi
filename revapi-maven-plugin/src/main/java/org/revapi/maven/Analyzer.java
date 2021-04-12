@@ -342,7 +342,7 @@ public final class Analyzer {
         if (blueprints == null || blueprints.length == 0) {
             return;
         }
-        
+
         Iterator<MavenArchive> it = dependencies.iterator();
         while (it.hasNext()) {
             MavenArchive ma = it.next();

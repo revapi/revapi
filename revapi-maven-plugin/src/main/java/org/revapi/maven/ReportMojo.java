@@ -507,7 +507,8 @@ public class ReportMojo extends AbstractMavenReport {
                 .withProject(this.project).withReporter(generateSiteReport ? ReportTimeReporter.class : null)
                 .withRepositorySystem(this.repositorySystem).withRepositorySystemSession(this.repositorySystemSession)
                 .withSkip(this.skip).withVersionFormat(this.versionFormat).withContextData(contextData)
-                .withExpandProperties(expandProperties).withOldPromotedDependencies(
+                .withExpandProperties(expandProperties)
+                .withOldPromotedDependencies(
                         oldPromotedDependencies == null ? promotedDependencies : oldPromotedDependencies)
                 .withNewPromotedDependencies(
                         newPromotedDependencies == null ? promotedDependencies : newPromotedDependencies)
