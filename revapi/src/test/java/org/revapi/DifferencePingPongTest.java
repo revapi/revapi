@@ -181,7 +181,7 @@ public class DifferencePingPongTest {
                 @Override
                 public Report endAnalysis(@Nullable DummyElement oldElement, @Nullable DummyElement newElement) {
                     return Report.builder().withOld(oldElement).withNew(newElement).addProblem().withCode("code")
-                            .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING)
+                            .withName("name").addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING)
                             .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).done().build();
                 }
 

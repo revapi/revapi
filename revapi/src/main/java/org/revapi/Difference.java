@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -113,6 +114,12 @@ public final class Difference {
             return castThis();
         }
 
+        protected void validate() throws IllegalStateException {
+            if (code == null) {
+                throw new IllegalStateException("Difference code cannot be null");
+            }
+        }
+
         @SuppressWarnings("unchecked")
         private This castThis() {
             return (This) this;
@@ -127,6 +134,7 @@ public final class Difference {
 
         @Nonnull
         public Difference build() {
+            validate();
             return new Difference(code, name, description, justification, criticality, classification, attachments,
                     identifyingAttachments);
         }
@@ -141,6 +149,7 @@ public final class Difference {
 
         @Nonnull
         public Report.Builder done() {
+            validate();
             Difference p = new Difference(code, name, description, justification, criticality, classification,
                     attachments, identifyingAttachments);
             reportBuilder.differences.add(p);
@@ -253,14 +262,15 @@ public final class Difference {
             return false;
         }
         Difference that = (Difference) o;
-        return code.equals(that.code) && Objects.equals(name, that.name)
-                && Objects.equals(description, that.description) && classification.equals(that.classification)
-                && attachments.equals(that.attachments) && Objects.equals(justification, that.justification);
+        return code.equals(that.code) && Objects.equals(criticality, that.criticality)
+                && Objects.equals(name, that.name) && Objects.equals(description, that.description)
+                && classification.equals(that.classification) && attachments.equals(that.attachments)
+                && Objects.equals(justification, that.justification);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(code, name, description, classification, attachments, justification);
+        return Objects.hash(code, criticality, name, description, classification, attachments, justification);
     }
 
     @Override

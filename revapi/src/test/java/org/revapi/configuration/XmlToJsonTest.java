@@ -336,6 +336,18 @@ public class XmlToJsonTest {
 
         Assert.assertTrue(c.isDouble());
         Assert.assertEquals(1D, c.asDouble(), 0);
+
+        converter = converter("ext",
+                "{\"allOf\": [{\"type\": \"object\", \"properties\": {\"a\": {\"type\": \"string\"}}}, {\"type\": \"object\", \"properties\": {\"b\": {\"type\": \"boolean\"}}}]}");
+        xml = xml("<config><ext><a>blah</a><b>true</b></ext></config>");
+
+        c = converter.convertXml(xml).get(0).get("configuration");
+
+        Assert.assertNotNull(c);
+
+        Assert.assertTrue(c.isObject());
+        Assert.assertEquals("blah", c.get("a").asText());
+        Assert.assertTrue(c.get("b").asBoolean());
     }
 
     @Test

@@ -16,9 +16,12 @@
  */
 package org.revapi;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.stream.Stream;
 
@@ -130,6 +133,48 @@ public interface Element<E extends Element<E>> extends Comparable<E> {
      * @return human readable representation of the element
      */
     String getFullHumanReadableString();
+
+    /**
+     * If the API analyzer supports the feature, this returns the set of elements that reference this element in some
+     * way (typically, those would be the use sites of this element).
+     */
+    default Set<Reference<E>> getReferencingElements() {
+        return Collections.emptySet();
+    }
+
+    /**
+     * This returns the {@link #getReferencingElements() referencing elements} of this element and of all its children,
+     * recursively.
+     */
+    default Set<Reference<E>> getCumulativeReferencingElements() {
+        Set<Reference<E>> ret = new HashSet<>(getReferencingElements());
+        for (E child : getChildren()) {
+            ret.addAll(child.getCumulativeReferencingElements());
+        }
+
+        return ret;
+    }
+
+    /**
+     * If the API analyzer supports the feature, this returns the set of elements that are referenced by this element in
+     * some way (typically, those would be the elements somehow used by this element).
+     */
+    default Set<Reference<E>> getReferencedElements() {
+        return Collections.emptySet();
+    }
+
+    /**
+     * This returns the {@link #getReferencedElements() referenced elements} of this element and of all its children,
+     * recursively.
+     */
+    default Set<Reference<E>> getCumulativeReferencedElements() {
+        Set<Reference<E>> ret = new HashSet<>(getReferencedElements());
+        for (E child : getChildren()) {
+            ret.addAll(child.getCumulativeReferencedElements());
+        }
+
+        return ret;
+    }
 
     /**
      * This method is functionally equivalent to

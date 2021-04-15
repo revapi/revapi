@@ -36,6 +36,7 @@ class MavenArchive implements Archive.Versioned {
     private final File file;
     private final String gav;
     private final String version;
+    private final String ga;
 
     private MavenArchive(Artifact artifact) {
         if (artifact == null) {
@@ -49,6 +50,12 @@ class MavenArchive implements Archive.Versioned {
 
         this.gav = artifact.toString();
         this.version = artifact.getBaseVersion();
+
+        if (gav.endsWith(version)) {
+            ga = gav.substring(0, version.length());
+        } else {
+            ga = gav;
+        }
     }
 
     public static MavenArchive of(Artifact artifact) {
@@ -74,6 +81,11 @@ class MavenArchive implements Archive.Versioned {
     @Override
     public @Nonnull String getVersion() {
         return version;
+    }
+
+    @Override
+    public String getBaseName() {
+        return ga;
     }
 
     @Override

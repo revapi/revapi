@@ -62,4 +62,9 @@ public class VersionedFileArchive implements Archive.Versioned {
     public String getVersion() {
         return version;
     }
+
+    @Override
+    public String getBaseName() {
+        return file.getName();
+    }
 }

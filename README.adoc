@@ -1,13 +1,10 @@
 = Revapi
 :toc:
 
-image:https://travis-ci.org/revapi/revapi.svg?branch=main[Build Status,link=https://travis-ci.org/revapi/revapi]
+image:https://github.com/revapi/revapi/actions/workflows/build.yml/badge.svg[Build Status]
 image:http://codecov.io/github/revapi/revapi/coverage.svg?branch=main[Code Coverage,link=https://codecov.io/github/revapi/revapi?branch=main]
-image:https://img.shields.io/gitter/room/nwjs/nw.js.svg[Gitter Chat,link=https://gitter.im/revapi/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link]
 
 http://revapi.org[Revapi] is a tool for API analysis and change tracking.
-
-INFO: Revapi requires Java8 update 40 (1.8.0_40) or later to run. Older versions may produce wrong results.
 
 == Summary
 
@@ -47,7 +44,7 @@ as a maven plugin or it can also be embedded in your application and used as a l
 
 === Standalone
 
-https://revapi.org/downloads.html[Download] the standalone distribution zip and
+https://revapi.org/revapi-site/downloads.html[Download] the standalone distribution zip and
 
  unzip revapi-XXX-standalone.zip
  cd revapi-XXX-standalone
@@ -126,4 +123,3 @@ Matrix:: #revapiorg:matrix.org
 Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
 Issues:: https://github.com/revapi/revapi/issues
 Code:: https://github.com/revapi/
-

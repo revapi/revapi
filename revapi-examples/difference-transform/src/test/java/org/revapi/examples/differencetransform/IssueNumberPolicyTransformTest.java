@@ -30,7 +30,7 @@ class IssueNumberPolicyTransformTest {
 
     @Test
     void testDifferenceWithoutIssueNumberFails() {
-        TransformationResult res = transform.tryTransform(null, null, Difference.builder().build());
+        TransformationResult res = transform.tryTransform(null, null, Difference.builder().withCode("code").build());
         assertSame(TransformationResult.Resolution.REPLACE, res.getResolution());
         assertEquals(1, res.getDifferences().size());
         assertSame(Criticality.ERROR, res.getDifferences().iterator().next().criticality);
@@ -39,7 +39,7 @@ class IssueNumberPolicyTransformTest {
     @Test
     void testDifferenceWithIssueNumberSucceeds() {
         TransformationResult res = transform.tryTransform(null, null,
-                Difference.builder().addAttachment("issue-no", "teh-issue").build());
+                Difference.builder().withCode("code").addAttachment("issue-no", "teh-issue").build());
         assertSame(TransformationResult.Resolution.KEEP, res.getResolution());
     }
 }

@@ -289,6 +289,7 @@ them as one - the "output" difference of `revapi.reclassify` is used as "input" 
 the original differences as reported by the analyzer. It only ever sees the differences first transformed by
 `revapi.differences`.
 
+[#_criticality]
 === Criticality
 
 Revapi comes with a default set of criticalities that roughly describe common situations when dealing with API changes.

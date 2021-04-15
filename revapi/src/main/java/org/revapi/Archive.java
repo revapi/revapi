@@ -41,6 +41,11 @@ public interface Archive {
      */
     interface Versioned extends Archive {
         String getVersion();
+
+        /**
+         * @return the name of the archive without the version (if {@link #getName()} contains the version in the name).
+         */
+        String getBaseName();
     }
 
     /**

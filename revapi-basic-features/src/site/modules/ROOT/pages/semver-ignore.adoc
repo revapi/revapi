@@ -2,6 +2,8 @@
 
 *Extension*: `revapi.semver.ignore`
 
+WARNING: This extension is deprecated. Use the xref:versions.adoc[] extension instead.
+
 Using this extension one can automatically ignore API changes that are allowed for a given version delta based on the
 rules of semantic versioning (http://semver.org).
 

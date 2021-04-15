@@ -16,9 +16,12 @@
  */
 package org.revapi;
 
+import static java.util.Collections.emptySet;
+
 import static org.revapi.TransformationResult.Resolution.REPLACE;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -28,9 +31,9 @@ import javax.annotation.Nullable;
  * {@link DifferenceTransform#tryTransform(Element, Element, Difference)} is called.
  */
 public final class TransformationResult {
-    private static final TransformationResult DISCARD = new TransformationResult(Resolution.DISCARD, null);
-    private static final TransformationResult KEEP = new TransformationResult(Resolution.KEEP, null);
-    private static final TransformationResult UNDECIDED = new TransformationResult(Resolution.UNDECIDED, null);
+    private static final TransformationResult DISCARD = new TransformationResult(Resolution.DISCARD, emptySet());
+    private static final TransformationResult KEEP = new TransformationResult(Resolution.KEEP, emptySet());
+    private static final TransformationResult UNDECIDED = new TransformationResult(Resolution.UNDECIDED, emptySet());
 
     private final Resolution resolution;
     private final Set<Difference> differences;
@@ -95,13 +98,27 @@ public final class TransformationResult {
      * be replaced by the differences returned from this method.
      *
      * <p>
-     * {@code null} and an empty set are treated equivalently.
-     *
-     * <p>
-     * This method is only returns meaningful data when the resolution is {@link Resolution#REPLACE}.
+     * This method only returns meaningful data when the resolution is {@link Resolution#REPLACE}.
      */
-    public @Nullable Set<Difference> getDifferences() {
+    public Set<Difference> getDifferences() {
         return differences;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TransformationResult that = (TransformationResult) o;
+        return resolution == that.resolution && Objects.equals(differences, that.differences);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(resolution, differences);
     }
 
     /**

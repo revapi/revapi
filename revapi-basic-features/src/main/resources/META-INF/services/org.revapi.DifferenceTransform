@@ -2,3 +2,4 @@ org.revapi.basic.DifferencesTransform
 org.revapi.basic.IgnoreDifferenceTransform
 org.revapi.basic.ClassificationTransform
 org.revapi.basic.SemverIgnoreTransform
+org.revapi.basic.VersionsTransform

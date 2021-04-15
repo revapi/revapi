@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "semantic0": {
+      "type": "boolean",
+      "default": true
+    },
+    "versionIncreaseAllows": {
+      "type": "object",
+      "properties": {
+        "major": {
+          "$ref": "#/definitions/increase"
+        },
+        "minor": {
+          "$ref": "#/definitions/increase"
+        },
+        "patch": {
+          "$ref": "#/definitions/increase"
+        },
+        "suffix": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/suffix"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/suffix"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "onAllowed": {
+      "$ref": "#/definitions/modification"
+    },
+    "onDisallowed": {
+      "$ref": "#/definitions/modification"
+    },
+    "passThroughDifferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "definitions": {
+    "severity": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "EQUIVALENT",
+        "NON_BREAKING",
+        "POTENTIALLY_BREAKING",
+        "BREAKING"
+      ]
+    },
+    "classification": {
+      "type": "object",
+      "properties": {
+        "SOURCE": {
+          "$ref": "#/definitions/severity"
+        },
+        "BINARY": {
+          "$ref": "#/definitions/severity"
+        },
+        "SEMANTIC": {
+          "$ref": "#/definitions/severity"
+        },
+        "OTHER": {
+          "$ref": "#/definitions/severity"
+        }
+      }
+    },
+    "textModification": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "prepend": {
+              "type": "string"
+            },
+            "append": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "modify": {
+      "type": "object",
+      "properties": {
+        "remove": {
+          "type": "boolean"
+        },
+        "criticality": {
+          "type": "string"
+        },
+        "classification": {
+          "$ref": "#/definitions/classification"
+        },
+        "justification": {
+          "$ref": "#/definitions/textModification"
+        },
+        "description": {
+          "$ref": "#/definitions/textModification"
+        },
+        "attachments": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "allows": {
+      "type": "object",
+      "properties": {
+        "regex": {
+          "type": "boolean"
+        },
+        "severity": {
+          "$ref": "#/definitions/severity"
+        },
+        "criticality": {
+          "type": "string"
+        },
+        "classification": {
+          "$ref": "#/definitions/classification"
+        },
+        "code": {
+          "type": "string"
+        },
+        "justification": {
+          "type": "string"
+        },
+        "attachments": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "inArchives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "increase": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/allows"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/allows"
+          }
+        }
+      ]
+    },
+    "suffix": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/allows"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "old": {
+              "type": "string"
+            },
+            "new": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "modification":   {
+      "type": "object",
+      "properties": {
+        "remove": {
+          "type": "boolean"
+        },
+        "classification": {
+          "$ref": "#/definitions/classification"
+        },
+        "justification": {
+          "$ref": "#/definitions/textModification"
+        },
+        "description": {
+          "$ref": "#/definitions/textModification"
+        },
+        "criticality": {
+          "type": "string"
+        },
+        "attachments": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -16,10 +16,13 @@
  */
 package org.revapi.base;
 
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -29,6 +32,7 @@ import javax.annotation.Nullable;
 import org.revapi.API;
 import org.revapi.Archive;
 import org.revapi.Element;
+import org.revapi.Reference;
 import org.revapi.query.Filter;
 
 /**
@@ -48,10 +52,12 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
     private Archive archive;
     private E parent;
     private SortedSet<E> children;
+    private Set<Reference<E>> referencedElements;
+    private Set<Reference<E>> referencingElements;
 
     /**
-     *
      * @param api
+     *            the API the element comes from
      */
     protected BaseElement(API api) {
         this(api, null);
@@ -122,9 +128,25 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
         return children;
     }
 
+    @Override
+    public Set<Reference<E>> getReferencingElements() {
+        if (referencingElements == null) {
+            referencingElements = new ReferencingSet(true);
+        }
+        return referencingElements;
+    }
+
+    @Override
+    public Set<Reference<E>> getReferencedElements() {
+        if (referencedElements == null) {
+            referencedElements = new ReferencingSet(false);
+        }
+        return referencedElements;
+    }
+
     /**
      * Returns a shallow copy of this element. In particular, its parent and children will be cleared.
-     * 
+     *
      * @return a copy of this element
      */
     @Override
@@ -134,6 +156,8 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
             BaseElement<E> ret = (BaseElement<E>) super.clone();
             ret.parent = null;
             ret.children = null;
+            ret.referencedElements = null;
+            ret.referencingElements = null;
 
             return ret;
         } catch (CloneNotSupportedException e) {
@@ -148,29 +172,124 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
      *
      * @return a new sorted set instance to store the children in
      */
-    @Nonnull
     protected SortedSet<E> newChildrenInstance() {
         return new TreeSet<>();
     }
 
-    @Nonnull
     @Override
-    public <T extends Element<E>> List<T> searchChildren(@Nonnull Class<T> resultType, boolean recurse,
+    public <T extends Element<E>> List<T> searchChildren(Class<T> resultType, boolean recurse,
             @Nullable Filter<? super T> filter) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T extends Element<E>> void searchChildren(@Nonnull List<T> results, @Nonnull Class<T> resultType,
-            boolean recurse, @Nullable Filter<? super T> filter) {
+    public <T extends Element<E>> void searchChildren(List<T> results, Class<T> resultType, boolean recurse,
+            @Nullable Filter<? super T> filter) {
         throw new UnsupportedOperationException();
     }
 
-    @Nonnull
     @Override
-    public <T extends Element<E>> Iterator<T> iterateOverChildren(@Nonnull Class<T> resultType, boolean recurse,
+    public <T extends Element<E>> Iterator<T> iterateOverChildren(Class<T> resultType, boolean recurse,
             @Nullable Filter<? super T> filter) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Creates a new reference instance to be used in the {@link #getReferencedElements()} or
+     * {@link #getReferencingElements()}. This method should be overridden by any subclass that uses a subclass for
+     * {@link Reference} for referencing the elements.
+     *
+     * @param target
+     *            the target element
+     * @param type
+     *            the type of the reference
+     * 
+     * @return a new reference with given type pointing to the target element
+     */
+    protected Reference<E> newReference(E target, Reference.Type<E> type) {
+        return new Reference<>(target, type);
+    }
+
+    private class ReferencingSet extends AbstractSet<Reference<E>> {
+        private final HashSet<Reference<E>> set;
+        private final boolean referencing;
+
+        public ReferencingSet(boolean referencing) {
+            this.set = new HashSet<>();
+            this.referencing = referencing;
+        }
+
+        @Override
+        public boolean add(Reference<E> e) {
+            boolean added = set.add(e);
+            if (added) {
+                Reference<E> backRef = newReference(castThis(), e.getType());
+                if (referencing) {
+                    e.getElement().getReferencedElements().add(backRef);
+                } else {
+                    e.getElement().getReferencingElements().add(backRef);
+                }
+            }
+
+            return added;
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            boolean removed = set.remove(o);
+
+            if (removed && o instanceof Reference) {
+                @SuppressWarnings("unchecked")
+                Reference<E> ref = (Reference<E>) o;
+                mirrorRemove(ref);
+            }
+            return removed;
+        }
+
+        @Override
+        public Iterator<Reference<E>> iterator() {
+            return new ReferencingIterator(set.iterator());
+        }
+
+        @Override
+        public int size() {
+            return set.size();
+        }
+
+        private void mirrorRemove(Reference<E> ref) {
+            Reference<E> backRef = newReference(castThis(), ref.getType());
+            if (referencing) {
+                ref.getElement().getReferencedElements().remove(backRef);
+            } else {
+                ref.getElement().getReferencingElements().remove(backRef);
+            }
+        }
+
+        private class ReferencingIterator implements Iterator<Reference<E>> {
+            private final Iterator<Reference<E>> it;
+            private Reference<E> last;
+
+            private ReferencingIterator(Iterator<Reference<E>> it) {
+                this.it = it;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public Reference<E> next() {
+                last = it.next();
+                return last;
+            }
+
+            @Override
+            public void remove() {
+                it.remove();
+                mirrorRemove(last);
+            }
+        }
     }
 
     private class ParentPreservingSet implements SortedSet<E> {

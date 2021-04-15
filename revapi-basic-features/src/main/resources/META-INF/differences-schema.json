@@ -101,7 +101,9 @@
     },
     "attachments": {
       "type": "object",
-      "additionalProperties": true
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "criticality": {
       "type": "string"

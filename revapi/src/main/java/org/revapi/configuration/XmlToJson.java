@@ -27,6 +27,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -278,12 +279,10 @@ public final class XmlToJson<Xml> {
                 childSchema = additionalPropSchemas;
             }
 
-            if (childSchema == null) {
-                throw new IllegalArgumentException("Could not determine the format for the '" + name
-                        + "' XML tag during the XML-to-JSON conversion.");
+            if (childSchema != null) {
+                JsonNode jsonChild = convert(childConfig, childSchema, rootSchema);
+                object.set(name, jsonChild);
             }
-            JsonNode jsonChild = convert(childConfig, childSchema, rootSchema);
-            object.set(name, jsonChild);
         }
         return object;
     }
@@ -382,7 +381,33 @@ public final class XmlToJson<Xml> {
         JsonNode parsed = null;
         for (JsonNode candidateSchema : candidateSchemas) {
             try {
-                parsed = convert(configuration, candidateSchema, rootSchema);
+                JsonNode newParsed = convert(configuration, candidateSchema, rootSchema);
+                if (parsed == null) {
+                    parsed = newParsed;
+                } else {
+                    // merge the newly parsed data into the already parsed data
+                    if (parsed.getNodeType() != newParsed.getNodeType()) {
+                        return null;
+                    }
+
+                    switch (parsed.getNodeType()) {
+                    case ARRAY:
+                        for (JsonNode item : newParsed) {
+                            ((ArrayNode) parsed).add(item);
+                        }
+                        break;
+                    case OBJECT:
+                        Iterator<Map.Entry<String, JsonNode>> fields = newParsed.fields();
+                        while (fields.hasNext()) {
+                            Map.Entry<String, JsonNode> field = fields.next();
+                            ((ObjectNode) parsed).put(field.getKey(), field.getValue());
+                        }
+                        break;
+                    default:
+                        parsed = newParsed;
+                        break;
+                    }
+                }
             } catch (IllegalArgumentException __) {
                 return null;
             }

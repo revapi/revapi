@@ -40,6 +40,8 @@ import org.revapi.DifferenceSeverity;
 import org.revapi.DifferenceTransform;
 import org.revapi.Element;
 import org.revapi.TransformationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
@@ -47,6 +49,8 @@ import org.revapi.TransformationResult;
  * @since 0.3.7
  */
 public class SemverIgnoreTransform<E extends Element<E>> implements DifferenceTransform<E> {
+    private static final Logger LOG = LoggerFactory.getLogger(SemverIgnoreTransform.class);
+
     private boolean enabled;
     private DifferenceSeverity allowedSeverity;
     private List<String> passThroughDifferences;
@@ -62,6 +66,9 @@ public class SemverIgnoreTransform<E extends Element<E>> implements DifferenceTr
         if (!enabled) {
             return TransformationResult.keep();
         }
+
+        LOG.warn("revapi.semver.ignore transform has been deprecated. Please use the new revapi.versions which has"
+                + " better integration with the new Revapi features.");
 
         if (passThroughDifferences.contains(difference.code)) {
             return TransformationResult.keep();
