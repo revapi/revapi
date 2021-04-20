@@ -39,7 +39,6 @@ import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.JarExtractor;
 import org.revapi.java.spi.JavaElement;
-import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.UseSite;
 
 /**
@@ -119,6 +118,20 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
             return;
         }
 
+        doPrune(forest);
+
+        forest.stream(TypeElement.class, true, null).forEach(TypeElement::initReferences);
+    }
+
+    public ProbingEnvironment getProbingEnvironment() {
+        return probingEnvironment;
+    }
+
+    public CompilationValve getCompilationValve() {
+        return compilationValve;
+    }
+
+    private void doPrune(ElementForest<JavaElement> forest) {
         boolean changed;
 
         Set<TypeElement> toRemove = new HashSet<>();
@@ -136,8 +149,8 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
                 Iterator<UseSite> usit = type.getUseSites().iterator();
                 while (usit.hasNext()) {
                     UseSite useSite = usit.next();
-                    if (isInForest(forest, useSite.getSite())) {
-                        if (useSite.getUseType().isMovingToApi()) {
+                    if (isInForest(forest, useSite.getElement())) {
+                        if (useSite.getType().isMovingToApi()) {
                             remove = false;
                         }
                     } else {
@@ -180,10 +193,10 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
                 t.getUsedTypes().entrySet().removeIf(e -> {
                     UseSite.Type useType = e.getKey();
                     e.getValue().entrySet().removeIf(e2 -> {
-                        JavaTypeElement usedType = e2.getKey();
+                        TypeElement usedType = e2.getKey();
                         usedType.getUseSites().removeIf(us -> {
                             // noinspection SuspiciousMethodCalls
-                            return us.getUseType() == useType && e2.getValue().contains(us.getSite());
+                            return us.getType() == useType && e2.getValue().contains(us.getElement());
                         });
 
                         return usedType.getUseSites().isEmpty();
@@ -193,14 +206,6 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
                 });
             }
         } while (changed);
-    }
-
-    public ProbingEnvironment getProbingEnvironment() {
-        return probingEnvironment;
-    }
-
-    public CompilationValve getCompilationValve() {
-        return compilationValve;
     }
 
     private static boolean isInForest(ElementForest<JavaElement> forest, JavaElement element) {

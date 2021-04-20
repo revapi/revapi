@@ -38,13 +38,13 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.type.DeclaredType;
 
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceAnalyzer;
+import org.revapi.Reference;
 import org.revapi.Report;
 import org.revapi.Stats;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -337,7 +337,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<J
 
     private void append(StringBuilder bld, TypeAndUseSite typeAndUseSite) {
         String message;
-        switch (typeAndUseSite.useSite.getUseType()) {
+        switch (typeAndUseSite.useSite.getType()) {
         case ANNOTATES:
             message = "revapi.java.uses.annotates";
             break;
@@ -366,11 +366,11 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<J
             message = "revapi.java.uses.typeParameterOrBound";
             break;
         default:
-            throw new AssertionError("Invalid use type: " + typeAndUseSite.useSite.getUseType());
+            throw new AssertionError("Invalid use type: " + typeAndUseSite.useSite.getType());
         }
 
         message = messages.getString(message);
-        message = MessageFormat.format(message, typeAndUseSite.useSite.getSite().getFullHumanReadableString(),
+        message = MessageFormat.format(message, typeAndUseSite.useSite.getElement().getFullHumanReadableString(),
                 Util.toHumanReadableString(typeAndUseSite.type));
 
         bld.append(message);
@@ -401,29 +401,17 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<J
             return;
         }
 
-        usedType.visitUseSites(new UseSite.Visitor<Object, Void>() {
-            @Nullable
-            @Override
-            public Object visit(@Nonnull DeclaredType type, @Nonnull UseSite use, @Nullable Void parameter) {
-                if (appendUse(env, usedType, bld, type, use)) {
-                    return Boolean.TRUE; // just a non-null values
-                }
-
-                return null;
+        for (Reference<JavaElement> ref : usedType.getReferencingElements()) {
+            if (appendUse(env, usedType, bld, usedType.getModelRepresentation(), (UseSite) ref)) {
+                break;
             }
-
-            @Nullable
-            @Override
-            public Object end(DeclaredType type, @Nullable Void parameter) {
-                return null;
-            }
-        }, null);
+        }
     }
 
     private boolean appendUse(ProbingEnvironment env, JavaTypeElement usedType, StringBuilder bld, DeclaredType type,
             UseSite use) {
 
-        if (!use.getUseType().isMovingToApi()) {
+        if (!use.getType().isMovingToApi()) {
             return false;
         }
 
@@ -449,7 +437,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<J
         }
 
         String message = MessageFormat.format(messages.getString("revapi.java.uses.partOfApi"),
-                last.useSite.getSite().getFullHumanReadableString());
+                last.useSite.getElement().getFullHumanReadableString());
 
         bld.append(" (").append(message).append(")");
 
@@ -470,11 +458,11 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<J
             final UseSite currentUse, final List<TypeAndUseSite> path,
             final Set<javax.lang.model.element.TypeElement> visitedTypes) {
 
-        if (!currentUse.getUseType().isMovingToApi()) {
+        if (!currentUse.getType().isMovingToApi()) {
             return false;
         }
 
-        JavaTypeElement ut = findClassOf(currentUse.getSite());
+        JavaTypeElement ut = findClassOf(currentUse.getElement());
 
         return appendUseType(env, ut, path, usedType, type, currentUse, visitedTypes);
     }
@@ -496,26 +484,17 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<J
             path.add(0, new TypeAndUseSite(type, currentUse));
             return true;
         } else {
-            Boolean ret = ut.visitUseSites(new UseSite.Visitor<Boolean, Void>() {
-                @Nullable
-                @Override
-                public Boolean visit(@Nonnull DeclaredType visitedType, @Nonnull UseSite use,
-                        @Nullable Void parameter) {
-                    if (traverseToApi(env, usedType, visitedType, use, path, visitedTypes)) {
-                        path.add(0, new TypeAndUseSite(type, currentUse));
-                        return true;
-                    }
-                    return null;
-                }
 
-                @Nullable
-                @Override
-                public Boolean end(DeclaredType type, @Nullable Void parameter) {
-                    return null;
+            boolean ret = false;
+            for (Reference<JavaElement> ref : ut.getReferencingElements()) {
+                if (traverseToApi(env, ut, ut.getModelRepresentation(), (UseSite) ref, path, visitedTypes)) {
+                    path.add(0, new TypeAndUseSite(type, currentUse));
+                    ret = true;
+                    break;
                 }
-            }, null);
+            }
 
-            if (ret == null) {
+            if (!ret) {
                 Set<javax.lang.model.element.TypeElement> derivedUseTypes = env.getDerivedTypes(useType);
 
                 for (javax.lang.model.element.TypeElement dut : derivedUseTypes) {
@@ -524,12 +503,12 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<J
                         continue;
                     }
 
-                    JavaModelElement derivedUseElement = findSameDeclarationUnder(currentUse.getSite(), model);
+                    JavaModelElement derivedUseElement = findSameDeclarationUnder(currentUse.getElement(), model);
                     if (derivedUseElement == null) {
                         continue;
                     }
 
-                    UseSite derivedUse = new UseSite(currentUse.getUseType(), derivedUseElement);
+                    UseSite derivedUse = new UseSite(currentUse.getType(), derivedUseElement);
 
                     if (appendUseType(env, model, path, usedType, type, derivedUse, visitedTypes)) {
 
@@ -540,7 +519,7 @@ public final class JavaElementDifferenceAnalyzer implements DifferenceAnalyzer<J
 
             }
 
-            return ret == null ? false : ret;
+            return ret;
         }
     }
 

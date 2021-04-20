@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.revapi.API;
+import org.revapi.Reference;
 import org.revapi.TreeFilter;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.model.MethodElement;
@@ -268,13 +269,13 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             assertFalse(toString.isInherited());
             assertFalse(clone.isInherited());
 
-            Set<UseSite> useSites = I.getUseSites();
+            Set<UseSite> useSites = ((TypeElement) I).getUseSites();
             assertEquals(1, useSites.size());
 
             UseSite use = useSites.iterator().next();
 
-            assertEquals(use.getUseType(), UseSite.Type.RETURN_TYPE);
-            assertSame(clone, use.getSite());
+            assertEquals(use.getType(), UseSite.Type.RETURN_TYPE);
+            assertSame(clone, use.getElement());
         } finally {
             deleteDir(archive.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();
@@ -304,19 +305,19 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             JavaTypeElement anno = clazz.stream(JavaTypeElement.class, false)
                     .filter(t -> t.getDeclaringElement().getSimpleName().contentEquals("Anno")).findFirst().get();
 
-            Set<UseSite> useSites = anno.getUseSites();
+            Set<Reference<JavaElement>> useSites = anno.getReferencingElements();
 
             assertEquals(2, useSites.size());
             assertTrue(useSites.stream().anyMatch(site -> {
-                if (UseSite.Type.ANNOTATES == site.getUseType()) {
-                    assertSame(param, site.getSite());
+                if (UseSite.Type.ANNOTATES == site.getType()) {
+                    assertSame(param, site.getElement());
                     return true;
                 }
                 return false;
             }));
             assertTrue(useSites.stream().anyMatch(site -> {
-                if (UseSite.Type.CONTAINS == site.getUseType()) {
-                    assertSame(clazz, site.getSite());
+                if (UseSite.Type.CONTAINS == site.getType()) {
+                    assertSame(clazz, site.getElement());
                     return true;
                 }
                 return false;

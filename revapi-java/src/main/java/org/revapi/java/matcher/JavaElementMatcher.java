@@ -42,6 +42,7 @@ import org.revapi.Element;
 import org.revapi.ElementMatcher;
 import org.revapi.FilterFinishResult;
 import org.revapi.FilterStartResult;
+import org.revapi.Reference;
 import org.revapi.Ternary;
 import org.revapi.TreeFilter;
 import org.revapi.classif.ModelInspector;
@@ -193,24 +194,8 @@ public final class JavaElementMatcher implements ElementMatcher {
         public Set<JavaElement> getUses(JavaElement element) {
             if (!env.isScanningComplete()) {
                 return null;
-            } else if (element instanceof JavaModelElement) {
-                JavaModelElement user = (JavaModelElement) element;
-                while (element != null && !(element instanceof JavaTypeElement)) {
-                    element = element.getParent();
-                }
-
-                if (element == null) {
-                    return emptySet();
-                }
-
-                JavaTypeElement type = (JavaTypeElement) element;
-
-                Map<UseSite.Type, Map<JavaTypeElement, Set<JavaModelElement>>> usedTypes = type.getUsedTypes();
-
-                return usedTypes.values().stream().flatMap(m -> m.entrySet().stream())
-                        .filter(e -> e.getValue().contains(user)).map(Map.Entry::getKey).collect(toSet());
             } else {
-                return emptySet();
+                return element.getReferencedElements().stream().map(Reference::getElement).collect(toSet());
             }
         }
 
@@ -218,10 +203,8 @@ public final class JavaElementMatcher implements ElementMatcher {
         public Set<JavaElement> getUseSites(JavaElement element) {
             if (!env.isScanningComplete()) {
                 return null;
-            } else if (element instanceof JavaTypeElement) {
-                return ((JavaTypeElement) element).getUseSites().stream().map(UseSite::getSite).collect(toSet());
             } else {
-                return emptySet();
+                return element.getReferencingElements().stream().map(Reference::getElement).collect(toSet());
             }
         }
 

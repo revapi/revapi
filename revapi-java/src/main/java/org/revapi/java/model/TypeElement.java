@@ -30,6 +30,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleElementVisitor8;
 
 import org.revapi.Archive;
+import org.revapi.ElementForest;
 import org.revapi.java.compilation.ClassPathUseSite;
 import org.revapi.java.compilation.InheritedUseSite;
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -47,13 +48,16 @@ import org.revapi.java.spi.Util;
  */
 public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeElement, DeclaredType>
         implements JavaTypeElement {
+    private static final Set<UseSite> USE_SITES_REPLACED_BY_REFERENCES = new HashSet<>();
+    private static final Map<UseSite.Type, Map<TypeElement, Set<JavaModelElement>>> USED_TYPES_REPLACED_BY_REFERENCES = new HashMap<>();
+
     private final String binaryName;
     private final String canonicalName;
     private Set<UseSite> useSites;
     private Set<ClassPathUseSite> rawUseSites;
     private boolean inApi;
     private boolean inApiThroughUse;
-    private Map<UseSite.Type, Map<JavaTypeElement, Set<JavaModelElement>>> usedTypes;
+    private Map<UseSite.Type, Map<TypeElement, Set<JavaModelElement>>> usedTypes;
     private Map<UseSite.Type, Map<TypeElement, Set<UseSitePath>>> rawUsedTypes;
 
     /**
@@ -125,7 +129,6 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
         return inApiThroughUse;
     }
 
-    @Override
     public Set<UseSite> getUseSites() {
         if (useSites == null) {
             if (rawUseSites == null) {
@@ -156,7 +159,7 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
      *
      * @return the types used by this type
      */
-    public Map<UseSite.Type, Map<JavaTypeElement, Set<JavaModelElement>>> getUsedTypes() {
+    public Map<UseSite.Type, Map<TypeElement, Set<JavaModelElement>>> getUsedTypes() {
         if (usedTypes == null) {
             usedTypes = new HashMap<>();
             if (rawUsedTypes != null) {
@@ -207,6 +210,22 @@ public class TypeElement extends JavaElementBase<javax.lang.model.element.TypeEl
 
     public void setRawUseSites(Set<ClassPathUseSite> rawUseSites) {
         this.rawUseSites = rawUseSites;
+    }
+
+    /**
+     * A helper method of {@link org.revapi.java.JavaArchiveAnalyzer#prune(ElementForest)}. Only makes sense if called
+     * on all types in the whole forest, otherwise the references and back-references might not be complete.
+     */
+    public void initReferences() {
+        if (useSites != USE_SITES_REPLACED_BY_REFERENCES) {
+            for (UseSite us : getUseSites()) {
+                getReferencingElements().add(us);
+            }
+            useSites = USE_SITES_REPLACED_BY_REFERENCES;
+            usedTypes = USED_TYPES_REPLACED_BY_REFERENCES;
+            rawUseSites = null;
+            rawUsedTypes = null;
+        }
     }
 
     @Override
