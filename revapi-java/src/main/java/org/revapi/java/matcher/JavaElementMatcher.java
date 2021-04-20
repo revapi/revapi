@@ -16,7 +16,6 @@
  */
 package org.revapi.java.matcher;
 
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 import java.io.Reader;
@@ -56,8 +55,6 @@ import org.revapi.java.compilation.ProbingEnvironment;
 import org.revapi.java.model.JavaElementFactory;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
-import org.revapi.java.spi.JavaTypeElement;
-import org.revapi.java.spi.UseSite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

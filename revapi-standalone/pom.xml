@@ -134,6 +134,15 @@
                             <artifactId>revapi</artifactId>
                         </dependency>
                     </promotedDependencies>
+                    <analysisConfiguration>
+                        <!--
+                        Disable revapi.semver.ignore because it cannot handle multiple primary archives.
+                        We'll start using revapi.versions once it is released.
+                        -->
+                        <revapi.semver.ignore combine.children="override">
+                            <enabled>false</enabled>
+                        </revapi.semver.ignore>
+                    </analysisConfiguration>
                 </configuration>
             </plugin>
         </plugins>

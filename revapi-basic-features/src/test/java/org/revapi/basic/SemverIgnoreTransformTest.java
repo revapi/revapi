@@ -27,7 +27,6 @@ import java.io.InputStream;
 
 import javax.annotation.Nonnull;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -35,8 +34,6 @@ import org.revapi.Archive;
 import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
-import org.revapi.DifferenceTransform;
-import org.revapi.TransformationResult;
 import org.revapi.base.BaseElement;
 
 /**
