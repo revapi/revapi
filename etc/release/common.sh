@@ -35,7 +35,7 @@ ORDER_revapi_reporter_json=5
 ORDER_revapi_reporter_text=5
 ORDER_revapi_java_spi=4
 ORDER_revapi_java=5
-ORDER_revapi_maven_plugin=5
+ORDER_revapi_maven_plugin=6
 ORDER_revapi_ant_task=5
 ORDER_revapi_standalone=5
 ORDER_revapi_jackson=4
@@ -137,32 +137,53 @@ function release_module() {
     return
   fi
   ups=$(upstream_deps "$module")
+
+  # make sure we're buildable as is and also that any subsequent builds can access out pre-release artifact that they're
+  # probably refer to.
+  mvn install -Pfast
+
+  #now let's start the release
   mvn versions:update-parent
   if contains "revapi_build" "$ups"; then
-    mvn package revapi:update-versions -DskipTests
+    mvn package revapi:update-versions -Pfast
   fi
-  mvn versions:force-releases -DprocessParent=true -Dincludes="org.revapi:*"
+  mvn versions:force-releases versions:update-properties -DprocessParent=true -Dincludes="org.revapi:*"
   mvn versions:set -DremoveSnapshot=true
-  mvn license:format verify -Pantora-release #antora-release makes sure we set the appropriate version in the antora.yml
+  mvn verify -Pantora-release #antora-release makes sure we set the appropriate version in the antora.yml
+
+  # now we need to use the new version in the whole project so that it is buildable in the current revision
+  currentDir=$(pwd)
+  cd ..
+  mvn versions:use-reactor -DprocessParent=true -DallowSnapshots=true -Dincludes="org.revapi:*"
+  cd ${currentDir}
+
+  # commit and finish up the release
   version=$(xpath -q -e "/project/version/text()" pom.xml)
   git add -A
   git commit -m "Release $module-$version"
   git tag "${module}_v${version}"
   ensure_clean_workdir
-  mvn -Prelease install deploy -DskipTests
+  mvn -Prelease,fast install deploy
   mvn versions:set \
     -DnextSnapshot=true
-  mvn versions:use-next-snapshots versions:update-parent \
+  mvn versions:use-next-snapshots versions:update-parent versions:update-properties \
     -DexcludeReactor=false \
     -DallowSnapshots=true \
     -DprocessParent=true \
     -Dincludes='org.revapi:*'
   version=$(xpath -q -e "/project/version/text()" pom.xml)
   mvn process-resources # reset the version in antora.yml back to main
+
+  # and again, use the new version (the next snapshot) everywhere
+  currentDir=$(pwd)
+  cd ..
+  mvn versions:use-reactor -DprocessParent=true -DallowSnapshots=true -Dincludes="org.revapi:*"
+  cd ${currentDir}
+
   git add -A
   git commit -m "Setting $module to version $version"
   #now we need to install so that the subsequent builds pick up our new version
-  mvn install -DskipTests
+  mvn install -Pfast
 }
 
 function update_module_version() {
