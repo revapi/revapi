@@ -47,7 +47,10 @@ import org.slf4j.LoggerFactory;
  * @author Lukas Krejci
  * 
  * @since 0.3.7
+ * 
+ * @deprecated use the {@link VersionsTransform} instead
  */
+@Deprecated
 public class SemverIgnoreTransform<E extends Element<E>> implements DifferenceTransform<E> {
     private static final Logger LOG = LoggerFactory.getLogger(SemverIgnoreTransform.class);
 
@@ -66,9 +69,6 @@ public class SemverIgnoreTransform<E extends Element<E>> implements DifferenceTr
         if (!enabled) {
             return TransformationResult.keep();
         }
-
-        LOG.warn("revapi.semver.ignore transform has been deprecated. Please use the new revapi.versions which has"
-                + " better integration with the new Revapi features.");
 
         if (passThroughDifferences.contains(difference.code)) {
             return TransformationResult.keep();
@@ -199,6 +199,11 @@ public class SemverIgnoreTransform<E extends Element<E>> implements DifferenceTr
                 passThroughDifferences = StreamSupport.stream(node.path("passThroughDifferences").spliterator(), false)
                         .map(JsonNode::asText).collect(toList());
             }
+        }
+
+        if (enabled) {
+            LOG.warn("revapi.semver.ignore transform has been deprecated. Please use the new revapi.versions which has"
+                    + " better integration with the new Revapi features.");
         }
     }
 
