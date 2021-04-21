@@ -154,7 +154,7 @@ function release_module() {
   # now we need to use the new version in the whole project so that it is buildable in the current revision
   currentDir=$(pwd)
   cd ..
-  mvn versions:use-reactor -DprocessParent=true -DallowSnapshots=true -Dincludes="org.revapi:*"
+  mvn versions:use-releases versions:update-properties -DprocessParent=true -Dincludes="org.revapi:${module}"
   cd ${currentDir}
 
   # commit and finish up the release
@@ -177,7 +177,8 @@ function release_module() {
   # and again, use the new version (the next snapshot) everywhere
   currentDir=$(pwd)
   cd ..
-  mvn versions:use-reactor -DprocessParent=true -DallowSnapshots=true -Dincludes="org.revapi:*"
+  mvn versions:use-reactor versions:update-properties -DprocessParent=true -DallowSnapshots=true \
+    -Dincludes="org.revapi:${module}" -DexcludeProperties="self-api-check.java-extension-version,self-api-check.maven-version"
   cd ${currentDir}
 
   git add -A
