@@ -95,7 +95,7 @@
     </build>
     <profiles>
         <profile>
-            <id>version-snapshots</id>
+            <id>next-versions</id>
             <build>
                 <plugins>
                     <plugin>

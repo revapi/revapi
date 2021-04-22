@@ -149,7 +149,7 @@
     </build>
     <profiles>
         <profile>
-            <id>version-snapshots</id>
+            <id>release-versions</id>
             <build>
                 <plugins>
                     <plugin>
@@ -157,10 +157,16 @@
                         <artifactId>versions-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>update-to-snapshots</id>
-                                <goals combine.children="append">
-                                    <goal>update-properties</goal>
-                                </goals>
+                                <id>prepare-release</id>
+                                <configuration>
+                                    <properties combine.children="append">
+                                        <property>
+                                            <name>version.org.revapi.revapi</name>
+                                            <preferReactor>false</preferReactor>
+                                            <banSnapshots>true</banSnapshots>
+                                        </property>
+                                    </properties>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

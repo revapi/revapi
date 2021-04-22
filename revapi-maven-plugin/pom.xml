@@ -347,5 +347,45 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>release-versions</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>versions-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>prepare-release</id>
+                                <configuration>
+                                    <properties combine.children="append">
+                                        <property>
+                                            <name>revapi-java-spi.version</name>
+                                            <preferReactor>false</preferReactor>
+                                            <banSnapshots>true</banSnapshots>
+                                        </property>
+                                        <property>
+                                            <name>revapi-java.version</name>
+                                            <preferReactor>false</preferReactor>
+                                            <banSnapshots>true</banSnapshots>
+                                        </property>
+                                        <property>
+                                            <name>revapi-reporter-text.version</name>
+                                            <preferReactor>false</preferReactor>
+                                            <banSnapshots>true</banSnapshots>
+                                        </property>
+                                        <property>
+                                            <name>revapi.version</name>
+                                            <preferReactor>false</preferReactor>
+                                            <banSnapshots>true</banSnapshots>
+                                        </property>
+                                    </properties>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

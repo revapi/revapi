@@ -1,12 +1,13 @@
 #!/bin/bash
 set -e
 
+MVN=${MVN:-mvn}
+
 ALL_MODULES=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi coverage"
 
 DEPS_revapi_parent=()
 DEPS_revapi_site=()
 DEPS_revapi_site_assembly=()
-DEPS_revapi_site_shared=()
 DEPS_revapi_build_support=("revapi_parent")
 DEPS_revapi_build=("revapi_parent" "revapi_build_support")
 DEPS_revapi_maven_utils=("revapi_build")
@@ -24,6 +25,7 @@ DEPS_revapi_jackson=("revapi")
 DEPS_revapi_json=("revapi_jackson")
 DEPS_revapi_yaml=("revapi_jackson")
 DEPS_coverage=("revapi_build")
+
 ORDER_revapi_parent=0
 ORDER_revapi_build_support=1
 ORDER_revapi_build=2
@@ -42,6 +44,7 @@ ORDER_revapi_jackson=4
 ORDER_revapi_json=5
 ORDER_revapi_yaml=5
 ORDER_coverage=3
+
 SITE_revapi_parent=0
 SITE_revapi_build_support=0
 SITE_revapi_build=0
@@ -123,7 +126,7 @@ function collect_release_modules() {
 }
 
 function ensure_clean_workdir() {
-  changes=$(git status --porcelain | wc -l)
+  local changes=$(git status --porcelain | wc -l)
   if [ "$changes" -ne 0 ]; then
     echo "Some changes are not committed."
     exit 1
@@ -132,56 +135,70 @@ function ensure_clean_workdir() {
 
 function release_module() {
   ensure_clean_workdir
-  module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
+  local module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
   if [ $module = "coverage" ]; then
     return
   fi
-  ups=$(upstream_deps "$module")
+  local ups=$(upstream_deps "$module")
 
   # make sure we're buildable as is and also that any subsequent builds can access out pre-release artifact that they're
   # probably refer to.
-  mvn install -Pfast
+  ${MVN} install -Pfast
 
   #now let's start the release
-  mvn versions:update-parent
   if contains "revapi_build" "$ups"; then
-    mvn package revapi:update-versions -Pfast
+    ${MVN} package revapi:update-versions -Pfast -Drevapi.skip=false
   fi
-  mvn versions:force-releases versions:update-properties -DprocessParent=true -Dincludes="org.revapi:*"
-  mvn versions:set -DremoveSnapshot=true
-  mvn verify -Pantora-release #antora-release makes sure we set the appropriate version in the antora.yml
+  ${MVN} validate -Prelease-versions
+  ${MVN} versions:set -DremoveSnapshot=true
+  ${MVN} install -Pdocs-release #docs-release makes sure we set the appropriate version in the antora.yml
 
   # now we need to use the new version in the whole project so that it is buildable in the current revision
-  currentDir=$(pwd)
+  local currentDir=$(pwd)
   cd ..
-  mvn versions:use-releases versions:update-properties -DprocessParent=true -DallowDowngrade=true \
-    -DallowSnapshots=false -Dincludes="org.revapi:*"
+  for m in $ALL_MODULES; do
+    cd $(to_module $m)
+    if [ ! -f pom.xml ]; then
+      cd ..
+      continue
+    fi
+    ${MVN} validate -Prelease-versions -Dincludes="org.revapi:$module:*"
+    cd ..
+  done
   cd ${currentDir}
 
   # commit and finish up the release
-  version=$(xpath -q -e "/project/version/text()" pom.xml)
+  local version=$(xpath -q -e "/project/version/text()" pom.xml)
   git add -A
   git commit -m "Release $module-$version"
   git tag "${module}_v${version}"
   ensure_clean_workdir
-  mvn -Prelease,fast install deploy
+  ${MVN} -Prelease,fast install deploy
 
   # set the version to the next snapshot
-  mvn versions:set -DnextSnapshot=true
-  mvn process-resources -Pfast # reset the version in antora.yml back to main
+  ${MVN} versions:set -DnextSnapshot=true
+  # reset the version in antora.yml back to main and install our next version so that validate can pick it up
+  ${MVN} install -Pfast
 
   # and again, use the new version (the next snapshot) everywhere
   currentDir=$(pwd)
   cd ..
-  mvn versions:use-reactor versions:update-properties -DprocessParent=true -DallowSnapshots=true \
-    -Dincludes="org.revapi:*" -DexcludeProperties="self-api-check.java-extension-version,self-api-check.maven-version"
+  for m in $ALL_MODULES; do
+    cd $(to_module $m)
+    if [ ! -f pom.xml ]; then
+      cd ..
+      continue
+    fi
+    ${MVN} validate -Pnext-versions
+    cd ..
+  done
   cd ${currentDir}
 
-  version=$(xpath -q -e "/project/version/text()" pom.xml)
+  local version=$(xpath -q -e "/project/version/text()" pom.xml)
   git add -A
   git commit -m "Setting $module to version $version"
   #now we need to install so that the subsequent builds pick up our new version
-  mvn install -Pfast
+  ${MVN} install -Pfast
 }
 
 function update_module_version() {
@@ -190,12 +207,12 @@ function update_module_version() {
   if contains "revapi_build" "$ups"; then
     if [ $module != "coverage" ]; then
       # we want to run license check and revapi
-      mvn package revapi:update-versions -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
+      ${MVN} package revapi:update-versions -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
       -Djacoco.skip=true -Dsort.skip=true
     fi
   fi
   cd ..
-  mvn validate -Pversion-snapshots
+  ${MVN} validate -Pnext-versions
 }
 
 function determine_releases() {
@@ -208,8 +225,15 @@ function determine_releases() {
   echo $to_release
 }
 
+function before_releases() {
+  rm -Rf ~/.m2/repository/org/revapi
+  ${MVN} clean install -Pfast
+}
+
 function do_releases() {
   CWD=$(pwd)
+
+  before_releases
 
   to_release=$(determine_releases $@)
   echo "The following modules will be released $(echo "$to_release" | tr "\n" " ")"
@@ -268,7 +292,7 @@ $to_release
         if [ ! -f $check_file ]; then
           git checkout "${r}"
           # package so that the revapi report can be produced
-          mvn package site -DskipTests -Pantora-release
+          ${MVN} package site -DskipTests -Pdocs-release
 
           mkdir -p $dir
           cp -R target/site/* $dir
