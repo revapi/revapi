@@ -324,6 +324,24 @@
                     <reuseForks>true</reuseForks>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <configuration>
+                    <properties>
+                        <property>
+                            <name>self-api-check.java-extension-version</name>
+                            <preferReactor>false</preferReactor>
+                            <banSnapshots>true</banSnapshots>
+                        </property>
+                        <property>
+                            <name>self-api-check.maven-version</name>
+                            <preferReactor>false</preferReactor>
+                            <banSnapshots>true</banSnapshots>
+                        </property>
+                    </properties>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <reporting>
