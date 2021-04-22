@@ -154,7 +154,8 @@ function release_module() {
   # now we need to use the new version in the whole project so that it is buildable in the current revision
   currentDir=$(pwd)
   cd ..
-  mvn versions:use-releases versions:update-properties -DprocessParent=true -Dincludes="org.revapi:${module}"
+  mvn versions:use-releases versions:update-properties -DprocessParent=true -DallowDowngrade=true \
+    -DallowSnapshots=false -Dincludes="org.revapi:*"
   cd ${currentDir}
 
   # commit and finish up the release
@@ -164,23 +165,19 @@ function release_module() {
   git tag "${module}_v${version}"
   ensure_clean_workdir
   mvn -Prelease,fast install deploy
-  mvn versions:set \
-    -DnextSnapshot=true
-  mvn versions:use-next-snapshots versions:update-parent versions:update-properties \
-    -DexcludeReactor=false \
-    -DallowSnapshots=true \
-    -DprocessParent=true \
-    -Dincludes='org.revapi:*'
-  version=$(xpath -q -e "/project/version/text()" pom.xml)
-  mvn process-resources # reset the version in antora.yml back to main
+
+  # set the version to the next snapshot
+  mvn versions:set -DnextSnapshot=true
+  mvn process-resources -Pfast # reset the version in antora.yml back to main
 
   # and again, use the new version (the next snapshot) everywhere
   currentDir=$(pwd)
   cd ..
   mvn versions:use-reactor versions:update-properties -DprocessParent=true -DallowSnapshots=true \
-    -Dincludes="org.revapi:${module}" -DexcludeProperties="self-api-check.java-extension-version,self-api-check.maven-version"
+    -Dincludes="org.revapi:*" -DexcludeProperties="self-api-check.java-extension-version,self-api-check.maven-version"
   cd ${currentDir}
 
+  version=$(xpath -q -e "/project/version/text()" pom.xml)
   git add -A
   git commit -m "Setting $module to version $version"
   #now we need to install so that the subsequent builds pick up our new version
