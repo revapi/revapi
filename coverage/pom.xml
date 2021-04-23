@@ -47,6 +47,11 @@
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
+            <artifactId>revapi-jackson</artifactId>
+            <version>0.3.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
             <artifactId>revapi-java</artifactId>
             <version>0.24.0-SNAPSHOT</version>
         </dependency>
@@ -54,6 +59,11 @@
             <groupId>org.revapi</groupId>
             <artifactId>revapi-java-spi</artifactId>
             <version>0.23.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-json</artifactId>
+            <version>0.3.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
@@ -73,8 +83,23 @@
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
+            <artifactId>revapi-reporter-file-base</artifactId>
+            <version>0.4.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-reporter-json</artifactId>
+            <version>0.4.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
             <artifactId>revapi-reporter-text</artifactId>
             <version>0.14.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-yaml</artifactId>
+            <version>0.3.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
@@ -93,28 +118,4 @@
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>next-versions</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <!-- we don't need the dependency version reset by the update-to-snapshots execution here -->
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>versions-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>update-to-snapshots</id>
-                                <configuration>
-                                    <includes combine.self="override">
-                                        <item>org.revapi:revapi-build</item>
-                                    </includes>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
