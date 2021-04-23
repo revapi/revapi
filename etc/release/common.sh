@@ -62,6 +62,7 @@ SITE_revapi_standalone=1
 SITE_revapi_jackson=1
 SITE_revapi_json=1
 SITE_revapi_yaml=1
+SITE_coverage=0
 
 function to_dep() {
   echo "${@//-/_}"
