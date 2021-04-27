@@ -279,6 +279,9 @@ $to_release
 
   ensure_clean_workdir
 
+  # some releases were released with snapshot deps... let's no try to fix that and just skip javadoc generation for them
+  no_javadocs="revapi-maven-plugin:0.13.3 revapi-maven-plugin:0.13.4 revapi-maven-plugin:0.13.5 revapi-maven-plugin:0.13.6"
+
   for dep in $to_release; do
     # if the module has a site
     if [ 1 = $(eval "echo \$SITE_$dep") ]; then
@@ -288,6 +291,10 @@ $to_release
       releases=$(git tag | grep ${m}_v)
       for r in $releases; do
         ver=$(echo $r | sed 's/^.*_v//')
+        if [[ $no_javadocs == *"${m}:${ver}"* ]]; then
+          echo "Skipping javadoc generation for the known botched release: $m:$ver"
+          continue
+        fi
         dir="../revapi-site-assembly/build/site/$m/$ver/_attachments"
         check_file="$dir/index.html"
         if [ ! -f $check_file ]; then
