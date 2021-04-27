@@ -54,8 +54,8 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <self-api-check.java-extension-version>0.23.2</self-api-check.java-extension-version>
-        <self-api-check.maven-version>0.13.6</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.24.0</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.14.0</self-api-check.maven-version>
         <version.ch.qos.logback>1.1.2</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
         <version.org.junit>5.7.0</version.org.junit>
@@ -531,12 +531,28 @@
                                         <behavior>report</behavior>
                                     </missing-classes>
                                 </revapi.java>
-                                <revapi.semver.ignore>
+                                <revapi.versions>
                                     <enabled>true</enabled>
+                                    <!--
+                                    We want more strict versioning rules even in 0.x.y so that even here we have some
+                                    semblance of controlled progress.
+                                    -->
+                                    <semver0>false</semver0>
                                     <passThroughDifferences>
                                         <item>java.class.nonPublicPartOfAPI</item>
                                     </passThroughDifferences>
-                                </revapi.semver.ignore>
+                                    <versionIncreaseAllows>
+                                        <major>
+                                            <severity>BREAKING</severity>
+                                        </major>
+                                        <minor>
+                                            <severity>BREAKING</severity>
+                                        </minor>
+                                        <patch>
+                                            <severity>NON_BREAKING</severity>
+                                        </patch>
+                                    </versionIncreaseAllows>
+                                </revapi.versions>
                                 <revapi.differences>
                                     <ignore>true</ignore>
                                     <differences>
