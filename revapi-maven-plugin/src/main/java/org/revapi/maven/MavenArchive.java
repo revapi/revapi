@@ -52,7 +52,7 @@ class MavenArchive implements Archive.Versioned {
         this.version = artifact.getBaseVersion();
 
         if (gav.endsWith(version)) {
-            ga = gav.substring(0, version.length());
+            ga = gav.substring(0, gav.length() - version.length() - 1);
         } else {
             ga = gav;
         }
