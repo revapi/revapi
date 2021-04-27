@@ -2,6 +2,6 @@
 * xref:reclassify.adoc[Classification Transform]
 * xref:filter.adoc[Element Filter]
 * xref:ignore.adoc[Ignore Differences]
-* xref:semver-ignore.adoc[Version-based Ignore]
+* xref:versions.adoc[Version-based Transform]
 * xref:element-matching.adoc[]
 * link:{attachmentsdir}/apidocs/index.html[Javadoc]

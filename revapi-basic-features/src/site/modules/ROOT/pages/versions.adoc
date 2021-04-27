@@ -10,6 +10,9 @@ By default, it assumes semantic versioning of the archives but can be reconfigur
 
 The extension is disabled by default and has to be explicitly configured to be switched on.
 
+NOTE: The documentation of the now deprecated `revapi.semver.ignore` transformation, which served a similar purpose in the past, is
+xref:semver-ignore.adoc[here].
+
 == Sample Configuration
 
 The following is the default configuration of the extension:
@@ -279,7 +282,7 @@ With the transform block in place, we can configure the manually vetted differen
                     <vetted>ok</vetted>
                 </attachments>
                 <differences>
-                    <!-- any difference match configured using xref:differences.adoc[] -->
+                    ... any difference matches configured using the xref:differences.adoc[]...
                 </differences>
             </revapi.differences>
             <revapi.versions>
