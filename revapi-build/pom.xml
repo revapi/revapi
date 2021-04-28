@@ -597,30 +597,5 @@
                 <antora-module.version>${project.version}</antora-module.version>
             </properties>
         </profile>
-        <profile>
-            <id>release-versions</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>versions-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>prepare-release</id>
-                                <configuration>
-                                    <properties combine.children="append">
-                                        <property>
-                                            <name>version.revapi-build-support</name>
-                                            <preferReactor>false</preferReactor>
-                                            <banSnapshots>true</banSnapshots>
-                                        </property>
-                                    </properties>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 </project>

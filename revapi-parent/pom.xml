@@ -297,26 +297,14 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>versions-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>update-to-snapshots</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>use-latest-versions</goal>
-                                    <goal>update-properties</goal>
-                                    <goal>update-parent</goal>
-                                </goals>
-                                <configuration>
-                                    <generateBackupPoms>false</generateBackupPoms>
-                                    <allowSnapshots>true</allowSnapshots>
-                                    <excludeReactor>false</excludeReactor>
-                                    <processParent>true</processParent>
-                                    <includes>
-                                        <item>org.revapi:*</item>
-                                    </includes>
-                                </configuration>
-                            </execution>
-                        </executions>
+                        <configuration>
+                            <generateBackupPoms>false</generateBackupPoms>
+                            <allowSnapshots>true</allowSnapshots>
+                            <excludeReactor>false</excludeReactor>
+                            <includes>
+                                <item>org.revapi:*</item>
+                            </includes>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -328,26 +316,15 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>versions-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>prepare-release</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>use-releases</goal>
-                                    <goal>update-properties</goal>
-                                </goals>
-                                <configuration>
-                                    <generateBackupPoms>false</generateBackupPoms>
-                                    <allowSnapshots>false</allowSnapshots>
-                                    <processParent>true</processParent>
-                                    <allowDowngrade>true</allowDowngrade>
-                                    <excludeReactor>true</excludeReactor>
-                                    <includes>
-                                        <item>org.revapi:*</item>
-                                    </includes>
-                                </configuration>
-                            </execution>
-                        </executions>
+                        <configuration>
+                            <generateBackupPoms>false</generateBackupPoms>
+                            <allowSnapshots>false</allowSnapshots>
+                            <allowDowngrade>true</allowDowngrade>
+                            <excludeReactor>true</excludeReactor>
+                            <includes>
+                                <item>org.revapi:*</item>
+                            </includes>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

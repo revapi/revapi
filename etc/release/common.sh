@@ -5,26 +5,26 @@ MVN=${MVN:-mvn}
 
 ALL_MODULES=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi coverage"
 
-DEPS_revapi_parent=()
-DEPS_revapi_site=()
-DEPS_revapi_site_assembly=()
-DEPS_revapi_build_support=("revapi_parent")
-DEPS_revapi_build=("revapi_parent" "revapi_build_support")
-DEPS_revapi_maven_utils=("revapi_build")
-DEPS_revapi=("revapi_build")
-DEPS_revapi_basic_features=("revapi")
-DEPS_revapi_reporter_file_base=("revapi")
-DEPS_revapi_reporter_json=("revapi_reporter_file_base")
-DEPS_revapi_reporter_text=("revapi_reporter_file_base")
-DEPS_revapi_java_spi=("revapi")
-DEPS_revapi_java=("revapi_java_spi")
-DEPS_revapi_maven_plugin=("revapi_basic_features" "revapi_maven_utils")
-DEPS_revapi_ant_task=("revapi_basic_features")
-DEPS_revapi_standalone=("revapi_basic_features" "revapi_maven_utils")
-DEPS_revapi_jackson=("revapi")
-DEPS_revapi_json=("revapi_jackson")
-DEPS_revapi_yaml=("revapi_jackson")
-DEPS_coverage=("revapi_build")
+DEPS_revapi_parent=""
+DEPS_revapi_site=""
+DEPS_revapi_site_assembly=""
+DEPS_revapi_build_support="revapi_parent"
+DEPS_revapi_build="revapi_parent revapi_build_support"
+DEPS_revapi_maven_utils="revapi_build"
+DEPS_revapi="revapi_build"
+DEPS_revapi_basic_features="revapi revapi_build"
+DEPS_revapi_reporter_file_base="revapi revapi_build"
+DEPS_revapi_reporter_json="revapi_reporter_file_base revapi_build"
+DEPS_revapi_reporter_text="revapi_reporter_file_base revapi_build"
+DEPS_revapi_java_spi="revapi revapi_build"
+DEPS_revapi_java="revapi_java_spi revapi_build"
+DEPS_revapi_maven_plugin="revapi_basic_features revapi_maven_utils revapi_build revapi_java revapi_java_spi revapi"
+DEPS_revapi_ant_task="revapi_basic_features revapi revapi_build"
+DEPS_revapi_standalone="revapi_basic_features revapi_maven_utils revapi revapi_build"
+DEPS_revapi_jackson="revapi revapi_build"
+DEPS_revapi_json="revapi_jackson revapi_build"
+DEPS_revapi_yaml="revapi_jackson revapi_build"
+DEPS_coverage="revapi_build"
 
 ORDER_revapi_parent=0
 ORDER_revapi_build_support=1
@@ -73,20 +73,20 @@ function to_module() {
 }
 
 function sort_deps() {
-  sorted=""
+  local sorted=""
   for d in $@; do
-    order=$(eval "echo \$ORDER_$d")
+    local order=$(eval "echo \$ORDER_$d")
     sorted="$sorted,$order $d"
   done
   echo "$sorted" | tr "," "\n" | sort | cut -d' ' -f 2 | uniq | sed '/^$/d'
 }
 
 function upstream_deps() {
-  dep=$(to_dep "$1")
+  local dep=$(to_dep "$1")
   dep=$(eval "echo \$DEPS_$dep")
-  all_deps="${dep}"
+  local all_deps="${dep}"
   while true; do
-    dep=$(eval "echo \$DEPS_$dep")
+    local dep=$(eval "echo \$DEPS_$dep")
     if [ -n "$dep" ]; then
       all_deps="${all_deps} ${dep}"
     else
@@ -97,17 +97,35 @@ function upstream_deps() {
   echo "${all_deps}" | tr " " "\n" | sort | uniq
 }
 
+function direct_upstream_deps() {
+  local dep=$(to_dep "$1")
+  eval "echo \$DEPS_$dep"
+}
+
 function contains() {
-  a=$1
-  b=$2
+  local a=$1
+  local b=$2
   echo "$b" | grep -q -E "(^| )$a( |$)"
 }
 
 function downstream_deps() {
-  dep=$(to_dep "$1")
-  downs=""
+  local dep=$(to_dep "$1")
+  local downs=""
   for d in $ALL_MODULES; do
-    ups=$(upstream_deps "$d")
+    local ups=$(upstream_deps "$d")
+    if contains "$dep" "$ups"; then
+      downs="$downs $d"
+    fi
+  done
+
+  echo "$downs" | tr " " "\n" | sort | uniq
+}
+
+function direct_downstream_deps() {
+  local dep=$(to_dep "$1")
+  local downs=""
+  for d in $ALL_MODULES; do
+    local ups=$(direct_upstream_deps "$d")
     if contains "$dep" "$ups"; then
       downs="$downs $d"
     fi
@@ -141,6 +159,7 @@ function release_module() {
     return
   fi
   local ups=$(upstream_deps "$module")
+  local downs=$(direct_downstream_deps "$module")
 
   # make sure we're buildable as is and also that any subsequent builds can access out pre-release artifact that they're
   # probably refer to.
@@ -150,20 +169,26 @@ function release_module() {
   if contains "revapi_build" "$ups"; then
     ${MVN} package revapi:update-versions -Pfast -Drevapi.skip=false
   fi
-  ${MVN} validate -Prelease-versions
+
+  ${MVN} validate versions:force-releases versions:update-parent versions:update-properties -Prelease-versions
   ${MVN} versions:set -DremoveSnapshot=true
   ${MVN} install -Pdocs-release #docs-release makes sure we set the appropriate version in the antora.yml
 
   # now we need to use the new version in the whole project so that it is buildable in the current revision
   local currentDir=$(pwd)
   cd ..
-  for m in $ALL_MODULES; do
+  for m in $downs; do
     cd $(to_module $m)
     if [ ! -f pom.xml ]; then
       cd ..
       continue
     fi
-    ${MVN} validate -Prelease-versions -Dincludes="org.revapi:$module:*"
+    local goals="validate versions:force-releases versions:update-properties"
+    local parent=$(xpath -q -e "/project/parent/artifactId/text()" pom.xml)
+    if [ $parent = $module ]; then
+      goals="$goals versions:update-parent"
+    fi
+    ${MVN} $goals -Prelease-versions -Dincludes="org.revapi:$module"
     cd ..
   done
   cd ${currentDir}
@@ -178,19 +203,21 @@ function release_module() {
 
   # set the version to the next snapshot
   ${MVN} versions:set -DnextSnapshot=true
+  ${MVN} validate versions:use-latest-versions versions:update-properties versions:update-parent -Pnext-versions
   # reset the version in antora.yml back to main and install our next version so that validate can pick it up
   ${MVN} install -Pfast
 
   # and again, use the new version (the next snapshot) everywhere
   currentDir=$(pwd)
   cd ..
-  for m in $ALL_MODULES; do
+  for m in $downs; do
     cd $(to_module $m)
     if [ ! -f pom.xml ]; then
       cd ..
       continue
     fi
-    ${MVN} validate -Pnext-versions
+
+    ${MVN} validate versions:use-latest-versions versions:update-properties versions:update-parent -Pnext-versions -Dincludes="org.revapi:$module"
     cd ..
   done
   cd ${currentDir}
