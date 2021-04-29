@@ -401,7 +401,7 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
 
     protected Criticality determineMaximumCriticality(PipelineConfiguration pipelineConfiguration)
             throws MojoExecutionException {
-        return determineCriticality(pipelineConfiguration, failCriticality, "maximumCriticality",
+        return determineCriticality(pipelineConfiguration, failCriticality, Props.failCriticality.NAME,
                 failSeverity.asDifferenceSeverity());
     }
 

@@ -144,10 +144,12 @@ public class ConfigurationValidatorTest {
     @Test
     public void testRevapiValidation_mergeWithoutIds() throws Exception {
         // partial config of the extension
-        String config1 = "[" + "{\"extension\": \"my-config\", \"configuration\": {\"id\": 3}}" + "]";
+        String config1 = "[" + "{\"extension\": \"my-config\", \"id\": \"my-config\", \"configuration\": {\"id\": 3}}"
+                + "]";
 
         // complete the config of the extension and add another config for another extension
-        String config2 = "[" + "{\"extension\": \"my-config\", \"configuration\": {\"kachna\": \"no duck\"}},"
+        String config2 = "["
+                + "{\"extension\": \"my-config\", \"id\": \"my-config\", \"configuration\": {\"kachna\": \"no duck\"}},"
                 + "{\"extension\": \"other-config\", \"configuration\": 1}" + "]";
 
         Revapi revapi = Revapi.builder().withFilters(TestFilter.class).withReporters(TestReporter.class)

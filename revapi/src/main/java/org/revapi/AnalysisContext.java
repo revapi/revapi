@@ -16,8 +16,6 @@
  */
 package org.revapi;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -39,7 +37,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -579,63 +576,14 @@ public final class AnalysisContext {
             Map<String, List<ObjectNode>> idlessBByExtensionId = new HashMap<>(4);
             splitByExtensionAndId(b, bByExtensionAndId, idlessBByExtensionId);
 
-            // we cannot merge if:
-            // 1) "a" contains 2 or more (idless or not) for an extension and b contains at least 1 idless for an
-            // extension
-            // 2) "a" contains at least 1 for an extension and b contains 2 or more idless for an extension
-            Stream.concat(aByExtensionAndId.keySet().stream(), idlessAByExtensionId.keySet().stream()).forEach(ext -> {
-                int aCnt = idlessAByExtensionId.getOrDefault(ext, emptyList()).size()
-                        + aByExtensionAndId.getOrDefault(ext, emptyMap()).size();
-
-                int bCnt = idlessBByExtensionId.getOrDefault(ext, emptyList()).size();
-
-                // rule 1
-                if (aCnt > 1 && bCnt > 0) {
-                    throw new IllegalArgumentException(
-                            "The configuration already contains more than 1 configuration for extension " + ext
-                                    + ". Cannot determine which one of them to merge"
-                                    + " the new configuration(s) (which don't have an explicit ID) into.");
-                }
-
-                // rule 2
-                if (aCnt > 0 && bCnt > 1) {
-                    throw new IllegalArgumentException(
-                            "The configuration already contains 1 or more configurations for extension " + ext
-                                    + ". At the same time, the configuration to merge already contains 2 or more"
-                                    + " configurations for the same extension without an explicit ID."
-                                    + " Cannot figure out how to merge these together.");
-                }
-            });
-
             int bcIdx = 0;
             for (JsonNode bc : b) {
                 String bcId = bc.hasNonNull("id") ? bc.get("id").asText() : null;
                 String bcExtension = bc.get("extension").asText();
 
                 if (bcId == null) {
-                    List<ObjectNode> idless = idlessAByExtensionId.get(bcExtension);
-                    if (idless != null) {
-                        if (idless.size() == 1) {
-                            List<String> path = new ArrayList<>(4);
-                            path.addAll(Arrays.asList("[" + bcIdx + "]", "configuration"));
-                            ObjectNode o = idless.get(0);
-                            mergeNodes(bcExtension, null, path, o, "configuration", o.get("configuration"),
-                                    bc.get("configuration"));
-                        }
-                    } else {
-                        Map<String, ObjectNode> aExtensions = aByExtensionAndId.get(bcExtension);
-                        if (aExtensions == null) {
-                            a.add(bc);
-                            continue;
-                        }
-
-                        List<String> path = new ArrayList<>(4);
-                        path.addAll(Arrays.asList("[" + bcIdx + "]", "configuration"));
-
-                        ObjectNode aConfig = aExtensions.values().iterator().next();
-                        mergeNodes(bcExtension, null, path, aConfig, "configuration", aConfig.get("configuration"),
-                                bc.get("configuration"));
-                    }
+                    a.add(bc);
+                    continue;
                 } else {
                     Map<String, ObjectNode> aExtensions = aByExtensionAndId.get(bcExtension);
                     if (aExtensions == null) {

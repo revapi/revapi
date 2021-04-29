@@ -16,6 +16,8 @@
  */
 package org.revapi.maven;
 
+import java.util.Arrays;
+
 /**
  * A complex type for capturing the "analysisConfigurationFiles" elements.
  *
@@ -51,5 +53,11 @@ public final class ConfigurationFile {
 
     public void setRoots(String[] roots) {
         this.roots = roots;
+    }
+
+    @Override
+    public String toString() {
+        return "ConfigurationFile{" + "path='" + path + '\'' + ", resource='" + resource + '\'' + ", roots="
+                + Arrays.toString(roots) + '}';
     }
 }
