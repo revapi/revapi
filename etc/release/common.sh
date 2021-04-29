@@ -6,8 +6,9 @@ MVN=${MVN:-mvn}
 ALL_MODULES=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi coverage"
 
 DEPS_revapi_parent=""
-DEPS_revapi_site=""
+DEPS_revapi_site="revapi_build"
 DEPS_revapi_site_assembly=""
+DEPS_revapi_examples="revapi_build revapi revapi_java revapi_java_spi"
 DEPS_revapi_build_support="revapi_parent"
 DEPS_revapi_build="revapi_parent revapi_build_support"
 DEPS_revapi_maven_utils="revapi_build"
@@ -24,7 +25,7 @@ DEPS_revapi_standalone="revapi_basic_features revapi_maven_utils revapi revapi_b
 DEPS_revapi_jackson="revapi revapi_build"
 DEPS_revapi_json="revapi_jackson revapi_build"
 DEPS_revapi_yaml="revapi_jackson revapi_build"
-DEPS_coverage="revapi_build"
+DEPS_coverage="revapi_build revapi revapi_ant_task reva_basic_features revapi_jackson revapi_java revapi_java_spi revapi_json revapi_maven_plugin revapi_maven_utils revapi_reporter_file_base revapi_reporter_json revapi_reporter_text revapi_yaml"
 
 ORDER_revapi_parent=0
 ORDER_revapi_build_support=1
