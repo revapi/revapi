@@ -1,0 +1,31 @@
+= Release Notes
+:page-publish_date: 2021-04-29
+:page-layout: news-article
+
+At last, a new set of releases is here.
+
+This batch brings along another set of fixes caused by the major API overhaul that enabled more precise 
+element matching.
+
+First of all, the revapi.ignore and revapi.reclassify will no longer output an unnecessary warning when not active.
+
+The jackson-based API analyzers have improved the matching of the elements based on their names.
+
+The java analyzer is more clever about looking up types by their binary names and therefore ever so slightly faster.
+
+The JSON reporter includes the criticality and justification in its report.
+
+The version upgrading maven plugin goals (`update-versions` and `update-release-properties`) have been made more usable (and more importantly idempotent so that repeated application of the goal on the same project doesn't increase the version ad infinitum).
+
+The way the results of difference analyzers are combined as been fixed such that certain false positives no longer happen.
+
+In addition to the `java` matcher, there is a new simpler and faster `java-package` matcher to match java types simply by their package names - useful for situations where you want to exclude `impl` packages for example (xref:revapi-java::element-matching.adoc[]).
+
+The Maven plugin can now be configured to consider listed dependencies as part of the "primary API".
+
+There is a new xref:revapi-basic-features::versions.adoc[], which deprecates the xref:revapi-basic-features::semver-ignore.adoc[]. It is more capable and not limited to handling just a single archive in the API.
+
+Last but not least, there have been numerous fixes to the build and release scripts so that situations like https://github.com/revapi/revapi/issues/229 doesn't happen again in the future.
+
+Grab the updates from your nearby artifact registry or take a look at xref:revapi-site::downloads.adoc[].
+
