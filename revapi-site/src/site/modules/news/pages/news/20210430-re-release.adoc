@@ -1,0 +1,8 @@
+= Re-release of Maven plugin 
+:page-publish_date: 2021-04-30
+:page-layout: news-article
+
+Ah, what can I say.. Releasing without the release plugin is harder than it looks :)
+
+`revapi-maven-plugin:0.14.1` is corrupted because it depends on a snapshot. Please use `0.14.2` instead.
+
