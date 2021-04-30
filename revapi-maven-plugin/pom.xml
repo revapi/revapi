@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>44-SNAPSHOT</version>
+        <version>43</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-maven-plugin</artifactId>
-    <version>0.14.1-SNAPSHOT</version>
+    <version>0.14.1</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin</name>
     <description>Maven integration for Revapi.</description>
@@ -53,10 +53,10 @@
         <maven-invoker.version>1.9</maven-invoker.version>
         <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
         <maven.version>3.2.5</maven.version>
-        <revapi-java-spi.version>0.23.2-SNAPSHOT</revapi-java-spi.version>
-        <revapi-java.version>0.24.2-SNAPSHOT</revapi-java.version>
-        <revapi-reporter-text.version>0.14.1-SNAPSHOT</revapi-reporter-text.version>
-        <revapi.version>0.14.2-SNAPSHOT</revapi.version>
+        <revapi-java-spi.version>0.23.1</revapi-java-spi.version>
+        <revapi-java.version>0.24.1</revapi-java.version>
+        <revapi-reporter-text.version>0.14.1</revapi-reporter-text.version>
+        <revapi.version>0.14.1</revapi.version>
     </properties>
     <dependencies>
         <dependency>
@@ -93,7 +93,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.12.2-SNAPSHOT</version>
+            <version>0.12.1</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
