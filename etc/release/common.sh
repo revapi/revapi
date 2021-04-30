@@ -5,10 +5,12 @@ MVN=${MVN:-mvn}
 
 ALL_MODULES=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi coverage"
 
+UNRELEASED="coverage revapi_site revapi_examples_parent"
+
 DEPS_revapi_parent=""
 DEPS_revapi_site="revapi_build"
 DEPS_revapi_site_assembly=""
-DEPS_revapi_examples="revapi_build revapi revapi_java revapi_java_spi"
+DEPS_revapi_examples_parent="revapi_build revapi revapi_java revapi_java_spi"
 DEPS_revapi_build_support="revapi_parent"
 DEPS_revapi_build="revapi_parent revapi_build_support"
 DEPS_revapi_maven_utils="revapi_build"
@@ -156,7 +158,7 @@ function ensure_clean_workdir() {
 function release_module() {
   ensure_clean_workdir
   local module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
-  if [ $module = "coverage" ]; then
+  if contains $(to_dep $module) "$UNRELEASED"; then
     return
   fi
   local ups=$(upstream_deps "$module")
