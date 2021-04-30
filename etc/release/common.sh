@@ -257,6 +257,14 @@ function determine_releases() {
 }
 
 function before_releases() {
+  hasSnapshots=$(mvn help:evaluate -Dexpression=project.repositories 2>/dev/null | grep -E '^\s*<' --color=never | \
+    xpath -q -e "/repositories/repository/snapshots/enabled[text() = 'true' and ../../url[text() = 'https://repo.maven.apache.org/maven2']")
+
+  if [ -z "$hasSnapshots" ]; then
+    >&2 echo "Maven Central snapshot repository needs to be enabled otherwise things don't work!"
+    exit 1
+  fi
+
   rm -Rf ~/.m2/repository/org/revapi
   ${MVN} clean install -Pfast
 }
