@@ -56,7 +56,7 @@
         <revapi-java-spi.version>0.23.1-SNAPSHOT</revapi-java-spi.version>
         <revapi-java.version>0.24.1-SNAPSHOT</revapi-java.version>
         <revapi-reporter-text.version>0.14.1-SNAPSHOT</revapi-reporter-text.version>
-        <revapi.version>0.14.1-SNAPSHOT</revapi.version>
+        <revapi.version>0.14.1</revapi.version>
     </properties>
     <dependencies>
         <dependency>
@@ -98,14 +98,14 @@
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi-java-spi</artifactId>
-            <version>${revapi-java-spi.version}</version>
+            <artifactId>revapi-java</artifactId>
+            <version>${revapi-java.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
-            <artifactId>revapi-java</artifactId>
-            <version>${revapi-java.version}</version>
+            <artifactId>revapi-java-spi</artifactId>
+            <version>${revapi-java-spi.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
