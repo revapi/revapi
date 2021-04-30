@@ -1,0 +1,14 @@
+= Bugfix release
+:page-publish_date: 2021-04-30
+:page-layout: news-article
+
+As it has slowly become a habit lately a new release is quickly followed by a fixup.
+
+It is true now, too. Thanks to the early testing by the https://xwiki.org team it was discovered that the way Revapi merges configuration of a single extension from multiple places can be quite unintuitive.
+
+Because the configurations of a single extension from different sources were by default merged together into 1 (a remnant of the old way of doing config), it could produce a completely unintuitive behavior, especially with the new extensions like revapi.differences which slightly shifted in the way the configuration is composed as compared to the older extensions.
+
+I've now changed the configuration logic such that the only time 2 configurations for a single extension from 2 different files are merged together (instead of ending up configuring different extension instances) is when the 2 configurations have the same explicit ID. This makes the merging of configuration an opt-in feature rather than being done implicitly.
+
+I do hope this will improve the comprehension of the configuration but it may also cause breakage if your configuration files depended on the merging behavior. If you see Revapi change the reported differences or generally behaving differently than before, then you probably are running into this issue. If you really want to merge 2 different configurations of a single extension into 1, just assign the two configurations an ID and all will behave as previously.
+
