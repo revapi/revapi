@@ -422,21 +422,18 @@ abstract class AbstractRevapiMojo extends AbstractMojo {
 
     protected Analyzer prepareAnalyzer(MavenProject project, PipelineConfiguration.Builder pipelineConfiguration,
             Class<? extends Reporter> reporter, Map<String, Object> contextData) {
-        AnalyzerBuilder.Result res = buildAnalyzer(project, pipelineConfiguration, reporter, contextData);
-
-        if (res.skip) {
-            this.skip = true;
-        }
-
-        this.oldArtifacts = res.oldArtifacts;
-        this.newArtifacts = res.newArtifacts;
-
-        return res.analyzer;
+        return prepareAnalyzer(project, pipelineConfiguration, reporter, contextData, Collections.emptyMap());
     }
 
     protected Analyzer prepareAnalyzer(MavenProject project, PipelineConfiguration.Builder pipelineConfiguration,
             Class<? extends Reporter> reporter, Map<String, Object> contextData,
             Map<String, Object> propertyOverrides) {
+
+        if (!initializeComparisonArtifacts()) {
+            // bail out quickly if there is nothing to compare
+            return null;
+        }
+
         AnalyzerBuilder.Result res = buildAnalyzer(project, pipelineConfiguration, reporter, contextData,
                 propertyOverrides);
 

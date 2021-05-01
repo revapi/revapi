@@ -399,6 +399,10 @@ abstract class AbstractVersionModifyingMojo extends AbstractRevapiMojo {
         Analyzer analyzer = prepareAnalyzer(project, PipelineConfigurationParser.parse(pipelineConfiguration),
                 ApiBreakageHintingReporter.class, Collections.emptyMap(), getPropertyOverrideMap());
 
+        if (analyzer == null) {
+            return null;
+        }
+
         try {
             analyzer.resolveArtifacts();
 
