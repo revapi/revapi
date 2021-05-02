@@ -35,11 +35,15 @@ public class ExpectedValues {
         if (ver1 > ver2) {
             if (MAJOR_VERSION >= ver1) {
                 return val1;
+            } else if (MAJOR_VERSION >= ver2) {
+                return val2;
             }
         }
 
         if (MAJOR_VERSION >= ver2) {
             return val2;
+        } else if (MAJOR_VERSION >= ver1) {
+            return val1;
         }
 
         throw new IllegalArgumentException(
