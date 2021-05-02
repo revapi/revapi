@@ -18,6 +18,8 @@ package org.revapi.java;
 
 import static java.util.stream.Collectors.toMap;
 
+import static org.revapi.java.ExpectedValues.dependingOnJavaVersion;
+
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +93,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         // interface -> enum
         diffsPerMethod = getDiffs.apply("KindChanged.Interface");
-        Assert.assertEquals(7, diffsPerMethod.size());
+        Assert.assertEquals((int) dependingOnJavaVersion(8, 7, 12, 8), diffsPerMethod.size());
         diffs = diffsPerMethod.get(
                 "method <T extends java.lang.Enum<T>> T java.lang.Enum<E extends java.lang.Enum<E>>::valueOf(java.lang.Class<T>, java.lang.String) @ KindChanged.Interface");
         Assert.assertNotNull(diffs);
@@ -128,7 +130,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         // enum -> annotation
         diffsPerMethod = getDiffs.apply("KindChanged.Enum");
-        Assert.assertEquals(8, diffsPerMethod.size());
+        Assert.assertEquals((int) dependingOnJavaVersion(8, 8, 12, 9), diffsPerMethod.size());
         diffs = diffsPerMethod.get(
                 "method <T extends java.lang.Enum<T>> T java.lang.Enum<E extends java.lang.Enum<E>>::valueOf(java.lang.Class<T>, java.lang.String) @ KindChanged.Enum");
         Assert.assertNotNull(diffs);
@@ -181,7 +183,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertEquals(1, diffs.size());
         Assert.assertEquals(Code.METHOD_REMOVED.code(), diffs.get(0).code);
 
-        Assert.assertEquals(34L, reports.stream().mapToLong(r -> r.getDifferences().size()).sum());
+        Assert.assertEquals((long) dependingOnJavaVersion(8, 34L, 12, 37L),
+                reports.stream().mapToLong(r -> r.getDifferences().size()).sum());
     }
 
     @Test

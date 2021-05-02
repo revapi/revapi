@@ -16,6 +16,8 @@
  */
 package org.revapi.java;
 
+import static org.revapi.java.ExpectedValues.dependingOnJavaVersion;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -107,7 +109,7 @@ public class ClassChecksTest extends AbstractJavaElementAnalyzerTest {
                 (int) reporter.getProblemCounters().get(Code.CLASS_NON_FINAL_CLASS_INHERITS_FROM_NEW_CLASS.code()));
         Assert.assertEquals(1,
                 (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_INHERITS_FROM_CLASS.code()));
-        Assert.assertEquals(3,
+        Assert.assertEquals((int) dependingOnJavaVersion(8, 3, 12, 4),
                 (int) reporter.getProblemCounters().get(Code.CLASS_NO_LONGER_IMPLEMENTS_INTERFACE.code()));
         Assert.assertEquals(1, (int) reporter.getProblemCounters().get(Code.CLASS_NOW_IMPLEMENTS_INTERFACE.code()));
     }
