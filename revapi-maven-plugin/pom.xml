@@ -50,7 +50,7 @@
         <automatic.module.name>org.revapi.maven.plugin</automatic.module.name>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts></itest.maven-opts>
-        <maven-invoker.version>1.9</maven-invoker.version>
+        <maven-invoker.version>3.2.2</maven-invoker.version>
         <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
         <maven.version>3.2.5</maven.version>
         <revapi-java-spi.version>0.23.2-SNAPSHOT</revapi-java-spi.version>
