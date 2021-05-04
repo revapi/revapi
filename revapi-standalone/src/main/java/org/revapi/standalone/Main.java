@@ -434,12 +434,31 @@ public final class Main {
 
         for (String gav : gavs) {
             try {
+                File f = resolver.resolveArtifact(gav).getFile();
+                if (f == null) {
+                    // throw an exception if we fail to resolve one of the primary API archives but just warn if we fail
+                    // to resolve one of its deps below.
+                    throw new IllegalArgumentException(
+                            "The gav '" + gav + "' did not resolve into a file-backed archive.");
+                }
+
                 archives.add(new FileArchive(resolver.resolveArtifact(gav).getFile()));
                 ArtifactResolver.CollectionResult res = resolver.collectTransitiveDeps(gav);
 
-                res.getResolvedArtifacts().forEach(a -> supplementaryArchives.add(new FileArchive(a.getFile())));
+                res.getResolvedArtifacts().forEach(a -> {
+                    File af = a.getFile();
+                    if (af == null) {
+                        res.getFailures()
+                                .add(new IllegalArgumentException("The gav '" + a.getGroupId() + ":" + a.getArtifactId()
+                                        + ":" + a.getVersion()
+                                        + "'  did not resolve into a file-backed archive and is therefore ignored."));
+                    } else {
+                        supplementaryArchives.add(new FileArchive(af));
+                    }
+                });
                 if (!res.getFailures().isEmpty()) {
-                    LOG.warn("Failed to resolve some transitive dependencies: " + res.getFailures().toString());
+                    LOG.warn("The analysis may be skewed. Failed to resolve some transitive dependencies of '" + gav
+                            + "': " + res.getFailures().toString());
                 }
             } catch (RepositoryException e) {
                 throw new IllegalArgumentException(errorMessagePrefix + " " + e.getMessage());
