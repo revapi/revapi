@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import static org.revapi.java.AnalysisConfiguration.MissingClassReporting.ERROR;
+import static org.revapi.java.AnalysisConfiguration.MissingClassReporting.IGNORE;
 import static org.revapi.java.AnalysisConfiguration.MissingClassReporting.REPORT;
 import static org.revapi.java.model.JavaElementFactory.elementFor;
 import static org.revapi.java.spi.UseSite.Type.IS_THROWN;
@@ -370,16 +371,14 @@ final class ClasspathScanner {
                 Boolean wasAnno = requiredTypes.remove(type);
 
                 // type.asType() possibly not completely correct when dealing with inner class of a parameterized class
-                TypeMirror typeType = type.asType();
-                if (typeType.getKind() == TypeKind.ERROR) {
-                    // just re-add the missing type and return. It will be dealt with accordingly
-                    // in initEnvironment
-                    requiredTypes.put(type, wasAnno == null ? false : wasAnno);
-                    return;
-                }
+                boolean isError = type.asType().getKind() == TypeKind.ERROR;
 
-                org.revapi.java.model.TypeElement t = new org.revapi.java.model.TypeElement(environment,
-                        loc.getArchive(), type, (DeclaredType) type.asType());
+                org.revapi.java.model.TypeElement t = isError
+                        ? new MissingClassElement(environment,
+                                environment.getElementUtils().getBinaryName(type).toString(),
+                                type.getQualifiedName().toString())
+                        : new org.revapi.java.model.TypeElement(environment, loc.getArchive(), type,
+                                (DeclaredType) type.asType());
 
                 TypeRecord tr = getTypeRecord(type);
 
@@ -394,6 +393,13 @@ final class ClasspathScanner {
                 // this will be revisited... in here we're just establishing the types that are in the API for sure...
                 tr.inApi = primaryApi && !shouldBeIgnored(type) && (tr.parent == null || tr.parent.inApi);
                 tr.primaryApi = primaryApi;
+
+                if (isError) {
+                    // we initialized the type record for the missing type but cannot continue further. Let's just
+                    // re-add the type to the list of required types so that it can be looked for harder later on...
+                    requiredTypes.put(type, wasAnno != null && wasAnno);
+                    return;
+                }
 
                 // make sure we always have java.lang.Object in the set of super types. If the current class' super type
                 // is missing, we might not be able to climb the full hierarchy up to java.lang.Object. But that would
@@ -669,7 +675,11 @@ final class ClasspathScanner {
             initChildren();
             determineApiStatus();
 
-            if (missingClassReporting == REPORT && !requiredTypes.isEmpty()) {
+            if (missingClassReporting == IGNORE) {
+                types.entrySet().removeIf(e -> e.getValue().modelElement == null
+                        || e.getValue().modelElement instanceof MissingClassElement);
+                requiredTypes.clear();
+            } else if (missingClassReporting == REPORT && !requiredTypes.isEmpty()) {
                 handleMissingClasses(types);
             }
 

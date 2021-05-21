@@ -63,12 +63,6 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
         apiV1 = ShrinkWrap.create(JavaArchive.class, "apiV1.jar")
                 .addAsResource(compRes1.compilationPath.resolve("A.class").toFile(), "A.class");
-        // supV1 = ShrinkWrap.create(JavaArchive.class, "supV1.jar")
-        // .addAsResource(compRes1.compilationPath.resolve("B.class").toFile(), "B.class")
-        // .addAsResource(compRes1.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
-        // .addAsResource(compRes1.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
-        // .addAsResource(compRes1.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
-        // .addAsResource(compRes1.compilationPath.resolve("C.class").toFile(), "C.class");
 
         // now do the same for v2
         AbstractJavaElementAnalyzerTest.ArchiveAndCompilationPath compRes2 = createCompiledJar("tmp2",
@@ -76,13 +70,6 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
         apiV2 = ShrinkWrap.create(JavaArchive.class, "apiV2.jar")
                 .addAsResource(compRes2.compilationPath.resolve("A.class").toFile(), "A.class");
-        // supV2 = ShrinkWrap.create(JavaArchive.class, "supV2.jar")
-        // .addAsResource(compRes2.compilationPath.resolve("B.class").toFile(), "B.class")
-        // .addAsResource(compRes2.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
-        // .addAsResource(compRes2.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
-        // .addAsResource(compRes2.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
-        // .addAsResource(compRes2.compilationPath.resolve("B$T$1$Private.class").toFile(), "B$T$1$Private.class")
-        // .addAsResource(compRes2.compilationPath.resolve("C.class").toFile(), "C.class");
 
         compilationPaths = Arrays.asList(compRes1.compilationPath, compRes2.compilationPath);
     }
@@ -216,5 +203,22 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                 compilationPaths.add(v2.compilationPath);
             }
         }
+    }
+
+    @Test
+    public void testMissingClassFiltering() throws Exception {
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
+                .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build())
+                .withConfigurationFromJSON(
+                        "[{\"extension\": \"revapi.java\", \"configuration\": {\"missing-classes\": {\"behavior\": \"report\"}}},"
+                                + "{\"extension\": \"revapi.filter\", \"configuration\": {\"archives\": {\"include\": [\"apiV..jar\"]}}}]")
+                .build();
+
+        revapi.validateConfiguration(ctx);
+        List<Report> allReports = revapi.analyze(ctx).getExtensions().getFirstExtension(CollectingReporter.class, null)
+                .getReports();
+
+        Assert.assertEquals(1, allReports.size());
+        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
     }
 }
