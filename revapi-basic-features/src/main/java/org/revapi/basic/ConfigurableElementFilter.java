@@ -121,9 +121,9 @@ public class ConfigurableElementFilter implements TreeFilterProvider {
                     return FilterStartResult.defaultResult();
                 }
 
-                String archive = element.getArchive() == null ? null : element.getArchive().getName();
+                String archive = element.getArchive() == null ? "" : element.getArchive().getName();
 
-                if (archive != null && !isIncluded(archive, archiveIncludes, archiveExcludes)) {
+                if (!isIncluded(archive, archiveIncludes, archiveExcludes)) {
                     excludedArchives.add(element.getArchive());
                     return FilterStartResult.doesntMatch();
                 }
