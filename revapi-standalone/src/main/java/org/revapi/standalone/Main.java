@@ -121,7 +121,7 @@ public final class Main {
         System.out.println(pad + " -d");
         System.out.println(pad + " --cache-dir=<DIR>");
         System.out.println(pad + "    The location of local cache of extensions to use to locate artifacts. "
-                + "Defaults to 'extensions' directory under revapi installation dir.");
+                + "Defaults to 'cache' directory under revapi installation dir.");
         System.out.println(pad + " -r");
         System.out.println(pad + " --remote-repositories=<URL>[,<URL>]*");
         System.out.println(pad + "    The url of the remote Maven repository to use for artifact resolution. "

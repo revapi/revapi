@@ -98,7 +98,7 @@ public abstract class AbstractFileReporter implements Reporter {
         keepEmptyFile = append || analysis.getConfigurationNode().path("keepEmptyFile").asBoolean(true);
 
         if (minLevel == null && minCrit == null) {
-            LOG.warn("At least one of `minLevel` and `minCriticality` should to be defined. Defaulting to"
+            LOG.warn("At least one of `minSeverity` and `minCriticality` should to be defined. Defaulting to"
                     + " the obsolete behavior of reporting all potentially breaking elements.");
             this.minLevel = DifferenceSeverity.POTENTIALLY_BREAKING;
         }
