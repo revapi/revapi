@@ -138,7 +138,7 @@ final class ClasspathScanner {
         this.environment = environment;
         this.classPath = classPath;
         this.additionalClassPath = additionalClassPath;
-        this.missingClassReporting = missingClassReporting == null ? ERROR : missingClassReporting;
+        this.missingClassReporting = missingClassReporting == null ? REPORT : missingClassReporting;
         this.ignoreMissingAnnotations = ignoreMissingAnnotations;
         this.filter = filter;
         this.objectType = environment.getElementUtils().getTypeElement("java.lang.Object");
@@ -398,6 +398,7 @@ final class ClasspathScanner {
                     // we initialized the type record for the missing type but cannot continue further. Let's just
                     // re-add the type to the list of required types so that it can be looked for harder later on...
                     requiredTypes.put(type, wasAnno != null && wasAnno);
+                    finishFiltering(tr, t);
                     return;
                 }
 

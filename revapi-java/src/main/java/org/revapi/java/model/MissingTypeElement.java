@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -41,72 +42,6 @@ import javax.lang.model.type.TypeVisitor;
  * @since 0.1
  */
 public final class MissingTypeElement implements javax.lang.model.element.TypeElement {
-    private static class NameImpl implements Name {
-        private final String name;
-
-        private NameImpl(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public boolean contentEquals(CharSequence cs) {
-            if (cs.length() != name.length()) {
-                return false;
-            }
-
-            for (int i = 0; i < cs.length(); ++i) {
-                if (cs.charAt(i) != name.charAt(i)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        @Override
-        public int length() {
-            return name.length();
-        }
-
-        @Override
-        public char charAt(int index) {
-            return name.charAt(index);
-        }
-
-        @Override
-        public CharSequence subSequence(int start, int end) {
-            return name.subSequence(start, end);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            NameImpl name1 = (NameImpl) o;
-
-            if (!name.equals(name1.name)) {
-                return false;
-            }
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            return name.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-    }
-
     public static final NoType NO_TYPE = new NoType() {
         @Override
         public List<? extends AnnotationMirror> getAnnotationMirrors() {
@@ -230,8 +165,89 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MissingTypeElement that = (MissingTypeElement) o;
+        return qualifiedName.equals(that.qualifiedName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(qualifiedName);
+    }
+
+    @Override
     public String toString() {
         return qualifiedName;
+    }
+
+    private static class NameImpl implements Name {
+        private final String name;
+
+        private NameImpl(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public boolean contentEquals(CharSequence cs) {
+            if (cs.length() != name.length()) {
+                return false;
+            }
+
+            for (int i = 0; i < cs.length(); ++i) {
+                if (cs.charAt(i) != name.charAt(i)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        @Override
+        public int length() {
+            return name.length();
+        }
+
+        @Override
+        public char charAt(int index) {
+            return name.charAt(index);
+        }
+
+        @Override
+        public CharSequence subSequence(int start, int end) {
+            return name.subSequence(start, end);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            NameImpl other = (NameImpl) o;
+
+            return name.equals(other.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return name.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     public final class ErrorType implements javax.lang.model.type.ErrorType {
