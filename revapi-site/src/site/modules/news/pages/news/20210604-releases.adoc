@@ -1,0 +1,16 @@
+= Release Notes
+:page-publish_date: 2021-06-04
+:page-layout: news-article
+
+During the discussion in https://github.com/revapi/revapi/issues/221 it has come to light that Revapi doesn't behave well when
+there are some classes missing from the classpath (in that particular case, transitive provided dependencies) and Revapi is
+configured to filter out these classes.
+
+The new versions of the modules collectively fix the issue. `revapi-java-0.24.2` fixes the filtering of missing classes and 
+`revapi-basic-features-0.12.2` doesn't choke on classes without an archive (which missing classes are).
+
+`revapi-maven-plugin-0.14.3` includes the new fixed basic features.
+
+Thanks go out to https://github.com/pzygielo[Piotrek Żygieło] for fixing wording in the warnings
+in file-based reportersi (`revapi-reporter-file-base-0.4.2`, `revapi-reporter-json-0.4.2` and `revapi-reporter-text-0.14.2`) and in Revapi CLI (`revapi-standalone-0.11.2`).
+
