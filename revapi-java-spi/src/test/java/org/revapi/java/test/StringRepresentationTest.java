@@ -185,4 +185,17 @@ public class StringRepresentationTest {
         expected = "<T extends java.lang.Cloneable & java.lang.Comparable<? super T>> java.util.Set<T> ToStrings::methodWithGenericParameterInBound(T)";
         assertEquals(expected, Util.toHumanReadableString(method));
     }
+
+    @Test
+    public void issue238_StackOverflowInStringRepresentation() throws Exception {
+        CompiledJar.Environment env = jar.from().classPathSources(null, "Issue238.java").build().analyze();
+
+        TypeElement MoneyRange = env.elements().getTypeElement("Issue238.MoneyRange");
+        ExecutableElement containsMethod = ElementFilter.methodsIn(MoneyRange.getEnclosedElements()).stream()
+                .filter(m -> m.getSimpleName().contentEquals("contains")).findFirst().get();
+
+        String expected = "boolean Issue238.MoneyRange<T extends java.lang.Comparable<? super T>>::contains(T)";
+
+        assertEquals(expected, Util.toHumanReadableString(containsMethod));
+    }
 }
