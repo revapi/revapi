@@ -35,6 +35,7 @@ import org.revapi.CompatibilityType;
 import org.revapi.Difference;
 import org.revapi.DifferenceSeverity;
 import org.revapi.DifferenceTransform;
+import org.revapi.TransformationResult;
 import org.revapi.java.spi.JavaModelElement;
 
 /**
@@ -45,14 +46,9 @@ import org.revapi.java.spi.JavaModelElement;
 public final class DownplayHarmlessAnnotationChanges implements DifferenceTransform<JavaModelElement> {
     private boolean skip = false;
 
-    private static final Set<String> HARMLESS_ANNOTATIONS = new HashSet<>(Arrays.asList("java.lang.FunctionalInterface", // having
-                                                                                                                         // this
-                                                                                                                         // is
-                                                                                                                         // purely
-                                                                                                                         // informational
-            "java.lang.annotation.Documented", // this doesn't affect the runtime at any rate
-            "jdk.internal.HotSpotIntrinsicCandidate" //
-    ));
+    private static final Set<String> HARMLESS_ANNOTATIONS = new HashSet<>(
+            Arrays.asList("java.lang.FunctionalInterface", "java.lang.annotation.Documented",
+                    "jdk.internal.HotSpotIntrinsicCandidate", "jdk.internal.vm.annotation.IntrinsicCandidate"));
 
     @Nonnull
     @Override
@@ -62,24 +58,23 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
                 exact("java.annotation.attributeRemoved") };
     }
 
-    @Nullable
     @Override
-    public Difference transform(@Nullable JavaModelElement oldElement, @Nullable JavaModelElement newElement,
-            @Nonnull Difference difference) {
+    public TransformationResult tryTransform(@Nullable JavaModelElement oldElement,
+            @Nullable JavaModelElement newElement, Difference difference) {
         if (skip) {
-            return difference;
+            return TransformationResult.keep();
         }
 
         String annotationType = difference.attachments.get("annotationType");
         if (annotationType == null) {
-            return difference;
+            return TransformationResult.keep();
         }
 
         if (HARMLESS_ANNOTATIONS.contains(annotationType)) {
-            return new Difference(difference.code, difference.name, difference.description,
-                    reclassify(difference.classification), difference.attachments);
+            return TransformationResult.replaceWith(Difference.copy(difference).clearClassifications()
+                    .addClassifications(reclassify(difference.classification)).build());
         } else {
-            return difference;
+            return TransformationResult.keep();
         }
     }
 

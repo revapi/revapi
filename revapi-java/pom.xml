@@ -204,6 +204,43 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <configuration>
+                    <analysisConfiguration>
+                        <revapi.differences>
+                            <ignore>true</ignore>
+                            <differences>
+                                <difference>
+                                    <code>java.method.parameterTypeChanged</code>
+                                    <classSimpleName>DownplayHarmlessAnnotationChanges</classSimpleName>
+                                    <methodName>transform</methodName>
+                                    <justification>This is a consequence of https://github.com/revapi/revapi/issues/222</justification>
+                                </difference>
+                                <difference>
+                                    <code>java.method.parameterTypeChanged</code>
+                                    <classSimpleName>DownplayHarmlessAnnotationChanges</classSimpleName>
+                                    <methodName>tryTransform</methodName>
+                                    <justification>This is a consequence of https://github.com/revapi/revapi/issues/222</justification>
+                                </difference>
+                                <difference>
+                                    <code>java.annotation.removed</code>
+                                    <annotationType>javax.annotation.Nullable</annotationType>
+                                    <classSimpleName>DownplayHarmlessAnnotationChanges</classSimpleName>
+                                    <justification>These, too, can be thought of as consequence of https://github.com/revapi/revapi/issues/222</justification>
+                                </difference>
+                                <difference>
+                                    <code>java.annotation.removed</code>
+                                    <annotationType>javax.annotation.Nonnull</annotationType>
+                                    <classSimpleName>DownplayHarmlessAnnotationChanges</classSimpleName>
+                                    <justification>These, too, can be thought of as consequence of https://github.com/revapi/revapi/issues/222</justification>
+                                </difference>
+                            </differences>
+                        </revapi.differences>
+                    </analysisConfiguration>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
