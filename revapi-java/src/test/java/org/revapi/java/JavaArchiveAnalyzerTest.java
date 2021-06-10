@@ -24,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.revapi.java.ExpectedValues.dependingOnJavaVersion;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -74,7 +75,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         try {
             JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
 
-            Assert.assertEquals(6, forest.getRoots().size());
+            Assert.assertEquals((int) dependingOnJavaVersion(8, 7, 9, 6), forest.getRoots().size());
         } finally {
             deleteDir(archive.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();
@@ -139,7 +140,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
             forest.getRoots();
 
-            Assert.assertEquals(1, forest.getRoots().size());
+            Assert.assertEquals((int) dependingOnJavaVersion(8, 2, 9, 1), forest.getRoots().size());
 
             Predicate<JavaElement> findMethod = c -> "method void MemberInheritsOwner::method()"
                     .equals(c.getFullHumanReadableString());
@@ -148,7 +149,9 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             Predicate<JavaElement> findMember2 = c -> "interface MemberInheritsOwner.Member2"
                     .equals(c.getFullHumanReadableString());
 
-            JavaElement root = forest.getRoots().first();
+            JavaTypeElement root = forest.getRoots().stream().filter(r -> ((JavaTypeElement) r).getDeclaringElement()
+                    .getQualifiedName().contentEquals("MemberInheritsOwner")).findFirst().get()
+                    .as(JavaTypeElement.class);
             Assert.assertEquals(3 + 11, root.getChildren().size()); // 11 is the number of methods on java.lang.Object
             Assert.assertTrue(root.getChildren().stream().anyMatch(findMethod));
             Assert.assertTrue(root.getChildren().stream().anyMatch(findMember1));
@@ -228,12 +231,13 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
             forest.getRoots();
 
-            Assert.assertEquals(1, forest.getRoots().size());
+            Assert.assertEquals((int) dependingOnJavaVersion(8, 2, 9, 1), forest.getRoots().size());
 
-            JavaTypeElement C = forest.getRoots().first().as(JavaTypeElement.class);
+            JavaTypeElement C = forest.getRoots().stream()
+                    .filter(r -> ((JavaTypeElement) r).getDeclaringElement().getQualifiedName().contentEquals("misc.C"))
+                    .findFirst().get().as(JavaTypeElement.class);
 
-            Assert.assertTrue(C.getChildren().stream()
-                    .allMatch(e -> Objects.equals(((JavaElement) e).getArchive(), C.getArchive())));
+            Assert.assertTrue(C.getChildren().stream().allMatch(e -> Objects.equals(e.getArchive(), C.getArchive())));
         } finally {
             deleteDir(archive.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();
@@ -254,9 +258,12 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
             forest.getRoots();
 
-            Assert.assertEquals(1, forest.getRoots().size());
+            Assert.assertEquals((int) dependingOnJavaVersion(8, 2, 9, 1), forest.getRoots().size());
 
-            JavaTypeElement I = forest.getRoots().first().as(JavaTypeElement.class);
+            JavaTypeElement I = forest.getRoots().stream()
+                    .filter(r -> ((JavaTypeElement) r).getDeclaringElement().getQualifiedName()
+                            .contentEquals("InterfaceOverloadingObjectMethods"))
+                    .findFirst().get().as(JavaTypeElement.class);
 
             Function<String, MethodElement> byName = name -> I.getChildren().stream().map(e -> (MethodElement) e)
                     .filter(m -> m.getDeclaringElement().getSimpleName().contentEquals(name)).findFirst().get();
