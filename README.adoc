@@ -1,7 +1,7 @@
 = Revapi
 :toc:
 
-image:https://github.com/revapi/revapi/actions/workflows/build.yml/badge.svg[Build Status]
+image:https://github.com/revapi/revapi/actions/workflows/build.yml/badge.svg[Build Status, link=https://github.com/revapi/revapi/actions/workflows/build.yml]
 image:http://codecov.io/github/revapi/revapi/coverage.svg?branch=main[Code Coverage,link=https://codecov.io/github/revapi/revapi?branch=main]
 
 http://revapi.org[Revapi] is a tool for API analysis and change tracking.
