@@ -194,7 +194,7 @@ public class StringRepresentationTest {
         ExecutableElement containsMethod = ElementFilter.methodsIn(MoneyRange.getEnclosedElements()).stream()
                 .filter(m -> m.getSimpleName().contentEquals("contains")).findFirst().get();
 
-        String expected = "boolean Issue238.MoneyRange<T extends java.lang.Comparable<? super T>>::contains(T)";
+        String expected = "boolean Issue238.MoneyRange::contains(Issue238.Money)";
 
         assertEquals(expected, Util.toHumanReadableString(containsMethod));
     }
