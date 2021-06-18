@@ -13,9 +13,9 @@ The below two examples show the two major extension points of Revapi's Java chec
 In this example it will be shown how to extend the Revapi's java API checking capabilities. We will use the
 link:{attachmentsdir}/apidocs/org/revapi/java/spi/Check.html[hook interface] into the java checking process that
 represents the Revapi's API elements as Java's own
-http://docs.oracle.com/javase/8/docs/api/javax/lang/model/package-summary.html[model elements].
+https://docs.oracle.com/javase/8/docs/api/javax/lang/model/package-summary.html[model elements].
 
-The checking framework then can use the Java plaform's own rich functionality for examining the classes in the checked
+The checking framework then can use the Java platform's own rich functionality for examining the classes in the checked
 libraries (note, that this API is NOT the reflection API, because it actually doesn't load the library classes into Java
 runtime).
 
@@ -127,7 +127,7 @@ public class IgnoreNewMethodsOnEJBInterfaces implements DifferenceTransform<Java
 
 In addition to the code itself, the class needs to be registered as an Revapi extension. For that it needs to be made
 a java service. Create a file called `src/main/resources/META-INF/services/org.revapi.DifferenceTransform` and
-add a line to it with the fully qualified name of the above class, i.e `my.extension.IgnoreNewMethodsOnEJBInterfaces`.
+add a line to it with the fully qualified name of the above class, i.e. `my.extension.IgnoreNewMethodsOnEJBInterfaces`.
 
 === Usage
 

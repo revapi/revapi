@@ -90,7 +90,7 @@ to Revapi analysis configuration, too.
 Here is a couple of tips on how to make the Maven configuration inheritance work nice with Revapi analysis
 configuration.
 
-TIP: link:http://maven.apache.org/plugins/maven-help-plugin/effective-pom-mojo.html[`mvn help:effective-pom`],
+TIP: link:https://maven.apache.org/plugins/maven-help-plugin/effective-pom-mojo.html[`mvn help:effective-pom`],
 link:https://maven.apache.org/pom.html#Plugins[`combine.self` and `combine.children`] are your friends when inheriting
 more complex analysis configurations.
 

@@ -2,9 +2,9 @@
 :toc:
 
 image:https://github.com/revapi/revapi/actions/workflows/build.yml/badge.svg[Build Status, link=https://github.com/revapi/revapi/actions/workflows/build.yml]
-image:http://codecov.io/github/revapi/revapi/coverage.svg?branch=main[Code Coverage,link=https://codecov.io/github/revapi/revapi?branch=main]
+image:https://codecov.io/github/revapi/revapi/coverage.svg?branch=main[Code Coverage,link=https://codecov.io/github/revapi/revapi?branch=main]
 
-http://revapi.org[Revapi] is a tool for API analysis and change tracking.
+https://revapi.org[Revapi] is a tool for API analysis and change tracking.
 
 == Summary
 
@@ -67,7 +67,7 @@ Read the usage info and go.
                     <groupId>org.revapi</groupId>
                     <artifactId>revapi-java</artifactId>
                     <version>...</version>
-                </dependency>    
+                </dependency>
                 <dependency>
                     <groupId>com.acme</groupId>
                     <artifactId>my-extension</artifactId>
@@ -88,9 +88,9 @@ Read the usage info and go.
             </executions>
         </plugin>
         ...
-    </plugins>    
+    </plugins>
     ...
-</build>    
+</build>
 ----
 
 === Gradle

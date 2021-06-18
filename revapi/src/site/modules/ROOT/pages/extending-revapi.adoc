@@ -16,7 +16,7 @@ a version of an archive, you should supply an implementation of the
 link:{attachmentsdir}/apidocs/org/revapi/Archive.Versioned.html[`Archive.Versioned`] interface instead of just a plain
 `Archive`.
 
-Revapi provides just a basic file-based link:{attachmentsdir}/apidocs/org/revapi/simple/FileArchive.html[implementation]
+Revapi provides just a basic file-based link:{attachmentsdir}/apidocs/org/revapi/base/FileArchive.html[implementation]
 of this interface, but it is trivial to implement one. For example the maven extension has its own implementation of the
 `Archive.Versioned` interface which is able to return the version of the underlying Maven artifact.
 

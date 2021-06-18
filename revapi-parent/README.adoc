@@ -39,7 +39,7 @@ Read the usage info and go.
                     <groupId>org.revapi</groupId>
                     <artifactId>revapi-java</artifactId>
                     <version>...</version>
-                </dependency>    
+                </dependency>
                 <dependency>
                     <groupId>com.acme</groupId>
                     <artifactId>my-extension</artifactId>
@@ -60,9 +60,9 @@ Read the usage info and go.
             </executions>
         </plugin>
         ...
-    </plugins>    
+    </plugins>
     ...
-</build>    
+</build>
 ----
 
 
@@ -82,7 +82,7 @@ revapi.analyze(analysisContext);
 
 == Extending Revapi
 
-See the http://revapi.org/docs/architecture.html[site] for more info.
+See the architecture section on the https://revapi.org[Revapi site] for more info.
 
 == Getting in touch
 
@@ -90,4 +90,3 @@ IRC:: #revapi @ freenode
 Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
 Issues:: individual subprojects under https://github.com/revapi
 Code:: https://github.com/revapi/
-

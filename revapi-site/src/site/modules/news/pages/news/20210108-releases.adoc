@@ -5,7 +5,7 @@
 This is possibly the biggest Revapi release in its 7 years history. Prominently, this release finally
 introduces an almost all-powerful filtering of java elements using the
 https://github.com/revapi/classif[Classif] library and thus closes one of the oldest open issues -
-https://github.com/revapi/issues/17[#17] (almost exactly 5 years old).
+https://github.com/revapi/revapi/issues/17[#17] (almost exactly 5 years old).
 
 But that is actually a smaller part of the release. The underlying extension schema validator has been ported from an
 ancient tv4.js (executed using a script manager that is being phased out in Java) to the Java-based
@@ -39,4 +39,3 @@ up-to-date).
 
 So head over to xref:ROOT:downloads.adoc[] and check out all the new goodness (and please report any issues you
 encounter :) ).
-
