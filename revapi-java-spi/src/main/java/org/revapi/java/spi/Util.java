@@ -531,6 +531,8 @@ public final class Util {
 
             state.bld.append(tName);
 
+            state.forwardTypeVarDecls.add(tName);
+
             TypeMirror lowerBound = IgnoreCompletionFailures.in(t::getLowerBound);
 
             if (lowerBound != null && lowerBound.getKind() != TypeKind.NULL) {

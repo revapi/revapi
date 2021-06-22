@@ -18,6 +18,7 @@ package org.revapi.java.test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.lang.model.element.Element;
@@ -38,11 +39,19 @@ public class StringRepresentationTest {
     @Rule
     public Jar jar = new Jar();
 
+    private CompiledJar.Environment env;
+
+    {
+        try {
+            env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     @Test
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void testSimpleMethodParameterStringRepresentation() throws Exception {
-        CompiledJar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
-
         Element cls = env.elements().getTypeElement("ToStrings");
         List<ExecutableElement> methods = ElementFilter.methodsIn(cls.getEnclosedElements());
         ExecutableElement method = methods.stream()
@@ -58,8 +67,6 @@ public class StringRepresentationTest {
     @Test
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void testGenericMethodParameters() throws Exception {
-        CompiledJar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
-
         TypeElement Generic = env.elements().getTypeElement("ToStrings.Generic");
         List<ExecutableElement> methodsInGeneric = ElementFilter.methodsIn(Generic.getEnclosedElements());
         ExecutableElement m1 = methodsInGeneric.stream().filter(m -> m.getSimpleName().contentEquals("m1")).findFirst()
@@ -80,8 +87,6 @@ public class StringRepresentationTest {
     @Test
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void testSelfReferencingTypeVariables() throws Exception {
-        CompiledJar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
-
         TypeElement Enums = env.elements().getTypeElement("ToStrings.Enums");
         Element Enum = ((DeclaredType) Enums.getSuperclass()).asElement();
         List<ExecutableElement> methods = ElementFilter.methodsIn(Enum.getEnclosedElements());
@@ -113,8 +118,6 @@ public class StringRepresentationTest {
 
     @Test
     public void testGenericTypeSignatures() throws Exception {
-        CompiledJar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
-
         TypeElement Generic = env.elements().getTypeElement("ToStrings.Generic");
         TypeElement Inner = env.elements().getTypeElement("ToStrings.Generic.Inner");
 
@@ -133,8 +136,6 @@ public class StringRepresentationTest {
     @Test
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void testGenericMethodSignatures() throws Exception {
-        CompiledJar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
-
         TypeElement Generic = env.elements().getTypeElement("ToStrings.Generic");
         TypeElement Inner = env.elements().getTypeElement("ToStrings.Generic.Inner");
         List<ExecutableElement> methodsInGeneric = ElementFilter.methodsIn(Generic.getEnclosedElements());
@@ -154,7 +155,7 @@ public class StringRepresentationTest {
         // there is no way of getting the executable element from an executable type or any other way of getting at
         // the declaring type in a 100% reliable manner. Therefore we render an executable type without a name
         // and with all type variables from the enclosing type fully specified in place.
-        expected = "<X extends java.lang.Enum<U> & java.lang.Cloneable, Y extends java.util.Set<X>> X (U extends java.lang.Enum<U>, java.util.Map<java.util.Comparator<? super T extends U extends java.lang.Enum<U>>, java.lang.String>, X) throws E extends java.lang.Throwable";
+        expected = "<X extends java.lang.Enum<U> & java.lang.Cloneable, Y extends java.util.Set<X>> X (U extends java.lang.Enum<U>, java.util.Map<java.util.Comparator<? super T extends U>, java.lang.String>, X) throws E extends java.lang.Throwable";
         assertEquals(expected, Util.toHumanReadableString(gm1.asType()));
 
         expected = "E ToStrings.Generic<T extends U, U extends java.lang.Enum<U>, E extends java.lang.Throwable>::m2(U)";
@@ -166,14 +167,12 @@ public class StringRepresentationTest {
         expected = "T ToStrings.Generic<T extends U, U extends java.lang.Enum<U>, E extends java.lang.Throwable>.Inner<I extends U>::m1(I) throws E";
         assertEquals(expected, Util.toHumanReadableString(im1));
 
-        expected = "T extends U extends java.lang.Enum<U> (I extends U extends java.lang.Enum<U>) throws E extends java.lang.Throwable";
+        expected = "T extends U extends java.lang.Enum<U> (I extends U) throws E extends java.lang.Throwable";
         assertEquals(expected, Util.toHumanReadableString(im1.asType()));
     }
 
     @Test
     public void testMethodWithGenericParameterInBound() throws Exception {
-        CompiledJar.Environment env = jar.from().classPathSources(null, "ToStrings.java").build().analyze();
-
         TypeElement ToStrings = env.elements().getTypeElement("ToStrings");
         List<ExecutableElement> methods = ElementFilter.methodsIn(ToStrings.getEnclosedElements());
         ExecutableElement method = methods.stream()
@@ -184,5 +183,16 @@ public class StringRepresentationTest {
 
         expected = "<T extends java.lang.Cloneable & java.lang.Comparable<? super T>> java.util.Set<T> ToStrings::methodWithGenericParameterInBound(T)";
         assertEquals(expected, Util.toHumanReadableString(method));
+
+        expected = "<T extends java.lang.Cloneable & java.lang.Comparable<? super T>> java.util.Set<T> (T)";
+        assertEquals(expected, Util.toHumanReadableString(method.asType()));
+
+        // make sure that method parameter rendering works, too (this used to enter an infinite loop, see
+        // https://github.com/revapi/revapi/issues/238)
+        VariableElement param = method.getParameters().get(0);
+        expected = "<T extends java.lang.Cloneable & java.lang.Comparable<? super T>> java.util.Set<T> ToStrings::methodWithGenericParameterInBound(===T===)";
+        assertEquals(expected, Util.toHumanReadableString(param));
+        expected = "T extends java.lang.Cloneable & java.lang.Comparable<? super T>";
+        assertEquals(expected, Util.toHumanReadableString(param.asType()));
     }
 }
