@@ -40,14 +40,13 @@ the modules specified.
 where `<list-of-modules>` is a space-separated list of the names of the module directories.
 
 This will deploy all the modules that were either specified on the command line or that
-are dependent on the specified modules to Maven Central staging reposistory.
+are dependent on the specified modules to Maven Central staging repository.
 
 To finish the release, do the following:
 
-. Go to http://oss.sonatype.org, log in and check that the artifacts are ready to be published.
+. Go to https://oss.sonatype.org, log in and check that the artifacts are ready to be published.
 
-. Release the artifacts from http://oss.sonatype.org.
+. Release the artifacts from https://oss.sonatype.org.
 
 . Many of the modules contain parts of the site specific to them. These are published as part of the release process
   automatically. To make the staged site changes public:
-

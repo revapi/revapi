@@ -4,7 +4,7 @@
 
 This extension is used as a basic means of outputting the results of analysis as text to some file or standard output.
 
-The format of the text can be configured using a http://freemarker.org[FreeMarker] template.
+The format of the text can be configured using a https://freemarker.apache.org[FreeMarker] template.
 
 == Usage
 

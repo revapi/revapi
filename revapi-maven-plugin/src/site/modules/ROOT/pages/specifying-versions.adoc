@@ -148,5 +148,5 @@ Thus, running:
 mvn revapi:update-release-properties && mvn release:prepare
 ```
 
-will automatically set the release and development versions for you according to the http://semver.org[semver]
+will automatically set the release and development versions for you according to the https://semver.org[semver]
 versioning rules.

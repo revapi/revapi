@@ -7,7 +7,7 @@ can be used to either filter out certain elements in the APIs from the analysis 
 only to configured elements.
 
 If no include or exclude filters are defined, everything is included. If at least 1 include filter is defined, only
-the matching elements are included. Out of the included elements, some may be futher excluded by the provided exclude
+the matching elements are included. Out of the included elements, some may be further excluded by the provided exclude
 filters (if any). If only exclude filters are defined, everything but the elements matching the exclude filters is
 included.
 

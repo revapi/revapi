@@ -114,7 +114,7 @@ be used when matching the difference for example in the `revapi.ignore` extensio
 The above will instruct Revapi to not report the removal of `my.Interface` from the list of implemented interfaces on
 any class in the `my` package (or any other subpackage).
 
-All types of differences report the archives that the element come from using these match parametes:
+All types of differences report the archives that the element come from using these match parameters:
 [cols="35s,<65d"]
 |=============
 |`oldArchive` | The name of the archive where the old element comes from, if any
@@ -315,7 +315,7 @@ A class that used to be final is now not. This is no API breakage and is reporte
 |====
 
 NOTE: Modifiers are sorted according to the
-link:http://cr.openjdk.java.net/~alundblad/styleguide/index-v6.html#toc-modifiers[Java style guidelines] in the
+link:https://cr.openjdk.java.net/~alundblad/styleguide/index-v6.html#toc-modifiers[Java style guidelines] in the
 following order: `public protected private abstract static final transient volatile default synchronized native
 strictfp`.
 

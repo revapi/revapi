@@ -72,6 +72,5 @@ Documentation:: xref:getting-started.adoc[start here]
 Twitter:: https://twitter.com/revapi_org[@revapi_org]
 IRC:: #revapi on freenode.net
 Matrix:: #revapiorg:matrix.org
-Forum:: http://stackoverflow.com[stackoverflow]
+Forum:: https://stackoverflow.com[stackoverflow]
 Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
-

@@ -1036,7 +1036,7 @@ public final class Util {
      * @param type
      *            the type
      *
-     * @return the list of super tpyes
+     * @return the list of super types
      */
     @Nonnull
     public static List<TypeMirror> getAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type) {

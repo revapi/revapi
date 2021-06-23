@@ -63,7 +63,7 @@ public class ReportMojo extends AbstractMavenReport {
 
     /**
      * The JSON or XML configuration of various analysis options. The available options depend on what analyzers are
-     * present on the plugin classpath through the {@code &lt;dependencies&gt;}. Consult
+     * present on the plugin classpath through the {@code <dependencies>}. Consult
      * <a href="examples/configuration.html">configuration documentation</a> for more details.
      *
      * <p>
@@ -74,7 +74,7 @@ public class ReportMojo extends AbstractMavenReport {
 
     /**
      * The list of files containing the configuration of various analysis options. The available options depend on what
-     * analyzers are present on the plugins classpath through the {@code &lt;dependencies&gt;}.
+     * analyzers are present on the plugins classpath through the {@code <dependencies>}.
      *
      * <p>
      * The {@code analysisConfiguration} can override the settings present in the files.
