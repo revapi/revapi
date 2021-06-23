@@ -29,6 +29,28 @@ DEPS_revapi_json="revapi_jackson revapi_build"
 DEPS_revapi_yaml="revapi_jackson revapi_build"
 DEPS_coverage="revapi_build revapi revapi_ant_task revapi_basic_features revapi_jackson revapi_java revapi_java_spi revapi_json revapi_maven_plugin revapi_maven_utils revapi_reporter_file_base revapi_reporter_json revapi_reporter_text revapi_yaml"
 
+RELEASE_DEPS_revapi_parent=$DEPS_revapi_parent
+RELEASE_DEPS_revapi_site=$DEPS_revapi_site
+RELEASE_DEPS_revapi_site_assembly=$DEPS_revapi_site_assembly
+RELEASE_DEPS_revapi_examples_parent=$DEPS_revapi_examples_parent
+RELEASE_DEPS_revapi_build_support=$DEPS_revapi_build_support
+RELEASE_DEPS_revapi_build=$DEPS_revapi_build
+RELEASE_DEPS_revapi_maven_utils=$DEPS_revapi_maven_utils
+RELEASE_DEPS_revapi=$DEPS_revapi
+RELEASE_DEPS_revapi_basic_features=$DEPS_revapi_basic_features
+RELEASE_DEPS_revapi_reporter_file_base=$DEPS_revapi_reporter_file_base
+RELEASE_DEPS_revapi_reporter_json=$DEPS_revapi_reporter_json
+RELEASE_DEPS_revapi_reporter_text=$DEPS_revapi_reporter_text
+RELEASE_DEPS_revapi_java_spi=$DEPS_revapi_java_spi
+RELEASE_DEPS_revapi_java=$DEPS_revapi_java
+RELEASE_DEPS_revapi_maven_plugin="revapi_basic_features revapi_maven_utils revapi_build revapi revapi_reporter_text"
+RELEASE_DEPS_revapi_ant_task=$DEPS_revapi_ant_task
+RELEASE_DEPS_revapi_standalone=$DEPS_revapi_standalone
+RELEASE_DEPS_revapi_jackson=$DEPS_revapi_jackson
+RELEASE_DEPS_revapi_json=$DEPS_revapi_json
+RELEASE_DEPS_revapi_yaml=$DEPS_revapi_yaml
+RELEASE_DEPS_coverage=$DEPS_coverage
+
 ORDER_revapi_parent=0
 ORDER_revapi_build_support=1
 ORDER_revapi_build=2
@@ -86,10 +108,15 @@ function sort_deps() {
 
 function upstream_deps() {
   local dep=$(to_dep "$1")
-  dep=$(eval "echo \$DEPS_$dep")
+  local prefix="DEPS"
+  if [ -n "$2" ]; then
+    prefix="$2"
+  fi
+
+  dep=$(eval "echo \$${prefix}_${dep}")
   local all_deps="${dep}"
   while true; do
-    local dep=$(eval "echo \$DEPS_$dep")
+    local dep=$(eval "echo \$${prefix}_${dep}")
     if [ -n "$dep" ]; then
       all_deps="${all_deps} ${dep}"
     else
@@ -124,6 +151,19 @@ function downstream_deps() {
   echo "$downs" | tr " " "\n" | sort | uniq
 }
 
+function downstream_release_deps() {
+  local dep=$(to_dep "$1")
+  local downs=""
+  for d in $ALL_MODULES; do
+    local ups=$(upstream_deps "$d" "RELEASE_DEPS")
+    if contains "$dep" "$ups"; then
+      downs="$downs $d"
+    fi
+  done
+
+  echo "$downs" | tr " " "\n" | sort | uniq
+}
+
 function direct_downstream_deps() {
   local dep=$(to_dep "$1")
   local downs=""
@@ -135,16 +175,6 @@ function direct_downstream_deps() {
   done
 
   echo "$downs" | tr " " "\n" | sort | uniq
-}
-
-function collect_release_modules() {
-  local to_release=""
-  for m in $@; do
-    downs=$(downstream_deps $m)
-    to_release="$to_release\n$downs"
-  done
-
-  echo "$to_release" | sort | uniq
 }
 
 function ensure_clean_workdir() {
@@ -161,6 +191,7 @@ function release_module() {
   if contains $(to_dep $module) "$UNRELEASED"; then
     return
   fi
+
   local ups=$(upstream_deps "$module")
   local downs=$(direct_downstream_deps "$module")
 
@@ -206,6 +237,7 @@ function release_module() {
 
   # set the version to the next snapshot
   ${MVN} versions:set -DnextSnapshot=true
+
   ${MVN} validate versions:use-latest-versions versions:update-properties versions:update-parent -Pnext-versions
   # reset the version in antora.yml back to main and install our next version so that validate can pick it up
   ${MVN} install -Pfast
@@ -228,6 +260,7 @@ function release_module() {
   local version=$(xpath -q -e "/project/version/text()" pom.xml)
   git add -A
   git commit -m "Setting $module to version $version"
+
   #now we need to install so that the subsequent builds pick up our new version
   ${MVN} install -Pfast
 }
@@ -249,7 +282,7 @@ function update_module_version() {
 function determine_releases() {
   for m in $@; do
     m=$(to_dep "$m")
-    to_release="$to_release $m $(downstream_deps "$m")"
+    to_release="$to_release $m $(downstream_release_deps "$m")"
     to_release=$(echo "$to_release" | tr " " "\n")
   done
   to_release=$(sort_deps $to_release)
@@ -281,7 +314,7 @@ function do_releases() {
     m=$(to_module "$m")
     echo "--------- Releasing $m"
     cd "$m"
-    release_module "$m"
+    release_module
     cd "$CWD"
   done
 
