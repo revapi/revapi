@@ -60,6 +60,7 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -121,6 +122,80 @@ final class ClasspathScanner {
 
     private static final JavaFileManager.Location[] POSSIBLE_SYSTEM_CLASS_LOCATIONS = { StandardLocation.CLASS_PATH,
             StandardLocation.PLATFORM_CLASS_PATH };
+
+    private static final ElementVisitor<Boolean, Void> IS_TYPE_PARAMETERIZED = new SimpleElementVisitor8<Boolean, Void>(
+            false) {
+        final TypeVisitor<Boolean, Void> isGeneric = new SimpleTypeVisitor8<Boolean, Void>(false) {
+            @Override
+            public Boolean visitArray(ArrayType t, Void __) {
+                return visit(t.getComponentType());
+            }
+
+            @Override
+            public Boolean visitDeclared(DeclaredType t, Void __) {
+                boolean ret = t.getTypeArguments().stream().reduce(false, (prev, curr) -> prev || visit(curr),
+                        Boolean::logicalOr);
+
+                if (!ret) {
+                    // we have to check the enclosing types of non-static inner classes, too
+                    TypeMirror enclosing = t.getEnclosingType();
+
+                    Element el = enclosing instanceof DeclaredType ? ((DeclaredType) t.getEnclosingType()).asElement()
+                            : null;
+                    if (el != null && !el.getModifiers().contains(Modifier.STATIC)) {
+                        ret = visit(t.getEnclosingType());
+                    }
+                }
+
+                return ret;
+            }
+
+            @Override
+            public Boolean visitError(ErrorType t, Void __) {
+                return visitDeclared(t, null);
+            }
+
+            @Override
+            public Boolean visitExecutable(ExecutableType t, Void __) {
+                return visit(t.getReturnType())
+                        || t.getParameterTypes().stream().reduce(false, (prev, x) -> prev || visit(x),
+                                Boolean::logicalOr)
+                        || t.getThrownTypes().stream().reduce(false, (prev, x) -> prev || visit(x), Boolean::logicalOr);
+            }
+
+            @Override
+            public Boolean visitTypeVariable(TypeVariable t, Void __) {
+                return true;
+            }
+
+            @Override
+            public Boolean visitWildcard(WildcardType t, Void __) {
+                // don't consider <?> generic, because it always resolves to java.lang.Object
+                if (t.getExtendsBound() != null) {
+                    return visit(t.getExtendsBound());
+                } else if (t.getSuperBound() != null) {
+                    return visit(t.getSuperBound());
+                } else {
+                    return false;
+                }
+            }
+        };
+
+        @Override
+        public Boolean visitVariable(VariableElement e, Void aVoid) {
+            return e.asType().accept(isGeneric, null);
+        }
+
+        @Override
+        public Boolean visitType(TypeElement e, Void aVoid) {
+            return !e.getTypeParameters().isEmpty();
+        }
+
+        @Override
+        public Boolean visitExecutable(ExecutableElement e, Void aVoid) {
+            return isGeneric.visit(e.asType());
+        }
+    };
 
     private final StandardJavaFileManager fileManager;
     private final ProbingEnvironment environment;
@@ -1121,6 +1196,7 @@ final class ClasspathScanner {
                         }
                     }, null);
 
+            int idx = 0;
             for (Element child : children) {
                 if (child.getKind().isClass() || child.getKind().isInterface()) {
                     continue;
@@ -1130,6 +1206,9 @@ final class ClasspathScanner {
                 if ((child.getKind() == ElementKind.METHOD || child.getKind() == ElementKind.CONSTRUCTOR)
                         && isGeneric(child)) {
                     representation = types.asMemberOf(parentOwner.modelElement.getModelRepresentation(), child);
+                } else if (child.getKind() == ElementKind.PARAMETER) {
+                    ExecutableType methodType = (ExecutableType) parent.getModelRepresentation();
+                    representation = methodType.getParameterTypes().get(idx);
                 } else {
                     representation = child.asType();
                 }
@@ -1147,6 +1226,7 @@ final class ClasspathScanner {
                 }
 
                 finishFiltering(parentOwner, childEl);
+                idx++;
             }
 
             for (AnnotationMirror m : parent.getDeclaringElement().getAnnotationMirrors()) {
@@ -1189,52 +1269,8 @@ final class ClasspathScanner {
         return InitializationOptimizations.getMethodComparisonKey(method);
     }
 
-    private boolean isGeneric(Element element) {
-        return element.accept(new SimpleElementVisitor8<Boolean, Void>(false) {
-            TypeVisitor<Boolean, Void> isGeneric = new SimpleTypeVisitor8<Boolean, Void>(false) {
-                @Override
-                public Boolean visitIntersection(IntersectionType t, Void __) {
-                    return t.getBounds().stream().anyMatch(this::visit);
-                }
-
-                @Override
-                public Boolean visitDeclared(DeclaredType t, Void __) {
-                    return t.getTypeArguments().stream().anyMatch(this::visit);
-                }
-
-                @Override
-                public Boolean visitTypeVariable(TypeVariable t, Void __) {
-                    return true;
-                }
-
-                @Override
-                public Boolean visitWildcard(WildcardType t, Void __) {
-                    if (t.getExtendsBound() != null) {
-                        return visit(t.getExtendsBound());
-                    } else if (t.getSuperBound() != null) {
-                        return visit(t.getSuperBound());
-                    } else {
-                        return false;
-                    }
-                }
-            };
-
-            @Override
-            public Boolean visitVariable(VariableElement e, Void aVoid) {
-                return e.asType().accept(isGeneric, null);
-            }
-
-            @Override
-            public Boolean visitType(TypeElement e, Void aVoid) {
-                return !e.getTypeParameters().isEmpty();
-            }
-
-            @Override
-            public Boolean visitExecutable(ExecutableElement e, Void aVoid) {
-                return !e.getTypeParameters().isEmpty() || isGeneric.visit(e.getReturnType())
-                        || e.getParameters().stream().anyMatch(this::visit);
-            }
-        }, null);
+    private static boolean isGeneric(Element element) {
+        return element.accept(IS_TYPE_PARAMETERIZED, null);
     }
 
     private static final class ArchiveLocation implements JavaFileManager.Location {

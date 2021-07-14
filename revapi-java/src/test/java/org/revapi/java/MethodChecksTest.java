@@ -441,7 +441,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         Assert.assertTrue(reports.stream().anyMatch(reportCheck(
                 "method E CovariantReturnTypeAndInheritance.Class<E extends java.lang.Number>::genericMethod()",
                 "method T CovariantReturnTypeAndInheritance.Base<T>::genericMethod() @ CovariantReturnTypeAndInheritance.Class",
-                Code.METHOD_RETURN_TYPE_TYPE_PARAMETERS_CHANGED, Code.METHOD_MOVED_TO_SUPERCLASS)));
+                Code.METHOD_RETURN_TYPE_CHANGED, Code.METHOD_MOVED_TO_SUPERCLASS)));
 
         Assert.assertTrue(reports.stream()
                 .anyMatch(reportCheck(null,
@@ -470,6 +470,28 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "v1/methods/DryReportingWithInheritance.java", "v2/methods/DryReportingWithInheritance.java");
 
         Assert.assertEquals(2, reporter.getReports().size());
+    }
+
+    @Test
+    public void testReplacementByGenericSuperClassMethod() throws Exception {
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class,
+                "v1/methods/ReplacedByGenericVariantInSuperClass.java",
+                "v2/methods/ReplacedByGenericVariantInSuperClass.java");
+
+        Assert.assertEquals(3, reporter.getReports().size());
+
+        Assert.assertTrue(reporter.getReports().stream().anyMatch(reportCheck(
+                "method java.lang.String ReplacedByGenericVariantInSuperClass.Test::method()",
+                "method T ReplacedByGenericVariantInSuperClass.Base<T>::method() @ ReplacedByGenericVariantInSuperClass.Test",
+                Code.METHOD_MOVED_TO_SUPERCLASS, Code.METHOD_RETURN_TYPE_ERASURE_CHANGED)));
+        Assert.assertTrue(reporter.getReports().stream().anyMatch(reportCheck(
+                "parameter void ReplacedByGenericVariantInSuperClass.Test::method(===java.lang.String===)",
+                "parameter void ReplacedByGenericVariantInSuperClass.Base<T>::method(===T===) @ ReplacedByGenericVariantInSuperClass.Test",
+                Code.METHOD_PARAMETER_TYPE_ERASURE_CHANGED)));
+        Assert.assertTrue(reporter.getReports().stream().anyMatch(reportCheck(
+                "method void ReplacedByGenericVariantInSuperClass.Test::method(java.lang.String)",
+                "method void ReplacedByGenericVariantInSuperClass.Base<T>::method(T) @ ReplacedByGenericVariantInSuperClass.Test",
+                Code.METHOD_MOVED_TO_SUPERCLASS)));
     }
 
     private Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {

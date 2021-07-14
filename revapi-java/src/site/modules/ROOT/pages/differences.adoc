@@ -1899,6 +1899,31 @@ recompiling the user code), it might be OK at compile time due to implicit conve
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+=== Method Return Type Erasure Changed - `java.method.returnTypeErasureChanged`
+[cols="35s,<65d"]
+|=============
+| Binary severity   | breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This is distinct from `java.method.returnTypeChanged` and `java.method.returnTypeChangedCovariantly` and captures
+the situation where only the type erasure of the return type changed, but the return type is resolved to the same value
+in both APIs at compile time. This breaks binary compatibility, because the method signatures used by the linker contain
+the erased return type and therefore this change would cause a `NoSuchMethodError` at runtime.
+
+[options=header]
+|====
+2+| Match parameters
+| `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
+| `classSimpleName` | the simple name of the class
+| `methodName` | the name of the method added
+| `oldType` | the old erased return type
+| `newType` | the new erased return type
+2+| See <<Match Parameters>> for the common match parameters
+|====
+
 === Method Return Type Changed Covariantly - `java.method.returnTypeChangedCovariantly`
 [cols="35s,<65d"]
 |=============
@@ -1991,7 +2016,28 @@ is strictly bigger than the old one and the old one is implicitly convertible to
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
-NOTE: This difference is not reported when overloads matching is turned off.
+=== Method Parameter Type Erasure Changed - `java.method.parameterTypeErasureChanged`
+[cols="35s,<65d"]
+|=============
+| Binary severity   | breaking
+| Source severity   | non breaking
+| Semantic severity | NA
+|=============
+
+This is distinct from `java.method.parameterTypeChanged` to capture the situation where the type parameters resolve to the same type in both versions, but the type erasure of the parameter types are different. This can only ever realistically happen when an explicit override of a generic method is removed from an inheriting class.
+
+[options=header]
+|====
+2+| Match parameters
+| `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
+| `classSimpleName` | the simple name of the class
+| `methodName` | the name of the method added
+| `parameterIndex` | the index of the method parameter
+| `oldType` | the old erased type of the parameter
+| `newType` | the new erased type of the parameter
+2+| See <<Match Parameters>> for the common match parameters
+|====
 
 === Method Parameter Type Parameter Changed - `java.method.parameterTypeParameterChanged`
 [cols="35s,<65d"]

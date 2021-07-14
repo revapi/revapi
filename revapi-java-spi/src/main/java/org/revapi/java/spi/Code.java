@@ -187,7 +187,12 @@ public enum Code {
     GENERICS_FORMAL_TYPE_PARAMETER_REMOVED("java.generics.formalTypeParameterRemoved", BREAKING, NON_BREAKING, null,
             "typeParameter"),
     GENERICS_FORMAL_TYPE_PARAMETER_CHANGED("java.generics.formalTypeParameterChanged", BREAKING, NON_BREAKING, null,
-            "typeParameter");
+            "typeParameter"),
+
+    // since 0.23.3
+    METHOD_RETURN_TYPE_ERASURE_CHANGED("java.method.returnTypeErasureChanged", NON_BREAKING, BREAKING, null),
+    METHOD_PARAMETER_TYPE_ERASURE_CHANGED("java.method.parameterTypeErasureChanged", NON_BREAKING, BREAKING, null,
+            "parameterIndex");
 
     private final String code;
     private final EnumMap<CompatibilityType, DifferenceSeverity> classification;
