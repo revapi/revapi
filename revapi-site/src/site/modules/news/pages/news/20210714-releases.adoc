@@ -1,0 +1,34 @@
+= Release Notes
+:page-publish_date: 2021-07-14
+:page-layout: news-article
+
+A small but important release of `revapi-java` (version `0.24.4`) that improves the detection of binary incompatibilities on methods when a combination of generics and inheritance may produce binary incompatible changes that were not reported before.
+
+There are 2 new problems reported: `java.method.returnTypeErasureChanged` and `java.method.parameterTypeErasureChanged` that are reported in situations where the return type or the method parameter type would
+be resolved to the same type during compilation (i.e. they're source compatible) but the erased type
+would be different. This would lead to a binary incompatibility that would cause a `NoSuchMethodError` at runtime during linking of the library.
+
+This kind of error would only come up when a method in the old API would be replaced by an equivalent
+method in the super class which would be defined using generics, e.g.:
+
+Old API:
+```java
+class Base<T> {
+  public T method() { return null; }
+}
+
+class MyClass extends Base<String> {
+  @Override
+  public String method() { return null; }
+}
+```
+
+New API:
+```java
+class Base<T> {
+  public T method() { return null; }
+}
+
+class MyClass extends Base<String> {
+}
+```
