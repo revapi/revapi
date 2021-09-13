@@ -271,12 +271,12 @@ function update_module_version() {
   if contains "revapi_build" "$ups"; then
     if [ $module != "coverage" ]; then
       # we want to run license check and revapi
-      ${MVN} package revapi:update-versions -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
+      ${MVN} install revapi:update-versions -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
       -Djacoco.skip=true -Dsort.skip=true
     fi
   fi
   cd ..
-  ${MVN} validate -Pnext-versions
+  ${MVN} validate versions:use-latest-versions versions:update-properties versions:update-parent -Pnext-versions
 }
 
 function determine_releases() {
