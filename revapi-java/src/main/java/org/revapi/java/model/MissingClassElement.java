@@ -17,6 +17,7 @@
 package org.revapi.java.model;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.type.DeclaredType;
 
 import org.revapi.java.compilation.ProbingEnvironment;
@@ -33,7 +34,7 @@ public final class MissingClassElement extends TypeElement {
 
     public MissingClassElement(ProbingEnvironment env, String binaryName, String canonicalName) {
         super(env, null, binaryName, canonicalName);
-        element = new MissingTypeElement(canonicalName);
+        element = new MissingTypeElement(getPackage(binaryName, env), canonicalName);
     }
 
     @Override
@@ -64,5 +65,17 @@ public final class MissingClassElement extends TypeElement {
     @Override
     public MissingClassElement clone() {
         return (MissingClassElement) super.clone();
+    }
+
+    private static PackageElement getPackage(String binaryName, ProbingEnvironment env) {
+        int lastDotIdx = binaryName.lastIndexOf('.');
+        String pkgName;
+        if (lastDotIdx >= 0) {
+            pkgName = binaryName.substring(0, lastDotIdx);
+        } else {
+            pkgName = "";
+        }
+
+        return env.getElementUtils().getPackageElement(pkgName);
     }
 }

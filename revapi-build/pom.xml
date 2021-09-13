@@ -552,6 +552,9 @@
                                             <severity>NON_BREAKING</severity>
                                         </patch>
                                     </versionIncreaseAllows>
+                                    <onAllowed>
+                                        <criticality>documented</criticality>
+                                    </onAllowed>
                                 </revapi.versions>
                                 <revapi.differences>
                                     <ignore>true</ignore>

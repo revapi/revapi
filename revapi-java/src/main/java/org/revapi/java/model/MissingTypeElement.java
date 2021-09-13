@@ -16,6 +16,8 @@
  */
 package org.revapi.java.model;
 
+import static java.util.Collections.emptyList;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.Collections;
@@ -30,6 +32,7 @@ import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeKind;
@@ -73,6 +76,7 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
     private javax.lang.model.type.ErrorType errorType = new ErrorType();
 
     private final String qualifiedName;
+    private final PackageElement pkg;
 
     public static boolean isMissing(Element e) {
         return e instanceof MissingTypeElement;
@@ -84,11 +88,12 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
 
     @Override
     public List<? extends Element> getEnclosedElements() {
-        return Collections.emptyList();
+        return emptyList();
     }
 
-    public MissingTypeElement(String qualifiedName) {
+    public MissingTypeElement(PackageElement containingPackage, String qualifiedName) {
         this.qualifiedName = qualifiedName;
+        this.pkg = containingPackage;
     }
 
     @Override
@@ -118,7 +123,7 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
 
     @Override
     public List<? extends AnnotationMirror> getAnnotationMirrors() {
-        return Collections.emptyList();
+        return emptyList();
     }
 
     @Override
@@ -144,18 +149,17 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
 
     @Override
     public List<? extends TypeMirror> getInterfaces() {
-        return Collections.emptyList();
+        return emptyList();
     }
 
     @Override
     public List<? extends TypeParameterElement> getTypeParameters() {
-        return Collections.emptyList();
+        return emptyList();
     }
 
     @Override
     public Element getEnclosingElement() {
-        // this does not follow the spec, but let's hope that won't be a problem...
-        return null;
+        return pkg;
     }
 
     @Override
@@ -263,7 +267,7 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
 
         @Override
         public List<? extends TypeMirror> getTypeArguments() {
-            return Collections.emptyList();
+            return emptyList();
         }
 
         @Override
@@ -283,7 +287,7 @@ public final class MissingTypeElement implements javax.lang.model.element.TypeEl
 
         @Override
         public List<? extends AnnotationMirror> getAnnotationMirrors() {
-            return Collections.emptyList();
+            return emptyList();
         }
 
         @Override

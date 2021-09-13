@@ -34,7 +34,9 @@ import org.revapi.AnalysisResult;
 import org.revapi.Difference;
 import org.revapi.Report;
 import org.revapi.Revapi;
+import org.revapi.java.model.TypeElement;
 import org.revapi.java.spi.Code;
+import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
@@ -220,5 +222,28 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
         Assert.assertEquals(1, allReports.size());
         Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
+    }
+
+    @Test
+    public void testMissingClassHasValidPackage() throws Exception {
+        AnalysisContext ctx = AnalysisContext.builder(revapi).withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).build())
+                .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).build()).withConfigurationFromJSON(
+                        "{\"revapi\" : { \"java\" : { \"missing-classes\" : {\"behavior\" : \"report\" }}}}")
+                .build();
+
+        revapi.validateConfiguration(ctx);
+        List<Report> allReports = revapi.analyze(ctx).getExtensions().getFirstExtension(CollectingReporter.class, null)
+                .getReports();
+
+        for (Report r : allReports) {
+            if (r.getNewElement() != null && r.getNewElement() instanceof TypeElement) {
+                Assert.assertNotNull(
+                        ((JavaModelElement) r.getNewElement()).getDeclaringElement().getEnclosingElement());
+            }
+            if (r.getOldElement() != null && r.getNewElement() instanceof TypeElement) {
+                Assert.assertNotNull(
+                        ((JavaModelElement) r.getOldElement()).getDeclaringElement().getEnclosingElement());
+            }
+        }
     }
 }
