@@ -86,7 +86,7 @@
         <version.findbugs-maven-plugin>3.0.0</version.findbugs-maven-plugin>
         <version.formatter-maven-plugin>2.13.0</version.formatter-maven-plugin>
         <version.impsort-maven-plugin>1.4.1</version.impsort-maven-plugin>
-        <version.jacoco-maven-plugin>0.8.6</version.jacoco-maven-plugin>
+        <version.jacoco-maven-plugin>0.8.7</version.jacoco-maven-plugin>
         <version.license-maven-plugin>3.0</version.license-maven-plugin>
         <version.maven-antrun-plugin>3.0.0</version.maven-antrun-plugin>
         <version.maven-assembly-plugin>2.5.5</version.maven-assembly-plugin>
