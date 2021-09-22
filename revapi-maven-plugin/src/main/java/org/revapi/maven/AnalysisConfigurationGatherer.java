@@ -24,18 +24,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
+import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -185,21 +189,27 @@ final class AnalysisConfigurationGatherer {
         }
 
         if (analysisConfiguration != null) {
-            String text = analysisConfiguration.getValue();
-            if (text == null || text.isEmpty()) {
-                convertNewStyleConfigFromXml(ctxBld, revapi);
-            } else {
-                ctxBld.mergeConfiguration(expandVariables(JSONUtil.parse(JSONUtil.stripComments(text))));
+            try {
+                String text = analysisConfiguration.getValue();
+                if (text == null || text.isEmpty()) {
+                    convertNewStyleConfigFromXml(ctxBld, revapi);
+                } else {
+                    ctxBld.mergeConfiguration(expandVariables(JSONUtil.parse(JSONUtil.stripComments(text))));
+                }
+            } catch (PlexusConfigurationException e) {
+                throw new MojoExecutionException("Failed to read the configuration", e);
             }
         }
     }
 
     private void mergeXmlConfigFile(Revapi revapi, AnalysisContext.Builder ctxBld, ConfigurationFile configFile,
             Reader rdr) throws IOException, XmlPullParserException {
-        XmlToJson<PlexusConfiguration> conv = new XmlToJson<>(revapi, PlexusConfiguration::getName,
-                PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
+        XmlToJson<PlexusConfigurationWrapper> conv = new XmlToJson<>(revapi, PlexusConfigurationWrapper::getName,
+                PlexusConfigurationWrapper::getValue, PlexusConfigurationWrapper::getAttribute,
+                PlexusConfigurationWrapper::getChildren);
 
-        PlexusConfiguration xml = new XmlPlexusConfiguration(Xpp3DomBuilder.build(rdr));
+        PlexusConfigurationWrapper xml = new PlexusConfigurationWrapper(
+                new XmlPlexusConfiguration(Xpp3DomBuilder.build(rdr)));
 
         String[] roots = configFile.getRoots();
 
@@ -207,7 +217,7 @@ final class AnalysisConfigurationGatherer {
             ctxBld.mergeConfiguration(expandVariables(conv.convertXml(xml)));
         } else {
             roots: for (String r : roots) {
-                PlexusConfiguration root = xml;
+                PlexusConfigurationWrapper root = xml;
                 boolean first = true;
                 String[] rootPath = r.split("/");
                 for (String name : rootPath) {
@@ -252,10 +262,11 @@ final class AnalysisConfigurationGatherer {
     }
 
     private void convertNewStyleConfigFromXml(AnalysisContext.Builder bld, Revapi revapi) {
-        XmlToJson<PlexusConfiguration> conv = XmlToJson.fromRevapi(revapi, PlexusConfiguration::getName,
-                PlexusConfiguration::getValue, PlexusConfiguration::getAttribute, x -> Arrays.asList(x.getChildren()));
+        XmlToJson<PlexusConfigurationWrapper> conv = XmlToJson.fromRevapi(revapi, PlexusConfigurationWrapper::getName,
+                PlexusConfigurationWrapper::getValue, PlexusConfigurationWrapper::getAttribute,
+                PlexusConfigurationWrapper::getChildren);
 
-        bld.mergeConfiguration(expandVariables(conv.convertXml(analysisConfiguration)));
+        bld.mergeConfiguration(expandVariables(conv.convertXml(new PlexusConfigurationWrapper(analysisConfiguration))));
     }
 
     private JsonNode readJson(InputStream in) {
@@ -296,5 +307,43 @@ final class AnalysisConfigurationGatherer {
             return node;
         }
         return JSONUtil.parse(resolver.resolve(val));
+    }
+
+    private static final class PlexusConfigurationWrapper {
+        private final PlexusConfiguration config;
+
+        private PlexusConfigurationWrapper(PlexusConfiguration config) {
+            this.config = config;
+        }
+
+        public String getName() {
+            return config.getName();
+        }
+
+        public String getValue() {
+            try {
+                return config.getValue();
+            } catch (PlexusConfigurationException e) {
+                throw new IllegalStateException("Failed to read configuration", e);
+            }
+        }
+
+        public String getAttribute(String name) {
+            try {
+                return config.getAttribute(name);
+            } catch (PlexusConfigurationException e) {
+                throw new IllegalStateException("Failed to read configuration", e);
+            }
+        }
+
+        public List<PlexusConfigurationWrapper> getChildren() {
+            return Stream.of(config.getChildren()).map(PlexusConfigurationWrapper::new).collect(Collectors.toList());
+        }
+
+        @Nullable
+        public PlexusConfigurationWrapper getChild(String name) {
+            PlexusConfiguration c = config.getChild(name);
+            return c == null ? null : new PlexusConfigurationWrapper(c);
+        }
     }
 }

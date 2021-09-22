@@ -26,7 +26,8 @@ public class ExpectedValues {
         if (FULL_VERSION.startsWith("1.8")) {
             MAJOR_VERSION = 8;
         } else {
-            String major = FULL_VERSION.substring(0, FULL_VERSION.indexOf('.'));
+            int dotIndex = FULL_VERSION.indexOf('.');
+            String major = dotIndex >= 0 ? FULL_VERSION.substring(0, FULL_VERSION.indexOf('.')) : FULL_VERSION;
             MAJOR_VERSION = Integer.parseInt(major);
         }
     }

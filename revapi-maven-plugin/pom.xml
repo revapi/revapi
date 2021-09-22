@@ -48,6 +48,7 @@
     </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.maven.plugin</automatic.module.name>
+        <doxia.version>1.10</doxia.version>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts></itest.maven-opts>
         <maven-invoker.version>3.2.2</maven-invoker.version>
@@ -59,6 +60,23 @@
         <revapi.version>0.14.2-SNAPSHOT</revapi.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.apache.maven.doxia</groupId>
+            <artifactId>doxia-sink-api</artifactId>
+            <version>${doxia.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.doxia</groupId>
+            <artifactId>doxia-site-renderer</artifactId>
+            <version>${doxia.version}</version>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>plexus-container-default</artifactId>
+                    <groupId>org.codehaus.plexus</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>

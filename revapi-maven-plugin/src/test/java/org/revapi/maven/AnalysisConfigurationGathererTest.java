@@ -31,8 +31,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.codehaus.plexus.configuration.DefaultPlexusConfiguration;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
+import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 import org.jboss.dmr.ModelNode;
 import org.junit.Test;
 import org.revapi.AnalysisContext;
@@ -45,7 +45,7 @@ public class AnalysisConfigurationGathererTest {
 
     @Test
     public void testReadingConfigurationFromJSON() throws Exception {
-        PlexusConfiguration analysisConfiguration = new DefaultPlexusConfiguration("analysisConfiguration");
+        PlexusConfiguration analysisConfiguration = new XmlPlexusConfiguration("analysisConfiguration");
         String json = "[{\"extension\": \"test\", \"configuration\": \"yes\"}]";
         analysisConfiguration.setValue(json);
 
@@ -66,8 +66,8 @@ public class AnalysisConfigurationGathererTest {
 
     @Test
     public void testReadingConfigurationFromXML() throws Exception {
-        PlexusConfiguration analysisConfiguration = new DefaultPlexusConfiguration("analysisConfiguration");
-        PlexusConfiguration testConfig = new DefaultPlexusConfiguration("test");
+        PlexusConfiguration analysisConfiguration = new XmlPlexusConfiguration("analysisConfiguration");
+        PlexusConfiguration testConfig = new XmlPlexusConfiguration("test");
         testConfig.setValue("yes");
         analysisConfiguration.addChild(testConfig);
 

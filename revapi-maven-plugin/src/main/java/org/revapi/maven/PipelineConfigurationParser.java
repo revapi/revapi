@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
+import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.revapi.Criticality;
 import org.revapi.DifferenceSeverity;
 import org.revapi.PipelineConfiguration;
@@ -36,7 +37,12 @@ final class PipelineConfigurationParser {
     }
 
     static PipelineConfiguration.Builder parse(PlexusConfiguration pipelineConfiguration) {
-        String jsonConfig = pipelineConfiguration == null ? null : pipelineConfiguration.getValue();
+        String jsonConfig;
+        try {
+            jsonConfig = pipelineConfiguration == null ? null : pipelineConfiguration.getValue();
+        } catch (PlexusConfigurationException e) {
+            throw new IllegalStateException("Failed to read the configuration", e);
+        }
 
         PipelineConfiguration.Builder ret;
 
@@ -79,29 +85,42 @@ final class PipelineConfigurationParser {
                 break;
             case "transformBlocks":
                 for (PlexusConfiguration b : c.getChildren()) {
-                    List<String> blockIds = Stream.of(b.getChildren()).map(PlexusConfiguration::getValue)
-                            .collect(toList());
+                    List<String> blockIds = Stream.of(b.getChildren()).map(plexusConfiguration -> {
+                        try {
+                            return plexusConfiguration.getValue();
+                        } catch (PlexusConfigurationException e) {
+                            throw new IllegalStateException("Failed to read the configuration", e);
+                        }
+                    }).collect(toList());
                     bld.addTransformationBlock(blockIds);
                 }
                 break;
             case "criticalities":
                 for (PlexusConfiguration t : c.getChildren()) {
-                    String name = t.getChild("name").getValue();
-                    int level = Integer.parseInt(t.getChild("level").getValue());
-                    bld.addCriticality(new Criticality(name, level));
+                    try {
+                        String name = t.getChild("name").getValue();
+                        int level = Integer.parseInt(t.getChild("level").getValue());
+                        bld.addCriticality(new Criticality(name, level));
+                    } catch (PlexusConfigurationException e) {
+                        throw new IllegalStateException("Failed to read the configuration", e);
+                    }
                 }
                 break;
             case "severityMapping":
                 for (PlexusConfiguration m : c.getChildren()) {
-                    String severityName = m.getName();
-                    String criticalityName = m.getValue();
-                    DifferenceSeverity severity = DifferenceSeverity.fromCamelCase(severityName);
-                    if (severity == null) {
-                        throw new IllegalArgumentException("Unknown severity encountered while processing the"
-                                + " severityMapping: " + severityName);
-                    }
+                    try {
+                        String severityName = m.getName();
+                        String criticalityName = m.getValue();
+                        DifferenceSeverity severity = DifferenceSeverity.fromCamelCase(severityName);
+                        if (severity == null) {
+                            throw new IllegalArgumentException("Unknown severity encountered while processing the"
+                                    + " severityMapping: " + severityName);
+                        }
 
-                    bld.addUntypedSeverityMapping(severity, criticalityName);
+                        bld.addUntypedSeverityMapping(severity, criticalityName);
+                    } catch (PlexusConfigurationException e) {
+                        throw new IllegalStateException("Failed to read the configuration", e);
+                    }
                 }
             }
         }
@@ -116,11 +135,23 @@ final class PipelineConfigurationParser {
         PlexusConfiguration exclude = parent.getChild("exclude");
 
         if (include != null) {
-            Stream.of(include.getChildren()).forEach(c -> handleInclude.accept(c.getValue()));
+            Stream.of(include.getChildren()).forEach(c -> {
+                try {
+                    handleInclude.accept(c.getValue());
+                } catch (PlexusConfigurationException e) {
+                    throw new IllegalStateException(e);
+                }
+            });
         }
 
         if (exclude != null) {
-            Stream.of(exclude.getChildren()).forEach(c -> handleExclude.accept(c.getValue()));
+            Stream.of(exclude.getChildren()).forEach(c -> {
+                try {
+                    handleExclude.accept(c.getValue());
+                } catch (PlexusConfigurationException e) {
+                    throw new IllegalStateException(e);
+                }
+            });
         }
     }
 }

@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.plexus.configuration.PlexusConfiguration;
+import org.codehaus.plexus.configuration.PlexusConfigurationException;
 
 /**
  * @author Lukas Krejci
@@ -89,8 +90,15 @@ final class XmlUtil {
 
         indent(indentationSize, currentDepth, wrt);
 
+        String content;
+        try {
+            content = xml.getValue();
+        } catch (PlexusConfigurationException e) {
+            throw new IllegalStateException("Failed to read configuration", e);
+        }
+
         boolean hasChildren = xml.getChildCount() > 0;
-        boolean hasContent = xml.getValue() != null && !xml.getValue().isEmpty();
+        boolean hasContent = content != null && !content.isEmpty();
         wrt.write('<');
         wrt.write(xml.getName());
         if (!hasChildren && !hasContent) {
@@ -110,7 +118,7 @@ final class XmlUtil {
             }
 
             if (hasContent) {
-                escaped(wrt, xml.getValue());
+                escaped(wrt, content);
             }
 
             wrt.write("</");
