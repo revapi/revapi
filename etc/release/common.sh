@@ -3,7 +3,7 @@ set -e
 
 MVN=${MVN:-mvn}
 
-ALL_MODULES=" $(ls -df1 revapi-* | sed 's/-/_/g') revapi coverage"
+ALL_MODULES=" $(find -maxdepth 1 -type d -name 'revapi-*' | sed -e 's/-/_/g' -e 's|^\./||g') revapi coverage"
 
 UNRELEASED="coverage revapi_site revapi_examples_parent"
 
