@@ -18,7 +18,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.revapi</groupId>
     <artifactId>revapi-parent</artifactId>
-    <version>15</version>
+    <version>16-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Revapi parent</name>
     <description>Parent POM for revapi projects. Common deps and site.</description>
