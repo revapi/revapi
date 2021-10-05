@@ -200,7 +200,7 @@ public class AnalysisTest {
     public static final class DummyAnalyzer extends BaseApiAnalyzer<DummyElement> {
 
         private final BiFunction<DummyElement, DummyElement, Report> differenceAnalyzer = (o, n) -> Report.builder()
-                .withNew(n).withOld(o).addProblem().withCode("code").withName("name").done().build();;
+                .withNew(n).withOld(o).addDifference().withCode("code").withName("name").done().build();;
 
         @Override
         public @Nonnull ArchiveAnalyzer<DummyElement> getArchiveAnalyzer(@Nonnull API api) {

@@ -44,15 +44,15 @@ public class PropertiesDifferenceAnalyzer extends BaseDifferenceAnalyzer<Propert
         Report.Builder bld = Report.builder().withOld(oldProp).withNew(newProp);
 
         if (oldProp == null) {
-            bld.addProblem().withCode("property.added")
+            bld.addDifference().withCode("property.added")
                     .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.NON_BREAKING)
                     .withName("Property Added").done();
         } else if (newProp == null) {
-            bld.addProblem().withCode("property.removed")
+            bld.addDifference().withCode("property.removed")
                     .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.BREAKING)
                     .withName("Property Removed").done();
         } else if (!Objects.equals(oldProp.getValue(), newProp.getValue())) {
-            bld.addProblem().withCode("property.valueChanged")
+            bld.addDifference().withCode("property.valueChanged")
                     .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.POTENTIALLY_BREAKING)
                     .withName("Property Value Changed").done();
         }

@@ -52,7 +52,7 @@ public class BuildTimeReporterTest {
         DummyElement oldEl = new DummyElement(oldApi);
         DummyElement newEl = new DummyElement(newApi);
 
-        Report report = Report.builder().withNew(newEl).withOld(oldEl).addProblem()/**/.withCode("diffs\\myDiff")
+        Report report = Report.builder().withNew(newEl).withOld(oldEl).addDifference()/**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
                 /**/.addAttachment("shouldBeEscaped", "{\"a\", \"b\"}")/**/.withCriticality(Criticality.ERROR)
@@ -91,7 +91,7 @@ public class BuildTimeReporterTest {
         DummyElement oldEl = new DummyElement(oldApi);
         DummyElement newEl = new DummyElement(newApi);
 
-        Report report = Report.builder().withNew(newEl).withOld(oldEl).addProblem()/**/.withCode("diffs\\myDiff")
+        Report report = Report.builder().withNew(newEl).withOld(oldEl).addDifference()/**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
                 /**/.withCriticality(Criticality.ERROR)/**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}").done()
@@ -127,7 +127,7 @@ public class BuildTimeReporterTest {
         DummyElement oldEl = new DummyElement(oldApi);
         DummyElement newEl = new DummyElement(newApi);
 
-        Report report = Report.builder().withNew(newEl).withOld(oldEl).addProblem()/**/.withCode("diffs\\myDiff")
+        Report report = Report.builder().withNew(newEl).withOld(oldEl).addDifference()/**/.withCode("diffs\\myDiff")
                 /**/.withDescription("the problem")
                 /**/.addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING)
                 /**/.addAttachment("nonIdentifying", "{\"a\", \"b\"}")/**/.withCriticality(Criticality.ERROR).done()

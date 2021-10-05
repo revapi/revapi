@@ -40,13 +40,13 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
         String path = null;
         String file = null;
         if (oldElement == null) {
-            dbld = bld.addProblem();
+            dbld = bld.addDifference();
             addAdded(dbld);
             dbld.withDescription("The node was added.");
             path = newElement.getPath();
             file = newElement.getFilePath();
         } else if (newElement == null) {
-            dbld = bld.addProblem();
+            dbld = bld.addDifference();
             addRemoved(dbld);
             dbld.withDescription("The node was removed.");
             path = oldElement.getPath();
@@ -54,7 +54,7 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
         } else if ((oldElement.getNode().isValueNode() || newElement.getNode().isValueNode())
                 && !oldElement.equals(newElement)) {
             // we're only reporting changes on value nodes
-            dbld = bld.addProblem();
+            dbld = bld.addDifference();
             addChanged(dbld);
             path = newElement.getPath();
             file = newElement.getFilePath();

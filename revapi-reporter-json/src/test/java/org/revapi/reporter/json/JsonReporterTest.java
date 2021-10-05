@@ -175,13 +175,13 @@ public class JsonReporterTest {
         List<Report> ret = new ArrayList<>();
 
         Report report = Report.builder().withOld(new DummyElement("old2")).withNew(new DummyElement("new2"))
-                .addProblem().withCode("code2").withDescription("descr2").withName("name2")
+                .addDifference().withCode("code2").withDescription("descr2").withName("name2")
                 .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).addAttachment("at2", "at2val")
                 .done().build();
 
         ret.add(report);
 
-        report = Report.builder().withOld(new DummyElement("old1")).withNew(new DummyElement("new1")).addProblem()
+        report = Report.builder().withOld(new DummyElement("old1")).withNew(new DummyElement("new1")).addDifference()
                 .withCode("code1").withDescription("descr1").withName("name1")
                 .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING).addAttachment("at1", "at1val")
                 .done().build();

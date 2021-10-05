@@ -23,6 +23,8 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import jdk.internal.org.jline.utils.DiffHelper;
+
 /**
  * Represents the differences between comparable elements from old and new API.
  *
@@ -49,8 +51,16 @@ public final class Report {
             return this;
         }
 
+        /**
+         * @deprecated use {@link #addDifference()} instead
+         */
+        @Deprecated
         @Nonnull
         public Difference.InReportBuilder addProblem() {
+            return addDifference();
+        }
+
+        public Difference.InReportBuilder addDifference() {
             return new Difference.InReportBuilder(this);
         }
 

@@ -121,12 +121,12 @@ public class TextReporterTest {
         List<Report> ret = new ArrayList<>();
 
         Report report = Report.builder().withOld(new DummyElement("old2")).withNew(new DummyElement("new2"))
-                .addProblem().withCode("code2").withName("name2").withJustification("justified")
+                .addDifference().withCode("code2").withName("name2").withJustification("justified")
                 .addClassification(CompatibilityType.BINARY, DifferenceSeverity.BREAKING).done().build();
 
         ret.add(report);
 
-        report = Report.builder().withOld(new DummyElement("old1")).withNew(new DummyElement("new1")).addProblem()
+        report = Report.builder().withOld(new DummyElement("old1")).withNew(new DummyElement("new1")).addDifference()
                 .withCode("code1").withDescription("descr1").withName("name1")
                 .addClassification(CompatibilityType.SOURCE, DifferenceSeverity.BREAKING).done().build();
 
