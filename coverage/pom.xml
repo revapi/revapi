@@ -43,7 +43,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.12.3</version>
+            <version>0.12.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
