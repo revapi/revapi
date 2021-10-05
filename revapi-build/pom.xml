@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-parent</artifactId>
-        <version>15</version>
+        <version>16-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <artifactId>revapi-build</artifactId>
-    <version>44</version>
+    <version>45-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Revapi Build Parent</name>
     <description>This module is meant to serve as parent for other modules that actually contain code and
@@ -61,7 +61,7 @@
         <version.org.junit>5.7.0</version.org.junit>
         <version.org.mockito>3.2.4</version.org.mockito>
         <version.org.slf4j>1.7.5</version.org.slf4j>
-        <version.revapi-build-support>8</version.revapi-build-support>
+        <version.revapi-build-support>9-SNAPSHOT</version.revapi-build-support>
     </properties>
     <dependencyManagement>
         <dependencies>
