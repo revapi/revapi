@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>44-SNAPSHOT</version>
+        <version>44</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi</artifactId>
