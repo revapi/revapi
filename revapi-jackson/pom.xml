@@ -51,7 +51,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.14.2</version>
+            <version>0.14.3-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
