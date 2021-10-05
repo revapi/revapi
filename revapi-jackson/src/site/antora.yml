@@ -17,6 +17,6 @@
 
 name: revapi-jackson
 title: Jackson Analyzer Base
-version: main
+version: 0.3.2
 nav:
   - modules/ROOT/nav.adoc
