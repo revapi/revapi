@@ -1,0 +1,8 @@
+= Fix NPE in revapi-java and Java 17 compatibility
+:page-publish_date: 2021-10-06
+:page-layout: news-article
+
+The new version of `revapi-java`, 0.25.0, contains an important fix that caused a `NullPointerException`in the package matcher which would occur when it encountered a missing class. This should fix issues https://github.com/revapi/revapi/issues/244[#244] and https://github.com/revapi/revapi/issues/249[#249].
+
+The build and dependecies were updated to be compatible with Java 17 and the testsuite is now successfully passing on it.
+
