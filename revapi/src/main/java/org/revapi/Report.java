@@ -23,8 +23,6 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import jdk.internal.org.jline.utils.DiffHelper;
-
 /**
  * Represents the differences between comparable elements from old and new API.
  *

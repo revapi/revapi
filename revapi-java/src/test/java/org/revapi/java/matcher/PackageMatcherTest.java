@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +31,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 
 import org.junit.jupiter.api.Test;
 import org.revapi.API;
@@ -50,6 +52,7 @@ import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaTypeElement;
+import org.revapi.java.spi.TypeEnvironment;
 
 class PackageMatcherTest extends AbstractJavaElementAnalyzerTest {
 
@@ -65,9 +68,16 @@ class PackageMatcherTest extends AbstractJavaElementAnalyzerTest {
         TypeElement type = mock(TypeElement.class);
         PackageElement pkg = mock(PackageElement.class);
 
+        TypeEnvironment env = mock(TypeEnvironment.class);
+        Elements els = mock(Elements.class);
+
+        when(env.getElementUtils()).thenReturn(els);
+
         JavaTypeElement typeEl = mock(JavaTypeElement.class);
         when(typeEl.getDeclaringElement()).thenReturn(type);
-        when(type.getEnclosingElement()).thenReturn(pkg);
+        when(typeEl.getTypeEnvironment()).thenReturn(env);
+
+        when(els.getPackageOf(eq(type))).thenReturn(pkg);
 
         when(pkg.getQualifiedName()).thenReturn(new StringName(pkgName));
 
@@ -105,9 +115,16 @@ class PackageMatcherTest extends AbstractJavaElementAnalyzerTest {
         TypeElement type = mock(TypeElement.class);
         PackageElement pkg = mock(PackageElement.class);
 
+        TypeEnvironment env = mock(TypeEnvironment.class);
+        Elements els = mock(Elements.class);
+
+        when(env.getElementUtils()).thenReturn(els);
+
         JavaTypeElement typeEl = mock(JavaTypeElement.class);
         when(typeEl.getDeclaringElement()).thenReturn(type);
-        when(type.getEnclosingElement()).thenReturn(pkg);
+        when(typeEl.getTypeEnvironment()).thenReturn(env);
+
+        when(els.getPackageOf(eq(type))).thenReturn(pkg);
 
         when(pkg.getQualifiedName()).thenReturn(new StringName(pkgName));
 
@@ -146,10 +163,15 @@ class PackageMatcherTest extends AbstractJavaElementAnalyzerTest {
         PackageElement pkg = mock(PackageElement.class);
         ExecutableElement method = mock(ExecutableElement.class);
 
+        TypeEnvironment env = mock(TypeEnvironment.class);
+        Elements els = mock(Elements.class);
+        when(env.getElementUtils()).thenReturn(els);
+
         JavaMethodElement methodEl = mock(JavaMethodElement.class);
         when(methodEl.getDeclaringElement()).thenReturn(method);
-        when(method.getEnclosingElement()).thenReturn(type);
-        when(type.getEnclosingElement()).thenReturn(pkg);
+        when(methodEl.getTypeEnvironment()).thenReturn(env);
+
+        when(els.getPackageOf(eq(method))).thenReturn(pkg);
 
         when(pkg.getQualifiedName()).thenReturn(new StringName(pkgName));
 

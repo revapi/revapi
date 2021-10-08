@@ -448,10 +448,7 @@ final class ClasspathScanner {
                 // type.asType() possibly not completely correct when dealing with inner class of a parameterized class
                 boolean isError = type.asType().getKind() == TypeKind.ERROR;
 
-                org.revapi.java.model.TypeElement t = isError
-                        ? new MissingClassElement(environment,
-                                environment.getElementUtils().getBinaryName(type).toString(),
-                                type.getQualifiedName().toString())
+                org.revapi.java.model.TypeElement t = isError ? new MissingClassElement(environment, type)
                         : new org.revapi.java.model.TypeElement(environment, loc.getArchive(), type,
                                 (DeclaredType) type.asType());
 
@@ -780,9 +777,7 @@ final class ClasspathScanner {
                 TypeElement type = els.getTypeElement(t.getQualifiedName());
                 if (type == null) {
                     TypeRecord tr = this.types.get(t);
-                    String bin = els.getBinaryName(t).toString();
-                    MissingClassElement mce = new MissingClassElement(environment, bin,
-                            t.getQualifiedName().toString());
+                    MissingClassElement mce = new MissingClassElement(environment, t);
                     if (tr == null) {
                         tr = new TypeRecord();
                     }

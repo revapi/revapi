@@ -32,8 +32,12 @@ import org.revapi.base.IndependentTreeFilter;
 import org.revapi.java.JavaArchiveAnalyzer;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PackageMatcher extends BaseElementMatcher {
+    private static final Logger LOG = LoggerFactory.getLogger(PackageMatcher.class);
+
     @Override
     public Optional<CompiledRecipe> compile(String recipe) {
         return Optional.of(new CompiledRecipe() {
@@ -57,19 +61,25 @@ public class PackageMatcher extends BaseElementMatcher {
 
                         JavaModelElement modelElement = (JavaModelElement) element;
 
-                        PackageElement pkg = getPackage(modelElement.getDeclaringElement());
+                        PackageElement pkg = getPackage(modelElement);
 
                         Ternary ret = Ternary.fromBoolean(matches(pkg));
 
                         return FilterStartResult.direct(ret, ret);
                     }
 
-                    private PackageElement getPackage(javax.lang.model.element.Element el) {
-                        while (!(el instanceof PackageElement)) {
-                            el = el.getEnclosingElement();
+                    private PackageElement getPackage(JavaModelElement el) {
+                        javax.lang.model.element.Element type = el == null ? null : el.getDeclaringElement();
+
+                        PackageElement pkg = el == null ? null
+                                : el.getTypeEnvironment().getElementUtils().getPackageOf(type);
+
+                        if (pkg == null && el != null) {
+                            LOG.warn("Could not find the package of type {} represented by an instance of type {}", el,
+                                    el.getClass());
                         }
 
-                        return (PackageElement) el;
+                        return pkg;
                     }
 
                     private boolean matches(PackageElement pkg) {

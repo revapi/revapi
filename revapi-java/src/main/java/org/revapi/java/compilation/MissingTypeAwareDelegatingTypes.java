@@ -144,7 +144,7 @@ final class MissingTypeAwareDelegatingTypes implements Types {
 
     @Override
     public DeclaredType getDeclaredType(TypeElement typeElem, TypeMirror... typeArgs) {
-        if (typeElem instanceof MissingTypeElement) {
+        if (MissingTypeElement.isMissing(typeElem)) {
             throw new IllegalArgumentException("Invalid type element.");
         }
         for (TypeMirror t : typeArgs) {
@@ -160,7 +160,7 @@ final class MissingTypeAwareDelegatingTypes implements Types {
         if (isMissing(containing)) {
             throw new IllegalArgumentException("Invalid containing type.");
         }
-        if (typeElem instanceof MissingTypeElement) {
+        if (MissingTypeElement.isMissing(typeElem)) {
             throw new IllegalArgumentException("Invalid type element.");
         }
         for (TypeMirror t : typeArgs) {
@@ -176,7 +176,7 @@ final class MissingTypeAwareDelegatingTypes implements Types {
         if (isMissing(containing)) {
             throw new IllegalArgumentException("Invalid containing type.");
         }
-        if (element instanceof MissingTypeElement) {
+        if (MissingTypeElement.isMissing(element)) {
             throw new IllegalArgumentException("Invalid element.");
         }
         return IgnoreCompletionFailures.in(types::asMemberOf, containing, element);

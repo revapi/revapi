@@ -90,13 +90,6 @@ final class MissingTypeAwareDelegatingElements implements Elements {
 
     @Override
     public PackageElement getPackageOf(Element type) {
-        if (MissingTypeElement.isMissing(type)) {
-            String binaryName = ((MissingTypeElement) type).getQualifiedName().toString();
-            int lastDot = binaryName.lastIndexOf('.');
-
-            return elements.getPackageElement(binaryName.substring(0, lastDot));
-        }
-
         return IgnoreCompletionFailures.in(elements::getPackageOf, type);
     }
 

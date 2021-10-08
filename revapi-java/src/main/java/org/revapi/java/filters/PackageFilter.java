@@ -19,6 +19,7 @@ package org.revapi.java.filters;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 
 import org.revapi.FilterStartResult;
@@ -28,6 +29,8 @@ import org.revapi.base.IndependentTreeFilter;
 import org.revapi.base.OverridableIncludeExcludeTreeFilter;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaTypeElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a solution to the removal of package and class filtering directly in the classpath scanner. We need something
@@ -38,6 +41,8 @@ import org.revapi.java.spi.JavaTypeElement;
  */
 @Deprecated
 public class PackageFilter extends OverridableIncludeExcludeTreeFilter<JavaElement> {
+    private static final Logger LOG = LoggerFactory.getLogger(PackageFilter.class);
+
     public PackageFilter(Pattern[] includes, Pattern[] excludes) {
         super(asFilter(includes), asFilter(excludes));
     }
@@ -70,7 +75,12 @@ public class PackageFilter extends OverridableIncludeExcludeTreeFilter<JavaEleme
 
         TypeElement type = el == null ? null : ((JavaTypeElement) el).getDeclaringElement();
 
-        return el == null ? null
-                : el.getTypeEnvironment().getElementUtils().getPackageOf(type).getQualifiedName().toString();
+        PackageElement pkg = el == null ? null : el.getTypeEnvironment().getElementUtils().getPackageOf(type);
+
+        if (pkg == null && el != null) {
+            LOG.warn("Could not find the package of type {} represented by an instance of type {}", el, el.getClass());
+        }
+
+        return pkg == null ? null : pkg.getQualifiedName().toString();
     }
 }
