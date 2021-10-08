@@ -102,7 +102,7 @@ their additional parameters. Each of the below differences lists the parameters 
 
 For example the `java.class.noLongerImplementsInterface` difference defines the match parameter `interface`. This can
 be used when matching the difference for example in the `revapi.ignore` extension:
-```javascript
+```json
 {
   "regex": true,
   "code": "java\\.class\\.noLongerImplementsInterface",
@@ -150,6 +150,8 @@ All the differences detected by the extension are defined in the
 link:../revapi-java-spi/apidocs/org/revapi/java/spi/Code.html[Code] enumeration. Below, you can find a short discussion
 of each type of the difference.
 
+[[java.missing.oldClass]]++ ++
+[[java.missing.newClass]]
 === Missing API Class - `java.missing.oldClass`, `java.missing.newClass`
 [cols="35s,<65d"]
 |=============
@@ -167,7 +169,7 @@ one.
 The missing class behavior can be configured by the `revapi.java.missing-classes` configuration property with the
 possible values of `ignore`, `report` and `error`, e.g.:
 
-[source,javascript]
+[source,json]
 ----
 {
     "extension": "revapi.java",
@@ -186,6 +188,7 @@ possible values of `ignore`, `report` and `error`, e.g.:
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.element.noLongerDeprecated]]
 === Element No Longer Deprecated - `java.element.noLongerDeprecated`
 [cols="35s,<65d"]
 |=============
@@ -205,6 +208,7 @@ users to know about such cases.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.element.nowDeprecated]]
 === Element Now Deprecated - `java.element.nowDeprecated`
 [cols="35s,<65d"]
 |=============
@@ -224,6 +228,7 @@ users to know about such cases.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.visibilityIncreased]]
 === Class Visibility Increased - `java.class.visibilityIncreased`
 [cols="35s,<65d"]
 |=============
@@ -247,6 +252,7 @@ and is reported for completeness sake. The visibility is ordered as follows: +pr
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.visibilityReduced]]
 === Class Visibility Reduced - `java.class.visibilityReduced`
 [cols="35s,<65d"]
 |=============
@@ -270,6 +276,7 @@ runtime when trying to use the new version of the library.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.kindChanged]]
 === Class Kind Changed - `java.class.kindChanged`
 [cols="35s,<65d"]
 |=============
@@ -293,6 +300,7 @@ compile time and at runtime.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.noLongerFinal]]
 === Class No Longer Final - `java.class.noLongerFinal`
 [cols="35s,<65d"]
 |=============
@@ -319,6 +327,7 @@ link:https://cr.openjdk.java.net/~alundblad/styleguide/index-v6.html#toc-modifie
 following order: `public protected private abstract static final transient volatile default synchronized native
 strictfp`.
 
+[[java.class.nowFinal]]
 === Class Now Final - `java.class.nowFinal`
 [cols="35s,<65d"]
 |=============
@@ -343,6 +352,7 @@ the class will no longer be compatible with the new version of the library, in w
 
 NOTE: See <<Class No Longer Final - `java.class.noLongerFinal`>> for the ordering of the modifiers.
 
+[[java.class.noLongerAbstract]]
 === Class No Longer Abstract - `java.class.noLongerAbstract`
 [cols="35s,<65d"]
 |=============
@@ -366,6 +376,7 @@ A class that used to be abstract is now not. This is no API breakage and is repo
 
 NOTE: See <<Class No Longer Final - `java.class.noLongerFinal`>> for the ordering of the modifiers.
 
+[[java.class.nowAbstract]]
 === Class Now Abstract - `java.class.nowAbstract`
 [cols="35s,<65d"]
 |=============
@@ -390,6 +401,7 @@ possible to create instances of such class.
 
 NOTE: See <<Class No Longer Final - `java.class.noLongerFinal`>> for the ordering of the modifiers.
 
+[[java.class.added]]
 === Class Added - `java.class.added`
 [cols="35s,<65d"]
 |=============
@@ -409,6 +421,7 @@ A new class appeared in the new version of the API. This is a non-breaking chang
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.removed]]
 === Class Removed - `java.class.removed`
 [cols="35s,<65d"]
 |=============
@@ -429,6 +442,7 @@ the users of the API will no longer be able to use that class in any capacity.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.externalClassExposedInAPI]]
 === External Class Exposed In API - `java.class.externalClassExposedInAPI`
 [cols="35s,<65d"]
 |=============
@@ -450,6 +464,7 @@ but you don't want the changed API to leak to your users).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.externalClassNoLongerExposedInAPI]]
 === External Class No Longer Exposed In API - `java.class.externalClassNoLongerExposedInAPI`
 [cols="35s,<65d"]
 |=============
@@ -471,6 +486,7 @@ will usually cause other differences to be reported, too).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.noLongerImplementsInterface]]
 === Class No Longer Implements Interface - `java.class.noLongerImplementsInterface`
 [cols="35s,<65d"]
 |=============
@@ -491,6 +507,7 @@ This is a breaking change because it is no longer possible to cast the class to 
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.nowImplementsInterface]]
 === Class Now Implements Interface - `java.class.nowImplementsInterface`
 [cols="35s,<65d"]
 |=============
@@ -511,6 +528,7 @@ No API breakage reported for the completeness sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.finalClassInheritsFromNewClass]]
 === Final Class Inherits From New Class - `java.class.finalClassInheritsFromNewClass`
 [cols="35s,<65d"]
 |=============
@@ -533,6 +551,7 @@ reported separately).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.nonFinalClassInheritsFromNewClass]]
 === Non-final Class Inherits From New Class - `java.class.nonFinalClassInheritsFromNewClass`
 [cols="35s,<65d"]
 |=============
@@ -555,6 +574,7 @@ checked one, they will get compilation or linkage errors.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.nowCheckedException]]
 === Class Now Checked Exception - `java.class.nowCheckedException`
 [cols="35s,<65d"]
 |=============
@@ -575,6 +595,7 @@ declared in the +throws+ declarations of the methods.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.noLongerInheritsFromClass]]
 === Class No Longer Inherits From Class - `java.class.noLongerInheritsFromClass`
 [cols="35s,<65d"]
 |=============
@@ -596,6 +617,7 @@ that super class nor can the methods declared in the super class be called using
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.defaultSerializationChanged]]
 === Default Serialization of Class Changed - `java.class.defaultSerializationChanged`
 [cols="35s,<65d"]
 |=============
@@ -624,6 +646,7 @@ fields changes its serialization format. This imperfection is shared with java s
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.class.nonPublicPartOfAPI]]
 === Class Is Non-Public Part of API - `java.class.nonPublicPartOfAPI`
 [cols="35s,<65d"]
 |=============
@@ -683,6 +706,7 @@ NOTE: This is NOT reported on a non-accessible class that is used solely as a su
 is only implemented by other API classes. An implementation of a private interface or inheriting from a non-public
 super class is a valid design decision.
 
+[[java.class.superTypeTypeParametersChanged]]
 === Type Parameters of The Super Type Changed - `java.class.superTypeTypeParametersChanged`
 [cols="35s,<65d"]
 |=============
@@ -709,6 +733,7 @@ inherited from the super class (which would be the cause of the binary and sourc
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.annotation.added]]
 === Annotation Added - `java.annotation.added`
 [cols="35s,<65d"]
 |=============
@@ -728,6 +753,7 @@ processing, reflection, etc.).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.annotation.removed]]
 === Annotation Removed - `java.annotation.removed`
 [cols="35s,<65d"]
 |=============
@@ -747,6 +773,7 @@ processing, reflection, etc.).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.annotation.attributeValueChanged]]
 === Annotation Attribute Value Changed - `java.annotation.attributeValueChanged`
 [cols="35s,<65d"]
 |=============
@@ -769,6 +796,7 @@ generation, processing, reflection, etc.).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.annotation.attributeAdded]]
 === Annotation Attribute Added - `java.annotation.attributeAdded`
 [cols="35s,<65d"]
 |=============
@@ -790,6 +818,7 @@ used (code generation, processing, reflection, etc.).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.annotation.attributeRemoved]]
 === Annotation Attribute Removed - `java.annotation.attributeRemoved`
 [cols="35s,<65d"]
 |=============
@@ -811,6 +840,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.annotation.noLongerInherited]]
 === Annotation No Longer Inherited - `java.annotation.noLongerInherited`
 [cols="35s,<65d"]
 |=============
@@ -830,6 +860,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.annotation.nowInherited]]
 === Annotation Now Inherited - `java.annotation.nowInherited`
 [cols="35s,<65d"]
 |=============
@@ -849,6 +880,7 @@ annotations can be used (code generation, processing, reflection, etc.).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.addedStaticField]]
 === Static Field Added - `java.field.addedStaticField`
 [cols="35s,<65d"]
 |=============
@@ -869,6 +901,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.added]]
 === Field Added - `java.field.added`
 [cols="35s,<65d"]
 |=============
@@ -889,6 +922,7 @@ No API breakage, provided for completeness sake. Note that this si reported only
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.removed]]
 === Field Removed - `java.field.removed`
 [cols="35s,<65d"]
 |=============
@@ -934,6 +968,7 @@ Note that this si reported only for publicly accessible fields.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.movedToSuperclass]]
 === Field Moved To Superclass - `java.field.movedToSuperclass`
 [cols="35s,<65d"]
 |=============
@@ -956,6 +991,7 @@ The field was moved to a super class. From the point of view of the field user t
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.inheritedNowDeclared]]
 === Inherited Field Now Declared On Class - `java.field.inheritedNowDeclared`
 [cols="35s,<65d"]
 |=============
@@ -979,6 +1015,7 @@ represents no noticeable change. If the field was also removed from the super cl
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.removed]]
 === Constant Field Removed - `java.field.removed`
 [cols="35s,<65d"]
 |=============
@@ -1003,6 +1040,7 @@ semantics.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.constantValueChanged]]
 === Constant Field Changed Value - `java.field.constantValueChanged`
 [cols="35s,<65d"]
 |=============
@@ -1027,6 +1065,7 @@ because the constant values are inlined. This is therefore reported as breaking 
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.nowConstant]]
 === Field Now Constant - `java.field.nowConstant`
 [cols="35s,<65d"]
 |=============
@@ -1049,6 +1088,7 @@ code, which is something that didn't happen before. You may want to re-evaluate 
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.noLongerConstant]]
 === Field No Longer Constant - `java.field.noLongerConstant`
 [cols="35s,<65d"]
 |=============
@@ -1074,6 +1114,7 @@ NOT what the API author had in mind when making the change.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.nowFinal]]
 === Field Now Final - `java.field.nowFinal`
 [cols="35s,<65d"]
 |=============
@@ -1095,6 +1136,7 @@ binary incompatibility.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.noLongerFinal]]
 === Field No Longer Final - `java.field.noLongerFinal`
 [cols="35s,<65d"]
 |=============
@@ -1115,6 +1157,7 @@ This is no API breakage and is reported for completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.noLongerStatic]]
 === Field No Longer Static - `java.field.noLongerStatic`
 [cols="35s,<65d"]
 |=============
@@ -1136,6 +1179,7 @@ this is both source and binary incompatibility.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.nowStatic]]
 === Field Now Static - `java.field.nowStatic`
 [cols="35s,<65d"]
 |=============
@@ -1158,6 +1202,7 @@ When recompiling the user code against the new version, everything works fine.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.typeChanged]]
 === Field Type Changed - `java.field.typeChanged`
 [cols="35s,<65d"]
 |=============
@@ -1180,6 +1225,7 @@ The field has a different type than it used to in the old version of the API. Th
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.serialVersionUIDUnchanged]]
 === Field `serialVersionUID` Unchanged - `java.field.serialVersionUIDUnchanged`
 [cols="35s,<65d"]
 |=============
@@ -1240,6 +1286,7 @@ or
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.serialVersionUIDChanged]]
 === Field `serialVersionUID` Changed - `java.field.serialVersionUIDChanged`
 [cols="35s,<65d"]
 |=============
@@ -1252,7 +1299,7 @@ This is reported as a breaking change because it is assumed that if a class is s
 serialized and deserialized. Changing the value of the `serialVersionUID` static field causes the new class to no longer
 be able to deserialize objects that were serialized using the old version of the class.
 
-This check can be configured the same way as <<_field_serialversionuid_unchanged__java_field_serialversionuidunchanged>>.
+This check can be configured the same way as <<java.field.serialVersionUIDUnchanged>>.
 
 [options=header]
 |====
@@ -1266,6 +1313,7 @@ This check can be configured the same way as <<_field_serialversionuid_unchanged
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.visibilityIncreased]]
 === Field Visibility Increased - `java.field.visibilityIncreased`
 [cols="35s,<65d"]
 |=============
@@ -1288,6 +1336,7 @@ No API breakage, reported for completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.visibilityReduced]]
 === Field Visibility Reduced - `java.field.visibilityReduced`
 [cols="35s,<65d"]
 |=============
@@ -1310,6 +1359,7 @@ Field's visibility was reduced, which means that code that used to be able to ac
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.field.enumConstantOrderChanged]]
 === Enum Constant Order Changed - `java.field.enumConstantOrderChanged`
 [cols="35s,<65d"]
 |=============
@@ -1333,6 +1383,7 @@ method to determine the order of an enum constant and relies on a specific value
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.defaultValueAdded]]
 === Default Value Added To Method - `java.method.defaultValueAdded`
 [cols="35s,<65d"]
 |=============
@@ -1355,6 +1406,7 @@ Declaring a default value to an annotation attribute is not an API breakage and 
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.defaultValueChanged]]
 === Method's Default Value Changed - `java.method.defaultValueChanged`
 [cols="35s,<65d"]
 |=============
@@ -1381,6 +1433,7 @@ the API. This might or might not be a problem.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.defaultValueRemoved]]
 === Default Value Removed From Method - `java.method.defaultValueRemoved`
 [cols="35s,<65d"]
 |=============
@@ -1406,6 +1459,7 @@ attribute).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.addedToInterface]]
 === Method Added To Interface - `java.method.addedToInterface`
 [cols="35s,<65d"]
 |=============
@@ -1438,6 +1492,7 @@ old SPI implementation.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.defaultMethodAddedToInterface]]
 === Default Method Added To Interface - `java.method.defaultMethodAddedToInterface`
 [cols="35s,<65d"]
 |=============
@@ -1458,6 +1513,7 @@ This represents no API breakage and is included for completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.staticMethodAddedToInterface]]
 === Static Method Added To Interface - `java.method.staticMethodAddedToInterface`
 [cols="35s,<65d"]
 |=============
@@ -1478,6 +1534,7 @@ This represents no API breakage and is included for completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.attributeWithNoDefaultAddedToAnnotationType]]
 === Method With No Default Value Added To Annotation Type - `java.method.attributeWithNoDefaultAddedToAnnotationType`
 [cols="35s,<65d"]
 |=============
@@ -1486,9 +1543,9 @@ This represents no API breakage and is included for completeness' sake.
 | Semantic severity | breaking
 |=============
 
-While technically a variant of <<_method_added_to_interface__java_method_addedtointerface, Method Added To Interface>>,
+While technically a variant of <<java.method.addedToInterface, Method Added To Interface>>,
 this is similar in consequences to
-<<_default_value_removed_from_method__java_method_defaultvalueremoved, Default Value Removed From Method>>.
+<<java.method.defaultValueRemoved, Default Value Removed From Method>>.
 This is not binary incompatible, there can be no code compiled against the previous version of the API that would try to
 access or use the new attribute in any way. This is source incompatible though, because any code that declares
 annotations according to the old version of the API will fail to compile against the new version of the API because it
@@ -1506,6 +1563,7 @@ assumes an explicit value for the annotation attribute.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.attributeWithDefaultAddedToAnnotationType]]
 === Method With Default Value Added To Annotation Type - `java.method.attributeWithDefaultAddedToAnnotationType`
 [cols="35s,<65d"]
 |=============
@@ -1526,6 +1584,7 @@ This does not break compatibility and is reported for completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.abstractMethodAdded]]
 === Abstract Method Added - `java.method.abstractMethodAdded`
 [cols="35s,<65d"]
 |=============
@@ -1547,6 +1606,7 @@ implementation of it and will therefore break.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.added]]
 === Method Added - `java.method.added`
 [cols="35s,<65d"]
 |=============
@@ -1567,6 +1627,7 @@ A new concrete method added to a concrete class. This is always safe.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.finalMethodAddedToNonFinalClass]]
 === Final Method Added To Non-final Class - `java.method.finalMethodAddedToNonFinalClass`
 [cols="35s,<65d"]
 |=============
@@ -1588,6 +1649,7 @@ as the newly introduced final method.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.inheritedMovedToClass]]
 === Inherited Method Moved To Class - `java.method.inheritedMovedToClass`
 [cols="35s,<65d"]
 |=============
@@ -1611,6 +1673,7 @@ Note that if the super class is part of the API, the removal of the method from 
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.removed]]
 === Method Removed - `java.method.removed`
 [cols="35s,<65d"]
 |=============
@@ -1631,6 +1694,7 @@ Removing a method from a class is an incompatible change.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.movedToSuperClass]]
 === Method Moved To Superclass - `java.method.movedToSuperClass`
 [cols="35s,<65d"]
 |=============
@@ -1655,6 +1719,7 @@ Otherwise this is a compatible change and is reported for completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.attributeRemovedFromAnnotationType]]
 === Attribute Removed From Annotation Type - `java.method.attributeRemovedFromAnnotationType`
 [cols="35s,<65d"]
 |=============
@@ -1663,7 +1728,7 @@ Otherwise this is a compatible change and is reported for completeness' sake.
 | Semantic severity | NA
 |=============
 
-This is identical to <<_method_removed__java_method_removed, Method Removed>> but specialized for annotation types.
+This is identical to <<java.method.removed, Method Removed>> but specialized for annotation types.
 
 [options=header]
 |====
@@ -1675,6 +1740,7 @@ This is identical to <<_method_removed__java_method_removed, Method Removed>> bu
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.noLongerFinal]]
 === Method No Longer Final - `java.method.noLongerFinal`
 [cols="35s,<65d"]
 |=============
@@ -1697,6 +1763,7 @@ No API breakage, reported for completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.nowFinal]]
 === Method Now Final - `java.method.nowFinal`
 [cols="35s,<65d"]
 |=============
@@ -1719,6 +1786,7 @@ Any subclasses that overrode the method will break both at compile time and at r
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.nowFinalInFinalClass]]
 === Method Now Final In Final Class - `java.method.nowFinalInFinalClass`
 [cols="35s,<65d"]
 |=============
@@ -1741,6 +1809,7 @@ The class is final and cannot be subclassed. Therefore making its method final m
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.noLongerStatic]]
 === Method No Longer Static - `java.method.noLongerStatic`
 [cols="35s,<65d"]
 |=============
@@ -1764,6 +1833,7 @@ and source compatibility.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.nowStatic]]
 === Method Now Static - `java.method.nowStatic`
 [cols="35s,<65d"]
 |=============
@@ -1787,6 +1857,7 @@ It is not binary compatible though because static methods are called using a dif
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.nowAbstract]]
 === Method Now Abstract - `java.method.nowAbstract`
 [cols="35s,<65d"]
 |=============
@@ -1810,6 +1881,7 @@ to before.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.noLongerAbstract]]
 === Method No Longer Abstract - `java.method.noLongerAbstract`
 [cols="35s,<65d"]
 |=============
@@ -1832,6 +1904,7 @@ This is a compatible change reported for the completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.visibilityIncreased]]
 === Method Visibility Increased - `java.method.visibilityIncreased`
 [cols="35s,<65d"]
 |=============
@@ -1854,6 +1927,7 @@ No API breakage, reported for completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.visibilityIncreased]]
 === Method Visibility Reduced - `java.method.visibilityIncreased`
 [cols="35s,<65d"]
 |=============
@@ -1876,6 +1950,7 @@ A method might no longer be visible to code that used to call it. This is a brea
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.returnTypeChanged]]
 === Method Return Type Changed - `java.method.returnTypeChanged`
 [cols="35s,<65d"]
 |=============
@@ -1899,6 +1974,7 @@ recompiling the user code), it might be OK at compile time due to implicit conve
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.returnTypeErasureChanged]]
 === Method Return Type Erasure Changed - `java.method.returnTypeErasureChanged`
 [cols="35s,<65d"]
 |=============
@@ -1924,6 +2000,7 @@ the erased return type and therefore this change would cause a `NoSuchMethodErro
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.returnTypeChangedCovariantly]]
 === Method Return Type Changed Covariantly - `java.method.returnTypeChangedCovariantly`
 [cols="35s,<65d"]
 |=============
@@ -1949,6 +2026,7 @@ incompatibility though because the method signature changes and users of the old
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.returnTypeTypeParametersChanged]]
 === Type Parameters of The Return Type Changed - `java.method.returnTypeTypeParametersChanged`
 [cols="35s,<65d"]
 |=============
@@ -1972,6 +2050,7 @@ it is a source incompatible change. It is binary compatible because of type eras
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.numberOfParametersChanged]]
 === Number of Method Parameters Changed - `java.method.numberOfParametersChanged`
 [cols="35s,<65d"]
 |=============
@@ -1992,6 +2071,7 @@ Obviously, this is a breaking change - you can no longer call the method with th
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.parameterTypeChanged]]
 === Method Parameter Type Changed - `java.method.parameterTypeChanged`
 [cols="35s,<65d"]
 |=============
@@ -2016,6 +2096,7 @@ is strictly bigger than the old one and the old one is implicitly convertible to
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.parameterTypeErasureChanged]]
 === Method Parameter Type Erasure Changed - `java.method.parameterTypeErasureChanged`
 [cols="35s,<65d"]
 |=============
@@ -2039,6 +2120,7 @@ This is distinct from `java.method.parameterTypeChanged` to capture the situatio
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.parameterTypeParameterChanged]]
 === Method Parameter Type Parameter Changed - `java.method.parameterTypeParameterChanged`
 [cols="35s,<65d"]
 |=============
@@ -2065,6 +2147,7 @@ type changed. This is binary compatible because of the type erasure but it can b
 
 NOTE: This difference is not reported when overloads matching is turned off.
 
+[[java.method.exception.checkedAdded]]
 === Method Now Throws a Checked Exception - `java.method.exception.checkedAdded`
 [cols="35s,<65d"]
 |=============
@@ -2087,6 +2170,7 @@ new version of the method will have to be modified to handle the checked excepti
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.exception.runtimeAdded]]
 === Method Now Throws a Runtime Exception - `java.method.exception.runtimeAdded`
 [cols="35s,<65d"]
 |=============
@@ -2109,6 +2193,7 @@ that might want to catch the newly thrown exception.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.exception.checkedRemoved]]
 === Method No Longer Throws a Checked Exception - `java.method.exception.checkedRemoved`
 [cols="35s,<65d"]
 |=============
@@ -2132,6 +2217,7 @@ therefore the catch clauses for it will be invalid.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.exception.checkedRemoved]]
 === Method No Longer Throws a Runtime Exception - `java.method.exception.checkedRemoved`
 [cols="35s,<65d"]
 |=============
@@ -2153,6 +2239,7 @@ This is a compatible change added for completeness' sake.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.nowDefault]]
 === Method Now Default - `java.method.nowDefault`
 [cols="35s,<65d"]
 |=============
@@ -2175,6 +2262,7 @@ The method is now a default method. This is completely transparent.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.noLongerDefault]]
 === Method No Longer Default - `java.method.noLongerDefault`
 [cols="35s,<65d"]
 |=============
@@ -2198,6 +2286,7 @@ will now have to supply an implementation for it.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.generics.elementNowParameterized]]
 === Element Now Parameterized - `java.generics.elementNowParameterized`
 [cols="35s,<65d"]
 |=============
@@ -2223,6 +2312,7 @@ might start assuming uniform types in the list).
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.generics.formalTypeParameterAdded]]
 === Formal Type Parameter Added - `java.generics.formalTypeParameterAdded`
 [cols="35s,<65d"]
 |=============
@@ -2246,6 +2336,7 @@ definition of the formal type parameter.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.generics.formalTypeParameterRemoved]]
 === Formal Type Parameter Removed - `java.generics.formalTypeParameterRemoved`
 [cols="35s,<65d"]
 |=============
@@ -2269,6 +2360,7 @@ parameter that is no longer required.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.generics.formalTypeParameterChanged]]
 === Formal Type Parameter Changed - `java.generics.formalTypeParameterChanged`
 [cols="35s,<65d"]
 |=============
