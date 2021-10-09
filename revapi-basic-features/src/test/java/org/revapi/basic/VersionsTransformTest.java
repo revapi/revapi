@@ -195,12 +195,23 @@ class VersionsTransformTest {
         // but it doesn't influence anything in the main API. This theoretically should never actually happen, because
         // the API changes from the deps are only "dragged" into the API by use in the primary API, but we cannot assume
         // that at this level, because that is dependent on the API analyzer. Nevertheless, we can state that we don't
-        // know whether the the change has an effect on the API of the primary archives.
+        // know whether the change has an effect on the API of the primary archives.
         res = transform.tryTransform(notAffectingOldDepEl, notAffectingNewDepEl,
                 Difference.builder().withCode("code").withName("code").addClassification(OTHER, BREAKING).build());
 
         assertEquals("unknown", res.getDifferences().iterator().next().attachments.get("breaksVersioningRules"));
         assertNull(res.getDifferences().iterator().next().criticality);
+
+        // now, a final test. Let's make the non-affecting element a child of the depEl. Now there is a chain to
+        // the main API through such parent, and therefore we should get a breakage when transforming the non-affected
+        // element now
+        oldDepEl.getChildren().add(notAffectingOldDepEl);
+        newDepEl.getChildren().add(notAffectingNewDepEl);
+        res = transform.tryTransform(notAffectingOldDepEl, notAffectingNewDepEl,
+                Difference.builder().withCode("code").withName("code").addClassification(OTHER, BREAKING).build());
+
+        assertEquals("true", res.getDifferences().iterator().next().attachments.get("breaksVersioningRules"));
+        assertEquals(Criticality.ERROR, res.getDifferences().iterator().next().criticality);
     }
 
     @Test

@@ -345,6 +345,11 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
             results.add((Archive.Versioned) element.getArchive());
         }
 
+        E parent = element.getParent();
+        if (parent != null) {
+            getAllReferencingAPIElements(parent, results, processed);
+        }
+
         for (Reference<E> reference : element.getReferencingElements()) {
             E el = reference.getElement();
             getAllReferencingAPIElements(el, results, processed);
