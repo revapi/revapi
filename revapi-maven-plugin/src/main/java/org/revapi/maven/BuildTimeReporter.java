@@ -83,6 +83,9 @@ public final class BuildTimeReporter implements Reporter {
                     if (archive != null) {
                         errors.append(" [").append(archive.getName()).append("]");
                     }
+                    if (d.documentationLink != null) {
+                        errors.append(" ").append(d.documentationLink);
+                    }
                     errors.append("\n");
                 }
             }

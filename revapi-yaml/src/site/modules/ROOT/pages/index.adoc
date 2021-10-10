@@ -29,6 +29,7 @@ To look for a specific file (META-INF/config.yaml) with in ZIPs that are provide
 
 There is not much this analyzer can detect in the YAML files - merely additions, removals and changes.
 
+[[yaml.added]]
 === YAML node added - `yaml.added`
 [cols="35s,<65d"]
 |=============
@@ -48,6 +49,7 @@ or arrays are supported.
 | `path` | the JSON path to the added element within the file
 |====
 
+[[yaml.removed]]
 === YAML node removed - `yaml.removed`
 [cols="35s,<65d"]
 |=============
@@ -67,6 +69,7 @@ or arrays are supported.
 | `path` | the JSON path to the added element within the file
 |====
 
+[[yaml.changed]]
 === YAML node changed - `yaml.changed`
 [cols="35s,<65d"]
 |=============

@@ -25,6 +25,7 @@ import static org.revapi.DifferenceSeverity.NON_BREAKING;
 import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
 
 import java.lang.ref.WeakReference;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
@@ -374,7 +375,7 @@ public enum Code {
     public Difference createDifference(@Nonnull Locale locale) {
         Message message = getMessages(locale).get(code);
         Difference.Builder bld = Difference.builder().withCode(code).withName(message.name)
-                .withDescription(message.description);
+                .withDescription(message.description).withDocumentationLink(toDocLink(code));
         for (Map.Entry<CompatibilityType, DifferenceSeverity> e : classification.entrySet()) {
             bld.addClassification(e.getKey(), e.getValue());
         }
@@ -392,13 +393,18 @@ public enum Code {
         Message message = getMessages(locale).get(code);
         String description = MessageFormat.format(message.description, (Object[]) parameters);
         Difference.Builder bld = Difference.builder().withCode(code).withName(message.name).withDescription(description)
-                .addAttachments(attachments).withIdentifyingAttachments(identifyingAttachments);
+                .withDocumentationLink(toDocLink(code)).addAttachments(attachments)
+                .withIdentifyingAttachments(identifyingAttachments);
 
         for (Map.Entry<CompatibilityType, DifferenceSeverity> e : classification.entrySet()) {
             bld.addClassification(e.getKey(), e.getValue());
         }
 
         return bld.build();
+    }
+
+    private static URI toDocLink(String code) {
+        return URI.create("https://revapi.org/revapi-java/differences.html#" + code);
     }
 
     private static LinkedHashMap<String, String> keyVals(String... keyVals) {

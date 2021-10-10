@@ -16,6 +16,10 @@
  */
 package org.revapi.json;
 
+import java.net.URI;
+
+import javax.annotation.Nullable;
+
 import org.revapi.jackson.JacksonDifferenceAnalyzer;
 
 public class JsonDifferenceAnalyzer extends JacksonDifferenceAnalyzer<JsonElement> {
@@ -32,5 +36,11 @@ public class JsonDifferenceAnalyzer extends JacksonDifferenceAnalyzer<JsonElemen
     @Override
     protected String valueChangedCode() {
         return "json.valueChanged";
+    }
+
+    @Nullable
+    @Override
+    protected URI documentationLinkForCode(String code) {
+        return URI.create("https://revapi.org/revapi-json/index.html#" + code);
     }
 }

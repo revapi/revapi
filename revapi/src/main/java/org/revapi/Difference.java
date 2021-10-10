@@ -16,6 +16,7 @@
  */
 package org.revapi;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ public final class Difference {
         List<String> identifyingAttachments = new ArrayList<>(2);
         String justification;
         Criticality criticality;
+        URI documentationLink;
 
         @Nonnull
         public This withCode(@Nonnull String code) {
@@ -113,6 +115,11 @@ public final class Difference {
             return castThis();
         }
 
+        public This withDocumentationLink(URI link) {
+            this.documentationLink = link;
+            return castThis();
+        }
+
         protected void validate() throws IllegalStateException {
             if (code == null) {
                 throw new IllegalStateException("Difference code cannot be null");
@@ -134,8 +141,8 @@ public final class Difference {
         @Nonnull
         public Difference build() {
             validate();
-            return new Difference(code, name, description, justification, criticality, classification, attachments,
-                    identifyingAttachments);
+            return new Difference(code, name, description, justification, criticality, documentationLink,
+                    classification, attachments, identifyingAttachments);
         }
     }
 
@@ -149,8 +156,8 @@ public final class Difference {
         @Nonnull
         public Report.Builder done() {
             validate();
-            Difference p = new Difference(code, name, description, justification, criticality, classification,
-                    attachments, identifyingAttachments);
+            Difference p = new Difference(code, name, description, justification, criticality, documentationLink,
+                    classification, attachments, identifyingAttachments);
             reportBuilder.differences.add(p);
             return reportBuilder;
         }
@@ -164,8 +171,8 @@ public final class Difference {
     public static Builder copy(Difference other) {
         return builder().withCode(other.code).withDescription(other.description).withName(other.name)
                 .withJustification(other.justification).withCriticality(other.criticality)
-                .withIdentifyingAttachments(other.identifyingAttachments).addAttachments(other.attachments)
-                .addClassifications(other.classification);
+                .withDocumentationLink(other.documentationLink).withIdentifyingAttachments(other.identifyingAttachments)
+                .addAttachments(other.attachments).addClassifications(other.classification);
     }
 
     /**
@@ -204,7 +211,12 @@ public final class Difference {
     public final @Nullable Criticality criticality;
 
     /**
-     * @deprecated use the full constructor. This will be removed in some future release.
+     * The optional link to the documentation with further information about the difference.
+     */
+    public final @Nullable URI documentationLink;
+
+    /**
+     * @deprecated use the builder. This will be removed in some future release.
      */
     @Deprecated
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
@@ -214,7 +226,7 @@ public final class Difference {
     }
 
     /**
-     * @deprecated use the full constructor. This will be removed in some future release.
+     * @deprecated use the builder. This will be removed in some future release.
      */
     @Deprecated
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
@@ -224,7 +236,7 @@ public final class Difference {
     }
 
     /**
-     * @deprecated use the full constructor. This will be removed in some future release.
+     * @deprecated use the builder. This will be removed in some future release.
      */
     @Deprecated
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
@@ -233,10 +245,22 @@ public final class Difference {
         this(code, name, description, null, null, classification, attachments, identifyingAttachments);
     }
 
+    /**
+     * @deprecated use the builder. This will be removed in some future release.
+     */
+    @Deprecated
     public Difference(@Nonnull String code, @Nonnull String name, @Nullable String description,
             @Nullable String justification, @Nullable Criticality criticality,
             @Nonnull Map<CompatibilityType, DifferenceSeverity> classification,
             @Nonnull Map<String, String> attachments, @Nonnull List<String> identifyingAttachments) {
+        this(code, name, description, justification, criticality, null, classification, attachments,
+                identifyingAttachments);
+    }
+
+    private Difference(String code, String name, @Nullable String description, @Nullable String justification,
+            @Nullable Criticality criticality, @Nullable URI documentationLink,
+            Map<CompatibilityType, DifferenceSeverity> classification, Map<String, String> attachments,
+            List<String> identifyingAttachments) {
         this.code = code;
         this.name = name;
         this.description = description;
@@ -246,6 +270,7 @@ public final class Difference {
         this.classification = Collections.unmodifiableMap(tmp);
         this.attachments = Collections.unmodifiableMap(new LinkedHashMap<>(attachments));
         this.identifyingAttachments = Collections.unmodifiableList(identifyingAttachments);
+        this.documentationLink = documentationLink;
     }
 
     public boolean isIdentifyingAttachment(String attachmentName) {

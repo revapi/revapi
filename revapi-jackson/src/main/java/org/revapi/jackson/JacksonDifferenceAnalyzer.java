@@ -18,6 +18,8 @@ package org.revapi.jackson;
 
 import static java.util.Collections.singletonList;
 
+import java.net.URI;
+
 import javax.annotation.Nullable;
 
 import org.revapi.CompatibilityType;
@@ -75,18 +77,21 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
     }
 
     protected void addRemoved(Difference.InReportBuilder bld) {
-        bld.withCode(valueRemovedCode()).withName("value removed").addClassification(CompatibilityType.SEMANTIC,
-                DifferenceSeverity.BREAKING);
+        String code = valueAddedCode();
+        bld.withCode(valueRemovedCode()).withName("value removed").withDocumentationLink(documentationLinkForCode(code))
+                .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.BREAKING);
     }
 
     protected void addAdded(Difference.InReportBuilder bld) {
-        bld.withCode(valueAddedCode()).withName("value added").addClassification(CompatibilityType.SEMANTIC,
-                DifferenceSeverity.POTENTIALLY_BREAKING);
+        String code = valueAddedCode();
+        bld.withCode(code).withName("value added").withDocumentationLink(documentationLinkForCode(code))
+                .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.POTENTIALLY_BREAKING);
     }
 
     protected void addChanged(Difference.InReportBuilder bld) {
-        bld.withCode(valueChangedCode()).withName("value changed").addClassification(CompatibilityType.SEMANTIC,
-                DifferenceSeverity.POTENTIALLY_BREAKING);
+        String code = valueChangedCode();
+        bld.withCode(code).withName("value changed").withDocumentationLink(documentationLinkForCode(code))
+                .addClassification(CompatibilityType.SEMANTIC, DifferenceSeverity.POTENTIALLY_BREAKING);
     }
 
     protected abstract String valueRemovedCode();
@@ -94,4 +99,6 @@ public abstract class JacksonDifferenceAnalyzer<E extends JacksonElement<E>> ext
     protected abstract String valueAddedCode();
 
     protected abstract String valueChangedCode();
+
+    protected abstract @Nullable URI documentationLinkForCode(String code);
 }

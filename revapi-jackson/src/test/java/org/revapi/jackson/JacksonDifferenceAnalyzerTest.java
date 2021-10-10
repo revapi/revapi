@@ -24,6 +24,10 @@ import static org.revapi.CompatibilityType.SEMANTIC;
 import static org.revapi.DifferenceSeverity.BREAKING;
 import static org.revapi.DifferenceSeverity.POTENTIALLY_BREAKING;
 
+import java.net.URI;
+
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.junit.jupiter.api.Test;
@@ -191,6 +195,12 @@ class JacksonDifferenceAnalyzerTest {
         @Override
         protected String valueChangedCode() {
             return "test.changed";
+        }
+
+        @Nullable
+        @Override
+        protected URI documentationLinkForCode(String code) {
+            return null;
         }
     }
 }

@@ -16,6 +16,10 @@
  */
 package org.revapi.yaml;
 
+import java.net.URI;
+
+import javax.annotation.Nullable;
+
 import org.revapi.jackson.JacksonDifferenceAnalyzer;
 
 public class YamlDifferenceAnalyzer extends JacksonDifferenceAnalyzer<YamlElement> {
@@ -32,5 +36,11 @@ public class YamlDifferenceAnalyzer extends JacksonDifferenceAnalyzer<YamlElemen
     @Override
     protected String valueChangedCode() {
         return "yaml.valueChanged";
+    }
+
+    @Nullable
+    @Override
+    protected URI documentationLinkForCode(String code) {
+        return URI.create("https://revapi.org/revapi-yaml/index.html#" + code);
     }
 }

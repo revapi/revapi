@@ -412,7 +412,7 @@ $to_release
         echo "
           <!DOCTYPE html>
           <meta charset=\"utf-8\">
-          <script>location=\"$page\"</script>
+          <script>location=\"$page\" + location.hash</script>
           <meta http-equiv=\"refresh\" content=\"0; url=$page\">
           <meta name=\"robots\" content=\"noindex\">
           <title>Redirect Notice</title>
