@@ -537,7 +537,7 @@
                                     We want more strict versioning rules even in 0.x.y so that even here we have some
                                     semblance of controlled progress.
                                     -->
-                                    <semver0>false</semver0>
+                                    <semantic0>false</semantic0>
                                     <passThroughDifferences>
                                         <item>java.class.nonPublicPartOfAPI</item>
                                     </passThroughDifferences>
@@ -592,6 +592,13 @@
                                             <newArchive>com\.fasterxml\.jackson\.core:.*.*</newArchive>
                                             <justification>Revapi uses Jackson for representing the JSON
                                                 configuration.</justification>
+                                        </item>
+                                        <item>
+                                            <code>java.annotation.removed</code>
+                                            <annotation>@javax.annotation.Nonnull</annotation>
+                                            <justification>The convention in the codebase is now that everything is
+                                                assumed non-null unless annotated @Nullable, so @NonNull doesn't make
+                                                sense anymore.</justification>
                                         </item>
                                     </differences>
                                 </revapi.differences>
