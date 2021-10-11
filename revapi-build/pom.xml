@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-parent</artifactId>
-        <version>15</version>
+        <version>16-SNAPSHOT</version>
         <relativePath>../revapi-parent</relativePath>
     </parent>
     <artifactId>revapi-build</artifactId>
-    <version>45</version>
+    <version>46-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Revapi Build Parent</name>
     <description>This module is meant to serve as parent for other modules that actually contain code and
