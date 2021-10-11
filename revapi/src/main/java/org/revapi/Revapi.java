@@ -715,6 +715,7 @@ public final class Revapi {
             matchingTransformsCache.put(diff.code, ret);
         }
 
+        ret = new HashSet<>(ret);
         ret.forEach(l -> l.retainAll(transforms));
 
         return ret;
