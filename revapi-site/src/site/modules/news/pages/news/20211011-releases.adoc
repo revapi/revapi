@@ -1,0 +1,12 @@
+= Release Notes
+:page-publish_date: 2021-10-11
+:page-layout: news-article
+
+Another quick release with an important fix to missing type handling in `java-package` matcher, improved
+handling of differences originating in dependencies in `revapi.versions` and a small new usability
+improvement where each difference now can a documentation link where it is discussed in more detail. These links are now part of the output of the maven plugin.
+
+The following bugs were fixed in this release: https://github.com/revapi/revapi/issues/249[#249], https://github.com/revapi/revapi/issues/244[#244] and https://github.com/revapi/revapi/issues/250[#250].
+
+Please consult xref:revapi-site::downloads.adoc[] for the latest release numbers.
+
