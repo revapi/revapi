@@ -60,7 +60,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.12.4-SNAPSHOT</version>
+            <version>0.12.4</version>
         </dependency>
     </dependencies>
     <build>
