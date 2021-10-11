@@ -347,7 +347,7 @@ public final class Revapi {
                     .map(ExtensionInstance::getInstance).collect(toSet());
 
             config.reports.forEach(r -> {
-                transform(r, allTransforms.keySet(), null, false, config);
+                transform(r, allTransforms.keySet(), config);
 
                 if (!r.getDifferences().isEmpty()) {
                     Stats.of("reports").start();
@@ -565,8 +565,8 @@ public final class Revapi {
         }
     }
 
-    private <E extends Element<E>> void transform(Report report, Collection<DifferenceTransform<?>> eligibleTransforms,
-            Collection<Report> undecidedReports, boolean collectUndecided, AnalysisProgress progress) {
+    private void transform(Report report, Collection<DifferenceTransform<?>> eligibleTransforms,
+            AnalysisProgress progress) {
 
         if (report == null) {
             return;
@@ -588,7 +588,6 @@ public final class Revapi {
                 Difference d = it.next();
                 transformed.clear();
                 boolean differenceChanged = false;
-                boolean undecided = false;
 
                 LOG.debug("Transformation iteration {}", iteration);
 
@@ -600,8 +599,7 @@ public final class Revapi {
 
                         // it is the responsibility of the transform to declare the proper type.
                         // it will get a ClassCastException if it fails to declare a type that is common to all
-                        // differences
-                        // it can handle
+                        // differences it can handle
                         @SuppressWarnings("rawtypes")
                         DifferenceTransform transform = t;
 
@@ -636,11 +634,7 @@ public final class Revapi {
                                 blockResultsIt.remove();
                                 break;
                             case UNDECIDED:
-                                // when we're not collecting the undecided reports, this is the same as KEEP
-                                if (collectUndecided) {
-                                    undecidedReports.add(report);
-                                    undecided = true;
-                                }
+                                // this is the same as KEEP
                                 break;
                             }
                         }
@@ -659,7 +653,7 @@ public final class Revapi {
                     }
                 }
 
-                if (!undecided && differenceChanged) {
+                if (differenceChanged) {
                     listChanged = true;
                     // we need to remove the element in either case
                     it.remove();
