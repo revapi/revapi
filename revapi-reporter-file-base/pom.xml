@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>45</version>
+        <version>46-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-reporter-file-base</artifactId>
-    <version>0.4.4</version>
+    <version>0.4.5-SNAPSHOT</version>
     <name>File Reporter Base</name>
     <description>Base class for file-based reporters defining some common behavior so that it doesn't have to be reimplemented
         all the time.</description>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.14.3</version>
+            <version>0.14.4-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
