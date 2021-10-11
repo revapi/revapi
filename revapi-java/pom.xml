@@ -111,7 +111,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-java-spi</artifactId>
-            <version>0.23.5-SNAPSHOT</version>
+            <version>0.23.5</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.shrinkwrap</groupId>
