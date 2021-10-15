@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>45-SNAPSHOT</version>
+        <version>46-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <groupId>org.revapi.examples</groupId>
@@ -40,6 +40,9 @@
     </modules>
     <properties>
         <version.org.junit>5.7.0</version.org.junit>
+        <version.revapi>0.14.4-SNAPSHOT</version.revapi>
+        <version.revapi-java>0.26.1-SNAPSHOT</version.revapi-java>
+        <version.revapi-java-spi>0.23.6-SNAPSHOT</version.revapi-java-spi>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -49,6 +52,21 @@
                 <version>${version.org.junit}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi</artifactId>
+                <version>${version.revapi}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-java</artifactId>
+                <version>${version.revapi-java}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-java-spi</artifactId>
+                <version>${version.revapi-java-spi}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
