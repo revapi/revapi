@@ -73,7 +73,6 @@ public final class Revapi {
 
     private final PipelineConfiguration pipelineConfiguration;
     private final ConfigurationValidator configurationValidator;
-    private final Map<String, Set<List<DifferenceTransform<?>>>> matchingTransformsCache = new HashMap<>();
 
     /**
      * Use the {@link #builder()} instead.
@@ -204,8 +203,6 @@ public final class Revapi {
 
         TIMING_LOG.debug("Initialization complete.");
 
-        matchingTransformsCache.clear();
-
         Exception error = null;
         try {
             for (ExtensionInstance<ApiAnalyzer<?>> ia : extensions.getAnalyzers().keySet()) {
@@ -335,11 +332,12 @@ public final class Revapi {
                     .collect(toMap(i -> (DifferenceTransform<?>) i,
                             i -> i.startTraversal(apiAnalyzer, oldAnalyzer, newAnalyzer)));
 
-            List<DifferenceTransform.TraversalTracker<E>> activeTransforms = allTransforms.values().stream()
-                    .filter(Optional::isPresent).map(Optional::get).collect(toList());
+            Map<DifferenceTransform<?>, DifferenceTransform.TraversalTracker<E>> activeTransforms = allTransforms
+                    .entrySet().stream().filter(e -> e.getValue().isPresent())
+                    .collect(toMap(Map.Entry::getKey, e -> e.getValue().get()));
 
-            analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs, activeTransforms,
-                    config);
+            analyze(apiAnalyzer.getCorrespondenceDeducer(), elementDifferenceAnalyzer, as, bs,
+                    activeTransforms.values(), config);
 
             allTransforms.values().forEach(tr -> tr.ifPresent(DifferenceTransform.TraversalTracker::endTraversal));
 
@@ -347,7 +345,7 @@ public final class Revapi {
                     .map(ExtensionInstance::getInstance).collect(toSet());
 
             config.reports.forEach(r -> {
-                transform(r, allTransforms.keySet(), config);
+                transform(r, activeTransforms.keySet(), config);
 
                 if (!r.getDifferences().isEmpty()) {
                     Stats.of("reports").start();
@@ -689,11 +687,11 @@ public final class Revapi {
     }
 
     private Set<List<DifferenceTransform<?>>> getTransformsForDifference(Difference diff,
-            Collection<DifferenceTransform<?>> transforms, AnalysisProgress config) {
-        Set<List<DifferenceTransform<?>>> ret = matchingTransformsCache.get(diff.code);
+            Collection<DifferenceTransform<?>> eligibleTransforms, AnalysisProgress progress) {
+        Set<List<DifferenceTransform<?>>> ret = progress.matchingTransformsCache.get(diff.code);
         if (ret == null) {
             ret = new HashSet<>();
-            for (List<DifferenceTransform<?>> ts : config.transformBlocks) {
+            for (List<DifferenceTransform<?>> ts : progress.transformBlocks) {
                 List<DifferenceTransform<?>> actualTs = new ArrayList<>(ts.size());
                 for (DifferenceTransform<?> t : ts) {
                     for (Pattern p : t.getDifferenceCodePatterns()) {
@@ -706,11 +704,11 @@ public final class Revapi {
                 }
                 ret.add(actualTs);
             }
-            matchingTransformsCache.put(diff.code, ret);
+            progress.matchingTransformsCache.put(diff.code, ret);
         }
 
         ret = new HashSet<>(ret);
-        ret.forEach(l -> l.retainAll(transforms));
+        ret.forEach(l -> l.retainAll(eligibleTransforms));
 
         return ret;
     }
@@ -891,6 +889,7 @@ public final class Revapi {
         final API oldApi;
         final API newApi;
         final List<Report> reports;
+        final Map<String, Set<List<DifferenceTransform<?>>>> matchingTransformsCache = new HashMap<>();
 
         AnalysisProgress(AnalysisResult.Extensions extensions, PipelineConfiguration configuration, API oldApi,
                 API newApi) {
