@@ -149,8 +149,9 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
                 Iterator<UseSite> usit = type.getUseSites().iterator();
                 while (usit.hasNext()) {
                     UseSite useSite = usit.next();
-                    if (isInForest(forest, useSite.getElement())) {
-                        if (useSite.getType().isMovingToApi()) {
+                    JavaElement usingElement = useSite.getElement();
+                    if (isInForest(forest, usingElement)) {
+                        if (useSite.isMovingToApi()) {
                             remove = false;
                         }
                     } else {
@@ -206,6 +207,19 @@ public final class JavaArchiveAnalyzer implements ArchiveAnalyzer<JavaElement> {
                 });
             }
         } while (changed);
+
+        // now go through all types again and modify their API status if they no longer are used
+        forest.stream(TypeElement.class, true, null).forEach(type -> {
+            if (!type.isInApiThroughUse()) {
+                return;
+            }
+
+            boolean stillInApi = type.getUseSites().stream().anyMatch(UseSite::isMovingToApi);
+            if (!stillInApi) {
+                type.setInApi(false);
+                type.setInApiThroughUse(false);
+            }
+        });
     }
 
     private static boolean isInForest(ElementForest<JavaElement> forest, JavaElement element) {

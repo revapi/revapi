@@ -16,6 +16,10 @@
  */
 package org.revapi.java.spi;
 
+import java.util.Set;
+
+import javax.lang.model.element.Modifier;
+
 import org.revapi.Reference;
 
 /**
@@ -76,6 +80,8 @@ public final class UseSite extends Reference<JavaElement> {
         TYPE_PARAMETER_OR_BOUND;
 
         /**
+         * Consider using {@link UseSite#isMovingToApi()}, if possible.
+         *
          * @return true if this type of use makes the used type part of the API even if it wasn't originally part of it.
          */
         public boolean isMovingToApi() {
@@ -105,6 +111,25 @@ public final class UseSite extends Reference<JavaElement> {
         return (Type) super.getType();
     }
 
+    /**
+     * This checks if the {@link #getType() type} of the use causes the use site to be part of the API but it also
+     * checks that the site actually can cause the used type to be in the API. In particular, protected members of final
+     * classes cannot move to the API, because no outside caller can access those members.
+     * <p>
+     * Implementation note: This can only be reliably used once the element forest is completely constructed.
+     * The first point when this is safe is during the element forest pruning. In particular, one cannot use this in
+     * {@link org.revapi.TreeFilter}s because those are used during element forest construction.
+     *
+     * @return {@code true} if the use site moves the used type to the API, {@code false} otherwise.
+     */
+    public boolean isMovingToApi() {
+        if (!getType().isMovingToApi()) {
+            return false;
+        }
+
+        return isEffectivelyInApi(getElement());
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("UseSite[");
@@ -112,5 +137,36 @@ public final class UseSite extends Reference<JavaElement> {
         sb.append(", useType=").append(getType());
         sb.append(']');
         return sb.toString();
+    }
+
+    private static boolean isEffectivelyInApi(JavaElement el) {
+        if (!(el instanceof JavaModelElement)) {
+            return true;
+        }
+
+        JavaModelElement me = (JavaModelElement) el;
+        JavaModelElement parent = me.getParent();
+
+        if (me instanceof JavaMethodParameterElement) {
+            return isEffectivelyInApi(parent);
+        }
+
+        Set<Modifier> modifiers = me.getDeclaringElement().getModifiers();
+
+        if (modifiers.contains(Modifier.PUBLIC)) {
+            return parent == null || isEffectivelyInApi(parent);
+        }
+
+        if (modifiers.contains(Modifier.PROTECTED)) {
+            // a protected element in a final class is effectively not part of the api, because it cannot be accessed
+            // outside it. If we found a usage of it, it must be in a context which has access to it.
+            if (parent != null && parent.getDeclaringElement().getModifiers().contains(Modifier.FINAL)) {
+                return false;
+            }
+            return parent == null || isEffectivelyInApi(parent);
+        } else {
+            // package-private or private
+            return false;
+        }
     }
 }

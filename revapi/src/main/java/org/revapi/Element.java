@@ -137,6 +137,10 @@ public interface Element<E extends Element<E>> extends Comparable<E> {
     /**
      * If the API analyzer supports the feature, this returns the set of elements that reference this element in some
      * way (typically, those would be the use sites of this element).
+     * <p>
+     * Note that, generally speaking, the references should not be used in {@link TreeFilter} implementations because
+     * the filters are used during the construction of the {@link ElementForest} meaning that the references are not yet
+     * finalized at that point in time.
      */
     default Set<Reference<E>> getReferencingElements() {
         return Collections.emptySet();
@@ -158,6 +162,10 @@ public interface Element<E extends Element<E>> extends Comparable<E> {
     /**
      * If the API analyzer supports the feature, this returns the set of elements that are referenced by this element in
      * some way (typically, those would be the elements somehow used by this element).
+     * <p>
+     * Note that, generally speaking, the references should not be used in {@link TreeFilter} implementations because
+     * the filters are used during the construction of the {@link ElementForest} meaning that the references are not yet
+     * finalized at that point in time.
      */
     default Set<Reference<E>> getReferencedElements() {
         return Collections.emptySet();

@@ -21,6 +21,10 @@ import java.util.Objects;
 /**
  * Represents a reference between two elements determined in some way by the API analyzer. The type of the relationship
  * is specified by the {@link Type} interface which is basically opaque outside of the API analyzer.
+ * <p>
+ * Note that, generally speaking, the references should not be used in {@link TreeFilter} implementations because
+ * the filters are used during the construction of the {@link ElementForest} meaning that the references are not yet
+ * finalized at that point in time.
  *
  * @param <E>
  *            the base type of elements

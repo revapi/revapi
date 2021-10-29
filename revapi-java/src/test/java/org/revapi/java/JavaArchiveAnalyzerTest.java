@@ -335,6 +335,37 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         }
     }
 
+    @Test
+    public void testProtectedMembersOfFinalClassNotInApi() throws Exception {
+        ArchiveAndCompilationPath archive = createCompiledJar("i.jar", "misc/ProtectedMembersOfFinalClass.java");
+
+        JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
+                new API(singletonList(new ShrinkwrapArchive(archive.archive)), null), emptyList(),
+                Executors.newSingleThreadExecutor(), null, false, null);
+
+        try {
+            JavaElementForest forest = analyzer.analyze(TreeFilter.matchAndDescend());
+            analyzer.prune(forest);
+
+            forest.getRoots();
+
+            Assert.assertEquals(1, forest.getRoots().size());
+
+            JavaTypeElement Root = forest.getRoots().iterator().next().as(JavaTypeElement.class);
+
+            JavaTypeElement Inherited = Root.stream(JavaTypeElement.class, false)
+                    .filter(c -> "Inherited".contentEquals(c.getDeclaringElement().getSimpleName())).findFirst().get();
+            JavaTypeElement X = Inherited.stream(JavaTypeElement.class, false)
+                    .filter(m -> "X".contentEquals(m.getDeclaringElement().getSimpleName())).findFirst().get();
+
+            assertFalse(X.isInAPI());
+            assertFalse(X.isInApiThroughUse());
+        } finally {
+            deleteDir(archive.compilationPath);
+            analyzer.getCompilationValve().removeCompiledResults();
+        }
+    }
+
     private Predicate<TypeElement> hasName(String name) {
         return t -> name.equals(t.getFullHumanReadableString());
     }
