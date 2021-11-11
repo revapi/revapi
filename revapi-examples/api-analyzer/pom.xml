@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.revapi.examples</groupId>
-        <artifactId>revapi-examples-parent</artifactId>
+        <artifactId>revapi-examples</artifactId>
         <version>0</version>
     </parent>
     <artifactId>api-analyzer</artifactId>

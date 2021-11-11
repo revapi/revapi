@@ -5,12 +5,11 @@ MVN=${MVN:-mvn}
 
 ALL_MODULES=" $(find -maxdepth 1 -type d -name 'revapi-*' | sed -e 's/-/_/g' -e 's|^\./||g') revapi coverage"
 
-UNRELEASED="coverage revapi_site revapi_examples_parent"
+UNRELEASED="coverage revapi_site revapi_examples"
 
 DEPS_revapi_parent=""
 DEPS_revapi_site="revapi_build"
 DEPS_revapi_site_assembly=""
-DEPS_revapi_examples_parent="revapi_build revapi revapi_java revapi_java_spi"
 DEPS_revapi_build_support="revapi_parent"
 DEPS_revapi_build="revapi_parent revapi_build_support"
 DEPS_revapi_maven_utils="revapi_build"
@@ -28,11 +27,12 @@ DEPS_revapi_jackson="revapi revapi_build"
 DEPS_revapi_json="revapi_jackson revapi_build"
 DEPS_revapi_yaml="revapi_jackson revapi_build"
 DEPS_coverage="revapi_build revapi revapi_ant_task revapi_basic_features revapi_jackson revapi_java revapi_java_spi revapi_json revapi_maven_plugin revapi_maven_utils revapi_reporter_file_base revapi_reporter_json revapi_reporter_text revapi_yaml"
+DEPS_revapi_examples=$DEPS_coverage
 
 RELEASE_DEPS_revapi_parent=$DEPS_revapi_parent
 RELEASE_DEPS_revapi_site=$DEPS_revapi_site
 RELEASE_DEPS_revapi_site_assembly=$DEPS_revapi_site_assembly
-RELEASE_DEPS_revapi_examples_parent=$DEPS_revapi_examples_parent
+RELEASE_DEPS_revapi_examples=$DEPS_revapi_examples
 RELEASE_DEPS_revapi_build_support=$DEPS_revapi_build_support
 RELEASE_DEPS_revapi_build=$DEPS_revapi_build
 RELEASE_DEPS_revapi_maven_utils=$DEPS_revapi_maven_utils
@@ -68,7 +68,8 @@ ORDER_revapi_standalone=5
 ORDER_revapi_jackson=4
 ORDER_revapi_json=5
 ORDER_revapi_yaml=5
-ORDER_coverage=3
+ORDER_revapi_examples_parent=7
+ORDER_coverage=7
 
 SITE_revapi_parent=0
 SITE_revapi_build_support=0
@@ -87,6 +88,7 @@ SITE_revapi_standalone=1
 SITE_revapi_jackson=1
 SITE_revapi_json=1
 SITE_revapi_yaml=1
+SITE_revapi_examples_parent=0
 SITE_coverage=0
 
 function to_dep() {
@@ -212,6 +214,7 @@ function release_module() {
   local currentDir=$(pwd)
   cd ..
   for m in $downs; do
+    echo "----------------- Updating direct dependency: $m"
     cd $(to_module $m)
     if [ ! -f pom.xml ]; then
       cd ..
