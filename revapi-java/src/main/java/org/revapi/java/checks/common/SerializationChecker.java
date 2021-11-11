@@ -315,6 +315,10 @@ public class SerializationChecker extends CheckBase {
 
         for (TypeMirror st : Util.getAllSuperClasses(types, type.asType())) {
             Element ste = types.asElement(st);
+            if (ste == null) {
+                // a missing class
+                continue;
+            }
             ElementFilter.fieldsIn(ste.getEnclosedElements()).stream().filter(serializableFields).sorted(bySimpleName)
                     .map(e -> types.asMemberOf((DeclaredType) st, e)).forEach(fields::add);
         }
@@ -585,7 +589,7 @@ public class SerializationChecker extends CheckBase {
     }
 
     /**
-     * Adapted from {@link java.io.ObjectStreamClass.MemberSignature}
+     * Adapted from {@code java.io.ObjectStreamClass.MemberSignature}
      *
      * <p>
      * Class for computing and caching field/constructor/method signatures during serialVersionUID calculation.
