@@ -54,8 +54,8 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <self-api-check.java-extension-version>0.25.0</self-api-check.java-extension-version>
-        <self-api-check.maven-version>0.14.4</self-api-check.maven-version>
+        <self-api-check.java-extension-version>0.26.2-SNAPSHOT</self-api-check.java-extension-version>
+        <self-api-check.maven-version>0.14.7-SNAPSHOT</self-api-check.maven-version>
         <version.ch.qos.logback>1.2.0</version.ch.qos.logback>
         <version.com.google.code.findbugs>3.0.0</version.com.google.code.findbugs>
         <version.org.junit>5.7.0</version.org.junit>
