@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>46-SNAPSHOT</version>
+        <version>45</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-basic-features</artifactId>
-    <version>0.12.5-SNAPSHOT</version>
+    <version>0.12.5</version>
     <name>Basic Features</name>
     <description>The basic extensions loaded by default both in the standalone
         distribution and by the maven plugin.</description>
@@ -60,7 +60,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.14.5-SNAPSHOT</version>
+            <version>0.14.4</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
