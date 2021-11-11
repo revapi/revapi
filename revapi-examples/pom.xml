@@ -40,7 +40,7 @@
     </modules>
     <properties>
         <version.org.junit>5.7.0</version.org.junit>
-        <version.revapi>0.14.4-SNAPSHOT</version.revapi>
+        <version.revapi>0.14.4</version.revapi>
         <version.revapi-java>0.26.1-SNAPSHOT</version.revapi-java>
         <version.revapi-java-spi>0.23.6-SNAPSHOT</version.revapi-java-spi>
     </properties>
