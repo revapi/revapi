@@ -116,8 +116,8 @@ public final class UseSite extends Reference<JavaElement> {
      * checks that the site actually can cause the used type to be in the API. In particular, protected members of final
      * classes cannot move to the API, because no outside caller can access those members.
      * <p>
-     * Implementation note: This can only be reliably used once the element forest is completely constructed.
-     * The first point when this is safe is during the element forest pruning. In particular, one cannot use this in
+     * Implementation note: This can only be reliably used once the element forest is completely constructed. The first
+     * point when this is safe is during the element forest pruning. In particular, one cannot use this in
      * {@link org.revapi.TreeFilter}s because those are used during element forest construction.
      *
      * @return {@code true} if the use site moves the used type to the API, {@code false} otherwise.
