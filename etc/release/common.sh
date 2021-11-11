@@ -188,6 +188,12 @@ function ensure_clean_workdir() {
 }
 
 function release_module() {
+  __result_module_name=$1
+  __result_module_version=$2
+
+  eval $__result_module_name=""
+  eval $__result_module_version=""
+
   ensure_clean_workdir
   local module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
   if contains $(to_dep $module) "$UNRELEASED"; then
@@ -266,6 +272,9 @@ function release_module() {
 
   #now we need to install so that the subsequent builds pick up our new version
   ${MVN} install -Pfast
+
+  eval $__result_module_name="'$module'"
+  eval $__result_module_version="'$version'"
 }
 
 function update_module_version() {
@@ -313,15 +322,41 @@ function do_releases() {
   to_release=$(determine_releases $@)
   echo "The following modules will be released $(echo "$to_release" | tr "\n" " ")"
 
+  released_maven_plugin_version=""
+  released_revapi_java_version=""
   for m in $to_release; do
     m=$(to_module "$m")
     echo "--------- Releasing $m"
     cd "$m"
-    release_module
+    release_module module_name module_version
+    if [ "$module_name" == "revapi-maven-plugin" ]; then
+      released_maven_plugin_version=$module_version
+    fi
+    if [ "$module_name" == "revapi-java" ]; then
+      released_revapi_java_version=$module_version
+    fi
     cd "$CWD"
   done
 
-  echo $to_release
+  dirty=0
+  if [ -n "$released_maven_plugin_version" ]; then
+    cd revapi-build
+    ${MVN} versions:set-property -Dproperty=self-api-check.maven-version -DnewVersion="$released_maven_plugin_version"
+    cd ..
+    dirty=1
+  fi
+
+  if [ -n "$released_revapi_java_version" ]; then
+    cd revapi-build
+    ${MVN} versions:set-property -Dproperty=self-api-check.java-extension-version -DnewVersion="$released_revapi_java_version"
+    cd ..
+    dirty=1
+  fi
+
+  if [ $dirty -eq 1 ]; then
+    git add -A
+    git commit -m "Updating revapi-build to use the latest versions for the self-check"
+  fi
 }
 
 function publish_site() {
