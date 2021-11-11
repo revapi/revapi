@@ -1,0 +1,17 @@
+= Release Notes
+:page-publish_date: 2021-11-12
+:page-layout: news-article
+
+Almost exactly one month after the last release, there comes another with 3 fixes:
+
+https://github.com/revapi/revapi/issues/251[#251] - `protected` members of `final` classes are no longer
+considered part of the API because they cannot be called by the "outside" code.
+
+https://github.com/revapi/revapi/issues/250[#250] - the Revapi instance can now be shared by multiple threads and multiple analyses can run in parallel.
+
+https://github.com/revapi/revapi/issues/253[#253] - an NPE caused by more strict handling of missing classes introduced in the last release is now fixed.
+
+Thanks go out to https://github.com/konikvranik[Petr Vranik], https://github.com/uhafner[Ullrich Hafner] and https://github.com/chrisvest[Chris Vest] for reporting the bugs.
+
+Please consult xref:revapi-site::downloads.adoc[] for the latest release numbers.
+
