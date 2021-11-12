@@ -237,10 +237,10 @@ function release_module() {
   cd ${currentDir}
 
   # commit and finish up the release
-  local version=$(xpath -q -e "/project/version/text()" pom.xml)
+  local release_version=$(xpath -q -e "/project/version/text()" pom.xml)
   git add -A
-  git commit -m "Release $module-$version"
-  git tag "${module}_v${version}"
+  git commit -m "Release $module-$release_version"
+  git tag "${module}_v${release_version}"
   ensure_clean_workdir
   ${MVN} -Prelease,fast install deploy
 
@@ -274,7 +274,7 @@ function release_module() {
   ${MVN} install -Pfast
 
   eval $__result_module_name="'$module'"
-  eval $__result_module_version="'$version'"
+  eval $__result_module_version="'$release_version'"
 }
 
 function update_module_version() {
