@@ -125,7 +125,7 @@ public final class Main {
         System.out.println(pad + " -r");
         System.out.println(pad + " --remote-repositories=<URL>[,<URL>]*");
         System.out.println(pad + "    The url of the remote Maven repository to use for artifact resolution. "
-                + "Defaults to Maven Central (http://repo.maven.apache.org/maven2/).");
+                + "Defaults to Maven Central (https://repo.maven.apache.org/maven2/).");
         System.out.println();
         System.out.println("You can specify the old API either using -o and -s where you specify the filesystem paths"
                 + " to the archives and supplementary archives respectively or you can use -a to specify the GAVs of the"
