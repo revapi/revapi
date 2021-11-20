@@ -73,6 +73,8 @@ public final class Main {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Main.class);
 
+    private static final String DEFAULT_REPOSITORY_URL = "https://repo.maven.apache.org/maven2/";
+
     private static void usage(@Nullable String progName) {
         if (progName == null) {
             progName = "revapi.(sh|bat)";
@@ -125,7 +127,7 @@ public final class Main {
         System.out.println(pad + " -r");
         System.out.println(pad + " --remote-repositories=<URL>[,<URL>]*");
         System.out.println(pad + "    The url of the remote Maven repository to use for artifact resolution. "
-                + "Defaults to Maven Central (http://repo.maven.apache.org/maven2/).");
+                + "Defaults to Maven Central (" + DEFAULT_REPOSITORY_URL + ").");
         System.out.println();
         System.out.println("You can specify the old API either using -o and -s where you specify the filesystem paths"
                 + " to the archives and supplementary archives respectively or you can use -a to specify the GAVs of the"
@@ -479,7 +481,7 @@ public final class Main {
 
         if (remoteRepositories.isEmpty()) {
             remoteRepositories.add(
-                    new RemoteRepository.Builder("maven-central", "default", "https://repo.maven.apache.org/maven2/")
+                    new RemoteRepository.Builder("maven-central", "default", DEFAULT_REPOSITORY_URL)
                             .build());
         }
 
