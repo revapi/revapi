@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -255,13 +254,15 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
 
         boolean semantic0 = config.path("semantic0").asBoolean(true);
 
+        boolean strictSemver = config.path("strictSemver").asBoolean(true);
+
         // now compute the change hints on the archives
         archiveHints = new HashMap<>();
         for (Map.Entry<String, Archive.Versioned> e : oldArchives.entrySet()) {
             Archive.Versioned oldArchive = e.getValue();
             Archive.Versioned newArchive = newArchives.remove(e.getKey());
 
-            Version oldVersion = Version.parse(oldArchive.getVersion());
+            SemverVersion oldVersion = SemverVersion.parse(oldArchive.getVersion(), strictSemver);
 
             if (newArchive == null) {
                 // the old archive is no longer part of the API and the classes from it are most probably part
@@ -280,7 +281,7 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
                 continue;
             }
 
-            Version newVersion = Version.parse(newArchive.getVersion());
+            SemverVersion newVersion = SemverVersion.parse(newArchive.getVersion(), strictSemver);
 
             boolean majorIncrease = oldVersion.major < newVersion.major;
             boolean minorIncrease = oldVersion.major == newVersion.major && oldVersion.minor < newVersion.minor;
@@ -320,7 +321,7 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
 
         // process the archives in the new API that are not present in the old API
         for (Map.Entry<String, Archive.Versioned> e : newArchives.entrySet()) {
-            Version newVersion = Version.parse(e.getValue().getVersion());
+            SemverVersion newVersion = SemverVersion.parse(e.getValue().getVersion(), strictSemver);
 
             // There are again 2 cases of the element that we can encounter:
             // 1) The element is brand new (no counter part in any of the archives of the old API)
@@ -739,63 +740,17 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
         }
     }
 
-    private static final class Version {
-        private static final Pattern SEMVER_PATTERN = Pattern
-                .compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*))?([.\\-+])?([0-9A-Za-z-.+]*)?");
-
-        final int major;
-        final int minor;
-        final int patch;
-        final String sep;
-        final String suffix;
-
-        static Version parse(String version) {
-            Matcher m = SEMVER_PATTERN.matcher(version);
-            if (!m.matches()) {
-                throw new IllegalArgumentException(
-                        "Could not parse the version string '" + version + "'. It does not follow the semver schema.");
-            }
-
-            int major = Integer.parseInt(m.group(1));
-            String minorMatch = m.group(3);
-            int minor = minorMatch == null || minorMatch.isEmpty() ? 0 : Integer.parseInt(minorMatch);
-            int patch = 0;
-            String patchMatch = m.group(4);
-            if (patchMatch != null && !patchMatch.isEmpty()) {
-                patch = Integer.parseInt(patchMatch);
-            }
-            String sep = m.group(5);
-            String suffix = m.group(6);
-
-            if (sep != null && sep.isEmpty()) {
-                sep = null;
-            }
-
-            if (suffix != null && suffix.isEmpty()) {
-                suffix = null;
-            }
-
-            return new Version(major, minor, patch, sep, suffix);
-        }
-
-        Version(int major, int minor, int patch, String sep, String suffix) {
-            this.major = major;
-            this.minor = minor;
-            this.patch = patch;
-            this.sep = sep;
-            this.suffix = suffix;
-        }
-    }
-
     private static final class VersionRecord {
         final @Nullable Archive.Versioned oldArchive;
         final @Nullable Archive.Versioned newArchive;
-        final @Nullable Version oldVersion;
-        final @Nullable Version newVersion;
+        final @Nullable
+        SemverVersion oldVersion;
+        final @Nullable
+        SemverVersion newVersion;
         final VersionChange versionChange;
 
         VersionRecord(@Nullable Archive.Versioned oldArchive, @Nullable Archive.Versioned newArchive,
-                @Nullable Version oldVersion, @Nullable Version newVersion, VersionChange versionChange) {
+                @Nullable SemverVersion oldVersion, @Nullable SemverVersion newVersion, VersionChange versionChange) {
             this.oldArchive = oldArchive;
             this.newArchive = newArchive;
             this.oldVersion = oldVersion;

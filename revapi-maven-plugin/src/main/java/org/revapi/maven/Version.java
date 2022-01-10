@@ -25,8 +25,7 @@ import java.util.regex.Pattern;
  * @since 0.4.0
  */
 final class Version implements Cloneable {
-    private static final Pattern SEMVER_PATTERN = Pattern
-            .compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*))?(\\.|-|\\+)?([0-9A-Za-z-.]*)?");
+    private static final Pattern SEMVER_PATTERN = Pattern.compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*))?(\\.|-|\\+)?(.*)?");
 
     private int major;
     private int minor;

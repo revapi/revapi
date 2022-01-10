@@ -21,8 +21,9 @@ The following is the default configuration of the extension:
 ----
 {
   "enabled": false, <1>
-  "semantic0": true, <2>
-  "versionIncreaseAllows": { <3>
+  "semantic0": true, <2>,
+  "strictSemver": true, <3>
+  "versionIncreaseAllows": { <4>
     "major": {
       "severity": "BREAKING"
     },
@@ -33,32 +34,35 @@ The following is the default configuration of the extension:
       "severity": "EQUIVALENT"
     }
   },
-  "onAllowed": { <4>
+  "onAllowed": { <5>
     "attachments": {
       "breaksVersioningRules": "false"
     }
   },
-  "onDisallowed": { <5>
+  "onDisallowed": { <6>
     "criticality": "error",
     "attachments": {
       "breaksVersioningRules": "true"
     }
   },
-  "passThroughDifference": [] <6>
+  "passThroughDifference": [] <7>
 }
 ----
 
 <1> The extension is disabled by default.
 <2> `semantic0` tells the extension to honor the special rules for `0.y.z` versions in semantic versioning.
 See below for a more detailed discussion of the attribute.
-<3> `versionIncreaseAllows` specifies the rules for allowed changes in different version increase situations.
+<3> `strictSemver` modifies the parsing of the version. If set to `false`, there is no restriction on the characters in
+the suffix of the version. If set to `true` (the default), all the parts of the version need to strictly conform to
+the https://semver.org[semver] specification.
+<4> `versionIncreaseAllows` specifies the rules for allowed changes in different version increase situations.
 `x.y.z.suffix` versioning is required for this to work.
 By default, an increase in the major version allows breaking changes, an increase in minor version allows non-breaking changes and a patch version only allows equivalent API changes.
-<4> `onAllowed` specifies the modifications to be performed on differences that are deemed allowed by the version increase rules.
+<5> `onAllowed` specifies the modifications to be performed on differences that are deemed allowed by the version increase rules.
 By default, a "marker" attachment noting that the versioning rules have been broken is set to `false`.
-<5> `onDisallowed` specifies the modifications to be performed on differences that are deemed disallowed by the version increase rules.
+<6> `onDisallowed` specifies the modifications to be performed on differences that are deemed disallowed by the version increase rules.
 By default, the criticality of the difference is set to `error` and "marker" attachment noting that the versioning rules have been broken is set to `true`.
-<6> One can define a set of difference codes that are not going to be touched by this transformation and will be let through as is.
+<7> One can define a set of difference codes that are not going to be touched by this transformation and will be let through as is.
 This is useful when you want certain kinds of differences to never be allowed.
 By default, this list is empty.
 

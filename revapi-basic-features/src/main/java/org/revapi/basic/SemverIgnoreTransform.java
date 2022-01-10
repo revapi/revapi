@@ -24,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 
@@ -161,8 +160,8 @@ public class SemverIgnoreTransform<E extends Element<E>> implements DifferenceTr
             String oldVersionString = ((Archive.Versioned) oldArchive).getVersion();
             String newVersionString = ((Archive.Versioned) newArchive).getVersion();
 
-            Version oldVersion = Version.parse(oldVersionString);
-            Version newVersion = Version.parse(newVersionString);
+            SemverVersion oldVersion = SemverVersion.parse(oldVersionString, true);
+            SemverVersion newVersion = SemverVersion.parse(newVersionString, true);
 
             if (newVersion.major == 0 && oldVersion.major == 0 && !node.hasNonNull("versionIncreaseAllows")) {
                 DifferenceSeverity minorChangeAllowed = asSeverity(node.path("versionIncreaseAllows").path("minor"),
@@ -216,54 +215,6 @@ public class SemverIgnoreTransform<E extends Element<E>> implements DifferenceTr
         i.next();
 
         return i.hasNext();
-    }
-
-    private static final class Version {
-        private static final Pattern SEMVER_PATTERN = Pattern
-                .compile("(\\d+)(\\.(\\d+)(?:\\.)?(\\d*))?(\\.|-|\\+)?([0-9A-Za-z-.]*)?");
-
-        final int major;
-        final int minor;
-        final int patch;
-        final String sep;
-        final String suffix;
-
-        static Version parse(String version) {
-            Matcher m = SEMVER_PATTERN.matcher(version);
-            if (!m.matches()) {
-                throw new IllegalArgumentException(
-                        "Could not parse the version string '" + version + "'. It does not follow the semver schema.");
-            }
-
-            int major = Integer.valueOf(m.group(1));
-            String minorMatch = m.group(3);
-            int minor = minorMatch == null || minorMatch.isEmpty() ? 0 : Integer.valueOf(minorMatch);
-            int patch = 0;
-            String patchMatch = m.group(4);
-            if (patchMatch != null && !patchMatch.isEmpty()) {
-                patch = Integer.valueOf(patchMatch);
-            }
-            String sep = m.group(5);
-            String suffix = m.group(6);
-
-            if (sep != null && sep.isEmpty()) {
-                sep = null;
-            }
-
-            if (suffix != null && suffix.isEmpty()) {
-                suffix = null;
-            }
-
-            return new Version(major, minor, patch, sep, suffix);
-        }
-
-        Version(int major, int minor, int patch, String sep, String suffix) {
-            this.major = major;
-            this.minor = minor;
-            this.patch = patch;
-            this.sep = sep;
-            this.suffix = suffix;
-        }
     }
 
     private static DifferenceSeverity asSeverity(JsonNode configNode, DifferenceSeverity defaultValue) {
