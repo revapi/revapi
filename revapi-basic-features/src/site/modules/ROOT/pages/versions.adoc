@@ -17,11 +17,16 @@ xref:semver-ignore.adoc[here].
 
 The following is the default configuration of the extension:
 
+WARNING: The default configuration is most probably NOT what you want, because all it does is that it adds a new
+attachment on the version difference. If you want to break the build on breaking changes or define some other behavior,
+you will need to supply custom `onAllowed` or `onDisallowed` configuration. See the <<Examples>> for, well,
+the examples.
+
 [source,json]
 ----
 {
   "enabled": false, <1>
-  "semantic0": true, <2>,
+  "semantic0": true, <2>
   "strictSemver": true, <3>
   "versionIncreaseAllows": { <4>
     "major": {
@@ -195,9 +200,127 @@ This is a list of difference codes that should be ignored by this extension and 
 
 == Examples
 
+=== Define how to react on the version changes
+
+The default configuration defines a very simple "reaction" on the version changes. It merely defines an attachment on
+the differences that tells whether that difference breaks or conforms to the versioning rules. This can be useful if
+you define some further "reaction" on such attachment in other extensions, but generally speaking, you will want to
+define what should be done with the differences using the `onAllowed` and `onDisallowed` properties of
+`revapi.versions`.
+
+There is a couple of things one can do with the difference:
+
+Changing the criticality::
+This is likely what you want to do with the disallowed differences. Learn more about criticality
+xref:revapi::configuration.adoc#_criticality[here].
++
+[source,xml]
+----
+<revapi.versions>
+    <versionIncreaseAllows>
+        ....
+    </versionIncreaseAllows>
+    <onDisallowed>
+        <criticality>error</criticality>
+    </onDisallowed>
+</revapi.versions>
+----
++
+If you face a situation where some version of your dependency (that you make public through your API, too) introduced
+some API changes that you are comfortable allowing (but that would otherwise break the build because of the more strict
+settings you configured for your own code), you can reset the criticality on the differences coming from such dependency
+using the following configuration:
++
+[source,xml]
+----
+<revapi.versions>
+    <versionIncreaseAllows>
+        <major>
+            <inArchives>
+                <item>org.acme:my-dep</item>
+            </inArchives>
+        </major>
+    </versionIncreaseAllows>
+    <onAllowed>
+        <criticality>documented</criticality>
+    </onAllowed>
+</revapi.versions>
+----
+
+Removing the difference::
+You can choose to remove the differences. This can be used for example to ignore changes coming from a particular
+version of some of your dependency that you also make public in your API but that you are comfortable allowing.
++
+NOTE: You should possibly just set the criticality on such changes to a value that doesn't break the build (like
+`documented` in the default set of criticalities) to preserve the visibility of the changes.
++
+[source,xml]
+----
+<revapi.versions>
+    <versionIncreaseAllows>
+        <major>
+            <inArchives>
+                <item>org.acme:my-dep</item>
+            </inArchives>
+        </major>
+    </versionIncreaseAllows>
+    <onAllowed>
+        <remove>true</remove>
+    </onAllowed>
+</revapi.versions>
+----
+
+Modify justification::
+When you want to modify the justification to highlight the fact that the difference is being dealt with the way it is
+because of versioning rules, you can do so like this:
++
+[source,xml]
+----
+<revapi.versions>
+    <versionIncreaseAllows>
+        ...
+    </versionIncreaseAllows>
+    <onAllowed>
+        <justification>
+            <append> (conforms to versioning rules)</append>
+        </justification>
+    </onAllowed>
+    <onDisallowed>
+        <justification>
+            <append> (breaks the versioning rules)</append>
+        </justification>
+    </onDisallowed>
+</revapi.versions>
+----
++
+You can also use `prepend` to prefix the pre-existing justification with some text, or you can specify a textual
+justification as a whole:
++
+[source,xml]
+----
+<revapi.versions>
+    <versionIncreaseAllows>
+        <major>
+            <inArchives>
+                <item>org.acme:my-dep</item>
+            </inArchives>
+        </major>
+    </versionIncreaseAllows>
+    <onAllowed>
+        <criticality>documented</criticality>
+        <justification>We're assuming, you can accommodate for the changes in my-dep.</justification>
+    </onAllowed>
+</revapi.versions>
+----
+
+Modifying the description::
+If you don't want to modify the `justification` for a difference but instead want to modify its `description`, you can
+do so in very much the same way as in the previous examples. Just replace `justification` with `description`.
+
 === Don't allow any changes between a beta, and a final version
 
-Let's assume that we mark the beta versions with the `beta` suffix and final versions are without any suffix whatsoever. We want to make sure that there are no API changes at all between the beta and the final version.
+Let's assume that we mark the beta versions with the `beta` suffix and final versions are without any suffix whatsoever.
+We want to make sure that there are no API changes at all between the beta and the final version.
 
 [source,xml]
 ----
