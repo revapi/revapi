@@ -19,14 +19,17 @@ package org.revapi.java.checks.methods;
 import java.util.EnumSet;
 
 import javax.annotation.Nullable;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 
+import org.revapi.Difference;
 import org.revapi.java.checks.common.VisibilityChanged;
+import org.revapi.java.model.MethodElement;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
- * 
  * @since 0.1
  */
 public final class VisibilityReduced extends VisibilityChanged {
@@ -42,5 +45,19 @@ public final class VisibilityReduced extends VisibilityChanged {
     @Override
     protected void doVisitMethod(@Nullable JavaMethodElement oldMethod, @Nullable JavaMethodElement newMethod) {
         doVisit(oldMethod, newMethod);
+    }
+
+    @Override
+    protected Difference report(ActiveElements<?> els, Modifier oldVisibility, Modifier newVisibility) {
+        JavaMethodElement oldMethod = (JavaMethodElement) els.oldElement;
+        JavaMethodElement newMethod = (JavaMethodElement) els.newElement;
+
+        if (oldMethod != null && oldMethod.getDeclaringElement().getKind() == ElementKind.CONSTRUCTOR
+                && newMethod != null && oldVisibility == Modifier.PUBLIC && newVisibility == Modifier.PROTECTED) {
+            return createDifference(Code.METHOD_PUBLIC_CONSTRUCTOR_OF_ABSTRACT_CLASS_NOW_PROTECTED,
+                    Code.attachmentsFor(els.oldElement, els.newElement));
+        }
+
+        return super.report(els, oldVisibility, newVisibility);
     }
 }

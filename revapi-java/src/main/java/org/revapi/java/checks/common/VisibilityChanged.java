@@ -101,7 +101,7 @@ public abstract class VisibilityChanged extends CheckBase {
         }
     }
 
-    private Difference report(ActiveElements<?> els, Modifier oldVisibility, Modifier newVisibility) {
+    protected Difference report(ActiveElements<?> els, Modifier oldVisibility, Modifier newVisibility) {
         return createDifference(code, Code.attachmentsFor(els.oldElement, els.newElement, "oldVisibility",
                 modifier(oldVisibility), "newVisibility", modifier(newVisibility)));
     }

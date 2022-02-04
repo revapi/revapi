@@ -180,6 +180,7 @@ public enum Code {
     METHOD_NOW_DEFAULT("java.method.nowDefault", EQUIVALENT, EQUIVALENT, null),
     METHOD_NOW_ABSTRACT("java.method.nowAbstract", BREAKING, BREAKING, null),
     METHOD_NO_LONGER_ABSTRACT("java.method.noLongerAbstract", EQUIVALENT, EQUIVALENT, null),
+    METHOD_PUBLIC_CONSTRUCTOR_OF_ABSTRACT_CLASS_NOW_PROTECTED("java.method.publicConstructorOfAbstractClassNowProtected", NON_BREAKING, NON_BREAKING, null),
 
     GENERICS_ELEMENT_NOW_PARAMETERIZED("java.generics.elementNowParameterized", NON_BREAKING, NON_BREAKING,
             POTENTIALLY_BREAKING),
