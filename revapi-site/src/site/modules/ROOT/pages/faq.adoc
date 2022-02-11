@@ -3,7 +3,48 @@
 This is a collection of tips & tricks to help you get started with Revapi and to take full advantage of its many
 configuration options.
 
+== How to deal with External Class Exposed In API ?
+This is mainly a warning to ensure that you are exposing class from external dependency on purpose.
+Generally, exposing a class from an external dependency could be considered a bad design because this could make it harder to upgrade to a more recent version of the dependency. One reason amongst others which makes encapsulation a good practice.
+
+But there are use cases where this totally makes sense. The most common one is probably when you have a multi-module Maven project. In this case it is usual to have some modules exposing classes from another "core" or "api" module.
+
+E.g : `myproject-impl` exposes classes from `myproject-core`.  
+
+An easy way to deal with this is to configure revapi like this : 
+```xml
+            <plugin>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-maven-plugin</artifactId>
+                <configuration>
+                    <analysisConfiguration>
+                        <revapi.differences>
+                            <differences>
+                                <item>
+                                    <regex>true</regex>
+                                    <ignore>true</ignore>
+                                    <code>java.class.externalClassExposedInAPI</code>
+                                    <newArchive>org\.my\.project:myproject.*:.*</newArchive>
+                                    <justification>
+                                        MyProject sub-modules implement MyProject API which
+                                        makes them expose MyProject specific classes usually.
+                                    </justification>
+                                </item>
+                            </differences>
+                        </revapi.differences>
+                    </analysisConfiguration>
+                </configuration>
+            </plugin>
+```
+
+Please consult the xref:revapi-basic-features::differences.adoc[] for more details.
+
 == Require Version Changes And Ignore Certain Codes
+
+NOTE: This FAQ entry references Revapi extensions that have been deprecated. If you're still using `revapi.reclassify`
+or `revapi.ignore` extensions, consider reconfiguring Revapi using the newer `revapi.differences` which replaces both
+of these extensions.
+
 In situations where you want to require that certain version changes are made to have a passing build you can use
 the semver ignore extension. Additionally, if you are wanting to not ignore specific codes, for an example in Java,
 adding a method to an interface (`java.method.addedToInterface`), you can also use reclassify extension to turn
@@ -56,34 +97,5 @@ must also be specified to ensure that these extensions are run together and in a
                             </transformBlocks>
                         </pipelineConfiguration>
                     </configuration>
-                </plugin>
-```
-
-== How to deal with External Class Exposed In API ?
-This is mainly a warning to ensure that you are exposing class from external dependency on purpose.
-Generally, exposing a class from an external dependency could be considered a bad design because this could make it harder to upgrade to a more recent version of the dependency. One reason amongst others which makes encapsulation a good practice.
-
-But there are use cases where this totally makes sense. The most common one is probably when you have a multi-module Maven project. In this case it is usual to have some modules exposing classes from another "core" or "api" module.
-
-E.g : `myproject-impl` exposes classes from `myproject-core`.  
-
-An easy way to deal with this is to configure revapi like this : 
-```xml
-            <plugin>
-                <groupId>org.revapi</groupId>
-                <artifactId>revapi-maven-plugin</artifactId>
-                <configuration>
-                    <analysisConfiguration>
-                        <revapi.ignore>
-                            <item>
-                                <regex>true</regex>
-                                <code>java.class.externalClassExposedInAPI</code>
-                                <newArchive>org\.my\.project:myproject.*:.*</newArchive>
-                                <justification>
-                                    MyProject sub-modules implement MyProject API which
-                                    makes them expose MyProject specific classes usually.
-                                </justification>
-                            </item>
-                        </revapi.ignore>
                 </plugin>
 ```
