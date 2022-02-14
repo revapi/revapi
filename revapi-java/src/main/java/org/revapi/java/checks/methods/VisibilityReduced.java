@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,12 +24,12 @@ import javax.lang.model.element.Modifier;
 
 import org.revapi.Difference;
 import org.revapi.java.checks.common.VisibilityChanged;
-import org.revapi.java.model.MethodElement;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaMethodElement;
 
 /**
  * @author Lukas Krejci
+ * 
  * @since 0.1
  */
 public final class VisibilityReduced extends VisibilityChanged {

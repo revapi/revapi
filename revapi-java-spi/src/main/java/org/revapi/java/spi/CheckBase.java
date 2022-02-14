@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -372,6 +372,41 @@ public abstract class CheckBase implements Check {
     protected <T extends JavaElement> ActiveElements<T> popIfActive() {
         return (ActiveElements<T>) (!activations.isEmpty() && activations.peek().depth == depth ? activations.pop()
                 : null);
+    }
+
+    /**
+     * Pops the top of the stack of the active elements if the current position in the call stack corresponds to the one
+     * that pushed the active elements.
+     *
+     * <p>
+     * The stack is always popped but a non-null value is returned only if there was an active element AND the element
+     * is assignable to the provided type.
+     * </p>
+     *
+     * <p>
+     * This method is a more type-safe variant of {@link #popIfActive()} and should be used in situations where more
+     * than 1 type can be expected in the {@link #doEnd()} implementation.
+     * </p>
+     *
+     * @param type
+     *            the expected type of the elements
+     * 
+     * @return non-null if there were active elements and the elements have the provided type
+     */
+    @Nullable
+    protected <T extends JavaElement> ActiveElements<T> popIfActive(Class<T> type) {
+        ActiveElements<T> active = popIfActive();
+        if (active == null) {
+            return null;
+        }
+
+        // because popIfActive() is essentially unsafe, we need to have these type checks here, too...
+        if ((active.oldElement != null && type.isAssignableFrom(active.oldElement.getClass()))
+                || (active.newElement != null && type.isAssignableFrom(active.newElement.getClass()))) {
+            return active;
+        }
+
+        return null;
     }
 
     /**

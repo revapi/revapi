@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2021 Lukas Krejci
+    Copyright 2014-2022 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,8 +54,8 @@
         <maven-invoker.version>3.2.2</maven-invoker.version>
         <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
         <maven.version>3.2.5</maven.version>
-        <revapi-java-spi.version>0.23.7-SNAPSHOT</revapi-java-spi.version>
-        <revapi-java.version>0.26.2-SNAPSHOT</revapi-java.version>
+        <revapi-java-spi.version>0.24.0-SNAPSHOT</revapi-java-spi.version>
+        <revapi-java.version>0.27.0-SNAPSHOT</revapi-java.version>
         <revapi-reporter-text.version>0.14.6-SNAPSHOT</revapi-reporter-text.version>
         <revapi.version>0.14.5-SNAPSHOT</revapi.version>
     </properties>

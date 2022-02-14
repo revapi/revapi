@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,6 @@ import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaFieldElement;
-import org.revapi.java.spi.JavaTypeElement;
 
 /**
  * @author Lukas Krejci
@@ -44,7 +43,7 @@ public class EnumConstantsOrderChanged extends CheckBase {
     }
 
     private boolean shouldCheck(JavaFieldElement oldField, JavaFieldElement newField) {
-        return  isBothAccessible(oldField, newField)
+        return isBothAccessible(oldField, newField)
                 && oldField.getDeclaringElement().getKind() == ElementKind.ENUM_CONSTANT
                 && newField.getDeclaringElement().getKind() == ElementKind.ENUM_CONSTANT;
     }

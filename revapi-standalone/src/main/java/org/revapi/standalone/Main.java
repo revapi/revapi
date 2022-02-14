@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -480,9 +480,8 @@ public final class Main {
         }
 
         if (remoteRepositories.isEmpty()) {
-            remoteRepositories.add(
-                    new RemoteRepository.Builder("maven-central", "default", DEFAULT_REPOSITORY_URL)
-                            .build());
+            remoteRepositories
+                    .add(new RemoteRepository.Builder("maven-central", "default", DEFAULT_REPOSITORY_URL).build());
         }
 
         File localMaven = new File(new File(System.getProperties().getProperty("user.home"), ".m2"), "repository");

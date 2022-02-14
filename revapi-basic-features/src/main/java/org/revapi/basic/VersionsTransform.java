@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -743,10 +743,8 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
     private static final class VersionRecord {
         final @Nullable Archive.Versioned oldArchive;
         final @Nullable Archive.Versioned newArchive;
-        final @Nullable
-        SemverVersion oldVersion;
-        final @Nullable
-        SemverVersion newVersion;
+        final @Nullable SemverVersion oldVersion;
+        final @Nullable SemverVersion newVersion;
         final VersionChange versionChange;
 
         VersionRecord(@Nullable Archive.Versioned oldArchive, @Nullable Archive.Versioned newArchive,
