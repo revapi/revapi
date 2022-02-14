@@ -279,11 +279,16 @@ function release_module() {
 
 function update_module_version() {
   module=$(xpath -q -e "/project/artifactId/text()" pom.xml)
+  if contains $(to_dep $module) "$UNRELEASED"; then
+    return
+  fi
   ups=$(upstream_deps "$module")
   if contains "revapi_build" "$ups"; then
     if [ $module != "coverage" ]; then
       # we want to run license check and revapi
-      ${MVN} install revapi:update-versions -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
+      ${MVN} revapi:update-versions -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
+      -Djacoco.skip=true -Dsort.skip=true
+      ${MVN} install -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
       -Djacoco.skip=true -Dsort.skip=true
     fi
   fi
