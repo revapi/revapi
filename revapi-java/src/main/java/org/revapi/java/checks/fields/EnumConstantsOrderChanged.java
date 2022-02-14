@@ -38,20 +38,13 @@ import org.revapi.java.spi.JavaTypeElement;
  * @since 1.0
  */
 public class EnumConstantsOrderChanged extends CheckBase {
-    private boolean isEnumClass;
-
     @Override
     public EnumSet<Type> getInterest() {
-        return EnumSet.of(Type.CLASS, Type.FIELD);
-    }
-
-    @Override
-    protected void doVisitClass(@Nullable JavaTypeElement oldType, @Nullable JavaTypeElement newType) {
-        isEnumClass = newType != null && newType.getDeclaringElement().getKind() == ElementKind.ENUM;
+        return EnumSet.of(Type.FIELD);
     }
 
     private boolean shouldCheck(JavaFieldElement oldField, JavaFieldElement newField) {
-        return isEnumClass && isBothAccessible(oldField, newField)
+        return  isBothAccessible(oldField, newField)
                 && oldField.getDeclaringElement().getKind() == ElementKind.ENUM_CONSTANT
                 && newField.getDeclaringElement().getKind() == ElementKind.ENUM_CONSTANT;
     }
