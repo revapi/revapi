@@ -94,7 +94,18 @@
               "type": "string"
             },
             "append": {
-              "type": "string"
+              "type": "string",
+              "properties": {
+                "majorIncreaseRequired":{
+                  "type": "string"
+                },
+                "minorIncreaseRequired": {
+                  "type": "string"
+                },
+                "patchIncreaseRequired": {
+                  "type": "string"
+                }
+              }
             }
           }
         }

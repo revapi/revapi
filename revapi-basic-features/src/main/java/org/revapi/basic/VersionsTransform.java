@@ -16,14 +16,20 @@
  */
 package org.revapi.basic;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.revapi.AnalysisContext;
+import org.revapi.Archive;
+import org.revapi.CompatibilityType;
+import org.revapi.Criticality;
+import org.revapi.Difference;
+import org.revapi.DifferenceSeverity;
+import org.revapi.Element;
+import org.revapi.Reference;
+import org.revapi.TransformationResult;
+import org.revapi.base.BaseDifferenceTransform;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -41,20 +47,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import org.revapi.AnalysisContext;
-import org.revapi.Archive;
-import org.revapi.CompatibilityType;
-import org.revapi.Criticality;
-import org.revapi.Difference;
-import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
-import org.revapi.Reference;
-import org.revapi.TransformationResult;
-import org.revapi.base.BaseDifferenceTransform;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTransform<E> {
     private static final Pattern[] ALL_CODES = new Pattern[] { Pattern.compile(".*") };
@@ -622,7 +621,16 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
                 return new TextModification(modificationNode.asText(), null, null);
             } else if (modificationNode.isObject()) {
                 String prepend = modificationNode.path("prepend").asText();
-                String append = modificationNode.path("append").asText();
+                String append = null;
+                if (modificationNode.path("append").path("majorIncreaseRequired").asBoolean()) {
+                    append = modificationNode.path("append").path("majorIncreaseRequired").asText();
+                } else if (modificationNode.path("append").path("minorIncreaseRequired").asBoolean()) {
+                    append = modificationNode.path("append").path("minorIncreaseRequired").asText();
+                } else if (modificationNode.path("append").path("patchIncreaseRequired").asBoolean()) {
+                    append = modificationNode.path("append").path("patchIncreaseRequired").asText();
+                } else {
+                    append = modificationNode.path("append").asText();
+                }
                 return new TextModification(null, prepend, append);
             } else {
                 return null;
