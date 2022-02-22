@@ -622,13 +622,16 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
             } else if (modificationNode.isObject()) {
                 String prepend = modificationNode.path("prepend").asText();
                 String append = null;
-                if (modificationNode.path("append").path("majorIncreaseRequired").asBoolean()) {
-                    append = modificationNode.path("append").path("majorIncreaseRequired").asText();
-                } else if (modificationNode.path("append").path("minorIncreaseRequired").asBoolean()) {
-                    append = modificationNode.path("append").path("minorIncreaseRequired").asText();
-                } else if (modificationNode.path("append").path("patchIncreaseRequired").asBoolean()) {
-                    append = modificationNode.path("append").path("patchIncreaseRequired").asText();
-                } else {
+
+                if (modificationNode.path("append").isObject()) {
+                    if (modificationNode.path("append").hasNonNull("majorIncreaseRequired")) {
+                        append = modificationNode.path("append").path("majorIncreaseRequired").asText();
+                    } else if (modificationNode.path("append").hasNonNull("minorIncreaseRequired")) {
+                        append = modificationNode.path("append").path("minorIncreaseRequired").asText();
+                    } else if (modificationNode.path("append").hasNonNull("patchIncreaseRequired")) {
+                        append = modificationNode.path("append").path("patchIncreaseRequired").asText();
+                    }
+                } else if (modificationNode.path("append").isTextual()) {
                     append = modificationNode.path("append").asText();
                 }
                 return new TextModification(null, prepend, append);

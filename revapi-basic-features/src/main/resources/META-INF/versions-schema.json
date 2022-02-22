@@ -94,18 +94,25 @@
               "type": "string"
             },
             "append": {
-              "type": "string",
-              "properties": {
-                "majorIncreaseRequired":{
+              "oneOf": [
+                {
                   "type": "string"
                 },
-                "minorIncreaseRequired": {
-                  "type": "string"
-                },
-                "patchIncreaseRequired": {
-                  "type": "string"
+                {
+                  "type": "object",
+                  "properties": {
+                    "majorIncreaseRequired": {
+                      "type": "string"
+                    },
+                    "minorIncreaseRequired": {
+                      "type": "string"
+                    },
+                    "patchIncreaseRequired": {
+                      "type": "string"
+                    }
+                  }
                 }
-              }
+             ]
             }
           }
         }
