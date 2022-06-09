@@ -50,6 +50,7 @@ import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.revapi.AnalysisResult.ExtensionInstance;
 import org.revapi.configuration.Configurable;
 import org.revapi.configuration.ConfigurationValidator;
@@ -63,7 +64,7 @@ import org.slf4j.LoggerFactory;
  * can run analyses on APIs with different configurations using the {@link #analyze(AnalysisContext)} method.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 1.0
  */
 public final class Revapi {
@@ -79,7 +80,7 @@ public final class Revapi {
      *
      * @param pipelineConfiguration
      *            the configuration of the analysis pipeline
-     * 
+     *
      * @throws java.lang.IllegalArgumentException
      *             if any of the parameters is null
      */
@@ -98,7 +99,7 @@ public final class Revapi {
      *
      * @param analysisContext
      *            the analysis context
-     * 
+     *
      * @return the validation result
      */
     public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
@@ -130,7 +131,7 @@ public final class Revapi {
      *
      * @param analysisContext
      *            the analysis context containing the "global" configuration of all extensions
-     * 
+     *
      * @return the instantiated extensions and their individual configurations
      */
     public AnalysisResult.Extensions prepareAnalysis(AnalysisContext analysisContext) {
@@ -171,7 +172,7 @@ public final class Revapi {
      *
      * @param analysisContext
      *            describes the analysis to be performed
-     * 
+     *
      * @return a result object that has to be closed for the analysis to conclude
      */
     @SuppressWarnings("unchecked")
@@ -240,7 +241,7 @@ public final class Revapi {
 
             T inst = null;
             boolean configured = false;
-            for (JsonNode config : fullConfig.getConfigurationNode()) {
+            for (JsonNode config : getConfigurations(fullConfig, extensionId)) {
                 if (config.path("extension").isMissingNode()) {
                     throw new IllegalArgumentException("Invalid configuration: missing the extension name.");
                 }
@@ -873,7 +874,7 @@ public final class Revapi {
 
         /**
          * @return a new Revapi instance
-         * 
+         *
          * @throws IllegalStateException
          *             if there are no api analyzers or no reporters added.
          */
@@ -949,5 +950,66 @@ public final class Revapi {
 
             return ret;
         }
+    }
+
+    private static List<JsonNode> getConfigurations(AnalysisContext fullConfig, String extensionId) {
+        List<JsonNode> resultConfigs = new ArrayList<>();
+        List<JsonNode> idlessConfigs = new ArrayList<>();
+
+        for (JsonNode config : fullConfig.getConfigurationNode()) {
+            if (!config.has("extension")) {
+                throw new IllegalArgumentException("Invalid configuration: missing the extension name.");
+            } else if (!extensionId.equals(config.get("extension").asText())) {
+                continue;
+            } else if (config.has("id")) {
+                resultConfigs.add(config);
+            } else {
+                idlessConfigs.add(config);
+            }
+        }
+
+        if (!idlessConfigs.isEmpty()) {
+            resultConfigs.add(mergeIdlessConfigs(extensionId, idlessConfigs));
+        }
+
+        return resultConfigs;
+    }
+
+    private static JsonNode mergeIdlessConfigs(String extensionId, List<JsonNode> configs) {
+        if (configs.isEmpty()) {
+            throw new IllegalArgumentException("Cannot merge empty config list");
+        }
+
+        List<JsonNode> configurationNodes = configs.stream()
+            .map(node -> node.get("configuration"))
+            .collect(toList());
+
+        return JsonNodeFactory.instance.objectNode()
+            .put("extension", extensionId)
+            .set("configuration", merge(configurationNodes));
+    }
+
+    private static JsonNode merge(List<JsonNode> configs) {
+        if (configs.isEmpty()) {
+            throw new IllegalArgumentException("Cannot merge empty config list");
+        }
+
+        ObjectNode result = JsonNodeFactory.instance.objectNode();
+        for (JsonNode config : configs) {
+            Iterator<String> fieldNames = config.fieldNames();
+            while (fieldNames.hasNext()) {
+                String fieldName = fieldNames.next();
+                JsonNode value = config.get(fieldName);
+                if (result.has(fieldName)) {
+                    if (!value.equals(result.get(fieldName))) {
+                        throw new IllegalArgumentException(
+                            "Invalid configuration: found multiple entries for field " + fieldName);
+                    }
+                } else {
+                    result.set(fieldName, value.deepCopy());
+                }
+            }
+        }
+        return result;
     }
 }
