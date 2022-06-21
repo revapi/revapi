@@ -305,7 +305,8 @@ public final class Difference {
         sb.append(", classification=").append(classification);
         sb.append(", description='").append(description).append('\'');
         sb.append(", justification='").append(justification).append('\'');
-        sb.append(", criticality='").append(criticality).append('\'');
+        sb.append(", criticality=").append(criticality);
+        sb.append(", attachments=").append(attachments);
         sb.append(']');
         return sb.toString();
     }

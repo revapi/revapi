@@ -612,15 +612,19 @@ public final class Revapi {
                             case REPLACE:
                                 blockResultsIt.remove();
                                 if (res.getDifferences() != null) {
-                                    if (LOG.isDebugEnabled()) {
-                                        LOG.debug("Difference transform {} transforms {} to {}", t.getClass(),
-                                                currentDiff, res.getDifferences());
+                                    if (LOG.isDebugEnabled() && tb.size() > 1) {
+                                        LOG.debug("Difference transform {} from block {} transformed {} to {}",
+                                                t, tb, currentDiff, res.getDifferences());
                                     }
                                     res.getDifferences().forEach(blockResultsIt::add);
                                 }
                                 break;
                             case DISCARD:
                                 blockResultsIt.remove();
+                                if (LOG.isDebugEnabled() && tb.size() > 1) {
+                                    LOG.debug("Difference transform {} from block {} removed the difference {}.",
+                                            t, tb, currentDiff);
+                                }
                                 break;
                             case UNDECIDED:
                                 // this is the same as KEEP
@@ -629,12 +633,11 @@ public final class Revapi {
                         }
                     }
 
-                    // ignore if the transforms in the block swallowed all the differences
-                    if (blockResults.isEmpty()) {
-                        differenceChanged = true;
-                    } else if (blockResults.size() > 1 || !d.equals(blockResults.get(0))) {
+                    // report if the block removed the diff or transformed it into more than 1 or if the transformed
+                    // diff is not equal to the original one
+                    if (blockResults.size() != 1 || !d.equals(blockResults.get(0))) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Difference transform(s) {} transform {} to {}", tb, d, blockResults);
+                            LOG.debug("Difference transform block {} transformed {} to {}", tb, d, blockResults);
                         }
 
                         transformed.addAll(blockResults);
