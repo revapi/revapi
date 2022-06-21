@@ -13,6 +13,11 @@ The extension is disabled by default and has to be explicitly configured to be s
 NOTE: The documentation of the now deprecated `revapi.semver.ignore` transformation, which served a similar purpose in the past, is
 xref:semver-ignore.adoc[here].
 
+WARNING: Please be aware that this extension may interfere with `revapi.differences` if both `revapi.versions` and `revapi.differences` are configured
+to modify the criticality of the differences. In that case they may override each other's changes resulting in the infamous infinite loop during
+the transformation. To rectify that problem, you need to place these two differences in a
+xref:revapi::configuration.adoc#_transform_blocks[transformation block]. Check out the example <<_allow_changes_that_are_marked_as_ok_by_other_rules>>.
+
 == Sample Configuration
 
 The following is the default configuration of the extension:

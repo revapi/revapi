@@ -9,6 +9,11 @@ parameters (aka attachments) to them.
 It supersedes the link:ignore.adoc[`revapi.ignore`] and link:reclassify.adoc[`revapi.reclassify`] extensions and
 provides new functionality that enables sharing the configuration for build-time and report-time.
 
+WARNING: Please be aware that this extension may interfere with `revapi.versions ` if both `revapi.versions` and `revapi.differences` are configured
+to modify the criticality of the differences. In that case they may override each other's changes resulting in the infamous infinite loop during
+the transformation. To rectify that problem, you need to place these two differences in a
+xref:revapi::configuration.adoc#_transform_blocks[transformation block]. Check out the example xref::versions.adoc#_allow_changes_that_are_marked_as_ok_by_other_rules[].
+
 == Sample Configuration
 
 ```json
