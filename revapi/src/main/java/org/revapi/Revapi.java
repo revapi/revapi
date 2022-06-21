@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -546,23 +545,6 @@ public final class Revapi {
         };
     }
 
-    @SafeVarargs
-    private static <T> Stream<T> concat(Stream<? extends T>... streams) {
-        if (streams.length == 0) {
-            return Stream.empty();
-        } else {
-            return concat(streams[0], streams, 1);
-        }
-    }
-
-    private static <T> Stream<T> concat(Stream<? extends T> head, Stream<? extends T>[] all, int from) {
-        if (from == all.length - 1) {
-            return Stream.concat(head, all[from]);
-        } else {
-            return Stream.concat(head, concat(all[from], all, from + 1));
-        }
-    }
-
     private void transform(Report report, Collection<DifferenceTransform<?>> eligibleTransforms,
             AnalysisProgress progress) {
 
@@ -580,12 +562,21 @@ public final class Revapi {
         do {
             listChanged = false;
 
+            // this is the transformations done on the differences so far.
+            List<List<Difference>> transformChain = new ArrayList<>(2);
+            boolean doDiagnostics = false;
+            int diagnosedChainLength = 0;
+
             ListIterator<Difference> it = report.getDifferences().listIterator();
             List<Difference> transformed = new ArrayList<>(1); // this will hopefully be the max of transforms
             while (it.hasNext()) {
                 Difference d = it.next();
                 transformed.clear();
                 boolean differenceChanged = false;
+
+                if (doDiagnostics && transformChain.size() < diagnosedChainLength) {
+                    transformChain.add(new ArrayList<>(report.getDifferences()));
+                }
 
                 LOG.debug("Transformation iteration {}", iteration);
 
@@ -609,7 +600,7 @@ public final class Revapi {
                                 res = transform.tryTransform(oldElement, newElement, currentDiff);
                             } catch (Exception e) {
                                 res = TransformationResult.keep();
-                                LOG.warn("Difference transform " + t + " of class '" + t.getClass() + " threw an"
+                                LOG.warn("Difference transform " + t + " of class '" + t.getClass() + "' threw an"
                                         + " exception while processing difference " + currentDiff + " on old element "
                                         + report.getOldElement() + " and new element " + report.getNewElement(), e);
                             }
@@ -670,8 +661,23 @@ public final class Revapi {
                 iteration++;
 
                 if (iteration % 1000 == 0) {
-                    LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration
-                            + " times. Maybe we're in an infinite loop with differences transforming back and forth?");
+                    diagnosedChainLength = iteration / 100;
+                    doDiagnostics = diagnosedChainLength < 101;
+                    if (doDiagnostics) {
+                        LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration
+                                + " times. The next " + diagnosedChainLength
+                                + " iterations will be reported. Maybe we're"
+                                + " in an infinite loop with differences transforming back and forth?");
+                    } else {
+                        LOG.warn("Transformation of differences in match report " + report + " has cycled " + iteration
+                                + " times. Maybe we're in an infinite loop with differences transforming back and forth?");
+                    }
+                }
+
+                if (doDiagnostics && transformChain.size() == diagnosedChainLength) {
+                    LOG.warn("The last " + diagnosedChainLength + " transformations are: " + transformChain);
+                    doDiagnostics = false;
+                    transformChain.clear();
                 }
 
                 if (iteration == MAX_TRANSFORMATION_ITERATIONS) {
