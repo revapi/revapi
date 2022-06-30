@@ -288,7 +288,7 @@
                                     We're running in the Maven environment, so whatever Maven breaks during our upgrades,
                                     the users will have to deal with anyway...
                                 -->
-                                <exclude>
+                                <exclude combine.children="append">
                                     <item>org\.apache\.maven[.:].*</item>
                                     <item>org\.codehaus\.plexus:.*</item>
                                     <item>org\.eclipse\.sisu:.*</item>

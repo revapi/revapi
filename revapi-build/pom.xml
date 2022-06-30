@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2021 Lukas Krejci
+    Copyright 2014-2022 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -531,6 +531,14 @@
                                         <behavior>report</behavior>
                                     </missing-classes>
                                 </revapi.java>
+                                <revapi.filter>
+                                    <archives>
+                                        <exclude>
+                                            <!-- jackson is notorious for making small breaking changes all the time -->
+                                            <item>com\.fasterxml\.jackson.*</item>
+                                        </exclude>
+                                    </archives>
+                                </revapi.filter>
                                 <revapi.versions>
                                     <enabled>true</enabled>
                                     <!--
