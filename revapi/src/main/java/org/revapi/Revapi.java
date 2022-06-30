@@ -613,8 +613,8 @@ public final class Revapi {
                                 blockResultsIt.remove();
                                 if (res.getDifferences() != null) {
                                     if (LOG.isDebugEnabled() && tb.size() > 1) {
-                                        LOG.debug("Difference transform {} from block {} transformed {} to {}",
-                                                t, tb, currentDiff, res.getDifferences());
+                                        LOG.debug("Difference transform {} from block {} transformed {} to {}", t, tb,
+                                                currentDiff, res.getDifferences());
                                     }
                                     res.getDifferences().forEach(blockResultsIt::add);
                                 }
@@ -622,8 +622,8 @@ public final class Revapi {
                             case DISCARD:
                                 blockResultsIt.remove();
                                 if (LOG.isDebugEnabled() && tb.size() > 1) {
-                                    LOG.debug("Difference transform {} from block {} removed the difference {}.",
-                                            t, tb, currentDiff);
+                                    LOG.debug("Difference transform {} from block {} removed the difference {}.", t, tb,
+                                            currentDiff);
                                 }
                                 break;
                             case UNDECIDED:
@@ -892,6 +892,73 @@ public final class Revapi {
         }
     }
 
+    // package-private for testing purposes
+    static Set<List<DifferenceTransform<?>>> groupTransformsToBlocks(AnalysisResult.Extensions extensions,
+            PipelineConfiguration configuration) {
+        Set<List<DifferenceTransform<?>>> ret = new HashSet<>();
+
+        Map<String, List<DifferenceTransform<?>>> transformsById = new HashMap<>();
+        Set<DifferenceTransform<?>> allTransforms = newSetFromMap(new IdentityHashMap<>());
+        for (ExtensionInstance<DifferenceTransform<?>> t : extensions.getTransforms().keySet()) {
+            String configurationId = t.getId();
+            String extensionId = t.getInstance().getExtensionId();
+
+            if (configurationId != null) {
+                transformsById.computeIfAbsent(configurationId, __ -> new ArrayList<>(1)).add(t.getInstance());
+            }
+            transformsById.computeIfAbsent(extensionId, __ -> new ArrayList<>(2)).add(t.getInstance());
+            allTransforms.add(t.getInstance());
+        }
+
+        for (List<String> ids : configuration.getTransformationBlocks()) {
+            // because the transformation blocks can use extension IDs which can match multiple transforms, the
+            // definition
+            // can actually define multiple blocks, each with one of the instances of the extension.
+            List<List<DifferenceTransform<?>>> allBlocks = new ArrayList<>(2);
+            allBlocks.add(new ArrayList<>(ids.size()));
+
+            for (String id : ids) {
+                List<DifferenceTransform<?>> candidates = transformsById.get(id);
+
+                if (candidates == null) {
+                    throw new IllegalArgumentException(
+                            "Unrecognized id in the transformation block configuration: " + id);
+                } else if (candidates.isEmpty()) {
+                    throw new IllegalArgumentException("There is no transform with extension id or explicit id '" + id
+                            + "'. Please fix the pipeline configuration.");
+                }
+
+                // each of the existing blocks needs to be "multiplied" so that each new copy can be appended to
+                // with one of the current candidates.
+                ListIterator<List<DifferenceTransform<?>>> it = allBlocks.listIterator();
+                while (it.hasNext()) {
+                    List<DifferenceTransform<?>> block = it.next();
+                    DifferenceTransform<?> tr = candidates.get(0);
+                    block.add(tr);
+                    allTransforms.remove(tr);
+                    for (int i = 1; i < candidates.size(); ++i) {
+                        block = new ArrayList<>(block);
+                        // we've already added the first candidate out of this loop. Here we just replace it with
+                        // the current candidate.
+                        tr = candidates.get(i);
+                        block.set(block.size() - 1, tr);
+                        allTransforms.remove(tr);
+                        it.add(block);
+                    }
+                }
+            }
+
+            ret.addAll(allBlocks);
+        }
+
+        // now we're left with the transformations that are not grouped into any explicit blocks. Let's make them
+        // single-element blocks
+
+        allTransforms.forEach(t -> ret.add(singletonList(t)));
+
+        return ret;
+    }
+
     private static final class AnalysisProgress {
         final AnalysisResult.Extensions extensions;
         final Set<List<DifferenceTransform<?>>> transformBlocks;
@@ -907,56 +974,6 @@ public final class Revapi {
             this.newApi = newApi;
             this.transformBlocks = groupTransformsToBlocks(extensions, configuration);
             this.reports = new ArrayList<>();
-        }
-
-        private static Set<List<DifferenceTransform<?>>> groupTransformsToBlocks(AnalysisResult.Extensions extensions,
-                PipelineConfiguration configuration) {
-            Set<List<DifferenceTransform<?>>> ret = new HashSet<>();
-
-            Map<String, List<DifferenceTransform<?>>> transformsById = new HashMap<>();
-            Set<DifferenceTransform<?>> allTransforms = newSetFromMap(new IdentityHashMap<>());
-            for (ExtensionInstance<DifferenceTransform<?>> t : extensions.getTransforms().keySet()) {
-                String configurationId = t.getId();
-                String extensionId = t.getInstance().getExtensionId();
-
-                if (configurationId != null) {
-                    transformsById.computeIfAbsent(configurationId, __ -> new ArrayList<>()).add(t.getInstance());
-                }
-                transformsById.computeIfAbsent(extensionId, __ -> new ArrayList<>()).add(t.getInstance());
-                allTransforms.add(t.getInstance());
-            }
-
-            for (List<String> ids : configuration.getTransformationBlocks()) {
-                List<DifferenceTransform<?>> ts = new ArrayList<>(ids.size());
-
-                for (String id : ids) {
-                    List<DifferenceTransform<?>> candidates = transformsById.remove(id);
-                    if (candidates == null) {
-                        throw new IllegalArgumentException(
-                                "Unrecognized id in the transformation block configuration: " + id);
-                    } else if (candidates.isEmpty()) {
-                        throw new IllegalArgumentException("There is no transform with extension id or explicit id '"
-                                + id + "'. Please fix the pipeline configuration.");
-                    } else if (candidates.size() > 1) {
-                        throw new IllegalArgumentException("There is more than 1 transform with extension id or"
-                                + " explicit id '" + id + "'. Please fix the pipeline configuration and use unique ids"
-                                + " for extension configurations.");
-                    } else {
-                        DifferenceTransform<?> t = candidates.get(0);
-                        ts.add(t);
-                        allTransforms.remove(t);
-                    }
-                }
-
-                ret.add(ts);
-            }
-
-            // now we're left with the transformations that are not grouped into any explicit blocks. Let's make them
-            // single-element blocks
-
-            allTransforms.forEach(t -> ret.add(singletonList(t)));
-
-            return ret;
         }
     }
 }
