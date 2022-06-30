@@ -99,7 +99,7 @@ final class AnalysisConfigurationGatherer {
                 }
 
                 String readErrorMessage = "Error while processing the configuration file on "
-                        + (path == null ? "classpath " + resource : "path " + path);
+                        + (path == null ? "classpath " + resource : "path " + path) + ": ";
 
                 Supplier<Iterator<InputStream>> configFileContents;
 
@@ -155,7 +155,7 @@ final class AnalysisConfigurationGatherer {
                     try (InputStream in = it.next()) {
                         config = readJson(in);
                     } catch (IllegalArgumentException | IOException e) {
-                        throw new MojoExecutionException(readErrorMessage, e.getCause());
+                        throw new MojoExecutionException(readErrorMessage + e.getMessage(), e);
                     }
 
                     if (config == null) {
@@ -179,7 +179,7 @@ final class AnalysisConfigurationGatherer {
                                 mergeXmlConfigFile(revapi, ctxBld, configFile, rdr);
                             }
                         } catch (IllegalArgumentException | IOException | XmlPullParserException e) {
-                            throw new MojoExecutionException(readErrorMessage, e.getCause());
+                            throw new MojoExecutionException(readErrorMessage + e.getMessage(), e);
                         }
 
                         idx++;
@@ -197,7 +197,7 @@ final class AnalysisConfigurationGatherer {
                     ctxBld.mergeConfiguration(expandVariables(JSONUtil.parse(JSONUtil.stripComments(text))));
                 }
             } catch (PlexusConfigurationException e) {
-                throw new MojoExecutionException("Failed to read the configuration", e);
+                throw new MojoExecutionException("Failed to read the configuration: " + e.getMessage(), e);
             }
         }
     }
@@ -324,7 +324,7 @@ final class AnalysisConfigurationGatherer {
             try {
                 return config.getValue();
             } catch (PlexusConfigurationException e) {
-                throw new IllegalStateException("Failed to read configuration", e);
+                throw new IllegalStateException("Failed to read configuration: " + e.getMessage(), e);
             }
         }
 
@@ -332,7 +332,7 @@ final class AnalysisConfigurationGatherer {
             try {
                 return config.getAttribute(name);
             } catch (PlexusConfigurationException e) {
-                throw new IllegalStateException("Failed to read configuration", e);
+                throw new IllegalStateException("Failed to read configuration: " + e.getMessage(), e);
             }
         }
 
