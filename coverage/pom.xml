@@ -99,7 +99,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-yaml</artifactId>
-            <version>0.3.5-SNAPSHOT</version>
+            <version>0.3.5</version>
         </dependency>
     </dependencies>
     <build>

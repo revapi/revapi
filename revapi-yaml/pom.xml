@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2021 Lukas Krejci
+    Copyright 2014-2022 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>47-SNAPSHOT</version>
+        <version>46</version>
         <relativePath>../revapi-build/pom.xml</relativePath>
     </parent>
     <artifactId>revapi-yaml</artifactId>
-    <version>0.3.5-SNAPSHOT</version>
+    <version>0.3.5</version>
     <name>YAML Analyzer</name>
     <properties>
         <automatic.module.name>org.revapi.yaml</automatic.module.name>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-jackson</artifactId>
-            <version>0.4.3-SNAPSHOT</version>
+            <version>0.4.2</version>
         </dependency>
     </dependencies>
 </project>
