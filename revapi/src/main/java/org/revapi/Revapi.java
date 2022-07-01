@@ -202,6 +202,9 @@ public final class Revapi {
 
         TIMING_LOG.debug("Initialization complete.");
 
+        LOG.debug("Using extensions {}", progress.extensions.stream().map(Map.Entry::getKey).collect(toList()));
+        LOG.debug("Using transformation blocks {}", progress.transformBlocks);
+
         Exception error = null;
         try {
             for (ExtensionInstance<ApiAnalyzer<?>> ia : extensions.getAnalyzers().keySet()) {
@@ -552,7 +555,7 @@ public final class Revapi {
             return;
         }
 
-        Stats.of("transforms").start();
+        Stats.of("report-transforms").start();
 
         Element<?> oldElement = report.getOldElement();
         Element<?> newElement = report.getNewElement();
@@ -568,11 +571,13 @@ public final class Revapi {
             int diagnosedChainLength = 0;
 
             ListIterator<Difference> it = report.getDifferences().listIterator();
-            List<Difference> transformed = new ArrayList<>(1); // this will hopefully be the max of transforms
+            Set<Difference> transformed = new HashSet<>(1); // this will hopefully be the max of transforms
             while (it.hasNext()) {
                 Difference d = it.next();
                 transformed.clear();
                 boolean differenceChanged = false;
+
+                Stats.of("transform").start();
 
                 if (doDiagnostics && transformChain.size() < diagnosedChainLength) {
                     transformChain.add(new ArrayList<>(report.getDifferences()));
@@ -582,6 +587,8 @@ public final class Revapi {
 
                 for (List<DifferenceTransform<?>> tb : getTransformsForDifference(d, eligibleTransforms, progress)) {
                     List<Difference> blockResults = new ArrayList<>(singletonList(d));
+
+                    Stats.of("transform-block " + tb).start();
 
                     for (DifferenceTransform<?> t : tb) {
                         ListIterator<Difference> blockResultsIt = blockResults.listIterator();
@@ -643,6 +650,8 @@ public final class Revapi {
                         transformed.addAll(blockResults);
                         differenceChanged = true;
                     }
+
+                    Stats.of("transform-block " + tb).end(d);
                 }
 
                 if (differenceChanged) {
@@ -660,6 +669,8 @@ public final class Revapi {
                         }
                     }
                 }
+
+                Stats.of("transform").end(d);
 
                 iteration++;
 
@@ -692,7 +703,7 @@ public final class Revapi {
             }
         } while (listChanged);
 
-        Stats.of("transforms").end(report);
+        Stats.of("report-transforms").end(report);
     }
 
     private Set<List<DifferenceTransform<?>>> getTransformsForDifference(Difference diff,
@@ -711,7 +722,9 @@ public final class Revapi {
                         }
                     }
                 }
-                ret.add(actualTs);
+                if (!actualTs.isEmpty()) {
+                    ret.add(actualTs);
+                }
             }
             progress.matchingTransformsCache.put(diff.code, ret);
         }

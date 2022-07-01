@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -208,6 +208,12 @@ public final class AnalysisResult implements AutoCloseable {
                             .concat(retype(transforms.entrySet()).stream(), retype(matchers.entrySet()).stream()))));
         }
 
+        @Override
+        public String toString() {
+            return "Extensions{" + "analyzers=" + analyzers + ", filters=" + filters + ", reporters=" + reporters
+                    + ", transforms=" + transforms + ", matchers=" + matchers + '}';
+        }
+
         @SuppressWarnings("unchecked")
         private static Set<Map.Entry<ExtensionInstance<?>, AnalysisContext>> retype(Set<?> set) {
             return (Set) set;
@@ -261,6 +267,11 @@ public final class AnalysisResult implements AutoCloseable {
         @Override
         public int hashCode() {
             return Objects.hash(instance, id);
+        }
+
+        @Override
+        public String toString() {
+            return "ExtensionInstance{" + "instance=" + instance + ", id='" + id + '\'' + '}';
         }
     }
 }
