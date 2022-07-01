@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>46</version>
+        <version>47-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-standalone</artifactId>
-    <version>0.11.6</version>
+    <version>0.11.7-SNAPSHOT</version>
     <name>CLI</name>
     <description>Revapi CLI</description>
     <url>https://revapi.org</url>
@@ -44,7 +44,7 @@
     </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
-        <version.org.revapi.revapi>0.14.5</version.org.revapi.revapi>
+        <version.org.revapi.revapi>0.14.6-SNAPSHOT</version.org.revapi.revapi>
     </properties>
     <dependencies>
         <dependency>
@@ -79,13 +79,13 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.12.6</version>
+            <version>0.12.7-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.10.7</version>
+            <version>0.10.8-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
