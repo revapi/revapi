@@ -44,7 +44,7 @@
     </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
-        <version.org.revapi.revapi>0.14.5</version.org.revapi.revapi>
+        <version.org.revapi.revapi>0.14.6-SNAPSHOT</version.org.revapi.revapi>
     </properties>
     <dependencies>
         <dependency>
