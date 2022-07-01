@@ -473,6 +473,7 @@ $to_release
   git push -f origin HEAD:staging
 
   cd "${cwd}"
+  git reset --hard
   git checkout "$current_branch"
 }
 
