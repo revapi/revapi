@@ -85,7 +85,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.10.7</version>
+            <version>0.10.8-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
