@@ -414,7 +414,7 @@ $to_release
         if [ ! -f $check_file ]; then
           git checkout "${r}"
           # package so that the revapi report can be produced
-          ${MVN} package site -DskipTests -Pdocs-release
+          ${MVN} package site -DskipTests -Pdocs-release -Dlicense.skip -Dformatter.skip -Dimpsort.skip
 
           mkdir -p $dir
           cp -R target/site/* $dir
@@ -473,7 +473,6 @@ $to_release
   git push -f origin HEAD:staging
 
   cd "${cwd}"
-  git reset --hard
   git checkout "$current_branch"
 }
 
