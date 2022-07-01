@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2021 Lukas Krejci
+    Copyright 2014-2022 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>47-SNAPSHOT</version>
+        <version>46</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-ant-task</artifactId>
-    <version>0.12.6-SNAPSHOT</version>
+    <version>0.12.6</version>
     <name>Ant Task</name>
     <description>Ant integration for Revapi.</description>
     <url>https://revapi.org</url>
@@ -55,12 +55,12 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.14.6-SNAPSHOT</version>
+            <version>0.14.5</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.12.7-SNAPSHOT</version>
+            <version>0.12.6</version>
         </dependency>
     </dependencies>
     <build>
