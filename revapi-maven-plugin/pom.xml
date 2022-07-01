@@ -129,7 +129,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-utils</artifactId>
-            <version>0.10.7-SNAPSHOT</version>
+            <version>0.10.7</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
