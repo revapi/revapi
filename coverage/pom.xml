@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-maven-plugin</artifactId>
-            <version>0.14.7</version>
+            <version>0.14.8-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <artifactId>commons-collections</artifactId>
