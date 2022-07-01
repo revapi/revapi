@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,6 +86,16 @@ public class CheckMojo extends AbstractRevapiMojo {
     @Parameter(property = Props.ignoreSuggestionsFile.NAME, defaultValue = Props.ignoreSuggestionsFile.DEFAULT_VALUE)
     private File ignoreSuggestionsFile;
 
+    /**
+     * The message that is appended to the end of the plugin error output when the API problems fail the build. This
+     * will replace the "Consult the plugin output above for suggestions on how to ignore the found problems." line at
+     * the end of the plugin output.
+     *
+     * @since 0.14.7
+     */
+    @Parameter(property = Props.buildFailureMessage.NAME, defaultValue = Props.buildFailureMessage.DEFAULT_VALUE)
+    private String buildFailureMessage;
+
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         StringWriter wrt = new StringWriter();
@@ -133,8 +143,7 @@ public class CheckMojo extends AbstractRevapiMojo {
                     }
                     // this will be part of the error message
                     if (failBuildOnProblemsFound) {
-                        report += "\nConsult the plugin output above for suggestions on how to ignore the found"
-                                + " problems.";
+                        report += "\n" + buildFailureMessage;
                     }
                 }
 

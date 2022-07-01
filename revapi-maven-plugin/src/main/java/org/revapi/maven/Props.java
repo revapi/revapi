@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -210,5 +210,11 @@ final class Props {
     static final class newPromotedDependencies {
         static final String NAME = "";
         static final String DEFAULT_VALUE = "";
+    }
+
+    static final class buildFailureMessage {
+        static final String NAME = "buildFailureMessage";
+        static final String DEFAULT_VALUE = "Consult the plugin output above for suggestions on how to ignore the found"
+                + " problems.";
     }
 }
