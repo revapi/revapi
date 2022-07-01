@@ -1,0 +1,15 @@
+= Release Notes
+:page-publish_date: 2022-07-01
+:page-layout: news-article
+
+With the first day of summer holidays (at least in this part of the world), it has come time to release the long overdue new version of Revapi and its components.
+
+* `revapi.versions` can now be less strict about parsing the semver versions https://github.com/revapi/revapi/issues/263[#263]
+* Changing the visibility of a constructor of an abstract class from public to protected is no longer considered binary or source incompatible.
+* `java.field.enumConstantOrderChanged` check is fixed
+* Improved the diagnostics when the transformations enter an infinite loop. The output should now contain enough information to figure out what difference transforms are causing the loop.
+* Jackson has been upgraded to the latest version.
+* Revapi is less strict about the way the transformation blocks reference the transformations to include
+in them.
+* It is now possible to customize the final message when Revapi causes the build to fail so that you caninclude a custom hint for further steps to fix the API problems.
+
