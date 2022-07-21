@@ -36,6 +36,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -372,14 +373,19 @@ public final class Main {
             }
         }
 
+        // note, that this is effectively creating the old-style configuration. This will need reworked once
+        // the support for the old-style configuration is dropped.
+        ObjectNode additionalConfigNode = JsonNodeFactory.instance.objectNode();
         for (Map.Entry<String, String> e : additionalConfig.entrySet()) {
             String[] keyPath = e.getKey().split("\\.");
-            ObjectNode additionalNode = JsonNodeFactory.instance.objectNode();
-            ObjectNode keyParent = additionalNode;
+            ObjectNode keyParent = additionalConfigNode;
             for (int i = 0; i < keyPath.length - 1; ++i) {
-                ObjectNode child = JsonNodeFactory.instance.objectNode();
-                keyParent.set(keyPath[i], child);
-                keyParent = child;
+                JsonNode child = keyParent.get(keyPath[i]);
+                if (child == null) {
+                    child = JsonNodeFactory.instance.objectNode();
+                    keyParent.set(keyPath[i], child);
+                }
+                keyParent = (ObjectNode) child;
             }
 
             String key = keyPath[keyPath.length - 1];
@@ -393,8 +399,8 @@ public final class Main {
             } else {
                 keyParent.put(key, value);
             }
-            ctxBld.mergeConfiguration(additionalNode);
         }
+        ctxBld.mergeConfiguration(additionalConfigNode);
 
         LOG.info("Starting analysis");
 
