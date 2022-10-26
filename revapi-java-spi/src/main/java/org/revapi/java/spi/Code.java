@@ -155,7 +155,7 @@ public enum Code {
     METHOD_NO_LONGER_FINAL("java.method.noLongerFinal", NON_BREAKING, NON_BREAKING, null),
     METHOD_NOW_FINAL("java.method.nowFinal", POTENTIALLY_BREAKING, POTENTIALLY_BREAKING, null),
     METHOD_NOW_FINAL_IN_FINAL_CLASS("java.method.nowFinalInFinalClass", EQUIVALENT, EQUIVALENT, null),
-    METHOD_VISIBILITY_INCREASED("java.method.visibilityIncreased", EQUIVALENT, EQUIVALENT, null, "oldVisibility",
+    METHOD_VISIBILITY_INCREASED("java.method.visibilityIncreased", BREAKING, BREAKING, null, "oldVisibility",
             "newVisibility"),
     METHOD_VISIBILITY_REDUCED("java.method.visibilityReduced", BREAKING, BREAKING, null, "oldVisibility",
             "newVisibility"),
