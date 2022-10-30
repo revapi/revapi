@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.revapi.java.matcher;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -27,10 +28,10 @@ import static org.mockito.Mockito.when;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.util.Elements;
 
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,6 @@ import org.revapi.java.JavaApiAnalyzer;
 import org.revapi.java.JavaArchiveAnalyzer;
 import org.revapi.java.model.JavaElementForest;
 import org.revapi.java.spi.JavaElement;
-import org.revapi.java.spi.JavaMethodElement;
 import org.revapi.java.spi.JavaTypeElement;
 import org.revapi.java.spi.TypeEnvironment;
 
@@ -151,50 +151,51 @@ class PackageMatcherTest extends AbstractJavaElementAnalyzerTest {
     }
 
     @Test
-    void testMatchesMethod() {
-        String pkgName = "com.acme";
+    void testInheritedInnerClass() {
         PackageMatcher matcher = new PackageMatcher();
-        ElementMatcher.CompiledRecipe recipe = matcher.compile(pkgName).get();
-
+        ElementMatcher.CompiledRecipe recipe = matcher.compile("com.acme").get();
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(new JavaApiAnalyzer(), null, null, null, null, false,
                 null);
-
-        TypeElement type = mock(TypeElement.class);
-        PackageElement pkg = mock(PackageElement.class);
-        ExecutableElement method = mock(ExecutableElement.class);
 
         TypeEnvironment env = mock(TypeEnvironment.class);
         Elements els = mock(Elements.class);
         when(env.getElementUtils()).thenReturn(els);
 
-        JavaMethodElement methodEl = mock(JavaMethodElement.class);
-        when(methodEl.getDeclaringElement()).thenReturn(method);
-        when(methodEl.getTypeEnvironment()).thenReturn(env);
+        PackageElement basePackage = mock(PackageElement.class);
+        when(basePackage.getQualifiedName()).thenReturn(new StringName("com.base"));
+        PackageElement inheritorPackage = mock(PackageElement.class);
+        when(inheritorPackage.getQualifiedName()).thenReturn(new StringName("com.acme"));
 
-        when(els.getPackageOf(eq(method))).thenReturn(pkg);
+        TypeElement baseType = mock(TypeElement.class);
+        DeclaredType baseTypeMirror = mock(DeclaredType.class);
+        JavaTypeElement baseTypeEl = mock(JavaTypeElement.class);
+        when(baseTypeEl.getTypeEnvironment()).thenReturn(env);
+        when(baseTypeEl.getDeclaringElement()).thenReturn(baseType);
+        when(els.getPackageOf(eq(baseType))).thenReturn(basePackage);
 
-        when(pkg.getQualifiedName()).thenReturn(new StringName(pkgName));
+        TypeElement innerType = mock(TypeElement.class);
+        JavaTypeElement innerTypeEl = mock(JavaTypeElement.class);
+        when(innerTypeEl.getTypeEnvironment()).thenReturn(env);
+        when(innerTypeEl.getDeclaringElement()).thenReturn(innerType);
+        when(els.getPackageOf(eq(innerType))).thenReturn(basePackage);
+
+        TypeElement inheritorType = mock(TypeElement.class);
+        JavaTypeElement inheritorTypeEl = mock(JavaTypeElement.class);
+        when(inheritorTypeEl.getTypeEnvironment()).thenReturn(env);
+        when(inheritorTypeEl.getDeclaringElement()).thenReturn(inheritorType);
+        when(els.getPackageOf(eq(inheritorType))).thenReturn(inheritorPackage);
+
+        // the inherited element behavior
+        when(innerType.getEnclosingElement()).thenReturn(baseType);
+        when(innerTypeEl.getParent()).thenReturn(inheritorTypeEl);
+        when(inheritorType.getSuperclass()).thenReturn(baseTypeMirror);
 
         TreeFilter<JavaElement> filter = recipe.filterFor(analyzer);
         assertNotNull(filter);
 
-        FilterStartResult sRes = filter.start(methodEl);
-        assertSame(Ternary.TRUE, sRes.getMatch());
-        assertSame(Ternary.TRUE, sRes.getDescend());
-
-        FilterFinishResult fRes = filter.finish(methodEl);
-        assertSame(Ternary.TRUE, fRes.getMatch());
-        assertFalse(fRes.isInherited());
-
-        when(pkg.getQualifiedName()).thenReturn(new StringName(pkgName + "no"));
-
-        sRes = filter.start(methodEl);
-        assertSame(Ternary.FALSE, sRes.getMatch());
-        assertSame(Ternary.FALSE, sRes.getDescend());
-
-        fRes = filter.finish(methodEl);
-        assertSame(Ternary.FALSE, fRes.getMatch());
-        assertFalse(fRes.isInherited());
+        FilterStartResult res = filter.start(innerTypeEl);
+        assertEquals(Ternary.TRUE, res.getMatch());
+        assertEquals(Ternary.TRUE, res.getDescend());
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ import org.revapi.base.IndependentTreeFilter;
 import org.revapi.java.JavaArchiveAnalyzer;
 import org.revapi.java.spi.JavaElement;
 import org.revapi.java.spi.JavaModelElement;
+import org.revapi.java.spi.JavaTypeElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class PackageMatcher extends BaseElementMatcher {
                 return (TreeFilter<E>) new IndependentTreeFilter<JavaElement>() {
                     @Override
                     protected FilterStartResult doStart(JavaElement element) {
-                        if (!(element instanceof JavaModelElement)) {
+                        if (!(element instanceof JavaTypeElement)) {
                             return FilterStartResult.defaultResult();
                         }
 
@@ -69,7 +70,12 @@ public class PackageMatcher extends BaseElementMatcher {
                     }
 
                     private PackageElement getPackage(JavaModelElement el) {
-                        javax.lang.model.element.Element type = el == null ? null : el.getDeclaringElement();
+                        // we need to traverse the model up to the top level type to be sure that we're detecting the
+                        // right package. Getting the declaring element of an inherited inner class would give us the
+                        // package in which the inner class was declared, not the one where it was inherited to.
+                        JavaTypeElement topLevelParent = getTopLevelParent(el);
+                        javax.lang.model.element.Element type = topLevelParent == null ? null
+                                : topLevelParent.getDeclaringElement();
 
                         PackageElement pkg = el == null ? null
                                 : el.getTypeEnvironment().getElementUtils().getPackageOf(type);
@@ -88,6 +94,14 @@ public class PackageMatcher extends BaseElementMatcher {
                         } else {
                             return pattern.matcher(pkg.getQualifiedName()).matches();
                         }
+                    }
+
+                    private JavaTypeElement getTopLevelParent(JavaModelElement el) {
+                        while (el != null && (!(el instanceof JavaTypeElement) || el.getParent() != null)) {
+                            el = el.getParent();
+                        }
+
+                        return (JavaTypeElement) el;
                     }
                 };
             }
