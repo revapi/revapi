@@ -1909,11 +1909,13 @@ This is a compatible change reported for the completeness' sake.
 [cols="35s,<65d"]
 |=============
 | Binary severity   | equivalent
-| Source severity   | equivalent
+| Source severity   | potentially breaking
 | Semantic severity | NA
 |=============
 
-No API breakage, reported for completeness' sake.
+While the JLS ensures this is a binary compatible change, it can be source incompatible in a situation where
+an inheriting class overrides the method with stricter visibility. E.g. if you have a `protected` method that you want
+to make `public`, it will break all the classes that override your method with `protected` visibility.
 
 [options=header]
 |====
