@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +68,7 @@ import org.slf4j.LoggerFactory;
  * to reinvent the wheel.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public final class Util {
@@ -952,7 +953,7 @@ public final class Util {
      *
      * @param construct
      *            the element or type mirror to render
-     * 
+     *
      * @return a human readable representation of the construct
      */
     @Nonnull
@@ -972,7 +973,7 @@ public final class Util {
      *
      * @param t
      *            type to convert to string
-     * 
+     *
      * @return the string representation of the type that is fit for equality comparisons
      */
     @Nonnull
@@ -1039,8 +1040,8 @@ public final class Util {
      * @return the list of super types
      */
     @Nonnull
-    public static List<TypeMirror> getAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type) {
-        ArrayList<TypeMirror> ret = new ArrayList<>();
+    public static Set<TypeMirror> getAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type) {
+        Set<TypeMirror> ret = new LinkedHashSet<>();
         fillAllSuperTypes(types, type, ret);
 
         return ret;
@@ -1057,15 +1058,16 @@ public final class Util {
      * @param result
      *            the list to add the results to.
      */
-    public static void fillAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type,
-            @Nonnull List<TypeMirror> result) {
+    private static void fillAllSuperTypes(@Nonnull Types types, @Nonnull TypeMirror type,
+            @Nonnull Set<TypeMirror> result) {
 
         try {
             List<? extends TypeMirror> superTypes = types.directSupertypes(type);
 
             for (TypeMirror t : superTypes) {
-                result.add(t);
-                fillAllSuperTypes(types, t, result);
+                if (result.add(t)) {
+                    fillAllSuperTypes(types, t, result);
+                }
             }
         } catch (RuntimeException e) {
             LOG.debug("Failed to find all super types of type '" + toHumanReadableString(type) + ". Possibly "
@@ -1115,12 +1117,12 @@ public final class Util {
      * @param typeEnvironment
      *            the environment in which the type lives
      *
-     * @return true if type a sub type of one of the provided super types, false otherwise.
+     * @return true if type is a sub type of one of the provided super types, false otherwise.
      */
     public static boolean isSubtype(@Nonnull TypeMirror type, @Nonnull List<? extends TypeMirror> superTypes,
             @Nonnull Types typeEnvironment) {
 
-        List<TypeMirror> typeSuperTypes = getAllSuperTypes(typeEnvironment, type);
+        List<TypeMirror> typeSuperTypes = new ArrayList<>(getAllSuperTypes(typeEnvironment, type));
         typeSuperTypes.add(0, type);
 
         for (TypeMirror t : typeSuperTypes) {
