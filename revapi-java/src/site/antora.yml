@@ -17,6 +17,6 @@
 
 name: revapi-java
 title: Java Analyzer
-version: main
+version: 0.27.1
 nav:
   - modules/ROOT/nav.adoc
