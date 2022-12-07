@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,9 +39,9 @@ import org.revapi.java.spi.JavaTypeElement;
  * {@link org.revapi.DifferenceTransform}s but other extension types can use them, too.
  * <p>
  * The element matchers are available for the other extensions to pick from the `AnalysisContext` which they're
- * initialized with. It is not however defined how such extensions should pick the right element matcher. It could be
- * done for example by specifying the element matcher extension id (after all element matchers are extensions, too, and
- * therefore are configurable) but that is not prescribed.
+ * initialized with. It is not however defined how such extensions should pick the right element matcher. It is assumed
+ * that this will be done somehow using the "matcher id" but this is not strictly prescribed and the extension needs to
+ * decide itself how to do it (e.g. where in its configuration to specify this).
  * <p>
  * It is assumed that the element matcher will be able to process some textual description of the elements it should
  * match - the recipe.
@@ -53,10 +53,16 @@ import org.revapi.java.spi.JavaTypeElement;
  */
 public class TypeKindElementMatcher extends BaseElementMatcher {
 
-    @Nullable
+    @Override
+    public String getMatcherId() {
+        // used to identify the matcher when used in config of other extensions.
+        return "type-kind";
+    }
+
     @Override
     public String getExtensionId() {
-        return "type-kind";
+        // used to identify the matcher in the analysis configuration.
+        return "type-kind-matcher";
     }
 
     @Override

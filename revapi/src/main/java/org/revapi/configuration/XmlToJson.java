@@ -68,7 +68,7 @@ public final class XmlToJson<Xml> {
      * A convenience constructor to create an instance using the extension schemas known to the provided Revapi
      * instance.
      *
-     * @deprecated use #fromRevapi
+     * @deprecated use {@link #fromRevapi(Revapi, Function, Function, BiFunction, Function)}
      */
     @Deprecated
     public XmlToJson(Revapi revapi, Function<Xml, String> getName, Function<Xml, String> getValue,
@@ -127,6 +127,10 @@ public final class XmlToJson<Xml> {
         return new XmlToJson<>(knownExtensionSchemas, getName, getValue, getAttributeValue, getChildren, 42);
     }
 
+    /**
+     * Similar to {@link #fromKnownSchemas(Map, Function, Function, BiFunction, Function)} but learns the known schemas
+     * from the provided Revapi instance.
+     */
     public static <Xml> XmlToJson<Xml> fromRevapi(Revapi revapi, Function<Xml, String> getName,
             Function<Xml, String> getValue, BiFunction<Xml, String, String> getAttributeValue,
             Function<Xml, List<Xml>> getChildren) {
@@ -503,6 +507,7 @@ public final class XmlToJson<Xml> {
         extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getTransformTypes());
         extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getTreeFilterTypes());
         extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getReporterTypes());
+        extractKnownSchemas(knownSchemas, revapi.getPipelineConfiguration().getMatcherTypes());
 
         return knownSchemas;
     }

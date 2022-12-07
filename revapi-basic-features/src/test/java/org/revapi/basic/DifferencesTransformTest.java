@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -289,7 +289,7 @@ public class DifferencesTransformTest {
         when(recipe.filterFor(any())).thenReturn((TreeFilter) filter);
 
         ElementMatcher matcher = mock(ElementMatcher.class);
-        when(matcher.getExtensionId()).thenReturn("testMatcher");
+        when(matcher.getMatcherId()).thenReturn("testMatcher");
         when(matcher.compile(eq("element"))).thenReturn(Optional.of(recipe));
 
         when(oldEl.getFullHumanReadableString()).thenReturn("element");

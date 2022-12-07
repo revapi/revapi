@@ -109,7 +109,12 @@ public class PackageMatcher extends BaseElementMatcher {
     }
 
     @Override
-    public String getExtensionId() {
+    public String getMatcherId() {
         return "java-package";
+    }
+
+    @Override
+    public String getExtensionId() {
+        return "revapi.matcher.java-package";
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,15 @@ import org.revapi.configuration.Configurable;
 public interface ElementMatcher extends Configurable, AutoCloseable {
 
     /**
+     * This is distinct from the {@link #getExtensionId()}, because it identifies the matcher in the "use" positions
+     * somewhere inside the configuration of other extensions. The {@link #getExtensionId() extensionId} can be used for
+     * identifying the element matcher itself in the analysis configuration or pipeline configuration.
+     * 
+     * @return
+     */
+    String getMatcherId();
+
+    /**
      * Tries to compile the provided recipe into a form that can test individual elements.
      *
      * @param recipe
@@ -47,8 +56,8 @@ public interface ElementMatcher extends Configurable, AutoCloseable {
     interface CompiledRecipe {
         /**
          * The recipe needs to be transformed into a {@link TreeFilter} to be used for filtering of the element forest.
-         * It is assumed that the element matcher may want cooperate with the archive analyzer that produced the element
-         * forest to correctly set up the filter.
+         * It is assumed that the element matcher may want to cooperate with the archive analyzer that produced the
+         * element forest to correctly set up the filter.
          *
          * @param archiveAnalyzer
          *            the archive analyzer that produced the element forest that will be filtered by the returned tree

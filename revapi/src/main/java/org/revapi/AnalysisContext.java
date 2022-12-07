@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +35,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -176,8 +174,8 @@ public final class AnalysisContext {
     private AnalysisContext(Locale locale, @Nullable ModelNode configuration, API oldApi, API newApi,
             Collection<ElementMatcher> elementMatchers, Map<String, Object> data,
             Collection<Criticality> knownCriticalities, Map<DifferenceSeverity, Criticality> defaultSeverityMapping) {
-        this(locale, JSONUtil.convert(configuration), oldApi, newApi, elementMatchers, data, knownCriticalities,
-                defaultSeverityMapping);
+        this(locale, configuration == null ? null : JSONUtil.convert(configuration), oldApi, newApi, elementMatchers,
+                data, knownCriticalities, defaultSeverityMapping);
     }
 
     private AnalysisContext(Locale locale, @Nullable JsonNode configuration, API oldApi, API newApi,
@@ -191,8 +189,8 @@ public final class AnalysisContext {
         }
         this.oldApi = oldApi;
         this.newApi = newApi;
-        this.matchers = elementMatchers == null ? Collections.emptyMap() : Collections.unmodifiableMap(
-                elementMatchers.stream().collect(Collectors.toMap(Configurable::getExtensionId, Function.identity())));
+        this.matchers = elementMatchers == null ? Collections.emptyMap() : Collections
+                .unmodifiableMap(elementMatchers.stream().collect(toMap(ElementMatcher::getMatcherId, identity())));
         this.data = data;
         this.criticalityByName = knownCriticalities.stream().collect(toMap(Criticality::getName, identity()));
         this.defaultSeverityMapping = defaultSeverityMapping;
@@ -327,6 +325,10 @@ public final class AnalysisContext {
         return newApi;
     }
 
+    /**
+     * This is the map of the available element matchers keyed by their {@link ElementMatcher#getMatcherId() matcher
+     * id}.
+     */
     public Map<String, ElementMatcher> getMatchers() {
         return matchers;
     }

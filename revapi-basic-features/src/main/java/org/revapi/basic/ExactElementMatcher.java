@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,6 @@ import java.io.Reader;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
 import org.revapi.ArchiveAnalyzer;
@@ -50,13 +49,16 @@ public final class ExactElementMatcher implements ElementMatcher {
 
     }
 
-    @Nullable
     @Override
-    public String getExtensionId() {
+    public String getMatcherId() {
         return "exact";
     }
 
-    @Nullable
+    @Override
+    public String getExtensionId() {
+        return "revapi.matcher.exact";
+    }
+
     @Override
     public Reader getJSONSchema() {
         return null;

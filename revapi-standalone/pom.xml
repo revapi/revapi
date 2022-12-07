@@ -26,7 +26,7 @@
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-standalone</artifactId>
-    <version>0.11.7-SNAPSHOT</version>
+    <version>0.12.0-SNAPSHOT</version>
     <name>CLI</name>
     <description>Revapi CLI</description>
     <url>https://revapi.org</url>
@@ -44,7 +44,7 @@
     </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.standalone</automatic.module.name>
-        <version.org.revapi.revapi>0.14.6-SNAPSHOT</version.org.revapi.revapi>
+        <version.org.revapi.revapi>0.15.0-SNAPSHOT</version.org.revapi.revapi>
     </properties>
     <dependencies>
         <dependency>
@@ -79,7 +79,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.12.7-SNAPSHOT</version>
+            <version>0.13.0-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
