@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,7 @@
  */
 package org.revapi.java.compilation;
 
-import static org.revapi.java.model.MissingTypeElement.isMissing;
-
-import java.util.Collections;
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -36,7 +31,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Types;
 
-import org.revapi.java.model.MissingTypeElement;
 import org.revapi.java.spi.IgnoreCompletionFailures;
 
 /**
@@ -54,43 +48,43 @@ final class MissingTypeAwareDelegatingTypes implements Types {
 
     @Override
     public Element asElement(final TypeMirror t) {
-        return IgnoreCompletionFailures.in(checkMissing(types::asElement, null), t);
+        return IgnoreCompletionFailures.in(types::asElement, t);
     }
 
     @Override
     public boolean isSameType(final TypeMirror t1, final TypeMirror t2) {
-        return IgnoreCompletionFailures.in(checkMissing(types::isSameType, false), t1, t2);
+        return IgnoreCompletionFailures.in(types::isSameType, t1, t2);
     }
 
     @Override
     public boolean isSubtype(final TypeMirror t1, final TypeMirror t2) {
-        return IgnoreCompletionFailures.in(checkMissing(types::isSubtype, false), t1, t2);
+        return IgnoreCompletionFailures.in(types::isSubtype, t1, t2);
     }
 
     @Override
     public boolean isAssignable(final TypeMirror t1, final TypeMirror t2) {
-        return IgnoreCompletionFailures.in(checkMissing(types::isAssignable, false), t1, t2);
+        return IgnoreCompletionFailures.in(types::isAssignable, t1, t2);
     }
 
     @Override
     public boolean contains(final TypeMirror t1, final TypeMirror t2) {
-        return IgnoreCompletionFailures.in(checkMissing(types::contains, false), t1, t2);
+        return IgnoreCompletionFailures.in(types::contains, t1, t2);
     }
 
     @Override
     public boolean isSubsignature(final ExecutableType m1, final ExecutableType m2) {
-        return IgnoreCompletionFailures.in(checkMissing(types::isSubsignature, false), m1, m2);
+        return IgnoreCompletionFailures.in(types::isSubsignature, m1, m2);
     }
 
     @Override
     public List<? extends TypeMirror> directSupertypes(TypeMirror t) {
 
-        return IgnoreCompletionFailures.in(checkMissing(types::directSupertypes, Collections.emptyList()), t);
+        return IgnoreCompletionFailures.in(types::directSupertypes, t);
     }
 
     @Override
     public TypeMirror erasure(TypeMirror t) {
-        return IgnoreCompletionFailures.in(checkMissing(types::erasure, t), t);
+        return IgnoreCompletionFailures.in(types::erasure, t);
     }
 
     @Override
@@ -100,15 +94,12 @@ final class MissingTypeAwareDelegatingTypes implements Types {
 
     @Override
     public PrimitiveType unboxedType(TypeMirror t) {
-        if (isMissing(t)) {
-            throw new IllegalArgumentException("Type " + t + " does not have an unboxing conversion.");
-        }
         return IgnoreCompletionFailures.in(types::unboxedType, t);
     }
 
     @Override
     public TypeMirror capture(TypeMirror t) {
-        return IgnoreCompletionFailures.in(checkMissing(types::capture, t), t);
+        return IgnoreCompletionFailures.in(types::capture, t);
     }
 
     @Override
@@ -128,79 +119,26 @@ final class MissingTypeAwareDelegatingTypes implements Types {
 
     @Override
     public ArrayType getArrayType(TypeMirror componentType) {
-        if (isMissing(componentType)) {
-            throw new IllegalArgumentException("Type " + componentType + " is not a valid component of an array.");
-        }
         return IgnoreCompletionFailures.in(types::getArrayType, componentType);
     }
 
     @Override
     public WildcardType getWildcardType(TypeMirror extendsBound, TypeMirror superBound) {
-        if (isMissing(extendsBound) || isMissing(superBound)) {
-            throw new IllegalArgumentException("Invalid bounds.");
-        }
         return IgnoreCompletionFailures.in(types::getWildcardType, extendsBound, superBound);
     }
 
     @Override
     public DeclaredType getDeclaredType(TypeElement typeElem, TypeMirror... typeArgs) {
-        if (MissingTypeElement.isMissing(typeElem)) {
-            throw new IllegalArgumentException("Invalid type element.");
-        }
-        for (TypeMirror t : typeArgs) {
-            if (isMissing(t)) {
-                throw new IllegalArgumentException("Invalid type arguments.");
-            }
-        }
         return IgnoreCompletionFailures.in(types::getDeclaredType, typeElem, typeArgs);
     }
 
     @Override
     public DeclaredType getDeclaredType(DeclaredType containing, TypeElement typeElem, TypeMirror... typeArgs) {
-        if (isMissing(containing)) {
-            throw new IllegalArgumentException("Invalid containing type.");
-        }
-        if (MissingTypeElement.isMissing(typeElem)) {
-            throw new IllegalArgumentException("Invalid type element.");
-        }
-        for (TypeMirror t : typeArgs) {
-            if (isMissing(t)) {
-                throw new IllegalArgumentException("Invalid type arguments.");
-            }
-        }
         return IgnoreCompletionFailures.in(types::getDeclaredType, containing, typeElem, typeArgs);
     }
 
     @Override
     public TypeMirror asMemberOf(DeclaredType containing, Element element) {
-        if (isMissing(containing)) {
-            throw new IllegalArgumentException("Invalid containing type.");
-        }
-        if (MissingTypeElement.isMissing(element)) {
-            throw new IllegalArgumentException("Invalid element.");
-        }
         return IgnoreCompletionFailures.in(types::asMemberOf, containing, element);
-    }
-
-    private static <R, T extends TypeMirror> IgnoreCompletionFailures.Fn1<R, T> checkMissing(Function<T, R> fn,
-            R returnValueOnMissing) {
-        return (t) -> {
-            if (isMissing(t)) {
-                return returnValueOnMissing;
-            } else {
-                return fn.apply(t);
-            }
-        };
-    }
-
-    private static <R, T1 extends TypeMirror, T2 extends TypeMirror> IgnoreCompletionFailures.Fn2<R, T1, T2> checkMissing(
-            BiFunction<T1, T2, R> fn, R returnValueOnMissing) {
-        return (t1, t2) -> {
-            if (isMissing(t1) || isMissing(t2)) {
-                return returnValueOnMissing;
-            } else {
-                return fn.apply(t1, t2);
-            }
-        };
     }
 }
