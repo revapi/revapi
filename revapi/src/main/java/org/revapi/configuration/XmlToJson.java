@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <Xml>
  *            The type of the xml representation used by the calling code.
- *
+ * 
  * @author Lukas Krejci
  * 
  * @since 0.8.0
@@ -68,8 +68,6 @@ public final class XmlToJson<Xml> {
      * A convenience constructor to create an instance using the extension schemas known to the provided Revapi
      * instance.
      *
-     * @see #XmlToJson(Map, Function, Function, BiFunction, Function)
-     * 
      * @deprecated use #fromRevapi
      */
     @Deprecated
@@ -95,7 +93,7 @@ public final class XmlToJson<Xml> {
      *            text or CDATA nodes - those are to be used in the {@code getValue} function. It also MUST NOT contain
      *            any comment nodes.
      * 
-     * @deprecated use the Jackson-based variant
+     * @deprecated use {@link #fromKnownSchemas(Map, Function, Function, BiFunction, Function)}
      */
     @Deprecated
     public XmlToJson(Map<String, ModelNode> knownExtensionSchemas, Function<Xml, String> getName,
@@ -170,7 +168,9 @@ public final class XmlToJson<Xml> {
                 continue;
             }
 
-            JsonNode config = convert(c, schema, schema);
+            ConversionProgress<Xml> progress = new ConversionProgress<>(extensionId, id, schema, schema, c);
+
+            JsonNode config = convert(progress);
 
             ObjectNode instanceConfig = JsonNodeFactory.instance.objectNode();
             instanceConfig.put("extension", extensionId);
@@ -185,54 +185,53 @@ public final class XmlToJson<Xml> {
         return fullConfiguration;
     }
 
-    private JsonNode convert(Xml configuration, JsonNode jsonSchema, JsonNode rootSchema) {
-        JsonNode typeNode = jsonSchema.get("type");
+    private JsonNode convert(ConversionProgress<Xml> progress) {
+        JsonNode typeNode = progress.currentSchema.get("type");
         if (isNullOrUndefined(typeNode)) {
             JsonNode ret = null;
-            if (jsonSchema.hasNonNull("enum")) {
-                ret = convertByEnum(configuration, jsonSchema.get("enum"));
-            } else if (jsonSchema.hasNonNull("$ref")) {
-                jsonSchema = findRef(rootSchema, jsonSchema.get("$ref").asText());
-                ret = convert(configuration, jsonSchema, rootSchema);
-            } else if (jsonSchema.hasNonNull("oneOf")) {
-                ret = convertByOneOf(configuration, jsonSchema.get("oneOf"), rootSchema);
-            } else if (jsonSchema.hasNonNull("anyOf")) {
-                ret = convertByAnyOf(configuration, jsonSchema.get("anyOf"), rootSchema);
-            } else if (jsonSchema.hasNonNull("allOf")) {
-                ret = convertByAllOf(configuration, jsonSchema.get("allOf"), rootSchema);
+            if (progress.currentSchema.hasNonNull("enum")) {
+                ret = convertByEnum(progress.withSchema(progress.currentSchema.get("enum")));
+            } else if (progress.currentSchema.hasNonNull("$ref")) {
+                JsonNode jsonSchema = findRef(progress.rootSchema, progress.currentSchema.get("$ref").asText());
+                ret = convert(progress.withSchema(jsonSchema));
+            } else if (progress.currentSchema.hasNonNull("oneOf")) {
+                ret = convertByOneOf(progress.withSchema(progress.currentSchema.get("oneOf")));
+            } else if (progress.currentSchema.hasNonNull("anyOf")) {
+                ret = convertByAnyOf(progress.withSchema(progress.currentSchema.get("anyOf")));
+            } else if (progress.currentSchema.hasNonNull("allOf")) {
+                ret = convertByAllOf(progress.withSchema(progress.currentSchema.get("allOf")));
             }
 
             if (ret == null) {
-                throw new IllegalArgumentException("Could not convert the configuration. Schema:\n"
-                        + JSONUtil.toString(jsonSchema) + "\n\nData:\n" + configuration);
+                throw constructException("Could not convert the configuration because the schema doesn't declare"
+                        + " a type and is neither enum, $ref, oneOf, anyOf nor allOf.", progress);
             }
 
             return ret;
         }
 
         if (typeNode.getNodeType() != JsonNodeType.STRING) {
-            throw new IllegalArgumentException("JSON schema allows for multiple possible types. "
-                    + "This is not supported by the XML-to-JSON conversion yet. Schema:\n"
-                    + JSONUtil.toString(jsonSchema));
+            throw constructException("JSON schema allows for multiple possible types. This is not supported by"
+                    + " the XML-to-JSON conversion yet.", progress);
         }
 
         String type = typeNode.asText();
 
         switch (type) {
         case "boolean":
-            return convertBoolean(configuration);
+            return convertBoolean(progress);
         case "integer":
-            return convertInteger(configuration);
+            return convertInteger(progress);
         case "number":
-            return convertNumber(configuration);
+            return convertNumber(progress);
         case "string":
-            return convertString(configuration);
+            return convertString(progress);
         case "array":
-            return convertArray(configuration, jsonSchema, rootSchema);
+            return convertArray(progress);
         case "object":
-            return convertObject(configuration, jsonSchema, rootSchema);
+            return convertObject(progress);
         default:
-            throw new IllegalArgumentException("Unsupported json value type: " + type);
+            throw constructException("Unsupported json value type: " + type, progress);
         }
     }
 
@@ -243,174 +242,181 @@ public final class XmlToJson<Xml> {
         return rootSchema.at(ref);
     }
 
-    private JsonNode convertByEnum(Xml configuration, Iterable<JsonNode> enumValues) {
-        String xmlValue = getValue.apply(configuration);
+    private JsonNode convertByEnum(ConversionProgress<Xml> progress) {
+        String xmlValue = getValue.apply(progress.xml);
 
-        for (JsonNode jsonValue : enumValues) {
+        for (JsonNode jsonValue : progress.currentSchema) {
             String txt = jsonValue.asText();
             if (txt.equals(xmlValue)) {
                 return jsonValue.deepCopy();
             }
         }
 
-        throw new IllegalArgumentException(
-                "XML value '" + xmlValue + " doesn't match any of the allowed: " + enumValues);
+        throw constructException("XML value '" + xmlValue + "' doesn't match any of the allowed values.", progress);
     }
 
-    private JsonNode convertObject(Xml configuration, JsonNode jsonSchema, JsonNode rootSchema) {
-        if (getValue.apply(configuration) != null) {
-            // object cannot contain text nodes.. or rather we don't support that
-            throw new IllegalArgumentException(
-                    "Converting an XML node with text (and possibly children) to JSON" + " object is not supported.");
+    private JsonNode convertObject(ConversionProgress<Xml> progress) {
+        if (getValue.apply(progress.xml) != null) {
+            // object cannot contain text nodes. or rather we don't support that
+            throw constructException(
+                    "Converting an XML node with text (and possibly children) to JSON object is not" + " supported.",
+                    progress);
         }
 
         ObjectNode object = JsonNodeFactory.instance.objectNode();
 
-        JsonNode propertySchemas = jsonSchema.get("properties");
-        JsonNode additionalPropSchemas = jsonSchema.get("additionalProperties");
-        for (Xml childConfig : getChildren.apply(configuration)) {
+        JsonNode propertySchemas = progress.currentSchema.get("properties");
+        JsonNode additionalPropSchemas = progress.currentSchema.get("additionalProperties");
+        for (Xml childConfig : getChildren.apply(progress.xml)) {
             String name = getName.apply(childConfig);
             JsonNode childSchema = propertySchemas == null ? null : propertySchemas.get(name);
             if (childSchema == null) {
                 if (additionalPropSchemas != null && additionalPropSchemas.getNodeType() == JsonNodeType.BOOLEAN) {
-                    throw new IllegalArgumentException("Cannot determine the format for the '" + name
-                            + "' XML tag during the XML-to-JSON conversion.");
+                    throw constructException("The JSON schema prescribes free-form unrestricted JSON, which cannot"
+                            + " be convert XML to it reliably. This is a bug in the extension, contact the extension"
+                            + " author.", progress);
                 }
                 childSchema = additionalPropSchemas;
             }
 
             if (childSchema != null) {
-                JsonNode jsonChild = convert(childConfig, childSchema, rootSchema);
+                JsonNode jsonChild = convert(progress.dive(childSchema, childConfig));
                 object.set(name, jsonChild);
             }
         }
         return object;
     }
 
-    private ArrayNode convertArray(Xml configuration, JsonNode jsonSchema, JsonNode rootSchema) {
-        JsonNode itemsSchema = jsonSchema.get("items");
+    private ArrayNode convertArray(ConversionProgress<Xml> progress) {
+        JsonNode itemsSchema = progress.currentSchema.get("items");
         if (itemsSchema == null) {
-            throw new IllegalArgumentException(
-                    "No schema found for items of a list. Cannot continue with XML-to-JSON conversion.");
+            throw constructException("No schema found for items of a list. This is a bug in the extension, contact"
+                    + " the extension author.", progress);
         }
 
-        String value = getValue.apply(configuration);
+        String value = getValue.apply(progress.xml);
 
         if (value != null && !value.trim().isEmpty()) {
-            throw new IllegalArgumentException("<" + getName.apply(configuration)
-                    + "> should represent an array of values, but a textual value was found.");
+            throw constructException("XML element should represent a list of values, but a textual value was found.",
+                    progress);
         }
 
         ArrayNode list = JsonNodeFactory.instance.arrayNode();
 
-        for (Xml childConfig : getChildren.apply(configuration)) {
-            JsonNode child = convert(childConfig, itemsSchema, rootSchema);
+        for (Xml childConfig : getChildren.apply(progress.xml)) {
+            JsonNode child = convert(progress.dive(itemsSchema, childConfig));
             list.add(child);
         }
         return list;
     }
 
-    private JsonNode convertString(Xml configuration) {
-        String val = getValue.apply(configuration);
+    private JsonNode convertString(ConversionProgress<Xml> progress) {
+        String val = getValue.apply(progress.xml);
         if (val == null) {
-            throw new IllegalArgumentException("Null string not allowed.");
+            throw constructException("Representing null as a JSON string is not supported.", progress);
         }
         return JsonNodeFactory.instance.textNode(val);
     }
 
-    private JsonNode convertNumber(Xml configuration) {
+    private JsonNode convertNumber(ConversionProgress<Xml> progress) {
         try {
-            double floatVal = Double.parseDouble(getValue.apply(configuration));
+            double floatVal = Double.parseDouble(getValue.apply(progress.xml));
             return JsonNodeFactory.instance.numberNode(floatVal);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid value.", e);
+            throw constructException("Cannot represent the XML value as a floating point number.", progress, e);
         }
     }
 
-    private JsonNode convertInteger(Xml configuration) {
+    private JsonNode convertInteger(ConversionProgress<Xml> progress) {
         try {
-            long intVal = Long.parseLong(getValue.apply(configuration));
+            long intVal = Long.parseLong(getValue.apply(progress.xml));
             return JsonNodeFactory.instance.numberNode(intVal);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid value.", e);
+            throw constructException("Cannot represent the XML value as an integer number.", progress, e);
         }
     }
 
-    private JsonNode convertBoolean(Xml configuration) {
-        String v = getValue.apply(configuration);
+    private JsonNode convertBoolean(ConversionProgress<Xml> progress) {
+        String v = getValue.apply(progress.xml);
         Boolean boolVal = "true".equalsIgnoreCase(v) ? Boolean.TRUE
                 : ("false".equalsIgnoreCase(v) ? Boolean.FALSE : null);
         if (boolVal == null) {
-            throw new IllegalArgumentException("'true' or 'false' expected as a boolean value.");
+            throw constructException("'true' or 'false' expected as a boolean value.", progress);
         }
         return JsonNodeFactory.instance.booleanNode(boolVal);
     }
 
-    private JsonNode convertByOneOf(Xml configuration, Iterable<JsonNode> candidateSchemas, JsonNode rootSchema) {
+    private JsonNode convertByOneOf(ConversionProgress<Xml> progress) {
         boolean matched = false;
         JsonNode parsed = null;
-        for (JsonNode candidateSchema : candidateSchemas) {
+        for (JsonNode candidateSchema : progress.currentSchema) {
             try {
-                parsed = convert(configuration, candidateSchema, rootSchema);
-                if (matched) {
-                    return null;
-                } else {
-                    matched = true;
-                }
+                parsed = convert(progress.withSchema(candidateSchema));
             } catch (IllegalArgumentException __) {
-                // continue
+                continue;
             }
+            if (matched) {
+                throw constructException("More than 1 alternatives match but only 1 should.", progress);
+            } else {
+                matched = true;
+            }
+        }
+
+        if (parsed == null) {
+            throw constructException("Could not convert the value using any of the alternative schemas.", progress);
         }
 
         return parsed;
     }
 
-    private JsonNode convertByAnyOf(Xml configuration, Iterable<JsonNode> candidateSchemas, JsonNode rootSchema) {
-        for (JsonNode candidateSchema : candidateSchemas) {
+    private JsonNode convertByAnyOf(ConversionProgress<Xml> progress) {
+        for (JsonNode candidateSchema : progress.currentSchema) {
             try {
-                return convert(configuration, candidateSchema, rootSchema);
+                return convert(progress.withSchema(candidateSchema));
             } catch (IllegalArgumentException __) {
                 // continue
             }
         }
 
-        return null;
+        throw constructException("Could not convert the value using any of the alternative schemas.", progress);
     }
 
-    private JsonNode convertByAllOf(Xml configuration, Iterable<JsonNode> candidateSchemas, JsonNode rootSchema) {
+    private JsonNode convertByAllOf(ConversionProgress<Xml> progress) {
         JsonNode parsed = null;
-        for (JsonNode candidateSchema : candidateSchemas) {
-            try {
-                JsonNode newParsed = convert(configuration, candidateSchema, rootSchema);
-                if (parsed == null) {
-                    parsed = newParsed;
-                } else {
-                    // merge the newly parsed data into the already parsed data
-                    if (parsed.getNodeType() != newParsed.getNodeType()) {
-                        return null;
-                    }
-
-                    switch (parsed.getNodeType()) {
-                    case ARRAY:
-                        for (JsonNode item : newParsed) {
-                            ((ArrayNode) parsed).add(item);
-                        }
-                        break;
-                    case OBJECT:
-                        Iterator<Map.Entry<String, JsonNode>> fields = newParsed.fields();
-                        while (fields.hasNext()) {
-                            Map.Entry<String, JsonNode> field = fields.next();
-                            ((ObjectNode) parsed).put(field.getKey(), field.getValue());
-                        }
-                        break;
-                    default:
-                        parsed = newParsed;
-                        break;
-                    }
+        for (JsonNode candidateSchema : progress.currentSchema) {
+            JsonNode newParsed = convert(progress.withSchema(candidateSchema));
+            if (parsed == null) {
+                parsed = newParsed;
+            } else {
+                // merge the newly parsed data into the already parsed data
+                if (parsed.getNodeType() != newParsed.getNodeType()) {
+                    throw constructException("The alternatives of allOf produce different types of values (at least "
+                            + parsed.getNodeType() + " and " + newParsed.getNodeType()
+                            + " were found). This is not supported", progress);
                 }
-            } catch (IllegalArgumentException __) {
-                return null;
+
+                switch (parsed.getNodeType()) {
+                case ARRAY:
+                    for (JsonNode item : newParsed) {
+                        ((ArrayNode) parsed).add(item);
+                    }
+                    break;
+                case OBJECT:
+                    Iterator<Map.Entry<String, JsonNode>> fields = newParsed.fields();
+                    while (fields.hasNext()) {
+                        Map.Entry<String, JsonNode> field = fields.next();
+                        ((ObjectNode) parsed).put(field.getKey(), field.getValue());
+                    }
+                    break;
+                default:
+                    parsed = newParsed;
+                    break;
+                }
             }
+        }
+
+        if (parsed == null) {
+            throw constructException("Could not convert the value using none of the alternative schemas.", progress);
         }
 
         return parsed;
@@ -537,5 +543,46 @@ public final class XmlToJson<Xml> {
         }
 
         return bld.toString();
+    }
+
+    private static IllegalArgumentException constructException(String message, ConversionProgress<?> progress) {
+        return constructException(message, progress, null);
+    }
+
+    private static IllegalArgumentException constructException(String message, ConversionProgress<?> progress,
+            Exception cause) {
+        String ext = progress.extension;
+        if (progress.extensionId != null && progress.extensionId.length() > 0) {
+            ext += "(" + progress.extensionId + ")";
+        }
+
+        return new IllegalArgumentException(message + "\nWhile processing configuration of " + ext + " extension:\n"
+                + progress.xml
+                + "\n\nThe extension requires the document to conform to the following JSON schema after the conversion:\n"
+                + progress.currentSchema.toPrettyString(), cause);
+    }
+
+    private static final class ConversionProgress<Xml> {
+        final String extension;
+        final String extensionId;
+        final JsonNode rootSchema;
+        final JsonNode currentSchema;
+        final Xml xml;
+
+        ConversionProgress(String extension, String extensionId, JsonNode rootSchema, JsonNode currentSchema, Xml xml) {
+            this.extension = extension;
+            this.extensionId = extensionId;
+            this.rootSchema = rootSchema;
+            this.currentSchema = currentSchema;
+            this.xml = xml;
+        }
+
+        ConversionProgress<Xml> dive(JsonNode newSchema, Xml newXml) {
+            return new ConversionProgress<>(extension, extensionId, rootSchema, newSchema, newXml);
+        }
+
+        ConversionProgress<Xml> withSchema(JsonNode newSchema) {
+            return new ConversionProgress<>(extension, extensionId, rootSchema, newSchema, xml);
+        }
     }
 }

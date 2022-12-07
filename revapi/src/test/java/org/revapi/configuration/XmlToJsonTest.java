@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2022 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -159,7 +159,7 @@ public class XmlToJsonTest {
 
             Assert.fail("Invalid array conversion shouldn't have succeeded.");
         } catch (IllegalArgumentException e) {
-            Assert.assertTrue(e.getMessage().contains("<list>"));
+            Assert.assertTrue(e.getMessage().startsWith("XML element should represent a list of values"));
         }
     }
 
