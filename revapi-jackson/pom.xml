@@ -30,7 +30,7 @@
     <name>Jackson Analyzer Base</name>
     <properties>
         <automatic.module.name>org.revapi.jackson</automatic.module.name>
-        <version.com.fasterxml.jackson>2.13.3</version.com.fasterxml.jackson>
+        <version.com.fasterxml.jackson>2.14.1</version.com.fasterxml.jackson>
     </properties>
     <dependencies>
         <dependency>
