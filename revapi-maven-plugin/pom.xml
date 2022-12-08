@@ -57,7 +57,7 @@
         <revapi-java-spi.version>0.25.0-SNAPSHOT</revapi-java-spi.version>
         <revapi-java.version>0.28.0-SNAPSHOT</revapi-java.version>
         <revapi-reporter-text.version>0.15.0-SNAPSHOT</revapi-reporter-text.version>
-        <revapi.version>0.15.0</revapi.version>
+        <revapi.version>0.15.1-SNAPSHOT</revapi.version>
     </properties>
     <dependencies>
         <dependency>
