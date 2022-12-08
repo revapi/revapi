@@ -79,7 +79,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.13.0</version>
+            <version>0.13.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
