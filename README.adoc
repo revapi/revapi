@@ -116,7 +116,7 @@ See the https://revapi.org/revapi/architecture.html[site] for more info.
 
 == Getting in touch
 
-Mastodon:: https://botsin.space/@revapi[@revapi@botsin.space]
+Mastodon:: https://botsin.space/@revapi[+@revapi@botsin.space+]
 Twitter:: https://twitter.com/revapi_org[@revapi_org]
 Matrix:: #revapiorg:matrix.org
 Mailing list:: https://groups.google.com/forum/#!forum/revapi[revapi@googlegroups.com]
