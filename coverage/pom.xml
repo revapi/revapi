@@ -63,7 +63,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-json</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
+            <version>0.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
