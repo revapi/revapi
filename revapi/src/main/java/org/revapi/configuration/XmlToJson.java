@@ -561,9 +561,10 @@ public final class XmlToJson<Xml> {
             ext += "(" + progress.extensionId + ")";
         }
 
-        return new IllegalArgumentException(message + "\nWhile processing configuration of " + ext + " extension:\n"
-                + progress.xml
-                + "\n\nThe extension requires the document to conform to the following JSON schema after the conversion:\n"
+        return new IllegalArgumentException(message + "\n\nThis happened while processing (a part of)"
+                + " the configuration of the " + ext + " extension:\n" + progress.xml
+                + "\n\nThe extension requires the above XML snippet to conform to the following JSON schema after"
+                + " the conversion to JSON (and this error is about a failure to make that happen):\n"
                 + progress.currentSchema.toPrettyString(), cause);
     }
 
