@@ -1,0 +1,18 @@
+= Release Notes
+:page-publish_date: 2022-12-08
+:page-layout: news-article
+
+After a very long pause, a new set of Revapi releases is here. This actually doesn't bring a lot of change but contains some important fixes.
+
+* Revapi standalone CLI now generates at most 1 configuration per extension from the commandline arguments https://github.com/revapi/revapi/pull/272[#272],
+* Protection against stack-overflow while computing the set of super types in some rare cases https://github.com/revapi/revapi/pull/274[#274],
+* `java-package` matcher was fixed to not confuse the analysis results when seeing inherited inner types,
+* `java.method.visibilityIncreased` API problem has a new more correct classification https://github.com/revapi/revapi/issues/248[#248]
+* Handling of missing types has been improved (problems could be seen especially when using `checkDependencies=false` in your revapi-maven-plugin configuration) https://github.com/revapi/revapi/issues/279[#279].
+
+Thanks go out to https://github.com/stevegutz[Steve Gutz] for fixing the CLI and stack-overflow issues, as well as to https://github.com/sbernard31[Simon Bernard] for help with diagnosing the issue in `java-package` matcher.
+
+Wishing early merry Christmas to all that observe Christmas and happy holidays to those that just enjoy the year-end.
+
+Also, to anyone that supports Russia's war against Ukraine - have your head examined. Slava Ukraini!
+
