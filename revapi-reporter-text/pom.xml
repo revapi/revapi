@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>46</version>
+        <version>47-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-reporter-text</artifactId>
-    <version>0.15.0</version>
+    <version>0.15.1-SNAPSHOT</version>
     <name>Text Reporter</name>
     <description>Super simple Revapi reporter outputting a textual representation of
         the differences to a file or on standard output. Takes Freemarker templates for formatting the output.</description>
@@ -55,12 +55,12 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.15.0</version>
+            <version>0.15.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-reporter-file-base</artifactId>
-            <version>0.5.0</version>
+            <version>0.5.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
