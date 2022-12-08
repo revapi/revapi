@@ -68,9 +68,9 @@ Your contributions of any kind, be it a bug report, idea or even code contributi
 get in touch on the following places:
 
 Code:: https://github.com/revapi/revapi[GitHub]
+Issues:: https://github.com/revapi/revapi/issues[GitHub issues]
 Documentation:: xref:getting-started.adoc[start here]
+Mastodon:: https://botsin.space/@revapi[@revapi@botsin.space]
 Twitter:: https://twitter.com/revapi_org[@revapi_org]
-IRC:: #revapi on freenode.net
 Matrix:: #revapiorg:matrix.org
-Forum:: https://stackoverflow.com[stackoverflow]
-Mailing list:: https://groups.google.com/forum/#!forum/revapi, revapi@googlegroups.com
+Mailing list:: https://groups.google.com/forum/#!forum/revapi[revapi@googlegroups.com]
