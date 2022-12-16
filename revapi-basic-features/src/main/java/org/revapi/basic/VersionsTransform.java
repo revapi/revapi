@@ -16,14 +16,20 @@
  */
 package org.revapi.basic;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.revapi.AnalysisContext;
+import org.revapi.Archive;
+import org.revapi.CompatibilityType;
+import org.revapi.Criticality;
+import org.revapi.Difference;
+import org.revapi.DifferenceSeverity;
+import org.revapi.Element;
+import org.revapi.Reference;
+import org.revapi.TransformationResult;
+import org.revapi.base.BaseDifferenceTransform;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -41,20 +47,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import org.revapi.AnalysisContext;
-import org.revapi.Archive;
-import org.revapi.CompatibilityType;
-import org.revapi.Criticality;
-import org.revapi.Difference;
-import org.revapi.DifferenceSeverity;
-import org.revapi.Element;
-import org.revapi.Reference;
-import org.revapi.TransformationResult;
-import org.revapi.base.BaseDifferenceTransform;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTransform<E> {
     private static final Pattern[] ALL_CODES = new Pattern[] { Pattern.compile(".*") };
@@ -174,9 +173,9 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
         }
 
         if (allowed) {
-            return allowedModify.modify(difference);
+            return allowedModify.modify(difference,versionRecord.versionChange);
         } else {
-            return disallowedModify.modify(difference);
+            return disallowedModify.modify(difference,null);
         }
     }
 
@@ -622,7 +621,25 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
                 return new TextModification(modificationNode.asText(), null, null);
             } else if (modificationNode.isObject()) {
                 String prepend = modificationNode.path("prepend").asText();
-                String append = modificationNode.path("append").asText();
+                String append = null;
+
+                if (modificationNode.path("append").isObject()) {
+                     String appendMajorIncrease = null;
+                     String appendMinorIncrease = null;
+                     String appendPatchIncrease = null;
+                    if (modificationNode.path("append").hasNonNull("majorIncreaseRequired")) {
+                        appendMajorIncrease = modificationNode.path("append").path("majorIncreaseRequired").asText();
+                    }
+                    if (modificationNode.path("append").hasNonNull("minorIncreaseRequired")) {
+                        appendMinorIncrease = modificationNode.path("append").path("minorIncreaseRequired").asText();
+                    }
+                    if (modificationNode.path("append").hasNonNull("patchIncreaseRequired")) {
+                        appendPatchIncrease = modificationNode.path("append").path("patchIncreaseRequired").asText();
+                    }
+                    return new TextModification(null, prepend, null, appendMajorIncrease,appendMinorIncrease,appendPatchIncrease);
+                } else if (modificationNode.path("append").isTextual()) {
+                    append = modificationNode.path("append").asText();
+                }
                 return new TextModification(null, prepend, append);
             } else {
                 return null;
@@ -649,7 +666,7 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
             this.remove = false;
         }
 
-        TransformationResult modify(Difference difference) {
+        TransformationResult modify(Difference difference, VersionChange versionChange) {
             if (remove) {
                 return TransformationResult.discard();
             }
@@ -669,12 +686,12 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
 
             if (justification != null) {
                 changed = true;
-                bld.withJustification(justification.apply(difference.justification));
+                bld.withJustification(justification.apply(difference.justification,null));
             }
 
             if (description != null) {
                 changed = true;
-                bld.withDescription(description.apply(difference.description));
+                bld.withDescription(description.apply(difference.description, versionChange));
             }
 
             if (!attachments.isEmpty()) {
@@ -707,15 +724,31 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
         final @Nullable String value;
         final @Nullable String prepend;
         final @Nullable String append;
+        final @Nullable String appendMajorIncrease;
+        final @Nullable String appendMinorIncrease;
+        final @Nullable String appendPatchIncrease;
 
         private TextModification(@Nullable String value, @Nullable String prepend, @Nullable String append) {
             this.value = value;
             this.prepend = prepend;
             this.append = append;
+            appendMajorIncrease = null;
+            appendMinorIncrease = null;
+            appendPatchIncrease = null;
+        }
+
+        private TextModification(@Nullable String value, @Nullable String prepend, @Nullable String append, @Nullable String appendMajorIncrease,
+                                 @Nullable String appendMinorIncrease, @Nullable String appendPatchIncrease){
+            this.value = value;
+            this.prepend = prepend;
+            this.append = append;
+            this.appendMajorIncrease = appendMajorIncrease;
+            this.appendMinorIncrease = appendMinorIncrease;
+            this.appendPatchIncrease = appendPatchIncrease;
         }
 
         @Nullable
-        String apply(@Nullable String value) {
+        String apply(@Nullable String value, @Nullable VersionChange versionChange) {
             if (this.value != null) {
                 value = this.value;
             }
@@ -727,7 +760,6 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
                     value = this.prepend + value;
                 }
             }
-
             if (this.append != null) {
                 if (value == null) {
                     value = this.append;
@@ -735,6 +767,37 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
                     value = value + this.append;
                 }
             }
+
+            if(versionChange == VersionChange.MAJOR){
+                if (this.appendMajorIncrease != null) {
+                if (value == null) {
+                    value = this.appendMajorIncrease;
+                } else if (!value.endsWith(this.appendMajorIncrease)) {
+                    value = value + this.appendMajorIncrease;
+                }
+            }
+            }
+
+            if(versionChange == VersionChange.MINOR){
+                if (this.appendMinorIncrease != null) {
+                if (value == null) {
+                    value = this.appendMinorIncrease;
+                } else if (!value.endsWith(this.appendMinorIncrease)) {
+                    value = value + this.appendMinorIncrease;
+                }
+            }
+            }
+
+            if(versionChange == VersionChange.PATCH){
+                if (this.appendPatchIncrease != null) {
+                if (value == null) {
+                    value = this.appendPatchIncrease;
+                } else if (!value.endsWith(this.appendPatchIncrease)) {
+                    value = value + this.appendPatchIncrease;
+                }
+            }
+            }
+
 
             return value;
         }
