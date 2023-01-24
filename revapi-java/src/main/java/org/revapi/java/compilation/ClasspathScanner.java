@@ -396,17 +396,28 @@ final class ClasspathScanner {
         void scan(ArchiveLocation location, File path, boolean primaryApi) throws IOException {
             fileManager.setLocation(location, Collections.singleton(path));
 
-            Iterable<? extends JavaFileObject> jfos = fileManager.list(location, "",
-                    EnumSet.of(JavaFileObject.Kind.CLASS), true);
+            List<TypeElement> typesToScan = new ArrayList<>();
 
-            for (JavaFileObject jfo : jfos) {
+            // List all class files in the given location, eagerly convert them into TypeElements that need to be
+            // scanned. The JavaFileObjects are eagerly converted as they use '$' to indicate an inner class instead of
+            // '.' which results in improper natural sorting, which could lead to NullPointerExceptions later on when
+            // inner types are added as children to the containing type. For example, Class$Inner.class would be sorted
+            // before Class.class as '$' comes before '.' in ASCII/UTF-8.
+            for (JavaFileObject jfo : fileManager.list(location, "", EnumSet.of(JavaFileObject.Kind.CLASS), true)) {
                 TypeElement type = Util.findTypeByBinaryName(environment.getElementUtils(),
                         fileManager.inferBinaryName(location, jfo));
 
-                // type can be null if it represents an anonymous or member class...
                 if (type != null) {
-                    scanClass(location, type, primaryApi);
+                    typesToScan.add(type);
                 }
+            }
+
+            Comparator<String> naturalComparator = Comparator.naturalOrder();
+            typesToScan.sort((o1, o2) -> naturalComparator.compare(o1.getQualifiedName().toString(),
+                    o2.getQualifiedName().toString()));
+
+            for (TypeElement type : typesToScan) {
+                scanClass(location, type, primaryApi);
             }
         }
 
