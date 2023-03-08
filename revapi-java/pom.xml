@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2022 Lukas Krejci
+    Copyright 2014-2023 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@
     </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.java</automatic.module.name>
-        <version.org.revapi.classif>0.1.0</version.org.revapi.classif>
+        <version.org.revapi.classif>0.1.1</version.org.revapi.classif>
     </properties>
     <dependencyManagement>
         <dependencies>
