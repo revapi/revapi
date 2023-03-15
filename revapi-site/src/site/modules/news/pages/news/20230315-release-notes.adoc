@@ -1,0 +1,7 @@
+= Release Notes
+:page-publish_date: 2023-03-15
+:page-layout: news-article
+
+This is a tiny release of `revapi-java:0.28.1` that updates `log4j` dependencies coming from `classif` which itself
+has been updated to the version `0.1.1`.
+
