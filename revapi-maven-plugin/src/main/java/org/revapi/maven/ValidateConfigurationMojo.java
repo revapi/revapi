@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ import org.revapi.configuration.ValidationResult;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.4.0
  */
 @Mojo(name = "validate-configuration", defaultPhase = LifecyclePhase.VALIDATE, threadSafe = true)

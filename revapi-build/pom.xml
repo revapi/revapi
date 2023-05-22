@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2022 Lukas Krejci
+    Copyright 2014-2023 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -118,28 +118,28 @@
                 <artifactId>formatter-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>generate-sources</phase>
                         <goals>
                             <goal>format</goal>
                         </goals>
+                        <phase>generate-sources</phase>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>net.revelc.code</groupId>
                 <artifactId>impsort-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>sort</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
                     <groups>java.,javax.,*</groups>
                     <staticGroups>java,javax,*</staticGroups>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>sort</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -147,40 +147,40 @@
                 <executions>
                     <execution>
                         <id>prepare-unit-test</id>
-                        <phase>validate</phase>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
+                        <phase>validate</phase>
                         <configuration>
                             <destFile>${project.build.directory}/jacoco-ut.exec</destFile>
                         </configuration>
                     </execution>
                     <execution>
                         <id>prepare-it-tests</id>
-                        <phase>pre-integration-test</phase>
                         <goals>
                             <goal>prepare-agent-integration</goal>
                         </goals>
+                        <phase>pre-integration-test</phase>
                         <configuration>
                             <destFile>${project.build.directory}/jacoco-it.exec</destFile>
                         </configuration>
                     </execution>
                     <execution>
                         <id>report-unit-tests</id>
-                        <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <phase>test</phase>
                         <configuration>
                             <dataFile>${project.build.directory}/jacoco-ut.exec</dataFile>
                         </configuration>
                     </execution>
                     <execution>
                         <id>report-integration-tests</id>
-                        <phase>post-integration-test</phase>
                         <goals>
                             <goal>report-integration</goal>
                         </goals>
+                        <phase>post-integration-test</phase>
                         <configuration>
                             <dataFile>${project.build.directory}/jacoco-it.exec</dataFile>
                         </configuration>
@@ -190,26 +190,6 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>format</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.mycila</groupId>
-                        <artifactId>license-maven-plugin-git</artifactId>
-                        <version>3.0</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.revapi</groupId>
-                        <artifactId>revapi-build-support</artifactId>
-                        <version>${version.revapi-build-support}</version>
-                    </dependency>
-                </dependencies>
                 <configuration>
                     <header>license-template.ftl</header>
                     <excludes>
@@ -225,18 +205,37 @@
                         <atom>XML_STYLE</atom>
                     </mapping>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin-git</artifactId>
+                        <version>3.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.revapi</groupId>
+                        <artifactId>revapi-build-support</artifactId>
+                        <version>${version.revapi-build-support}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>set-metadata-in-antora</id>
-                        <phase>process-sources</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
+                        <phase>process-sources</phase>
                         <configuration>
                             <target>
                                 <replaceregexp byline="true">
@@ -267,14 +266,12 @@
             </plugin>
             <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <configuration>
+                    <consoleOutput>true</consoleOutput>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>org.revapi</groupId>
@@ -282,12 +279,14 @@
                         <version>${version.revapi-build-support}</version>
                     </dependency>
                 </dependencies>
-                <configuration>
-                    <consoleOutput>true</consoleOutput>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <configLocation>checkstyle.xml</configLocation>
-                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
-                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -339,6 +338,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                </configuration>
                 <reportSets>
                     <reportSet>
                         <reports>
@@ -346,9 +348,6 @@
                         </reports>
                     </reportSet>
                 </reportSets>
-                <configuration>
-                    <source>8</source>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -371,13 +370,6 @@
                 <groupId>org.revapi</groupId>
                 <artifactId>revapi-maven-plugin</artifactId>
                 <version>${self-api-check.maven-version}</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>report</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
                 <configuration>
                     <analysisConfiguration>
                         <revapi.filter>
@@ -389,6 +381,13 @@
                         </revapi.filter>
                     </analysisConfiguration>
                 </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
             </plugin>
         </plugins>
     </reporting>
@@ -437,10 +436,10 @@
                         <executions>
                             <execution>
                                 <id>java9</id>
-                                <phase>compile</phase>
                                 <goals>
                                     <goal>compile</goal>
                                 </goals>
+                                <phase>compile</phase>
                                 <configuration>
                                     <release>9</release>
                                     <compileSourceRoots>
@@ -467,10 +466,10 @@
                         <executions>
                             <execution>
                                 <id>java11</id>
-                                <phase>compile</phase>
                                 <goals>
                                     <goal>compile</goal>
                                 </goals>
+                                <phase>compile</phase>
                                 <configuration>
                                     <release>11</release>
                                     <compileSourceRoots>
@@ -497,10 +496,10 @@
                         <executions>
                             <execution>
                                 <id>parse-version</id>
-                                <phase>validate</phase>
                                 <goals>
                                     <goal>parse-version</goal>
                                 </goals>
+                                <phase>validate</phase>
                             </execution>
                         </executions>
                     </plugin>
@@ -508,21 +507,6 @@
                         <groupId>org.revapi</groupId>
                         <artifactId>revapi-maven-plugin</artifactId>
                         <version>${self-api-check.maven-version}</version>
-                        <executions>
-                            <execution>
-                                <id>api-check</id>
-                                <goals>
-                                    <goal>check</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.revapi</groupId>
-                                <artifactId>revapi-java</artifactId>
-                                <version>${self-api-check.java-extension-version}</version>
-                            </dependency>
-                        </dependencies>
                         <configuration>
                             <failOnMissingConfigurationFiles>false</failOnMissingConfigurationFiles>
                             <analysisConfiguration>
@@ -621,6 +605,21 @@
                                 </configurationFile>
                             </analysisConfigurationFiles>
                         </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.revapi</groupId>
+                                <artifactId>revapi-java</artifactId>
+                                <version>${self-api-check.java-extension-version}</version>
+                            </dependency>
+                        </dependencies>
+                        <executions>
+                            <execution>
+                                <id>api-check</id>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>

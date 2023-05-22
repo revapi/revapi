@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ import org.revapi.TreeFilterProvider;
  * Common {@link Analyzer} instantiation logic for mojos.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.8.0
  */
 class AnalyzerBuilder {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +62,7 @@ import org.revapi.maven.utils.ArtifactResolver;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public final class Analyzer {
@@ -210,9 +210,9 @@ public final class Analyzer {
      *            the optional regex the version must match to be considered.
      * @param resolver
      *            the version resolver to use
-     * 
+     *
      * @return the resolved artifact matching the criteria.
-     * 
+     *
      * @throws VersionRangeResolutionException
      *             on error
      * @throws ArtifactResolutionException

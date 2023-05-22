@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.4.0
  */
 final class Version implements Cloneable {

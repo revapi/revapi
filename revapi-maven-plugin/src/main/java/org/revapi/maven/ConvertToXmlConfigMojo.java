@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +72,7 @@ import org.revapi.configuration.JSONUtil;
  * modifications for correctness and to update the formatting of the changed lines to your liking.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.9.0
  */
 @Mojo(name = "convert-config-to-xml", requiresDirectInvocation = true, defaultPhase = LifecyclePhase.VALIDATE)

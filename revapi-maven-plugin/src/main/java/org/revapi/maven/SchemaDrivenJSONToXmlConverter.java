@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ import org.revapi.configuration.ConfigurationValidator;
  * Converts JSON representation into a XML.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.9.0
  */
 final class SchemaDrivenJSONToXmlConverter {
@@ -51,14 +51,14 @@ final class SchemaDrivenJSONToXmlConverter {
      * <p>
      * Beware that {@link PlexusConfiguration} does NOT do any escaping of the values. Use
      * {@link XmlUtil#toIndentedString(PlexusConfiguration, int, int, Writer)} to correctly serialize the configuration.
-     * 
+     *
      * @param extensionSchemas
      *            the known extension schemas
      * @param jsonConfig
      *            the json configuration to convert
-     * 
+     *
      * @return the {@link PlexusConfiguration} instance
-     * 
+     *
      * @throws IOException
      *             on error
      */

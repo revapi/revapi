@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2022 Lukas Krejci
+    Copyright 2014-2023 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,6 +38,7 @@
     </scm>
     <properties>
         <automatic.module.name>org.revapi.maven.utils</automatic.module.name>
+        <maven-invoker-plugin.version>3.5.1</maven-invoker-plugin.version>
         <maven-resolver-provider.version>3.5.2</maven-resolver-provider.version>
         <maven-resolver.version>1.1.0</maven-resolver.version>
         <test.repo.path>${project.build.directory}/test-repo</test.repo.path>
@@ -99,14 +100,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-invoker-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>${maven-invoker-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>prepare-test-artifacts</id>
-                        <phase>generate-test-resources</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
+                        <phase>generate-test-resources</phase>
                         <configuration>
                             <skipInstallation>${skipTests}</skipInstallation>
                             <skipInvocation>${skipTests}</skipInvocation>

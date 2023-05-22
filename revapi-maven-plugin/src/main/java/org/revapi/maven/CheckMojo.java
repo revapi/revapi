@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ import org.revapi.PipelineConfiguration;
  * of the plugin.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 @Mojo(name = "check", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true, requiresDependencyCollection = ResolutionScope.COMPILE_PLUS_RUNTIME)

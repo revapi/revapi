@@ -157,10 +157,10 @@
                 <executions>
                     <execution>
                         <id>copy-filtered-resources</id>
-                        <phase>generate-test-resources</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
+                        <phase>generate-test-resources</phase>
                         <configuration>
                             <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
                             <resources>
