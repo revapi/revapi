@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  * compared.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public interface DifferenceAnalyzer<E extends Element<E>> extends AutoCloseable {
@@ -58,7 +58,7 @@ public interface DifferenceAnalyzer<E extends Element<E>> extends AutoCloseable 
      *            the element from the old archives
      * @param newElement
      *            the element from the new archives
-     * 
+     *
      * @return true when the analysis should also include the children of the provided elements, false otherwise.
      */
     boolean isDescendRequired(@Nullable E oldElement, @Nullable E newElement);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,7 +67,7 @@ import pw.krejci.modules.maven.ProjectModule;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public final class Main {
@@ -235,8 +235,8 @@ public final class Main {
             }
         }
 
-        if (extensionGAVs == null || (oldArchivePaths == null && oldGavs == null)
-                || (newArchivePaths == null && newGavs == null)) {
+        if (extensionGAVs == null || oldArchivePaths == null && oldGavs == null
+                || newArchivePaths == null && newGavs == null) {
 
             usage(scriptFileName);
             System.exit(1);

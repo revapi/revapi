@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ import java.util.NoSuchElementException;
  *
  * @author Simon Kitching
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public final class CoIterator<E> {
@@ -150,7 +150,7 @@ public final class CoIterator<E> {
 
     /**
      * After calling {@link #next()}, this will contain the next element from the "left" collection.
-     * 
+     *
      * @return the next element from the left collection
      */
     public E getLeft() {
@@ -159,7 +159,7 @@ public final class CoIterator<E> {
 
     /**
      * After calling {@link #next()}, this will contain the next element from the "right" collection.
-     * 
+     *
      * @return the next element from the right collection
      */
     public E getRight() {

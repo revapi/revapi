@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ import java.util.function.BiPredicate;
  * knowing its "neighborhood" in both element forests. A concrete example of this is comparison of overloaded methods.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.4.0
  */
 public interface CorrespondenceComparatorDeducer<E extends Element<E>> {
@@ -56,7 +56,7 @@ public interface CorrespondenceComparatorDeducer<E extends Element<E>> {
      *
      * @param <E>
      *            the base type of the elements
-     * 
+     *
      * @return a correspondence comparator deducer that will produce a diff-like ordering of the elements
      */
     static <E extends Element<E>> CorrespondenceComparatorDeducer<E> editDistance(

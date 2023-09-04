@@ -290,7 +290,7 @@ class AnalyzerBuilder {
 
     private static Consumer<PipelineConfiguration.Builder> applyDisallowedExtensionsToPipeline(
             List<String> disallowedExtensions) {
-        return (bld) -> {
+        return bld -> {
             List<Class<? extends ApiAnalyzer>> analyzers = new ArrayList<>();
             List<Class<? extends TreeFilterProvider>> filters = new ArrayList<>();
             List<Class<? extends DifferenceTransform>> transforms = new ArrayList<>();

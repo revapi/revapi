@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,17 +35,17 @@ import javax.lang.model.util.SimpleTypeVisitor7;
 /**
  * Similar to {@link org.revapi.java.spi.ElementPairVisitor} but provides a visitor to visit two type mirrors of the
  * same type.
- * 
+ *
  * <p>
  * Typical usage:
- * 
+ *
  * <pre>
  * <code>
  *     javax.lang.model.type.TypeMirror t1 = ...;
  *     javax.lang.model.type.TypeMirror t2 = ...;
- * 
+ *
  *     t1.accept(new TypeMirrorPairVisitor&lt;Void&gt;() {
- * 
+ *
  *         protected Void visitArray(ArrayType t1, ArrayType t2) {
  *             ...
  *         }
@@ -56,7 +56,7 @@ import javax.lang.model.util.SimpleTypeVisitor7;
  * @see org.revapi.java.spi.ElementPairVisitor
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public class TypeMirrorPairVisitor<R> extends SimpleTypeVisitor7<R, TypeMirror> {

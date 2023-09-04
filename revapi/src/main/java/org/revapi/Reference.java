@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,7 +65,7 @@ public class Reference<E extends Element<E>> {
 
     /**
      * Represents the type of the relationship between two elements.
-     * 
+     *
      * @param <E>
      */
     public interface Type<E extends Element<E>> {

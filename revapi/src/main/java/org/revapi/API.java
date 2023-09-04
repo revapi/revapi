@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  * Represents a set of archives that define an API.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public final class API {
@@ -141,10 +141,10 @@ public final class API {
 
     /**
      * Returns the role of the archive in the API.
-     * 
+     *
      * @param archive
      *            the archive to check
-     * 
+     *
      * @return the role of the archive in the API
      */
     public Archive.Role getArchiveRole(Archive archive) {

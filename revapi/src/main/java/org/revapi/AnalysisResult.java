@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  * analysis results object.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.8.0
  */
 public final class AnalysisResult implements AutoCloseable {
@@ -67,7 +67,7 @@ public final class AnalysisResult implements AutoCloseable {
      *
      * @param failure
      *            the failure to report
-     * 
+     *
      * @return a "fake" failed analysis result
      */
     public static AnalysisResult fakeFailure(Exception failure) {

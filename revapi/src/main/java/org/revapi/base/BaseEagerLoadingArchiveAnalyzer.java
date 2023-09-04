@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,10 +77,10 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
      *
      * <p>
      * This method assumes the context is a {@link FullForestContext} and uses it to return the recorded roots.
-     * 
+     *
      * @param context
      *            the full forest context
-     * 
+     *
      * @return the recorded roots
      */
     @Override
@@ -96,10 +96,10 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
      * <p>
      * This method assumes the context is a {@link FullForestContext} and uses it to return the recorded children of the
      * provided element.
-     * 
+     *
      * @param context
      *            the full forest context
-     * 
+     *
      * @return the recorded children of the element
      */
     @Override
@@ -115,7 +115,7 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
      *
      * @param archive
      *            the archive to analyze
-     * 
+     *
      * @return a set of root elements found in the archive (with children initialized, too)
      */
     protected abstract Set<E> createElements(Archive archive);
@@ -135,7 +135,7 @@ public abstract class BaseEagerLoadingArchiveAnalyzer<F extends BaseElementFores
          * This method remembers the children of all the elements in the provided set (recursively) and clears out the
          * children of each of the elements. This is so that we don't end up with elements that don't match the filter
          * in the final results.
-         * 
+         *
          * @param elements
          *            the elements to remember
          */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +62,7 @@ public final class TransformationResult {
     /**
      * @param newDifferences
      *            the new set of differences to replace the old with
-     * 
+     *
      * @return result to replace the difference with new ones
      */
     public static TransformationResult replaceWith(Set<Difference> newDifferences) {
@@ -74,7 +74,7 @@ public final class TransformationResult {
      *
      * @param newDifference
      *            the difference to transform the original difference to
-     * 
+     *
      * @return the transformation result
      */
     public static TransformationResult replaceWith(Difference newDifference) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ import java.util.ServiceConfigurationError;
  * for using these types anyway they want (instantiate them or whatever).
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.8.0
  */
 public final class ServiceTypeLoader<T> implements Iterable<Class<? extends T>> {
@@ -62,7 +62,7 @@ public final class ServiceTypeLoader<T> implements Iterable<Class<? extends T>> 
      *            the type of the services to locate
      * @param <X>
      *            the type of the service
-     * 
+     *
      * @return the service type loader
      */
     public static <X> ServiceTypeLoader<X> load(Class<X> serviceType) {

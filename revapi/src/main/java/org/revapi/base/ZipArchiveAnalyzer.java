@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,7 +109,7 @@ public abstract class ZipArchiveAnalyzer<F extends BaseElementForest<E>, E exten
      *            the zip file entry, can be null if parsing data of the whole file (in case it is not a ZIP file)
      * @param data
      *            the data of the entry
-     * 
+     *
      * @return the parsed elements
      */
     protected abstract Set<E> createElements(Archive a, @Nullable ZipEntry entry, InputStream data) throws IOException;

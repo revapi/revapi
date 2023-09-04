@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,7 @@ import org.jboss.dmr.ModelNode;
  * @see #validate(JsonNode, Configurable)
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public final class ConfigurationValidator {
@@ -54,7 +54,7 @@ public final class ConfigurationValidator {
      *
      * @throws ConfigurationException
      *             if reading the JSON schemas of the configurable failed
-     * 
+     *
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
@@ -95,19 +95,19 @@ public final class ConfigurationValidator {
 
     /**
      * Validates the provided configuration against the provided schema.
-     * 
+     *
      * @param extensionConfiguration
      *            the actual configuration of some extension (not wrapped in the identifying object as is the case with
      *            the full configuration provided to {@link #validate(ModelNode, Configurable)}.
      * @param configurationSchema
      *            the schema to validate the configuration against
-     * 
+     *
      * @return the results of the validation
-     * 
+     *
      * @throws ConfigurationException
      *             if an error occurs during the processing of the data or schema as opposed to a simple validation
      *             failure which would be captured in the returned object
-     * 
+     *
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
@@ -118,15 +118,15 @@ public final class ConfigurationValidator {
 
     /**
      * Validates the provided configuration against the provided schema.
-     * 
+     *
      * @param extensionConfiguration
      *            the actual configuration of some extension (not wrapped in the identifying object as is the case with
      *            the full configuration provided to {@link #validate(JsonNode, Configurable)}.
      * @param configurationSchema
      *            the schema to validate the configuration against
-     * 
+     *
      * @return the results of the validation
-     * 
+     *
      * @throws ConfigurationException
      *             if an error occurs during the processing of the data or schema as opposed to a simple validation
      *             failure which would be captured in the returned object

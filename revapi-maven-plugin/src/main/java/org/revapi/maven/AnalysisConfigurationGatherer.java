@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -196,7 +196,7 @@ final class AnalysisConfigurationGatherer {
                 } else {
                     ctxBld.mergeConfiguration(expandVariables(JSONUtil.parse(JSONUtil.stripComments(text))));
                 }
-            } catch (PlexusConfigurationException e) {
+            } catch (Exception e) {
                 throw new MojoExecutionException("Failed to read the configuration: " + e.getMessage(), e);
             }
         }
@@ -300,7 +300,8 @@ final class AnalysisConfigurationGatherer {
     }
 
     private static JsonNode expandVariable(JsonNode node, PropertyValueResolver resolver) {
-        // Intentionally call .toString(), because that produces a valid JSON representation of the node that we will
+        // Intentionally call .toString(), because that produces a valid JSON
+        // representation of the node that we will
         // then interpolate and reparse.
         String val = node.toString();
         if (!resolver.containsVariables(val)) {
@@ -321,19 +322,11 @@ final class AnalysisConfigurationGatherer {
         }
 
         public String getValue() {
-            try {
-                return config.getValue();
-            } catch (PlexusConfigurationException e) {
-                throw new IllegalStateException("Failed to read configuration: " + e.getMessage(), e);
-            }
+            return config.getValue();
         }
 
         public String getAttribute(String name) {
-            try {
-                return config.getAttribute(name);
-            } catch (PlexusConfigurationException e) {
-                throw new IllegalStateException("Failed to read configuration: " + e.getMessage(), e);
-            }
+            return config.getAttribute(name);
         }
 
         public List<PlexusConfigurationWrapper> getChildren() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,7 +103,7 @@ public class ReportComparator implements Comparator<Report> {
      *            the second element
      * @param <E>
      *            the base type of the elements
-     * 
+     *
      * @return the result of the comparison
      */
     protected <E extends Element<E>> int compare(E e1, E e2) {
@@ -144,7 +144,7 @@ public class ReportComparator implements Comparator<Report> {
      *
      * @param elementClass
      *            the type of some element
-     * 
+     *
      * @return the base type for comparison
      */
     protected static Class<?> getBaseType(Class<?> elementClass) {
@@ -197,7 +197,7 @@ public class ReportComparator implements Comparator<Report> {
          *            the comparator to use
          * @param <E>
          *            the base type of elements
-         * 
+         *
          * @return this instance
          */
         public <E extends Element<E>> Builder comparingElements(Class<E> elementBaseType, Comparator<E> comparator) {
@@ -212,7 +212,7 @@ public class ReportComparator implements Comparator<Report> {
          *
          * @param elementBaseTypes
          *            the list of element base types
-         * 
+         *
          * @return this instance
          */
         public Builder withExplicitOrder(Class<?>... elementBaseTypes) {

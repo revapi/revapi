@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
  * can run analyses on APIs with different configurations using the {@link #analyze(AnalysisContext)} method.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 1.0
  */
 public final class Revapi {
@@ -78,7 +78,7 @@ public final class Revapi {
      *
      * @param pipelineConfiguration
      *            the configuration of the analysis pipeline
-     * 
+     *
      * @throws java.lang.IllegalArgumentException
      *             if any of the parameters is null
      */
@@ -97,7 +97,7 @@ public final class Revapi {
      *
      * @param analysisContext
      *            the analysis context
-     * 
+     *
      * @return the validation result
      */
     public ValidationResult validateConfiguration(@Nonnull AnalysisContext analysisContext) {
@@ -129,7 +129,7 @@ public final class Revapi {
      *
      * @param analysisContext
      *            the analysis context containing the "global" configuration of all extensions
-     * 
+     *
      * @return the instantiated extensions and their individual configurations
      */
     public AnalysisResult.Extensions prepareAnalysis(AnalysisContext analysisContext) {
@@ -170,7 +170,7 @@ public final class Revapi {
      *
      * @param analysisContext
      *            describes the analysis to be performed
-     * 
+     *
      * @return a result object that has to be closed for the analysis to conclude
      */
     @SuppressWarnings("unchecked")
@@ -895,7 +895,7 @@ public final class Revapi {
 
         /**
          * @return a new Revapi instance
-         * 
+         *
          * @throws IllegalStateException
          *             if there are no api analyzers or no reporters added.
          */

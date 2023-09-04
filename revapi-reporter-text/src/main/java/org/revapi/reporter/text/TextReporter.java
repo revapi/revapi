@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,7 @@ import org.revapi.reporter.file.AbstractFileReporter;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public class TextReporter extends AbstractFileReporter {
@@ -98,7 +98,7 @@ public class TextReporter extends AbstractFileReporter {
      * <li>there are 2 template loaders - 1 for loading templates from /META-INF using a classloader and a second one to
      * load templates from files.
      * </ul>
-     * 
+     *
      * @return
      */
     protected Configuration createFreeMarkerConfiguration() {

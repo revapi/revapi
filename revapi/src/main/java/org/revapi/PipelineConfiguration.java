@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,11 +130,11 @@ public final class PipelineConfiguration {
      *
      * @param json
      *            the configuration node
-     * 
+     *
      * @return a pipeline configuration parsed from the configuration
-     * 
+     *
      * @see Builder#build()
-     * 
+     *
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
@@ -156,9 +156,9 @@ public final class PipelineConfiguration {
      *
      * @param json
      *            the configuration node
-     * 
+     *
      * @return a pipeline configuration parsed from the configuration
-     * 
+     *
      * @see Builder#build()
      */
     public static PipelineConfiguration.Builder parse(JsonNode json) {
@@ -209,11 +209,11 @@ public final class PipelineConfiguration {
      *            the set of transforms to choose from
      * @param reporters
      *            the set of reporters to choose from
-     * 
+     *
      * @return pipeline configuration corresponding to the provided configuration node
-     * 
+     *
      * @see Builder#build()
-     * 
+     *
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
@@ -242,9 +242,9 @@ public final class PipelineConfiguration {
      *            the set of transforms to choose from
      * @param reporters
      *            the set of reporters to choose from
-     * 
+     *
      * @return pipeline configuration corresponding to the provided configuration node
-     * 
+     *
      * @see Builder#build()
      */
     public static PipelineConfiguration parse(JsonNode json, Collection<Class<? extends ApiAnalyzer>> analyzers,
@@ -792,7 +792,7 @@ public final class PipelineConfiguration {
          * returned instance is independent of it.
          *
          * @return a new Revapi pipeline configuration
-         * 
+         *
          * @throws IllegalStateException
          *             if there are no api analyzers or no reporters added.
          */

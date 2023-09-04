@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2022 Lukas Krejci
+    Copyright 2014-2023 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>set-version-in-antora</id>
@@ -79,10 +78,10 @@
                 <executions>
                     <execution>
                         <id>unpack-site-shared</id>
-                        <phase>site</phase>
                         <goals>
                             <goal>unpack-dependencies</goal>
                         </goals>
+                        <phase>site</phase>
                         <configuration>
                             <outputDirectory>${project.build.directory}/site</outputDirectory>
                             <includeArtifactIds>revapi-site-shared</includeArtifactIds>

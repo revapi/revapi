@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ import javax.lang.model.util.Types;
  * same purpose. To give a context to the API checking classes.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public interface TypeEnvironment {
@@ -65,7 +65,7 @@ public interface TypeEnvironment {
      *
      * @param javaType
      *            the java type
-     * 
+     *
      * @return revapi model element or null if it cannot be const
      */
     JavaTypeElement getModelElement(TypeElement javaType);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,9 +43,9 @@ import org.revapi.configuration.Configurable;
  *            the transform is interested in. Thus you may end up with {@code ClassCastException}s if you're not
  *            careful. This type needs to be cast-able to the type of all possible elements that the handled differences
  *            can apply to. If in doubt, just keep the type generic.
- * 
+ *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public interface DifferenceTransform<E extends Element<?>> extends AutoCloseable, Configurable {
@@ -103,7 +103,7 @@ public interface DifferenceTransform<E extends Element<?>> extends AutoCloseable
      *            the new element, if any, being compared to the old element
      * @param difference
      *            the difference to transform
-     * 
+     *
      * @return the transformation result
      */
     default TransformationResult tryTransform(@Nullable E oldElement, @Nullable E newElement, Difference difference) {
@@ -134,7 +134,7 @@ public interface DifferenceTransform<E extends Element<?>> extends AutoCloseable
      *            the archive analyzer used for obtaining the element forest of the old API
      * @param newArchiveAnalyzer
      *            the archive analyzer used for obtaining the element forest of the new API
-     * 
+     *
      * @return a transform tracker if the transform can work with the provided api analyzer, empty optional otherwise
      */
     default <X extends Element<X>> Optional<TraversalTracker<X>> startTraversal(ApiAnalyzer<X> apiAnalyzer,

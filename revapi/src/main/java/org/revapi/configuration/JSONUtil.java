@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +52,7 @@ import org.jboss.dmr.ModelNode;
  * likely to contain comments so that users can "annotate" what individual configuration items mean.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public final class JSONUtil {
@@ -170,9 +170,9 @@ public final class JSONUtil {
      *            the JSON-encoded data
      * @param charset
      *            the charset of the data
-     * 
+     *
      * @return an input stream that strips comments from json data provided as an input stream.
-     * 
+     *
      * @deprecated This ignores the charset and uses UTf-8. Use {@link #stripComments(InputStream)} instead.
      */
     @Deprecated
@@ -186,7 +186,7 @@ public final class JSONUtil {
      *
      * @param json
      *            the JSON-encoded data
-     * 
+     *
      * @return a reader that strips comments from json data provided as an input stream.
      */
     public static Reader stripComments(InputStream json) {
@@ -196,7 +196,7 @@ public final class JSONUtil {
     /**
      * @param json
      *            the JSON-encoded data
-     * 
+     *
      * @return a String with comments stripped from the provided json data.
      */
     public static String stripComments(String json) {
@@ -222,7 +222,7 @@ public final class JSONUtil {
     /**
      * @param json
      *            the JSON-encoded data
-     * 
+     *
      * @return a reader that strips comments from json data provided as a reader.
      */
     public static Reader stripComments(final Reader json) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ import org.revapi.java.spi.Code;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
@@ -131,8 +131,8 @@ public class AnnotationChecksTest extends AbstractJavaElementAnalyzerTest {
         List<Report> reports = reporter.getReports();
 
         Function<Class<?>, Stream<Difference>> diffsOn = cls -> reports.stream()
-                .filter(r -> (r.getNewElement() != null && cls.isAssignableFrom(r.getNewElement().getClass()))
-                        || (r.getOldElement() != null && cls.isAssignableFrom(r.getOldElement().getClass())))
+                .filter(r -> r.getNewElement() != null && cls.isAssignableFrom(r.getNewElement().getClass())
+                        || r.getOldElement() != null && cls.isAssignableFrom(r.getOldElement().getClass()))
                 .flatMap(r -> r.getDifferences().stream());
 
         Assert.assertEquals(4, reports.size());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -203,7 +203,7 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
      *            the target element
      * @param type
      *            the type of the reference
-     * 
+     *
      * @return a new reference with given type pointing to the target element
      */
     protected Reference<E> newReference(E target, Reference.Type<E> type) {
@@ -367,7 +367,7 @@ public abstract class BaseElement<E extends Element<E>> implements Element<E>, C
             Iterator<E> it = set.iterator();
             while (it.hasNext()) {
                 E e = it.next();
-                if ((o == null && e == null) || (o != null && o.equals(e))) {
+                if (o == null && e == null || o != null && o.equals(e)) {
                     it.remove();
                     if (e != null) {
                         e.setParent(null);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ package org.revapi;
  * API archives and create an element tree that is then used for API comparison.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public interface ArchiveAnalyzer<E extends Element<E>> {
@@ -45,7 +45,7 @@ public interface ArchiveAnalyzer<E extends Element<E>> {
      *
      * @param filter
      *            the filter to use to filter out unwanted elements from the forest
-     * 
+     *
      * @return the preliminary element forest that should be {@link #prune(ElementForest) pruned} before analysis
      */
     ElementForest<E> analyze(TreeFilter<E> filter);

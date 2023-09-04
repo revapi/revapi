@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ public abstract class BaseDifferenceAnalyzer<E extends Element<E>> implements Di
      *            the element from the old archives
      * @param newElement
      *            the element from the new archives
-     * 
+     *
      * @return true if both elements are not null, false otherwise
      */
     @Override

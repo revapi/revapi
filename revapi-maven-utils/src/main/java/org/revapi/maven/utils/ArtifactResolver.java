@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.3.0
  */
 public class ArtifactResolver {
@@ -90,7 +90,7 @@ public class ArtifactResolver {
      * @param resolveTransitiveProvidedDependencies
      *            if true, the transitive provided dependencies are considered when resolving the API (this should
      *            generally be false)
-     * 
+     *
      * @return a dependency selector for Maven's repository session
      */
     public static DependencySelector getRevapiDependencySelector(boolean resolveProvidedDependencies,
@@ -117,7 +117,7 @@ public class ArtifactResolver {
      * @param resolveTransitiveProvidedDependencies
      *            if true, the transitive provided dependencies are considered when resolving the API (this should
      *            generally be false)
-     * 
+     *
      * @return a dependency selector for Maven's repository session
      */
     public static DependencyTraverser getRevapiDependencyTraverser(boolean resolveProvidedDependencies,
@@ -155,7 +155,7 @@ public class ArtifactResolver {
      *            true if only remotely available artifacts should be considered
      * @param upToInclusive
      *            whether the {@code upToVersion} should be considered inclusive or exclusive
-     * 
+     *
      * @return the resolved artifact
      */
     public Artifact resolveNewestMatching(String gav, @Nullable String upToVersion, Pattern versionMatcher,

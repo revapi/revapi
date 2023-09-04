@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>
  * The transform can be configured like so:
- * 
+ *
  * <pre>
  * <code>
  * {
@@ -68,9 +68,9 @@ import org.slf4j.LoggerFactory;
  * the ones explicitly defined in the configuration.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
- * 
+ *
  * @deprecated This is superseded by {@link DifferencesTransform}
  */
 @Deprecated

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,9 @@ import javax.annotation.Nullable;
  * A basic filter designed to work with element {@link org.revapi.ElementForest forests}.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
- * 
+ *
  * @deprecated Filtering turned out to be not that usable and will be removed. This class has been superseded by the
  *             {@link org.revapi.TreeFilter}.
  */

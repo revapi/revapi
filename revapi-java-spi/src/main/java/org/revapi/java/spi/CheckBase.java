@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,10 +40,10 @@ import org.revapi.Difference;
  * This class also contains a couple of utility methods for checking the accessibility of elements, etc.
  *
  * @author Lukas Krejci
- * 
+ *
  * @see #pushActive(JavaElement, JavaElement, Object...)
  * @see #popIfActive()
- * 
+ *
  * @since 0.1
  */
 public abstract class CheckBase implements Check {
@@ -66,7 +66,7 @@ public abstract class CheckBase implements Check {
      *            first element
      * @param b
      *            second element
-     * 
+     *
      * @return true if both elements are not null and are private or package private
      */
     public boolean isBothPrivate(@Nullable JavaModelElement a, @Nullable JavaModelElement b) {
@@ -85,7 +85,7 @@ public abstract class CheckBase implements Check {
      *            first element
      * @param b
      *            second element
-     * 
+     *
      * @return true if both elements are not null and accessible (i.e. public or protected)
      */
     public boolean isBothAccessible(@Nullable JavaModelElement a, @Nullable JavaModelElement b) {
@@ -103,7 +103,7 @@ public abstract class CheckBase implements Check {
      *
      * @param e
      *            the element to check
-     * 
+     *
      * @return true if the provided element is accessible and in API, false otherwise.
      */
     public boolean isAccessible(@Nonnull JavaModelElement e) {
@@ -390,7 +390,7 @@ public abstract class CheckBase implements Check {
      *
      * @param type
      *            the expected type of the elements
-     * 
+     *
      * @return non-null if there were active elements and the elements have the provided type
      */
     @Nullable
@@ -401,8 +401,8 @@ public abstract class CheckBase implements Check {
         }
 
         // because popIfActive() is essentially unsafe, we need to have these type checks here, too...
-        if ((active.oldElement != null && type.isAssignableFrom(active.oldElement.getClass()))
-                || (active.newElement != null && type.isAssignableFrom(active.newElement.getClass()))) {
+        if (active.oldElement != null && type.isAssignableFrom(active.oldElement.getClass())
+                || active.newElement != null && type.isAssignableFrom(active.newElement.getClass())) {
             return active;
         }
 

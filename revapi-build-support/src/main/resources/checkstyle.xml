@@ -8,7 +8,6 @@
     <property name="eachLine" value="true"/>
   </module>
   <module name="TreeWalker">
-    <property name="cacheFile" value="${checkstyle.cache.file}"/>
     <module name="ArrayTypeStyle"/>
     <module name="ConstantName"/>
     <module name="CovariantEquals"/>

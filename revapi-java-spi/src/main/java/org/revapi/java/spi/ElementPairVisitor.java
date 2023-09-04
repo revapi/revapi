@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,17 +28,17 @@ import javax.lang.model.util.SimpleElementVisitor7;
 
 /**
  * Can be used by various checks and problem transformations to work with two elements of the same type.
- * 
+ *
  * <p>
  * Typical usage:
- * 
+ *
  * <pre>
  * <code>
  *     javax.lang.model.element.Element e1 = ...;
  *     javax.lang.model.element.Element e2 = ...;
- * 
+ *
  *     e1.accept(new ElementPairVisitor&lt;Void&gt;() {
- * 
+ *
  *         protected Void visitType(TypeElement e1, TypeElement e2) {
  *             ...
  *         }
@@ -49,7 +49,7 @@ import javax.lang.model.util.SimpleElementVisitor7;
  * @see org.revapi.java.spi.TypeMirrorPairVisitor
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public class ElementPairVisitor<R> extends SimpleElementVisitor7<R, Element> {

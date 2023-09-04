@@ -48,9 +48,9 @@
     </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.maven.plugin</automatic.module.name>
-        <doxia.version>1.10</doxia.version>
+        <doxia.version>2.0.0-M6</doxia.version>
         <itest.debug-output>false</itest.debug-output>
-        <itest.maven-opts></itest.maven-opts>
+        <itest.maven-opts>-Dmaven.plugin.validation=verbose</itest.maven-opts>
         <maven-invoker.version>3.5.1</maven-invoker.version>
         <maven-plugin-plugin.version>3.9.0</maven-plugin-plugin.version>
         <maven.version>3.2.5</maven.version>
@@ -351,7 +351,7 @@
             <id>itest.debug</id>
             <properties>
                 <itest.debug-output>true</itest.debug-output>
-                <itest.maven-opts>-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</itest.maven-opts>
+                <itest.maven-opts>-Dmaven.plugin.validation=verbose -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</itest.maven-opts>
             </properties>
         </profile>
         <profile>

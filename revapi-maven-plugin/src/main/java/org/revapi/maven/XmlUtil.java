@@ -90,12 +90,7 @@ final class XmlUtil {
 
         indent(indentationSize, currentDepth, wrt);
 
-        String content;
-        try {
-            content = xml.getValue();
-        } catch (PlexusConfigurationException e) {
-            throw new IllegalStateException("Failed to read configuration", e);
-        }
+        String content = xml.getValue();
 
         boolean hasChildren = xml.getChildCount() > 0;
         boolean hasContent = content != null && !content.isEmpty();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -173,7 +173,7 @@ public abstract class AbstractFileReporter implements Reporter {
      *            the stream to convert to a print writer
      * @param ctx
      *            the analysis context which is being used in {@link #initialize(AnalysisContext)}
-     * 
+     *
      * @return a print writer to be used as output
      */
     protected PrintWriter createOutputWriter(OutputStream stream, AnalysisContext ctx) {
@@ -183,7 +183,7 @@ public abstract class AbstractFileReporter implements Reporter {
     /**
      * This is the default implementation of the report method that does the initial filtering based on the configured
      * minimum severity and then delegates to {@link #doReport(Report)} if the reporting should really be performed.
-     * 
+     *
      * @param report
      *            the report with the differences
      */
@@ -249,7 +249,7 @@ public abstract class AbstractFileReporter implements Reporter {
 
     /**
      * @see ReportComparator
-     * 
+     *
      * @return a comparator that can be used to sort the reports in the order of the compared elements.
      */
     protected Comparator<Report> getReportsByElementOrderComparator() {

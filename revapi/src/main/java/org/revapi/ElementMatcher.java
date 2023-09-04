@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ public interface ElementMatcher extends Configurable, AutoCloseable {
      * This is distinct from the {@link #getExtensionId()}, because it identifies the matcher in the "use" positions
      * somewhere inside the configuration of other extensions. The {@link #getExtensionId() extensionId} can be used for
      * identifying the element matcher itself in the analysis configuration or pipeline configuration.
-     * 
+     *
      * @return
      */
     String getMatcherId();
@@ -62,7 +62,7 @@ public interface ElementMatcher extends Configurable, AutoCloseable {
          * @param archiveAnalyzer
          *            the archive analyzer that produced the element forest that will be filtered by the returned tree
          *            filter
-         * 
+         *
          * @return a tree filter to use for filtering the forest or null if the recipe is not applicable to elements of
          *         the provided archive analyzer
          */

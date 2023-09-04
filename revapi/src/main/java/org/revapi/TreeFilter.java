@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +64,7 @@ public interface TreeFilter<E extends Element<E>> {
 
     /**
      * Merges the filters together using the provided functions to combine the individual results.
-     * 
+     *
      * @param mergeStarts
      *            the function to combine two filter start results
      * @param mergeFinishes
@@ -139,7 +139,7 @@ public interface TreeFilter<E extends Element<E>> {
      *
      * @param element
      *            the element to start filtering
-     * 
+     *
      * @return a filter result informing the caller what was the result of filtering and whether to descend to children
      *         or not
      */
@@ -154,7 +154,7 @@ public interface TreeFilter<E extends Element<E>> {
      *
      * @param element
      *            the element for which the filtering has finished
-     * 
+     *
      * @return the result of filtering
      */
     FilterFinishResult finish(E element);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,9 +30,9 @@ import javax.annotation.Nullable;
  * This implementation does NOT support null elements returned by the decorated iterator.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
- * 
+ *
  * @deprecated Filtering turned out to be more complex than this. {@link Filter} has been superseded by
  *             {@link org.revapi.TreeFilter}.
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,9 +37,9 @@ import org.revapi.query.FilteringIterator;
  * A simple implementation of the {@link org.revapi.Element} interface intended to be extended.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
- * 
+ *
  * @deprecated use {@link org.revapi.base.BaseElement} instead
  */
 @Deprecated
@@ -139,7 +139,7 @@ public abstract class SimpleElement implements Element, Cloneable {
             Iterator<Element> it = this.iterator();
             while (it.hasNext()) {
                 Element e = it.next();
-                if ((o == null && e == null) || (o != null && o.equals(e))) {
+                if (o == null && e == null || o != null && o.equals(e)) {
                     it.remove();
                     if (e != null) {
                         e.setParent(null);
@@ -243,7 +243,7 @@ public abstract class SimpleElement implements Element, Cloneable {
 
     /**
      * Returns a shallow copy of this element. In particular, its parent and children will be cleared.
-     * 
+     *
      * @return a copy of this element
      */
     @Override

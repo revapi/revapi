@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,9 +38,9 @@ import org.revapi.query.Filter;
  * A simple element forest of {@link org.revapi.simple.SimpleElement}s.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
- * 
+ *
  * @deprecated use {@link org.revapi.base.BaseElementForest} instead
  */
 @Deprecated

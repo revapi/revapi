@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ import org.revapi.java.spi.IgnoreCompletionFailures;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 final class MissingTypeAwareDelegatingTypes implements Types {

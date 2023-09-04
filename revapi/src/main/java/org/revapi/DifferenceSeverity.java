@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ package org.revapi;
  * {@link org.revapi.CompatibilityType}.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public enum DifferenceSeverity {
@@ -55,7 +55,7 @@ public enum DifferenceSeverity {
      *
      * @param camelCaseValue
      *            the value in camel case
-     * 
+     *
      * @return the corresponding difference severity instance
      */
     public static DifferenceSeverity fromCamelCase(String camelCaseValue) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
  * Represents a single difference between an old and new API element.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public final class Difference {

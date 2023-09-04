@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -440,8 +440,8 @@ public class SerializationChecker extends CheckBase {
                 // Modifier.STATIC | Modifier.FINAL | Modifier.VOLATILE |
                 // Modifier.TRANSIENT);
 
-                if (((mods & java.lang.reflect.Modifier.PRIVATE) == 0)
-                        || ((mods & (java.lang.reflect.Modifier.STATIC | java.lang.reflect.Modifier.TRANSIENT)) == 0)) {
+                if ((mods & java.lang.reflect.Modifier.PRIVATE) == 0
+                        || (mods & (java.lang.reflect.Modifier.STATIC | java.lang.reflect.Modifier.TRANSIENT)) == 0) {
                     dout.writeUTF(sig.name);
                     dout.writeInt(mods);
                     dout.writeUTF(sig.signature);

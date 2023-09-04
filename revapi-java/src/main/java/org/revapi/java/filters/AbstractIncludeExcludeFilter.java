@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,9 +44,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.7.0
- * 
+ *
  * @deprecated use the generic revapi filter + java matchers to achieve the same as is done here
  */
 @Deprecated

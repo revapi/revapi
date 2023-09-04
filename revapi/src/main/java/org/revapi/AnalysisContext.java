@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ import org.revapi.configuration.JSONUtil;
  * <p>
  * In the old format, the configuration of an extension was nested inside objects corresponding to its exploded
  * extension id. E.g. if the extension had an id of "my.extension", the configuration would look like:
- * 
+ *
  * <pre>
  * <code>
  *     {
@@ -75,7 +75,7 @@ import org.revapi.configuration.JSONUtil;
  *     }
  * </code>
  * </pre>
- * 
+ *
  * The original idea for doing things this way was that such configuration is easily mergeable (e.g. when configuration
  * is split across multiple files). There can be only one configuration for each extension and each extension resides in
  * a different "section" of the configuration. The nesting provides for a seemingly logical structure of the
@@ -86,7 +86,7 @@ import org.revapi.configuration.JSONUtil;
  * configuration for an extension and is more easily translatable into XML. On the other hand it is not that well nested
  * as the old configuration style so it might not look that well logically structured. The new configuration looks like
  * this:
- * 
+ *
  * <pre>
  * <code>
  *     [
@@ -106,7 +106,7 @@ import org.revapi.configuration.JSONUtil;
  *     ]
  * </code>
  * </pre>
- * 
+ *
  * Notice that configurations for different extensions (as well as different configurations for the same extension) are
  * contained in a top level list. The configurations of different extensions are therefore no longer nested inside each
  * other, but are "laid out" sequentially.
@@ -140,7 +140,7 @@ import org.revapi.configuration.JSONUtil;
  * configuration for given extension and there is just 1 id-less configuration for given extension in the "mergee".
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public final class AnalysisContext {
@@ -167,7 +167,7 @@ public final class AnalysisContext {
      *            the new API
      * @param data
      *            the data that should be attached to the analysis context
-     * 
+     *
      * @deprecated use jackson-based methods
      */
     @Deprecated
@@ -205,7 +205,7 @@ public final class AnalysisContext {
      *
      * @param revapi
      *            the revapi instance to read the available extensions from
-     * 
+     *
      * @return a new analysis context builder
      */
     public static Builder builder(Revapi revapi) {
@@ -221,7 +221,7 @@ public final class AnalysisContext {
      *
      * @param pipelineConfiguration
      *            the pipeline configuration to initialize from
-     * 
+     *
      * @return a new analysis context builder
      */
     public static Builder builder(PipelineConfiguration pipelineConfiguration) {
@@ -256,10 +256,10 @@ public final class AnalysisContext {
      *
      * @param configuration
      *            the configuration to be supplied with the returned analysis context.
-     * 
+     *
      * @return an analysis context that is a clone of this instance but its configuration is replaced with the provided
      *         one.
-     * 
+     *
      * @deprecated use the Jackson-based variant
      */
     @Deprecated
@@ -274,7 +274,7 @@ public final class AnalysisContext {
      *
      * @param configuration
      *            the configuration to be supplied with the returned analysis context.
-     * 
+     *
      * @return an analysis context that is a clone of this instance but its configuration is replaced with the provided
      *         one.
      */
@@ -289,7 +289,7 @@ public final class AnalysisContext {
      *
      * @param matchers
      *            the list of matchers to provide through this context
-     * 
+     *
      * @return a copy of this instance with the provided matchers replacing any existing in this instance
      */
     public AnalysisContext copyWithMatchers(Set<ElementMatcher> matchers) {
@@ -427,9 +427,9 @@ public final class AnalysisContext {
          *
          * @param config
          *            the configuration to merge
-         * 
+         *
          * @return this builder
-         * 
+         *
          * @deprecated use the Jackson-based variant
          */
         @Deprecated
@@ -449,7 +449,7 @@ public final class AnalysisContext {
          *
          * @param config
          *            the configuration to merge
-         * 
+         *
          * @return this builder
          */
         public Builder mergeConfiguration(JsonNode config) {

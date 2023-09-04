@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,7 +67,7 @@ public interface JarExtractor extends Configurable {
      *
      * @param archive
      *            the archive to analyze
-     * 
+     *
      * @return an optional transformation of the input stream of the archive Oas if it were a normal JAR file or an
      *         empty optional if such transformation is not possible.
      */

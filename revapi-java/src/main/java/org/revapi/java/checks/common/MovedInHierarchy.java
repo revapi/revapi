@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ import org.revapi.java.spi.Util;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.11.0
  */
 public abstract class MovedInHierarchy extends CheckBase {

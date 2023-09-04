@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -132,7 +132,7 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
      *
      * @param context
      *            the optional context obtained from the {@link #preAnalyze()} method
-     * 
+     *
      * @return a stream of elements
      */
     protected abstract Stream<E> discoverRoots(@Nullable Object context);
@@ -142,7 +142,7 @@ public abstract class BaseArchiveAnalyzer<F extends BaseElementForest<E>, E exte
      *
      * @param parent
      *            the parent to discover children of
-     * 
+     *
      * @return a stream of elements
      */
     protected abstract Stream<E> discoverElements(@Nullable Object context, E parent);

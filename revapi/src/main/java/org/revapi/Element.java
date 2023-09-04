@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,21 +77,21 @@ import org.revapi.query.Filter;
  *            the common base class of all elements of some api analyzer
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
- * 
+ *
  * @see CoIterator
  */
 public interface Element<E extends Element<E>> extends Comparable<E> {
 
     /**
      * Casts this element to the provided type.
-     * 
+     *
      * @param type
      *            the type to cast this instance to
-     * 
+     *
      * @return this cast as the provided type
-     * 
+     *
      * @throws ClassCastException
      *             if this instance cannot be cast to the provided type
      */
@@ -118,7 +118,7 @@ public interface Element<E extends Element<E>> extends Comparable<E> {
 
     /**
      * Sets a new parent.
-     * 
+     *
      * @param parent
      *            the new parent of this element
      */
@@ -200,7 +200,7 @@ public interface Element<E extends Element<E>> extends Comparable<E> {
      *            potentially satisfying given filter
      *
      * @return the list of found elements
-     * 
+     *
      * @deprecated in favor of {@link #stream(Class, boolean)}
      */
     @Deprecated
@@ -225,7 +225,7 @@ public interface Element<E extends Element<E>> extends Comparable<E> {
      *            false to search only in direct children of the element, true to search recursively
      * @param filter
      *            optional filter to further trim the number of results
-     * 
+     *
      * @deprecated in favor of {@link #stream(Class, boolean)}
      */
     @Deprecated
@@ -248,7 +248,7 @@ public interface Element<E extends Element<E>> extends Comparable<E> {
      * @return the iterator that will iterate over the results
      *
      * @see #searchChildren(Class, boolean, org.revapi.query.Filter)
-     * 
+     *
      * @deprecated use the more standard {@link #stream(Class, boolean)}
      */
     @Deprecated
@@ -265,7 +265,7 @@ public interface Element<E extends Element<E>> extends Comparable<E> {
      *            the type of elements to look for
      * @param recurse
      *            if true, the iterator traverses the element forest using depth first search
-     * 
+     *
      * @return the stream of elements complying to the filter
      */
     default <T extends Element<E>> Stream<T> stream(Class<T> elementType, boolean recurse) {

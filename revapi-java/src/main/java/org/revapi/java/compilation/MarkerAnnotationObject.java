@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ import javax.tools.SimpleJavaFileObject;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 final class MarkerAnnotationObject extends SimpleJavaFileObject {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,9 +50,9 @@ import org.slf4j.LoggerFactory;
  *
  * @param <Xml>
  *            The type of the xml representation used by the calling code.
- * 
+ *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.8.0
  */
 public final class XmlToJson<Xml> {
@@ -92,7 +92,7 @@ public final class XmlToJson<Xml> {
      *            a function that gets the children of an XML node. Note that the returned list MUST NOT contain any
      *            text or CDATA nodes - those are to be used in the {@code getValue} function. It also MUST NOT contain
      *            any comment nodes.
-     * 
+     *
      * @deprecated use {@link #fromKnownSchemas(Map, Function, Function, BiFunction, Function)}
      */
     @Deprecated

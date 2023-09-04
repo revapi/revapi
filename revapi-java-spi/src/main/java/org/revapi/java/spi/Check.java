@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,10 +27,10 @@ import org.revapi.configuration.Configurable;
 
 /**
  * An interface that java API checkers need to implement.
- * 
+ *
  * <p>
  * The methods on this interface are called in the following order:
- * 
+ *
  * <pre>
  * <code>
  * initialize
@@ -51,13 +51,13 @@ import org.revapi.configuration.Configurable;
  *  visitEnd)*
  * </code>
  * </pre>
- * 
+ *
  * <p>
  * Consider inheriting from the {@link org.revapi.java.spi.CheckBase} instead of directly implementing this interface
  * because it takes care of matching the corresponding {@code visit*()} and {@code visitEnd()} calls.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public interface Check extends Configurable {
@@ -76,7 +76,7 @@ public interface Check extends Configurable {
     /**
      * The environment containing the old version of the classes. This can be used to reason about the classes when
      * doing the checks.
-     * 
+     *
      * <p>
      * Called once after the check has been instantiated.
      *
@@ -88,7 +88,7 @@ public interface Check extends Configurable {
     /**
      * The environment containing the new version of the classes. This can be used to reason about the classes when
      * doing the checks.
-     * 
+     *
      * <p>
      * Called once after the check has been instantiated.
      *
@@ -111,10 +111,10 @@ public interface Check extends Configurable {
 
     /**
      * Each of the other visit* calls is followed by a corresponding call to this method in a stack-like manner.
-     * 
+     *
      * <p>
      * I.e. a series of calls might look like this:<br>
-     * 
+     *
      * <pre>
      * <code>
      * visitClass();

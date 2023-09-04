@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.12.0
  */
 public final class DownplayHarmlessAnnotationChanges implements DifferenceTransform<JavaModelElement> {

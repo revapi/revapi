@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,14 +43,14 @@ import java.nio.charset.CodingErrorAction;
  * {@link ReaderInputStream} implements the inverse transformation of {@link java.io.InputStreamReader}; in the
  * following example, reading from <tt>in2</tt> would return the same byte sequence as reading from <tt>in</tt>
  * (provided that the initial byte sequence is legal with respect to the charset encoding):
- * 
+ *
  * <pre>
  * InputStream in = ...
  * Charset cs = ...
  * InputStreamReader reader = new InputStreamReader(in, cs);
  * ReaderInputStream in2 = new ReaderInputStream(reader, cs);
  * </pre>
- * 
+ *
  * {@link ReaderInputStream} implements the same transformation as {@link java.io.OutputStreamWriter}, except that the
  * control flow is reversed: both classes transform a character stream into a byte stream, but
  * {@link java.io.OutputStreamWriter} pushes data to the underlying stream, while {@link ReaderInputStream} pulls it
@@ -69,9 +69,9 @@ import java.nio.charset.CodingErrorAction;
  * Instances of {@link ReaderInputStream} are not thread safe.
  *
  * @see org.apache.commons.io.output.WriterOutputStream
- * 
+ *
  * @since 2.0
- * 
+ *
  * @deprecated remove this once {@link JSONUtil#stripComments(InputStream, Charset)} is removed.
  */
 @Deprecated

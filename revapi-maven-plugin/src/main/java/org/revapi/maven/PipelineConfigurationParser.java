@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,16 +38,13 @@ final class PipelineConfigurationParser {
 
     static PipelineConfiguration.Builder parse(PlexusConfiguration pipelineConfiguration) {
         String jsonConfig;
-        try {
-            jsonConfig = pipelineConfiguration == null ? null : pipelineConfiguration.getValue();
-        } catch (PlexusConfigurationException e) {
-            throw new IllegalStateException("Failed to read the configuration", e);
-        }
+        jsonConfig = pipelineConfiguration == null ? null : pipelineConfiguration.getValue();
 
         PipelineConfiguration.Builder ret;
 
         if (jsonConfig == null) {
-            // we're seeing XML. PipelineConfiguration is a set "format", not something dynamic as the extension
+            // we're seeing XML. PipelineConfiguration is a set "format", not something
+            // dynamic as the extension
             // configurations. We can therefore try to parse it straight away.
             ret = parsePipelineConfigurationXML(pipelineConfiguration);
         } else {
@@ -55,7 +52,8 @@ final class PipelineConfigurationParser {
             ret = PipelineConfiguration.parse(json);
         }
 
-        // important to NOT add any extensions here yet. That's the job of the pipelineModifier that is responsible
+        // important to NOT add any extensions here yet. That's the job of the
+        // pipelineModifier that is responsible
         // to construct
         return ret;
 
@@ -86,41 +84,29 @@ final class PipelineConfigurationParser {
             case "transformBlocks":
                 for (PlexusConfiguration b : c.getChildren()) {
                     List<String> blockIds = Stream.of(b.getChildren()).map(plexusConfiguration -> {
-                        try {
-                            return plexusConfiguration.getValue();
-                        } catch (PlexusConfigurationException e) {
-                            throw new IllegalStateException("Failed to read the configuration", e);
-                        }
+                        return plexusConfiguration.getValue();
                     }).collect(toList());
                     bld.addTransformationBlock(blockIds);
                 }
                 break;
             case "criticalities":
                 for (PlexusConfiguration t : c.getChildren()) {
-                    try {
-                        String name = t.getChild("name").getValue();
-                        int level = Integer.parseInt(t.getChild("level").getValue());
-                        bld.addCriticality(new Criticality(name, level));
-                    } catch (PlexusConfigurationException e) {
-                        throw new IllegalStateException("Failed to read the configuration", e);
-                    }
+                    String name = t.getChild("name").getValue();
+                    int level = Integer.parseInt(t.getChild("level").getValue());
+                    bld.addCriticality(new Criticality(name, level));
                 }
                 break;
             case "severityMapping":
                 for (PlexusConfiguration m : c.getChildren()) {
-                    try {
-                        String severityName = m.getName();
-                        String criticalityName = m.getValue();
-                        DifferenceSeverity severity = DifferenceSeverity.fromCamelCase(severityName);
-                        if (severity == null) {
-                            throw new IllegalArgumentException("Unknown severity encountered while processing the"
-                                    + " severityMapping: " + severityName);
-                        }
-
-                        bld.addUntypedSeverityMapping(severity, criticalityName);
-                    } catch (PlexusConfigurationException e) {
-                        throw new IllegalStateException("Failed to read the configuration", e);
+                    String severityName = m.getName();
+                    String criticalityName = m.getValue();
+                    DifferenceSeverity severity = DifferenceSeverity.fromCamelCase(severityName);
+                    if (severity == null) {
+                        throw new IllegalArgumentException("Unknown severity encountered while processing the"
+                                + " severityMapping: " + severityName);
                     }
+
+                    bld.addUntypedSeverityMapping(severity, criticalityName);
                 }
             }
         }
@@ -136,21 +122,13 @@ final class PipelineConfigurationParser {
 
         if (include != null) {
             Stream.of(include.getChildren()).forEach(c -> {
-                try {
-                    handleInclude.accept(c.getValue());
-                } catch (PlexusConfigurationException e) {
-                    throw new IllegalStateException(e);
-                }
+                handleInclude.accept(c.getValue());
             });
         }
 
         if (exclude != null) {
             Stream.of(exclude.getChildren()).forEach(c -> {
-                try {
-                    handleExclude.accept(c.getValue());
-                } catch (PlexusConfigurationException e) {
-                    throw new IllegalStateException(e);
-                }
+                handleExclude.accept(c.getValue());
             });
         }
     }

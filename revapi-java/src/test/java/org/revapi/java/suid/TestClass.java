@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ import java.io.Serializable;
  * Needs to be kept in exact sync with the src/test/resources/org/revapi/java/suid/TestClass.java
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 @SuppressWarnings("don't care")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ import org.revapi.query.FilteringIterator;
  *            the common super type of all elements in the forest
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public interface ElementForest<E extends Element<E>> {
@@ -106,9 +106,9 @@ public interface ElementForest<E extends Element<E>> {
      *            the optional filter
      * @param searchRoot
      *            optional element from which to conduct the search
-     * 
+     *
      * @return a list of elements of given type (or any subtype) from the forest, filtered by the filter if provided
-     * 
+     *
      * @deprecated in favor of more versatile {@link #stream(Class, boolean, Element)}
      */
     @Deprecated
@@ -171,7 +171,7 @@ public interface ElementForest<E extends Element<E>> {
      *            the search root. If null, the whole element forest is searched
      * @param <T>
      *            the expected type of results
-     * 
+     *
      * @return the stream of the matching elements
      */
     <T extends Element<E>> Stream<T> stream(Class<T> resultType, boolean recurse, TreeFilter<E> filter,
@@ -184,14 +184,14 @@ public interface ElementForest<E extends Element<E>> {
     interface Visitor<E extends Element<E>> {
         /**
          * Called when the provided element is first visited.
-         * 
+         *
          * @param element
          */
         void startWalk(E element);
 
         /**
          * Called when all the children of the element were also visited.
-         * 
+         *
          * @param element
          */
         void finishWalk(E element);

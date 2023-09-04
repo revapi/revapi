@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ public interface TreeFilterProvider extends Configurable, AutoCloseable {
      *
      * @param archiveAnalyzer
      *            the archive analyzer to produce a new filter for
-     * 
+     *
      * @return a new filter for given analyzer or empty if this forest filter is not compatible with the analyzer
      */
     <E extends Element<E>> Optional<TreeFilter<E>> filterFor(ArchiveAnalyzer<E> archiveAnalyzer);

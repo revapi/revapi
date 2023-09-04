@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ import javax.lang.model.element.AnnotationMirror;
  * Elements in the element forest that correspond to a Java annotation will implement this interface.
  *
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public interface JavaAnnotationElement extends JavaElement {

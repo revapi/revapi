@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ import org.revapi.java.spi.JavaFieldElement;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 1.0
  */
 public class EnumConstantsOrderChanged extends CheckBase {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2023 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ import org.revapi.java.spi.JavaModelElement;
 
 /**
  * @author Lukas Krejci
- * 
+ *
  * @since 0.1
  */
 public abstract class ModifierChanged extends CheckBase {
@@ -53,7 +53,7 @@ public abstract class ModifierChanged extends CheckBase {
         boolean oldHas = oldElement.getDeclaringElement().getModifiers().contains(modifier);
         boolean newHas = newElement.getDeclaringElement().getModifiers().contains(modifier);
 
-        if ((added && !oldHas && newHas) || (!added && oldHas && !newHas)) {
+        if (added && !oldHas && newHas || !added && oldHas && !newHas) {
             pushActive(oldElement, newElement);
         }
     }

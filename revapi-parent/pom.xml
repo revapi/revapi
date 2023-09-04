@@ -90,7 +90,7 @@
         <version.license-maven-plugin>4.2</version.license-maven-plugin>
         <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven-assembly-plugin>3.6.0</version.maven-assembly-plugin>
-        <version.maven-checkstyle-plugin>3.0.0</version.maven-checkstyle-plugin>
+        <version.maven-checkstyle-plugin>3.3.0</version.maven-checkstyle-plugin>
         <version.maven-compiler-plugin>3.11.0</version.maven-compiler-plugin>
         <version.maven-enforcer-plugin>3.3.0</version.maven-enforcer-plugin>
         <version.maven-failsafe-plugin>${version.maven-surefire-plugin}</version.maven-failsafe-plugin>
@@ -143,6 +143,11 @@
                 <plugin>
                     <artifactId>maven-antrun-plugin</artifactId>
                     <version>${version.maven-antrun-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${version.maven-assembly-plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
