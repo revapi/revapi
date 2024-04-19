@@ -13,8 +13,7 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [ '8', '11',  '17', '21' ]
-        jdk: [ 'temurin' ]
+        jdk: [ '8', '11',  '17', '21' ]
         os: [ 'ubuntu-latest' ]
     runs-on:  ${{ matrix.os }}
     steps:
