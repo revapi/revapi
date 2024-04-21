@@ -10,77 +10,21 @@ on:
     branches: [ main ]
 
 jobs:
-  java8:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        jdk: [ '8', '11',  '17', '21' ]
+        os: [ 'ubuntu-latest' ]
+    runs-on:  ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
+    - name: Set up JDK ${{ matrix.jdk }}
+      uses: actions/setup-java@v4
       with:
-        java-version: 1.8
-    - name: Cache Maven packages
-      uses: actions/cache@v2
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
+        java-version: ${{ matrix.jdk }}
+        distribution: 'temurin'
+        cache: 'maven'
     - name: Build with Maven
-      run: mvn -B verify --file pom.xml
-  java9:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up JDK 9
-        uses: actions/setup-java@v1
-        with:
-          java-version: 9
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Build with Maven
-        run: mvn -B verify --file pom.xml
-  java11:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Build with Maven
-        run: mvn -B verify --file pom.xml
-      - name: Codecov
-        uses: codecov/codecov-action@v1.5.0
-  latest:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up JDK 17
-        uses: actions/setup-java@v1
-        with:
-          java-version: 17
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Build with Maven
-        run: mvn -B verify --file pom.xml
+      run: mvn -ntp -B verify --file pom.xml
