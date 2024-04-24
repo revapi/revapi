@@ -13,7 +13,7 @@ jobs:
   build:
     strategy:
       matrix:
-        jdk: [ '8', '11',  '17', '21' ]
+        jdk: [ '11', '17', '21' ]
         os: [ 'ubuntu-latest' ]
     runs-on:  ${{ matrix.os }}
     steps:
