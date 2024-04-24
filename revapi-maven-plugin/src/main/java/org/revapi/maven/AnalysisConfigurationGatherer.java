@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2024 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,11 +38,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.shared.utils.xml.pull.XmlPullParserException;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
-import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.revapi.AnalysisContext;
 import org.revapi.Revapi;
 import org.revapi.configuration.JSONUtil;
@@ -208,8 +207,12 @@ final class AnalysisConfigurationGatherer {
                 PlexusConfigurationWrapper::getValue, PlexusConfigurationWrapper::getAttribute,
                 PlexusConfigurationWrapper::getChildren);
 
-        PlexusConfigurationWrapper xml = new PlexusConfigurationWrapper(
-                new XmlPlexusConfiguration(Xpp3DomBuilder.build(rdr)));
+        PlexusConfigurationWrapper xml;
+        try {
+            xml = new PlexusConfigurationWrapper(new XmlPlexusConfiguration(Xpp3DomBuilder.build(rdr)));
+        } catch (org.codehaus.plexus.util.xml.pull.XmlPullParserException e) {
+            throw new XmlPullParserException(e.getMessage());
+        }
 
         String[] roots = configFile.getRoots();
 
