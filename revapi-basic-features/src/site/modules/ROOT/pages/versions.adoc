@@ -351,20 +351,12 @@ methods to interfaces as a breaking change.
 <revapi.versions>
     <versionIncreaseAllows>
         <minor>
-            <item>
-                <code>java.method.addedToInterface</code>
-            </item>
-            <item>
-                <severity>NON_BREAKING</severity>
-            </item>
+            <code>java.method.addedToInterface</code>
+            <severity>NON_BREAKING</severity>
         </minor>
         <patch>
-            <item>
-                <code>java.method.addedToInterface</code>
-            </item>
-            <item>
-                <severity>EQUIVALENT</severity>
-            </item>
+            <code>java.method.addedToInterface</code>
+            <severity>EQUIVALENT</severity>
         </patch>
     </versionIncreaseAllows>
 </revapi.versions>
@@ -420,34 +412,22 @@ With the transform block in place, we can configure the manually vetted differen
             <revapi.versions>
                 <versionIncreaseAllows>
                     <major>
-                        <item>
-                            <severity>BREAKING</severity>
-                        </item>
-                        <item>
-                            <attachments>
-                                <vetted>ok</vetted>
-                            </attachments>
-                        </item>
+                        <severity>BREAKING</severity>
+                        <attachments>
+                            <vetted>ok</vetted>
+                        </attachments>
                     </major>
                     <minor>
-                        <item>
-                            <severity>NON_BREAKING</severity>
-                        </item>
-                        <item>
-                            <attachments>
-                                <vetted>ok</vetted>
-                            </attachments>
-                        </item>
+                        <severity>NON_BREAKING</severity>
+                        <attachments>
+                            <vetted>ok</vetted>
+                        </attachments>
                     </minor>
                     <patch>
-                        <item>
-                            <severity>EQUIVALENT</severity>
-                        </item>
-                        <item>
-                            <attachments>
-                                <vetted>ok</vetted>
-                            </attachments>
-                        </item>
+                        <severity>EQUIVALENT</severity>
+                        <attachments>
+                            <vetted>ok</vetted>
+                        </attachments>
                     </patch>
                 </versionIncreaseAllows>
             </revapi.versions>
