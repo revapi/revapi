@@ -94,7 +94,24 @@ Read the usage info and go.
 
 === Gradle
 
-There is an external Gradle plugin available for Revapi, https://github.com/palantir/gradle-revapi.
+The Gradle plugin available for Revapi at https://plugins.gradle.org/plugin/org.revapi.revapi-gradle-plugin
+and it is maintained under https://github.com/revapi/gradle-revapi
+
+[source,kotlin]
+----
+buildscript {
+  repositories {
+    maven {
+      url = uri("https://plugins.gradle.org/m2/")
+    }
+  }
+  dependencies {
+    classpath("org.revapi:gradle-revapi:x.y.z")
+  }
+}
+
+apply(plugin = "org.revapi.revapi-gradle-plugin")
+----
 
 === Embedding
 
