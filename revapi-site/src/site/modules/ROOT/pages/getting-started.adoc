@@ -52,9 +52,24 @@ For more detailed info, check the maven plugin's xref:revapi-maven-plugin::index
 
 == Gradle
 
-There is an externally developed Gradle plugin contributed by https://palantir.com[Palantir],
-the https://github.com/palantir/gradle-revapi[gradle-revapi] plugin. Please consult
-the https://github.com/palantir/gradle-revapi[home page] of the project for usage guidelines and documentation.
+The Gradle plugin available for Revapi at https://plugins.gradle.org/plugin/org.revapi.revapi-gradle-plugin
+and it is maintained under https://github.com/revapi/gradle-revapi
+
+[source,kotlin]
+----
+buildscript {
+  repositories {
+    maven {
+      url = uri("https://plugins.gradle.org/m2/")
+    }
+  }
+  dependencies {
+    classpath("org.revapi:gradle-revapi:x.y.z")
+  }
+}
+
+apply(plugin = "org.revapi.revapi-gradle-plugin")
+----
 
 == Standalone Usage
 
