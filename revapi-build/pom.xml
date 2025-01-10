@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2023 Lukas Krejci
+    Copyright 2014-2025 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +51,8 @@
             Work around Intellij's lack for maven.compiler.release attribute
             See https://youtrack.jetbrains.com/issue/IDEA-173143
 	-->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <self-api-check.java-extension-version>0.28.1</self-api-check.java-extension-version>
         <self-api-check.maven-version>0.15.0</self-api-check.maven-version>
@@ -398,13 +398,13 @@
                 <jdk>[9,]</jdk>
             </activation>
             <properties>
-                <maven.compiler.release>8</maven.compiler.release>
+                <maven.compiler.release>17</maven.compiler.release>
             </properties>
         </profile>
         <profile>
             <id>java8</id>
             <activation>
-                <jdk>[,1.8]</jdk>
+                <jdk>[,17]</jdk>
             </activation>
             <build>
                 <plugins>
