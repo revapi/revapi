@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -106,7 +106,8 @@ public final class Compiler {
         IdentityHashMap<Archive, File> additionClassPathFiles = copyArchives(additionalClassPath, lib, classPathSize,
                 prefixLength);
 
-        List<String> options = Arrays.asList("-d", sourceDir.toString(), "-cp", composeClassPath(lib));
+        List<String> options = Arrays.asList("-d", sourceDir.toString(), "--module-path", lib.getAbsolutePath(),
+                "--add-modules", "ALL-MODULE-PATH");
 
         List<JavaFileObject> sources = Arrays.<JavaFileObject> asList(new MarkerAnnotationObject(),
                 new ArchiveProbeObject());
@@ -231,7 +232,8 @@ public final class Compiler {
 
     private String formatName(int idx, int prefixLength, String rootName) {
         try {
-            return String.format("%0" + prefixLength + "d-%s", idx, UUID.nameUUIDFromBytes(rootName.getBytes("UTF-8")));
+            return String.format("%0" + prefixLength + "d-%s.jar", idx,
+                    UUID.nameUUIDFromBytes(rootName.getBytes("UTF-8")));
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("UTF-8 not supported.");
         }
