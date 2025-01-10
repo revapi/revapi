@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -231,6 +231,7 @@ final class ClasspathScanner {
 
         SyntheticLocation allLoc = new SyntheticLocation();
         fileManager.setLocation(allLoc, classPath.values());
+        fileManager.setLocation(allLoc, additionalClassPath.values());
 
         Function<String, JavaFileObject> searchHard = className -> Stream
                 .concat(Stream.of(allLoc), Stream.of(POSSIBLE_SYSTEM_CLASS_LOCATIONS)).map(l -> {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,6 +56,8 @@ import org.revapi.java.spi.UseSite;
  * @since 0.1
  */
 public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
+    public static final String A_PACKAGE_PATH = "a/";
+    public static final String SUP_PACKAGE_PATH = "sup/";
     private JavaApiAnalyzer apiAnalyzer;
 
     @Before
@@ -88,16 +90,24 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                 "v1/supplementary/b/B.java", "v1/supplementary/a/C.java");
 
         JavaArchive api = ShrinkWrap.create(JavaArchive.class, "api.jar")
-                .addAsResource(compRes.compilationPath.resolve("A.class").toFile(), "A.class");
+                .addAsResource(compRes.compilationPath.resolve(A_PACKAGE_PATH + "A.class").toFile(),
+                        A_PACKAGE_PATH + "A.class")
+                .addAsResource(compRes.compilationPath.resolve(A_PACKAGE_PATH + "A$PrivateEnum.class").toFile(),
+                        A_PACKAGE_PATH + "A$PrivateEnum.class");
         JavaArchive sup = ShrinkWrap.create(JavaArchive.class, "sup.jar")
-                .addAsResource(compRes.compilationPath.resolve("B.class").toFile(), "B.class")
-                .addAsResource(compRes.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
-                .addAsResource(compRes.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
-                .addAsResource(compRes.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
-                .addAsResource(compRes.compilationPath.resolve("C.class").toFile(), "C.class")
-                .addAsResource(compRes.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(),
-                        "B$UsedByIgnoredClass.class")
-                .addAsResource(compRes.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class");
+                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B.class").toFile(),
+                        SUP_PACKAGE_PATH + "B.class")
+                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$1.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$1.class")
+                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$1$TT$1.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$1$TT$1.class")
+                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$2.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$2.class")
+                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "C.class").toFile(),
+                        SUP_PACKAGE_PATH + "C.class")
+                .addAsResource(
+                        compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class");
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
                 new API(Arrays.asList(new ShrinkwrapArchive(api)), Arrays.asList(new ShrinkwrapArchive(sup))),
@@ -115,12 +125,12 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             TypeElement B_T$1 = roots.next().as(TypeElement.class);
             TypeElement B_T$2 = roots.next().as(TypeElement.class);
 
-            Assert.assertEquals("A", A.getCanonicalName());
-            Assert.assertEquals("A", A.getDeclaringElement().getQualifiedName().toString());
-            Assert.assertEquals("B.T$1", B_T$1.getCanonicalName());
-            Assert.assertEquals("B.T$1", B_T$1.getDeclaringElement().getQualifiedName().toString());
-            Assert.assertEquals("B.T$2", B_T$2.getCanonicalName());
-            Assert.assertEquals("B.T$2", B_T$2.getDeclaringElement().getQualifiedName().toString());
+            Assert.assertEquals("a.A", A.getCanonicalName());
+            Assert.assertEquals("a.A", A.getDeclaringElement().getQualifiedName().toString());
+            Assert.assertEquals("sup.B.T$1", B_T$1.getCanonicalName());
+            Assert.assertEquals("sup.B.T$1", B_T$1.getDeclaringElement().getQualifiedName().toString());
+            Assert.assertEquals("sup.B.T$2", B_T$2.getCanonicalName());
+            Assert.assertEquals("sup.B.T$2", B_T$2.getDeclaringElement().getQualifiedName().toString());
         } finally {
             deleteDir(compRes.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();
@@ -173,24 +183,31 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
         ArchiveAndCompilationPath compRes = createCompiledJar("a.jar", "misc/Generics.java",
                 "misc/GenericsParams.java");
 
-        JavaArchive api = ShrinkWrap.create(JavaArchive.class, "api.jar")
-                .addAsResource(compRes.compilationPath.resolve("Generics.class").toFile(), "Generics.class");
+        JavaArchive api = ShrinkWrap.create(JavaArchive.class, "api.jar").addAsResource(
+                compRes.compilationPath.resolve(A_PACKAGE_PATH + "Generics.class").toFile(),
+                A_PACKAGE_PATH + "Generics.class");
         JavaArchive sup = ShrinkWrap.create(JavaArchive.class, "sup.jar")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams.class").toFile(), "GenericsParams.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeParam.class").toFile(),
-                        "GenericsParams$TypeParam.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$ExtendsBound.class").toFile(),
-                        "GenericsParams$ExtendsBound.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$SuperBound.class").toFile(),
-                        "GenericsParams$SuperBound.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVar.class").toFile(),
-                        "GenericsParams$TypeVar.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVarIface.class").toFile(),
-                        "GenericsParams$TypeVarIface.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$TypeVarImpl.class").toFile(),
-                        "GenericsParams$TypeVarImpl.class")
-                .addAsResource(compRes.compilationPath.resolve("GenericsParams$Unused.class").toFile(),
-                        "GenericsParams$Unused.class");
+                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "GenericsParams.class").toFile(),
+                        SUP_PACKAGE_PATH + "GenericsParams.class")
+                .addAsResource(
+                        compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "GenericsParams$TypeParam.class").toFile(),
+                        SUP_PACKAGE_PATH + "GenericsParams$TypeParam.class")
+                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "GenericsParams$ExtendsBound.class")
+                        .toFile(), SUP_PACKAGE_PATH + "GenericsParams$ExtendsBound.class")
+                .addAsResource(
+                        compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "GenericsParams$SuperBound.class").toFile(),
+                        SUP_PACKAGE_PATH + "GenericsParams$SuperBound.class")
+                .addAsResource(
+                        compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "GenericsParams$TypeVar.class").toFile(),
+                        SUP_PACKAGE_PATH + "GenericsParams$TypeVar.class")
+                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "GenericsParams$TypeVarIface.class")
+                        .toFile(), SUP_PACKAGE_PATH + "GenericsParams$TypeVarIface.class")
+                .addAsResource(
+                        compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "GenericsParams$TypeVarImpl.class").toFile(),
+                        SUP_PACKAGE_PATH + "GenericsParams$TypeVarImpl.class")
+                .addAsResource(
+                        compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "GenericsParams$Unused.class").toFile(),
+                        SUP_PACKAGE_PATH + "GenericsParams$Unused.class");
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
                 new API(Arrays.asList(new ShrinkwrapArchive(api)), Arrays.asList(new ShrinkwrapArchive(sup))),
@@ -204,14 +221,14 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
             Assert.assertEquals(7, roots.size());
             Assert.assertTrue(roots.stream().anyMatch(hasName(
-                    "class Generics<T extends GenericsParams.TypeVar & GenericsParams.TypeVarIface, U extends Generics<GenericsParams.TypeVarImpl, ?>>")));
-            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.ExtendsBound")));
-            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.SuperBound")));
-            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeParam")));
-            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeVar")));
-            Assert.assertTrue(roots.stream().anyMatch(hasName("interface GenericsParams.TypeVarIface")));
-            Assert.assertTrue(roots.stream().anyMatch(hasName("class GenericsParams.TypeVarImpl")));
-            Assert.assertFalse(roots.stream().anyMatch(hasName("class GenericsParams.Unused")));
+                    "class a.Generics<T extends sup.GenericsParams.TypeVar & sup.GenericsParams.TypeVarIface, U extends a.Generics<sup.GenericsParams.TypeVarImpl, ?>>")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class sup.GenericsParams.ExtendsBound")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class sup.GenericsParams.SuperBound")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class sup.GenericsParams.TypeParam")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class sup.GenericsParams.TypeVar")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("interface sup.GenericsParams.TypeVarIface")));
+            Assert.assertTrue(roots.stream().anyMatch(hasName("class sup.GenericsParams.TypeVarImpl")));
+            Assert.assertFalse(roots.stream().anyMatch(hasName("class sup.GenericsParams.Unused")));
         } finally {
             deleteDir(compRes.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();

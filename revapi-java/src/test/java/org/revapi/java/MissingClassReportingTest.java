@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,6 +45,9 @@ import org.revapi.java.spi.JavaModelElement;
  */
 public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
 
+    public static final String A_PACKAGE_PATH = "a/";
+    public static final String SUPER_TYPE_PACKAGE_PATH = "superType/";
+
     private JavaArchive apiV1;
     private JavaArchive apiV2;
 
@@ -63,15 +66,15 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         // We then check that types from such supplementary jar that the API jar "leaks" by exposing them as types
         // in public/protected fields/methods/method params are then considered the part of the API during api checks.
 
-        apiV1 = ShrinkWrap.create(JavaArchive.class, "apiV1.jar")
-                .addAsResource(compRes1.compilationPath.resolve("A.class").toFile(), "A.class");
+        apiV1 = ShrinkWrap.create(JavaArchive.class, "apiV1.jar").addAsResource(
+                compRes1.compilationPath.resolve(A_PACKAGE_PATH + "A.class").toFile(), A_PACKAGE_PATH + "A.class");
 
         // now do the same for v2
         AbstractJavaElementAnalyzerTest.ArchiveAndCompilationPath compRes2 = createCompiledJar("tmp2",
                 "v2/supplementary/a/A.java", "v2/supplementary/b/B.java", "v2/supplementary/a/C.java");
 
-        apiV2 = ShrinkWrap.create(JavaArchive.class, "apiV2.jar")
-                .addAsResource(compRes2.compilationPath.resolve("A.class").toFile(), "A.class");
+        apiV2 = ShrinkWrap.create(JavaArchive.class, "apiV2.jar").addAsResource(
+                compRes2.compilationPath.resolve(A_PACKAGE_PATH + "A.class").toFile(), A_PACKAGE_PATH + "A.class");
 
         compilationPaths = Arrays.asList(compRes1.compilationPath, compRes2.compilationPath);
     }
@@ -119,12 +122,13 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                 .getReports();
 
         Assert.assertEquals(3, allReports.size());
-        Assert.assertTrue(containsDifference(allReports, "missing-class B.T$2", "missing-class B.T$2",
+        Assert.assertTrue(containsDifference(allReports, "missing-class sup.B.T$2", "missing-class sup.B.T$2",
                 Code.MISSING_IN_NEW_API.code()));
-        Assert.assertTrue(containsDifference(allReports, "missing-class B.T$2", "missing-class B.T$2",
+        Assert.assertTrue(containsDifference(allReports, "missing-class sup.B.T$2", "missing-class sup.B.T$2",
                 Code.MISSING_IN_OLD_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "missing-class B.T$3", Code.MISSING_IN_NEW_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(
+                containsDifference(allReports, null, "missing-class sup.B.T$3", Code.MISSING_IN_NEW_API.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field a.A.f3", Code.FIELD_ADDED.code()));
 
         boolean containsMissingOld = false;
         boolean containsMissingNew = false;
@@ -157,7 +161,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
         List<Report> allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
 
         Assert.assertEquals(1, allReports.size());
-        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field a.A.f3", Code.FIELD_ADDED.code()));
     }
 
     @Test
@@ -171,10 +175,14 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                     "v2/supplementary/superType/B.java");
 
             JavaArchive a1 = ShrinkWrap.create(JavaArchive.class, "superTypeV1.jar")
-                    .addAsResource(v1.compilationPath.resolve("A.class").toFile(), "A.class")
-                    .addAsResource(v1.compilationPath.resolve("B.class").toFile(), "B.class");
-            JavaArchive a2 = ShrinkWrap.create(JavaArchive.class, "superTypeV2.jar")
-                    .addAsResource(v2.compilationPath.resolve("B.class").toFile(), "B.class");
+                    .addAsResource(v1.compilationPath.resolve(SUPER_TYPE_PACKAGE_PATH + "A.class").toFile(),
+                            SUPER_TYPE_PACKAGE_PATH + "A.class")
+                    .addAsResource(v1.compilationPath.resolve(SUPER_TYPE_PACKAGE_PATH + "B.class").toFile(),
+                            SUPER_TYPE_PACKAGE_PATH + "B.class");
+            JavaArchive a2 = ShrinkWrap.create(JavaArchive.class, "superTypeV2.jar").addAsResource(
+                    v2.compilationPath.resolve(SUPER_TYPE_PACKAGE_PATH + "B.class").toFile(),
+                    SUPER_TYPE_PACKAGE_PATH + "B.class");
+            ;
 
             API oldApi = API.of(new ShrinkwrapArchive(a1)).build();
             API newApi = API.of(new ShrinkwrapArchive(a2)).build();
@@ -186,16 +194,18 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                     .getReports();
 
             Assert.assertEquals(2, allReports.size());
-            Assert.assertTrue(containsDifference(allReports, "class B", "class B", Code.MISSING_NEW_SUPERTYPE.code()));
-            Assert.assertTrue(containsDifference(allReports, "class A", null, Code.CLASS_REMOVED.code()));
+            Assert.assertTrue(containsDifference(allReports, "class superType.B", "class superType.B",
+                    Code.MISSING_NEW_SUPERTYPE.code()));
+            Assert.assertTrue(containsDifference(allReports, "class superType.A", null, Code.CLASS_REMOVED.code()));
 
             res = revapi.analyze(AnalysisContext.builder().withOldAPI(newApi).withNewAPI(oldApi).build());
 
             allReports = res.getExtensions().getFirstExtension(CollectingReporter.class, null).getReports();
 
             Assert.assertEquals(2, allReports.size());
-            Assert.assertTrue(containsDifference(allReports, "class B", "class B", Code.MISSING_OLD_SUPERTYPE.code()));
-            Assert.assertTrue(containsDifference(allReports, null, "class A", Code.CLASS_ADDED.code()));
+            Assert.assertTrue(containsDifference(allReports, "class superType.B", "class superType.B",
+                    Code.MISSING_OLD_SUPERTYPE.code()));
+            Assert.assertTrue(containsDifference(allReports, null, "class superType.A", Code.CLASS_ADDED.code()));
         } finally {
             compilationPaths = new ArrayList<>(compilationPaths);
             if (v1 != null) {
@@ -221,7 +231,7 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
                 .getReports();
 
         Assert.assertEquals(1, allReports.size());
-        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field a.A.f3", Code.FIELD_ADDED.code()));
     }
 
     @Test
