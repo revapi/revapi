@@ -182,7 +182,6 @@ public class MissingClassReportingTest extends AbstractJavaElementAnalyzerTest {
             JavaArchive a2 = ShrinkWrap.create(JavaArchive.class, "superTypeV2.jar").addAsResource(
                     v2.compilationPath.resolve(SUPER_TYPE_PACKAGE_PATH + "B.class").toFile(),
                     SUPER_TYPE_PACKAGE_PATH + "B.class");
-            ;
 
             API oldApi = API.of(new ShrinkwrapArchive(a1)).build();
             API newApi = API.of(new ShrinkwrapArchive(a2)).build();

@@ -87,7 +87,7 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
     @Test
     public void testWithSupplementary() throws Exception {
         ArchiveAndCompilationPath compRes = createCompiledJar("a.jar", "v1/supplementary/a/A.java",
-                "v1/supplementary/b/B.java", "v1/supplementary/a/C.java");
+                "v1/supplementary/b/B.java", "v1/supplementary/b/D.java");
 
         JavaArchive api = ShrinkWrap.create(JavaArchive.class, "api.jar")
                 .addAsResource(compRes.compilationPath.resolve(A_PACKAGE_PATH + "A.class").toFile(),
@@ -103,8 +103,9 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
                         SUP_PACKAGE_PATH + "B$T$1$TT$1.class")
                 .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$2.class").toFile(),
                         SUP_PACKAGE_PATH + "B$T$2.class")
-                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "C.class").toFile(),
-                        SUP_PACKAGE_PATH + "C.class")
+                // Change to D because this is used in the api in SupplementaryJarsTest (split package fixes)
+                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "D.class").toFile(),
+                        SUP_PACKAGE_PATH + "D.class")
                 .addAsResource(
                         compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class").toFile(),
                         SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class");

@@ -68,7 +68,6 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                         A_PACKAGE_PATH + "C.class")
                 .addAsResource(compRes1.compilationPath.resolve(A_PACKAGE_PATH + "A$PrivateEnum.class").toFile(),
                         A_PACKAGE_PATH + "A$PrivateEnum.class");
-        ;
 
         supV1 = ShrinkWrap.create(JavaArchive.class, "supV1.jar")
                 .addAsResource(compRes1.compilationPath.resolve(SUP_PACKAGE_PATH + "B.class").toFile(),
