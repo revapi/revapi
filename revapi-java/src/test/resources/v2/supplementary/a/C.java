@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 package a;
-
 public class C {
     public sup.B.UsedByIgnoredClass field;
 }
