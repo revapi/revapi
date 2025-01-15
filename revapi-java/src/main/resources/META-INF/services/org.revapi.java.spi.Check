@@ -66,6 +66,7 @@ org.revapi.java.checks.methods.NowDefault
 org.revapi.java.checks.methods.NowAbstract
 org.revapi.java.checks.methods.NoLongerAbstract
 org.revapi.java.checks.methods.MethodMovedInHierarchy
+org.revapi.java.checks.methods.Varargs
 
 org.revapi.java.checks.generics.FormalTypeParametersChanged
 org.revapi.java.checks.generics.SuperTypeParametersChanged

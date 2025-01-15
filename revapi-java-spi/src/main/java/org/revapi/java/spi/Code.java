@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -195,7 +195,9 @@ public enum Code {
     // since 0.23.3
     METHOD_RETURN_TYPE_ERASURE_CHANGED("java.method.returnTypeErasureChanged", NON_BREAKING, BREAKING, null),
     METHOD_PARAMETER_TYPE_ERASURE_CHANGED("java.method.parameterTypeErasureChanged", NON_BREAKING, BREAKING, null,
-            "parameterIndex");
+            "parameterIndex"),
+    METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER("java.method.varargOverloadsOnlyDifferInVarargParameter",
+            NON_BREAKING, NON_BREAKING, POTENTIALLY_BREAKING);
 
     private final String code;
     private final EnumMap<CompatibilityType, DifferenceSeverity> classification;
@@ -319,7 +321,8 @@ public enum Code {
                 kind = "staticInitializer";
                 break;
             case TYPE_PARAMETER:
-                // this most probably never occurs, because we don't do checks directly on type params, but rather
+                // this most probably never occurs, because we don't do checks directly on type
+                // params, but rather
                 kind = "typeParameter";
                 break;
             default:

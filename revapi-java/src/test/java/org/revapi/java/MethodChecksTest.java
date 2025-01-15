@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -492,6 +492,20 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                 "method void ReplacedByGenericVariantInSuperClass.Test::method(java.lang.String)",
                 "method void ReplacedByGenericVariantInSuperClass.Base<T>::method(T) @ ReplacedByGenericVariantInSuperClass.Test",
                 Code.METHOD_MOVED_TO_SUPERCLASS)));
+    }
+
+    @Test
+    public void testMethodOverloadsOnlyDifferInVarargs() throws Exception {
+        CollectingReporter reporter = runAnalysis(CollectingReporter.class, "v1/methods/Varargs.java",
+                "v2/methods/Varargs.java");
+
+        Assert.assertTrue(reporter.getReports().stream()
+                .anyMatch(reportCheck("method void Varargs::varargs(int, float, int[])",
+                        "method void Varargs::varargs(int, float, int[])",
+                        Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER)));
+        Assert.assertTrue(reporter.getReports().stream()
+                .anyMatch(reportCheck(null, "method void Base::varargs(int, float, java.lang.Object[]) @ Varargs",
+                        Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER, Code.METHOD_ADDED)));
     }
 
     private Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {

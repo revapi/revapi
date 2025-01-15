@@ -2288,6 +2288,30 @@ will now have to supply an implementation for it.
 2+| See <<Match Parameters>> for the common match parameters
 |====
 
+[[java.method.varargOverloadsOnlyDifferInVarargParameter]]
+=== Vararg method only differs in the vararg type from some of its overloads - `java.method.varargOverloadsOnlyDifferInVarargParameter`
+[cols="35s,<65d"]
+|=============
+| Binary severity   | non breaking
+| Source severity   | non breaking
+| Semantic severity | potentially breaking
+|=============
+
+This is only checked for new methods. The problem here is that if there are 2 overloads of a method that differ only in the type of
+the vararg parameter, then trying to call one of such methods with empty varargs results in an ambiguity and compilation error.
+
+[options=header]
+|====
+2+| Match parameters
+| `package` | the package of the class
+| `classQualifiedName` | the fully-qualified name of the class
+| `classSimpleName` | the simple name of the class
+| `methodName` | the name of the method
+| `oldModifiers` | the modifiers on the method in the old version
+| `newModifiers` | the modifiers on the method in the new version
+2+| See <<Match Parameters>> for the common match parameters
+|====
+
 [[java.generics.elementNowParameterized]]
 === Element Now Parameterized - `java.generics.elementNowParameterized`
 [cols="35s,<65d"]
