@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2023 Lukas Krejci
+    Copyright 2014-2025 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -172,6 +172,10 @@
                         </goals>
                         <phase>test</phase>
                         <configuration>
+                            <!-- Exclude alternate versions for multi-release modules due to https://github.com/jacoco/jacoco/issues/407 -->
+                            <excludes>
+                                <exclude>META-INF/**/*</exclude>
+                            </excludes>
                             <dataFile>${project.build.directory}/jacoco-ut.exec</dataFile>
                         </configuration>
                     </execution>
