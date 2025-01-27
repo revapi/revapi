@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2022 Lukas Krejci
+    Copyright 2014-2025 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,6 @@
     </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.java.spi</automatic.module.name>
-        <jacoco.skip>true</jacoco.skip>
     </properties>
     <dependencies>
         <dependency>

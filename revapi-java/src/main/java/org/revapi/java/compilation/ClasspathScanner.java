@@ -231,7 +231,6 @@ final class ClasspathScanner {
 
         SyntheticLocation allLoc = new SyntheticLocation();
         fileManager.setLocation(allLoc, classPath.values());
-        fileManager.setLocation(allLoc, additionalClassPath.values());
 
         Function<String, JavaFileObject> searchHard = className -> Stream
                 .concat(Stream.of(allLoc), Stream.of(POSSIBLE_SYSTEM_CLASS_LOCATIONS)).map(l -> {

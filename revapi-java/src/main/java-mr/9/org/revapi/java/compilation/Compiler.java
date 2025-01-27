@@ -68,8 +68,8 @@ public final class Compiler {
     private final Iterable<JarExtractor> jarExtractors;
 
     public Compiler(ExecutorService executor, Writer reportingOutput, Iterable<JarExtractor> jarExtractors,
-            Iterable<? extends Archive> classPath, Iterable<? extends Archive> additionalClassPath,
-            TreeFilter<JavaElement> filter) {
+                    Iterable<? extends Archive> classPath, Iterable<? extends Archive> additionalClassPath,
+                    TreeFilter<JavaElement> filter) {
         this.jarExtractors = jarExtractors;
 
         compiler = ToolProvider.getSystemJavaCompiler();
@@ -85,8 +85,8 @@ public final class Compiler {
     }
 
     public CompilationValve compile(final ProbingEnvironment environment,
-            final AnalysisConfiguration.MissingClassReporting missingClassReporting,
-            final boolean ignoreMissingAnnotations) throws Exception {
+                                    final AnalysisConfiguration.MissingClassReporting missingClassReporting,
+                                    final boolean ignoreMissingAnnotations) throws Exception {
 
         File targetPath = Files.createTempDirectory("revapi-java").toAbsolutePath().toFile();
 
@@ -106,7 +106,8 @@ public final class Compiler {
         IdentityHashMap<Archive, File> additionClassPathFiles = copyArchives(additionalClassPath, lib, classPathSize,
                 prefixLength);
 
-        List<String> options = Arrays.asList("-d", sourceDir.toString(), "-cp", composeClassPath(lib));
+        List<String> options = Arrays.asList("-d", sourceDir.toString(), "--module-path", lib.getAbsolutePath(),
+                "--add-modules", "ALL-MODULE-PATH");
 
         List<JavaFileObject> sources = Arrays.<JavaFileObject> asList(new MarkerAnnotationObject(),
                 new ArchiveProbeObject());
@@ -172,7 +173,7 @@ public final class Compiler {
     }
 
     private IdentityHashMap<Archive, File> copyArchives(Iterable<? extends Archive> archives, File parentDir,
-            int startIdx, int prefixLength) {
+                                                        int startIdx, int prefixLength) {
         IdentityHashMap<Archive, File> ret = new IdentityHashMap<>();
         if (archives == null) {
             return ret;
@@ -231,7 +232,8 @@ public final class Compiler {
 
     private String formatName(int idx, int prefixLength, String rootName) {
         try {
-            return String.format("%0" + prefixLength + "d-%s", idx, UUID.nameUUIDFromBytes(rootName.getBytes("UTF-8")));
+            return String.format("%0" + prefixLength + "d-%s.jar", idx,
+                    UUID.nameUUIDFromBytes(rootName.getBytes("UTF-8")));
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("UTF-8 not supported.");
         }
