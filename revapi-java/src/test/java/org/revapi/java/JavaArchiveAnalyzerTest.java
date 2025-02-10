@@ -16,6 +16,8 @@
  */
 package org.revapi.java;
 
+import static java.lang.Integer.parseInt;
+import static java.lang.System.getProperty;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
@@ -37,6 +39,7 @@ import java.util.function.Predicate;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.revapi.API;
@@ -85,30 +88,49 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
     }
 
     @Test
-    public void testWithSupplementary() throws Exception {
-        ArchiveAndCompilationPath compRes = createCompiledJar("a.jar", "v1/supplementary/a/A.java",
-                "v1/supplementary/b/B.java", "v1/supplementary/b/D.java");
+    public void testWithSupplementaryWithSplitPackageInJava8() throws Exception {
+        String javaVersion = getProperty("java.version");
+        int majorVersion = getMajorJavaVersion(javaVersion);
 
-        JavaArchive api = ShrinkWrap.create(JavaArchive.class, "api.jar")
-                .addAsResource(compRes.compilationPath.resolve(A_PACKAGE_PATH + "A.class").toFile(),
-                        A_PACKAGE_PATH + "A.class")
-                .addAsResource(compRes.compilationPath.resolve(A_PACKAGE_PATH + "A$PrivateEnum.class").toFile(),
-                        A_PACKAGE_PATH + "A$PrivateEnum.class");
+        // Assume that the Java version is 8 or lower; otherwise, the test will be ignored.
+        Assume.assumeTrue("Test ignored on Java 9 and above", majorVersion <= 8);
+
+        testWithSupplementaryJar("", "", "C", "java8/v1/supplementary/a/A.java", "java8/v1/supplementary/b/B.java",
+                "java8/v1/supplementary/a/C.java", "", "");
+    }
+
+    @Test
+    public void testWithSupplementary() throws Exception {
+        testWithSupplementaryJar("a.", "sup.", "D", "v1/supplementary/a/A.java", "v1/supplementary/b/B.java",
+                "v1/supplementary/b/D.java", A_PACKAGE_PATH, SUP_PACKAGE_PATH);
+    }
+
+    private void testWithSupplementaryJar(String aPackage, String supPackage, String extraClassName,
+            String aClassSourcePath, String bClassSourcePath, String extraClassSourcePath, String aClassCompiledPath,
+            String supClassCompiledPath) throws Exception {
+        ArchiveAndCompilationPath compRes = createCompiledJar("a.jar", aClassSourcePath, bClassSourcePath,
+                extraClassSourcePath);
+
+        JavaArchive api = ShrinkWrap.create(JavaArchive.class, "api.jar").addAsResource(
+                compRes.compilationPath.resolve(aClassCompiledPath + "A.class").toFile(),
+                aClassCompiledPath + "A.class");
         JavaArchive sup = ShrinkWrap.create(JavaArchive.class, "sup.jar")
-                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B.class").toFile(),
-                        SUP_PACKAGE_PATH + "B.class")
-                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$1.class").toFile(),
-                        SUP_PACKAGE_PATH + "B$T$1.class")
-                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$1$TT$1.class").toFile(),
-                        SUP_PACKAGE_PATH + "B$T$1$TT$1.class")
-                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$2.class").toFile(),
-                        SUP_PACKAGE_PATH + "B$T$2.class")
-                // Change to D because this is used in the api in SupplementaryJarsTest (split package fixes)
-                .addAsResource(compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "D.class").toFile(),
-                        SUP_PACKAGE_PATH + "D.class")
+                .addAsResource(compRes.compilationPath.resolve(supClassCompiledPath + "B.class").toFile(),
+                        supClassCompiledPath + "B.class")
+                .addAsResource(compRes.compilationPath.resolve(supClassCompiledPath + "B$T$1.class").toFile(),
+                        supClassCompiledPath + "B$T$1.class")
+                .addAsResource(compRes.compilationPath.resolve(supClassCompiledPath + "B$T$1$TT$1.class").toFile(),
+                        supClassCompiledPath + "B$T$1$TT$1.class")
+                .addAsResource(compRes.compilationPath.resolve(supClassCompiledPath + "B$T$2.class").toFile(),
+                        supClassCompiledPath + "B$T$2.class")
                 .addAsResource(
-                        compRes.compilationPath.resolve(SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class").toFile(),
-                        SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class");
+                        compRes.compilationPath.resolve(supClassCompiledPath + extraClassName + ".class").toFile(),
+                        supClassCompiledPath + extraClassName + ".class")
+                .addAsResource(
+                        compRes.compilationPath.resolve(supClassCompiledPath + "B$UsedByIgnoredClass.class").toFile(),
+                        supClassCompiledPath + "B$UsedByIgnoredClass.class")
+                .addAsResource(compRes.compilationPath.resolve(aClassCompiledPath + "A$PrivateEnum.class").toFile(),
+                        aClassCompiledPath + "A$PrivateEnum.class");
 
         JavaArchiveAnalyzer analyzer = new JavaArchiveAnalyzer(apiAnalyzer,
                 new API(Arrays.asList(new ShrinkwrapArchive(api)), Arrays.asList(new ShrinkwrapArchive(sup))),
@@ -126,12 +148,12 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
             TypeElement B_T$1 = roots.next().as(TypeElement.class);
             TypeElement B_T$2 = roots.next().as(TypeElement.class);
 
-            Assert.assertEquals("a.A", A.getCanonicalName());
-            Assert.assertEquals("a.A", A.getDeclaringElement().getQualifiedName().toString());
-            Assert.assertEquals("sup.B.T$1", B_T$1.getCanonicalName());
-            Assert.assertEquals("sup.B.T$1", B_T$1.getDeclaringElement().getQualifiedName().toString());
-            Assert.assertEquals("sup.B.T$2", B_T$2.getCanonicalName());
-            Assert.assertEquals("sup.B.T$2", B_T$2.getDeclaringElement().getQualifiedName().toString());
+            Assert.assertEquals(aPackage + "A", A.getCanonicalName());
+            Assert.assertEquals(aPackage + "A", A.getDeclaringElement().getQualifiedName().toString());
+            Assert.assertEquals(supPackage + "B.T$1", B_T$1.getCanonicalName());
+            Assert.assertEquals(supPackage + "B.T$1", B_T$1.getDeclaringElement().getQualifiedName().toString());
+            Assert.assertEquals(supPackage + "B.T$2", B_T$2.getCanonicalName());
+            Assert.assertEquals(supPackage + "B.T$2", B_T$2.getDeclaringElement().getQualifiedName().toString());
         } finally {
             deleteDir(compRes.compilationPath);
             analyzer.getCompilationValve().removeCompiledResults();
@@ -386,5 +408,14 @@ public class JavaArchiveAnalyzerTest extends AbstractJavaElementAnalyzerTest {
 
     private Predicate<TypeElement> hasName(String name) {
         return t -> name.equals(t.getFullHumanReadableString());
+    }
+
+    private int getMajorJavaVersion(String javaVersion) {
+        // Java versions before 9 have "1.x.0_xx", Java 9+ has "9.x.x"
+        if (javaVersion.startsWith("1.")) {
+            return parseInt(javaVersion.split("\\.")[1]);
+        } else {
+            return parseInt(javaVersion.split("\\.")[0]);
+        }
     }
 }
