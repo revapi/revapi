@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package a;
+
 public class A {
-    private B.T$1 f1;
-    public B.T$2 f2;
-    public B.T$3 f3;
+    private sup.B.T$1 f1;
+    public sup.B.T$2 f2;
+    public sup.B.T$3 f3;
 
     //this tests that a public field or method of a private class doesn't move it to API.
     private enum PrivateEnum {ONE, TWO}
 
     //this tests missing classes can be used as throws declarations, too
-    public void m() throws B.T$2 {
+    public void m() throws sup.B.T$2 {
 
     }
 }
