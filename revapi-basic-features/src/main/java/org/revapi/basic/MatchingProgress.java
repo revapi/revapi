@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,12 +57,12 @@ public abstract class MatchingProgress<E extends Element<E>> implements Differen
 
     public boolean startElements(@Nullable E oldElement, @Nullable E newElement) {
         FilterStartResult oldRes = oldElement == null
-                ? (oldFilter == null ? FilterStartResult.defaultResult() : FilterStartResult.doesntMatch())
-                : (oldFilter == null ? FilterStartResult.defaultResult() : oldFilter.start(oldElement));
+                ? (oldFilter == null ? FilterStartResult.matchAndDescend() : FilterStartResult.doesntMatch())
+                : (oldFilter == null ? FilterStartResult.matchAndDescend() : oldFilter.start(oldElement));
 
         FilterStartResult newRes = newElement == null
-                ? (newFilter == null ? FilterStartResult.defaultResult() : FilterStartResult.doesntMatch())
-                : (newFilter == null ? FilterStartResult.defaultResult() : newFilter.start(newElement));
+                ? (newFilter == null ? FilterStartResult.matchAndDescend() : FilterStartResult.doesntMatch())
+                : (newFilter == null ? FilterStartResult.matchAndDescend() : newFilter.start(newElement));
 
         if (oldRes.getMatch().toBoolean(false) && newRes.getMatch().toBoolean(false)) {
             decidedlyMatchingElementPairs.computeIfAbsent(oldElement, __ -> new HashSet<>()).add(newElement);

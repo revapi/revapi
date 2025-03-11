@@ -52,7 +52,7 @@
         <doxia.version>2.0.0-M10</doxia.version>
         <itest.debug-output>false</itest.debug-output>
         <itest.maven-opts>-Dmaven.plugin.validation=verbose</itest.maven-opts>
-        <maven-invoker.version>3.5.1</maven-invoker.version>
+        <maven-invoker.version>3.9.0</maven-invoker.version>
         <maven-plugin-plugin.version>3.9.0</maven-plugin-plugin.version>
         <maven.version>3.8.1</maven.version>
         <revapi-java-spi.version>0.25.1-SNAPSHOT</revapi-java-spi.version>
