@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -78,6 +80,11 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
     @Override
     public Pattern[] getDifferenceCodePatterns() {
         return enabled ? ALL_CODES : NO_CODES;
+    }
+
+    @Override
+    public List<Predicate<String>> getDifferenceCodePredicates() {
+        return enabled ? Collections.singletonList(__ -> true) : Collections.emptyList();
     }
 
     @Override

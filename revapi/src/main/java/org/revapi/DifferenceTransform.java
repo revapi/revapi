@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,10 @@
  */
 package org.revapi;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -54,6 +57,29 @@ public interface DifferenceTransform<E extends Element<?>> extends AutoCloseable
      * @return The list of regexes to match the difference codes this transform can handle.
      */
     Pattern[] getDifferenceCodePatterns();
+
+    /**
+     * Gets the list of {@link Predicate predicates} to match the difference codes this transform can handle.
+     * <p>
+     * This is a replacement for {@link #getDifferenceCodePatterns()} where {@link Predicate} is more generalized and
+     * allows for {@link DifferenceTransform} implementations to use more optimized solutions, such as exact string
+     * matching or custom string matching rather than more performance intensive {@link Pattern}s.
+     *
+     * @return The list of predicates to match the difference codes this transform can handle.
+     */
+    default List<Predicate<String>> getDifferenceCodePredicates() {
+        Pattern[] patterns = getDifferenceCodePatterns();
+        if (patterns == null) {
+            return null;
+        }
+
+        List<Predicate<String>> predicates = new ArrayList<>(patterns.length);
+        for (Pattern pattern : patterns) {
+            predicates.add(str -> pattern.matcher(str).matches());
+        }
+
+        return predicates;
+    }
 
     /**
      * Returns a transformed version of the difference. If this method returns null, the difference is discarded and not

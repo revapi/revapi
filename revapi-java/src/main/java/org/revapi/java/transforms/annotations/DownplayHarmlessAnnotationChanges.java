@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +19,13 @@ package org.revapi.java.transforms.annotations;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -56,6 +59,37 @@ public final class DownplayHarmlessAnnotationChanges implements DifferenceTransf
         return new Pattern[] { exact("java.annotation.added"), exact("java.annotation.removed"),
                 exact("java.annotation.attributeValueChanged"), exact("java.annotation.attributeAdded"),
                 exact("java.annotation.attributeRemoved") };
+    }
+
+    @Nonnull
+    @Override
+    public List<Predicate<String>> getDifferenceCodePredicates() {
+        // Single Predicate that uses optimized string matching as all codes begin with the same prefix.
+        return Collections.singletonList(code -> {
+            if (code == null) {
+                return false;
+            }
+
+            // Doesn't start with the common prefix.
+            if (!code.startsWith("java.annotation.")) {
+                return false;
+            }
+
+            int length = code.length();
+            if (length == 21) {
+                return code.endsWith("added");
+            } else if (length == 23) {
+                return code.endsWith("removed");
+            } else if (length == 30) {
+                return code.endsWith("attributeAdded");
+            } else if (length == 32) {
+                return code.endsWith("attributeRemoved");
+            } else if (length == 37) {
+                return code.endsWith("attributeValueChanged");
+            }
+
+            return false;
+        });
     }
 
     @Override

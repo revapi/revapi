@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,10 +34,11 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import org.revapi.AnalysisContext;
 import org.revapi.Report;
-import org.revapi.configuration.JSONUtil;
 
 public class AbstractFileReporterTest {
 
@@ -81,15 +82,10 @@ public class AbstractFileReporterTest {
     public void testKeepEmptyFiles() throws Exception {
         Path file = Files.createTempFile(null, null);
         try (Reporter reporter = new Reporter()) {
-            StringBuffer buf = new StringBuffer();
-            buf.append("{");
-            buf.append("\"output\": \"").append(file.toString()).append("\"");
-            buf.append(",");
-            buf.append("\"keepEmptyFile\": \"").append("false").append("\"");
-            buf.append("}");
+            ObjectNode configuration = JsonNodeFactory.instance.objectNode().put("output", file.toString())
+                    .put("keepEmptyFile", false);
 
-            reporter.initialize(
-                    AnalysisContext.builder().build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
+            reporter.initialize(AnalysisContext.builder().build().copyWithConfiguration(configuration));
             reporter.report(Report.builder().build());
 
         } finally {
@@ -157,13 +153,11 @@ public class AbstractFileReporterTest {
     }
 
     private AnalysisContext ctxWithOutput(String output) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        ObjectNode configuration = JsonNodeFactory.instance.objectNode();
         if (output != null) {
-            sb.append("\"output\": \"").append(output).append("\"");
+            configuration.put("output", output);
         }
-        sb.append("}");
-        return AnalysisContext.builder().build().copyWithConfiguration(JSONUtil.parse(sb.toString()));
+        return AnalysisContext.builder().build().copyWithConfiguration(configuration);
     }
 
     static final class Reporter extends AbstractFileReporter {

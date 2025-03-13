@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -48,15 +50,10 @@ public class JsonReporterTest {
     public void testKeepEmptyFile() throws Exception {
         Path file = Files.createTempFile(null, null);
         try (Reporter reporter = new JsonReporter()) {
-            StringBuffer buf = new StringBuffer();
-            buf.append("{");
-            buf.append("\"output\": \"").append(file.toString()).append("\"");
-            buf.append(",");
-            buf.append("\"keepEmptyFile\": \"").append("false").append("\"");
-            buf.append("}");
+            ObjectNode configuration = JsonNodeFactory.instance.objectNode().put("output", file.toString())
+                    .put("keepEmptyFile", false);
 
-            reporter.initialize(
-                    AnalysisContext.builder().build().copyWithConfiguration(JSONUtil.parse(buf.toString())));
+            reporter.initialize(AnalysisContext.builder().build().copyWithConfiguration(configuration));
             reporter.report(Report.builder().build());
 
         } finally {

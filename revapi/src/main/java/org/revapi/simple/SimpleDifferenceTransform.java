@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,9 @@
  */
 package org.revapi.simple;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
@@ -38,6 +41,11 @@ public abstract class SimpleDifferenceTransform<T extends Element<T>> extends Si
     @Override
     public @Nonnull Pattern[] getDifferenceCodePatterns() {
         return new Pattern[0];
+    }
+
+    @Override
+    public List<Predicate<String>> getDifferenceCodePredicates() {
+        return Collections.emptyList();
     }
 
     @Override

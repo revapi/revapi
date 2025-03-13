@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,10 @@
 package org.revapi.java.transforms.annotations;
 
 import java.io.Reader;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
@@ -45,6 +48,7 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
     private final String annotationQualifiedName;
     private final Code transformedCode;
     private final Pattern[] codes;
+    private final List<Predicate<String>> predicates;
 
     protected AbstractAnnotationPresenceCheck(String annotationQualifiedName, Code annotationCheckCode,
             Code transformedCode) {
@@ -52,12 +56,19 @@ abstract class AbstractAnnotationPresenceCheck implements DifferenceTransform<Ja
         this.transformedCode = transformedCode;
         String regex = "^" + Pattern.quote(annotationCheckCode.code()) + "$";
         codes = new Pattern[] { Pattern.compile(regex) };
+        predicates = Collections.singletonList(annotationCheckCode.code()::equals);
     }
 
     @Nonnull
     @Override
     public Pattern[] getDifferenceCodePatterns() {
         return codes;
+    }
+
+    @Nonnull
+    @Override
+    public List<Predicate<String>> getDifferenceCodePredicates() {
+        return predicates;
     }
 
     @Nullable

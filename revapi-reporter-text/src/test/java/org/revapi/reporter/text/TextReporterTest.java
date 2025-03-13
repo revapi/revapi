@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -45,6 +48,7 @@ import org.revapi.base.FileArchive;
  * @since 0.5.0
  */
 public class TextReporterTest {
+    private static final Pattern STANDARDIZE_LINE_BREAKS = Pattern.compile("\\r?\\n");
 
     @Test
     public void testDefaultTemplate() throws Exception {
@@ -75,7 +79,8 @@ public class TextReporterTest {
                 + "SOURCE: BREAKING\n" + "\n" + "old: old2\n" + "new: new2\n" + "code2\n" + "justified\n"
                 + "BINARY: BREAKING\n\n";
 
-        assertEquals(expected, out.toString());
+        assertEquals(STANDARDIZE_LINE_BREAKS.matcher(expected).replaceAll(""),
+                STANDARDIZE_LINE_BREAKS.matcher(out.toString()).replaceAll(""));
     }
 
     @Test
@@ -88,10 +93,11 @@ public class TextReporterTest {
             TextReporter reporter = new TextReporter();
 
             Revapi r = new Revapi(PipelineConfiguration.builder().withReporters(TextReporter.class).build());
+            ObjectNode configuration = JsonNodeFactory.instance.objectNode().set("revapi",
+                    JsonNodeFactory.instance.objectNode().set("reporter", JsonNodeFactory.instance.objectNode()
+                            .set("text", JsonNodeFactory.instance.objectNode().put("template", tempFile.toString()))));
 
-            AnalysisContext ctx = AnalysisContext.builder(r)
-                    .withConfigurationFromJSON(
-                            "{\"revapi\": {\"reporter\": {\"text\": {\"template\": \"" + tempFile.toString() + "\"}}}}")
+            AnalysisContext ctx = AnalysisContext.builder(r).withConfiguration(configuration)
                     .withOldAPI(API.of(new FileArchive(new File("old-dummy.archive"))).build())
                     .withNewAPI(API.of(new FileArchive(new File("new-dummy.archive"))).build()).build();
 
@@ -111,7 +117,8 @@ public class TextReporterTest {
 
             String expected = "old1 VS new1\nold2 VS new2\n";
 
-            assertEquals(expected, out.toString());
+            assertEquals(STANDARDIZE_LINE_BREAKS.matcher(expected).replaceAll(""),
+                    STANDARDIZE_LINE_BREAKS.matcher(out.toString()).replaceAll(""));
         } finally {
             Files.delete(tempFile);
         }
