@@ -43,7 +43,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
