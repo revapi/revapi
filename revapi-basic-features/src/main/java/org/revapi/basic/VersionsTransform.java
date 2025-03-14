@@ -82,6 +82,7 @@ public class VersionsTransform<E extends Element<E>> extends BaseDifferenceTrans
         return enabled ? ALL_CODES : NO_CODES;
     }
 
+    @Nonnull
     @Override
     public List<Predicate<String>> getDifferenceCodePredicates() {
         return enabled ? Collections.singletonList(__ -> true) : Collections.emptyList();

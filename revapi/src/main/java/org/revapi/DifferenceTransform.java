@@ -17,11 +17,13 @@
 package org.revapi;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.configuration.Configurable;
@@ -55,8 +57,13 @@ public interface DifferenceTransform<E extends Element<?>> extends AutoCloseable
 
     /**
      * @return The list of regexes to match the difference codes this transform can handle.
+     * @deprecated Use and implement {@link #getDifferenceCodePredicates()} instead, as it can offer better performance
+     * characteristic.
      */
-    Pattern[] getDifferenceCodePatterns();
+    @Deprecated
+    default Pattern[] getDifferenceCodePatterns() {
+        return new Pattern[] {};
+    }
 
     /**
      * Gets the list of {@link Predicate predicates} to match the difference codes this transform can handle.
@@ -64,13 +71,18 @@ public interface DifferenceTransform<E extends Element<?>> extends AutoCloseable
      * This is a replacement for {@link #getDifferenceCodePatterns()} where {@link Predicate} is more generalized and
      * allows for {@link DifferenceTransform} implementations to use more optimized solutions, such as exact string
      * matching or custom string matching rather than more performance intensive {@link Pattern}s.
+     * <p>
+     * Default implementation converts the {@link #getDifferenceCodePatterns()} {@code Pattern[]} into a {@link List} of
+     * {@link Predicate}s. Override this method to offer better performance when checking difference codes.
      *
      * @return The list of predicates to match the difference codes this transform can handle.
+     * @since 0.15.1-SNAPSHOT
      */
+    @Nonnull
     default List<Predicate<String>> getDifferenceCodePredicates() {
         Pattern[] patterns = getDifferenceCodePatterns();
         if (patterns == null) {
-            return null;
+            return Collections.emptyList();
         }
 
         List<Predicate<String>> predicates = new ArrayList<>(patterns.length);

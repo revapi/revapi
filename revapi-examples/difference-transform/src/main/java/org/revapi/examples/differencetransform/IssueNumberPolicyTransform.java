@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.revapi.AnalysisContext;
@@ -69,6 +70,7 @@ public class IssueNumberPolicyTransform<E extends Element<E>> extends BaseDiffer
         return new Pattern[] { Pattern.compile(".*") };
     }
 
+    @Nonnull
     @Override
     public List<Predicate<String>> getDifferenceCodePredicates() {
         // we want to react on all kinds of differences. A type of difference is identified by its "code" and we want

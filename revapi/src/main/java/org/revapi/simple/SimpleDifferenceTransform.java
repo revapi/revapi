@@ -43,6 +43,7 @@ public abstract class SimpleDifferenceTransform<T extends Element<T>> extends Si
         return new Pattern[0];
     }
 
+    @Nonnull
     @Override
     public List<Predicate<String>> getDifferenceCodePredicates() {
         return Collections.emptyList();
