@@ -57,8 +57,9 @@ public interface DifferenceTransform<E extends Element<?>> extends AutoCloseable
 
     /**
      * @return The list of regexes to match the difference codes this transform can handle.
+     *
      * @deprecated Use and implement {@link #getDifferenceCodePredicates()} instead, as it can offer better performance
-     * characteristic.
+     *             characteristic.
      */
     @Deprecated
     default Pattern[] getDifferenceCodePatterns() {
@@ -76,6 +77,7 @@ public interface DifferenceTransform<E extends Element<?>> extends AutoCloseable
      * {@link Predicate}s. Override this method to offer better performance when checking difference codes.
      *
      * @return The list of predicates to match the difference codes this transform can handle.
+     *
      * @since 0.15.1-SNAPSHOT
      */
     @Nonnull

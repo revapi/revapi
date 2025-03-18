@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,10 @@
  */
 package org.revapi.java.benchmarks;
 
+import java.util.Arrays;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -24,10 +28,6 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
 import org.revapi.java.transforms.annotations.DownplayHarmlessAnnotationChanges;
-
-import java.util.Arrays;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 @State(Scope.Benchmark)
 public class DifferenceTransformCodesBenchmark {
@@ -92,8 +92,8 @@ public class DifferenceTransformCodesBenchmark {
         Assertions.assertTrue(simplePattern.matcher(code).matches());
 
         Assertions.assertTrue(Arrays.stream(complex.getDifferenceCodePatterns())
-            .anyMatch(pattern -> pattern.matcher(code).matches()));
-        Assertions.assertTrue(complex.getDifferenceCodePredicates().stream()
-            .anyMatch(predicate -> predicate.test(code)));
+                .anyMatch(pattern -> pattern.matcher(code).matches()));
+        Assertions
+                .assertTrue(complex.getDifferenceCodePredicates().stream().anyMatch(predicate -> predicate.test(code)));
     }
 }
