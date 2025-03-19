@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +18,10 @@ package org.revapi.basic;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,7 @@ public abstract class AbstractDifferenceReferringTransform<E extends Element<E>>
     private Collection<DifferenceMatchRecipe> configuredRecipes;
     private Collection<MatchingProgress<?>> activeRecipes;
     private Pattern[] codes;
+    private List<Predicate<String>> predicates;
     protected AnalysisContext analysisContext;
 
     protected AbstractDifferenceReferringTransform(@Nonnull String extensionId) {
@@ -62,6 +65,12 @@ public abstract class AbstractDifferenceReferringTransform<E extends Element<E>>
     @Override
     public Pattern[] getDifferenceCodePatterns() {
         return codes;
+    }
+
+    @Nonnull
+    @Override
+    public List<Predicate<String>> getDifferenceCodePredicates() {
+        return predicates;
     }
 
     /**
@@ -82,18 +91,23 @@ public abstract class AbstractDifferenceReferringTransform<E extends Element<E>>
 
         if (!myNode.isArray()) {
             this.codes = new Pattern[0];
+            this.predicates = Collections.emptyList();
             return;
         }
 
         List<Pattern> codes = new ArrayList<>();
+        List<Predicate<String>> predicates = new ArrayList<>();
 
         for (JsonNode config : myNode) {
             DifferenceMatchRecipe recipe = newRecipe(config);
             codes.add(recipe.codeRegex == null ? Pattern.compile("^" + Pattern.quote(recipe.code) + "$")
                     : recipe.codeRegex);
+            predicates.add(
+                    recipe.codeRegex == null ? recipe.code::equals : code -> recipe.codeRegex.matcher(code).matches());
             configuredRecipes.add(recipe);
         }
         this.codes = codes.toArray(new Pattern[0]);
+        this.predicates = predicates;
     }
 
     @Override

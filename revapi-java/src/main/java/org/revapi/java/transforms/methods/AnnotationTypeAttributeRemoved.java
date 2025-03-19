@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,11 @@
 package org.revapi.java.transforms.methods;
 
 import java.io.Reader;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
@@ -40,15 +43,23 @@ import org.revapi.java.spi.JavaModelElement;
 public class AnnotationTypeAttributeRemoved implements DifferenceTransform<JavaModelElement> {
     private Locale locale;
     private final Pattern[] codes;
+    private final List<Predicate<String>> predicates;
 
     public AnnotationTypeAttributeRemoved() {
         codes = new Pattern[] { Pattern.compile("^" + Pattern.quote(Code.METHOD_REMOVED.code()) + "$") };
+        predicates = Collections.singletonList(Code.METHOD_REMOVED.code()::equals);
     }
 
     @Nonnull
     @Override
     public Pattern[] getDifferenceCodePatterns() {
         return codes;
+    }
+
+    @Nonnull
+    @Override
+    public List<Predicate<String>> getDifferenceCodePredicates() {
+        return predicates;
     }
 
     @Nullable

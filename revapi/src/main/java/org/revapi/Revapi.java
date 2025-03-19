@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.function.BiFunction;
-import java.util.regex.Pattern;
+import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -714,10 +714,9 @@ public final class Revapi {
             for (List<DifferenceTransform<?>> ts : progress.transformBlocks) {
                 List<DifferenceTransform<?>> actualTs = new ArrayList<>(ts.size());
                 for (DifferenceTransform<?> t : ts) {
-                    for (Pattern p : t.getDifferenceCodePatterns()) {
-                        if (p.matcher(diff.code).matches()) {
+                    for (Predicate<String> predicate : t.getDifferenceCodePredicates()) {
+                        if (predicate.test(diff.code)) {
                             actualTs.add(t);
-
                             break;
                         }
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 
@@ -61,6 +62,12 @@ public class SemverIgnoreTransform<E extends Element<E>> implements DifferenceTr
     @Override
     public Pattern[] getDifferenceCodePatterns() {
         return enabled ? new Pattern[] { Pattern.compile(".*") } : new Pattern[0];
+    }
+
+    @Nonnull
+    @Override
+    public List<Predicate<String>> getDifferenceCodePredicates() {
+        return enabled ? Collections.singletonList(__ -> true) : Collections.emptyList();
     }
 
     @Override
