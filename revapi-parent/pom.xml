@@ -100,6 +100,7 @@
         <version.maven-enforcer-plugin>3.4.1</version.maven-enforcer-plugin>
         <version.maven-failsafe-plugin>${version.maven-surefire-plugin}</version.maven-failsafe-plugin>
         <version.maven-gpg-plugin>3.2.4</version.maven-gpg-plugin>
+        <version.maven-help-plugin>3.2.0</version.maven-help-plugin>
         <version.maven-install-plugin>3.1.1</version.maven-install-plugin>
         <version.maven-jar-plugin>3.4.1</version.maven-jar-plugin>
         <version.maven-javadoc-plugin>3.6.3</version.maven-javadoc-plugin>
@@ -190,6 +191,10 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
                     <version>${version.maven-gpg-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-help-plugin</artifactId>
+                    <version>${version.maven-help-plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-MVN=${MVN:-mvn}
+MVN=${MVN:-$(pwd)/mvnw}
 
 ALL_MODULES=" $(find -maxdepth 1 -type d -name 'revapi-*' | sed -e 's/-/_/g' -e 's|^\./||g') revapi coverage"
 
@@ -287,9 +287,9 @@ function update_module_version() {
     if [ $module != "coverage" ]; then
       # we want to run license check and revapi
       ${MVN} revapi:update-versions -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
-      -Djacoco.skip=true -Dsort.skip=true
+        -Djacoco.skip=true -Dsort.skip=true
       ${MVN} install -DskipTests -Dcheckstyle.skip=true -Denforcer.skip=true -Dformatter.skip=true \
-      -Djacoco.skip=true -Dsort.skip=true
+        -Djacoco.skip=true -Dsort.skip=true
     fi
   fi
   cd ..
@@ -307,8 +307,8 @@ function determine_releases() {
 }
 
 function before_releases() {
-  hasSnapshots=$(mvn help:evaluate -Dexpression=project.repositories 2>/dev/null | grep -E '^\s*<' --color=never | \
-    xpath -q -e "/repositories/repository/snapshots/enabled[text() = 'true' and ../../url[text() = 'https://repo.maven.apache.org/maven2']")
+  hasSnapshots=$(mvn help:evaluate -Dexpression=project.repositories 2>/dev/null | grep -E '^\s*<' --color=never |
+    xpath -q -e "/repositories/org.apache.maven.model.Repository/snapshots/enabled[text() = 'true' and ../../url[matches(text(), 'https://repo.maven.apache.org/maven2/?')]")
 
   if [ -z "$hasSnapshots" ]; then
     >&2 echo "Maven Central snapshot repository needs to be enabled otherwise things don't work!"
@@ -380,8 +380,8 @@ function publish_site() {
 You're in news. Write release notes and save the file using an appropriate name.
 The following modules were released:
 $to_release
-" \
-  | vim -
+" |
+    vim -
   git add -A
   git commit -m "Adding release notes for release of $to_release" || true
 
@@ -460,7 +460,7 @@ $to_release
           <meta name=\"robots\" content=\"noindex\">
           <title>Redirect Notice</title>
           <h1>Redirect Notice</h1>
-          <p>The page you requested has been relocated <a href=\"$page\">here</a>.</p>" > "$dir/$pageName"
+          <p>The page you requested has been relocated <a href=\"$page\">here</a>.</p>" >"$dir/$pageName"
       done
     fi
   done
