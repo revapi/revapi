@@ -30,7 +30,7 @@
     <name>YAML Analyzer</name>
     <properties>
         <automatic.module.name>org.revapi.yaml</automatic.module.name>
-        <version.com.fasterxml.jackson>2.12.0</version.com.fasterxml.jackson>
+        <version.com.fasterxml.jackson>2.14.1</version.com.fasterxml.jackson>
     </properties>
     <dependencies>
         <dependency>

@@ -30,7 +30,6 @@
     <name>JSON Analyzer</name>
     <properties>
         <automatic.module.name>org.revapi.json</automatic.module.name>
-        <version.com.fasterxml.jackson>2.12.0</version.com.fasterxml.jackson>
     </properties>
     <dependencies>
         <dependency>
