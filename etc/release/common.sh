@@ -381,7 +381,7 @@ You're in news. Write release notes and save the file using an appropriate name.
 The following modules were released:
 $to_release
 " |
-    vim -
+    vi -
   git add -A
   git commit -m "Adding release notes for release of $to_release" || true
 
