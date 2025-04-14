@@ -242,7 +242,7 @@ function release_module() {
   git commit -m "Release $module-$release_version"
   git tag "${module}_v${release_version}"
   ensure_clean_workdir
-  ${MVN} -Prelease,fast install deploy
+  ${MVN} -Prelease,fast deploy
 
   # set the version to the next snapshot
   ${MVN} versions:set -DnextSnapshot=true

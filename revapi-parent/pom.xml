@@ -112,7 +112,7 @@
         <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
         <version.maven-surefire-plugin>3.2.5</version.maven-surefire-plugin>
         <version.sortpom-maven-plugin>3.4.1</version.sortpom-maven-plugin>
-        <version.versions-maven-plugin>2.16.2</version.versions-maven-plugin>
+        <version.versions-maven-plugin>2.18.0</version.versions-maven-plugin>
     </properties>
     <build>
         <!-- Sigh - https://jira.codehaus.org/browse/MNG-5588 -->
