@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>48-SNAPSHOT</version>
+        <version>47</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-java</artifactId>
-    <version>0.28.3-SNAPSHOT</version>
+    <version>0.28.3</version>
     <name>Java Analyzer</name>
     <description>Revapi extension to check API of java classes in jar archives.</description>
     <url>https://revapi.org</url>
@@ -100,18 +100,18 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.15.2-SNAPSHOT</version>
+            <version>0.15.1</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.13.2-SNAPSHOT</version>
+            <version>0.13.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-java-spi</artifactId>
-            <version>0.25.2-SNAPSHOT</version>
+            <version>0.25.1</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.shrinkwrap</groupId>
