@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2022 Lukas Krejci
+    Copyright 2014-2025 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>48-SNAPSHOT</version>
+        <version>47</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-reporter-file-base</artifactId>
-    <version>0.5.1-SNAPSHOT</version>
+    <version>0.5.1</version>
     <name>File Reporter Base</name>
     <description>Base class for file-based reporters defining some common behavior so that it doesn't have to be reimplemented
         all the time.</description>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.15.2-SNAPSHOT</version>
+            <version>0.15.1</version>
         </dependency>
     </dependencies>
 </project>
