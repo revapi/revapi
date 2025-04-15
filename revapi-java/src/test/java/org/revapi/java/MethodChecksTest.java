@@ -22,7 +22,6 @@ import static org.revapi.java.ExpectedValues.dependingOnJavaVersion;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -572,8 +571,8 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
 
         @Override
         public void describeTo(Description description) {
-            description.appendText("report matcher expecting old: ").appendText(expectedOld)
-                    .appendText(", new: ").appendText(expectedNew).appendText(", descriptionRegex: ")
+            description.appendText("report matcher expecting old: ").appendText(expectedOld).appendText(", new: ")
+                    .appendText(expectedNew).appendText(", descriptionRegex: ")
                     .appendText(descriptionRegex == null ? "null" : descriptionRegex.pattern())
                     .appendValueList(", codes", ", ", ".", Arrays.asList(expectedCodes));
         }
