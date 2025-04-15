@@ -17,6 +17,6 @@
 
 name: revapi-yaml
 title: YAML Analyzer
-version: main
+version: 0.4.1
 nav:
   - modules/ROOT/nav.adoc
