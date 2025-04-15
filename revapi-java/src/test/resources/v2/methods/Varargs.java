@@ -23,4 +23,7 @@ public class Varargs extends Base {
 
     public void varargs(int p1, float p2, int... p3) {
     }
+
+    public void varags(int p1, float p2, int p3) {
+    }
 }

@@ -17,4 +17,7 @@
 public class Varargs {
     public void varargs(int p1, float p2, int... p3) {
     }
+
+    public void varargs(int p1, float p2) {
+    }
 }

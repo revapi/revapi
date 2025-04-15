@@ -21,13 +21,19 @@ import static java.util.stream.Collectors.toMap;
 import static org.revapi.java.ExpectedValues.dependingOnJavaVersion;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.junit.Assert;
 import org.junit.Test;
 import org.revapi.Difference;
@@ -499,16 +505,25 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
         CollectingReporter reporter = runAnalysis(CollectingReporter.class, "v1/methods/Varargs.java",
                 "v2/methods/Varargs.java");
 
-        Assert.assertTrue(reporter.getReports().stream()
+        Assert.assertThat(reporter.getReports(),
+                new ReportMatcher("method void Varargs::varargs(int, float, int[])",
+                        "method void Varargs::varargs(int, float, int[])", null,
+                        Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER));
+        Assert.assertThat(reporter.getReports(),
+                new ReportMatcher("method void Varargs::varargs(int, float)",
+                        "method void Base::varargs(int, float, java.lang.Object[]) @ Varargs", null,
+                        Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER,
+                        Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED));
+
+        // check that the non-varargs methods don't show up in the vararg differences...
+        Assert.assertFalse(reporter.getReports().stream()
                 .anyMatch(reportCheck("method void Varargs::varargs(int, float, int[])",
                         "method void Varargs::varargs(int, float, int[])",
+                        Pattern.compile(".*method void Varargs::varargs\\(int, float\\).*"),
                         Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER)));
-        Assert.assertTrue(reporter.getReports().stream()
-                .anyMatch(reportCheck(null, "method void Base::varargs(int, float, java.lang.Object[]) @ Varargs",
-                        Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER, Code.METHOD_ADDED)));
     }
 
-    private Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {
+    private static Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {
         return r -> Objects.toString(expectedOld).equals(asReadable(r.getOldElement()))
                 && Objects.toString(expectedNew).equals(asReadable(r.getNewElement()))
                 && r.getDifferences().size() == expectedCodes.length
@@ -516,7 +531,55 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                         .reduce(true, Boolean::logicalAnd);
     }
 
-    private static String asReadable(Element el) {
+    private static Predicate<Report> reportCheck(String expectedOld, String expectedNew, Pattern descriptionRegex,
+            Code... expectedCodes) {
+        return r -> Objects.toString(expectedOld).equals(asReadable(r.getOldElement()))
+                && Objects.toString(expectedNew).equals(asReadable(r.getNewElement()))
+                && r.getDifferences().size() == expectedCodes.length
+                && r.getDifferences().stream()
+                        .anyMatch(d -> descriptionRegex == null || descriptionRegex.matcher(d.description).matches())
+                && Stream.of(expectedCodes).map(c -> r.getDifferences().stream().anyMatch(d -> d.code.equals(c.code())))
+                        .reduce(true, Boolean::logicalAnd);
+    }
+
+    private static String asReadable(Element<?> el) {
         return el == null ? String.valueOf((Object) null) : el.getFullHumanReadableString();
+    }
+
+    private static final class ReportMatcher extends BaseMatcher<List<Report>> {
+        private final @Nullable String expectedOld;
+        private final @Nullable String expectedNew;
+        private final @Nullable Code[] expectedCodes;
+        private final @Nullable Pattern descriptionRegex;
+
+        public ReportMatcher(String expectedOld, String expectedNew, Pattern descriptionRegex, Code... expectedCodes) {
+            this.expectedOld = expectedOld;
+            this.expectedNew = expectedNew;
+            this.expectedCodes = expectedCodes;
+            this.descriptionRegex = descriptionRegex;
+        }
+
+        @Override
+        public boolean matches(Object item) {
+            if (!(item instanceof List)) {
+                return false;
+            }
+            List<?> list = (List<?>) item;
+            return list.stream().filter(i -> i instanceof Report).map(i -> (Report) i)
+                    .anyMatch(reportCheck(expectedOld, expectedNew, descriptionRegex, expectedCodes));
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("report matcher expecting old: ").appendText(expectedOld)
+                    .appendText(", new: ").appendText(expectedNew).appendText(", descriptionRegex: ")
+                    .appendText(descriptionRegex == null ? "null" : descriptionRegex.pattern())
+                    .appendValueList(", codes", ", ", ".", List.of(expectedCodes));
+        }
+
+        @Override
+        public void describeMismatch(Object item, Description description) {
+            description.appendText("none of the reports in ").appendValue(item).appendText(" matches");
+        }
     }
 }

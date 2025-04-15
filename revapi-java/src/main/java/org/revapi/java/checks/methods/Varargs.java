@@ -57,6 +57,10 @@ public final class Varargs extends CheckBase {
         Types types = method.getTypeEnvironment().getTypeUtils();
 
         List<JavaMethodElement> methodsDifferingOnlyInVarargType = getOverloads(method).filter(m -> {
+            if (!m.getDeclaringElement().isVarArgs()) {
+                return false;
+            }
+
             List<? extends TypeMirror> thisParams = m.getModelRepresentation().getParameterTypes();
             if (thisParams.size() != methodParams.size()) {
                 return false;
