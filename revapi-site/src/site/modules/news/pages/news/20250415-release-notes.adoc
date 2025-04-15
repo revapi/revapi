@@ -1,0 +1,24 @@
+= Release Notes
+:page-publish_date: 2025-04-15
+:page-layout: news-article
+
+It's been a while since I had some time to dedicate to Revapi.
+Now that I got a few moments to spare, I was finally able to spend
+a few moments on Revapi and at long last release the new versions
+of the components.
+
+Thanks to Alan Zimmer for improving the stability of the Java analysis
+and for a big speed up in DifferenceTransforms that are no longer required
+to use regular expressions for difference code comparisons.
+
+In related news, the Revapi gradle plugin has left its original home in 
+Palantir and landed in the revapi organization thanks to the efforts of
+Ajantha Bhat and others last year.
+
+Apart from that I am trying to keep the build and dependencies more or less
+up-to-date.
+
+I intend to spend a little bit more time on Revapi trying to make it easier
+to move the Java analyzer past Java 8 which in my eyes is the last obstacle
+before releasing the first GA version of Revapi.
+
