@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.revapi.java.ExpectedValues.dependingOnJavaVersion;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -574,7 +575,7 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
             description.appendText("report matcher expecting old: ").appendText(expectedOld)
                     .appendText(", new: ").appendText(expectedNew).appendText(", descriptionRegex: ")
                     .appendText(descriptionRegex == null ? "null" : descriptionRegex.pattern())
-                    .appendValueList(", codes", ", ", ".", List.of(expectedCodes));
+                    .appendValueList(", codes", ", ", ".", Arrays.asList(expectedCodes));
         }
 
         @Override
