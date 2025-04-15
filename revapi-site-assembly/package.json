@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "@antora/cli": "^3.1.2",
-    "@antora/site-generator-default": "^3.1.2",
+    "@antora/cli": "^3.1.10",
+    "@antora/site-generator-default": "^3.1.10",
     "antora-site-generator-lunr": "^0.6.1",
     "asciidoctor-kroki": "^0.15.4",
     "rss": "^1.2.2"
