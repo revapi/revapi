@@ -41,7 +41,7 @@
     <properties>
         <version.org.junit>5.7.0</version.org.junit>
         <version.revapi>0.15.2-SNAPSHOT</version.revapi>
-        <version.revapi-java>0.28.2-SNAPSHOT</version.revapi-java>
+        <version.revapi-java>0.28.2</version.revapi-java>
         <version.revapi-java-spi>0.25.2-SNAPSHOT</version.revapi-java-spi>
     </properties>
     <dependencyManagement>
