@@ -56,7 +56,7 @@
         <maven-plugin-plugin.version>3.9.0</maven-plugin-plugin.version>
         <maven.version>3.8.1</maven.version>
         <revapi-java-spi.version>0.25.2-SNAPSHOT</revapi-java-spi.version>
-        <revapi-java.version>0.28.2</revapi-java.version>
+        <revapi-java.version>0.28.3-SNAPSHOT</revapi-java.version>
         <revapi-reporter-text.version>0.15.1-SNAPSHOT</revapi-reporter-text.version>
         <revapi.version>0.15.2-SNAPSHOT</revapi.version>
     </properties>
