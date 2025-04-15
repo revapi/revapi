@@ -1,0 +1,10 @@
+= Release Notes
+:page-publish_date: 2025-04-15
+:page-layout: news-article
+
+This is a quick bugfix release of revapi-java fixing the new vararg check
+that was way too eager and incorrect flagging many false positives.
+
+Please don't use `revapi-java:0.28.2` for anything and use the new `revapi-java:0.28.3`
+instead.
+
