@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>47</version>
+        <version>48-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-ant-task</artifactId>
-    <version>0.13.1</version>
+    <version>0.13.2-SNAPSHOT</version>
     <name>Ant Task</name>
     <description>Ant integration for Revapi.</description>
     <url>https://revapi.org</url>
@@ -55,12 +55,12 @@
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi</artifactId>
-            <version>0.15.1</version>
+            <version>0.15.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.revapi</groupId>
             <artifactId>revapi-basic-features</artifactId>
-            <version>0.13.1</version>
+            <version>0.13.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
