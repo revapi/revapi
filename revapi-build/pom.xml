@@ -174,6 +174,10 @@
                         </goals>
                         <phase>test</phase>
                         <configuration>
+                            <!-- Exclude alternate versions for multi-release modules due to https://github.com/jacoco/jacoco/issues/407 -->
+                            <excludes>
+                                <exclude>META-INF/**/*</exclude>
+                            </excludes>
                             <dataFile>${project.build.directory}/jacoco-ut.exec</dataFile>
                         </configuration>
                     </execution>

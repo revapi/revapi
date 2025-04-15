@@ -14,8 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package superType;
+public class B {
 
-public class A {
+    public static class UsedByIgnoredClass {}
 
+    public static class T$1 {
+        private static class TT$1 {
+            public static final T$2 f = null;
+        }
+    };
+
+    public static class T$2 extends Exception {
+        public T$1 f;
+    };
 }
