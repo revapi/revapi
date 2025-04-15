@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>47</version>
+        <version>48-SNAPSHOT</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-maven-utils</artifactId>
-    <version>0.10.8</version>
+    <version>0.10.9-SNAPSHOT</version>
     <name>Revapi Maven Utils</name>
     <description>Maven utilities for Revapi.</description>
     <url>https://revapi.org</url>
