@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2014-2023 Lukas Krejci
+    Copyright 2014-2025 Lukas Krejci
     and other contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.revapi</groupId>
         <artifactId>revapi-build</artifactId>
-        <version>48-SNAPSHOT</version>
+        <version>47</version>
         <relativePath>../revapi-build</relativePath>
     </parent>
     <artifactId>revapi-maven-utils</artifactId>
-    <version>0.10.8-SNAPSHOT</version>
+    <version>0.10.8</version>
     <name>Revapi Maven Utils</name>
     <description>Maven utilities for Revapi.</description>
     <url>https://revapi.org</url>
