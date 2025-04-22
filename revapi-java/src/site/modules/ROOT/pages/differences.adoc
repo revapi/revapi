@@ -2297,9 +2297,39 @@ will now have to supply an implementation for it.
 | Semantic severity | potentially breaking
 |=============
 
-This is only checked for new methods. The problem here is that if there are 2 overloads of a method that differ only in the type of
-the vararg parameter, then trying to call one of such methods with empty varargs results in an ambiguity and compilation error.
+This is only checked on the methods in the new version of the API. The problem here is that if there are 2 overloads of
+a method that differ only in the type of the vararg parameter, then trying to call one of such methods with empty
+varargs results in an ambiguity and compilation error.
 
+By default, Revapi reports this only on the new version of the method, because it is assumed that the old version is
+already out in the wild. This still may not be desirable behavior though if you need to keep the backwards compatibility
+with the old version and therefore want to keep the "problem" in the API. In such cases, you can configure the check to
+only report the problem on methods newly added to the new API by configuring the API check:
+
+```xml
+<revapi.java>
+  <checks>
+    <varargOverloadsOnlyDifferInVarargParameter>
+      <reportUnchanged>false</reportUnchanged>
+    </varargOverloadsOnlyDifferInVarargParameter>
+  </checks>
+</revapi.java>
+```
+
+or
+
+```
+{
+  "extension": "revapi.java",
+  "configuration": {
+    "checks": {
+      "varargOverloadsOnlyDifferInVarargParameter": {
+        "reportUnchanged": false
+      }
+    }
+  }
+}
+```
 [options=header]
 |====
 2+| Match parameters

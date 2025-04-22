@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 import org.hamcrest.BaseMatcher;
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.junit.Assert;
 import org.junit.Test;
@@ -521,6 +522,31 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
                         "method void Varargs::varargs(int, float, int[])",
                         Pattern.compile(".*method void Varargs::varargs\\(int, float\\).*"),
                         Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER)));
+
+        // now do the same checks with reportUnchanged == false.
+        reporter = runAnalysis(CollectingReporter.class,
+                "[{" + "\"extension\": \"revapi.java\"," + "\"configuration\": {" + "\"checks\": {"
+                        + "\"varargOverloadsOnlyDifferInVarargParameter\": {" + "\"reportUnchanged\": false" + "}}}}]",
+                "v1/methods/Varargs.java", "v2/methods/Varargs.java");
+
+        // this should no longer be reported if reportUnchanged == false, because the method has not changed.
+        Assert.assertThat(reporter.getReports(),
+                CoreMatchers.not(new ReportMatcher("method void Varargs::varargs(int, float, int[])",
+                        "method void Varargs::varargs(int, float, int[])", null,
+                        Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER)));
+        // this should still be reported because the method is either new or changed somehow
+        Assert.assertThat(reporter.getReports(),
+                new ReportMatcher("method void Varargs::varargs(int, float)",
+                        "method void Base::varargs(int, float, java.lang.Object[]) @ Varargs", null,
+                        Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER,
+                        Code.METHOD_NUMBER_OF_PARAMETERS_CHANGED));
+
+        // and reportUnchanged == false should not have an effect on the non-vararg methods.
+        Assert.assertFalse(reporter.getReports().stream()
+                .anyMatch(reportCheck("method void Varargs::varargs(int, float, int[])",
+                        "method void Varargs::varargs(int, float, int[])",
+                        Pattern.compile(".*method void Varargs::varargs\\(int, float\\).*"),
+                        Code.METHOD_VARARG_OVERLOADS_ONLY_DIFFER_IN_VARARG_PARAMETER)));
     }
 
     private static Predicate<Report> reportCheck(String expectedOld, String expectedNew, Code... expectedCodes) {
@@ -549,10 +575,11 @@ public class MethodChecksTest extends AbstractJavaElementAnalyzerTest {
     private static final class ReportMatcher extends BaseMatcher<List<Report>> {
         private final @Nullable String expectedOld;
         private final @Nullable String expectedNew;
-        private final @Nullable Code[] expectedCodes;
+        private final Code[] expectedCodes;
         private final @Nullable Pattern descriptionRegex;
 
-        public ReportMatcher(String expectedOld, String expectedNew, Pattern descriptionRegex, Code... expectedCodes) {
+        public ReportMatcher(@Nullable String expectedOld, @Nullable String expectedNew,
+                @Nullable Pattern descriptionRegex, Code... expectedCodes) {
             this.expectedOld = expectedOld;
             this.expectedNew = expectedNew;
             this.expectedCodes = expectedCodes;

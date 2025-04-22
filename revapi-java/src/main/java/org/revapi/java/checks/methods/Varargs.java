@@ -16,21 +16,52 @@
  */
 package org.revapi.java.checks.methods;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.java.spi.CheckBase;
 import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaMethodElement;
+import org.revapi.java.spi.Util;
 
 public final class Varargs extends CheckBase {
+    private boolean reportUnchanged;
+
+    @Override
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        super.initialize(analysisContext);
+        JsonNode reportUnchanged = analysisContext.getConfigurationNode().path("reportUnchanged");
+        this.reportUnchanged = reportUnchanged.asBoolean(true);
+    }
+
+    @Nullable
+    @Override
+    public String getExtensionId() {
+        return "varargOverloadsOnlyDifferInVarargParameter";
+    }
+
+    @Nullable
+    @Override
+    public Reader getJSONSchema() {
+        return new InputStreamReader(
+                Objects.requireNonNull(getClass().getResourceAsStream("/META-INF/vararg-overloads-config-schema.json")),
+                StandardCharsets.UTF_8);
+    }
 
     @Override
     public EnumSet<Type> getInterest() {
@@ -40,7 +71,11 @@ public final class Varargs extends CheckBase {
     @Override
     protected void doVisitMethod(JavaMethodElement oldMethod, JavaMethodElement newMethod) {
         if (newMethod != null && newMethod.getDeclaringElement().isVarArgs()) {
-            pushActive(oldMethod, newMethod);
+            // only proceed if we should report unchanged methods or if the method is new or has changed.
+            if (reportUnchanged || oldMethod == null || !Util.toUniqueString(oldMethod.getModelRepresentation())
+                    .equals(Util.toUniqueString(newMethod.getModelRepresentation()))) {
+                pushActive(oldMethod, newMethod);
+            }
         }
     }
 
