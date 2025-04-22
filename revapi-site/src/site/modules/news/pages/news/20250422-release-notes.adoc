@@ -1,0 +1,10 @@
+= Release Notes
+:page-publish_date: 2025-04-22
+:page-layout: news-article
+
+This is again a tiny release of `revapi-java:0.28.4` that adds a configuration property to the new vararg overload
+check to ignore unchanged methods. This makes it easier for libraries with already released problematic methods
+to just not consider these as problems and not have to ignore/document them in the API changes.
+
+Thanks to Thomas Mortagne for pointing out this fact.
+
