@@ -4,7 +4,7 @@ site:
   start_page: revapi-site::index.adoc
   robots: allow
 content:
-  edit_url: 'https://github.com/revapi/revapi/edit/main/{path}'
+  edit_url: "https://github.com/revapi/revapi/edit/main/{path}"
   sources:
     - url: ../
       branches: main
@@ -56,17 +56,16 @@ runtime:
   fetch: true
 asciidoc:
   attributes:
-    plantuml-server-url: http://www.plantuml.com/plantuml
     news-feed-title: Revapi
     news-feed-description: Full-featured API checker for Java and beyond
     news-feed-id: https://revapi.org
     news-feed-max-items: 10
     scm-url: https://github.com/revapi/revapi
     scm-files: https://github.com/revapi/revapi/tree/main
+    kroki-fetch-diagram: true
+    kroki-server-url: http://localhost:8000
   extensions:
     - asciidoctor-kroki
     - ./extensions/news
     - ./extensions/component
     - ./extensions/fref
-
-
