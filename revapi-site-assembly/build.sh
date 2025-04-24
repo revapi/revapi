@@ -22,3 +22,4 @@ DOCSEARCH_ENABLED=true \
   node_modules/@antora/cli/bin/antora --generator antora-site-generator-lunr $@
 
 $DOCKER kill local-kroki-installation-for-revapi-build
+$DOCKER rm local-kroki-installation-for-revapi-build
