@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package superType;
-
-public class A {
-
+package sup;
+public class D {
+    public sup.B.UsedByIgnoredClass field;
 }

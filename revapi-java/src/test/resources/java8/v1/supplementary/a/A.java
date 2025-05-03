@@ -14,8 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package superType;
-
 public class A {
+    private B.T$1 f1;
+    public B.T$2 f2;
 
+    //this tests that a public field or method of a private class doesn't move it to API.
+    private enum PrivateEnum {ONE, TWO}
+
+    //this tests missing classes can be used as throws declarations, too
+    public void m() throws B.T$2 {
+
+    }
 }

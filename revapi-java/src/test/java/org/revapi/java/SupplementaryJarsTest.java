@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Lukas Krejci
+ * Copyright 2014-2025 Lukas Krejci
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,6 +46,9 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
     private JavaArchive supV1;
     private JavaArchive supV2;
 
+    public static final String A_PACKAGE_PATH = "a/";
+    public static final String SUP_PACKAGE_PATH = "sup/";
+
     @Before
     public void compile() throws Exception {
         // compile all the classes we need in 1 go
@@ -59,40 +62,60 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         // in public/protected fields/methods/method params are then considered the part of the API during api checks.
 
         apiV1 = ShrinkWrap.create(JavaArchive.class, "apiV1.jar")
-                .addAsResource(compRes1.compilationPath.resolve("A.class").toFile(), "A.class")
-                .addAsResource(compRes1.compilationPath.resolve("C.class").toFile(), "C.class");
+                .addAsResource(compRes1.compilationPath.resolve(A_PACKAGE_PATH + "A.class").toFile(),
+                        A_PACKAGE_PATH + "A.class")
+                .addAsResource(compRes1.compilationPath.resolve(A_PACKAGE_PATH + "C.class").toFile(),
+                        A_PACKAGE_PATH + "C.class")
+                .addAsResource(compRes1.compilationPath.resolve(A_PACKAGE_PATH + "A$PrivateEnum.class").toFile(),
+                        A_PACKAGE_PATH + "A$PrivateEnum.class");
 
         supV1 = ShrinkWrap.create(JavaArchive.class, "supV1.jar")
-                .addAsResource(compRes1.compilationPath.resolve("B.class").toFile(), "B.class")
-                .addAsResource(compRes1.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
-                .addAsResource(compRes1.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
-                .addAsResource(compRes1.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
-                .addAsResource(compRes1.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(),
-                        "B$UsedByIgnoredClass.class")
-                .addAsResource(compRes1.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class");
+                .addAsResource(compRes1.compilationPath.resolve(SUP_PACKAGE_PATH + "B.class").toFile(),
+                        SUP_PACKAGE_PATH + "B.class")
+                .addAsResource(compRes1.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$1.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$1.class")
+                .addAsResource(compRes1.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$1$TT$1.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$1$TT$1.class")
+                .addAsResource(compRes1.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$2.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$2.class")
+                .addAsResource(
+                        compRes1.compilationPath.resolve(SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class");
 
         // now do the same for v2
         compRes2 = createCompiledJar("tmp2", "v2/supplementary/a/A.java", "v2/supplementary/b/B.java",
                 "v2/supplementary/a/C.java");
 
         apiV2 = ShrinkWrap.create(JavaArchive.class, "apiV2.jar")
-                .addAsResource(compRes2.compilationPath.resolve("A.class").toFile(), "A.class")
-                .addAsResource(compRes2.compilationPath.resolve("C.class").toFile(), "C.class");
+                .addAsResource(compRes2.compilationPath.resolve(A_PACKAGE_PATH + "A.class").toFile(),
+                        A_PACKAGE_PATH + "A.class")
+                .addAsResource(compRes2.compilationPath.resolve(A_PACKAGE_PATH + "C.class").toFile(),
+                        A_PACKAGE_PATH + "C.class")
+                .addAsResource(compRes2.compilationPath.resolve(A_PACKAGE_PATH + "A$PrivateEnum.class").toFile(),
+                        A_PACKAGE_PATH + "A$PrivateEnum.class");
         supV2 = ShrinkWrap.create(JavaArchive.class, "supV2.jar")
-                .addAsResource(compRes2.compilationPath.resolve("B.class").toFile(), "B.class")
-                .addAsResource(compRes2.compilationPath.resolve("B$T$1.class").toFile(), "B$T$1.class")
-                .addAsResource(compRes2.compilationPath.resolve("B$T$1$TT$1.class").toFile(), "B$T$1$TT$1.class")
-                .addAsResource(compRes2.compilationPath.resolve("B$T$2.class").toFile(), "B$T$2.class")
-                .addAsResource(compRes2.compilationPath.resolve("B$T$1$Private.class").toFile(), "B$T$1$Private.class")
-                .addAsResource(compRes2.compilationPath.resolve("B$T$3.class").toFile(), "B$T$3.class")
-                .addAsResource(compRes2.compilationPath.resolve("B$PrivateSuperClass.class").toFile(),
-                        "B$PrivateSuperClass.class")
-                .addAsResource(compRes2.compilationPath.resolve("B$PrivateUsedClass.class").toFile(),
-                        "B$PrivateUsedClass.class")
-                .addAsResource(compRes2.compilationPath.resolve("B$UsedByIgnoredClass.class").toFile(),
-                        "B$UsedByIgnoredClass.class")
-                .addAsResource(compRes2.compilationPath.resolve("A$PrivateEnum.class").toFile(), "A$PrivateEnum.class")
-                .addAsResource(compRes2.compilationPath.resolve("B$PrivateBase.class").toFile(), "B$PrivateBase.class");
+                .addAsResource(compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B.class").toFile(),
+                        SUP_PACKAGE_PATH + "B.class")
+                .addAsResource(compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$1.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$1.class")
+                .addAsResource(compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$1$TT$1.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$1$TT$1.class")
+                .addAsResource(compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$2.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$2.class")
+                .addAsResource(compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$1$Private.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$1$Private.class")
+                .addAsResource(compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B$T$3.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$T$3.class")
+                .addAsResource(
+                        compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B$PrivateSuperClass.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$PrivateSuperClass.class")
+                .addAsResource(compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B$PrivateUsedClass.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$PrivateUsedClass.class")
+                .addAsResource(
+                        compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$UsedByIgnoredClass.class")
+                .addAsResource(compRes2.compilationPath.resolve(SUP_PACKAGE_PATH + "B$PrivateBase.class").toFile(),
+                        SUP_PACKAGE_PATH + "B$PrivateBase.class");
     }
 
     @After
@@ -118,20 +141,21 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         }
 
         Assert.assertEquals(8, allReports.size());
-        Assert.assertTrue(
-                containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
-        Assert.assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert.assertTrue(
-                containsDifference(allReports, null, "class B.T$3", Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
+        Assert.assertTrue(containsDifference(allReports, null, "class sup.B.T$1.Private",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
-        Assert.assertTrue(containsDifference(allReports, "class B.UsedByIgnoredClass", "interface B.UsedByIgnoredClass",
-                Code.CLASS_KIND_CHANGED.code()));
-        Assert.assertTrue(containsDifference(allReports, "class B.UsedByIgnoredClass", "interface B.UsedByIgnoredClass",
-                Code.CLASS_NOW_ABSTRACT.code()));
-        Assert.assertTrue(containsDifference(allReports, "method void B.UsedByIgnoredClass::<init>()", null,
+        Assert.assertTrue(containsDifference(allReports, null, "field sup.B.T$2.f2", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field a.A.f3", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(
+                containsDifference(allReports, "class sup.B.T$2", "class sup.B.T$2", Code.CLASS_NOW_FINAL.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class sup.B.T$3",
+                Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class sup.B.PrivateUsedClass",
+                Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+        Assert.assertTrue(containsDifference(allReports, "class sup.B.UsedByIgnoredClass",
+                "interface sup.B.UsedByIgnoredClass", Code.CLASS_KIND_CHANGED.code()));
+        Assert.assertTrue(containsDifference(allReports, "class sup.B.UsedByIgnoredClass",
+                "interface sup.B.UsedByIgnoredClass", Code.CLASS_NOW_ABSTRACT.code()));
+        Assert.assertTrue(containsDifference(allReports, "method void sup.B.UsedByIgnoredClass::<init>()", null,
                 Code.METHOD_REMOVED.code()));
     }
 
@@ -144,7 +168,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
                 .withConfigurationFromJSON("{\"revapi\": {\"filter\": {"
-                        + "\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"class C {}\"}]}}}}")
+                        + "\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"class a.C {}\"}]}}}}")
                 .build();
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
@@ -153,18 +177,19 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         }
 
         Assert.assertEquals(6, allReports.size());
-        Assert.assertTrue(
-                containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
-        Assert.assertTrue(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert.assertTrue(
-                containsDifference(allReports, null, "class B.T$3", Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
+        Assert.assertTrue(containsDifference(allReports, null, "class sup.B.T$1.Private",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
-        Assert.assertFalse(containsDifference(allReports, "class B.UsedByIgnoredClass", "class B.UsedByIgnoredClass",
-                Code.CLASS_KIND_CHANGED.code()));
-        Assert.assertFalse(containsDifference(allReports, "method void B.UsedByIgnoredClass::<init>()", null,
+        Assert.assertTrue(containsDifference(allReports, null, "field sup.B.T$2.f2", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field a.A.f3", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(
+                containsDifference(allReports, "class sup.B.T$2", "class sup.B.T$2", Code.CLASS_NOW_FINAL.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class sup.B.T$3",
+                Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class sup.B.PrivateUsedClass",
+                Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+        Assert.assertFalse(containsDifference(allReports, "class sup.B.UsedByIgnoredClass",
+                "class sup.B.UsedByIgnoredClass", Code.CLASS_KIND_CHANGED.code()));
+        Assert.assertFalse(containsDifference(allReports, "method void sup.B.UsedByIgnoredClass::<init>()", null,
                 Code.METHOD_REMOVED.code()));
     }
 
@@ -178,7 +203,7 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
                 .withOldAPI(API.of(new ShrinkwrapArchive(apiV1)).supportedBy(new ShrinkwrapArchive(supV1)).build())
                 .withNewAPI(API.of(new ShrinkwrapArchive(apiV2)).supportedBy(new ShrinkwrapArchive(supV2)).build())
                 .withConfigurationFromJSON("{\"revapi\": {"
-                        + "\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"match %c | %b; class %c=C {} class %b=B.T$2 {}\"}]}}}}")
+                        + "\"filter\": {\"elements\": {\"exclude\": [{\"matcher\": \"java\", \"match\": \"match %c | %b; class %c=a.C {} class %b=sup.B.T$2 {}\"}]}}}}")
                 .build();
 
         try (AnalysisResult res = revapi.analyze(ctx)) {
@@ -187,18 +212,19 @@ public class SupplementaryJarsTest extends AbstractJavaElementAnalyzerTest {
         }
 
         Assert.assertEquals(3, allReports.size());
-        Assert.assertFalse(
-                containsDifference(allReports, null, "class B.T$1.Private", Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
-        Assert.assertFalse(containsDifference(allReports, null, "field B.T$2.f2", Code.FIELD_ADDED.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "field A.f3", Code.FIELD_ADDED.code()));
-        Assert.assertFalse(containsDifference(allReports, "class B.T$2", "class B.T$2", Code.CLASS_NOW_FINAL.code()));
-        Assert.assertTrue(
-                containsDifference(allReports, null, "class B.T$3", Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
-        Assert.assertTrue(containsDifference(allReports, null, "class B.PrivateUsedClass",
+        Assert.assertFalse(containsDifference(allReports, null, "class sup.B.T$1.Private",
                 Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
-        Assert.assertFalse(containsDifference(allReports, "class B.UsedByIgnoredClass", "class B.UsedByIgnoredClass",
-                Code.CLASS_KIND_CHANGED.code()));
-        Assert.assertFalse(containsDifference(allReports, "method void B.UsedByIgnoredClass::<init>()", null,
+        Assert.assertFalse(containsDifference(allReports, null, "field sup.B.T$2.f2", Code.FIELD_ADDED.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "field a.A.f3", Code.FIELD_ADDED.code()));
+        Assert.assertFalse(
+                containsDifference(allReports, "classa. B.T$2", "class sup.B.T$2", Code.CLASS_NOW_FINAL.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class sup.B.T$3",
+                Code.CLASS_EXTERNAL_CLASS_EXPOSED_IN_API.code()));
+        Assert.assertTrue(containsDifference(allReports, null, "class sup.B.PrivateUsedClass",
+                Code.CLASS_NON_PUBLIC_PART_OF_API.code()));
+        Assert.assertFalse(containsDifference(allReports, "class sup.B.UsedByIgnoredClass",
+                "class sup.B.UsedByIgnoredClass", Code.CLASS_KIND_CHANGED.code()));
+        Assert.assertFalse(containsDifference(allReports, "method void sup.B.UsedByIgnoredClass::<init>()", null,
                 Code.METHOD_REMOVED.code()));
     }
 }

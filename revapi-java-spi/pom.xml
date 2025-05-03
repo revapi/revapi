@@ -44,7 +44,6 @@
     </distributionManagement>
     <properties>
         <automatic.module.name>org.revapi.java.spi</automatic.module.name>
-        <jacoco.skip>true</jacoco.skip>
     </properties>
     <dependencies>
         <dependency>

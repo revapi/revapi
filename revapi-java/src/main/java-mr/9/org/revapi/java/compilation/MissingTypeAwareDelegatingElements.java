@@ -24,6 +24,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.ModuleElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -122,5 +123,10 @@ final class MissingTypeAwareDelegatingElements implements Elements {
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
+    }
+
+    @Override
+    public ModuleElement getModuleOf(Element e) {
+        return elements.getModuleOf(e);
     }
 }
