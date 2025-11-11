@@ -113,6 +113,12 @@
                             <goal>report-aggregate</goal>
                         </goals>
                         <phase>verify</phase>
+                        <configuration>
+                            <!-- Exclude alternate versions for multi-release modules due to https://github.com/jacoco/jacoco/issues/407 -->
+                            <excludes>
+                                <exclude>META-INF/**/*</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
