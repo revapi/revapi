@@ -48,7 +48,7 @@ public final class ApiBreakageHintingReporter implements Reporter {
                 if (breaking) {
                     changeLevel = ApiChangeLevel.BREAKING_CHANGES;
                     break LOOP;
-                } else {
+                } else if (s != DifferenceSeverity.EQUIVALENT) {
                     changeLevel = ApiChangeLevel.NON_BREAKING_CHANGES;
                 }
             }
